@@ -85,13 +85,13 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
     @Test
     public void findByFilter() {
 
-        List<ProgramVO> programs = service.findByFilter(ProgramFilterVO.programFilterBuilder().searchText("ADAP").build(), 0,10, Program.Fields.LABEL, SortDirection.ASC);
+        List<ProgramVO> programs = service.findByFilter(ProgramFilterVO.builder().searchText("ADAP").build(), 0,10, Program.Fields.LABEL, SortDirection.ASC);
         Assert.assertNotNull(programs);
         Assert.assertEquals(2, programs.size());
         Assert.assertEquals("ADAP-CONTROLE", programs.get(0).getLabel());
         Assert.assertEquals("ADAP-MER", programs.get(1).getLabel());
 
-        programs = service.findByFilter(ProgramFilterVO.programFilterBuilder().withProperty("sumaris.trip.operation.batch.autoFill").build(), 0,10, Program.Fields.LABEL, SortDirection.ASC);
+        programs = service.findByFilter(ProgramFilterVO.builder().withProperty("sumaris.trip.operation.batch.autoFill").build(), 0,10, Program.Fields.LABEL, SortDirection.ASC);
         Assert.assertNotNull(programs);
         Assert.assertEquals(1, programs.size());
         Assert.assertEquals(10, programs.get(0).getId().intValue());

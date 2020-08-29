@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;

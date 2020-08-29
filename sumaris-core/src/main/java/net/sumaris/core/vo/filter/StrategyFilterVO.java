@@ -1,26 +1,30 @@
 package net.sumaris.core.vo.filter;
 
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 
 /**
  * @author peck7 on 24/08/2020.
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
+@FieldNameConstants
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StrategyFilterVO extends ReferentialFilterVO {
+public class StrategyFilterVO implements IReferentialFilter {
+
+    private String label;
+    private String name;
+
+    private Integer[] statusIds;
+
+    private Integer levelId;
+    private Integer[] levelIds;
+
+    private String searchJoin;
+    private String searchText;
+    private String searchAttribute;
 
     private Integer programId;
-
-    @Builder(builderMethodName = "strategyFilterBuilder")
-    public StrategyFilterVO(String label, String name,
-                             Integer[] statusIds, Integer levelId, Integer[] levelIds,
-                             String searchJoin, String searchText, String searchAttribute,
-                             Integer programId) {
-        super(label, name, statusIds, levelId, levelIds, searchJoin, searchText, searchAttribute);
-        this.programId = programId;
-    }
-
 
 }

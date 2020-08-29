@@ -26,20 +26,24 @@ import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProgramFilterVO extends ReferentialFilterVO {
+public class ProgramFilterVO implements IReferentialFilter {
+
+    private String label;
+    private String name;
+
+    private Integer[] statusIds;
+
+    private Integer levelId;
+    private Integer[] levelIds;
+
+    private String searchJoin;
+    private String searchText;
+    private String searchAttribute;
 
     private String withProperty;
 
-    @Builder(builderMethodName = "programFilterBuilder")
-    public ProgramFilterVO(String label, String name,
-                           Integer[] statusIds, Integer levelId, Integer[] levelIds,
-                           String searchJoin, String searchText, String searchAttribute,
-                           String withProperty) {
-        super(label, name, statusIds, levelId, levelIds, searchJoin, searchText, searchAttribute);
-        this.withProperty = withProperty;
-    }
 }

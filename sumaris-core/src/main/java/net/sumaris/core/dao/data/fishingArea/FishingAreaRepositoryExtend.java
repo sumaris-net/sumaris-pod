@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.fishingArea;
 
 /*-
  * #%L
@@ -22,18 +22,15 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.vo.data.LandingVO;
-import net.sumaris.core.vo.filter.LandingFilterVO;
+import net.sumaris.core.vo.data.FishingAreaVO;
 
-import java.util.Collection;
+import java.util.List;
 
-public interface LandingRepository extends
-    RootDataRepository<Landing, Integer, LandingVO, LandingFilterVO>,
-    LandingRepositoryExtend {
+public interface FishingAreaRepositoryExtend {
 
-    Landing getByTripId(Integer tripId);
+    List<FishingAreaVO> getAllVOByOperationId(Integer operationId);
 
-    void deleteByIdIn(Collection<Integer> landingIds);
+    List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas);
+
 
 }

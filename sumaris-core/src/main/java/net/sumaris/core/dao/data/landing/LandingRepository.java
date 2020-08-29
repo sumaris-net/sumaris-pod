@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.filter;
+package net.sumaris.core.dao.data.landing;
 
 /*-
  * #%L
@@ -10,41 +10,31 @@ package net.sumaris.core.vo.filter;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import lombok.Data;
-import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.data.RootDataRepository;
+import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.vo.data.LandingVO;
+import net.sumaris.core.vo.filter.LandingFilterVO;
 
-import java.util.Date;
+import java.util.Collection;
 
-@Data
-@FieldNameConstants
-public class PhysicalGearFilterVO implements IRootDataFilter, IVesselFilter {
+public interface LandingRepository extends
+    RootDataRepository<Landing, Integer, LandingVO, LandingFilterVO>,
+    LandingRepositoryExtend {
 
-    private Integer tripId;
+    Landing getByTripId(Integer tripId);
 
-    private Integer vesselId;
-
-    private Date startDate;
-
-    private Date endDate;
-
-    private String programLabel;
-
-    private Integer recorderDepartmentId;
-
-    private Integer recorderPersonId;
-
-    private Integer locationId;
+    void deleteByIdIn(Collection<Integer> landingIds);
 
 }

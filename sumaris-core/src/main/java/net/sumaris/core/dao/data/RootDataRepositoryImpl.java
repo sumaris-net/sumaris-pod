@@ -38,11 +38,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
 public abstract class RootDataRepositoryImpl<
     E extends IRootDataEntity<ID>,
@@ -65,18 +67,17 @@ public abstract class RootDataRepositoryImpl<
     @Autowired
     private ProgramRepository programRepository;
 
-    protected RootDataRepositoryImpl(Class<E> domainClass,
-                                  EntityManager entityManager) {
-        super(domainClass, entityManager);
+    protected RootDataRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
+        super(domainClass, voClass, entityManager);
         setCopyExcludeProperties(
                 IRootDataEntity.Fields.UPDATE_DATE,
                 IRootDataEntity.Fields.CREATION_DATE);
 
-        this.setEnableForUpdate(true);
+        this.setLockForUpdate(true);
     }
 
     @Override
-    public <S extends E> S save(S entity) {
+    public <S extends E> S save(S entity) { // fixme : what use ?????
         // When new entity: set the creation date
         if (entity.getId() == null || entity.getCreationDate() == null) {
             entity.setCreationDate(entity.getUpdateDate());
@@ -88,6 +89,16 @@ public abstract class RootDataRepositoryImpl<
     public void toEntity(V source, E target, boolean copyIfNull) {
         DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull, getCopyExcludeProperties());
     }
+
+    @Override
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        if (isNew) {
+            vo.setCreationDate(savedEntity.getCreationDate());
+        }
+    }
+
 
     @Override
     public void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
@@ -121,7 +132,7 @@ public abstract class RootDataRepositoryImpl<
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(source, entity);
 
         // Lock entityName
-        if (isLockForUpdateEnable()) lockForUpdate(entity);
+        if (isLockForUpdate()) lockForUpdate(entity);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -153,7 +164,7 @@ public abstract class RootDataRepositoryImpl<
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        if (isLockForUpdateEnable()) lockForUpdate(entity);
+        if (isLockForUpdate()) lockForUpdate(entity);
 
         // TODO UNVALIDATION PROCESS HERE
         entity.setValidationDate(null);
@@ -179,12 +190,9 @@ public abstract class RootDataRepositoryImpl<
     /* -- protected method -- */
 
     @Override
-    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
-
-        if (isNew) {
-            vo.setCreationDate(savedEntity.getCreationDate());
-        }
+    protected Specification<E> toSpecification(F filter) {
+        return super.toSpecification(filter)
+            .and(hasRecorderPersonId(filter.getRecorderPersonId()))
+            .and(hasProgramLabel(filter.getProgramLabel()));
     }
-
 }

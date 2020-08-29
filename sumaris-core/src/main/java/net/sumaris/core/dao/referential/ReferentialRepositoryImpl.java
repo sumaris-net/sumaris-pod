@@ -30,7 +30,7 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -44,7 +44,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -56,33 +55,14 @@ import java.util.stream.Collectors;
  * @author peck7 on 03/04/2020.
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends ReferentialFilterVO, O extends IFetchOptions>
+public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends IReferentialFilter, O extends IFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
     implements ReferentialRepository<E, V, F, O>, ReferentialSpecifications<E> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
-    private boolean checkUpdateDate = true;
-    private boolean lockForUpdate = false;
-
     public ReferentialRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
-    }
-
-    public boolean isCheckUpdateDate() {
-        return checkUpdateDate;
-    }
-
-    public void setCheckUpdateDate(boolean checkUpdateDate) {
-        this.checkUpdateDate = checkUpdateDate;
-    }
-
-    public boolean isLockForUpdate() {
-        return lockForUpdate;
-    }
-
-    public void setLockForUpdate(boolean lockForUpdate) {
-        this.lockForUpdate = lockForUpdate;
     }
 
     @Override
@@ -204,51 +184,14 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
     }
 
     @Override
-    public V save(V vo) {
-        E entity = toEntity(vo);
-
-        boolean isNew = entity.getId() == null;
-        if (isNew) {
-            entity.setCreationDate(new Date());
-        }
-
-        if (!isNew) {
-
-            if (isCheckUpdateDate()) {
-                // Check update date
-                Daos.checkUpdateDateForUpdate(vo, entity);
-            }
-
-            if (isLockForUpdate()) {
-                // Lock for update
-                lockForUpdate(entity);
-            }
-
-        }
-
-        // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-        entity.setUpdateDate(newUpdateDate);
-
-        E savedEntity = save(entity);
-
-        // Update VO
-        onAfterSaveEntity(vo, savedEntity, isNew);
-
-        return vo;
-    }
-
-    @Override
-    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
-        if (isNew)
-            vo.setCreationDate(savedEntity.getCreationDate());
-    }
-
-    @Override
     public void toEntity(V source, E target, boolean copyIfNull) {
         // copy properties
         super.toEntity(source, target, copyIfNull);
+
+        // Creation date
+        if (target.getId() == null || target.getCreationDate() == null) {
+            target.setCreationDate(new Date());
+        }
 
         // Status
         if (copyIfNull || source.getStatusId() != null) {
@@ -263,6 +206,16 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
             }
         }
 
+    }
+
+    @Override
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        if (isNew) {
+            // recopy creation date
+            vo.setCreationDate(savedEntity.getCreationDate());
+        }
     }
 
     @Override

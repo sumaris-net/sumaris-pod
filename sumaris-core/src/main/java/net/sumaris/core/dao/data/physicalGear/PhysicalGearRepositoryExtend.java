@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.physicalGear;
 
 /*-
  * #%L
@@ -22,35 +22,59 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import net.sumaris.core.dao.data.RootDataSpecifications;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
 import java.util.List;
 
-public interface PhysicalGearRepositoryExtend {
+public interface PhysicalGearRepositoryExtend extends RootDataSpecifications<PhysicalGear> {
+
+    String VESSEL_ID_PARAM = "vesselId";
+    String TRIP_ID_PARAM = "tripId";
 
     default Specification<PhysicalGear> hasVesselId(Integer vesselId) {
-        if (vesselId == null) return null;
-        return (root, query, cb) -> cb.equal(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), vesselId);
+        BindableSpecification<PhysicalGear> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(param),
+                criteriaBuilder.equal(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), param)
+            );
+        });
+        specification.addBind(VESSEL_ID_PARAM, vesselId);
+        return specification;
     }
 
     default Specification<PhysicalGear> hasTripId(Integer tripId) {
-        if (tripId == null) return null;
-        return (root, query, cb) -> cb.equal(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.ID), tripId);
+        BindableSpecification<PhysicalGear> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(param),
+                criteriaBuilder.equal(root.get(PhysicalGear.Fields.TRIP).get(IEntity.Fields.ID), param)
+            );
+        });
+        specification.addBind(TRIP_ID_PARAM, tripId);
+        return specification;
     }
 
-    default Specification<PhysicalGear> programLabel(String programLabel) {
-        if (StringUtils.isBlank(programLabel)) return null;
-        return (root, query, cb) -> cb.equal(root.get(PhysicalGear.Fields.TRIP)
-                .get(Trip.Fields.PROGRAM).get(Program.Fields.LABEL), programLabel.trim());
+    default Specification<PhysicalGear> hasProgramLabel(String programLabel) {
+        BindableSpecification<PhysicalGear> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROGRAM_LABEL_PARAM);
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(param),
+                criteriaBuilder.equal(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.PROGRAM).get(Program.Fields.LABEL), param)
+            );
+        });
+        specification.addBind(PROGRAM_LABEL_PARAM, programLabel);
+        return specification;
     }
-
 
     default Specification<PhysicalGear> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
@@ -69,7 +93,7 @@ public interface PhysicalGearRepositoryExtend {
                 return cb.greaterThanOrEqualTo(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME), startDate);
             }
             // End date
-            else  {
+            else {
                 return cb.lessThanOrEqualTo(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME), endDate);
             }
         };

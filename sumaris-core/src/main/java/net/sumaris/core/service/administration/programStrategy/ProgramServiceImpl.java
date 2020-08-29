@@ -49,12 +49,12 @@ public class ProgramServiceImpl implements ProgramService {
 
 	@Override
 	public List<ProgramVO> getAll() {
-		return programRepository.findAll(ProgramFilterVO.programFilterBuilder().build());
+		return programRepository.findAll(ProgramFilterVO.builder().build());
 	}
 
 	@Override
 	public List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		if (filter == null) filter = ProgramFilterVO.programFilterBuilder().build();
+		if (filter == null) filter = ProgramFilterVO.builder().build();
 		return programRepository.findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
 	}
 

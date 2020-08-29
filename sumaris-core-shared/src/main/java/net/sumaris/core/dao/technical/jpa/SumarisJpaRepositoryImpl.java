@@ -65,6 +65,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     implements SumarisJpaRepository<E, ID, V> {
 
     private boolean debugEntityLoad = false;
+    private boolean checkUpdateDate = true;
+    private boolean lockForUpdate = false;
 
     private EntityManager entityManager;
 
@@ -89,6 +91,22 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         this.entityManager = entityManager;
     }
 
+    public boolean isCheckUpdateDate() {
+        return checkUpdateDate;
+    }
+
+    public void setCheckUpdateDate(boolean checkUpdateDate) {
+        this.checkUpdateDate = checkUpdateDate;
+    }
+
+    public boolean isLockForUpdate() {
+        return lockForUpdate;
+    }
+
+    public void setLockForUpdate(boolean lockForUpdate) {
+        this.lockForUpdate = lockForUpdate;
+    }
+
     @Override
     public E createEntity() {
         try {
@@ -106,15 +124,21 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
         // Entity has update date
         if (entity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
-            // Check update date
-            Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) vo, (IUpdateDateEntityBean) entity);
+
+            if (!isNew && isCheckUpdateDate()) {
+                // Check update date
+                Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) vo, (IUpdateDateEntityBean) entity);
+            }
 
             // Update update_dt
-            Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-            ((IUpdateDateEntityBean) entity).setUpdateDate(newUpdateDate);
+            ((IUpdateDateEntityBean) entity).setUpdateDate(getDatabaseCurrentTimestamp());
         }
 
-        // Note: No lock is performed before persist. You should override this method in implementation class
+        if (!isNew && isLockForUpdate()) {
+            lockForUpdate(entity);
+        }
+
+        // Save entity
         E savedEntity = save(entity);
 
         // Update VO
@@ -151,6 +175,14 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         Beans.copyProperties(source, target);
     }
 
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        vo.setId(savedEntity.getId());
+        // copy updateDate to source vo
+        if (savedEntity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
+            ((IUpdateDateEntityBean) vo).setUpdateDate(((IUpdateDateEntityBean) savedEntity).getUpdateDate());
+        }
+    }
+
     public V toVO(E source) {
         if (source == null) return null;
         V target = createVO();
@@ -176,14 +208,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     /* -- protected method -- */
-
-    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
-        vo.setId(savedEntity.getId());
-        // copy updateDate to source vo
-        if (savedEntity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
-            ((IUpdateDateEntityBean) vo).setUpdateDate(((IUpdateDateEntityBean) savedEntity).getUpdateDate());
-        }
-    }
 
     protected EntityManager getEntityManager() {
         return entityManager;

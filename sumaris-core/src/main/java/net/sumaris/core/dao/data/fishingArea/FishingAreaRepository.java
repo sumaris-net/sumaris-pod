@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.fishingArea;
 
 /*-
  * #%L
@@ -22,15 +22,16 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
+import net.sumaris.core.model.data.FishingArea;
 import net.sumaris.core.vo.data.FishingAreaVO;
 
 import java.util.List;
 
-public interface FishingAreaRepositoryExtend {
+public interface FishingAreaRepository
+    extends SumarisJpaRepository<FishingArea, Integer, FishingAreaVO>, FishingAreaRepositoryExtend
+{
+    List<FishingArea> getAllByOperationId(int operationId);
 
-    List<FishingAreaVO> getAllVOByOperationId(Integer operationId);
-
-    List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas);
-
-
+    void deleteAllByOperationId(int operationId);
 }

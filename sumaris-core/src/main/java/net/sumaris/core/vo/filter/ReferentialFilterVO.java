@@ -28,14 +28,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
-import java.io.Serializable;
-
 @Data
 @FieldNameConstants
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReferentialFilterVO implements Serializable {
+public class ReferentialFilterVO implements IReferentialFilter {
 
     private String label;
     private String name;

@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.product;
 
 /*-
  * #%L
@@ -25,6 +25,10 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.user.PersonRepository;
+import net.sumaris.core.dao.data.DataDaos;
+import net.sumaris.core.dao.data.DataRepositoryImpl;
+import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Daos;
@@ -81,7 +85,7 @@ public class ProductRepositoryImpl
                                  PmfmRepository pmfmRepository,
                                  LandingRepository landingRepository,
                                  MeasurementDao measurementDao) {
-        super(Product.class, entityManager);
+        super(Product.class, ProductVO.class, entityManager);
         this.baseRefRepository = baseRefRepository;
         this.personRepository = personRepository;
         this.landingRepository = landingRepository;
@@ -94,15 +98,9 @@ public class ProductRepositoryImpl
     }
 
     @Override
-    public Class<ProductVO> getVOClass() {
-        return ProductVO.class;
-    }
-
-    @Override
     public Specification<Product> toSpecification(ProductFilterVO filter) {
-        if (filter == null) return null;
-
-        return Specification.where(hasLandingId(filter.getLandingId()))
+        return super.toSpecification(filter)
+            .and(hasLandingId(filter.getLandingId()))
             .and(hasOperationId(filter.getOperationId()))
             .and(hasSaleId(filter.getSaleId()));
     }

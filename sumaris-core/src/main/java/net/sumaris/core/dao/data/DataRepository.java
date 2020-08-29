@@ -27,15 +27,13 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
+import net.sumaris.core.vo.filter.IDataFilter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
-import javax.persistence.LockModeType;
-import java.io.Serializable;
 import java.util.List;
 
 @NoRepositoryBean
@@ -43,26 +41,25 @@ public interface DataRepository<
         E extends IDataEntity<ID>,
         ID extends Integer,
         V extends IDataVO<ID>,
-        F extends Serializable
+        F extends IDataFilter
         >
         extends SumarisJpaRepository<E, ID, V> {
 
 
     // From a filter
-    List<V> findAll(@Nullable F filter);
+    List<V> findAll(F filter);
 
-    Page<V> findAll(@Nullable F filter, Pageable pageable);
+    Page<V> findAll(F filter, Pageable pageable);
 
-    List<V> findAll(@Nullable F filter, @Nullable DataFetchOptions fetchOptions);
+    List<V> findAll(F filter, @Nullable DataFetchOptions fetchOptions);
 
-    List<V> findAll(@Nullable F filter, net.sumaris.core.dao.technical.Page page, @Nullable DataFetchOptions fetchOptions);
+    List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, @Nullable DataFetchOptions fetchOptions);
 
-    Page<V> findAll(@Nullable F filter, Pageable pageable, @Nullable DataFetchOptions fetchOptions);
+    Page<V> findAll(F filter, Pageable pageable, @Nullable DataFetchOptions fetchOptions);
 
     Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions);
 
-    Page<V> findAll(F filter, int offset, int size, String sortAttribute,
-                    SortDirection sortDirection, DataFetchOptions fetchOptions);
+    Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions);
 
     // From a specification
     List<V> findAllVO(@Nullable Specification<E> spec);
@@ -76,11 +73,6 @@ public interface DataRepository<
 
     V get(ID id, DataFetchOptions fetchOptions);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    V save(V vo);
-
-    Specification<E> toSpecification(@Nullable F filter);
-
     V control(V vo);
 
     V validate(V vo);
@@ -90,7 +82,5 @@ public interface DataRepository<
     V qualify(V vo);
 
     V toVO(E source, DataFetchOptions fetchOptions);
-
-    void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull);
 
 }

@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.trip;
 
 /*-
  * #%L
@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.QualityFlagEnum;
@@ -52,25 +53,16 @@ public class TripRepositoryImpl
 
     @Autowired
     public TripRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository) {
-        super(Trip.class, entityManager);
+        super(Trip.class, TripVO.class, entityManager);
         this.locationRepository = locationRepository;
     }
 
     @Override
     public Specification<Trip> toSpecification(TripFilterVO filter) {
-        if (filter == null) return null;
-
-        return Specification
-                .where(hasRecorderDepartmentId(filter.getRecorderDepartmentId()))
-                .and(hasRecorderPersonId(filter.getRecorderPersonId()))
-                .and(hasProgramLabel(filter.getProgramLabel()))
+        return super.toSpecification(filter)
                 .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
                 .and(hasLocationId(filter.getLocationId()))
                 .and(hasVesselId(filter.getVesselId()));
-    }
-
-    public Class<TripVO> getVOClass() {
-        return TripVO.class;
     }
 
     @Override
@@ -132,7 +124,7 @@ public class TripRepositoryImpl
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
-        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId().intValue() : 0;
+        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId() : 0;
 
         // If not qualify, then remove the qualification date
         if (qualityFlagId == QualityFlagEnum.NOT_QUALIFED.getId()) {
@@ -142,7 +134,7 @@ public class TripRepositoryImpl
             entity.setQualificationDate(newUpdateDate);
         }
         // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
-        entity.setQualityFlag(find(QualityFlag.class, Integer.valueOf(qualityFlagId)));
+        entity.setQualityFlag(find(QualityFlag.class, qualityFlagId));
 
         // TODO UNVALIDATION PROCESS HERE
         // - insert into qualification history

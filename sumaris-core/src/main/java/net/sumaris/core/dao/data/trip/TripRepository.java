@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.trip;
 
 /*-
  * #%L
@@ -22,11 +22,9 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.dao.data.RootDataRepository;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 
 public interface TripRepository extends

@@ -128,28 +128,28 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
     public void findByFilter() {
 
         // no filter
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().build(), 37);
+        assertFilterResult(TaxonNameFilterVO.builder().build(), 37);
         // with synonyms
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().withSynonyms(true).build(), 38);
+        assertFilterResult(TaxonNameFilterVO.builder().withSynonyms(true).build(), 38);
         // with status 0
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().statusIds(new Integer[]{0}).build(), 12);
+        assertFilterResult(TaxonNameFilterVO.builder().statusIds(new Integer[]{0}).build(), 12);
         // with parent taxon group 1014
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupId(1014).build(), 3);
+        assertFilterResult(TaxonNameFilterVO.builder().taxonGroupId(1014).build(), 3);
         // with parent taxon group 1014 with synonyms
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupId(1014).withSynonyms(true).build(), 4);
+        assertFilterResult(TaxonNameFilterVO.builder().taxonGroupId(1014).withSynonyms(true).build(), 4);
         // with parent taxon group 1014 and status 1
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupId(1014).statusIds(new Integer[]{1}).build(), 3);
+        assertFilterResult(TaxonNameFilterVO.builder().taxonGroupId(1014).statusIds(new Integer[]{1}).build(), 3);
         // with parent taxon group 1014 and status 1 with synonyms
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupId(1014).statusIds(new Integer[]{1}).withSynonyms(true).build(), 3);
+        assertFilterResult(TaxonNameFilterVO.builder().taxonGroupId(1014).statusIds(new Integer[]{1}).withSynonyms(true).build(), 3);
         // with parent taxon group 1160 1161
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupIds(new Integer[]{1160, 1161}).build(), 2);
+        assertFilterResult(TaxonNameFilterVO.builder().taxonGroupIds(new Integer[]{1160, 1161}).build(), 2);
         // with taxonomic level (species and subspecies)
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder()
+        assertFilterResult(TaxonNameFilterVO.builder()
             .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()}).build(), 23);
         // with label search
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().searchText("raja").build(), 13);
+        assertFilterResult(TaxonNameFilterVO.builder().searchText("raja").build(), 13);
         // with exact label
-        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().label("STT").build(), 1);
+        assertFilterResult(TaxonNameFilterVO.builder().label("STT").build(), 1);
 
     }
 

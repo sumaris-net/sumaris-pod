@@ -22,14 +22,27 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
-public class DepartmentFilterVO extends ReferentialFilterVO {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DepartmentFilterVO implements IReferentialFilter {
+
+    private String label;
+    private String name;
+
+    private Integer[] statusIds;
+
+    private Integer levelId;
+    private Integer[] levelIds;
+
+    private String searchJoin;
+    private String searchText;
+    private String searchAttribute;
 
     private Boolean withLogo;
 

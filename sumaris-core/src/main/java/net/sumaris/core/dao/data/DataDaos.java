@@ -73,12 +73,12 @@ public class DataDaos extends Daos {
 
         // Vessel (optional on a root - e.g. ObservedLocation)
         if (source instanceof IWithVesselSnapshotEntity && target instanceof IWithVesselEntity) {
-            copyVessel(entityManager, (IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>)source, (IWithVesselEntity<Integer, Vessel>)target, copyIfNull);
+            copyVessel(entityManager, (IWithVesselSnapshotEntity<T, VesselSnapshotVO>)source, (IWithVesselEntity<T, Vessel>)target, copyIfNull);
         }
 
         // Observers (optional on a root)
         if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            copyObservers(entityManager, (IWithObserversEntity<Integer, PersonVO>)source, (IWithObserversEntity<Integer, Person>)target, copyIfNull);
+            copyObservers(entityManager, (IWithObserversEntity<T, PersonVO>)source, (IWithObserversEntity<T, Person>)target, copyIfNull);
         }
     }
 

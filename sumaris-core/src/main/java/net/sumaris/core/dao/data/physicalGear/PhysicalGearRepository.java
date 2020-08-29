@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.physicalGear;
 
 /*-
  * #%L
@@ -22,16 +22,13 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
-import net.sumaris.core.model.data.FishingArea;
-import net.sumaris.core.vo.data.FishingAreaVO;
+import net.sumaris.core.dao.data.RootDataRepository;
+import net.sumaris.core.model.data.PhysicalGear;
+import net.sumaris.core.vo.data.PhysicalGearVO;
+import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 
-import java.util.List;
+public interface PhysicalGearRepository extends
+    RootDataRepository<PhysicalGear, Integer, PhysicalGearVO, PhysicalGearFilterVO>,
+    PhysicalGearRepositoryExtend {
 
-public interface FishingAreaRepository
-    extends SumarisJpaRepository<FishingArea, Integer, FishingAreaVO>, FishingAreaRepositoryExtend
-{
-    List<FishingArea> getAllByOperationId(int operationId);
-
-    void deleteAllByOperationId(int operationId);
 }

@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.landing;
 
 /*-
  * #%L
@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
@@ -55,7 +56,7 @@ public class LandingRepositoryImpl
 
     @Autowired
     public LandingRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository) {
-        super(Landing.class, entityManager);
+        super(Landing.class, LandingVO.class, entityManager);
         this.locationRepository = locationRepository;
     }
 
@@ -66,21 +67,13 @@ public class LandingRepositoryImpl
 
     @Override
     public Specification<Landing> toSpecification(LandingFilterVO filter) {
-        if (filter == null) return null;
-
-        return Specification.where(hasObservedLocationId(filter.getObservedLocationId()))
+        return super.toSpecification(filter)
+            .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasTripId(filter.getTripId()))
-            .and(hasRecorderDepartmentId(filter.getRecorderDepartmentId()))
-            .and(hasRecorderPersonId(filter.getRecorderPersonId()))
-            .and(hasProgramLabel(filter.getProgramLabel()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(hasVesselId(filter.getVesselId()))
             .and(hasExcludeVesselIds(filter.getExcludeVesselIds()));
-    }
-
-    public Class<LandingVO> getVOClass() {
-        return LandingVO.class;
     }
 
     @Override

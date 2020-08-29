@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.trip;
 
 /*-
  * #%L
@@ -22,43 +22,45 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import net.sumaris.core.dao.data.RootDataSpecifications;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.util.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
 
-public interface TripRepositoryExtend {
+public interface TripRepositoryExtend extends RootDataSpecifications<Trip> {
 
-    default Specification<Trip> hasRecorderPersonId(Integer personId) {
-        if (personId == null) return null;
-        return (root, query, cb) -> cb.equal(root.get(Trip.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), personId);
-    }
-
-    default Specification<Trip> hasRecorderDepartmentId(Integer depId) {
-        if (depId == null) return null;
-        return (root, query, cb) -> cb.equal(root.get(Trip.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), depId);
-    }
-
-    default Specification<Trip> hasProgramLabel(String programLabel) {
-        if (StringUtils.isBlank(programLabel)) return null;
-        return (root, query, cb) -> cb.equal(root.get(Trip.Fields.PROGRAM).get(Program.Fields.LABEL), programLabel);
-    }
+    String VESSEL_ID_PARAM = "vesselId";
+    String LOCATION_ID_PARAM = "locationId";
 
     default Specification<Trip> hasLocationId(Integer locationId) {
-        if (locationId == null) return null;
-        return (root, query, cb) -> cb.or(
-                cb.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(IEntity.Fields.ID), locationId),
-                cb.equal(root.get(Trip.Fields.RETURN_LOCATION).get(IEntity.Fields.ID), locationId)
-        );
+        BindableSpecification<Trip> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LOCATION_ID_PARAM);
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(param),
+                criteriaBuilder.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(IEntity.Fields.ID), param),
+                criteriaBuilder.equal(root.get(Trip.Fields.RETURN_LOCATION).get(IEntity.Fields.ID), param)
+            );
+        });
+        specification.addBind(LOCATION_ID_PARAM, locationId);
+        return specification;
     }
 
     default Specification<Trip> hasVesselId(Integer vesselId) {
-        if (vesselId == null) return null;
-        return (root, query, cb) -> cb.equal(root.get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), vesselId);
+        BindableSpecification<Trip> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(param),
+                criteriaBuilder.equal(root.get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), param)
+            );
+        });
+        specification.addBind(VESSEL_ID_PARAM, vesselId);
+        return specification;
     }
+
 
     default Specification<Trip> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;

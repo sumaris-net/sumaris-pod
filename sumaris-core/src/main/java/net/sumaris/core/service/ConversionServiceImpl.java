@@ -23,10 +23,10 @@ package net.sumaris.core.service;
  */
 
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.data.LandingRepository;
+import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.ObservedLocationDao;
 import net.sumaris.core.dao.data.OperationDao;
-import net.sumaris.core.dao.data.TripRepository;
+import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;

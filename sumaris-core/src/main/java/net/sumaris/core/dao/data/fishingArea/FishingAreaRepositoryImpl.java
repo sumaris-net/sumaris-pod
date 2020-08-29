@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.fishingArea;
 
 /*-
  * #%L
@@ -64,14 +64,9 @@ public class FishingAreaRepositoryImpl
 
     @Autowired
     public FishingAreaRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, BaseRefRepository baseRefRepository) {
-        super(FishingArea.class, entityManager);
+        super(FishingArea.class, FishingAreaVO.class, entityManager);
         this.locationRepository = locationRepository;
         this.baseRefRepository = baseRefRepository;
-    }
-
-    @Override
-    public Class<FishingAreaVO> getVOClass() {
-        return FishingAreaVO.class;
     }
 
     @Override

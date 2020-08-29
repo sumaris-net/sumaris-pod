@@ -29,7 +29,7 @@ import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -50,7 +50,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String LEVEL_SET_PARAMETER = "levelSet";
     String SEARCH_TEXT_PARAMETER = "searchText";
 
-    default Specification<E> inStatusIds(ReferentialFilterVO filter) {
+    default Specification<E> inStatusIds(IReferentialFilter filter) {
         Integer[] statusIds = filter.getStatusIds();
         BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
@@ -78,7 +78,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         return specification;
     }
 
-    default Specification<E> inLevelIds(String levelProperty, ReferentialFilterVO filter) {
+    default Specification<E> inLevelIds(String levelProperty, IReferentialFilter filter) {
         Integer[] levelIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
         return inLevelIds(levelProperty, levelIds);
     }
@@ -97,7 +97,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         return specification;
     }
 
-    default Specification<E> searchOrJoinSearchText(ReferentialFilterVO filter) {
+    default Specification<E> searchOrJoinSearchText(IReferentialFilter filter) {
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
         String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
         if (searchJoinProperty != null) {

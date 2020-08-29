@@ -29,6 +29,7 @@ import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.QualityFlagEnum;
@@ -44,6 +45,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.filter.IDataFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
@@ -57,7 +59,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -67,20 +68,17 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 30/03/2020.
  */
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
-public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends Serializable>
+public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends IDataFilter>
     extends SumarisJpaRepositoryImpl<E, ID, V>
-    implements DataRepository<E, ID, V, F> {
+    implements DataRepository<E, ID, V, F>, DataSpecifications<E> {
 
     /**
      * Logger.
      */
     private static final Logger log =
         LoggerFactory.getLogger(DataRepositoryImpl.class);
-
-    private boolean checkUpdateDate = true;
-
-    private boolean enableLockForUpdate = false;
 
     private String[] copyExcludeProperties = new String[]{IUpdateDateEntityBean.Fields.UPDATE_DATE};
 
@@ -90,8 +88,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     @Autowired
     private DepartmentRepository departmentRepository;
 
-    protected DataRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
-        super(domainClass, entityManager);
+    protected DataRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
+        super(domainClass, voClass, entityManager);
     }
 
     @Override
@@ -174,30 +172,6 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     }
 
     @Override
-    public V save(V vo) {
-        E entity = toEntity(vo);
-
-        boolean isNew = entity.getId() == null;
-        if (!isNew) {
-            // Check update date
-            if (checkUpdateDate) Daos.checkUpdateDateForUpdate(vo, entity);
-
-            if (enableLockForUpdate) lockForUpdate(entity);
-        }
-
-        // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-        entity.setUpdateDate(newUpdateDate);
-
-        E savedEntity = save(entity);
-
-        // Update VO
-        onAfterSaveEntity(vo, savedEntity, isNew);
-
-        return vo;
-    }
-
-    @Override
     public V control(V vo) {
         Preconditions.checkNotNull(vo);
 
@@ -250,16 +224,16 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         }
 
         // Check update date
-        if (checkUpdateDate) Daos.checkUpdateDateForUpdate(vo, entity);
+        if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        if (enableLockForUpdate) lockForUpdate(entity);
+        if (isLockForUpdate()) lockForUpdate(entity);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
-        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId().intValue() : 0;
+        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId() : 0;
 
         // If not qualify, then remove the qualification date
         if (qualityFlagId == QualityFlagEnum.NOT_QUALIFED.getId()) {
@@ -269,7 +243,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
             entity.setQualificationDate(newUpdateDate);
         }
         // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
-        entity.setQualityFlag(find(QualityFlag.class, Integer.valueOf(qualityFlagId)));
+        entity.setQualityFlag(find(QualityFlag.class, qualityFlagId));
 
         // TODO UNVALIDATION PROCESS HERE
         // - insert into qualification history
@@ -299,23 +273,28 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         return target;
     }
 
+    @Override
+    public void toVO(E source, V target, boolean copyIfNull) {
+        toVO(source, target, null, copyIfNull);
+    }
+
     public void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
 
         // Quality flag
         target.setQualityFlagId(source.getQualityFlag().getId());
 
+        // Recorder department
+        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
+            DepartmentVO recorderDepartment = departmentRepository.toVO(source.getRecorderDepartment());
+            target.setRecorderDepartment(recorderDepartment);
+        }
+
         // Vessel
         if (source instanceof IWithVesselEntity && target instanceof IWithVesselSnapshotEntity) {
             VesselSnapshotVO vesselSnapshot = new VesselSnapshotVO();
             vesselSnapshot.setId((Integer) ((IWithVesselEntity) source).getVessel().getId());
             ((IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>) target).setVesselSnapshot(vesselSnapshot);
-        }
-
-        // Recorder department
-        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
-            DepartmentVO recorderDepartment = departmentRepository.toVO(source.getRecorderDepartment());
-            target.setRecorderDepartment(recorderDepartment);
         }
 
         // Observers
@@ -330,32 +309,13 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         }
     }
 
-    @Override
-    public Specification<E> toSpecification(@Nullable F filter) {
-        throw new NotImplementedException("Not implemented yet. Should be override by subclass");
+    protected Specification<E> toSpecification(F filter) {
+        // default specification
+        return BindableSpecification
+            .where(hasRecorderDepartmentId(filter.getRecorderDepartmentId()));
     }
 
     /* -- protected methods -- */
-
-    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
-    }
-
-    protected boolean isCheckUpdateDate() {
-        return checkUpdateDate;
-    }
-
-    protected void setCheckUpdateDate(boolean checkUpdateDate) {
-        this.checkUpdateDate = checkUpdateDate;
-    }
-
-    protected boolean isLockForUpdateEnable() {
-        return enableLockForUpdate;
-    }
-
-    protected void setEnableForUpdate(boolean enableLockForUpdate) {
-        this.enableLockForUpdate = enableLockForUpdate;
-    }
 
     protected String[] getCopyExcludeProperties() {
         return this.copyExcludeProperties;

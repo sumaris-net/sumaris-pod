@@ -23,7 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 
-import net.sumaris.core.dao.data.PhysicalGearRepository;
+import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
@@ -46,7 +46,7 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 
 	@Override
 	public List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions options) {
-		return physicalGearRepository.findAll(filter, page, options);
+		return physicalGearRepository.findAll(filter != null ? filter : new PhysicalGearFilterVO(), page, options);
 	}
 
 	@Override

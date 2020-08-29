@@ -24,24 +24,15 @@ package net.sumaris.core.service.social;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.data.FishingAreaRepository;
-import net.sumaris.core.dao.data.OperationGroupDao;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.social.EventTypeEnum;
-import net.sumaris.core.service.data.FishingAreaService;
-import net.sumaris.core.vo.data.FishingAreaVO;
-import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**

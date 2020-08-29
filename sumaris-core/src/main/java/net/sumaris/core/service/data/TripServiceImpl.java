@@ -26,10 +26,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.data.LandingRepository;
+import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.ObservedLocationDao;
-import net.sumaris.core.dao.data.TripRepository;
+import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.DataEntityCreatedEvent;
 import net.sumaris.core.event.DataEntityUpdatedEvent;
@@ -112,8 +112,7 @@ public class TripServiceImpl implements TripService {
     @Override
     public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
                                      SortDirection sortDirection, DataFetchOptions fieldOptions) {
-        return tripRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fieldOptions)
-            .stream().collect(Collectors.toList());
+        return tripRepository.findAll(filter != null ? filter : TripFilterVO.builder().build(), offset, size, sortAttribute, sortDirection, fieldOptions).getContent();
     }
 
     @Override

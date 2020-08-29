@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.junit.Before;

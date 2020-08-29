@@ -25,7 +25,7 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.LandingRepository;
+import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.data.Landing;
@@ -67,6 +67,8 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public List<LandingVO> findAll(LandingFilterVO filter, Page page, DataFetchOptions fetchOptions) {
+
+        if (filter == null) filter = LandingFilterVO.builder().build();
 
         if (page != null) {
 

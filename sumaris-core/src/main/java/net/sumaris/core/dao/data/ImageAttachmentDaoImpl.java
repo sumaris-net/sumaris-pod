@@ -146,8 +146,8 @@ public class ImageAttachmentDaoImpl extends BaseDataDaoImpl implements ImageAtta
         Beans.copyProperties(source, target);
 
         // Recorder department & person
-        copyRecorderDepartment(source, target, copyIfNull);
-        copyRecorderPerson(source, target, copyIfNull);
+        DataDaos.copyRecorderDepartment(getEntityManager(), source, target, copyIfNull);
+        DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
 
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {

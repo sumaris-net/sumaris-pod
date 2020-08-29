@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.physicalGear;
 
 /*-
  * #%L
@@ -23,6 +23,8 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.PhysicalGear;
@@ -54,31 +56,23 @@ public class PhysicalGearRepositoryImpl
         LoggerFactory.getLogger(PhysicalGearRepositoryImpl.class);
 
     private final BaseRefRepository baseRefRepository;
-
     private final MeasurementDao measurementDao;
-
 
     @Autowired
     public PhysicalGearRepositoryImpl(EntityManager entityManager,
                                       MeasurementDao measurementDao,
                                       BaseRefRepository baseRefRepository) {
-        super(PhysicalGear.class, entityManager);
+        super(PhysicalGear.class, PhysicalGearVO.class, entityManager);
         this.measurementDao = measurementDao;
         this.baseRefRepository = baseRefRepository;
     }
 
     @Override
     public Specification<PhysicalGear> toSpecification(PhysicalGearFilterVO filter) {
-        if (filter == null) return null;
-
-        return Specification.where(hasVesselId(filter.getVesselId()))
-                .and(hasTripId(filter.getTripId()))
-                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-                .and(programLabel(filter.getProgramLabel()));
-    }
-
-    public Class<PhysicalGearVO> getVOClass() {
-        return PhysicalGearVO.class;
+        return super.toSpecification(filter)
+            .and(hasVesselId(filter.getVesselId()))
+            .and(hasTripId(filter.getTripId()))
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
     }
 
     @Override
@@ -87,11 +81,10 @@ public class PhysicalGearRepositoryImpl
 
         // Gear
         Gear gear = source.getGear();
-        if (copyIfNull || gear  != null) {
+        if (copyIfNull || gear != null) {
             if (gear == null) {
                 target.setGear(null);
-            }
-            else {
+            } else {
                 target.setGear(baseRefRepository.toVO(gear));
             }
         }
@@ -101,8 +94,7 @@ public class PhysicalGearRepositoryImpl
         if (copyIfNull || trip != null) {
             if (trip == null) {
                 target.setTripId(null);
-            }
-            else {
+            } else {
                 target.setTripId(trip.getId());
             }
         }
@@ -117,16 +109,12 @@ public class PhysicalGearRepositoryImpl
         // Copy properties
         super.toEntity(source, target, copyIfNull);
 
-        // Program
-        DataDaos.copyProgram(getEntityManager(), source, target, copyIfNull);
-
         // Gear
         Integer gearId = source.getGear() != null ? source.getGear().getId() : null;
-        if (copyIfNull || gearId != null){
+        if (copyIfNull || gearId != null) {
             if (gearId == null) {
                 target.setGear(null);
-            }
-            else {
+            } else {
                 target.setGear(load(Gear.class, gearId));
             }
         }
@@ -136,8 +124,7 @@ public class PhysicalGearRepositoryImpl
         if (copyIfNull || (tripId != null)) {
             if (tripId == null) {
                 target.setTrip(null);
-            }
-            else {
+            } else {
                 target.setTrip(load(Trip.class, tripId));
             }
         }
@@ -174,8 +161,8 @@ public class PhysicalGearRepositoryImpl
 
         // Update the parent list
         Daos.replaceEntities(parent.getPhysicalGears(),
-                result,
-                (vo) -> load(PhysicalGear.class, vo.getId()));
+            result,
+            (vo) -> load(PhysicalGear.class, vo.getId()));
 
         // Save measurements on each gears
         // NOTE: using the savedGear to be sure to find an id
@@ -183,8 +170,7 @@ public class PhysicalGearRepositoryImpl
 
             if (source.getMeasurementValues() != null) {
                 measurementDao.savePhysicalGearMeasurementsMap(source.getId(), source.getMeasurementValues());
-            }
-            else {
+            } else {
                 List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
                 int rankOrder = 1;
                 for (MeasurementVO m : measurements) {

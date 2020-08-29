@@ -29,7 +29,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
 public interface RootDataRepository<E extends IRootDataEntity<ID>, ID extends Integer, V extends IRootDataVO<ID>, F extends IRootDataFilter>
-    extends DataRepository<E, ID, V, F> {
+    extends DataRepository<E, ID, V, F>, RootDataSpecifications<E> {
 
 
 }

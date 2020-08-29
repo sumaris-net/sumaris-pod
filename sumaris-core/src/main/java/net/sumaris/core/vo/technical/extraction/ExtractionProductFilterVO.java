@@ -22,15 +22,31 @@
 
 package net.sumaris.core.vo.technical.extraction;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
-public class ExtractionProductFilterVO extends ReferentialFilterVO {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExtractionProductFilterVO implements IReferentialFilter {
+
+    private String label;
+    private String name;
+
+    private Integer[] statusIds;
+
+    private Integer levelId;
+    private Integer[] levelIds;
+
+    private String searchJoin;
+    private String searchText;
+    private String searchAttribute;
 
     private Integer departmentId;
 

@@ -26,16 +26,14 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
-import javax.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +44,7 @@ import java.util.Optional;
 public interface ReferentialRepository<
     E extends IItemReferentialEntity,
     V extends IReferentialVO,
-    F extends ReferentialFilterVO,
+    F extends IReferentialFilter,
     O extends IFetchOptions
     >
     extends SumarisJpaRepository<E, Integer, V> {
@@ -86,8 +84,5 @@ public interface ReferentialRepository<
     Optional<V> findByLabel(String label);
 
     Optional<V> findByLabel(String label, O fetchOptions);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    V save(V vo);
 
 }

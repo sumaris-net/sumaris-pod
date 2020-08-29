@@ -43,7 +43,7 @@ public class TaxonNameRepositoryImpl
     public List<TaxonNameVO> getAll(boolean withSynonyms) {
 
         return findByFilter(
-            TaxonNameFilterVO.taxonNameBuilder()
+            TaxonNameFilterVO.builder()
                 .withSynonyms(withSynonyms)
                 .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()})
                 .build(),
@@ -56,7 +56,7 @@ public class TaxonNameRepositoryImpl
     public TaxonNameVO getTaxonNameReferent(Integer referenceTaxonId) {
 
         List<TaxonNameVO> taxonNames = findByFilter(
-            TaxonNameFilterVO.taxonNameBuilder()
+            TaxonNameFilterVO.builder()
                 .referenceTaxonId(referenceTaxonId)
                 .withSynonyms(false)
                 .build(),
@@ -73,7 +73,7 @@ public class TaxonNameRepositoryImpl
     public List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId) {
 
         return findByFilter(
-            TaxonNameFilterVO.taxonNameBuilder()
+            TaxonNameFilterVO.builder()
                 .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()})
                 .taxonGroupId(taxonGroupId)
                 .build(),

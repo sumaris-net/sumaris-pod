@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.AbstractDaoTest;
+import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;

@@ -534,7 +534,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         }
 
         // Copy properties, and data stuff (program, qualityFlag, recorder, ...)
-        copyRootDataProperties(source, target, copyIfNull);
+        DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull);
 
         // Hash
         target.setHash(newHash);

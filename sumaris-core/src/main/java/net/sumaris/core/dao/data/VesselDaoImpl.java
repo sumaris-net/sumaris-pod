@@ -509,10 +509,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     private void vesselVOToEntity(VesselVO source, Vessel target, boolean copyIfNull) {
 
-        copyDataProperties(source, target, copyIfNull);
+        DataDaos.copyDataProperties(getEntityManager(), source, target, copyIfNull);
 
         // Recorder person
-        copyRecorderPerson(source, target, copyIfNull);
+        DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
 
         // Vessel type
         if (copyIfNull || source.getVesselType() != null) {
@@ -544,10 +544,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     private void vesselFeaturesVOToEntity(VesselFeaturesVO source, VesselFeatures target, boolean copyIfNull) {
 
-        copyDataProperties(source, target, copyIfNull);
+        DataDaos.copyDataProperties(getEntityManager(), source, target, copyIfNull);
 
         // Recorder department and person
-        copyRecorderPerson(source, target, copyIfNull);
+        DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
 
         // Convert from meter to centimeter
         if (source.getLengthOverAll() != null) {

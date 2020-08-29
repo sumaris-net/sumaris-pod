@@ -445,7 +445,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     protected void observedLocationVOToEntity(ObservedLocationVO source, ObservedLocation target, boolean copyIfNull) {
 
         // Copy properties
-        copyRootDataProperties(source, target, copyIfNull);
+        DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull);
 
         // If endDateTime is empty, fill using startDateTime
         if (target.getEndDateTime() == null) {

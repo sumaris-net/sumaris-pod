@@ -29,26 +29,27 @@ import lombok.experimental.FieldNameConstants;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaxonNameFilterVO extends ReferentialFilterVO {
+public class TaxonNameFilterVO implements IReferentialFilter {
+
+    private String label;
+    private String name;
+
+    private Integer[] statusIds;
+
+    private Integer levelId;
+    private Integer[] levelIds;
+
+    private String searchJoin;
+    private String searchText;
+    private String searchAttribute;
 
     private Integer taxonGroupId;
     private Integer[] taxonGroupIds;
     private Boolean withSynonyms;
     private Integer referenceTaxonId;
 
-    @Builder(builderMethodName = "taxonNameBuilder")
-    public TaxonNameFilterVO(String label, String name,
-                             Integer[] statusIds, Integer levelId, Integer[] levelIds,
-                             String searchJoin, String searchText, String searchAttribute,
-                             Integer taxonGroupId, Integer[] taxonGroupIds, Boolean withSynonyms, Integer referenceTaxonId) {
-        super(label, name, statusIds, levelId, levelIds, searchJoin, searchText, searchAttribute);
-        this.taxonGroupId = taxonGroupId;
-        this.taxonGroupIds = taxonGroupIds;
-        this.withSynonyms = withSynonyms;
-        this.referenceTaxonId = referenceTaxonId;
-    }
 }

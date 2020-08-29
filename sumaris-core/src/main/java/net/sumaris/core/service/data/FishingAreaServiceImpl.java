@@ -24,7 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.data.FishingAreaRepository;
+import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
 import net.sumaris.core.dao.data.OperationGroupDao;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.vo.data.FishingAreaVO;

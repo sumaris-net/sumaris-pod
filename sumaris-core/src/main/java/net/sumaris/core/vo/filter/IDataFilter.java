@@ -1,10 +1,10 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.vo.filter;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 - 2020 SUMARiS Consortium
+ * Copyright (C) 2018 - 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,19 +22,15 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-
-import net.sumaris.core.model.data.Product;
-import net.sumaris.core.vo.data.ProductVO;
-import net.sumaris.core.vo.filter.ProductFilterVO;
-
-import java.util.Collection;
+import java.io.Serializable;
 
 /**
- * @author peck7 on 30/03/2020.
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public interface ProductRepository extends
-    DataRepository<Product, Integer, ProductVO, ProductFilterVO>,
-    ProductRepositoryExtend {
+public interface IDataFilter extends Serializable {
 
-    void deleteProductsByBatchIdIn(Collection<Integer> batchIds);
+    Integer getRecorderDepartmentId();
+
+    void setRecorderDepartmentId(Integer recorderDepartmentId);
+
 }

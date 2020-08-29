@@ -248,7 +248,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
 
     protected void saleVOToEntity(SaleVO source, Sale target, boolean copyIfNull) {
 
-        copyRootDataProperties(source, target, copyIfNull);
+        DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull);
 
         // Vessel
         if (copyIfNull || (source.getVesselSnapshot() != null && source.getVesselSnapshot().getId() != null)) {
