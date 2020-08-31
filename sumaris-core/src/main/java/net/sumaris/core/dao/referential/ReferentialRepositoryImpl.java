@@ -161,7 +161,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
 
     @Override
     public Optional<V> findById(int id, O fetchOptions) {
-        return super.findById(id).map(this::toVO);
+        return super.findById(id).map(entity -> toVO(entity, fetchOptions));
     }
 
     @Override

@@ -61,15 +61,14 @@ public interface TripRepositoryExtend extends RootDataSpecifications<Trip> {
         return specification;
     }
 
-
     default Specification<Trip> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
             // Start + end date
             if (startDate != null && endDate != null) {
                 return cb.and(
-                        cb.not(cb.lessThan(root.get(Trip.Fields.RETURN_DATE_TIME), startDate)),
-                        cb.not(cb.greaterThan(root.get(Trip.Fields.DEPARTURE_DATE_TIME), endDate))
+                    cb.not(cb.lessThan(root.get(Trip.Fields.RETURN_DATE_TIME), startDate)),
+                    cb.not(cb.greaterThan(root.get(Trip.Fields.DEPARTURE_DATE_TIME), endDate))
                 );
             }
 
@@ -84,7 +83,5 @@ public interface TripRepositoryExtend extends RootDataSpecifications<Trip> {
             }
         };
     }
-
-
 
 }

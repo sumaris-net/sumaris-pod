@@ -49,7 +49,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PhysicalGearRepositoryImpl
-    extends RootDataRepositoryImpl<PhysicalGear, Integer, PhysicalGearVO, PhysicalGearFilterVO>
+    extends RootDataRepositoryImpl<PhysicalGear, PhysicalGearVO, PhysicalGearFilterVO, DataFetchOptions>
     implements PhysicalGearRepositoryExtend {
 
     private static final Logger log =

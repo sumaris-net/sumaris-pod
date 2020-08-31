@@ -24,11 +24,12 @@ package net.sumaris.core.dao.data.trip;
 
 import net.sumaris.core.dao.data.RootDataRepository;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 
 public interface TripRepository extends
-    RootDataRepository<Trip, Integer, TripVO, TripFilterVO>,
+    RootDataRepository<Trip, TripVO, TripFilterVO, DataFetchOptions>,
     TripRepositoryExtend {
 
 }

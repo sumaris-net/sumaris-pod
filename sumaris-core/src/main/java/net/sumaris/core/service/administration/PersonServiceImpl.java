@@ -27,13 +27,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.data.ImageAttachmentDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
@@ -62,7 +62,7 @@ public class PersonServiceImpl implements PersonService {
 	protected DepartmentRepository departmentRepository;
 
 	@Autowired
-	private ImageAttachmentDao imageAttachmentDao;
+	private ImageAttachmentService imageAttachmentService;
 
 	@Override
 	public List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
@@ -103,12 +103,12 @@ public class PersonServiceImpl implements PersonService {
 		Optional<Person> person = Optional.ofNullable(personRepository.findByPubkey(pubkey))
 			.flatMap(vo -> personRepository.findById(vo.getId()));
 
-		Integer avatarId = person
+		int avatarId = person
 			.map(Person::getAvatar)
 			.map(ImageAttachment::getId)
 			.orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.person.avatar.notFound")));
 
-		return imageAttachmentDao.get(avatarId);
+		return imageAttachmentService.find(avatarId);
 	}
 
 	@Override

@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data.product;
 
 import net.sumaris.core.dao.data.DataRepository;
 import net.sumaris.core.model.data.Product;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.filter.ProductFilterVO;
 
@@ -34,7 +35,7 @@ import java.util.Collection;
  * @author peck7 on 30/03/2020.
  */
 public interface ProductRepository extends
-    DataRepository<Product, Integer, ProductVO, ProductFilterVO>,
+    DataRepository<Product, ProductVO, ProductFilterVO, DataFetchOptions>,
     ProductRepositoryExtend {
 
     void deleteProductsByBatchIdIn(Collection<Integer> batchIds);

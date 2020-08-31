@@ -30,11 +30,8 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.util.Dates;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
@@ -59,7 +56,9 @@ import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <p>HibernateDaoSupport class.</p>
@@ -256,21 +255,6 @@ public abstract class HibernateDaoSupport {
 
     protected String getTableName(String entityName) {
         return I18n.t("sumaris.persistence.table." + entityName.substring(0, 1).toLowerCase() + entityName.substring(1));
-    }
-
-    @Deprecated
-    protected void checkUpdateDateForUpdate(IUpdateDateEntityBean<?, ? extends Date> source,
-                                            IUpdateDateEntityBean<?, ? extends Date> entity) {
-        // Check update date
-        if (entity.getUpdateDate() != null) {
-            Timestamp serverUpdateDtNoMillisecond = Dates.resetMillisecond(entity.getUpdateDate());
-            Timestamp sourceUpdateDtNoMillisecond = Dates.resetMillisecond(source.getUpdateDate());
-            if (!Objects.equals(sourceUpdateDtNoMillisecond, serverUpdateDtNoMillisecond)) {
-                throw new BadUpdateDateException(I18n.t("sumaris.persistence.error.badUpdateDate",
-                    getTableName(entity.getClass().getSimpleName()), source.getId(), serverUpdateDtNoMillisecond,
-                    sourceUpdateDtNoMillisecond));
-            }
-        }
     }
 
     protected void lockForUpdate(IEntity<?> entity) {

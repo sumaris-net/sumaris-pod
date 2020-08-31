@@ -24,11 +24,12 @@ package net.sumaris.core.dao.data.physicalGear;
 
 import net.sumaris.core.dao.data.RootDataRepository;
 import net.sumaris.core.model.data.PhysicalGear;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 
 public interface PhysicalGearRepository extends
-    RootDataRepository<PhysicalGear, Integer, PhysicalGearVO, PhysicalGearFilterVO>,
+    RootDataRepository<PhysicalGear, PhysicalGearVO, PhysicalGearFilterVO, DataFetchOptions>,
     PhysicalGearRepositoryExtend {
 
 }

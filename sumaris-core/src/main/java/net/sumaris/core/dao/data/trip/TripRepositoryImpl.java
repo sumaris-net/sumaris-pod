@@ -43,7 +43,7 @@ import javax.persistence.EntityManager;
 import java.sql.Timestamp;
 
 public class TripRepositoryImpl
-    extends RootDataRepositoryImpl<Trip, Integer, TripVO, TripFilterVO>
+    extends RootDataRepositoryImpl<Trip, TripVO, TripFilterVO, DataFetchOptions>
     implements TripRepositoryExtend {
 
     private static final Logger log =

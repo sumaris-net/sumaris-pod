@@ -47,13 +47,13 @@ import java.sql.Timestamp;
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
 public abstract class RootDataRepositoryImpl<
-    E extends IRootDataEntity<ID>,
-    ID extends Integer,
-    V extends IRootDataVO<ID>,
-    F extends IRootDataFilter
+    E extends IRootDataEntity<Integer>,
+    V extends IRootDataVO<Integer>,
+    F extends IRootDataFilter,
+    O extends DataFetchOptions
     >
-    extends DataRepositoryImpl<E, ID, V, F>
-    implements RootDataRepository<E, ID, V, F> {
+    extends DataRepositoryImpl<E, V, F, O>
+    implements RootDataRepository<E, V, F, O> {
 
     /**
      * Logger.
@@ -77,7 +77,7 @@ public abstract class RootDataRepositoryImpl<
     }
 
     @Override
-    public <S extends E> S save(S entity) { // fixme : what use ?????
+    public <S extends E> S save(S entity) {
         // When new entity: set the creation date
         if (entity.getId() == null || entity.getCreationDate() == null) {
             entity.setCreationDate(entity.getUpdateDate());
@@ -101,7 +101,7 @@ public abstract class RootDataRepositoryImpl<
 
 
     @Override
-    public void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
 
         super.toVO(source, target, fetchOptions, copyIfNull);
 

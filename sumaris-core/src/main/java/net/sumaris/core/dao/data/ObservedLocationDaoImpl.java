@@ -27,6 +27,7 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -253,7 +254,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
             entity = new ObservedLocation();
         } else {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             lockForUpdate(entity);
@@ -306,7 +307,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         ObservedLocation entity = find(ObservedLocation.class, source.getId());
 
         // Check update date
-        checkUpdateDateForUpdate(source, entity);
+        Daos.checkUpdateDateForUpdate(source, entity);
 
         // Lock entityName
         lockForUpdate(entity);
@@ -336,7 +337,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         ObservedLocation entity = find(ObservedLocation.class, source.getId());
 
         // Check update date
-        checkUpdateDateForUpdate(source, entity);
+        Daos.checkUpdateDateForUpdate(source, entity);
 
         // Lock entityName
 //        lockForUpdate(entity);
@@ -366,7 +367,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         ObservedLocation entity = find(ObservedLocation.class, source.getId());
 
         // Check update date
-        checkUpdateDateForUpdate(source, entity);
+        Daos.checkUpdateDateForUpdate(source, entity);
 
         // Lock entityName
 //        lockForUpdate(entity);

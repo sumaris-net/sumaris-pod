@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -82,13 +81,7 @@ public class ImageRestController implements ResourceLoaderAware {
     @RequestMapping(value = RestPaths.PERSON_AVATAR_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<byte[]> getPersonAvatar(@PathVariable(name="pubkey") String pubkey) {
-        ImageAttachmentVO image;
-        try {
-            image = personService.getAvatarByPubkey(pubkey);
-        }
-        catch(DataRetrievalFailureException e) {
-            image = null;
-        }
+        ImageAttachmentVO image  = personService.getAvatarByPubkey(pubkey);
         if (image == null) {
             return ResponseEntity.notFound().build();
         }
@@ -121,7 +114,7 @@ public class ImageRestController implements ResourceLoaderAware {
     @RequestMapping(value = RestPaths.IMAGE_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<byte[]> getImage(@PathVariable(name="id") String id) {
-        ImageAttachmentVO image = imageService.get(Integer.parseInt(id));
+        ImageAttachmentVO image = imageService.find(Integer.parseInt(id));
         if (image == null) {
             return ResponseEntity.notFound().build();
         }

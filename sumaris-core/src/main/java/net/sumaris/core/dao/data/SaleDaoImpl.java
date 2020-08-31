@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
@@ -143,7 +144,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
 
         if (!isNew) {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             //lockForUpdate(entity);

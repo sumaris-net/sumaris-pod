@@ -222,7 +222,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
             if (checkUpdateDate) {
                 // Check update date
-                checkUpdateDateForUpdate(source, target);
+                Daos.checkUpdateDateForUpdate(source, target);
             }
 
             // Lock entityName

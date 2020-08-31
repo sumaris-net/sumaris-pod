@@ -46,7 +46,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class LandingRepositoryImpl
-    extends RootDataRepositoryImpl<Landing, Integer, LandingVO, LandingFilterVO>
+    extends RootDataRepositoryImpl<Landing, LandingVO, LandingFilterVO, DataFetchOptions>
     implements LandingRepositoryExtend {
 
     private static final Logger log =

@@ -23,13 +23,14 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.model.data.IRootDataEntity;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
 import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
-public interface RootDataRepository<E extends IRootDataEntity<ID>, ID extends Integer, V extends IRootDataVO<ID>, F extends IRootDataFilter>
-    extends DataRepository<E, ID, V, F>, RootDataSpecifications<E> {
+public interface RootDataRepository<E extends IRootDataEntity<Integer>, V extends IRootDataVO<Integer>, F extends IRootDataFilter, O extends DataFetchOptions>
+    extends DataRepository<E, V, F, O>, RootDataSpecifications<E> {
 
 
 }

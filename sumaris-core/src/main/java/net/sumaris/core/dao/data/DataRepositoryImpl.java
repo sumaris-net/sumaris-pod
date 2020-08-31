@@ -62,6 +62,7 @@ import javax.persistence.EntityManager;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,9 +71,9 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
-public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends IDataFilter>
-    extends SumarisJpaRepositoryImpl<E, ID, V>
-    implements DataRepository<E, ID, V, F>, DataSpecifications<E> {
+public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends DataFetchOptions>
+    extends SumarisJpaRepositoryImpl<E, Integer, V>
+    implements DataRepository<E, V, F, O>, DataSpecifications<E> {
 
     /**
      * Logger.
@@ -98,7 +99,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     }
 
     @Override
-    public List<V> findAll(F filter, DataFetchOptions fetchOptions) {
+    public List<V> findAll(F filter, O fetchOptions) {
         return findAll(toSpecification(filter)).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
@@ -111,25 +112,25 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     }
 
     @Override
-    public Page<V> findAll(F filter, Pageable pageable, DataFetchOptions fetchOptions) {
+    public Page<V> findAll(F filter, Pageable pageable, O fetchOptions) {
         return findAll(toSpecification(filter), pageable)
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, DataFetchOptions fetchOptions) {
+    public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, O fetchOptions) {
         return findAll(filter, page.asPageable(), fetchOptions)
                 .stream().collect(Collectors.toList());
     }
 
     @Override
-    public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
+    public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
         return findAll(Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
+    public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
         return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
@@ -145,12 +146,12 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     }
 
     @Override
-    public Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable, DataFetchOptions fetchOptions) {
+    public Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable, O fetchOptions) {
         return super.findAll(spec, pageable).map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public List<V> findAllVO(@Nullable Specification<E> spec, DataFetchOptions fetchOptions) {
+    public List<V> findAllVO(@Nullable Specification<E> spec, O fetchOptions) {
         return super.findAll(spec).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
@@ -162,12 +163,22 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     }
 
     @Override
-    public V get(ID id) {
+    public Optional<V> findById(int id) {
+        return findById(id, null);
+    }
+
+    @Override
+    public Optional<V> findById(int id, O fetchOptions) {
+        return super.findById(id).map(entity -> toVO(entity, fetchOptions));
+    }
+
+    @Override
+    public V get(Integer id) {
         return toVO(this.getOne(id));
     }
 
     @Override
-    public V get(ID id, DataFetchOptions fetchOptions) {
+    public V get(Integer id, O fetchOptions) {
         return toVO(this.getOne(id), fetchOptions);
     }
 
@@ -267,7 +278,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         return toVO(source, null);
     }
 
-    public V toVO(E source, DataFetchOptions fetchOptions) {
+    public V toVO(E source, O fetchOptions) {
         V target = createVO();
         toVO(source, target, fetchOptions, true);
         return target;
@@ -278,7 +289,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         toVO(source, target, null, copyIfNull);
     }
 
-    public void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
 
         // Quality flag

@@ -22,7 +22,7 @@ package net.sumaris.server.service.administration;
  * #L%
  */
 
-import net.sumaris.core.dao.data.ImageAttachmentDao;
+import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -47,7 +47,7 @@ public class ImageServiceImpl implements ImageService {
     private SumarisServerConfiguration config;
 
     @Autowired
-    private ImageAttachmentDao dao;
+    private ImageAttachmentService imageAttachmentService;
 
 
     @Autowired
@@ -60,8 +60,8 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public ImageAttachmentVO get(int id) {
-        return dao.get(id);
+    public ImageAttachmentVO find(int id) {
+        return imageAttachmentService.find(id);
     }
 
     public void fillAvatar(PersonVO person) {

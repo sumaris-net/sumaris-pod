@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
@@ -140,7 +141,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
 
         if (!isNew) {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             lockForUpdate(entity);

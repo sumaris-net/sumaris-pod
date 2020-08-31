@@ -71,7 +71,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
         else {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             lockForUpdate(entity);

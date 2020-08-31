@@ -168,7 +168,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
         if (!isNew) {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             lockForUpdate(entity);

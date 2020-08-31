@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Batch;
@@ -359,7 +360,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         if (!isNew && checkUpdateDate) {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             //lockForUpdate(entity);

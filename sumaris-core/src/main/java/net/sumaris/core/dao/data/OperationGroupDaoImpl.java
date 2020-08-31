@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
@@ -110,7 +111,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
 
             if (!isNew) {
                 // Check update date
-                checkUpdateDateForUpdate(operationGroup, entity);
+                Daos.checkUpdateDateForUpdate(operationGroup, entity);
                 // Lock entityName
                 lockForUpdate(entity);
             }
@@ -287,7 +288,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
 
         if (!isNew) {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
             // Lock entityName
             lockForUpdate(entity);
         }

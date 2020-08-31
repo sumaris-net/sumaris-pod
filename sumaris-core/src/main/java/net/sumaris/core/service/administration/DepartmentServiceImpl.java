@@ -25,10 +25,10 @@ package net.sumaris.core.service.administration;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
-import net.sumaris.core.dao.data.ImageAttachmentDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.ImageAttachment;
+import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
@@ -54,7 +54,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 	protected DepartmentRepository departmentRepository;
 
 	@Autowired
-	protected ImageAttachmentDao imageAttachmentDao;
+	protected ImageAttachmentService imageAttachmentService;
 
 	@Override
 	public List<DepartmentVO> findByFilter(DepartmentFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
@@ -80,12 +80,12 @@ public class DepartmentServiceImpl implements DepartmentService {
 		Preconditions.checkNotNull(label);
 		Optional<Department> department = Optional.of(departmentRepository.getOne(departmentRepository.getByLabel(label).getId()));
 
-		Integer logoId = department
+		int logoId = department
 			.map(Department::getLogo)
 			.map(ImageAttachment::getId)
 			.orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.department.logo.notFound")));
 
-		return imageAttachmentDao.get(logoId);
+		return imageAttachmentService.find(logoId);
 	}
 
 	@Override

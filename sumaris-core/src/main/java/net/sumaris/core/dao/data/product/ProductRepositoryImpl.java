@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 30/03/2020.
  */
 public class ProductRepositoryImpl
-    extends DataRepositoryImpl<Product, Integer, ProductVO, ProductFilterVO>
+    extends DataRepositoryImpl<Product, ProductVO, ProductFilterVO, DataFetchOptions>
     implements ProductRepositoryExtend {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductRepositoryImpl.class);

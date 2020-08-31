@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.data.*;
@@ -340,7 +341,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         if (!isNew && checkUpdateDate) {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             //lockForUpdate(entity);
