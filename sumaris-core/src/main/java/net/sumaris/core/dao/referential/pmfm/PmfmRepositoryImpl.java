@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  */
 public class PmfmRepositoryImpl
     extends ReferentialRepositoryImpl<Pmfm, PmfmVO, ReferentialFilterVO, ReferentialFetchOptions>
-    implements PmfmRepositoryExtend {
+    implements PmfmSpecifications {
 
     @Autowired
     private BaseRefRepository baseRefRepository;

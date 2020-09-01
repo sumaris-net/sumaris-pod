@@ -11,6 +11,6 @@ import net.sumaris.core.vo.filter.ProgramFilterVO;
  */
 public interface ProgramRepository
     extends ReferentialRepository<Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>,
-    ProgramRepositoryExtend {
+    ProgramSpecifications {
 
 }

@@ -39,7 +39,6 @@ import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.hibernate.Session;
 
 import javax.persistence.EntityManager;
@@ -149,10 +148,10 @@ public class DataDaos extends Daos {
                             }
                         });
 
-                // Remove deleted tableNames
-                if (MapUtils.isNotEmpty(observersToRemove)) {
-                    observers.removeAll(observersToRemove.values());
-                }
+                // Remove remaining observers
+                observers.removeAll(observersToRemove.values());
+
+                // affect observers
                 target.setObservers(observers);
             }
         }

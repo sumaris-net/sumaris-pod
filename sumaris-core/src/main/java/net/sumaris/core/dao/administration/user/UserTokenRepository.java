@@ -9,7 +9,7 @@ import java.util.List;
  * @author peck7 on 20/08/2020.
  */
 public interface UserTokenRepository
-    extends JpaRepository<UserToken, Integer>, UserTokenRepositoryExtend {
+    extends JpaRepository<UserToken, Integer>, UserTokenSpecifications {
 
     interface TokenOnly {
         String getToken();

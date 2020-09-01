@@ -10,7 +10,7 @@ import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
  * @author peck7 on 21/08/2020.
  */
 public interface ExtractionProductRepository
-    extends ReferentialRepository<ExtractionProduct, ExtractionProductVO, ExtractionProductFilterVO, ProductFetchOptions>, ExtractionProductRepositoryExtend {
+    extends ReferentialRepository<ExtractionProduct, ExtractionProductVO, ExtractionProductFilterVO, ProductFetchOptions>, ExtractionProductSpecifications {
 
     default ExtractionProductVO getByLabel(String label) {
         return getByLabel(label, null);

@@ -85,6 +85,7 @@ import org.junit.runners.Suite;
     ProgramServiceReadTest.class,
     ProgramServiceWriteTest.class,
     // Service: data
+    ObservedLocationServiceReadTest.class,
     ObservedLocationServiceWriteTest.class,
     OperationServiceWriteTest.class,
     TripServiceQualityTest.class,
@@ -93,6 +94,8 @@ import org.junit.runners.Suite;
     VesselServiceWriteTest.class,
     LandingServiceReadTest.class,
     LandingServiceWriteTest.class,
+    AggregatedLandingServiceReadTest.class,
+    PacketServiceWriteTest.class,
     // Service: technical
     DatabaseSchemaServiceTest.class,
     SoftwareServiceTest.class,
@@ -100,7 +103,8 @@ import org.junit.runners.Suite;
 
     // Util
     CryptoUtilsTest.class,
-    MD5UtilTest.class
+    MD5UtilTest.class,
+    MiscTest.class
 })
 public class AllTests {
 

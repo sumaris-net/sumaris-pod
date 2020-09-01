@@ -31,7 +31,7 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
 
-public interface TripRepositoryExtend extends RootDataSpecifications<Trip> {
+public interface TripSpecifications extends RootDataSpecifications<Trip> {
 
     String VESSEL_ID_PARAM = "vesselId";
     String LOCATION_ID_PARAM = "locationId";

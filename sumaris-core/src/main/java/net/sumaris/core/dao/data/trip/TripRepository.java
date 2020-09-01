@@ -30,6 +30,6 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 
 public interface TripRepository extends
     RootDataRepository<Trip, TripVO, TripFilterVO, DataFetchOptions>,
-    TripRepositoryExtend {
+    TripSpecifications {
 
 }

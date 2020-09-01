@@ -6,7 +6,7 @@ import net.sumaris.core.model.referential.location.Location;
 /**
  * @author peck7 on 18/08/2020.
  */
-public interface LocationRepositoryExtend extends ReferentialSpecifications<Location> {
+public interface LocationSpecifications extends ReferentialSpecifications<Location> {
 
     boolean hasAssociation(int childLocationId, int parentLocationId);
 

@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.List;
 
-public interface PmfmStrategyRepositoryExtend {
+public interface PmfmStrategySpecifications {
 
     String PROGRAM_ID_PARAM = "programId";
     String ACQUISITION_LEVEL_ID_PARAM = "acquisitionLevelId";

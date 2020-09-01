@@ -44,7 +44,7 @@ import java.sql.Timestamp;
 
 public class TripRepositoryImpl
     extends RootDataRepositoryImpl<Trip, TripVO, TripFilterVO, DataFetchOptions>
-    implements TripRepositoryExtend {
+    implements TripSpecifications {
 
     private static final Logger log =
         LoggerFactory.getLogger(TripRepositoryImpl.class);

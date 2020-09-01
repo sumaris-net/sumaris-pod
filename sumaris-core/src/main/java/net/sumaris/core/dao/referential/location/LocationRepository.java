@@ -11,6 +11,6 @@ import net.sumaris.core.vo.referential.ReferentialFetchOptions;
  */
 public interface LocationRepository
     extends ReferentialRepository<Location, LocationVO, ReferentialFilterVO, ReferentialFetchOptions>,
-    LocationRepositoryExtend {
+    LocationSpecifications {
 
 }

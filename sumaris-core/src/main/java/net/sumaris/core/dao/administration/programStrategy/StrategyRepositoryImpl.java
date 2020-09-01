@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  */
 public class StrategyRepositoryImpl
     extends ReferentialRepositoryImpl<Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>
-    implements StrategyRepositoryExtend {
+    implements StrategySpecifications {
 
     private static final Logger log =
         LoggerFactory.getLogger(ReferentialRepositoryImpl.class);

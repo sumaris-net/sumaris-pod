@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 20/08/2020.
  */
-public interface PersonRepositoryExtend extends ReferentialSpecifications<Person> {
+public interface PersonSpecifications extends ReferentialSpecifications<Person> {
 
     interface Listener {
         void onSave(PersonVO personVO);

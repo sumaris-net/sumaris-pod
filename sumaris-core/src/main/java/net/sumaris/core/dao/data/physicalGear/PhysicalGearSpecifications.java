@@ -35,7 +35,7 @@ import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
 import java.util.List;
 
-public interface PhysicalGearRepositoryExtend extends RootDataSpecifications<PhysicalGear> {
+public interface PhysicalGearSpecifications extends RootDataSpecifications<PhysicalGear> {
 
     String VESSEL_ID_PARAM = "vesselId";
     String TRIP_ID_PARAM = "tripId";

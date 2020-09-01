@@ -29,7 +29,7 @@ import net.sumaris.core.vo.data.FishingAreaVO;
 import java.util.List;
 
 public interface FishingAreaRepository
-    extends SumarisJpaRepository<FishingArea, Integer, FishingAreaVO>, FishingAreaRepositoryExtend
+    extends SumarisJpaRepository<FishingArea, Integer, FishingAreaVO>, FishingAreaSpecifications
 {
     List<FishingArea> getAllByOperationId(int operationId);
 

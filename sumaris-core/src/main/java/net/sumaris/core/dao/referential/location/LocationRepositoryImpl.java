@@ -25,7 +25,7 @@ import java.sql.Timestamp;
  */
 public class LocationRepositoryImpl
     extends ReferentialRepositoryImpl<Location, LocationVO, ReferentialFilterVO, ReferentialFetchOptions>
-    implements LocationRepositoryExtend {
+    implements LocationSpecifications {
 
     private static final Logger log = LoggerFactory.getLogger(LocationRepositoryImpl.class);
 

@@ -37,19 +37,20 @@ public class ImageAttachmentRepositoryImpl
     }
 
     @Override
-    public <S extends ImageAttachment> S save(S entity) {
-        // When new entity: set the creation date
-        if (entity.getId() == null || entity.getCreationDate() == null) {
-            entity.setCreationDate(entity.getUpdateDate());
-        }
-        return super.save(entity);
-    }
-
-    @Override
     public void toEntity(ImageAttachmentVO source, ImageAttachment target, boolean copyIfNull) {
         super.toEntity(source, target, copyIfNull);
         // Recorder person
         DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
+    }
+
+    @Override
+    protected void onBeforeSaveEntity(ImageAttachmentVO vo, ImageAttachment entity, boolean isNew) {
+        super.onBeforeSaveEntity(vo, entity, isNew);
+
+        // When new entity: set the creation date
+        if (isNew || entity.getCreationDate() == null) {
+            entity.setCreationDate(entity.getUpdateDate());
+        }
     }
 
     @Override

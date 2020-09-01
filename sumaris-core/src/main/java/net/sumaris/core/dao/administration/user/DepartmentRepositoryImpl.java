@@ -20,7 +20,7 @@ import javax.persistence.EntityManager;
  */
 public class DepartmentRepositoryImpl
     extends ReferentialRepositoryImpl<Department, DepartmentVO, DepartmentFilterVO, ReferentialFetchOptions>
-    implements DepartmentRepositoryExtend {
+    implements DepartmentSpecifications {
 
     public DepartmentRepositoryImpl(EntityManager entityManager) {
         super(Department.class, DepartmentVO.class, entityManager);

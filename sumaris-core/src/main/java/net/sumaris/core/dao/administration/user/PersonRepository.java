@@ -26,7 +26,7 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.vo.administration.user.PersonVO;
 
-public interface PersonRepository extends SumarisJpaRepository<Person, Integer, PersonVO>, PersonRepositoryExtend {
+public interface PersonRepository extends SumarisJpaRepository<Person, Integer, PersonVO>, PersonSpecifications {
 
     boolean existsByEmailMD5(String emailMD5);
 

@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * @author peck7 on 31/07/2020.
  */
-public interface TaxonNameRepositoryExtend extends ReferentialSpecifications<TaxonName> {
+public interface TaxonNameSpecifications extends ReferentialSpecifications<TaxonName> {
 
     // TODO use BindableSpecification
 

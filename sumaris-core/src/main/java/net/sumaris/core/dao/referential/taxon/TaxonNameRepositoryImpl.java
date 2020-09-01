@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  */
 public class TaxonNameRepositoryImpl
     extends ReferentialRepositoryImpl<TaxonName, TaxonNameVO, TaxonNameFilterVO, ReferentialFetchOptions>
-    implements TaxonNameRepositoryExtend {
+    implements TaxonNameSpecifications {
 
     private static final Logger log =
         LoggerFactory.getLogger(ReferentialRepositoryImpl.class);

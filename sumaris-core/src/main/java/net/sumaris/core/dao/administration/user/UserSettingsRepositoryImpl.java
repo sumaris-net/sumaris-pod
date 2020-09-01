@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class UserSettingsRepositoryImpl
     extends SumarisJpaRepositoryImpl<UserSettings, Integer, UserSettingsVO>
-    implements UserSettingsRepositoryExtend {
+    implements UserSettingsSpecifications {
 
     protected UserSettingsRepositoryImpl(EntityManager entityManager) {
         super(UserSettings.class, UserSettingsVO.class, entityManager);

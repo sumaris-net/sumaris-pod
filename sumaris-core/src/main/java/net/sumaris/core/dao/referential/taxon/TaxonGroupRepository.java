@@ -30,7 +30,7 @@ import net.sumaris.core.vo.referential.TaxonGroupVO;
 
 public interface TaxonGroupRepository
     extends ReferentialRepository<TaxonGroup, TaxonGroupVO, ReferentialFilterVO, ReferentialFetchOptions>,
-    TaxonGroupRepositoryExtend {
+    TaxonGroupSpecifications {
 
     TaxonGroup getOneByLabelAndTaxonGroupTypeId(String label, Integer taxonGroupTypeId);
 

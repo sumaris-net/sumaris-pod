@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-public interface LandingRepositoryExtend extends RootDataSpecifications<Landing> {
+public interface LandingSpecifications extends RootDataSpecifications<Landing> {
 
     String OBSERVED_LOCATION_ID_PARAM = "observedLocationId";
     String TRIP_ID_PARAM = "tripId";
@@ -122,7 +122,7 @@ public interface LandingRepositoryExtend extends RootDataSpecifications<Landing>
         return specification;
     }
 
-    // fixme : not used but could be mixed with TripRepositoryExtend & PhysicalGearRepositoryExtend
+    // fixme : not used but could be mixed with TripSpecifications & PhysicalGearSpecifications
     default Specification<Landing> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {

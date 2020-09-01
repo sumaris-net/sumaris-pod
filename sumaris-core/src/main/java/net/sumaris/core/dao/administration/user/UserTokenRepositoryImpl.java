@@ -12,7 +12,7 @@ import java.util.Date;
  */
 public class UserTokenRepositoryImpl
     extends SimpleJpaRepository<UserToken, Integer>
-    implements UserTokenRepositoryExtend {
+    implements UserTokenSpecifications {
 
     public UserTokenRepositoryImpl(EntityManager em) {
         super(UserToken.class, em);

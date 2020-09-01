@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * @author peck7 on 24/08/2020.
  */
-public interface StrategyRepositoryExtend {
+public interface StrategySpecifications {
 
     String PROGRAM_ID_PARAM = "programId";
 

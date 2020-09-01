@@ -23,7 +23,7 @@ package net.sumaris.server.http.security;
  */
 
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.administration.user.PersonRepositoryExtend;
+import net.sumaris.core.dao.administration.user.PersonSpecifications;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
@@ -95,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
     @PostConstruct
     public void registerListeners() {
         // Listen person update, to update the cache
-        personRepository.addListener(new PersonRepositoryExtend.Listener() {
+        personRepository.addListener(new PersonSpecifications.Listener() {
             @Override
             public void onSave(PersonVO person) {
                 if (!StringUtils.isNotBlank(person.getPubkey())) return;

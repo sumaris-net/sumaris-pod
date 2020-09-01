@@ -28,6 +28,6 @@ import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 
 public interface PmfmStrategyRepository
     extends SumarisJpaRepository<PmfmStrategy, Integer, PmfmStrategyVO>,
-    PmfmStrategyRepositoryExtend {
+    PmfmStrategySpecifications {
 
 }

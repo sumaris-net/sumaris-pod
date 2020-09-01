@@ -39,7 +39,7 @@ import java.util.Date;
 import java.util.List;
 
 @NoRepositoryBean
-public interface MetierRepositoryExtend
+public interface MetierSpecifications
     extends ReferentialSpecifications<Metier> {
 
     String PROGRAM_LABEL_PARAMETER = "programLabel";

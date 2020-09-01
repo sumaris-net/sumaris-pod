@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 @Repository("pmfmStrategyRepository")
 public class PmfmStrategyRepositoryImpl
     extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, PmfmStrategyVO>
-    implements PmfmStrategyRepository, DatabaseSchemaListener {
+    implements PmfmStrategySpecifications, DatabaseSchemaListener {
 
     /**
      * Logger.

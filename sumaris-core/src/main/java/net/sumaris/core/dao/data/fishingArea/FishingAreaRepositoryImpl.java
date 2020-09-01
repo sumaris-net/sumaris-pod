@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  */
 public class FishingAreaRepositoryImpl
     extends SumarisJpaRepositoryImpl<FishingArea, Integer, FishingAreaVO>
-    implements FishingAreaRepositoryExtend {
+    implements FishingAreaSpecifications {
 
     private static final Logger log =
         LoggerFactory.getLogger(FishingAreaRepositoryImpl.class);

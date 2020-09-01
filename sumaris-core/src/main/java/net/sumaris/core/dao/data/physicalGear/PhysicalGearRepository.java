@@ -30,6 +30,6 @@ import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 
 public interface PhysicalGearRepository extends
     RootDataRepository<PhysicalGear, PhysicalGearVO, PhysicalGearFilterVO, DataFetchOptions>,
-    PhysicalGearRepositoryExtend {
+    PhysicalGearSpecifications {
 
 }

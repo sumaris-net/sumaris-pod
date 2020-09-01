@@ -11,7 +11,7 @@ import net.sumaris.core.vo.filter.StrategyFilterVO;
  */
 public interface StrategyRepository
     extends ReferentialRepository<Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>,
-    StrategyRepositoryExtend {
+    StrategySpecifications {
 
 
 }

@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 public class ExtractionProductRepositoryImpl
     extends ReferentialRepositoryImpl<ExtractionProduct, ExtractionProductVO, ExtractionProductFilterVO, ProductFetchOptions>
-    implements ExtractionProductRepositoryExtend {
+    implements ExtractionProductSpecifications {
 
     @Autowired
     private DepartmentRepository departmentRepository;

@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
  */
 public class ProductRepositoryImpl
     extends DataRepositoryImpl<Product, ProductVO, ProductFilterVO, DataFetchOptions>
-    implements ProductRepositoryExtend {
+    implements ProductSpecifications {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductRepositoryImpl.class);
 

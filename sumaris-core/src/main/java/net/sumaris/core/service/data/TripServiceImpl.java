@@ -28,7 +28,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.ObservedLocationDao;
+import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.DataEntityCreatedEvent;
@@ -91,7 +91,7 @@ public class TripServiceImpl implements TripService {
     private LandingRepository landingRepository;
 
     @Autowired
-    private ObservedLocationDao observedLocationDao;
+    private ObservedLocationRepository observedLocationRepository;
 
     @Autowired
     private ReferentialService referentialService;
@@ -348,8 +348,8 @@ public class TripServiceImpl implements TripService {
         if (trip.getObservedLocationId() != null) {
 
             // update update_date on observed_location
-            ObservedLocationVO observedLocation = observedLocationDao.get(trip.getObservedLocationId());
-            observedLocationDao.save(observedLocation);
+            ObservedLocationVO observedLocation = observedLocationRepository.get(trip.getObservedLocationId());
+            observedLocationRepository.save(observedLocation);
 
             if (createLanding) {
 

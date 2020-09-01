@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 
 public class MetierRepositoryImpl
     extends ReferentialRepositoryImpl<Metier, MetierVO, ReferentialFilterVO, ReferentialFetchOptions>
-    implements MetierRepositoryExtend {
+    implements MetierSpecifications {
 
     private static final Logger log = LoggerFactory.getLogger(MetierRepositoryImpl.class);
 

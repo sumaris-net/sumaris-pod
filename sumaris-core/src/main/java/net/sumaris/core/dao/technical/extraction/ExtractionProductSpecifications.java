@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * @author peck7 on 21/08/2020.
  */
-public interface ExtractionProductRepositoryExtend {
+public interface ExtractionProductSpecifications {
 
     String DEPARTMENT_ID_PARAM = "departmentId";
 

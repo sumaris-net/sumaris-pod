@@ -30,6 +30,6 @@ import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 
 public interface MetierRepository
     extends ReferentialRepository<Metier, MetierVO, ReferentialFilterVO, ReferentialFetchOptions>,
-    MetierRepositoryExtend {
+    MetierSpecifications {
 
 }

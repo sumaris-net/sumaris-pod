@@ -32,7 +32,7 @@ import java.util.Collection;
 
 public interface LandingRepository extends
     RootDataRepository<Landing, LandingVO, LandingFilterVO, DataFetchOptions>,
-    LandingRepositoryExtend {
+    LandingSpecifications {
 
     Landing getByTripId(Integer tripId);
 

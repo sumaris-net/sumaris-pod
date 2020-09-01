@@ -138,6 +138,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             lockForUpdate(entity);
         }
 
+        onBeforeSaveEntity(vo, entity, isNew);
+
         // Save entity
         E savedEntity = save(entity);
 
@@ -173,6 +175,10 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     public void toEntity(V source, E target, boolean copyIfNull) {
         Beans.copyProperties(source, target);
+    }
+
+    protected void onBeforeSaveEntity(V vo, E entity, boolean isNew) {
+        // can be overridden
     }
 
     protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {

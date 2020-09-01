@@ -10,7 +10,7 @@ import javax.persistence.criteria.ParameterExpression;
 /**
  * @author peck7 on 20/08/2020.
  */
-public interface DepartmentRepositoryExtend extends ReferentialSpecifications<Department> {
+public interface DepartmentSpecifications extends ReferentialSpecifications<Department> {
 
     String LOGO_PARAMETER = "logo";
 

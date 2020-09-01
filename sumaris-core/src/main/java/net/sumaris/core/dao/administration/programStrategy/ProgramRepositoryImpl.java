@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  */
 public class ProgramRepositoryImpl
     extends ReferentialRepositoryImpl<Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>
-    implements ProgramRepositoryExtend, DatabaseSchemaListener {
+    implements ProgramSpecifications, DatabaseSchemaListener {
 
     private static final Logger log =
         LoggerFactory.getLogger(ReferentialRepositoryImpl.class);

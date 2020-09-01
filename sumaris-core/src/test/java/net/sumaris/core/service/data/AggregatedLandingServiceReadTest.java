@@ -29,6 +29,7 @@ import net.sumaris.core.vo.data.aggregatedLanding.AggregatedLandingVO;
 import net.sumaris.core.vo.filter.AggregatedLandingFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ import java.util.List;
  * @author peck7 on 13/06/2020.
  */
 @TestPropertySource(locations = "classpath:sumaris-core-test-oracle.properties")
+@Ignore("Use only SFA Oracle database")
 public class AggregatedLandingServiceReadTest extends AbstractServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(AggregatedLandingServiceReadTest.class);

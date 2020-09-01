@@ -36,7 +36,7 @@ import java.util.Collection;
  */
 public interface ProductRepository extends
     DataRepository<Product, ProductVO, ProductFilterVO, DataFetchOptions>,
-    ProductRepositoryExtend {
+    ProductSpecifications {
 
     void deleteProductsByBatchIdIn(Collection<Integer> batchIds);
 }

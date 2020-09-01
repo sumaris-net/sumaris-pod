@@ -8,7 +8,7 @@ import net.sumaris.core.vo.administration.user.UserSettingsVO;
  * @author peck7 on 20/08/2020.
  */
 public interface UserSettingsRepository
-    extends SumarisJpaRepository<UserSettings, Integer, UserSettingsVO>, UserSettingsRepositoryExtend {
+    extends SumarisJpaRepository<UserSettings, Integer, UserSettingsVO>, UserSettingsSpecifications {
 
 
 }

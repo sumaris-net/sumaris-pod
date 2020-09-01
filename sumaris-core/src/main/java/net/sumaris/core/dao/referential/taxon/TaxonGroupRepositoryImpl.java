@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 
 public class TaxonGroupRepositoryImpl
     extends ReferentialRepositoryImpl<TaxonGroup, TaxonGroupVO, ReferentialFilterVO, ReferentialFetchOptions>
-    implements TaxonGroupRepositoryExtend {
+    implements TaxonGroupSpecifications {
 
     private static final Logger log =
         LoggerFactory.getLogger(TaxonGroupRepositoryImpl.class);

@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 
 public class PhysicalGearRepositoryImpl
     extends RootDataRepositoryImpl<PhysicalGear, PhysicalGearVO, PhysicalGearFilterVO, DataFetchOptions>
-    implements PhysicalGearRepositoryExtend {
+    implements PhysicalGearSpecifications {
 
     private static final Logger log =
         LoggerFactory.getLogger(PhysicalGearRepositoryImpl.class);

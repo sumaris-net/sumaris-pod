@@ -37,7 +37,6 @@ import net.sumaris.core.vo.filter.IRootDataFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -70,24 +69,25 @@ public abstract class RootDataRepositoryImpl<
     protected RootDataRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
         setCopyExcludeProperties(
-                IRootDataEntity.Fields.UPDATE_DATE,
-                IRootDataEntity.Fields.CREATION_DATE);
+            IRootDataEntity.Fields.UPDATE_DATE,
+            IRootDataEntity.Fields.CREATION_DATE);
 
         this.setLockForUpdate(true);
     }
 
     @Override
-    public <S extends E> S save(S entity) {
-        // When new entity: set the creation date
-        if (entity.getId() == null || entity.getCreationDate() == null) {
-            entity.setCreationDate(entity.getUpdateDate());
-        }
-        return super.save(entity);
+    public void toEntity(V source, E target, boolean copyIfNull) {
+        DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull, getCopyExcludeProperties());
     }
 
     @Override
-    public void toEntity(V source, E target, boolean copyIfNull) {
-        DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull, getCopyExcludeProperties());
+    protected void onBeforeSaveEntity(V vo, E entity, boolean isNew) {
+        super.onBeforeSaveEntity(vo, entity, isNew);
+
+        // When new entity: set the creation date
+        if (isNew || entity.getCreationDate() == null) {
+            entity.setCreationDate(entity.getUpdateDate());
+        }
     }
 
     @Override
@@ -98,7 +98,6 @@ public abstract class RootDataRepositoryImpl<
             vo.setCreationDate(savedEntity.getCreationDate());
         }
     }
-
 
     @Override
     public void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
@@ -120,19 +119,24 @@ public abstract class RootDataRepositoryImpl<
     }
 
     @Override
-    public V validate(V source) {
-        Preconditions.checkNotNull(source);
+    public V validate(V vo) {
+        return validate(vo, true);
+    }
 
-        E entity = getOne(source.getId());
-        if (entity == null) {
-            throw new DataRetrievalFailureException(String.format("Entity {%s} not found", source.getId()));
-        }
+    @Override
+    public V validateNoSave(V vo) {
+        return validate(vo, false);
+    }
+
+    private V validate(V vo, boolean save) {
+        Preconditions.checkNotNull(vo);
+        E entity = getOne(vo.getId());
 
         // Check update date
-        if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(source, entity);
+        if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        if (isLockForUpdate()) lockForUpdate(entity);
+        if (save && isLockForUpdate()) lockForUpdate(entity);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -142,29 +146,35 @@ public abstract class RootDataRepositoryImpl<
         entity.setValidationDate(newUpdateDate);
 
         // Save entityName
-        getEntityManager().merge(entity);
+        if (save)
+            getEntityManager().merge(entity);
 
         // Update source
-        source.setValidationDate(newUpdateDate);
-        source.setUpdateDate(newUpdateDate);
+        vo.setValidationDate(newUpdateDate);
+        vo.setUpdateDate(newUpdateDate);
 
-        return source;
+        return vo;
     }
 
     @Override
     public V unvalidate(V vo) {
-        Preconditions.checkNotNull(vo);
+        return unvalidate(vo, true);
+    }
 
+    @Override
+    public V unvalidateNoSave(V vo) {
+        return unvalidate(vo, false);
+    }
+
+    private V unvalidate(V vo, boolean save) {
+        Preconditions.checkNotNull(vo);
         E entity = getOne(vo.getId());
-        if (entity == null) {
-            throw new DataRetrievalFailureException(String.format("Entity{%s} not found", vo.getId()));
-        }
 
         // Check update date
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        if (isLockForUpdate()) lockForUpdate(entity);
+        if (save && isLockForUpdate()) lockForUpdate(entity);
 
         // TODO UNVALIDATION PROCESS HERE
         entity.setValidationDate(null);
@@ -176,7 +186,8 @@ public abstract class RootDataRepositoryImpl<
         entity.setUpdateDate(newUpdateDate);
 
         // Save entityName
-        getEntityManager().merge(entity);
+        if (save)
+            getEntityManager().merge(entity);
 
         // Update source
         vo.setValidationDate(null);

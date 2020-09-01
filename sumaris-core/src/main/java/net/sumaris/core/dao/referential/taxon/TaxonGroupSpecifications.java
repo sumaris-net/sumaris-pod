@@ -41,7 +41,7 @@ import java.util.Date;
 import java.util.List;
 
 @NoRepositoryBean
-public interface TaxonGroupRepositoryExtend
+public interface TaxonGroupSpecifications
     extends ReferentialSpecifications<TaxonGroup> {
 
     default Specification<TaxonGroup> hasType(Integer taxonGroupTypeId) {

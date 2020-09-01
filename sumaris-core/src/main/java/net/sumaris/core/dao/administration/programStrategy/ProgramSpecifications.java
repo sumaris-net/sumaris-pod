@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * @author peck7 on 24/08/2020.
  */
-public interface ProgramRepositoryExtend {
+public interface ProgramSpecifications {
 
     String PROPERTY_LABEL_PARAM = "propertyLabel";
 

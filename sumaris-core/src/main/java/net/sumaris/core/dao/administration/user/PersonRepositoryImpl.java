@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  */
 public class PersonRepositoryImpl
     extends SumarisJpaRepositoryImpl<Person, Integer, PersonVO>
-    implements PersonRepositoryExtend {
+    implements PersonSpecifications {
 
     /**
      * Logger.

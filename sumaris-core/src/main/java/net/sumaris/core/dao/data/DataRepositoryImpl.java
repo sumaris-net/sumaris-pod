@@ -51,7 +51,6 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -60,7 +59,6 @@ import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -185,11 +183,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     @Override
     public V control(V vo) {
         Preconditions.checkNotNull(vo);
-
         E entity = getOne(vo.getId());
-        if (entity == null) {
-            throw new DataRetrievalFailureException(String.format("E {%s} not found", vo.getId()));
-        }
 
         // Check update date
         Daos.checkUpdateDateForUpdate(vo, entity);
@@ -198,18 +192,17 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         lockForUpdate(entity);
 
         // TODO CONTROL PROCESS HERE
-        Date controlDate = getDatabaseCurrentTimestamp();
-        entity.setControlDate(controlDate);
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setControlDate(newUpdateDate);
 
         // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
         // Save entityName
         getEntityManager().merge(entity);
 
         // Update source
-        vo.setControlDate(controlDate);
+        vo.setControlDate(newUpdateDate);
         vo.setUpdateDate(newUpdateDate);
 
         return vo;
@@ -228,11 +221,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     @Override
     public V qualify(V vo) {
         Preconditions.checkNotNull(vo);
-
         E entity = getOne(vo.getId());
-        if (entity == null) {
-            throw new DataRetrievalFailureException(String.format("E {%s} not found", vo.getId()));
-        }
 
         // Check update date
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);

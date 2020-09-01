@@ -32,5 +32,12 @@ import org.springframework.data.repository.NoRepositoryBean;
 public interface RootDataRepository<E extends IRootDataEntity<Integer>, V extends IRootDataVO<Integer>, F extends IRootDataFilter, O extends DataFetchOptions>
     extends DataRepository<E, V, F, O>, RootDataSpecifications<E> {
 
+    V validate(V vo);
+
+    V validateNoSave(V vo);
+
+    V unvalidate(V vo);
+
+    V unvalidateNoSave(V vo);
 
 }

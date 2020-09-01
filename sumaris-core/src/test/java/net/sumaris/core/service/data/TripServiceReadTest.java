@@ -97,6 +97,15 @@ public class TripServiceReadTest extends AbstractServiceTest{
             .build(),
             2);
 
+        assertFindResultCount(TripFilterVO.builder()
+            .recorderDepartmentId(1)
+            .build(),
+            1);
+
+        assertFindResultCount(TripFilterVO.builder()
+            .recorderPersonId(2)
+            .build(),
+            1);
     }
 
     private void assertFindResultCount(TripFilterVO filter, int expectedSize) {
