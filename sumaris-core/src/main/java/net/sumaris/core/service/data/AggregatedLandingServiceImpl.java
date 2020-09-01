@@ -31,6 +31,7 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
+import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -44,6 +45,7 @@ import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
 import net.sumaris.core.vo.filter.AggregatedLandingFilterVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
+import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -73,7 +75,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     private final LandingRepository landingRepository;
     private final TripRepository tripRepository;
     private final ObservedLocationRepository observedLocationRepository;
-    private final OperationGroupDao operationGroupDao;
+    private final OperationGroupRepository operationGroupRepository;
     private final MeasurementDao measurementDao;
     private final MetierRepository metierRepository;
     private final VesselService vesselService;
@@ -82,7 +84,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     public AggregatedLandingServiceImpl(LandingRepository landingRepository,
                                         TripRepository tripRepository,
                                         ObservedLocationRepository observedLocationRepository,
-                                        OperationGroupDao operationGroupDao,
+                                        OperationGroupRepository operationGroupRepository,
                                         MeasurementDao measurementDao,
                                         MetierRepository metierRepository,
                                         VesselService vesselService,
@@ -90,7 +92,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         this.landingRepository = landingRepository;
         this.tripRepository = tripRepository;
         this.observedLocationRepository = observedLocationRepository;
-        this.operationGroupDao = operationGroupDao;
+        this.operationGroupRepository = operationGroupRepository;
         this.measurementDao = measurementDao;
         this.metierRepository = metierRepository;
         this.vesselService = vesselService;
@@ -170,7 +172,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                     activity.setTripId(landing.getTripId());
 
                     // Get trip's metier
-                    List<MetierVO> metiers = operationGroupDao.getMetiersByTripId(landing.getTripId());
+                    List<MetierVO> metiers = operationGroupRepository.getMetiersByTripId(landing.getTripId());
                     metiers.forEach(metier -> activity.getMetiers().add(metier));
 
                     // Get operation metier
@@ -615,7 +617,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         landingRepository.save(landing);
 
         // Save metiers
-        operationGroupDao.saveMetiersByTripId(savedTrip.getId(), trip.getMetiers());
+        operationGroupRepository.saveMetiersByTripId(savedTrip.getId(), trip.getMetiers());
 
         // TODO: save operation groups (if default needed)
 
@@ -638,10 +640,12 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         TripVO trip = tripRepository.get(Integer.valueOf(tripId));
         // Load metiers and operation groups
         if (CollectionUtils.isEmpty(trip.getMetiers())) {
-            trip.setMetiers(operationGroupDao.getMetiersByTripId(tripId));
+            trip.setMetiers(operationGroupRepository.getMetiersByTripId(tripId));
         }
         if (CollectionUtils.isEmpty(trip.getOperationGroups())) {
-            trip.setOperationGroups(operationGroupDao.getAllByTripId(tripId));
+            trip.setOperationGroups(operationGroupRepository.findAll(
+                OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build()
+            ));
         }
 
         return trip;

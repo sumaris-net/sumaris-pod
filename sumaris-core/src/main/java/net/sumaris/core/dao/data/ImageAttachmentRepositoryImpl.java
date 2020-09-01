@@ -61,9 +61,4 @@ public class ImageAttachmentRepositoryImpl
         }
     }
 
-    @Override
-    public void deleteById(Integer id) {
-        log.debug(String.format("Deleting image attachment {id=%s}...", id));
-        super.deleteById(id);
-    }
 }

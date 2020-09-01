@@ -85,9 +85,4 @@ public class ObservedLocationRepositoryImpl
         }
     }
 
-    @Override
-    public void deleteById(Integer id) {
-        log.debug(String.format("Deleting observedLocation {id=%s}...", id));
-        super.deleteById(id);
-    }
 }

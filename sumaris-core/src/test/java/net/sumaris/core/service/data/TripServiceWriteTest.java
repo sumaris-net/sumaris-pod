@@ -95,7 +95,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
         // Reload and check
         List<OperationVO> savedOperations = operationService.getAllByTripId(savedVO.getId(), 0, 1000, null, null);
         Assert.assertNotNull(savedOperations);
-        Assert.assertTrue(savedOperations.size() == 1);
+        Assert.assertEquals(1, savedOperations.size());
 
         OperationVO saveOperation = savedOperations.get(0);
         Assert.assertNotNull(saveOperation.getPhysicalGear());

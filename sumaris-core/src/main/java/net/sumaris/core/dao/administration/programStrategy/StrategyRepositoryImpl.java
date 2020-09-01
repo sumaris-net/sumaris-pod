@@ -168,7 +168,6 @@ public class StrategyRepositoryImpl
         }
     )
     public void deleteById(Integer id) {
-        log.debug(String.format("Deleting strategy {id=%s}...", id));
         super.deleteById(id);
     }
 

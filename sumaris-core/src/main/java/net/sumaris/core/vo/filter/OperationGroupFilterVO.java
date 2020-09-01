@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.vo.filter;
 
 /*-
  * #%L
@@ -22,25 +22,19 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.vo.data.OperationVO;
+import lombok.Builder;
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
-import java.util.List;
+@Data
+@Builder
+@FieldNameConstants
+public class OperationGroupFilterVO implements IDataFilter {
 
-public interface OperationDao {
+    private Integer tripId;
+    private Integer recorderDepartmentId;
 
-    List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    private boolean onlyDefined;
+    private boolean onlyUndefined;
 
-    Long countByTripId(int tripId);
-
-    OperationVO get(int id);
-
-    void delete(int id);
-
-    OperationVO save(OperationVO trip);
-
-    List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);
-
-    OperationVO toVO(Operation operation);
 }

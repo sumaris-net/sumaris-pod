@@ -303,7 +303,6 @@ public class ProgramRepositoryImpl
         }
     )
     public void deleteById(Integer id) {
-        log.debug(String.format("Deleting program {id=%s}...", id));
         super.deleteById(id);
     }
 

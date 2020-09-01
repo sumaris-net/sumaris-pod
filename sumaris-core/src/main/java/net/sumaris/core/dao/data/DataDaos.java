@@ -178,7 +178,9 @@ public class DataDaos extends Daos {
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(entityManager, QualityFlag.class, SumarisConfiguration.getInstance().getDefaultQualityFlagId()));
+                int defaultQualityFlagId = SumarisConfiguration.getInstance().getDefaultQualityFlagId();
+                source.setQualityFlagId(defaultQualityFlagId);
+                target.setQualityFlag(load(entityManager, QualityFlag.class, defaultQualityFlagId));
             } else {
                 target.setQualityFlag(load(entityManager, QualityFlag.class, source.getQualityFlagId()));
             }

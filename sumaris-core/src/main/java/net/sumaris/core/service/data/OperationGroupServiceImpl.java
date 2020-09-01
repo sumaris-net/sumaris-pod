@@ -10,24 +10,23 @@ package net.sumaris.core.service.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.OperationGroupDao;
+import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.GearUseMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
@@ -35,12 +34,12 @@ import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 28/11/2019.
@@ -52,7 +51,8 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     protected SumarisConfiguration config;
 
     @Autowired
-    private OperationGroupDao operationGroupDao;
+    private OperationGroupRepository operationGroupRepository;
+//    private OperationGroupDao operationGroupDao;
 
     @Autowired
     protected MeasurementDao measurementDao;
@@ -77,7 +77,8 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Override
     public List<MetierVO> getMetiersByTripId(int tripId) {
-        return operationGroupDao.getMetiersByTripId(tripId);
+//        return operationGroupDao.getMetiersByTripId(tripId);
+        return operationGroupRepository.getMetiersByTripId(tripId);
     }
 
     @Override
@@ -85,7 +86,8 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
         Preconditions.checkNotNull(metiers);
 
-        return operationGroupDao.saveMetiersByTripId(tripId, metiers);
+        return operationGroupRepository.saveMetiersByTripId(tripId, metiers);
+//        return operationGroupDao.saveMetiersByTripId(tripId, metiers);
     }
 
     @Override
@@ -94,46 +96,32 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         Preconditions.checkNotNull(startDate);
         Preconditions.checkNotNull(endDate);
 
-        operationGroupDao.updateUndefinedOperationDates(tripId, startDate, endDate);
+//        operationGroupDao.updateUndefinedOperationDates(tripId, startDate, endDate);
+        operationGroupRepository.updateUndefinedOperationDates(tripId, startDate, endDate);
     }
 
     @Override
     public List<OperationGroupVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return operationGroupDao.getAllByTripId(tripId, offset, size, sortAttribute, sortDirection);
+        return operationGroupRepository.findAll(
+            OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build(),
+            offset,
+            size,
+            sortAttribute,
+            sortDirection,
+            null).getContent();
+//        return operationGroupDao.getAllByTripId(tripId, offset, size, sortAttribute, sortDirection);
     }
 
     @Override
     public List<OperationGroupVO> getAllByTripId(int tripId) {
-        return operationGroupDao.getAllByTripId(tripId);
+        return operationGroupRepository.findAll(OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build());
+//        return operationGroupDao.getAllByTripId(tripId);
     }
 
     @Override
     public OperationGroupVO get(int id) {
-        return operationGroupDao.get(id);
-    }
-
-    @Override
-    public OperationGroupVO save(final OperationGroupVO source) {
-
-        // Check operation group validity
-        checkOperationGroup(source);
-
-        // Save entity
-        operationGroupDao.save(source);
-
-        // Save linked entities
-        saveChildrenEntities(source);
-
-        return source;
-    }
-
-    @Override
-    public List<OperationGroupVO> save(List<OperationGroupVO> operationGroups) {
-        Preconditions.checkNotNull(operationGroups);
-
-        return operationGroups.stream()
-            .map(this::save)
-            .collect(Collectors.toList());
+        return operationGroupRepository.get(id);
+//        return operationGroupDao.get(id);
     }
 
     @Override
@@ -142,7 +130,8 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         sources.forEach(this::checkOperationGroup);
 
         // Save entities
-        List<OperationGroupVO> saved = operationGroupDao.saveAllByTripId(tripId, sources);
+        List<OperationGroupVO> saved = operationGroupRepository.saveAllByTripId(tripId, sources);
+//        List<OperationGroupVO> saved = operationGroupDao.saveAllByTripId(tripId, sources);
 
         // Save children entities
         saved.forEach(this::saveChildrenEntities);
@@ -152,7 +141,8 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Override
     public void delete(int id) {
-        operationGroupDao.delete(id);
+        operationGroupRepository.deleteById(id);
+//        operationGroupDao.delete(id);
     }
 
     @Override
@@ -172,7 +162,6 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     }
 
     protected void saveChildrenEntities(final OperationGroupVO source) {
-
 
         // Dispatch measurements from measurementValues (which should contains all measurements)
         {

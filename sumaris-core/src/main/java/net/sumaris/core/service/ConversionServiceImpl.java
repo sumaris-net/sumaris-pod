@@ -24,8 +24,8 @@ package net.sumaris.core.service;
 
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.landing.LandingRepository;
-import net.sumaris.core.dao.data.OperationDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
+import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Landing;
@@ -53,7 +53,7 @@ public class ConversionServiceImpl extends GenericConversionService {
     private ObservedLocationRepository observedLocationRepository;
 
     @Autowired
-    private OperationDao operationDao;
+    private OperationRepository operationRepository;
 
     @Autowired
     private LandingRepository landingRepository;
@@ -67,7 +67,7 @@ public class ConversionServiceImpl extends GenericConversionService {
         // Entity->VO converters
         addConverter(Trip.class, TripVO.class, tripRepository::toVO);
         addConverter(ObservedLocation.class, ObservedLocationVO.class, observedLocationRepository::toVO);
-        addConverter(Operation.class, OperationVO.class, operationDao::toVO);
+        addConverter(Operation.class, OperationVO.class, operationRepository::toVO);
         addConverter(Landing.class, LandingVO.class, landingRepository::toVO);
         addConverter(Person.class, PersonVO.class, personRepository::toVO);
     }

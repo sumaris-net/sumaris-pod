@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SampleVO;
@@ -46,7 +47,7 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private OperationDao operationDao;
+    private OperationRepository operationRepository;
 
     @Autowired
     private SampleDao dao;
@@ -60,7 +61,7 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
         super.setUp();
         setCommitOnTearDown(false); // this is need because of delete test
 
-        parentOperation = operationDao.get(1);
+        parentOperation = operationRepository.get(1);
         Assume.assumeNotNull(parentOperation);
 
         this.fixtures = dbResource.getFixtures();

@@ -39,6 +39,8 @@ import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.domain.Sort;
@@ -63,6 +65,8 @@ import java.util.Set;
 public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
     extends SimpleJpaRepository<E, ID>
     implements SumarisJpaRepository<E, ID, V> {
+
+    private static final Logger log = LoggerFactory.getLogger(SumarisJpaRepositoryImpl.class);
 
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;
@@ -211,6 +215,14 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     protected Class<V> getVOClass() {
         if (voClass == null) throw new NotImplementedException("Not implemented yet. Should be override by subclass or use correct constructor");
         return voClass;
+    }
+
+    @Override
+    public void deleteById(ID id) {
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting %s (id=%s)", getDomainClass().getSimpleName(), id));
+        }
+        super.deleteById(id);
     }
 
     /* -- protected method -- */

@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
@@ -49,7 +50,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private OperationDao operationDao;
+    private OperationRepository operationRepository;
 
     @Autowired
     private BatchDao dao;
@@ -61,7 +62,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
         super.setUp();
         setCommitOnTearDown(false); // this is need because of delete test
 
-        parentOperation = operationDao.get(1);
+        parentOperation = operationRepository.get(1);
         Assume.assumeNotNull(parentOperation);
     }
 
