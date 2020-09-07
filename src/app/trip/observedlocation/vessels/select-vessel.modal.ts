@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -29,18 +30,19 @@ import {ConfigService} from "../../../core/services/config.service";
   templateUrl: './select-vessel.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectVesselsModal implements OnInit, OnDestroy {
+export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
 
   selectedTabIndex = 0;
   subscription = new Subscription();
 
   @ViewChild(LandingsTable, { static: true }) landingsTable: LandingsTable;
   @ViewChild(VesselsTable, { static: true }) vesselsTable: VesselsTable;
-  @ViewChild(VesselForm, { static: true }) vesselForm: VesselForm;
+  @ViewChild(VesselForm, { static: false }) vesselForm: VesselForm;
 
   @Input() landingFilter: LandingFilter = {};
   @Input() vesselFilter: VesselFilter = {};
   @Input() allowMultiple: boolean;
+  @Input() allowNewVessel: boolean;
 
   get loading(): boolean {
     const table = this.table;
@@ -73,8 +75,6 @@ export class SelectVesselsModal implements OnInit, OnDestroy {
     }
   }
 
-  @Input() allowNewVessel: boolean;
-
   get isNewVessel(): boolean {
     return this.selectedTabIndex === 2;
   }
@@ -96,12 +96,17 @@ export class SelectVesselsModal implements OnInit, OnDestroy {
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
+    this.allowNewVessel = toBoolean(this.allowNewVessel, false);
 
     // Load landings
     setTimeout(() => {
       this.landingsTable.onRefresh.next("modal");
       this.markForCheck();
     }, 200);
+
+  }
+
+  ngAfterViewInit() {
 
     // Get default status by config
     if (this.allowNewVessel && this.vesselForm) {
@@ -118,7 +123,6 @@ export class SelectVesselsModal implements OnInit, OnDestroy {
 
       this.vesselForm.enable();
     }
-
   }
 
   ngOnDestroy() {

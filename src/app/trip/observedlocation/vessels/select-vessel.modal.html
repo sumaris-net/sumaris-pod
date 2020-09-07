@@ -70,7 +70,8 @@
 
     <!-- TAB: create new vessel -->
     <mat-tab label="{{'OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_NEW_VESSEL'|translate}}"
-      [disabled]="!allowNewVessel">
+       *ngIf="allowNewVessel"
+    >
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="search"></ion-icon>
