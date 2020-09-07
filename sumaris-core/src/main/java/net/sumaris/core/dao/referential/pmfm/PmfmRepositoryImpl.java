@@ -41,7 +41,7 @@ public class PmfmRepositoryImpl
 
     @PostConstruct
     protected void init() {
-        this.unitIdNone = config.getUnitIdNone();
+        this.unitIdNone = getConfig().getUnitIdNone();
     }
 
     @Override

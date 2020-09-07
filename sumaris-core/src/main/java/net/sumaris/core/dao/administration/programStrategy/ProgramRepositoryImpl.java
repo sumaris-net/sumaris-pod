@@ -168,7 +168,7 @@ public class ProgramRepositoryImpl
 
         if (vo.getId() == null && vo.getStatusId() == null)
             // Set default status to Temporary
-            vo.setStatusId(config.getStatusIdTemporary());
+            vo.setStatusId(getConfig().getStatusIdTemporary());
 
         return super.save(vo);
     }

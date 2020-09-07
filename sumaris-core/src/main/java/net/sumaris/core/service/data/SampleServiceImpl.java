@@ -26,12 +26,13 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.SampleDao;
+import net.sumaris.core.dao.data.sample.SampleRepository;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SampleMeasurement;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.filter.SampleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -52,30 +53,33 @@ public class SampleServiceImpl implements SampleService {
 	protected SumarisConfiguration config;
 
 	@Autowired
-	protected SampleDao sampleDao;
+	protected SampleRepository sampleRepository;
+//	protected SampleDao sampleDao;
 
 	@Autowired
 	protected MeasurementDao measurementDao;
 
 	@Override
-	public List<SampleVO> getAllByOperationId(int tripId) {
-		return sampleDao.getAllByOperationId(tripId);
+	public List<SampleVO> getAllByOperationId(int operationId) {
+		return sampleRepository.findAll(SampleFilterVO.builder().operationId(operationId).build());
+//		return sampleDao.getAllByOperationId(tripId);
 	}
 
 	@Override
 	public List<SampleVO> getAllByLandingId(int landingId) {
-		return sampleDao.getAllByLandingId(landingId);
+		return sampleRepository.findAll(SampleFilterVO.builder().landingId(landingId).build());
+//		return sampleDao.getAllByLandingId(landingId);
 	}
 
 	@Override
 	public SampleVO get(int saleId) {
-		return sampleDao.get(saleId);
+		return sampleRepository.get(saleId);
 	}
 
 	@Override
 	public List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources) {
 
-		List<SampleVO> result = sampleDao.saveByOperationId(operationId, sources);
+		List<SampleVO> result = sampleRepository.saveByOperationId(operationId, sources);
 
 		// Save measurements
 		saveMeasurements(result);
@@ -85,7 +89,8 @@ public class SampleServiceImpl implements SampleService {
 
 	@Override
 	public List<SampleVO> saveByLandingId(int landingId, List<SampleVO> sources) {
-		List<SampleVO> result = sampleDao.saveByLandingId(landingId, sources);
+
+		List<SampleVO> result = sampleRepository.saveByLandingId(landingId, sources);
 
 		// Save measurements
 		saveMeasurements(result);
@@ -100,7 +105,7 @@ public class SampleServiceImpl implements SampleService {
 		Preconditions.checkNotNull(sample.getRecorderDepartment(), "Missing sample.recorderDepartment");
 		Preconditions.checkNotNull(sample.getRecorderDepartment().getId(), "Missing sample.recorderDepartment.id");
 
-		return sampleDao.save(sample);
+		return sampleRepository.save(sample);
 	}
 
 	@Override
@@ -114,7 +119,7 @@ public class SampleServiceImpl implements SampleService {
 
 	@Override
 	public void delete(int id) {
-		sampleDao.delete(id);
+		sampleRepository.deleteById(id);
 	}
 
 	@Override

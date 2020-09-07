@@ -193,7 +193,7 @@ public class PersonRepositoryImpl
         if (isNew) {
             // Set default status to Temporary
             if (vo.getStatusId() == null) {
-                vo.setStatusId(config.getStatusIdTemporary());
+                vo.setStatusId(getConfig().getStatusIdTemporary());
             }
         }
         // If update
@@ -303,7 +303,7 @@ public class PersonRepositoryImpl
     private Map<String, String> getUserProfileLabelTranslationMap(boolean toVO) {
         Map<String, String> translateMap = new HashMap<>();
         Pattern pattern = Pattern.compile("sumaris.userProfile.(\\w+).label");
-        softwareDao.getByLabel(config.getAppName()).getProperties().forEach((key, value) -> {
+        softwareDao.getByLabel(getConfig().getAppName()).getProperties().forEach((key, value) -> {
             Matcher matcher = pattern.matcher(key);
             if (value != null && matcher.find()) {
                 if (toVO)

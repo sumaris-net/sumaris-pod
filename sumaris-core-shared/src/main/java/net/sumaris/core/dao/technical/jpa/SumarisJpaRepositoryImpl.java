@@ -80,7 +80,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     private DataSource dataSource;
 
     @Autowired
-    protected SumarisConfiguration config;
+    private SumarisConfiguration config;
 
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         this(domainClass, null, entityManager);
@@ -109,6 +109,10 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     public void setLockForUpdate(boolean lockForUpdate) {
         this.lockForUpdate = lockForUpdate;
+    }
+
+    public SumarisConfiguration getConfig() {
+        return config;
     }
 
     @Override

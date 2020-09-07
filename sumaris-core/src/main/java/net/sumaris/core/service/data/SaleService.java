@@ -23,10 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.SaleVO;
-import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -39,7 +36,6 @@ import java.util.List;
  */
 @Transactional
 public interface SaleService {
-
 
 	@Transactional(readOnly = true)
 	List<SaleVO> getAllByTripId(int tripId);

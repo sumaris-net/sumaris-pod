@@ -26,6 +26,7 @@ import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.operation.OperationRepository;
+import net.sumaris.core.dao.data.sample.SampleRepository;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SampleVO;
@@ -50,7 +51,7 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
     private OperationRepository operationRepository;
 
     @Autowired
-    private SampleDao dao;
+    private SampleRepository sampleRepository;
 
     private OperationVO parentOperation;
     
@@ -97,7 +98,7 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
         recorderDepartment.setId(fixtures.getDepartmentId(0));
         sample.setRecorderDepartment(recorderDepartment);
 
-        SampleVO savedVO = dao.save(sample);
+        SampleVO savedVO = sampleRepository.save(sample);
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
     }
@@ -105,7 +106,7 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
     @Test
     public void delete() {
         Integer id = fixtures.getSampleId(0);
-        dao.delete(id);
+        sampleRepository.deleteById(id);
 
     }
 

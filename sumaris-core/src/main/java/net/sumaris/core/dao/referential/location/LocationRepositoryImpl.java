@@ -79,7 +79,7 @@ public class LocationRepositoryImpl
     @Override
     public void updateLocationHierarchy() {
         // If running on HSQLDB: skip (no stored procedure define)
-        if (Daos.isHsqlDatabase(config.getJdbcURL())) {
+        if (Daos.isHsqlDatabase(getConfig().getJdbcURL())) {
             log.warn("Skipping location hierarchy (Stored procedure P_FILL_LOCATION_HIERARCHY not exists)");
             return;
         }

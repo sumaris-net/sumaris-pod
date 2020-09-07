@@ -52,7 +52,6 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Autowired
     private OperationGroupRepository operationGroupRepository;
-//    private OperationGroupDao operationGroupDao;
 
     @Autowired
     protected MeasurementDao measurementDao;
@@ -77,7 +76,6 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Override
     public List<MetierVO> getMetiersByTripId(int tripId) {
-//        return operationGroupDao.getMetiersByTripId(tripId);
         return operationGroupRepository.getMetiersByTripId(tripId);
     }
 
@@ -87,7 +85,6 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         Preconditions.checkNotNull(metiers);
 
         return operationGroupRepository.saveMetiersByTripId(tripId, metiers);
-//        return operationGroupDao.saveMetiersByTripId(tripId, metiers);
     }
 
     @Override
@@ -96,7 +93,6 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         Preconditions.checkNotNull(startDate);
         Preconditions.checkNotNull(endDate);
 
-//        operationGroupDao.updateUndefinedOperationDates(tripId, startDate, endDate);
         operationGroupRepository.updateUndefinedOperationDates(tripId, startDate, endDate);
     }
 
@@ -109,19 +105,16 @@ public class OperationGroupServiceImpl implements OperationGroupService {
             sortAttribute,
             sortDirection,
             null).getContent();
-//        return operationGroupDao.getAllByTripId(tripId, offset, size, sortAttribute, sortDirection);
     }
 
     @Override
     public List<OperationGroupVO> getAllByTripId(int tripId) {
         return operationGroupRepository.findAll(OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build());
-//        return operationGroupDao.getAllByTripId(tripId);
     }
 
     @Override
     public OperationGroupVO get(int id) {
         return operationGroupRepository.get(id);
-//        return operationGroupDao.get(id);
     }
 
     @Override
@@ -131,7 +124,6 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
         // Save entities
         List<OperationGroupVO> saved = operationGroupRepository.saveAllByTripId(tripId, sources);
-//        List<OperationGroupVO> saved = operationGroupDao.saveAllByTripId(tripId, sources);
 
         // Save children entities
         saved.forEach(this::saveChildrenEntities);
@@ -142,7 +134,6 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     @Override
     public void delete(int id) {
         operationGroupRepository.deleteById(id);
-//        operationGroupDao.delete(id);
     }
 
     @Override

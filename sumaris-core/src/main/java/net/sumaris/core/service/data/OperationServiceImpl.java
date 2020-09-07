@@ -56,7 +56,6 @@ public class OperationServiceImpl implements OperationService {
     protected SumarisConfiguration config;
 
     @Autowired
-//	protected OperationDao operationDao;
     protected OperationRepository operationRepository;
 
     @Autowired
@@ -76,13 +75,11 @@ public class OperationServiceImpl implements OperationService {
 
     @Override
     public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-//		return operationDao.getAllByTripId(tripId, offset, size, sortAttribute, sortDirection);
         return operationRepository.findAll(OperationFilterVO.builder().tripId(tripId).build(), offset, size, sortAttribute, sortDirection, null).getContent();
     }
 
     @Override
     public Long countByTripId(int tripId) {
-//		return operationDao.countByTripId(tripId);
         return operationRepository.count(OperationFilterVO.builder().tripId(tripId).build());
     }
 
