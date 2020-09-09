@@ -1,30 +1,48 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from "@angular/core";
 import {LandingsTable} from "../../landing/landings.table";
 import {LandingFilter} from "../../services/landing.service";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {ModalController} from "@ionic/angular";
 import {Landing} from "../../services/model/landing.model";
-import {VesselFilter} from "../../../referential/services/vessel-service";
+import {VesselFilter, VesselService} from "../../../referential/services/vessel-service";
 import {VesselsTable} from "../../../referential/vessel/list/vessels.table";
 import {AppTable} from "../../../core/table/table.class";
 import {isNotNil, toBoolean} from "../../../shared/functions";
 import {VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
+import {VesselForm} from "../../../referential/vessel/form/form-vessel";
+import {AppFormUtils} from "../../../core/form/form.utils";
+import {Vessel} from "../../../referential/services/model/vessel.model";
+import {Subscription} from "rxjs";
+import {ConfigOptions} from "../../../core/services/config/core.config";
+import {ConfigService} from "../../../core/services/config.service";
 
 @Component({
   selector: 'app-select-vessel-modal',
   templateUrl: './select-vessel.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectVesselsModal implements OnInit {
+export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
 
   selectedTabIndex = 0;
+  subscription = new Subscription();
 
   @ViewChild(LandingsTable, { static: true }) landingsTable: LandingsTable;
   @ViewChild(VesselsTable, { static: true }) vesselsTable: VesselsTable;
+  @ViewChild(VesselForm, { static: false }) vesselForm: VesselForm;
 
   @Input() landingFilter: LandingFilter = {};
   @Input() vesselFilter: VesselFilter = {};
   @Input() allowMultiple: boolean;
+  @Input() allowNewVessel: boolean;
 
   get loading(): boolean {
     const table = this.table;
@@ -32,7 +50,7 @@ export class SelectVesselsModal implements OnInit {
   }
 
   get table(): AppTable<any> {
-    return (!this.showLandings && this.vesselsTable) || (this.showLandings && this.landingsTable);
+    return (this.showVessels && this.vesselsTable) || (this.showLandings && this.landingsTable);
   }
 
   get showLandings(): boolean {
@@ -46,7 +64,24 @@ export class SelectVesselsModal implements OnInit {
     }
   }
 
+  get showVessels(): boolean {
+    return this.selectedTabIndex === 1;
+  }
+
+  @Input() set showVessels(value: boolean) {
+    if (this.showVessels !== value) {
+      this.selectedTabIndex = value ? 1 : 0;
+      this.markForCheck();
+    }
+  }
+
+  get isNewVessel(): boolean {
+    return this.selectedTabIndex === 2;
+  }
+
   constructor(
+    private vesselService: VesselService,
+    private configService: ConfigService,
     protected viewCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {
@@ -61,6 +96,7 @@ export class SelectVesselsModal implements OnInit {
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
+    this.allowNewVessel = toBoolean(this.allowNewVessel, false);
 
     // Load landings
     setTimeout(() => {
@@ -70,6 +106,28 @@ export class SelectVesselsModal implements OnInit {
 
   }
 
+  ngAfterViewInit() {
+
+    // Get default status by config
+    if (this.allowNewVessel && this.vesselForm) {
+      this.subscription.add(
+        this.configService.config.subscribe(config => {
+          if (config && config.properties) {
+            const defaultStatus = config.properties[ConfigOptions.VESSEL_DEFAULT_STATUS.key];
+            if (defaultStatus) {
+              this.vesselForm.defaultStatus = +defaultStatus;
+            }
+          }
+        })
+      );
+
+      this.vesselForm.enable();
+    }
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
 
   async selectRow({id, row}) {
     const table = this.table;
@@ -95,12 +153,15 @@ export class SelectVesselsModal implements OnInit {
             .map(Landing.fromObject)
             .filter(isNotNil)
             .map(l => l.vesselSnapshot);
-        }
-        else {
+        } else if (this.showVessels) {
           vessels = (this.vesselsTable.selection.selected || [])
             .map(row => row.currentData)
-            .map(VesselSnapshot.fromObject)
+            .map(VesselSnapshot.fromVessel)
             .filter(isNotNil);
+        } else if (this.isNewVessel) {
+          vessels = [await this.createVessel()];
+        } else {
+          console.warn("[select-vessel-modal] no selection");
         }
         this.viewCtrl.dismiss(vessels);
       }
@@ -111,11 +172,52 @@ export class SelectVesselsModal implements OnInit {
     }
   }
 
+  async createVessel(): Promise<VesselSnapshot> {
+
+    if (!this.vesselForm)
+      throw Error('No Vessel Form');
+
+    console.debug("[select-vessel-modal] Saving new vessel...");
+
+    // Avoid multiple call
+    if (this.vesselForm.disabled) return;
+
+    await AppFormUtils.waitWhilePending(this.vesselForm);
+
+    if (this.vesselForm.invalid) {
+      this.vesselForm.markAsTouched({emitEvent: true});
+
+      AppFormUtils.logFormErrors(this.vesselForm.form);
+      return;
+    }
+
+    let result: VesselSnapshot;
+    try {
+      const json = this.vesselForm.value;
+      const data = Vessel.fromObject(json);
+
+      this.vesselForm.disable();
+
+      const savedData = await this.vesselService.save(data);
+      result = VesselSnapshot.fromVessel(savedData);
+      this.vesselForm.error = null;
+    }
+    catch (err) {
+      this.vesselForm.error = err && err.message || err;
+      this.vesselForm.enable();
+    }
+
+    return result;
+  }
+
   async cancel() {
     await this.viewCtrl.dismiss();
   }
 
   hasSelection(): boolean {
+    if (this.allowNewVessel && this.isNewVessel && this.vesselForm) {
+      return this.vesselForm.valid;
+    }
     const table = this.table;
     return table && table.selection.hasValue() && (this.allowMultiple || table.selection.selected.length === 1);
   }

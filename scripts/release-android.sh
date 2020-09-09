@@ -8,9 +8,7 @@ fi;
 
 # Preparing Android environment
 . ${PROJECT_DIR}/scripts/env-android.sh
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 cd ${PROJECT_DIR}
 
@@ -18,7 +16,10 @@ cd ${PROJECT_DIR}
 echo "Running cordova build..."
 ionic cordova build android --prod --release --warning-mode=none --color
 
-[[ $? -ne 0 ]] && exit 1
+if [[ $? -ne 0 ]]; then
+  echo "Something's wrong with your environment. Please check if you have permissions on ~/.android"
+  exit 1
+fi
 
 # Signature
 KEYSTORE_FILE=${PROJECT_DIR}/.local/android/Sumaris.keystore

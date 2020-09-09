@@ -8,9 +8,7 @@ fi;
 
 # Preparing Android environment
 . ${PROJECT_DIR}/scripts/env-global.sh
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 cd ${PROJECT_DIR}
 
@@ -19,12 +17,8 @@ npm install -g ionic@latest
 
 echo "Updating Cordova..."
 npm update -g cordova@latest
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 echo "Updating Cordova plugins..."
 ionic cordova platform update android --save
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1

@@ -1,31 +1,18 @@
 import {
-  Cloneable,
   Department,
   Entity,
   EntityAsObjectOptions,
-  entityToString,
-  EntityUtils,
   fromDateISOString,
   isNil,
   isNotNil,
-  joinPropertiesPath,
   Person,
-  PropertiesMap,
-  Referential,
   ReferentialRef,
-  referentialToString,
-  StatusIds,
   toDateISOString
 } from "../../../core/core.module";
 import {Moment} from "moment/moment";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
-import {TaxonGroupRef, TaxonNameRef} from "./taxon.model";
-import {isNilOrBlank, isNotNilOrNaN, toNumber} from "../../../shared/functions";
-import {PredefinedColors} from "@ionic/core";
-import {Pmfm, PmfmType} from "./pmfm.model";
-import {IEntity} from "../../../core/services/model/entity.model";
+import {isNilOrBlank} from "../../../shared/functions";
 import {
-  MINIFY_OPTIONS, NOT_MINIFY_OPTIONS,
+  NOT_MINIFY_OPTIONS,
   ReferentialAsObjectOptions,
   ReferentialUtils
 } from "../../../core/services/model/referential.model";

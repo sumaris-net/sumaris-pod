@@ -24,7 +24,7 @@ if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}/tools/bin" ]]; then
 fi
 
 if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}/tools/bin" ]]; then
-  echo "Failed to install Android SDK CLI tools. If you are not root, try with sudo..."
+  echo "Failed to install Android SDK CLI tools. If you are not root, try with \`sudo -E ./install-android-sdk-tools.sh\`"
   exit 1
 fi
 

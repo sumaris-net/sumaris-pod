@@ -16,6 +16,7 @@ import {PlatformService} from "./platform.service";
 import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {ConfigOptions} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -472,6 +473,13 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   private overrideEnums(config: Configuration) {
     console.log("[config] Overriding model enumerations...");
+
+    // Location Levels
+    LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_ID_COUNTRY);
+    LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_ID_PORT);
+    LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_ID_AUCTION);
+    LocationLevelIds.SEA_AREA = config.getProperty(ConfigOptions.LOCATION_LEVEL_ID_SEA_AREA);
+
   }
 
 }

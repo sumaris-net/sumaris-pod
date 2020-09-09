@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {
   AppTable,
   EntitiesTableDataSource,
@@ -19,7 +28,7 @@ import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
 import {filterNotNil} from "../../shared/observables";
-import {isNotEmptyArray} from "../../shared/functions";
+import {isNotEmptyArray, toBoolean} from "../../shared/functions";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
 import {AggregatedLandingFilter, AggregatedLandingService} from "../services/aggregated-landing.service";
 import {Moment} from "moment";
@@ -34,6 +43,7 @@ import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum
 import {add} from "ionicons/icons";
 import {PacketModal} from "../packet/packet.modal";
 import {AggregatedLandingModal} from "./aggregated-landing.modal";
+import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 
 @Component({
   selector: 'app-aggregated-landings-table',
@@ -78,6 +88,10 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       this._program = value;
       this._onRefreshPmfms.emit();
     }
+  }
+
+  get program(): string {
+    return this._program;
   }
 
   @Input()
@@ -162,12 +176,22 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     } else {
       this.startDate = parent.startDateTime;
       this.setFilter({
+        observedLocationId: parent.id,
         programLabel: this._program,
         locationId: parent.location.id,
         startDate: parent.startDateTime,
         endDate: parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, "day")
       });
     }
+  }
+
+  setFilter(filter: AggregatedLandingFilter, opts?: { emitEvent: boolean }) {
+
+    // Don't refilter if actual filter is equal
+    if (AggregatedLandingFilter.equals(this.filter, filter))
+      return;
+
+    super.setFilter(filter, opts);
   }
 
   referentialToString = referentialToString;
@@ -182,7 +206,6 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 
   private refreshDates() {
     if (isNil(this._startDate) || isNil(this._nbDays)) return;
@@ -232,27 +255,33 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.$pmfms.next(pmfms);
   }
 
-  protected async openRow(id: number, row: TableElement<AggregatedLanding>): Promise<boolean> {
+  clickRow(event: MouseEvent | undefined, row: TableElement<AggregatedLanding>): boolean {
+    if (event && event.defaultPrevented || this.loading) return false;
     if (!this.mobile) return false;
-    // on mobile mode
 
     const today = moment().startOf("day");
-    await this.openModal(row, today);
+    this.setLoading(true);
+    this.openModal(event, row, today)
+      .then(() => this.setLoading(false));
+
   }
 
-  async clickCell($event: MouseEvent, row: TableElement<AggregatedLanding>, date: Moment) {
+  clickCell($event: MouseEvent, row: TableElement<AggregatedLanding>, date: Moment) {
     if ($event) $event.stopPropagation();
     if (this.debug)
       console.debug('clickCell', $event, row.currentData.vesselSnapshot.exteriorMarking + "|" + row.currentData.vesselActivities.length, date.toISOString());
 
-    await this.openModal(row, date);
+    this.setLoading(true);
+    this.openModal($event, row, date)
+      .then(() => this.setLoading(false));
   }
 
-  async openModal(row: TableElement<AggregatedLanding>, date?: Moment) {
+  async openModal($event: MouseEvent, row: TableElement<AggregatedLanding>, date?: Moment) {
+    this.onEditRow($event, row);
     const modal = await this.modalCtrl.create({
       component: AggregatedLandingModal,
       componentProps: {
-        data: row.currentData,
+        data: row.currentData.clone(),
         options: {
           dates: this.$dates.getValue(),
           initialDate: date,
@@ -268,15 +297,56 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     const res = await modal.onDidDismiss();
 
     if (res && res.data) {
-      console.debug('data to update:', res.data);
 
-      // row.validator.patchValue(res.data, {onlySelf: false, emitEvent: true});
+      if (res.data.aggregatedLanding) {
+        console.debug('data to update:', res.data.aggregatedLanding);
 
-      // update sales
-      // this.updateSaleProducts(row);
+        row.currentData.vesselActivities.splice(0, row.currentData.vesselActivities.length, ...res.data.aggregatedLanding.vesselActivities);
+        // this.markAsDirty();
+        this.confirmEditCreate();
+        this.markForCheck();
+      }
 
-      this.markAsDirty();
+      if (toBoolean(res.data.saveOnDismiss, false)) {
+        // call save
+        await this.save();
+      }
+
+      if (res.data.tripToOpen) {
+        // navigate to trip
+        this.setLoading(true);
+        this.markForCheck();
+
+        try {
+          await this.router.navigateByUrl(`/observations/${res.data.tripToOpen.observedLocationId}/trip/${res.data.tripToOpen.tripId}`);
+        } finally {
+          this.setLoading(false);
+          this.markForCheck();
+        }
+      }
     }
   }
+
+  async addAggregatedRow(vessel: VesselSnapshot) {
+    const row = await this.addRowToTable();
+    row.currentData.vesselSnapshot = vessel;
+    this.markForCheck();
+    // TODO scroll to row
+    // this.scrollToRow(row);
+  }
+
+  async vesselIdsAlreadyPresent(): Promise<number[]> {
+    const rows = await this.dataSource.getRows()
+    return (rows || []).map(row => row.currentData.vesselSnapshot.id);
+  }
+
+  // private scrollToRow(row: TableElement<AggregatedLanding>) {
+  //   if (!row) return;
+  //   const rect = row._elementRef.nativeElement.getBoundingClientRect();
+  //   if ((rect.y <= 0) || ((rect.y+rect.height) > this.table._elementRef.nativeElement.getBoundingClientRect().height))
+  //   {
+  //     row.element.nativeElement.scrollIntoView();
+  //   }
+  // }
 }
 

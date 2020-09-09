@@ -12,18 +12,37 @@ fi;
 
 cd ${PROJECT_DIR}
 
+# Read parameters
+task=$1
+version=$2
+androidVersion=$3
+release_description=$4
+
+# Check version format
+if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ || ! $androidVersion =~ ^[0-9]+$ ]]; then
+  echo "Wrong version format"
+  echo "Usage:"
+  echo " > ./release-gitflow.sh [pre|rel] <version> <android-version> <release_description>"
+  echo "with:"
+  echo " - pre: use for pre-release"
+  echo " - rel: for full release"
+  echo " - version: x.y.z"
+  echo " - android-version: nnn"
+  echo " - release_description: a comment on release"
+  exit 1
+fi
 
 ### Control that the script is run on `dev` branch
 resumeRelease=0
 branch=`git rev-parse --abbrev-ref HEAD`
 if [[ ! "$branch" = "develop" ]]
 then
-  if [[ "$branch" = "release/$2" ]]
+  if [[ "$branch" = "release/$version" ]]
   then
     echo "Resuming release ..."
     resumeRelease=1
   else
-    echo ">> This script must be run under \`develop\` or \`release/$2\` branch"
+    echo ">> This script must be run under \`develop\` or \`release/$version\` branch"
     exit 1
   fi
 fi
@@ -31,7 +50,7 @@ fi
 PROJECT_DIR=`pwd`
 
 ### Get current version (package.json)
-current=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
+current=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
 if [[ "_$current" == "_" ]]; then
   echo ">> Unable to read the current version in 'package.json'. Please check version format is: x.y.z (x and y should be an integer)."
   exit 1;
@@ -46,20 +65,6 @@ if [[ "_$currentAndroid" == "_" ]]; then
 fi
 echo "Current Android version: $currentAndroid"
 
-# Check version format
-if [[ ! $2 =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ || ! $3 =~ ^[0-9]+$ ]]; then
-  echo "Wrong version format"
-  echo "Usage:"
-  echo " > ./release.sh [pre|rel] <version>  <android-version> <release_description>"
-  echo "with:"
-  echo " - pre: use for pre-release"
-  echo " - rel: for full release"
-  echo " - version: x.y.z"
-  echo " - android-version: nnn"
-  echo " - release_description: a comment on release"
-  exit 1
-fi
-
 echo "**********************************"
 if [[ $resumeRelease = 0 ]]
 then
@@ -68,32 +73,33 @@ else
   echo "* Resuming release..."
 fi
 echo "**********************************"
-echo "* new build version: $2"
-echo "* new build android version: $3"
+echo "* new build version: $version"
+echo "* new build android version: $androidVersion"
 echo "**********************************"
 
 if [[ $resumeRelease = 0 ]]
 then
-  git flow release start "$2"
-  if [[ $? -ne 0 ]]; then
-      exit 1
-  fi
+  read -r -p "Is these new versions correct ? [y/N] " response
+  response=${response,,}    # tolower
+  [[ ! "$response" =~ ^(yes|y)$ ]] && exit 1
+  git flow release start "$version"
+  [[ $? -ne 0 ]] && exit 1
 fi
 
-case "$1" in
+case "$task" in
 rel|pre)
     # Change the version in files: 'package.json' and 'config.xml'
-    sed -i "s/version\": \"$current\"/version\": \"$2\"/g" package.json
-    currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+((a|b)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
-    sed -i "s/ version=\"$currentConfigXmlVersion\"/ version=\"$2\"/g" config.xml
-      sed -i "s/ android-versionCode=\"$currentAndroid\"/ android-versionCode=\"$3\"/g" config.xml
+    sed -i "s/version\": \"$current\"/version\": \"$version\"/g" package.json
+    currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
+    sed -i "s/ version=\"$currentConfigXmlVersion\"/ version=\"$version\"/g" config.xml
+      sed -i "s/ android-versionCode=\"$currentAndroid\"/ android-versionCode=\"$androidVersion\"/g" config.xml
 
     # Change version in file: 'src/assets/manifest.json'
-    currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
-    sed -i "s/version\": \"$currentManifestJsonVersion\"/version\": \"$2\"/g" src/assets/manifest.json
+    currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
+    sed -i "s/version\": \"$currentManifestJsonVersion\"/version\": \"$version\"/g" src/assets/manifest.json
 
     # Bump the install.sh
-    sed -i "s/echo \"v.*\" #lastest/echo \"v$2\" #lastest/g" install.sh
+    sed -i "s/echo \".*\" #lastest/echo \"$version\" #lastest/g" install.sh
     ;;
 *)
     echo "No task given"
@@ -137,18 +143,18 @@ cd ${PROJECT_DIR}/scripts || exit 1
 ./release-android.sh
 [[ $? -ne 0 ]] && exit 1
 
-description="$4"
+description="$release_description"
 if [[ "_$description" == "_" ]]; then
-    description="Release v$2"
+    description="Release $version"
 fi
 
 # Commit
 #cd $PROJECT_DIR
 #git reset HEAD
 #git add package.json config.xml src/assets/manifest.json install.sh
-#git commit -m "v$2"
-#git tag -f -a "v$2" -m "${description}"
-#git push origin "v$2"
+#git commit -m "$version"
+#git tag -f -a "$version" -m "${description}"
+#git push origin "$version"
 #[[ $? -ne 0 ]] && exit 1
 
 # Pause (if propagation is need between hosted git server and github)
@@ -158,7 +164,7 @@ echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
 cd $PROJECT_DIR
-./github.sh $1 ''"$description"''
+./github.sh "$task" ''"$description"''
 [[ $? -ne 0 ]] && exit 1
 
 #echo "----------------------------------"
@@ -173,7 +179,7 @@ cd $PROJECT_DIR
 #  cd platforms/desktop
 
 #  # Build desktop assets
-#  ./release.sh $2
+#  ./release.sh $version
 #  if [[ $? -ne 0 ]]; then
 #      exit 1
 #  fi
@@ -181,21 +187,12 @@ cd $PROJECT_DIR
 #  echo "WARN: platform/desktop not found -> Skipping desktop build!"
 #fi;
 
-# back to nodejs version 6
-#cd $PROJECT_DIR
-#nvm use 10
-
 echo "**********************************"
 echo "* Finishing release"
 echo "**********************************"
-cd $PROJECT_DIR
-rm "src/assets/i18n/*-$2.json"
-git add package.json src/assets/manifest.json config.xml install.sh
-git commit -m "$description"
-git flow release finish "$2"
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+cd ${PROJECT_DIR}/scripts || exit 1
+./release-gitflow-finish.sh "$version" ''"$release_description"''
+[[ $? -ne 0 ]] && exit 1
 
 echo "**********************************"
 echo "* Build release succeed !"

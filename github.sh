@@ -2,14 +2,14 @@
 
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "master" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ ]];
+if [[ ! "$branch" = "master" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];
 then
   echo ">> This script must be run under \`master\` or a \`release\` branch"
   exit 1
 fi
 
 ### Get version to release
-current=`grep -P "version\": \"\d+.\d+.\d+(\w*)" package.json | grep -m 1 -oP "\d+.\d+.\d+(\w*)"`
+current=`grep -P "version\": \"\d+.\d+.\d+(-(\w+)[0-9]+)" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(\w+)[0-9]+)"`
 if [[ "_$version" != "_" ]]; then
   echo "ERROR: Unable to read 'version' in the file 'package.json'."
   echo " - Make sure the file 'package.json' exists and is readable."
@@ -37,7 +37,7 @@ fi
 
 case "$1" in
   del)
-    result=`curl -i "$REPO_API_URL/releases/tags/v$current"`
+    result=`curl -i "$REPO_API_URL/releases/tags/$current"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+"`
     if [[ $release_url != "" ]]; then
         echo "Deleting existing release..."
@@ -56,10 +56,10 @@ case "$1" in
 
     description=`echo $2`
     if [[ "_$description" = "_" ]]; then
-        description="Release v$current"
+        description="Release $current"
     fi
 
-      result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/v$current"`
+      result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$current"`
       release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
       if [[ "_$release_url" != "_" ]]; then
         echo "Deleting existing release... $release_url"
@@ -74,9 +74,9 @@ case "$1" in
       fi
 
       echo "Creating new release..."
-      echo " - tag: v$current"
+      echo " - tag: $current"
       echo " - description: $description"
-      result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+      result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
       upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
       if [[ "_$upload_url" = "_" ]]; then
@@ -92,27 +92,33 @@ case "$1" in
 
       ZIP_FILE="$DIRNAME/dist/${PROJECT_NAME}.zip"
       if [[ -f "${ZIP_FILE}" ]]; then
-        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${PROJECT_NAME}-v${current}-web.zip")
+        artifact_name="${PROJECT_NAME}-${current}-web.zip"
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${artifact_name}")
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
-        ZIP_SHA256=$(sha256sum "${ZIP_FILE}")
+        ZIP_SHA256=$(sha256sum "${ZIP_FILE}" | sed 's/ /\n/gi' | head -n 1)
         echo " - ${browser_download_url}  | SHA256 Checksum: ${ZIP_SHA256}"
+        echo "${ZIP_SHA256}  ${artifact_name}" > "${ZIP_FILE}.sha256"
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${ZIP_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
       else
         echo " - ERROR: Web release (ZIP) not found! Skipping."
       fi
 
       APK_FILE="${DIRNAME}/platforms/android/app/build/outputs/apk/release/app-release.apk"
       if [[ -f "${APK_FILE}" ]]; then
-        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T "${APK_FILE}" "${upload_url}?name=${PROJECT_NAME}-v${current}-android.apk")
+        artifact_name="${PROJECT_NAME}-${current}-android.apk"
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T "${APK_FILE}" "${upload_url}?name=${artifact_name}")
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
-        APK_SHA256=$(sha256sum "${APK_FILE}")
+        APK_SHA256=$(sha256sum "${APK_FILE}" | sed 's/ /\n/gi' | head -n 1)
         echo " - ${browser_download_url}  | SHA256 Checksum: ${APK_SHA256}"
+        echo "${APK_SHA256}  ${artifact_name}" > "${APK_FILE}.sha256"
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${APK_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
       else
         echo "- ERROR: Android release (APK) not found! Skipping."
       fi
 
       echo "-----------------------------------------"
       echo "Successfully uploading files !"
-      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/v${current}"
+      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${current}"
       exit 0
     else
       echo "Wrong arguments"

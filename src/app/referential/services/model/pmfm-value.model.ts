@@ -1,8 +1,8 @@
 import {Moment} from "moment";
-import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {
   fromDateISOString,
-  isNil,
+  isNil, isNilOrBlank,
   isNotNil,
   isNotNilOrNaN,
   joinPropertiesPath,
@@ -84,5 +84,9 @@ export abstract class PmfmValueUtils {
       default:
         throw new Error("Unknown pmfm's type: " + pmfm.type);
     }
+  }
+
+  static isEmpty(value: PmfmValue | any) {
+    return isNilOrBlank(value) || ReferentialUtils.isEmpty(value);
   }
 }
