@@ -158,14 +158,10 @@ export class PlatformService {
   protected configureStorage(forage: LocalForage) {
     if (isNotNil(this.storage.driver)) {
       console.log(`[platform] Configuring storage [OK] {driver: ${this.storage.driver}}`);
-      console.log(`[platform] _ LocalForage object: ${JSON.stringify(forage)}`);
-      console.log(`[platform] _ Configuring forage {driver=${forage.driver()}} {supports ${forage.WEBSQL}=${forage.supports(forage.WEBSQL)} {supports ${forage.INDEXEDDB}=${forage.supports(forage.INDEXEDDB)} {supports ${forage.LOCALSTORAGE}=${forage.supports(forage.LOCALSTORAGE)}`);
+      console.debug(`[platform] Configuring forage {driver=${forage.driver()}} {supports ${forage.WEBSQL}=${forage.supports(forage.WEBSQL)} {supports ${forage.INDEXEDDB}=${forage.supports(forage.INDEXEDDB)} {supports ${forage.LOCALSTORAGE}=${forage.supports(forage.LOCALSTORAGE)}`);
+      console.debug(`[platform] LocalForage object:`, forage);
     } else {
-      console.error('[platform] NO DRIVER DEFINED IN STORAGE');
-      if (isEmptyArray(Object.keys(forage))) {
-        console.error('[platform] Storage is not defined: No local storage can be used');
-      }
-      console.log(`[platform] _ LocalForage object: ${JSON.stringify(forage)}`);
+      console.error('[platform] NO DRIVER DEFINED IN STORAGE. Local storage cannot be used !');
     }
   }
 }
