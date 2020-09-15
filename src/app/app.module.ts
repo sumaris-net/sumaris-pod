@@ -51,10 +51,11 @@ import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material
     CoreModule,
     SocialModule,
     TripModule,
-    IonicStorageModule.forRoot({
-      name: 'sumaris',
-      driverOrder: ['indexeddb', 'sqlite', 'websql']
-    })
+    // LP 10/19/2020: Already declared in CoreModule
+    // IonicStorageModule.forRoot({
+    //   name: 'sumaris',
+    //   driverOrder: ['indexeddb', 'sqlite', 'websql']
+    // })
   ],
   providers: [
     StatusBar,

@@ -10,7 +10,8 @@ import {CacheService} from "ionic-cache";
 import {AudioProvider} from "../../shared/audio/audio";
 
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
-import {isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNotNil} from "../../shared/functions";
+import {Storage} from "@ionic/storage";
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -37,6 +38,7 @@ export class PlatformService {
     private settings: LocalSettingsService,
     private networkService: NetworkService,
     private cache: CacheService,
+    private storage: Storage,
     private audioProvider: AudioProvider,
     @Optional() private browser: InAppBrowser
   ) {
@@ -87,6 +89,7 @@ export class PlatformService {
           }
         }),
       this.cache.ready().then(() => this.configureCache()),
+      this.storage.ready().then((forage) => this.configureStorage(forage)),
       this.settings.ready(),
       this.networkService.ready(),
       this.audioProvider.ready()
@@ -150,6 +153,16 @@ export class PlatformService {
     console.info(`[platform] Configuring cache [OK] {online: ${online}}, {timeToLive: ${cacheTTL / 3600}h}, {offlineInvalidate: false)`);
     this.cache.setDefaultTTL(cacheTTL);
     this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
+  }
+
+  protected configureStorage(forage: LocalForage) {
+    if (isNotNil(this.storage.driver)) {
+      console.log(`[platform] Configuring storage [OK] {driver: ${this.storage.driver}}`);
+      console.debug(`[platform] Configuring forage {driver=${forage.driver()}} {supports ${forage.WEBSQL}=${forage.supports(forage.WEBSQL)} {supports ${forage.INDEXEDDB}=${forage.supports(forage.INDEXEDDB)} {supports ${forage.LOCALSTORAGE}=${forage.supports(forage.LOCALSTORAGE)}`);
+      console.debug(`[platform] LocalForage object:`, forage);
+    } else {
+      console.error('[platform] NO DRIVER DEFINED IN STORAGE. Local storage cannot be used !');
+    }
   }
 }
 

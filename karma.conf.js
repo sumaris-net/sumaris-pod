@@ -25,7 +25,8 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Chrome'],
+    browsers: ['ChromeHeadless'],
+    browserDisconnectTimeout: 30000,
     singleRun: false
   });
 };
