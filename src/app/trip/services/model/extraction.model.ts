@@ -23,6 +23,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
   category: 'product' | 'live';
   label: string;
   name?: string;
+  version?: string;
   sheetNames?: string[];
   statusId: number;
   isSpatial: boolean;
@@ -48,6 +49,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
     this.label = source.label;
     this.category = source.category;
     this.name = source.name;
+    this.version = source.version;
     this.sheetNames = source.sheetNames;
     this.statusId = source.statusId;
     this.isSpatial = source.isSpatial;

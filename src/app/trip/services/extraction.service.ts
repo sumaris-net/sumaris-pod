@@ -24,7 +24,6 @@ import {Fragments} from "./trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
-import {Operation} from "./model/trip.model";
 import {FilterFn} from "../../shared/services/entity-service.class";
 
 
@@ -34,6 +33,7 @@ export const ExtractionFragments = {
     category
     label
     name
+    version
     sheetNames
     isSpatial
     statusId
@@ -48,6 +48,7 @@ export const ExtractionFragments = {
     category
     label
     name
+    version
     sheetNames
     description
     updateDate

@@ -1245,8 +1245,17 @@
           "HL": "Mensurations (HL)"
         }
       },
-      "FREE": {
-        "TITLE": "Données brutes (FREE v1)",
+      "FREE1": {
+        "TITLE": "Données brutes (FREE v{{version}})",
+        "SHEET": {
+          "TR": "Marées (TR)",
+          "HH": "Opérations (HH)",
+          "SL": "Captures (SL)",
+          "HL": "Mensurations (HL)"
+        }
+      },
+      "FREE2": {
+        "TITLE": "Données brutes (FREE v{{version}})",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",
