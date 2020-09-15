@@ -30,19 +30,35 @@ import java.util.Optional;
  */
 public enum ExtractionRawFormatEnum {
 
-    RDB("TR", "HH", "SL", "HL"),
-    COST ("TR", "HH", "SL", "HL"),
-    FREE ("TR", "HH", "SL", "HL"),
-    SURVIVAL_TEST("TR", "HH", "SL", "HL", "ST", "RL")
+    RDB("RDB", new String[]{"TR", "HH", "SL", "HL"}),
+    COST ("COST", new String[]{"TR", "HH", "SL", "HL"}),
+    FREE1 ("FREE", new String[]{"TR", "HH", "SL", "HL"}, "1"),
+    FREE2 ("FREE", new String[]{"TR", "HH", "SL", "HL"}, "2"),
+    SURVIVAL_TEST("SURVIVAL_TEST", new String[]{"TR", "HH", "SL", "HL", "ST", "RL"})
     ;
 
+    private String label;
     private String[] sheetNames;
+    private String version;
 
-    ExtractionRawFormatEnum(String... sheetNames) {
+    ExtractionRawFormatEnum(String label, String[] sheetNames, String version) {
+        this.label = label;
         this.sheetNames = sheetNames;
+        this.version = version;
     }
-    ExtractionRawFormatEnum() {
-        this.sheetNames = null;
+    ExtractionRawFormatEnum(String label, String[] sheetNames) {
+        this(label, sheetNames, null);
+    }
+    ExtractionRawFormatEnum(String label) {
+        this(label, null, null);
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public String getVersion() {
+        return version;
     }
 
     public String[] getSheetNames() {

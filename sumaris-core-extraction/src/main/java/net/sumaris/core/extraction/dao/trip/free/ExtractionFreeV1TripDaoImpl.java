@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.trip.cost.ExtractionCostTripVersion;
 import net.sumaris.core.extraction.vo.trip.free.ExtractionFreeTripVersion;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -38,22 +37,22 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-@Repository("extractionFreeTripDao")
+@Repository("extractionFreeV1TripDao")
 @Lazy
-public class ExtractionFreeTripDaoImpl<C extends ExtractionRdbTripContextVO> extends ExtractionRdbTripDaoImpl<C> implements ExtractionFreeTripDao {
+public class ExtractionFreeV1TripDaoImpl<C extends ExtractionRdbTripContextVO> extends ExtractionRdbTripDaoImpl<C> implements ExtractionFreeV1TripDao {
 
-    private static final Logger log = LoggerFactory.getLogger(ExtractionFreeTripDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ExtractionFreeV1TripDaoImpl.class);
 
     private static final String XML_QUERY_FREE_PATH = "free/v%s/%s";
-    private String version = ExtractionFreeTripVersion.VERSION_1.getLabel();
+    private static final String VERSION_1_LABEL = ExtractionFreeTripVersion.VERSION_1.getLabel();
 
     @Override
     public C execute(ExtractionFilterVO filter) {
         C context = super.execute(filter);
 
         // Override some context properties
-        context.setFormatName(FREE_FORMAT);
-        context.setFormatVersion(version);
+        context.setFormatName(FREE1_FORMAT);
+        context.setFormatVersion(VERSION_1_LABEL);
 
         return context;
     }
@@ -128,7 +127,7 @@ public class ExtractionFreeTripDaoImpl<C extends ExtractionRdbTripContextVO> ext
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getFormatVersion());
 
-        String versionStr = version.replaceAll("[.]", "_");
+        String versionStr = VERSION_1_LABEL.replaceAll("[.]", "_");
         switch (queryName) {
             case "injectionTripTable":
             case "injectionStationTable":

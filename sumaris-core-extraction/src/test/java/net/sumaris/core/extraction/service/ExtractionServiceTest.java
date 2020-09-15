@@ -23,14 +23,10 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.extraction.dao.DatabaseResource;
-
-import java.io.File;
-import java.io.IOException;
-
-import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
+import net.sumaris.core.extraction.vo.trip.free.ExtractionFreeTripVersion;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ZipUtils;
@@ -38,9 +34,11 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -61,10 +59,17 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void extractLiveTripAsFile_Free() {
+    public void extractLiveTripAsFile_FreeV1() {
 
-        // Test the RDB format
-        service.executeAndDumpTrips(ExtractionRawFormatEnum.FREE, null);
+        // Test the FREE 1 format
+        service.executeAndDumpTrips(ExtractionRawFormatEnum.FREE1, null);
+    }
+
+    @Test
+    public void extractLiveTripAsFile_FreeV2() {
+
+        // Test the FREE v2 format
+        service.executeAndDumpTrips(ExtractionRawFormatEnum.FREE2, null);
     }
 
     @Test

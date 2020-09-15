@@ -51,7 +51,6 @@
   <PROGRAM_PROPERTY ID="30" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.endDateTime.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="31" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.location.level.ids" NAME="3"/>
   <PROGRAM_PROPERTY ID="32" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11"  LABEL="sumaris.landing.editor" NAME="control"/>
-  <PROGRAM_PROPERTY ID="33" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11"  LABEL="sumaris.testing.enable" NAME="true"/>
 
   <!-- strategies -->
   <STRATEGY ID="10" PROGRAM_FK="10" LABEL="V1" NAME="version 1 - 2019-02-15" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>

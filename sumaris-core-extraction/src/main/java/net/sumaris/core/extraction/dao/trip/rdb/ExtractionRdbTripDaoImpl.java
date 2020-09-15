@@ -115,27 +115,16 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
             if (filter != null) {
-                filterInfo.append("with filter:")
-                        .append("\n - Program (label): ").append(tripFilter.getProgramLabel())
-                        .append("\n - Location (id): ").append(tripFilter.getLocationId())
-                        .append("\n - Start date: ").append(tripFilter.getStartDate())
-                        .append("\n - End date: ").append(tripFilter.getEndDate())
-                        .append("\n - Vessel (id): ").append(tripFilter.getVesselId())
-                        .append("\n - Recorder department (id): ").append(tripFilter.getRecorderDepartmentId());
+                filterInfo.append("with filter:").append(tripFilter.toString("\n - "));
             }
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting extraction #%s (raw data / trips)... %s", context.getId(), filterInfo.toString()));
+            log.info(String.format("Starting extraction #%s (raw data / trips)... %s", context.getFormatName(), context.getId(), filterInfo.toString()));
         }
 
-        // Compute table names
-        context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
-        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
-        context.setRawSpeciesListTableName(String.format(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
+        // Fill context table names
+        fillContextTableNames(context);
 
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
@@ -225,6 +214,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
     protected Class<? extends ExtractionRdbTripContextVO> getContextClass() {
         return ExtractionRdbTripContextVO.class;
+    }
+
+    protected void fillContextTableNames(C context) {
+        if (context.getTripTableName() == null) context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
+        if (context.getStationTableName() == null) context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
+        if (context.getRawSpeciesListTableName() == null) context.setRawSpeciesListTableName(String.format(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
+        if (context.getSpeciesListTableName() == null) context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
+        if (context.getSpeciesLengthTableName() == null) context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
+        if (context.getSampleTableName() == null) context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
     }
 
     protected List<ExtractionPmfmInfoVO> getPmfmInfos(C context, MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId) {

@@ -22,6 +22,7 @@ package net.sumaris.core.extraction.vo;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -41,6 +42,9 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
     private String[] sheetNames;
     private Integer statusId;
     private Boolean isSpatial;
+
+    @JsonIgnore
+    private ExtractionRawFormatEnum rawFormat;
 
     private DepartmentVO recorderDepartment;
 

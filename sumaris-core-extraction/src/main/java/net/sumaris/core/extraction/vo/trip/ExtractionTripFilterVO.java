@@ -39,4 +39,16 @@ public class ExtractionTripFilterVO extends TripFilterVO {
     private String sheetName;
 
     private Page page;
+
+    public String toString(String separator) {
+        separator = (separator == null) ? ", " : separator;
+        return new StringBuilder()
+            .append(separator).append("Program (label): ").append(this.getProgramLabel())
+            .append(separator).append("Location (id): ").append(this.getLocationId())
+            .append(separator).append("Start date: ").append(this.getStartDate())
+            .append(separator).append("End date: ").append(this.getEndDate())
+            .append(separator).append("Vessel (id): ").append(this.getVesselId())
+            .append(separator).append("Recorder department (id): ").append(this.getRecorderDepartmentId())
+            .toString();
+    }
 }

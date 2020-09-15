@@ -94,6 +94,9 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         // Inject specific select clause
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
 
+        // Disable filter on controlled trips
+        xmlQuery.setGroup("controlledFilter", false);
+
         // Bind PMFM ids
         xmlQuery.bind("mainMetierPmfmId", String.valueOf(PmfmEnum.MAIN_METIER.getId()));
         xmlQuery.bind("conveyorBeltPmfmId", String.valueOf(PmfmEnum.CONVEYOR_BELT.getId()));

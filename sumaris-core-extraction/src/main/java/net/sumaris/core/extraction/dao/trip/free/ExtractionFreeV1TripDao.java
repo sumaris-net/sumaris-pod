@@ -29,7 +29,7 @@ import net.sumaris.core.util.StringUtils;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionFreeTripDao extends ExtractionRdbTripDao {
-    String FREE_FORMAT = StringUtils.underscoreToChangeCase(ExtractionRawFormatEnum.FREE.name());
+public interface ExtractionFreeV1TripDao extends ExtractionRdbTripDao {
+    String FREE1_FORMAT = StringUtils.underscoreToChangeCase(ExtractionRawFormatEnum.FREE1.getLabel());
 
 }

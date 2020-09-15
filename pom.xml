@@ -129,7 +129,7 @@
     <ehcache.version>2.10.6</ehcache.version>
     <ehcache-monitor.version>2.7.11</ehcache-monitor.version>
     <lombok.version>1.18.10</lombok.version>
-    <xmlquery.version>1.1</xmlquery.version>
+    <xmlquery.version>1.2-SNAPSHOT</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
     <spring-boot.version>2.0.3.RELEASE</spring-boot.version>
@@ -160,7 +160,7 @@
 
     <!-- unit test -->
     <jmock.version>2.9.0</jmock.version>
-    <dbunit.version>2.5.4</dbunit.version>
+    <dbunit.version>2.6.0</dbunit.version>
 
     <nuitonConfigVersion>3.4</nuitonConfigVersion>
     <nuitonVersionVersion>1.0-rc-2</nuitonVersionVersion>

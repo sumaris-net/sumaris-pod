@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
@@ -43,19 +44,23 @@ import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.cost.ExtractionCostTripDao;
-import net.sumaris.core.extraction.dao.trip.free.ExtractionFreeTripDao;
+import net.sumaris.core.extraction.dao.trip.free.ExtractionFreeV1TripDao;
+import net.sumaris.core.extraction.dao.trip.free.ExtractionFreeV2TripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
 import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.trip.cost.ExtractionCostTripVersion;
+import net.sumaris.core.extraction.vo.trip.free.ExtractionFreeTripVersion;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripVersion;
+import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestVersion;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
-import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -73,7 +78,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -86,6 +90,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -108,8 +113,12 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
     @Resource(name = "extractionCostTripDao")
     protected ExtractionCostTripDao extractionCostTripDao;
 
-    @Resource(name = "extractionFreeTripDao")
-    protected ExtractionFreeTripDao extractionFreeTripDao;
+    @Resource(name = "extractionFreeV1TripDao")
+    protected ExtractionFreeV1TripDao extractionFreeV1TripDao;
+
+
+    @Resource(name = "extractionFreeV2TripDao")
+    protected ExtractionFreeV2TripDao extractionFreeV2TripDao;
 
     @Resource(name = "extractionSurvivalTestDao")
     protected ExtractionSurvivalTestDao extractionSurvivalTestDao;
@@ -189,8 +198,7 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
                         ProductFetchOptions.MINIMAL_WITH_TABLES);
                 return readProductRows(product, filter, offset, size, sort, direction);
             case LIVE:
-                String formatName = checkedType.getLabel();
-                return extractRawDataAndRead(formatName, filter, offset, size, sort, direction);
+                return extractRawDataAndRead(checkedType, filter, offset, size, sort, direction);
             default:
                 throw new SumarisTechnicalException(String.format("Extraction of category %s not implemented yet !", type.getCategory()));
         }
@@ -253,6 +261,7 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
                                 .build());
                 return dumpProductToFile(product, filter);
             case LIVE:
+
                 ExtractionRawFormatEnum format = ExtractionRawFormatEnum.valueOf(checkedType.getLabel().toUpperCase());
                 return extractRawDataAndDumpToFile(format, filter);
             default:
@@ -278,8 +287,7 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
                 //    ExtractionProduct product = ExtractionProduct.valueOf(checkedType.getLabel().toUpperCase());
                 //    return extractProductToTables(product, filter);
             case LIVE:
-                ExtractionRawFormatEnum format = ExtractionRawFormatEnum.valueOf(checkedType.getLabel().toUpperCase());
-                return extractRawData(format, filter);
+                return extractRawData(checkedType.getRawFormat(), filter);
             default:
                 throw new SumarisTechnicalException(String.format("Extraction of category %s not implemented yet !", type.getCategory()));
         }
@@ -287,7 +295,8 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
     }
 
     @Override
-    public File executeAndDumpTrips(ExtractionRawFormatEnum format, ExtractionTripFilterVO tripFilter) {
+    public File executeAndDumpTrips(ExtractionRawFormatEnum format,
+                                    ExtractionTripFilterVO tripFilter) {
 
         ExtractionFilterVO filter = extractionRdbTripDao.toExtractionFilterVO(tripFilter);
         return extractRawDataAndDumpToFile(format, filter);
@@ -421,6 +430,8 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
                     type.setCategory(ExtractionCategoryEnum.LIVE.name().toLowerCase());
                     type.setSheetNames(format.getSheetNames());
                     type.setStatusId(StatusEnum.TEMPORARY.getId()); // = not public
+                    type.setVersion(format.getVersion());
+                    type.setRawFormat(format);
                     id.decrement();
                     return type;
                 })
@@ -428,11 +439,11 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
     }
 
 
-    protected ExtractionResultVO extractRawDataAndRead(String formatStr, ExtractionFilterVO filter,
+    protected ExtractionResultVO extractRawDataAndRead(ExtractionTypeVO rawType,
+                                                       ExtractionFilterVO filter,
                                                        int offset, int size, String sort, SortDirection direction) {
-        Preconditions.checkNotNull(formatStr);
-
-        ExtractionRawFormatEnum format = ExtractionRawFormatEnum.valueOf(formatStr.toUpperCase());
+        Preconditions.checkNotNull(rawType);
+        Preconditions.checkNotNull(rawType.getRawFormat());
 
         filter.setPreview(true);
 
@@ -444,7 +455,7 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
         // Execute extraction into temp tables
         ExtractionContextVO context;
         try {
-            context = extractRawData(format, filter);
+            context = extractRawData(rawType.getRawFormat(), filter);
         } catch (DataNotFoundException e) {
             return createEmptyResult();
         }
@@ -458,7 +469,8 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
         }
     }
 
-    protected File extractRawDataAndDumpToFile(ExtractionRawFormatEnum format, ExtractionFilterVO filter) {
+    protected File extractRawDataAndDumpToFile(ExtractionRawFormatEnum format,
+                                               ExtractionFilterVO filter) {
         Preconditions.checkNotNull(format);
 
         // Execute live extraction to temp tables
@@ -509,8 +521,11 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
             case COST:
                 context = extractionCostTripDao.execute(filter);
                 break;
-            case FREE:
-                context = extractionFreeTripDao.execute(filter);
+            case FREE1:
+                context = extractionFreeV1TripDao.execute(filter);
+                break;
+            case FREE2:
+                context = extractionFreeV2TripDao.execute(filter);
                 break;
             case SURVIVAL_TEST:
                 context = extractionSurvivalTestDao.execute(filter);
