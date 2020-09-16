@@ -171,6 +171,8 @@ public class ExtractionFreeV2TripDaoImpl<C extends ExtractionFreeV2ContextVO> ex
         xmlQuery.bind("beamCumulativeLengthPmfmId", String.valueOf(PmfmEnum.BEAM_CUMULATIVE_LENGTH.getId()));
         xmlQuery.bind("netLengthPmfmId", String.valueOf(PmfmEnum.NET_LENGTH.getId()));
 
+        xmlQuery.bind("gearSpeedPmfmId", String.valueOf(PmfmEnum.GEAR_SPEED.getId()));
+
 
         xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
 

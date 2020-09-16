@@ -103,10 +103,17 @@
        END
     ]]></select>
 
-    <select alias="POIDS_REF_CAPT" type="text">null</select><!-- TODO -->
-    <select alias="NBR_VRAC" type="number">null</select><!-- TODO -->
+
+    <select alias="POIDS_REF_CAPT" type="text">null</select> <!-- Not fill (ADAP) -->
+    <select alias="NBR_VRAC" type="number">2</select><!-- PR/PNR (ADAP) -->
 
     <select alias="COMMENTAIRE" type="text">O.COMMENTS</select>
+
+    <select alias="GEAR_SPEED" type="number"><![CDATA[
+    (SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM
+    WHERE
+      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK in (&gearSpeedPmfmId)
+    )]]></select>
 
     <from alias="T">&amp;tripTableName</from>
     <from join="true">INNER JOIN OPERATION O ON O.TRIP_FK = T.TRIP_CODE</from>

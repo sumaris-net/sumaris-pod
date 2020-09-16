@@ -26,10 +26,13 @@
 
     <!-- PK -->
     <select alias="TYPE" type="text">'TR'</select>
+    <select alias="PROJET" type="text">P.LABEL</select>
     <select alias="ANNEE" type="number">EXTRACT(YEAR FROM T.RETURN_DATE_TIME)</select>
-    <select alias="PROJECT" type="text">P.LABEL</select>
     <select alias="ID_MAREE" type="number">T.ID</select>
+
+    <!-- Hidden columns, used by other queries  -->
     <select alias="TRIP_CODE" type="hidden">T.ID</select>
+    <select alias="PROJECT" type="hidden">P.LABEL</select>
 
     <!-- other fields -->
     <select alias="ID_NAVIRE" type="text">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK))</select>
