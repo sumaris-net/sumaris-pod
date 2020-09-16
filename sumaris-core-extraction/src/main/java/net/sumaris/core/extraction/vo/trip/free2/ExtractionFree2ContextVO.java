@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.trip.cost;
+package net.sumaris.core.extraction.vo.trip.free2;
 
 /*-
  * #%L
@@ -22,10 +22,31 @@ package net.sumaris.core.extraction.dao.trip.cost;
  * #L%
  */
 
-import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldDefaults;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public interface ExtractionCostTripDao extends ExtractionRdbTripDao {
+@Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@EqualsAndHashCode(callSuper = true)
+public class ExtractionFree2ContextVO extends ExtractionRdbTripContextVO {
+
+    // Table names
+    String gearTableName;
+    String strategyTableName;
+    String detailTableName;
+    String catchTableName;
+    String measureTableName;
+
+    // Sheet names
+    String gearSheetName;
+    String strategySheetName;
+    String detailSheetName;
+    String catchSheetName;
+    String measureSheetName;
 }

@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.dao.trip.free;
+package net.sumaris.core.extraction.dao.trip.free2;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
@@ -28,12 +28,11 @@ import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
+import net.sumaris.core.extraction.specification.Free2Specification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.trip.free.ExtractionFreeTripVersion;
-import net.sumaris.core.extraction.vo.trip.free.ExtractionFreeV2ContextVO;
-import net.sumaris.core.model.referential.location.LocationLevel;
-import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.extraction.vo.trip.free2.ExtractionFree2ContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,20 +46,14 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-@Repository("extractionFreeV2TripDao")
+@Repository("extractionFree2TripDao")
 @Lazy
-public class ExtractionFreeV2TripDaoImpl<C extends ExtractionFreeV2ContextVO> extends ExtractionRdbTripDaoImpl<C> implements ExtractionFreeV2TripDao {
+public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> extends ExtractionRdbTripDaoImpl<C>
+        implements ExtractionFree2TripDao, Free2Specification {
 
-    private static final Logger log = LoggerFactory.getLogger(ExtractionFreeV2TripDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ExtractionFree2TripDaoImpl.class);
 
-
-    private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ExtractionFreeV2TripDao.TR_SHEET_NAME + "_%s";
-    private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ExtractionFreeV2TripDao.HH_SHEET_NAME + "_%s";
-
-    private static final String GEAR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + GEAR_SHEET_NAME + "_%s";
-
-    private static final String XML_QUERY_FREE_PATH = "free/v%s/%s";
-    private static final String VERSION_2_LABEL = ExtractionFreeTripVersion.VERSION_2.getLabel();
+    private static final String XML_QUERY_FREE_PATH = "free2/v%s/%s";
 
     @Autowired
     protected StrategyService strategyService;
@@ -77,7 +70,6 @@ public class ExtractionFreeV2TripDaoImpl<C extends ExtractionFreeV2ContextVO> ex
     @Autowired
     protected ExtractionTableDao extractionTableDao;
 
-
     @Override
     public C execute(ExtractionFilterVO filter) {
         String sheetName = filter != null ? filter.getSheetName() : null;
@@ -85,18 +77,16 @@ public class ExtractionFreeV2TripDaoImpl<C extends ExtractionFreeV2ContextVO> ex
         C context = super.execute(filter);
 
         // Override some context properties
-        context.setFormatName(FREE2_FORMAT);
-        context.setFormatVersion(VERSION_2_LABEL);
+        context.setFormatName(FORMAT);
+        context.setFormatVersion(VERSION_1_9);
 
         // Stop here, if sheet already filled
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         // Gear table
-        /*
         long rowCount = createGearTable(context);
         if (rowCount == 0) return context;
         if (sheetName != null && context.hasSheet(sheetName)) return context;
-        */
 
         return context;
     }
@@ -105,19 +95,31 @@ public class ExtractionFreeV2TripDaoImpl<C extends ExtractionFreeV2ContextVO> ex
     /* -- protected methods -- */
 
     @Override
-    protected Class<? extends ExtractionFreeV2ContextVO> getContextClass() {
-        return ExtractionFreeV2ContextVO.class;
+    protected Class<? extends ExtractionFree2ContextVO> getContextClass() {
+        return ExtractionFree2ContextVO.class;
     }
 
     @Override
     protected void fillContextTableNames(C context) {
         super.fillContextTableNames(context);
 
-        // Overwrite some table names
-        context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
-        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
+        // Set table names
+        context.setTripTableName(TABLE_NAME_PREFIX + TRIP_SHEET_NAME + "_" + context.getId());
+        context.setStationTableName(TABLE_NAME_PREFIX + STATION_SHEET_NAME + "_" + context.getId());
+        context.setGearTableName(TABLE_NAME_PREFIX + GEAR_SHEET_NAME + "_" + context.getId());
+        context.setStrategyTableName(TABLE_NAME_PREFIX + STRATEGY_SHEET_NAME + "_" + context.getId());
+        context.setDetailTableName(TABLE_NAME_PREFIX + DETAIL_SHEET_NAME + "_" + context.getId());
+        context.setCatchTableName(TABLE_NAME_PREFIX + CATCH_SHEET_NAME + "_" + context.getId());
+        context.setMeasureTableName(TABLE_NAME_PREFIX + MEASURE_SHEET_NAME + "_" + context.getId());
 
-        context.setGearTableName(String.format(GEAR_TABLE_NAME_PATTERN, context.getId()));
+        // Set sheet names
+        context.setTripSheetName(TRIP_SHEET_NAME);
+        context.setStationSheetName(STATION_SHEET_NAME);
+        context.setGearSheetName(GEAR_SHEET_NAME);
+        context.setStrategySheetName(STRATEGY_SHEET_NAME);
+        context.setDetailSheetName(DETAIL_SHEET_NAME);
+        context.setCatchSheetName(CATCH_SHEET_NAME);
+        context.setMeasureSheetName(MEASURE_SHEET_NAME);
 
     }
 
@@ -204,7 +206,10 @@ public class ExtractionFreeV2TripDaoImpl<C extends ExtractionFreeV2ContextVO> ex
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("gearTableName", context.getGearTableName());
 
-        // aggregate insertion
+        // Bind some PMFMs
+        xmlQuery.bind("noneUnitId", String.valueOf(UnitEnum.NONE.getId()));
+
+        // execute
         execute(xmlQuery);
 
         long count = countFrom(context.getGearTableName());
@@ -232,7 +237,7 @@ public class ExtractionFreeV2TripDaoImpl<C extends ExtractionFreeV2ContextVO> ex
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getFormatVersion());
 
-        String versionStr = VERSION_2_LABEL.replaceAll("[.]", "_");
+        String versionStr = VERSION_1_9.replaceAll("[.]", "_");
         switch (queryName) {
             case "createTripTable":
             case "createStationTable":

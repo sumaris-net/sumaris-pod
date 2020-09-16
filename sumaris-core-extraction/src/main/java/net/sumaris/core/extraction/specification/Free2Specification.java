@@ -20,28 +20,25 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.dao.trip.free;
-
-import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
-import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
-import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.ExtractionRawFormatEnum;
-import net.sumaris.core.extraction.vo.trip.free.ExtractionFreeV2ContextVO;
-import net.sumaris.core.util.StringUtils;
+package net.sumaris.core.extraction.specification;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionFreeV2TripDao extends ExtractionRdbTripDao {
-    String FREE2_FORMAT = StringUtils.underscoreToChangeCase(ExtractionRawFormatEnum.FREE2.getLabel());
+public interface Free2Specification  {
+    String FORMAT = "FREE2";
+    String VERSION_1_9 = "1.9";
 
-    String TR_SHEET_NAME = "MAREE";
-    String HH_SHEET_NAME = "OPERATION_PECHE";
+    String TRIP_SHEET_NAME = "MAREE";
+    String STATION_SHEET_NAME = "OPERATION_PECHE";
     String GEAR_SHEET_NAME = "ENGINS";
+    String STRATEGY_SHEET_NAME = "STRATEGIE";
+    String DETAIL_SHEET_NAME = "DETAIL";
+    String CATCH_SHEET_NAME = "CAPTURES";
+    String MEASURE_SHEET_NAME = "MESURES";
 
-    String SL_SHEET_NAME = "SL";
-    String HL_SHEET_NAME = "HL";
-    String CA_SHEET_NAME = "CA";
+    String[] SHEET_NAMES = {TRIP_SHEET_NAME, STATION_SHEET_NAME, GEAR_SHEET_NAME,
+            STRATEGY_SHEET_NAME, DETAIL_SHEET_NAME,
+            CATCH_SHEET_NAME, MEASURE_SHEET_NAME};
 
-    ExtractionFreeV2ContextVO execute(ExtractionFilterVO filter);
 }

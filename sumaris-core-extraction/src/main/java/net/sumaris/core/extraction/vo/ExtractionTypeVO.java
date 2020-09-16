@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.administration.user.DepartmentVO;

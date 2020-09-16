@@ -30,7 +30,7 @@
     <select alias="ANNEE" type="number">EXTRACT(YEAR FROM T.RETURN_DATE_TIME)</select>
     <select alias="ID_MAREE" type="number">T.ID</select>
 
-    <!-- Hidden columns, used by other queries  -->
+    <!-- Hidden columns used by linked tables -->
     <select alias="TRIP_CODE" type="hidden">T.ID</select>
     <select alias="PROJECT" type="hidden">P.LABEL</select>
 

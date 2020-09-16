@@ -26,17 +26,12 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.vo.AggregationContextVO;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
-import net.sumaris.core.extraction.vo.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.MapUtils;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*

@@ -25,7 +25,6 @@ package net.sumaris.core.extraction.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
@@ -44,18 +43,16 @@ import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.cost.ExtractionCostTripDao;
-import net.sumaris.core.extraction.dao.trip.free.ExtractionFreeV1TripDao;
-import net.sumaris.core.extraction.dao.trip.free.ExtractionFreeV2TripDao;
+import net.sumaris.core.extraction.dao.trip.free.ExtractionFree1TripDao;
+import net.sumaris.core.extraction.dao.trip.free2.ExtractionFree2TripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
+import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
+import net.sumaris.core.extraction.specification.RdbSpecification;
 import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.trip.cost.ExtractionCostTripVersion;
-import net.sumaris.core.extraction.vo.trip.free.ExtractionFreeTripVersion;
-import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripVersion;
-import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestVersion;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
@@ -90,7 +87,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -110,17 +106,16 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
     @Resource(name = "extractionRdbTripDao")
     protected ExtractionRdbTripDao extractionRdbTripDao;
 
-    @Resource(name = "extractionCostTripDao")
+    @Autowired
     protected ExtractionCostTripDao extractionCostTripDao;
 
-    @Resource(name = "extractionFreeV1TripDao")
-    protected ExtractionFreeV1TripDao extractionFreeV1TripDao;
+    @Autowired
+    protected ExtractionFree1TripDao extractionFreeV1TripDao;
 
+    @Autowired
+    protected ExtractionFree2TripDao extractionFree2TripDao;
 
-    @Resource(name = "extractionFreeV2TripDao")
-    protected ExtractionFreeV2TripDao extractionFreeV2TripDao;
-
-    @Resource(name = "extractionSurvivalTestDao")
+    @Autowired
     protected ExtractionSurvivalTestDao extractionSurvivalTestDao;
 
     @Autowired
@@ -298,7 +293,8 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
     public File executeAndDumpTrips(ExtractionRawFormatEnum format,
                                     ExtractionTripFilterVO tripFilter) {
 
-        ExtractionFilterVO filter = extractionRdbTripDao.toExtractionFilterVO(tripFilter);
+        String tripSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : RdbSpecification.TR_SHEET_NAME;
+        ExtractionFilterVO filter = extractionRdbTripDao.toExtractionFilterVO(tripFilter, tripSheetName);
         return extractRawDataAndDumpToFile(format, filter);
     }
 
@@ -525,7 +521,7 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
                 context = extractionFreeV1TripDao.execute(filter);
                 break;
             case FREE2:
-                context = extractionFreeV2TripDao.execute(filter);
+                context = extractionFree2TripDao.execute(filter);
                 break;
             case SURVIVAL_TEST:
                 context = extractionSurvivalTestDao.execute(filter);

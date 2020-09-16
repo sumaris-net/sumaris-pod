@@ -25,11 +25,10 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
+import net.sumaris.core.extraction.specification.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
-import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestVersion;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,19 +40,17 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionSurvivalTestDao")
 @Lazy
-public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestContextVO> extends ExtractionRdbTripDaoImpl<C> implements ExtractionSurvivalTestDao {
+public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestContextVO> extends ExtractionRdbTripDaoImpl<C>
+        implements ExtractionSurvivalTestDao, SurvivalTestSpecification {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionSurvivalTestDaoImpl.class);
 
     private static final String XML_QUERY_ST_PATH = "survivalTest/v%s/%s";
 
-    public static final String ST_SHEET_NAME = "ST"; // Survival test
-    public static final String RL_SHEET_NAME = "RL"; // Release
 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ST_SHEET_NAME + "_%s";
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
-    private String version = ExtractionSurvivalTestVersion.VERSION_1_0.getLabel();
 
     @Override
     public C execute(ExtractionFilterVO filter) {
@@ -63,8 +60,8 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         C context = super.execute(filter);
 
         // Override some context properties
-        context.setFormatName(SURVIVAL_TEST_FORMAT);
-        context.setFormatVersion(version);
+        context.setFormatName(FORMAT);
+        context.setFormatVersion(VERSION_1_0);
         context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
         context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
 
@@ -154,7 +151,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getFormatVersion());
 
-        String versionStr = version.replaceAll("[.]", "_");
+        String versionStr = VERSION_1_0.replaceAll("[.]", "_");
         switch (queryName) {
             case "injectionTripTable":
             case "injectionStationTable":

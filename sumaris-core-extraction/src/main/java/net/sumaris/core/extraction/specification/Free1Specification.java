@@ -20,26 +20,13 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.vo.trip.free;
+package net.sumaris.core.extraction.specification;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public enum ExtractionFreeTripVersion {
-
-    // Format compatible with FREE 1
-    VERSION_1("1"),
-    // Format compatible with FREE 2
-    VERSION_2("2")
-    ;
-
-    private String label;
-
-    ExtractionFreeTripVersion(String label) {
-        this.label = label;
-    }
-
-    public String getLabel() {
-        return label;
-    }
+public interface Free1Specification extends RdbSpecification {
+    String FORMAT = "FREE";
+    String VERSION_1 = "1";
+    String[] SHEET_NAMES = {RdbSpecification.TR_SHEET_NAME, RdbSpecification.HH_SHEET_NAME, RdbSpecification.SL_SHEET_NAME, RdbSpecification.HL_SHEET_NAME};
 }

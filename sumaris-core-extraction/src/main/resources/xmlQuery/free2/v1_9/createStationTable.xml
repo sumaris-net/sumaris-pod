@@ -28,7 +28,10 @@
     <select alias="TYPE" type="text">'HH'</select>
     <select alias="ID_MAREE" type="number">T.TRIP_CODE</select>
     <select alias="ID_OP" type="number">O.ID</select>
+
+    <!-- Hidden columns used by linked tables -->
     <select alias="STATION_NUMBER" type="hidden">O.ID</select>
+    <select alias="DATE" type="hidden">COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)</select>
 
     <!-- other fields -->
     <select alias="DEROULEMENT_OP" type="text"><![CDATA[(SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'Normal', 0, 'Anormal', null) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&normalProgressPmfmId)]]></select>
@@ -114,6 +117,9 @@
     WHERE
       VUM.OPERATION_FK=O.ID and VUM.PMFM_FK in (&gearSpeedPmfmId)
     )]]></select>
+    <select alias="VESSEL_ASSOCIATION" type="number">null</select><!-- TODO: à ajouter au modèle -->
+    <select alias="IS_CATCH_ON_OPERATION_VESSEL" type="number">null</select><!-- TODO: à ajouter au modèle -->
+
 
     <from alias="T">&amp;tripTableName</from>
     <from join="true">INNER JOIN OPERATION O ON O.TRIP_FK = T.TRIP_CODE</from>
