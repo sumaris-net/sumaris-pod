@@ -1255,12 +1255,15 @@
         }
       },
       "FREE2": {
-        "TITLE": "Données brutes (FREE v{{version}})",
+        "TITLE": "Données brutes (FREE2 v{{version}})",
         "SHEET": {
-          "TR": "Marées (TR)",
-          "HH": "Opérations (HH)",
-          "SL": "Captures (SL)",
-          "HL": "Mensurations (HL)"
+          "MAREE": "Marées",
+          "OPERATION_PECHE": "Opérations",
+          "ENGINS": "Engins",
+          "STRATEGIE": "Stratégie",
+          "DETAIL": "Détail",
+          "CAPTURES": "Captures",
+          "MESURES": "Mensures"
         }
       },
       "SURVIVAL_TEST": {
