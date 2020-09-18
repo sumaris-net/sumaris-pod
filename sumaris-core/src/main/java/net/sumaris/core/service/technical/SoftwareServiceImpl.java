@@ -44,7 +44,7 @@ public class SoftwareServiceImpl implements SoftwareService {
     private SoftwareDao dao;
 
     @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher publisher;
 
     @Override
     public SoftwareVO get(int id) {
@@ -69,9 +69,9 @@ public class SoftwareServiceImpl implements SoftwareService {
 
         // Emit event
         if (isNew) {
-            eventPublisher.publishEvent(new EntityInsertEvent(result.getId(), Software.class.getSimpleName(), result));
+            publisher.publishEvent(new EntityInsertEvent(result.getId(), Software.class.getSimpleName(), result));
         } else {
-            eventPublisher.publishEvent(new EntityUpdateEvent(result.getId(), Software.class.getSimpleName(), result));
+            publisher.publishEvent(new EntityUpdateEvent(result.getId(), Software.class.getSimpleName(), result));
         }
 
         return result;

@@ -23,11 +23,13 @@ package net.sumaris.core.service.technical;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnums;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
@@ -36,6 +38,8 @@ import net.sumaris.core.event.schema.SchemaReadyEvent;
 import net.sumaris.core.event.schema.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.exception.DenyDeletionException;
+import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -56,6 +60,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -120,17 +126,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
     }
 
-    //@JmsListener(destination = "createSoftware", containerFactory = "jmsListenerContainerFactory")
-    //@JmsListener(destination = "updateSoftware", containerFactory = "jmsListenerContainerFactory")
-/*
+    @Async
     @TransactionalEventListener(
             value = {EntityInsertEvent.class, EntityUpdateEvent.class},
-            phase = TransactionPhase.AFTER_COMPLETION,
-            condition = "#event.entityName=='Software'")
-*/
-    @Async
-    @EventListener(
-            value = {EntityInsertEvent.class, EntityUpdateEvent.class},
+            phase = TransactionPhase.AFTER_COMMIT,
             condition = "#event.entityName=='Software'")
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     protected void onSoftwareChanged(EntityEvent event) {
@@ -146,6 +145,23 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             // Publish update event
             publisher.publishEvent(new ConfigurationUpdatedEvent(config.getApplicationConfig()));
 
+        }
+    }
+
+    @TransactionalEventListener(
+            phase = TransactionPhase.BEFORE_COMMIT,
+            condition = "#event.entityName=='Software'")
+    @Transactional(propagation = Propagation.REQUIRED)
+    protected void beforeDeleteSoftware(EntityDeleteEvent event) {
+        Preconditions.checkNotNull(event.getId());
+        SoftwareVO currentSoftware = getCurrentSoftware();
+
+        // Test if same as the current software
+        boolean isCurrent = (currentSoftware != null && currentSoftware.getId().equals(event.getId()));
+
+        // Avoid deletion of current software
+        if (isCurrent) {
+            throw new DenyDeletionException("Cannot delete the current software", ImmutableList.of(String.valueOf(currentSoftware.getId())));
         }
     }
 

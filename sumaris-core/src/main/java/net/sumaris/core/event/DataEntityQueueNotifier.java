@@ -22,11 +22,19 @@
 
 package net.sumaris.core.event;
 
+import com.google.common.base.Preconditions;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.service.data.TripServiceImpl;
+import org.apache.activemq.broker.BrokerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.event.EventListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -36,22 +44,43 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.jms.ConnectionFactory;
 
 @Component
-@ConditionalOnBean({JmsTemplate.class})
+@ConditionalOnClass(JmsTemplate.class)
 public class DataEntityQueueNotifier {
+    private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
 
     @Resource
     private JmsTemplate jmsTemplate;
 
+    @PostConstruct
+    protected void init() {
+        log.info("Starting JMS entity event notifier...");
+    }
+
     @Async
-    @EventListener({EntityInsertEvent.class, EntityUpdateEvent.class, EntityDeleteEvent.class})
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onEntityUpdated(EntityEvent event) {
-        String destination = event.getOperation().name() + event.getEntityName();
-        jmsTemplate.convertAndSend(destination, event.getData());
+    @TransactionalEventListener(
+            value = {EntityInsertEvent.class, EntityUpdateEvent.class, EntityDeleteEvent.class},
+            phase = TransactionPhase.AFTER_COMMIT)
+    public void onEntityEvent(EntityEvent event) {
+        Preconditions.checkNotNull(event);
+        Preconditions.checkNotNull(event.getOperation());
+        Preconditions.checkNotNull(event.getEntityName());
+        Preconditions.checkNotNull(event.getId());
+
+        // Compute a destination name
+        String destinationName = event.getOperation().name() + event.getEntityName();
+
+        // Send data, or ID
+        if (event.getData() != null) {
+            jmsTemplate.convertAndSend(destinationName, event.getData());
+        }
+        else {
+            jmsTemplate.convertAndSend(destinationName, event.getId());
+        }
     }
 
 }
