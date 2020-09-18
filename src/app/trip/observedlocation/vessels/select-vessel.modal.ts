@@ -42,7 +42,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   @Input() landingFilter: LandingFilter = {};
   @Input() vesselFilter: VesselFilter = {};
   @Input() allowMultiple: boolean;
-  @Input() allowNewVessel: boolean;
+  @Input() allowAddNewVessel: boolean;
 
   get loading(): boolean {
     const table = this.table;
@@ -96,7 +96,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
-    this.allowNewVessel = toBoolean(this.allowNewVessel, false);
+    this.allowAddNewVessel = toBoolean(this.allowAddNewVessel, true);
 
     // Load landings
     setTimeout(() => {
@@ -109,15 +109,10 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
 
     // Get default status by config
-    if (this.allowNewVessel && this.vesselForm) {
+    if (this.allowAddNewVessel && this.vesselForm) {
       this.subscription.add(
         this.configService.config.subscribe(config => {
-          if (config && config.properties) {
-            const defaultStatus = config.properties[ConfigOptions.VESSEL_DEFAULT_STATUS.key];
-            if (defaultStatus) {
-              this.vesselForm.defaultStatus = +defaultStatus;
-            }
-          }
+          this.vesselForm.defaultStatus = config.getPropertyAsInt(ConfigOptions.VESSEL_DEFAULT_STATUS);
         })
       );
 
@@ -215,7 +210,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   }
 
   hasSelection(): boolean {
-    if (this.allowNewVessel && this.isNewVessel && this.vesselForm) {
+    if (this.allowAddNewVessel && this.isNewVessel && this.vesselForm) {
       return this.vesselForm.valid;
     }
     const table = this.table;

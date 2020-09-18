@@ -5,13 +5,15 @@ import {Software} from '../../core/services/model/config.model';
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {AppEntityEditor, isNil} from "../../core/core.module";
+import {AppEntityEditor, isNil, isNotNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialForm} from "../form/referential.form";
 import {SoftwareService} from "../services/software.service";
 import {SoftwareValidatorService} from "../services/validator/software.validator";
 import {AppEditorOptions} from "../../core/form/editor.class";
 import {ConfigOptions} from "../../core/services/config/core.config";
+import {ReferentialRefService} from "../services/referential-ref.service";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 
 @Directive()
 export abstract class AbstractSoftwarePage<T extends Software<T>, S extends SoftwareService<T>>
@@ -21,6 +23,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
   protected accountService: AccountService;
   protected platform: PlatformService;
   protected cd: ChangeDetectorRef;
+  protected referentialRefService: ReferentialRefService;
 
   propertyDefinitions: FormFieldDefinition[];
   propertyDefinitionsByKey: FormFieldDefinitionMap = {};
@@ -51,9 +54,20 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
     this.platform = injector.get(PlatformService);
     this.accountService = injector.get(AccountService);
     this.cd = injector.get(ChangeDetectorRef);
+    this.referentialRefService = injector.get(ReferentialRefService);
 
+    // Convert map to list of options
+    this.propertyDefinitions = Object.keys({...ConfigOptions, ...configOptions})
+      .map(name => configOptions[name])
+      .map(o => o.type !== 'entity' ? o : <FormFieldDefinition>{
+        ...o,
+        autocomplete: {
+          ...o.autocomplete,
+          suggestFn: (value, options) => this.referentialRefService.suggest(value, options)
+        }
+      })
+    ;
     // Fill property definitions map
-    this.propertyDefinitions = Object.keys({...ConfigOptions, ...configOptions}).map(name => configOptions[name]);
     this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
 
     this.form = validatorService.getFormGroup();
@@ -133,6 +147,45 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
     return super.loadFromRoute();
   }
 
+  protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
+    await this.prepareDataPropertiesToFOrm(data);
+    await super.onEntityLoaded(data, options);
+  }
+
+  protected async onEntitySaved(data: T): Promise<void> {
+    await this.prepareDataPropertiesToFOrm(data);
+    await super.onEntitySaved(data);
+  }
+
+  async prepareDataPropertiesToFOrm(data: T | null) {
+
+    return Promise.all(Object.keys(data.properties)
+      .map(key => this.propertyDefinitionsByKey[key])
+      .filter(option => option && option.type === 'entity')
+      .map(option => {
+        let value = data.properties[option.key];
+        const filter = {...option.autocomplete.filter};
+        const joinAttribute = option.autocomplete.filter.joinAttribute || 'id';
+        if (joinAttribute == 'id') {
+          filter.id = parseInt(value);
+          value = '*';
+        }
+        else {
+          filter.searchAttribute = joinAttribute;
+        }
+        // Fetch entity, ad a referential
+        return this.referentialRefService.suggest(value, filter)
+          .then(matches => {
+            data.properties[option.key] = (matches && matches[0] || {id: value,  label: '??'}) as any;
+          })
+          // Cannot ch: display an error
+          .catch(err => {
+            console.error('Cannot fetch entity, from option: ' + option.key + '=' + value, err);
+            data.properties[option.key] = ({id: value,  label: '??'}) as any;
+          });
+    }));
+  }
+
   protected setValue(data: T) {
     if (!data) return; // Skip
 
@@ -153,6 +206,14 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
 
     // Re add label, because missing when field disable
     json.label = this.form.get('label').value;
+
+    // Convert entities to id
+    json.properties.forEach(property => {
+      const option = this.propertyDefinitionsByKey[property.key];
+      if (option && option.type === 'entity' && EntityUtils.isNotEmpty(property.value, 'id')) {
+        property.value = property.value.id;
+      }
+    });
 
     return json;
   }

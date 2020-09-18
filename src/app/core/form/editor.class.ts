@@ -403,6 +403,8 @@ export abstract class AppEntityEditor<
       // Save form
       const updatedData = await this.dataService.save(data, options);
 
+      await this.onEntitySaved(updatedData);
+
       // Update the view (e.g metadata)
       this.updateView(updatedData, options);
 
@@ -537,6 +539,10 @@ export abstract class AppEntityEditor<
   }
 
   protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
+    // can be overwrite by subclasses
+  }
+
+  protected async onEntitySaved(data: T): Promise<void> {
     // can be overwrite by subclasses
   }
 

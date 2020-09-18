@@ -197,15 +197,7 @@ export class ReferentialRefService extends BaseEntityService
         || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
         || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        label: filter.label,
-        name: filter.name,
-        searchText: filter.searchText,
-        searchAttribute: filter.searchAttribute,
-        searchJoin: filter.searchJoin,
-        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
 
 

@@ -86,7 +86,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.onProgramChanged
         .subscribe(program => {
           if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-          this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+          this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
           //this.markForCheck();
         }));
 

@@ -1,11 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {
-  AppTable,
-  environment, isNil,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from "../../core/core.module";
+import {AppTable, environment, isNil, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -13,7 +8,7 @@ import {AccountService} from "../../core/services/account.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {personToString, personsToString} from "../../core/services/model/person.model";
+import {personsToString, personToString} from "../../core/services/model/person.model";
 import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, filter, tap} from "rxjs/operators";
@@ -21,7 +16,6 @@ import {ObservedLocationFilter, ObservedLocationService} from "../services/obser
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {qualityFlagToColor} from "../../data/services/model/model.utils";
-import {vesselSnapshotToString} from "../../referential/services/model/vessel-snapshot.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {ObservedLocation} from "../services/model/observed-location.model";
@@ -186,7 +180,6 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     this.restoreFilterOrLoad();
   }
 
-  vesselSnapshotToString = vesselSnapshotToString;
   referentialToString = referentialToString;
   personsToString = personsToString;
   qualityFlagToColor = qualityFlagToColor;

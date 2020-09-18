@@ -30,11 +30,9 @@
     <!-- TAB: landings -->
     <mat-tab label="{{'OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_LANDINGS'|translate}}">
       <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="calendar"></ion-icon>
-        </mat-icon>
+        <mat-icon matPrefix slot="start">history</mat-icon>
         <ion-label translate>OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_LANDINGS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="landingsTable.error"></ion-icon>
+        <ion-icon slot="start" name="alert-circle" color="danger" *ngIf="landingsTable.error"></ion-icon>
       </ng-template>
 
       <app-landings-table #landingsTable
@@ -70,18 +68,18 @@
 
     <!-- TAB: create new vessel -->
     <mat-tab label="{{'OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_NEW_VESSEL'|translate}}"
-       *ngIf="allowNewVessel"
+       *ngIf="allowAddNewVessel"
     >
       <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="search"></ion-icon>
-        </mat-icon>
+        <ion-icon matPrefix slot="start" name="add-circle-outline"></ion-icon>
         <ion-label translate>OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_NEW_VESSEL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="formVessel.error"></ion-icon>
       </ng-template>
 
-      <form-vessel #formVessel>
-      </form-vessel>
+      <div class="ion-padding">
+        <form-vessel #formVessel >
+        </form-vessel>
+      </div>
 
     </mat-tab>
   </mat-tab-group>

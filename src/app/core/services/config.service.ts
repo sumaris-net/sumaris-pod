@@ -16,7 +16,7 @@ import {PlatformService} from "./platform.service";
 import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {ConfigOptions} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {LocationLevelIds, TaxonGroupIds} from "../../referential/services/model/model.enum";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -248,9 +248,14 @@ export class ConfigService extends SoftwareService<Configuration> {
 
     const reloadedConfig = await this.loadByLabel(config.label, {fetchPolicy: "network-only"});
 
-    // Emit update event when is default config
+    // If this is the default config
     const defaultConfig = this.$data.getValue();
     if (isNotNil(defaultConfig) && reloadedConfig.label === defaultConfig.label) {
+
+      // Override enumerations
+      this.updateModelEnumerations(reloadedConfig);
+
+      // Emit update event when is default config
       this.$data.next(reloadedConfig);
     }
 
@@ -359,7 +364,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     data.name = (data.name !== data.label) ? data.name : undefined;
 
     // Override enumerations
-    this.overrideEnums(data);
+    this.updateModelEnumerations(data);
 
     this.$data.next(data);
 
@@ -471,15 +476,17 @@ export class ConfigService extends SoftwareService<Configuration> {
     }
   }
 
-  private overrideEnums(config: Configuration) {
-    console.log("[config] Overriding model enumerations...");
+  private updateModelEnumerations(config: Configuration) {
+    console.log("[config] Updating model enumerations...");
 
     // Location Levels
-    LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_ID_COUNTRY);
-    LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_ID_PORT);
-    LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_ID_AUCTION);
-    LocationLevelIds.SEA_AREA = config.getProperty(ConfigOptions.LOCATION_LEVEL_ID_SEA_AREA);
+    LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_COUNTRY_ID);
+    LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_PORT_ID);
+    LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_AUCTION_ID);
 
+    // Taxon group
+    // TODO: add all enumerations
+    //TaxonGroupIds.FAO =
   }
 
 }

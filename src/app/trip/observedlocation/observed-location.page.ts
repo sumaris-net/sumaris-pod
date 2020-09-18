@@ -32,7 +32,7 @@ import {showError} from "../../shared/alerts";
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> implements OnInit {
 
   aggregatedLandings: boolean;
-  allowCreateVessel: boolean;
+  allowAddNewVessel: boolean;
 
   $childLoaded = new BehaviorSubject<boolean>(false);
 
@@ -78,9 +78,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       .subscribe(program => {
         if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
-        this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+        this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
         this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
-        this.allowCreateVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
+        this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
         this.cd.detectChanges();
 
         if (this.landingsTable) {
@@ -300,7 +300,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       component: SelectVesselsModal,
       componentProps: {
         allowMultiple: false,
-        allowNewVessel: this.allowCreateVessel,
+        allowAddNewVessel: this.allowAddNewVessel,
         landingFilter
       },
       keyboardClose: true,

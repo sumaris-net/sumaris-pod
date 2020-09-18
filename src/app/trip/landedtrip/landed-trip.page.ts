@@ -112,6 +112,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       this.onProgramChanged
         .subscribe(async program => {
           if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
+
+          // Configure trip form
           this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
           if (!this.tripForm.showObservers) {
             this.data.observers = []; // make sure to reset data observers, if any
@@ -128,6 +130,9 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
               }
             });
           }
+
+          // Configure fishing area form
+          this.fishingAreaForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID);
         })
     );
 

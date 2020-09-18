@@ -101,9 +101,15 @@ export class Configuration extends Software<Configuration> {
     return isNotNil(value) ? (value && value !== "false") : undefined;
   }
 
+  getPropertyAsInt(definition: FormFieldDefinition): number {
+    const value = this.getProperty(definition);
+    return isNotNil(value) ? parseInt(value) : undefined;
+  }
+
   getPropertyAsNumbers(definition: FormFieldDefinition): number[] {
     const value = this.getProperty(definition);
-    return value && value.split(',').map(parseInt) || undefined;
+    if (typeof value == 'string') return value.split(',').map(parseFloat) || undefined;
+    return isNotNil(value) ? [parseFloat(value)] : undefined;
   }
 
   getPropertyAsStrings(definition: FormFieldDefinition): string[] {

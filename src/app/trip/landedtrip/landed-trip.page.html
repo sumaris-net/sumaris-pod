@@ -81,9 +81,7 @@
                                      [showDepthGradient]="false"
                                      [showNearbySpecificArea]="false"
                                      [required]="false"
-                                     [debug]="debug"
-              >
-
+                                     [debug]="debug">
               </app-fishing-area-form>
 
               <!-- Other features (Measurements) -->
@@ -140,9 +138,7 @@
     <!-- TAB: caches -->
     <mat-tab label="{{'TRIP.TAB_CATCHES'|translate}}" [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="scan"></ion-icon>
-        </mat-icon>
+        <ion-icon slot="start" name="scan"></ion-icon>
         <ion-label translate>TRIP.TAB_CATCHES</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger"
                   *ngIf="(productsTable.invalid && productsTable.dirty) || (packetsTable.invalid && packetsTable.dirty)"></ion-icon>
@@ -233,9 +229,7 @@
     <!-- TAB: expenses -->
     <mat-tab label="{{'TRIP.TAB_EXPENSES'|translate}}" [disabled]="!showExpenseTab">
       <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="cash"></ion-icon>
-        </mat-icon>
+        <ion-icon slot="start" name="card"></ion-icon>
         <ion-label translate>TRIP.TAB_EXPENSES</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="expenseForm.invalid && expenseForm.dirty"></ion-icon>
       </ng-template>
