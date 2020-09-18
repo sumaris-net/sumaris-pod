@@ -61,12 +61,13 @@ public interface PmfmService {
     boolean isCalculatedPmfm(int pmfmId);
 
     @Transactional(readOnly = true)
-    boolean isVesselUsePmfm(int pmfmId);
+    boolean isGearPmfm(int pmfmId);
 
+    /**
+     * @deprecated Find a better way (not using LABEL prefix)
+     */
     @Transactional(readOnly = true)
-    boolean isGearUsePmfm(int pmfmId);
-
-    @Transactional(readOnly = true)
+    @Deprecated
     boolean isGearPhysicalPmfm(int pmfmId);
 
 }

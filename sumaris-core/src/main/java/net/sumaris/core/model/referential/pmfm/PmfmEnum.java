@@ -22,9 +22,12 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = Pmfm.class, joinAttributes = Pmfm.Fields.LABEL, required = false)
 public enum PmfmEnum implements Serializable  {
 
     SMALLER_MESH_GAUGE_MM(3, "SMALLER_MESH_GAUGE_MM"),
@@ -94,7 +97,7 @@ public enum PmfmEnum implements Serializable  {
 
     public static PmfmEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown PmfmEnum: " + id));
     }

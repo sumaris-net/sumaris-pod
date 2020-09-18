@@ -77,7 +77,6 @@ public class ActiveMQConfiguration {
     public ConnectionFactory connectionFactory(SumarisServerConfiguration config) {
         // Enable persistence, with file storage
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(config.getActiveMQBrokerURL());
-        //connectionFactory.setRml
         return connectionFactory;
     }
 }

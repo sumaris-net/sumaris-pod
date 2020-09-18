@@ -457,7 +457,6 @@
         <version>${spring-boot.version}</version>
       </dependency>
 
-
       <!-- Cryptography -->
       <dependency>
         <groupId>org.abstractj.kalium</groupId>

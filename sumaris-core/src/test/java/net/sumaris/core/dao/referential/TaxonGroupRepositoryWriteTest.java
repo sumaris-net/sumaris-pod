@@ -27,7 +27,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,7 +67,7 @@ public class TaxonGroupRepositoryWriteTest extends AbstractDaoTest{
     @Test
     public void getAllDressingByTaxonGroupId() {
 
-        TaxonGroup taxonGroup = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeId.FAO.getId());
+        TaxonGroup taxonGroup = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeEnum.FAO.getId());
         ReferentialVO countryLocation =  referentialDao.findByUniqueLabel(Location.class.getSimpleName(), "FRA");
 
         // MNZ - Baudroie
@@ -85,7 +85,7 @@ public class TaxonGroupRepositoryWriteTest extends AbstractDaoTest{
     @Test
     public void getAllPreservingByTaxonGroupId() {
 
-        TaxonGroup taxonGroup = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeId.FAO.getId());
+        TaxonGroup taxonGroup = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeEnum.FAO.getId());
         ReferentialVO countryLocation =  referentialDao.findByUniqueLabel(Location.class.getSimpleName(), "FRA");
 
         // MNZ - Baudroie

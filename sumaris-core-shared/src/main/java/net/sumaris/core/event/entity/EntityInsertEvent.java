@@ -20,19 +20,16 @@
  * #L%
  */
 
-package net.sumaris.core.event;
+package net.sumaris.core.event.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import net.sumaris.core.dao.technical.model.IValueObject;
 
-@Data
-@AllArgsConstructor
-public class DataEntityUpdatedEvent {
+import java.io.Serializable;
 
-    public static final String JMS_NAME_PREFIX = "update";
+public class EntityInsertEvent extends EntityEvent {
 
-    private String entityName;
-
-    private Object data;
+    public EntityInsertEvent(Serializable id, String entityName, IValueObject data){
+        super(EntityEventOperation.INSERT, id, entityName, data);
+    }
 
 }

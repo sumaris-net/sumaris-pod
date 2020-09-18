@@ -1,10 +1,8 @@
-package net.sumaris.server.config;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,15 +20,13 @@ package net.sumaris.server.config;
  * #L%
  */
 
+package net.sumaris.server;
 
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
 import net.sumaris.core.util.ApplicationUtils;
-import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.model.ModelURIs;
-import net.sumaris.server.http.rest.RdfFormat;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -44,17 +40,13 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.jms.annotation.EnableJms;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
 @SpringBootApplication(
         scanBasePackages = {
@@ -80,6 +72,7 @@ import java.util.Objects;
 @EnableTransactionManagement
 @EnableCaching
 @EnableJms
+@EnableAsync
 public class Application extends SpringBootServletInitializer {
     /**
      * Logger.
@@ -96,6 +89,7 @@ public class Application extends SpringBootServletInitializer {
         SumarisServerConfiguration.setArgs(ApplicationUtils.adaptArgsForConfig(args));
         SpringApplication.run(Application.class, args);
     }
+
 
     @Bean
     public WebMvcConfigurer configureStaticPages() {

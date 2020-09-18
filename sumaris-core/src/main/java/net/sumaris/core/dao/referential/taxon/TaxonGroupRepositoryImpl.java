@@ -37,7 +37,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupHistoricalRecord;
-import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
@@ -349,7 +349,7 @@ public class TaxonGroupRepositoryImpl
         Integer[] gearIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} :
             filter.getLevelIds();
 
-        return Specification.where(hasType(TaxonGroupTypeId.METIER_SPECIES.getId()))
+        return Specification.where(hasType(TaxonGroupTypeEnum.METIER_SPECIES.getId()))
             .and(searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER))
             .and(inStatusIds(filter.getStatusIds()))
             .and(inGearIds(gearIds));

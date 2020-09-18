@@ -28,13 +28,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
-import net.sumaris.core.dao.schema.DatabaseSchemaDao;
-import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
-import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.programStrategy.*;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
+import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -59,7 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
@@ -73,7 +72,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("programDao")
-public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, DatabaseSchemaListener {
+public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
 
     /** Logger. */
     private static final Logger log =
@@ -85,18 +84,6 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
     @Autowired
     private ReferentialDao referentialDao;
 
-    @Autowired
-    private DatabaseSchemaDao databaseSchemaDao;
-
-    @PostConstruct
-    protected void init() {
-        databaseSchemaDao.addListener(this);
-    }
-
-    @Override
-    public void onSchemaUpdated(SchemaUpdatedEvent event) {
-        initProgramEnumerations();
-    }
 
     @Override
     public List<ProgramVO> getAll() {
@@ -521,24 +508,5 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
             }
 
         }
-    }
-
-    protected boolean initProgramEnumerations() {
-        log.debug("Initialize enumeration for all programs...");
-        for (ProgramEnum programEnum: ProgramEnum.values()) {
-            try {
-                ProgramVO program = getByLabel(programEnum.name());
-                if (program != null) {
-                    programEnum.setId(program.getId());
-                } else {
-                    // TODO query by id and show program code/name
-                    log.warn("Missing program with label=" + programEnum.name());
-                }
-            } catch(Throwable t) {
-                log.error(String.format("Could not initialized enumeration for program {%s}: %s", programEnum.name(), t.getMessage()), t);
-                return false;
-            }
-        }
-        return true;
     }
 }

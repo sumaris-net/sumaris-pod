@@ -42,6 +42,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.persistence.EntityManager;
@@ -67,6 +68,7 @@ import java.util.Locale;
 @EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
 @EnableJpaRepositories("net.sumaris.core.dao")
+@EnableAsync
 public class Application {
 
 	/* Logger */

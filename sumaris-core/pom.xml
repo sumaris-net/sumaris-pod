@@ -266,15 +266,15 @@
             <configuration>
               <scripts>
                 <script><![CDATA[
-                      import org.reflections.*;
-                      import org.reflections.util.*;
+                  import org.reflections.*;
+                  import org.reflections.util.*;
 
-                        ConfigurationBuilder builder = new ConfigurationBuilder();
-                        builder.addUrls(ClasspathHelper.forPackage("${hibernate.entities.package}"));
-                        builder.addUrls(ClasspathHelper.forPackage("net.sumaris.core.vo"));
-                        new org.reflections.Reflections(builder)
-                            .save("${escapedOutputDirectory}/META-INF/reflections/${project.artifactId}-reflections.xml")
-                    ]]></script>
+                  ConfigurationBuilder builder = new ConfigurationBuilder();
+                  builder.addUrls(ClasspathHelper.forPackage("${hibernate.entities.package}"));
+                  builder.addUrls(ClasspathHelper.forPackage("net.sumaris.core.vo"));
+                  new org.reflections.Reflections(builder)
+                      .save("${escapedOutputDirectory}/META-INF/reflections/${project.artifactId}-reflections.xml")
+                ]]></script>
               </scripts>
             </configuration>
           </execution>

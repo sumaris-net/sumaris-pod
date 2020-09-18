@@ -22,10 +22,11 @@
 
 package net.sumaris.core.event;
 
-import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.event.EventListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -35,31 +36,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import javax.annotation.Resource;
+
 @Component
+@ConditionalOnBean({JmsTemplate.class})
 public class DataEntityQueueNotifier {
 
+    @Resource
     private JmsTemplate jmsTemplate;
 
-    @Autowired
-    public DataEntityQueueNotifier(JmsTemplate jmsTemplate) {
-        this.jmsTemplate = jmsTemplate;
-    }
-
     @Async
-    @EventListener(DataEntityCreatedEvent.class)
+    @EventListener({EntityInsertEvent.class, EntityUpdateEvent.class, EntityDeleteEvent.class})
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onDataCreated(DataEntityCreatedEvent event) {
-        String destination = DataEntityCreatedEvent.JMS_NAME_PREFIX + event.getEntityName();
-        jmsTemplate.convertAndSend(destination, event.getData());
-    }
-
-    @Async
-    @EventListener(DataEntityUpdatedEvent.class)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onDataUpdated(DataEntityUpdatedEvent event) {
-        String destination = DataEntityUpdatedEvent.JMS_NAME_PREFIX + event.getEntityName();
+    public void onEntityUpdated(EntityEvent event) {
+        String destination = event.getOperation().name() + event.getEntityName();
         jmsTemplate.convertAndSend(destination, event.getData());
     }
 

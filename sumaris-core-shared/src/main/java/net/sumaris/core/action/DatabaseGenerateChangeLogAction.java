@@ -25,9 +25,7 @@ package net.sumaris.core.action;
  */
 
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import org.nuiton.i18n.I18n;
@@ -62,7 +60,7 @@ public class DatabaseGenerateChangeLogAction {
         }
 
         try {
-            Version actualDbVersion = service.getDbVersion();
+            Version actualDbVersion = service.getSchemaVersion().orElse(null);
             if (actualDbVersion != null) {
                 log.info(I18n.t("sumaris.persistence.schemaVersion", actualDbVersion.toString()));
             }

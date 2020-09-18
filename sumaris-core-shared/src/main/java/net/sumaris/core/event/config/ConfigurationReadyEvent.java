@@ -20,11 +20,14 @@
  * #L%
  */
 
-package net.sumaris.core.dao.schema.event;
+package net.sumaris.core.event.config;
 
-public interface DatabaseSchemaListener {
+import org.nuiton.config.ApplicationConfig;
 
-    default void onSchemaUpdated(SchemaUpdatedEvent event) {
 
-    };
+public class ConfigurationReadyEvent extends ConfigurationEvent{
+
+    public ConfigurationReadyEvent(ApplicationConfig config){
+        super(config);
+    }
 }

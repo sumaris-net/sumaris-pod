@@ -20,21 +20,21 @@
  * #L%
  */
 
-package net.sumaris.core.dao.schema.event;
+package net.sumaris.core.dao.technical.model.annotation;
 
-import org.nuiton.version.Version;
+import net.sumaris.core.dao.technical.model.IEntity;
 
-import java.util.Properties;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@lombok.Data
-@lombok.AllArgsConstructor
-public class SchemaUpdatedEvent {
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface EntityEnum  {
+    Class<? extends IEntity> entity();
 
-    public static final String JMS_NAME = "schema-update";
-
-    private Version schemaVersion;
-
-    private Properties connectionProperties;
-
-
+    String configPrefix() default "sumaris.enumeration.";
+    String[] joinAttributes() default {IEntity.Fields.ID, "label"};
+    boolean required() default true;
 }

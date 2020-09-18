@@ -22,35 +22,36 @@ package net.sumaris.core.model.referential.taxon;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
+import java.util.Arrays;
 
-public enum TaxonGroupTypeId implements Serializable {
+@EntityEnum(entity = TaxonGroupType.class)
+public enum TaxonGroupTypeEnum implements Serializable {
 
-    FAO(2),
-    METIER_SPECIES(3);
+    FAO(2, "FAO"),
+    METIER_SPECIES(3, "METIER_SPECIES");
 
     private int id;
+    private String label;
 
-    TaxonGroupTypeId(int id) {
+    TaxonGroupTypeEnum(int id, String label) {
         this.id = id;
+        this.label = label;
     }
 
-    /**
-     * Returns the database row id
-     *
-     * @return int the id
-     */
-    public int getId()
-    {
-        return this.id;
+    public static TaxonGroupTypeEnum valueOf(final int id) {
+        return Arrays.stream(values())
+                .filter(enumValue -> enumValue.id == id)
+                .findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown TaxonGroupTypeId: " + id));
     }
 
+    public int getId() {
+        return id;
+    }
 
-    public static TaxonGroupTypeId valueOf(final int id) {
-        switch (id) {
-            case 2: return FAO;
-            case 3: return METIER_SPECIES;
-        }
-        throw new IllegalArgumentException("Unknown TaxonGroupTypeId: " + id);
+    public String getLabel() {
+        return label;
     }
 }

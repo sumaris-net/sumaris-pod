@@ -22,11 +22,13 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = LocationClassification.class)
 public enum LocationClassificationEnum implements Serializable {
-
 
     LAND(1, "LAND"),
     SEA(2, "SEA")

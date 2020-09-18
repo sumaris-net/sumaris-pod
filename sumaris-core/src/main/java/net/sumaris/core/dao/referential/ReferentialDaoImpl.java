@@ -230,7 +230,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         )
                 .setFirstResult(offset)
                 .setMaxResults(size)
-                .getResultStream();
+                // FIXME BLA: replace with getResultStream()
+                // Now, it failed at startup (error "invalid cursor state: identified cursor is not open")
+                .getResultList().stream();
     }
 
     @Override
@@ -639,6 +641,14 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             }
         }
 
+        // Filter on id
+        Predicate idClause = null;
+        ParameterExpression<Integer> idParam = null;
+        if (filter.getId() != null) {
+            idParam = builder.parameter(Integer.class);
+            idClause = builder.equal(entityRoot.get(IItemReferentialEntity.Fields.ID), idParam);
+        }
+
         // Filter on label
         Predicate labelClause = null;
         ParameterExpression<String> labelParam = null;
@@ -693,6 +703,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         if (levelClause != null) {
             whereClause = levelClause;
         }
+        if (idClause != null) {
+            whereClause = (whereClause == null) ? idClause : builder.and(whereClause, idClause);
+        }
         if (labelClause != null) {
             whereClause = (whereClause == null) ? labelClause : builder.and(whereClause, labelClause);
         }
@@ -719,6 +732,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         TypedQuery<R> typedQuery = getEntityManager().createQuery(query);
 
         // Bind parameters
+        if (idClause != null) {
+            typedQuery.setParameter(idParam, filter.getId());
+        }
         if (labelClause != null) {
             typedQuery.setParameter(labelParam, filter.getLabel());
         }

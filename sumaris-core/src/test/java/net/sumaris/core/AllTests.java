@@ -39,7 +39,7 @@ import net.sumaris.core.service.referential.LocationServiceReadTest;
 import net.sumaris.core.service.referential.LocationServiceWriteTest;
 import net.sumaris.core.service.referential.ReferentialServiceReadTest;
 import net.sumaris.core.service.referential.TaxonGroupServiceWriteTest;
-import net.sumaris.core.service.technical.configuration.SoftwareServiceTest;
+import net.sumaris.core.service.technical.SoftwareServiceTest;
 import net.sumaris.core.service.technical.schema.DatabaseSchemaServiceTest;
 import net.sumaris.core.util.crypto.CryptoUtilsTest;
 import net.sumaris.core.util.crypto.MD5UtilTest;

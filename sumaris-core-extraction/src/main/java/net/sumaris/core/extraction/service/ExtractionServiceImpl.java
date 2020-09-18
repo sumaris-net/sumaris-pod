@@ -28,13 +28,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
-import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
-import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDao;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
@@ -47,9 +48,9 @@ import net.sumaris.core.extraction.dao.trip.free.ExtractionFree1TripDao;
 import net.sumaris.core.extraction.dao.trip.free2.ExtractionFree2TripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
-import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.specification.RdbSpecification;
 import net.sumaris.core.extraction.utils.ExtractionBeans;
+import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
@@ -73,12 +74,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.File;
@@ -93,7 +96,7 @@ import java.util.stream.Collectors;
  */
 @Service("extractionService")
 @Lazy
-public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaListener {
+public class ExtractionServiceImpl implements ExtractionService {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionServiceImpl.class);
 
@@ -145,14 +148,8 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
     @Autowired
     protected DatabaseSchemaDao databaseSchemaDao;
 
-    @PostConstruct
-    protected void init() {
-        databaseSchemaDao.addListener(this);
-    }
-
-    @Override
-    public void onSchemaUpdated(SchemaUpdatedEvent event) {
-
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
         if (configuration.isInitStatisticalRectangles()) {
             initRectangleLocations();
         }

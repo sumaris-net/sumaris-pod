@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.io.File;
 import java.io.IOException;
@@ -829,7 +830,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         Preconditions.checkArgument(StringUtils.isNotBlank(tableName));
         Preconditions.checkArgument(StringUtils.isNotBlank(columnName));
 
-        String defaultvalue = applicationConfig.getOption("sumaris." + tableName.toUpperCase() + "." + columnName.toUpperCase() + ".defaultValue");
-        return defaultvalue;
+        return applicationConfig.getOption("sumaris." + tableName.toUpperCase() + "." + columnName.toUpperCase() + ".defaultValue");
     }
 }

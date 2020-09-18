@@ -20,11 +20,15 @@
  * #L%
  */
 
-package net.sumaris.core.model;
+package net.sumaris.core.model.referential;
+
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = QualityFlag.class, joinAttributes = {IEntity.Fields.ID})
 public enum QualityFlagEnum implements Serializable {
 
     NOT_QUALIFED(0, "Not qualified"),
@@ -39,7 +43,7 @@ public enum QualityFlagEnum implements Serializable {
 
     public static QualityFlagEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown QualityFlagEnum: " + id));
     }

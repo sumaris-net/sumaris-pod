@@ -28,21 +28,25 @@ package net.sumaris.core.service.schema;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
+import net.sumaris.core.event.schema.SchemaReadyEvent;
+import net.sumaris.core.event.schema.SchemaUpdatedEvent;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
-import org.apache.activemq.broker.BrokerService;
 import org.nuiton.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * <p>DatabaseSchemaServiceImpl class.</p>
@@ -56,6 +60,7 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
     private static final Logger log =
             LoggerFactory.getLogger(DatabaseSchemaServiceImpl.class);
 
+    private boolean isApplicationReady;
 
     @Autowired
 	protected SumarisConfiguration config;
@@ -64,7 +69,7 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
     protected DatabaseSchemaDao databaseSchemaDao;
 
     @Autowired
-    protected DatabaseSchemaService self;
+    private ApplicationEventPublisher publisher;
 
     @Autowired(required = false)
     protected TaskExecutor taskExecutor;
@@ -75,30 +80,37 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
         // Run schema update, if need
         boolean shouldRun = config.useLiquibaseAutoRun();
         if (shouldRun) {
+            // Do the update
             updateSchema();
         }
         else if (log.isDebugEnabled()){
             log.debug( String.format("Liquibase did not run because configuration option '%s' set to false.",
                             SumarisConfigurationOption.LIQUIBASE_RUN_AUTO.getKey()));
         }
+
+        // Publish ready event
+        publishSchemaReadyEvent();
     }
-    
+
+    @EventListener
+    protected void onApplicationReady(ApplicationReadyEvent event) {
+        this.isApplicationReady = true;
+    }
+
     /** {@inheritDoc} */
     @Override
-    public Version getDbVersion() {
-        Version version;
+    public Optional<Version> getSchemaVersion() {
         try {
             if (!isDbLoaded()) {
                 throw new VersionNotFoundException("Unable to get Database version: database is empty");
             }
-            version = databaseSchemaDao.getSchemaVersion();
+            return Optional.of(databaseSchemaDao.getSchemaVersion());
         } catch (VersionNotFoundException e) {
             if (log.isWarnEnabled()) {
                 log.warn(e.getMessage());
             }
-            version = null;
+            return Optional.empty();
         }
-        return version;
     }
 
     /** {@inheritDoc} */
@@ -116,29 +128,9 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
             throw new SumarisTechnicalException(e.getCause());
         }
 
+        // Emit events
+        publishSchemaUpdatedEvent();
 
-        // Emit event to listeners
-        // WARN: should always be done in a transactional service method
-        if (taskExecutor != null) {
-            taskExecutor.execute(() -> {
-                try {
-                    Thread.sleep(10 * 1000); // Wait server starts
-
-                    self.fireOnSchemaUpdatedEvent();
-                } catch (InterruptedException e) {
-                }
-
-            });
-        }
-        else {
-            self.fireOnSchemaUpdatedEvent();
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void fireOnSchemaUpdatedEvent() {
-        databaseSchemaDao.fireOnSchemaUpdatedEvent();
     }
 
     /** {@inheritDoc} */
@@ -198,5 +190,58 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
         databaseSchemaDao.generateUpdateSchemaFile(outputFile.getCanonicalPath());
     }
 
+    /* -- protected methods -- */
+
+    protected void publishSchemaUpdatedEvent() {
+        // Get schema version
+        Version dbVersion;
+        try {
+            dbVersion = databaseSchemaDao.getSchemaVersion();
+        } catch (VersionNotFoundException e) {
+            throw new SumarisTechnicalException("Missing version after a schema update", e);
+        }
+
+        // send event
+        publishEventAfterApplicationReady(new SchemaUpdatedEvent(dbVersion, config.getConnectionProperties()));
+    }
+
+    protected void publishSchemaReadyEvent() {
+
+        // Get schema version
+        Version dbVersion;
+        try {
+            dbVersion = databaseSchemaDao.getSchemaVersion();
+        } catch (VersionNotFoundException e) {
+            dbVersion = null;
+        }
+
+        // send event
+        publishEventAfterApplicationReady(new SchemaReadyEvent(dbVersion, config.getConnectionProperties()));
+    }
+
+    /**
+     * Publish and event, when application is ready
+     * @param event
+     */
+    protected void publishEventAfterApplicationReady(Object event) {
+        if (!isApplicationReady && taskExecutor != null) {
+            taskExecutor.execute(() -> {
+                try {
+                    while(!isApplicationReady) {
+                        Thread.sleep(200); // Wait ready
+                    }
+
+                    // Emit update event
+                    publisher.publishEvent(event);
+                } catch (InterruptedException e) {
+                }
+
+            });
+        }
+        else {
+            // Emit update event
+            publisher.publishEvent(event);
+        }
+    }
 
 }

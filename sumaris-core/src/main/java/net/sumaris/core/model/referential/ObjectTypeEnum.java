@@ -23,20 +23,20 @@ package net.sumaris.core.model.referential;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = ObjectType.class, joinAttributes = ObjectType.Fields.LABEL)
 public enum ObjectTypeEnum implements Serializable {
-
 
     VESSEL(1, "VESSEL")
     ;
 
     public static ObjectTypeEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown ObjectTypeEnum: " + id));
     }

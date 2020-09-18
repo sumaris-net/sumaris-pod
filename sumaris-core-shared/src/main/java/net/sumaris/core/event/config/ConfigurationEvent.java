@@ -20,19 +20,16 @@
  * #L%
  */
 
-package net.sumaris.core.event;
+package net.sumaris.core.event.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.nuiton.config.ApplicationConfig;
 
 @Data
 @AllArgsConstructor
-public class DataEntityCreatedEvent {
+public class ConfigurationEvent {
 
-    public static final String JMS_NAME_PREFIX = "create";
-
-    private String entityName;
-
-    private Object data;
+    private ApplicationConfig config;
 
 }

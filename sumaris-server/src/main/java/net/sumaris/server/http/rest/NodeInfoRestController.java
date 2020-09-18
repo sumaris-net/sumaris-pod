@@ -23,6 +23,7 @@ package net.sumaris.server.http.rest;
  */
 
 
+import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
@@ -43,7 +44,7 @@ public class NodeInfoRestController {
     private SumarisServerConfiguration config;
 
     @Autowired
-    private SoftwareService softwareService;
+    private ConfigurationService configurationService;
 
     @ResponseBody
     @RequestMapping(value = RestPaths.NODE_INFO_PATH, method = RequestMethod.GET,
@@ -58,7 +59,7 @@ public class NodeInfoRestController {
         result.setSoftwareVersion(config.getVersionAsString());
 
         // Set node info
-        SoftwareVO software = softwareService.getDefault();
+        SoftwareVO software = configurationService.getCurrentSoftware();
         if (software != null) {
             result.setNodeLabel(software.getLabel());
             result.setNodeName(software.getName());

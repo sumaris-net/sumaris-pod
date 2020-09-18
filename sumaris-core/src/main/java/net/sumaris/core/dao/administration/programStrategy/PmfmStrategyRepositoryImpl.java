@@ -26,19 +26,24 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.schema.DatabaseSchemaDao;
-import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
-import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.administration.programStrategy.*;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
+import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -46,19 +51,24 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("pmfmStrategyRepository")
 public class PmfmStrategyRepositoryImpl
         extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, PmfmStrategyVO>
-        implements PmfmStrategyRepository, DatabaseSchemaListener {
+        implements PmfmStrategyRepository {
 
     /**
      * Logger.
@@ -67,7 +77,6 @@ public class PmfmStrategyRepositoryImpl
             LoggerFactory.getLogger(PmfmStrategyRepositoryImpl.class);
 
 
-    private int unitIdNone;
     private Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
 
     @Autowired
@@ -78,19 +87,14 @@ public class PmfmStrategyRepositoryImpl
 
 
     @Autowired
-    PmfmStrategyRepositoryImpl(EntityManager entityManager, DatabaseSchemaDao schemaDao) {
+    PmfmStrategyRepositoryImpl(EntityManager entityManager) {
         super(PmfmStrategy.class, entityManager);
-        schemaDao.addListener(this);
     }
 
-    @PostConstruct
-    protected void init() {
-        this.unitIdNone = config.getUnitIdNone();
-    }
-
-    public void onSchemaUpdated(SchemaUpdatedEvent event) {
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
         this.loadAcquisitionLevels();
-    };
+    }
 
     @Override
     public Class<PmfmStrategyVO> getVOClass() {
@@ -206,7 +210,7 @@ public class PmfmStrategyRepositoryImpl
         target.setType(type.name().toLowerCase());
 
         // Unit symbol
-        if (pmfm.getUnit() != null && pmfm.getUnit().getId().intValue() != unitIdNone) {
+        if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
             target.setUnitLabel(pmfm.getUnit().getLabel());
         }
 
@@ -328,7 +332,9 @@ public class PmfmStrategyRepositoryImpl
         if (acquisitionLevelId == null) {
 
             // Try to reload
-            loadAcquisitionLevels();
+            synchronized (this) {
+                loadAcquisitionLevels();
+            }
 
             // Retry to find it
             acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
@@ -340,7 +346,7 @@ public class PmfmStrategyRepositoryImpl
         return acquisitionLevelId;
     }
 
-    private synchronized void loadAcquisitionLevels() {
+    private void loadAcquisitionLevels() {
         acquisitionLevelIdByLabel.clear();
 
         // Fill acquisition levels map

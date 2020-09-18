@@ -24,7 +24,6 @@ package net.sumaris.core.dao.schema;
  * #L%
  */
 
-import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.VersionNotFoundException;
 import org.nuiton.version.Version;
@@ -38,8 +37,6 @@ import java.util.Properties;
  * <p>DatabaseSchemaDao interface.</p>
  */
 public interface DatabaseSchemaDao {
-
-
 
     /**
      * Generate a file with all SQL for database creation
@@ -187,15 +184,5 @@ public interface DatabaseSchemaDao {
      */
     void generateNewDb(File dbDirectory, boolean replaceIfExists, File scriptFile, Properties connectionProperties, boolean isTemporaryDb);
 
-    /**
-     * Allow to listen database states
-     * @param listener
-     */
-    void addListener(DatabaseSchemaListener listener);
 
-
-    /**
-     * Allow to emit event to each listener
-     */
-    void fireOnSchemaUpdatedEvent();
 }

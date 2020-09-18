@@ -22,9 +22,12 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.util.Arrays;
 import java.util.Optional;
 
+@EntityEnum(entity = UserProfile.class, joinAttributes = UserProfile.Fields.LABEL)
 public enum UserProfileEnum {
 
     ADMIN(1, "ADMIN"),
@@ -34,7 +37,7 @@ public enum UserProfileEnum {
 
     public static UserProfileEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + id));
     }

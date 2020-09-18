@@ -1,4 +1,4 @@
-package net.sumaris.core.model.referential.taxon;
+package net.sumaris.core.model.referential.pmfm;
 
 /*-
  * #%L
@@ -22,17 +22,31 @@ package net.sumaris.core.model.referential.taxon;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
+import java.util.Arrays;
 
-public enum TaxonomicLevelId implements Serializable {
+@EntityEnum(entity = Matrix.class)
+public enum MatrixEnum implements Serializable  {
 
-    SPECIES(28),
-    SUBSPECIES(29);
+    GEAR(3, "GEAR")
+
+    ;
+
+    public static MatrixEnum valueOf(final int id) {
+        return Arrays.stream(values())
+                .filter(enumValue -> enumValue.id == id)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown MatrixEnum: " + id));
+    }
 
     private int id;
+    private String label;
 
-    TaxonomicLevelId(int id) {
+    MatrixEnum(int id, String label) {
         this.id = id;
+        this.label = label;
     }
 
     /**
@@ -45,12 +59,8 @@ public enum TaxonomicLevelId implements Serializable {
         return this.id;
     }
 
-
-    public static TaxonomicLevelId valueOf(final int id) {
-        switch (id) {
-            case 28: return SPECIES;
-            case 29: return SUBSPECIES;
-        }
-        throw new IllegalArgumentException("Unknown TaxonomicLevelId: " + id);
+    public String getLabel()
+    {
+        return this.label;
     }
 }
