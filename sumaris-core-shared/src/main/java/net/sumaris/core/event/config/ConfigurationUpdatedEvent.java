@@ -22,12 +22,12 @@
 
 package net.sumaris.core.event.config;
 
-import org.nuiton.config.ApplicationConfig;
+import net.sumaris.core.config.SumarisConfiguration;
 
 
 public class ConfigurationUpdatedEvent extends ConfigurationEvent{
 
-    public ConfigurationUpdatedEvent(ApplicationConfig config){
+    public ConfigurationUpdatedEvent(SumarisConfiguration config){
         super(config);
     }
 }

@@ -420,6 +420,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * <p>getDbTrashDirectory.</p>
+     *
+     * @return a {@link File} object.
+     */
+    public File getTrashDirectory() {
+        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.TRASH_DIRECTORY.getKey());
+    }
+
+    /**
      * <p>useLiquibaseAutoRun.</p>
      *
      * @return a boolean.
@@ -525,6 +534,23 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public boolean debugEntityLoad() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.DEBUG_ENTITY_LOAD.getKey());
+    }
+
+    /**
+     * Enable trash of delete entities (e.g. Trip, Operation, etc)
+     * @return
+     */
+    public boolean enableEntityTrash() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey());
+    }
+
+    /**
+     * Should add the data, inside a delete event?<br/>
+     * Always true when trash is enable
+     * @return
+     */
+    public boolean enableDataInsideDeleteEvents(){
+        return enableEntityTrash();
     }
 
     /**

@@ -338,6 +338,9 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         // Upload directory
         FileUtils.forceMkdir(getUploadDirectory());
 
+        // Trash directory
+        FileUtils.forceMkdir(getTrashDirectory());
+
         // temp directory
         File tempDirectory = getTempDirectory();
         if (tempDirectory.exists()) {

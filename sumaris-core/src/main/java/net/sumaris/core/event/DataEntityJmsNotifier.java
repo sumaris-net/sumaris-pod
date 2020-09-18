@@ -23,34 +23,26 @@
 package net.sumaris.core.event;
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.service.data.TripServiceImpl;
-import org.apache.activemq.broker.BrokerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.event.EventListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.jms.ConnectionFactory;
 
 @Component
 @ConditionalOnClass(JmsTemplate.class)
-public class DataEntityQueueNotifier {
+public class DataEntityJmsNotifier {
     private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
 
     @Resource
@@ -58,7 +50,7 @@ public class DataEntityQueueNotifier {
 
     @PostConstruct
     protected void init() {
-        log.info("Starting JMS entity event notifier...");
+        log.info("Starting JMS entity notifier...");
     }
 
     @Async
@@ -72,7 +64,10 @@ public class DataEntityQueueNotifier {
         Preconditions.checkNotNull(event.getId());
 
         // Compute a destination name
-        String destinationName = event.getOperation().name() + event.getEntityName();
+        String destinationName = event.getOperation().name().toLowerCase() + event.getEntityName();
+
+        if (log.isDebugEnabled()) log.debug(String.format("Send JMS message '%s' {id: %s}",
+                destinationName, event.getId()));
 
         // Send data, or ID
         if (event.getData() != null) {

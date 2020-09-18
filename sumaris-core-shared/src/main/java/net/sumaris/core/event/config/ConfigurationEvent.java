@@ -24,12 +24,13 @@ package net.sumaris.core.event.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import net.sumaris.core.config.SumarisConfiguration;
 import org.nuiton.config.ApplicationConfig;
 
 @Data
 @AllArgsConstructor
 public class ConfigurationEvent {
 
-    private ApplicationConfig config;
+    private SumarisConfiguration config;
 
 }

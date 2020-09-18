@@ -116,11 +116,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
             // Publish ready event
             if (event instanceof SchemaReadyEvent) {
-                publisher.publishEvent(new ConfigurationReadyEvent(config.getApplicationConfig()));
+                publisher.publishEvent(new ConfigurationReadyEvent(config));
             }
             // Publish update event
             else {
-                publisher.publishEvent(new ConfigurationUpdatedEvent(config.getApplicationConfig()));
+                publisher.publishEvent(new ConfigurationUpdatedEvent(config));
             }
 
         }
@@ -143,7 +143,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             applySoftwareConfig();
 
             // Publish update event
-            publisher.publishEvent(new ConfigurationUpdatedEvent(config.getApplicationConfig()));
+            publisher.publishEvent(new ConfigurationUpdatedEvent(config));
 
         }
     }
@@ -154,7 +154,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Transactional(propagation = Propagation.REQUIRED)
     protected void beforeDeleteSoftware(EntityDeleteEvent event) {
         Preconditions.checkNotNull(event.getId());
-        SoftwareVO currentSoftware = getCurrentSoftware();
+        SoftwareVO currentSoftware = event.getData() != null ? (SoftwareVO)event.getData() : getCurrentSoftware();
 
         // Test if same as the current software
         boolean isCurrent = (currentSoftware != null && currentSoftware.getId().equals(event.getId()));

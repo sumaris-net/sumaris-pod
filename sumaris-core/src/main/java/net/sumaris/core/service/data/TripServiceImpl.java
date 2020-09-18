@@ -31,11 +31,15 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.ObservedLocationDao;
 import net.sumaris.core.dao.data.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.SaleType;
@@ -54,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -99,6 +104,13 @@ public class TripServiceImpl implements TripService {
 
     @Autowired
     private FishingAreaService fishingAreaService;
+
+    private boolean joinDataToDeleteEvents = false;
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        this.joinDataToDeleteEvents = event.getConfig().enableDataInsideDeleteEvents();
+    }
 
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
@@ -422,10 +434,21 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public void delete(int id) {
+
+        // Load the existing trip (need by trash service)
+        TripVO trip = null;
+        if (joinDataToDeleteEvents) {
+            trip = get(id);
+            trip.setOperations(
+                    operationService.getAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC));
+            // TODO BLA: need to add operation groups ? (ask to LPT)
+        }
+
+        // Apply deletion
         tripRepository.deleteById(id);
 
-        // Publish event
-        publisher.publishEvent(new EntityDeleteEvent(new Integer(id), Trip.class.getSimpleName()));
+        // Publish delete event
+        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), trip));
     }
 
     @Override
