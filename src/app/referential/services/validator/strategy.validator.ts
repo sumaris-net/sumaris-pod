@@ -17,7 +17,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
   }
 
   getFormGroup(data?: Strategy): FormGroup {
-    console.debug("[strategy-validator] Creating strategy form");
+    //console.debug("[strategy-validator] Creating strategy form");
 
     return this.formBuilder.group({
       id: [toNumber(data && data.id, null)],

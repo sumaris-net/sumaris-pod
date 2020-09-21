@@ -90,16 +90,17 @@ export class LocalSettingsService {
 
     this.resetData();
 
-    this.start();
 
     // TODO for DEV only
     //this._debug = !environment.production;
   }
 
 
-  async start(): Promise<LocalSettings> {
+  start(): Promise<LocalSettings> {
     if (this._startPromise) return this._startPromise;
-    if (this._started) return this.data;
+    if (this._started) return Promise.resolve(this.data);
+
+    console.info("[settings] Starting settings...");
 
     // Restoring local settings
     this._startPromise = this.platform.ready()
@@ -109,10 +110,10 @@ export class LocalSettingsService {
         this.data.usageMode = this.data.mobile ? "FIELD" : "DESK"; // FIELD by default, if mobile detected
       })
       .then(() => this.restoreLocally())
-      .then(async (settings) => {
+      .then(data => {
         this._started = true;
         this._startPromise = undefined;
-        return settings;
+        return data;
       });
     return this._startPromise;
   }
@@ -141,6 +142,8 @@ export class LocalSettingsService {
 
     // Restore local settings (or keep old settings)
     if (isNotNilOrBlank(settingsStr)) {
+      console.info("[settings] Restoring previous settings...");
+
       const restoredData = JSON.parse(settingsStr);
 
       // Avoid to override transient properties

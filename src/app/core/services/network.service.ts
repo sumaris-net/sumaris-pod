@@ -118,7 +118,7 @@ export class NetworkService {
     this.resetData();
 
     // Start the service
-    this.start();
+    //this.start();
 
     // For DEV only
     this._debug = !environment.production;

@@ -126,7 +126,9 @@ export class ConfigService extends SoftwareService<Configuration> {
     @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
   ) {
     super(graphql);
-    console.debug("[config] Creating configuration service");
+
+    this._debug = !environment.production;
+    if (this._debug) console.debug("[config] Creating service");
 
     this.defaultOptionsMap = {...ConfigOptions, ...defaultOptionsMap};
     this._optionDefs = Object.keys(this.defaultOptionsMap).map(name => defaultOptionsMap[name]);
@@ -141,7 +143,7 @@ export class ConfigService extends SoftwareService<Configuration> {
       this.start();
     }
 
-    this._debug = !environment.production;
+
   }
 
   start(): Promise<void> {

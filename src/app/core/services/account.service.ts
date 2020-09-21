@@ -220,13 +220,16 @@ export class AccountService extends BaseEntityService {
 
     this.resetData();
 
-    this.start();
+    //this.start();
 
     // Send auth token to the graphql layer, when changed
     this.onAuthTokenChange.subscribe((token) => this.graphql.setAuthToken(token));
 
     // Listen network restart
     this.graphql.onStart.subscribe(async () => {
+      if (!this._started) {
+        this.ready();
+      }
       if (this._started && this.isLogin()) {
         console.debug("[account] Restarting, to retry to authenticate...");
         this.restart();
@@ -259,9 +262,9 @@ export class AccountService extends BaseEntityService {
     this.data.department = null;
   }
 
-  async start() {
+  start(): Promise<void> {
     if (this._startPromise) return this._startPromise;
-    if (this._started) return;
+    if (this._started) return Promise.resolve();
 
     // Restoring local settings
     this._startPromise = this.settings.ready()

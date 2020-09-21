@@ -129,7 +129,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     CacheModule.forRoot(),
     IonicStorageModule.forRoot({
       name: 'sumaris',
-      driverOrder: ['sqlite', 'websql', 'indexeddb', 'localstorage']
+      ...environment.storage
     }),
     TranslateModule.forRoot({
       loader: {

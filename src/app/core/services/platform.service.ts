@@ -1,5 +1,5 @@
 import {Injectable, Optional} from '@angular/core';
-import {Platform} from "@ionic/angular";
+import {Platform, ToastController} from "@ionic/angular";
 import {NetworkService} from "./network.service";
 import {Platforms} from "@ionic/core";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
@@ -10,8 +10,13 @@ import {CacheService} from "ionic-cache";
 import {AudioProvider} from "../../shared/audio/audio";
 
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
-import {isEmptyArray, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {Storage} from "@ionic/storage";
+import {EntitiesStorage} from "./entities-storage.service";
+import {concatPromises} from "../../shared/observables";
+import {StorageUtils} from "../../shared/services/storage.utils";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {TranslateService} from "@ngx-translate/core";
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -32,9 +37,12 @@ export class PlatformService {
 
   constructor(
     private platform: Platform,
+    private toastController: ToastController,
+    private translate: TranslateService,
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
     private keyboard: Keyboard,
+    private entitiesStorage: EntitiesStorage,
     private settings: LocalSettingsService,
     private networkService: NetworkService,
     private cache: CacheService,
@@ -66,56 +74,58 @@ export class PlatformService {
     return this.platform.height();
   }
 
-  protected async start() {
+  protected start(): Promise<void> {
     if (this._startPromise) return this._startPromise;
-    if (this._started) return;
+    if (this._started) return Promise.resolve();
 
     this._started = false;
+    const now = Date.now();
     console.info("[platform] Starting platform...");
 
-    this._startPromise = Promise.all([
-      this.platform.ready()
-        .then(() => {
+    this._startPromise = this.platform.ready()
+      .then(() => {
 
-          this.configureCordovaPlugins();
+        this.configureCordovaPlugins();
 
-          this._mobile = this.platform.is('mobile');
-          this.touchUi = this._mobile || this.platform.is('tablet') || this.platform.is('phablet');
+        this._mobile = this.platform.is('mobile');
+        this.touchUi = this._mobile || this.platform.is('tablet') || this.platform.is('phablet');
 
-          // Force mobile in settings
-          if (this._mobile) {
-            this.settings.mobile = this._mobile;
-            this.settings.touchUi = this.touchUi;
-          }
-        }),
+        // Force mobile in settings
+        if (this._mobile) {
+          this.settings.mobile = this._mobile;
+          this.settings.touchUi = this.touchUi;
+        }
+    })
+    .then(() => this.storageReady())
+    .then((forage) => this.migrateStorage(forage))
+    .then(() => Promise.all([
+      this.entitiesStorage.ready(),
       this.cache.ready().then(() => this.configureCache()),
-      this.storage.ready().then((forage) => this.configureStorage(forage)),
       this.settings.ready(),
       this.networkService.ready(),
       this.audioProvider.ready()
-    ])
-      .then(() => {
-        this._started = true;
-        this._startPromise = undefined;
-        console.info(`[platform] Starting platform [OK] {mobile: ${this._mobile}}, {touchUi: ${this.touchUi}}`);
+    ]))
+    .then(() => {
+      this._started = true;
+      this._startPromise = undefined;
+      console.info(`[platform] Starting platform [OK] {mobile: ${this._mobile}, touchUi: ${this.touchUi}} in ${Date.now()-now}ms`);
 
-        // Update cache configuration when network changed
-        this.networkService.onNetworkStatusChanges.subscribe((type) => this.configureCache(type !== 'none'));
+      // Update cache configuration when network changed
+      this.networkService.onNetworkStatusChanges.subscribe((type) => this.configureCache(type !== 'none'));
 
-        // Wait 1 more seconds, before hiding the splash screen
-        setTimeout(() => {
-          this.splashScreen.hide();
+      // Wait 1 more seconds, before hiding the splash screen
+      setTimeout(() => {
+        this.splashScreen.hide();
 
-          // Play startup sound
-          this.audioProvider.playStartupSound();
-        }, 1000);
-      });
+        // Play startup sound
+        this.audioProvider.playStartupSound();
+      }, 1000);
+    });
     return this._startPromise;
   }
 
   ready(): Promise<void> {
     if (this._started) return Promise.resolve();
-    if (this._startPromise) return this._startPromise;
     return this.start();
   }
 
@@ -155,14 +165,87 @@ export class PlatformService {
     this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
   }
 
-  protected configureStorage(forage: LocalForage) {
-    if (isNotNil(this.storage.driver)) {
-      console.log(`[platform] Configuring storage [OK] {driver: ${this.storage.driver}}`);
-      console.debug(`[platform] Configuring forage {driver=${forage.driver()}} {supports ${forage.WEBSQL}=${forage.supports(forage.WEBSQL)} {supports ${forage.INDEXEDDB}=${forage.supports(forage.INDEXEDDB)} {supports ${forage.LOCALSTORAGE}=${forage.supports(forage.LOCALSTORAGE)}`);
-      console.debug(`[platform] LocalForage object:`, forage);
-    } else {
+  protected async storageReady(): Promise<LocalForage> {
+
+    console.info(`[platform] Starting storage...`);
+    const forage = await this.storage.ready();
+    const driver = forage.driver();
+
+    if (isNil(driver)) {
       console.error('[platform] NO DRIVER DEFINED IN STORAGE. Local storage cannot be used !');
+      return Promise.resolve(forage);
     }
+
+    console.info(`[platform] Starting storage [OK] {name: '${forage.config().name}', driver: '${forage.driver()}'}`);
+    console.debug(`[platform] Storage supports: {${forage.WEBSQL}: ${forage.supports(forage.WEBSQL)}, ${forage.INDEXEDDB}: ${forage.supports(forage.INDEXEDDB)}, ${forage.LOCALSTORAGE}: ${forage.supports(forage.LOCALSTORAGE)}}`);
+
+    return forage;
+  }
+
+  protected async migrateStorage(forage: LocalForage) {
+    const canMigrate = forage &&
+      ((forage.driver() === 'cordovaSQLiteDriver' && (forage.supports(forage.INDEXEDDB) || forage.supports(forage.WEBSQL))) ||
+       (forage.driver() === forage.WEBSQL && forage.supports(forage.INDEXEDDB)));
+
+    if (!canMigrate) return; // Skip
+
+    const oldForage = forage.createInstance({
+      name: forage.config().name,
+      storeName: forage.config().storeName,
+      driver: [forage.INDEXEDDB, forage.WEBSQL]
+    });
+
+    // IF data stored in the OLD storage: start migration
+    const keys = await oldForage.keys();
+    if (isEmptyArray(keys)) {
+      // Drop the old instance
+      console.info(`[platform] Drop old storage {name: '${forage.config().name}', driver: '${oldForage.driver()}'}`);
+      await oldForage.dropInstance();
+    }
+    else {
+
+      const now = Date.now();
+      console.info(`[platform] Starting storage migration...`);
+
+      const toast = await this.showToast({message: 'INFO.DATA_MIGRATION_STARTED',
+          duration: 30000});
+      try {
+        await StorageUtils.copy(oldForage, forage, {keys, deleteAfterCopy: false});
+
+        const duration = Date.now() - now;
+        setTimeout(() => toast.dismiss(),  Math.max(2000 - duration, 0));
+        await this.showToast({message: 'INFO.DATA_MIGRATION_SUCCEED',
+          type: 'info',
+          showCloseButton: true
+        });
+        console.info("[platform] Starting storage migration [OK]");
+
+        // Drop the old instance
+        console.info(`[platform] Drop old storage {name: '${forage.config().name}', driver: '${oldForage.driver()}'}`);
+        await oldForage.dropInstance();
+      }
+      catch (err) {
+        console.error(err && err.message || err, err);
+        await toast.dismiss();
+        await this.showToast({message: 'ERROR.DATA_MIGRATION_FAILED',
+          type: 'error',
+          showCloseButton: true
+        });
+      }
+    }
+
+
+  }
+
+  protected showToast(opts: ShowToastOptions): Promise<HTMLIonToastElement> {
+    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
+    return new Promise(resolve => {
+      return Toasts.show(this.toastController, this.translate, {
+        ...opts,
+        onWillPresent: (t) => resolve(t)
+      });
+    })
+
   }
 }
 

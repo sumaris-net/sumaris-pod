@@ -1382,7 +1382,9 @@
     "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "NETWORK_REQUIRED": "Connexion au réseau impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
-    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne."
+    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
+    "COPY_STORAGE_ERROR": "Erreur de copie des données",
+    "DATA_MIGRATION_FAILED": "Echec de la migration de données.<br/>Si le problème persiste, veuillez contacter votre administrateur."
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1397,6 +1399,8 @@
   },
   "INFO" : {
     "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur.",
-    "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur."
+    "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur.",
+    "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",
+    "DATA_MIGRATION_SUCCEED": "Restauration de données <b>terminée avec succès</b> !"
   }
 }

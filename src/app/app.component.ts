@@ -31,16 +31,23 @@ export class AppComponent {
     private settings: LocalSettingsService
   ) {
 
-    this.platform.ready().then(() => {
+    this.start();
+  }
 
-      // Listen for config changed
-      this.configService.config.subscribe(config => this.onConfigChanged(config));
+  async start() {
+    console.info('[app] Starting...');
 
-      // Add additional account fields
-      this.addAccountFields();
+    await this.platform.ready();
 
-      this.addSettingsFields();
-    });
+    // Listen for config changed
+    this.configService.config.subscribe(config => this.onConfigChanged(config));
+
+    // Add additional account fields
+    this.addAccountFields();
+
+    this.addSettingsFields();
+
+    console.info('[app] Starting [OK]');
   }
 
   public onActivate(event) {

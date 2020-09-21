@@ -25,6 +25,7 @@ import {EntityUtils, IEntity} from "./model/entity.model";
 import {DataProxy} from 'apollo-cache';
 import {isNotNil, toNumber} from "../../shared/functions";
 import {Resolvers} from "apollo-client/core/types";
+import {SubscriptionClient} from "subscriptions-transport-ws";
 
 export interface WatchQueryOptions<V> {
   query: any,
@@ -56,7 +57,7 @@ export class GraphqlService {
   private _networkStatusChanged$: Observable<ConnectionType>;
 
   private httpParams: Options;
-  private wsParams;
+  private wsParams: WebSocketLink.Configuration;
   private wsConnectionParams: { authToken?: string } = {};
   private readonly _defaultFetchPolicy: WatchQueryFetchPolicy;
   private onNetworkError = new Subject();
@@ -80,9 +81,9 @@ export class GraphqlService {
     this._defaultFetchPolicy = environment.apolloFetchPolicy;
 
     // Start
-    if (this.network.started) {
+    /*if (this.network.started) {
       this.start();
-    }
+    }*/
 
     // Restart if network restart
     this.network.on('start', () => this.restart());
@@ -115,13 +116,12 @@ export class GraphqlService {
 
   ready(): Promise<void> {
     if (this._started) return Promise.resolve();
-    if (this._startPromise) return this._startPromise;
     return this.start();
   }
 
   start(): Promise<void> {
     if (this._startPromise) return this._startPromise;
-    if (this._started) return;
+    if (this._started) return Promise.resolve();
 
     console.info("[graphql] Starting graphql...");
 
@@ -569,16 +569,16 @@ export class GraphqlService {
     this.httpParams = this.httpParams || {};
     this.httpParams.uri = uri;
 
-    this.wsParams = this.wsParams || {
+    this.wsParams = {
+      ...this.wsParams,
       options: {
         lazy: true,
         reconnect: true,
-        connectionParams: this.wsConnectionParams,
-        addTypename: true
+        connectionParams: this.wsConnectionParams
       },
-      webSocketImpl: AppWebSocket
+      webSocketImpl: AppWebSocket,
+      uri: wsUri
     };
-    this.wsParams.uri = wsUri;
 
     // Create a storage configuration
     const storage = {

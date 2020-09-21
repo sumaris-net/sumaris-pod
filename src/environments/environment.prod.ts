@@ -38,6 +38,11 @@ export const environment: Environment = Object.freeze({
   ],
 
   defaultAppName: 'SUMARiS',
-  defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app'
+  defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app',
+
+  // Storage
+  storage: {
+    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+  }
 });
 /* tslint:enable */
