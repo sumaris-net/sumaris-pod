@@ -163,7 +163,7 @@
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée"
       },
       "TESTING": "Mode développeur ?",
-      "ENTITY_TRASH": "Activer la corbeille ?"
+      "ENTITY_TRASH": "Activer la corbeille du pod ?"
     },
     "CACHE": {
       "NAME": "Nom",
@@ -506,7 +506,8 @@
         "COMMENTS": "Commentaires"
       },
       "ERROR": {
-        "FIELD_DATE_OUTSIDE_TRIP": "Date hors de la marée",
+        "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
+        "FIELD_DATE_AFTER_TRIP": "Après le retour de la marée",
         "LOAD_OPERATION_ERROR": "Erreur de chargement de l'opération.",
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
@@ -1095,7 +1096,7 @@
       "LANDING_EDITOR_TRIP": "Marée",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu "
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
@@ -1384,7 +1385,7 @@
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
     "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
     "COPY_STORAGE_ERROR": "Erreur de copie des données",
-    "DATA_MIGRATION_FAILED": "Echec de la migration de données.<br/>Si le problème persiste, veuillez contacter votre administrateur."
+    "DATA_MIGRATION_FAILED": "Echec de la migration de données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

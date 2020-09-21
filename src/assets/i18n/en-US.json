@@ -157,7 +157,13 @@
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel"
       },
-      "TESTING": "Developer mode ?"
+      "ENUMERATION": {
+        "LOCATION_LEVEL_COUNTRY_ID": "Referential > Location level de lieu > Country",
+        "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
+        "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction"
+      },
+      "TESTING": "Developer mode ?",
+      "ENTITY_TRASH": "Enable trash on pod?"
     },
     "CACHE": {
       "NAME": "Name",
@@ -500,7 +506,8 @@
         "COMMENTS": "Comments"
       },
       "ERROR": {
-        "FIELD_DATE_OUTSIDE_TRIP": "Outside trip period",
+        "FIELD_DATE_BEFORE_TRIP": "Before trip's start",
+        "FIELD_DATE_AFTER_TRIP": "After trip's end ",
         "LOAD_OPERATION_ERROR": "Error while loading the operation.",
         "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
@@ -1064,7 +1071,10 @@
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
       "TRIP_METIERS_ENABLE": "Trip: Enter metiers?",
+      "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Trip: Are other features optional, when on field?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
+      "TRIP_MAP_CENTER": "Trip > Map: cernter position",
+      "TRIP_MAP_ZOOM": "Trip > Map: Zoom level",
       "TRIP_BATCH_AUTO_FILL": "Catch > Species batch: Auto-fill ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch: Commercial species?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Catch > Species batch: Commercial species without weight:",
@@ -1080,14 +1090,13 @@
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Default direction:",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation > Location level",
-      "LOCATION_LEVEL_PORT": "Ports",
-      "LOCATION_LEVEL_AUCTION": "Auctions",
       "LANDING_EDITOR": "Observation > Landing: editor",
       "LANDING_EDITOR_LANDING": "Landing",
       "LANDING_EDITOR_CONTROL": "Control",
       "LANDING_EDITOR_TRIP": "Fishing trip",
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
-      "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?"
+      "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)"
     },
     "STRATEGY": {
 
@@ -1220,13 +1229,25 @@
           "HL": "Species length (HL)"
         }
       },
-      "FREE": {
-        "TITLE": "Raw data (FREE v1)",
+      "FREE1": {
+        "TITLE": "Raw data (FREE v{{version}})",
         "SHEET": {
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",
           "SL": "Species list (SL)",
           "HL": "Species length (HL)"
+        }
+      },
+      "FREE2": {
+        "TITLE": "Raw data (FREE2 v{{version}})",
+        "SHEET": {
+          "MAREE": "Trips",
+          "OPERATION_PECHE": "Fishing stations",
+          "ENGINS": "Gears",
+          "STRATEGIE": "Sampling strategy",
+          "DETAIL": "Details",
+          "CAPTURES": "Species list",
+          "MESURES": "Species length"
         }
       },
       "SURVIVAL_TEST": {
@@ -1245,7 +1266,7 @@
       "LOAD_TYPES_ERROR": "Error while load extraction types",
       "LOAD_ROWS_ERROR": "Error while loading data rows.",
       "DOWNLOAD_FILE_ERROR": "Error while downloading extraction file.",
-      "LOAD_GEO_TYPES_ERROR": "Error while load spatial aggregation types",
+      "LOAD_GEO_TYPES_ERROR": "Error while load spatial types",
       "LOAD_GEO_DATA_ERROR": "Error while loading spatial data"
     }
   },
@@ -1273,6 +1294,16 @@
       "ONLINE": "Sucesfully connected to the network!",
       "OFFLINE_HELP": "The application works in <b>offline mode</b>.",
       "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>"
+    }
+  },
+  "SOCIAL": {
+    "EVENT_TYPE_ENUM": {
+      "DEBUG_DATA": "Debug data",
+      "INBOX_MESSAGE": "Inbox message"
+    },
+    "ERROR": {
+      "LOAD_USER_EVENTS_ERROR": "Error while loading notifications",
+      "SAVE_USER_EVENT_ERROR": "Error while saving user message"
     }
   },
   "ERROR": {

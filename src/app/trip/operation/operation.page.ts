@@ -172,7 +172,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   async ngAfterViewInit(): Promise<void> {
 
     this.registerSubscription(
-      this.opeForm.form.controls['physicalGear'].valueChanges
+      this.form.get('physicalGear').valueChanges
         .subscribe((res) => {
           if (this.loading) return; // SKip during loading
           const gearId = res && res.gear && res.gear.id || null;

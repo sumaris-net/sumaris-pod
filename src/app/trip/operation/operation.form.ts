@@ -13,7 +13,7 @@ import {
 
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
-import {FormGroup} from "@angular/forms";
+import {FormGroup, ValidationErrors} from "@angular/forms";
 import * as moment from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
@@ -72,13 +72,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       }
 
       // Add validator on trip date
-      this.form.get('endDateTime').setAsyncValidators(async (control) => {
-        if (!control.touched) return;
+      this.form.get('endDateTime').setAsyncValidators(async(control)  => {
+        if (!control.touched) return null;
         const endDateTime = fromDateISOString(control.value);
+
+        console.debug("[operation] Validating endDateTime: ", endDateTime);
+
         // Make sure: trip.departureDateTime < operation.endDateTime < trip.returnDateTime
-        if (endDateTime && ((trip.departureDateTime && endDateTime.isBefore(trip.departureDateTime))
-          || (trip.returnDateTime && endDateTime.isAfter(trip.returnDateTime)))) {
-          return {msg: await this.translate.get('TRIP.OPERATION.ERROR.FIELD_DATE_OUTSIDE_TRIP').toPromise() };
+        if (endDateTime) {
+          if (trip.departureDateTime && endDateTime.isBefore(trip.departureDateTime)) {
+            return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP')};
+          } else if (trip.returnDateTime && endDateTime.isAfter(trip.returnDateTime)) {
+            return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP')};
+          }
         }
         else {
           SharedValidators.clearError(control, 'msg');
