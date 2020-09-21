@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {
   SharedFormArrayValidators,

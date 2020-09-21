@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
 import {LandingPage} from "../landing/landing.page";
 import {LandingValidatorService} from "../services/validator/landing.validator";

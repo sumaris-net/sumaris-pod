@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {EntityUtils, environment, joinPropertiesPath, referentialToString} from "../../core/core.module";
 import {PmfmIds} from "../../referential/services/model/model.enum";
 import {SubSampleValidatorService} from "../services/validator/sub-sample.validator";

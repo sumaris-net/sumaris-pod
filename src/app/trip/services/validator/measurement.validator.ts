@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup, ValidatorFn} from "@angular/forms";
 
 import {toBoolean} from '../../../shared/functions';

@@ -10,7 +10,7 @@ import {AccountService} from "../../../core/services/account.service";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {PlatformService} from "../../../core/services/platform.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";

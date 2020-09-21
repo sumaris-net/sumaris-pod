@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {PmfmStrategy} from "../model/pmfm-strategy.model";
 
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {isNotNil} from "../../../shared/functions";
 

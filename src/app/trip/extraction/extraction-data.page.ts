@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/functions';
-import {TableDataSource, TableElement} from "angular4-material-table";
+import {TableDataSource, TableElement} from "@e-is/ngx-material-table";
 import {
   AggregationType,
   ExtractionColumn,

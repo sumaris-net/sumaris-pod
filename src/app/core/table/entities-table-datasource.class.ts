@@ -1,4 +1,4 @@
-import {TableDataSource, TableElement, ValidatorService} from 'angular4-material-table';
+import {TableDataSource, TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService, toBoolean} from '../../shared/shared.module';
 import {Entity, IEntity} from "../services/model/entity.model";

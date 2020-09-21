@@ -50,12 +50,7 @@ import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material
     AppRoutingModule,
     CoreModule,
     SocialModule,
-    TripModule,
-    // LP 10/19/2020: Already declared in CoreModule
-    // IonicStorageModule.forRoot({
-    //   name: 'sumaris',
-    //   driverOrder: ['indexeddb', 'sqlite', 'websql']
-    // })
+    TripModule
   ],
   providers: [
     StatusBar,

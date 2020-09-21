@@ -4,7 +4,7 @@ import {toBoolean} from "../../../shared/functions";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {AggregatedLanding} from "../model/aggregated-landing.model";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {DataEntityValidatorOptions} from "../../../data/services/validator/data-entity.validator";
 
 export interface AggregatedLandingValidatorOptions extends DataEntityValidatorOptions {

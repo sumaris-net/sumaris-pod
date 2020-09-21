@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {SubBatchForm} from "../form/sub-batch.form";

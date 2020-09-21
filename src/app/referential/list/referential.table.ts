@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {environment, referentialToString, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {Referential} from "../../core/services/model/referential.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";

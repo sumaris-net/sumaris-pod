@@ -11,7 +11,7 @@ import {
   ViewChild
 } from "@angular/core";
 import {isObservable, Observable, Subscription} from 'rxjs';
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AppFormUtils, EntityUtils, environment, IReferentialRef, referentialToString} from "../../../core/core.module";
 import {FormGroup, Validators} from "@angular/forms";
 import {isNil, isNilOrBlank, isNotNil, startsWithUpperCase, toBoolean} from "../../../shared/functions";

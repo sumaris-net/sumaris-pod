@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {VesselValidatorService} from "../../services/validator/vessel.validator";
 import {AppTable} from "../../../core/table/table.class";
 import {VesselFeatures} from "../../services/model/vessel.model";

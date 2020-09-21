@@ -24,7 +24,7 @@ import {
   takeUntil,
   tap
 } from "rxjs/operators";
-import {TableElement} from "angular4-material-table";
+import {TableElement} from "@e-is/ngx-material-table";
 import {EntitiesTableDataSource} from "./entities-table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
 import {Entity} from "../services/model/entity.model";

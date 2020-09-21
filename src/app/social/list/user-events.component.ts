@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {LandingValidatorService} from "../../trip/services/validator/landing.validator";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {UserEventService} from "../services/user-event.service";

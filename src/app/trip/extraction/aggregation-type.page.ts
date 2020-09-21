@@ -5,7 +5,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ExtractionService} from "../services/extraction.service";
 import {Router} from "@angular/router";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AggregationTypeForm} from "./aggregation-type.form";
 import {AccountService} from "../../core/services/account.service";

@@ -13,7 +13,7 @@ import {
 } from "@angular/core";
 import {of, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../../core/core.module";
 import {isNilOrBlank, isNotNil} from "../../../shared/functions";
 import {AppMeasurementsTable} from "../../measurement/measurements.table.class";

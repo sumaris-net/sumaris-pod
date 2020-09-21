@@ -4,7 +4,7 @@ import {toBoolean} from "../../../shared/functions";
 import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {VesselActivity} from "../model/aggregated-landing.model";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {DataEntityValidatorOptions} from "../../../data/services/validator/data-entity.validator";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {MeasurementsValidatorService} from "./measurement.validator";

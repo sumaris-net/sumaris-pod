@@ -4,7 +4,7 @@ import {Moment} from "moment";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
 import {DefaultStatusList, StatusValue} from "../../core/services/model/referential.model";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({

@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {isNotNil} from "../../../core/core.module";
 import {SubSampleValidatorService} from "../../services/validator/sub-sample.validator";
 import {FormGroup, Validators} from "@angular/forms";

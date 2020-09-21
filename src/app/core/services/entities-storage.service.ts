@@ -8,6 +8,10 @@ import {Entity, EntityUtils} from "./model/entity.model";
 import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/entity-service.class";
 
+/*
+const localforage = require("@ionic/storage/node_modules/localforage/typings/localforage");
+*/
+
 
 export const ENTITIES_STORAGE_KEY = "entities";
 
@@ -217,6 +221,10 @@ export class EntitiesStorage {
 
   get dirty(): boolean {
     return this._dirty || Object.entries(this._stores).find(([entityName, store]) => store.dirty) !== undefined;
+  }
+
+  get driver(): string {
+    return this.storage.driver === 'asyncStorage' ? 'IndexedDB' : this.storage.driver;
   }
 
   public constructor(
@@ -473,10 +481,11 @@ export class EntitiesStorage {
     if (this._started) return;
 
     const now = Date.now();
-    console.info("[entity-storage] Starting...");
+    console.info(`[entity-storage] Starting...`);
 
     // Restore sequences
-    this._startPromise = this.restoreLocally()
+    this._startPromise = this.storage.ready()
+      .then(() => this.restoreLocally())
       .then(() => {
         this._subscription.add(
           merge(
@@ -491,7 +500,8 @@ export class EntitiesStorage {
 
         this._started = true;
         this._startPromise = undefined;
-        console.info(`[entity-storage] Starting [OK] in ${Date.now() - now}ms`);
+
+        console.info(`[entity-storage] Starting [OK] {driver: '${this.driver}'} in ${Date.now() - now}ms`);
 
         // Emit event
         this.onStart.next();
@@ -632,5 +642,22 @@ export class EntitiesStorage {
 
     return promise.then(() => entities.length);
   }
+
+  protected async migrate() {
+    console.info(`[entities-storage] Checking if migration need... {driver: '${this.driver}'}`);
+    if (this.driver === 'sqllite') {
+      console.info(`[entities-storage] Migrate data into 'sqllite'...`);
+
+      console.debug(this.storage);
+     /* var otherStore = localforage.createInstance({
+        name: 'sumaris',
+        storeName: '_ionickv',
+        driver: [localforage.INDEXEDDB, localforage.WEBSQL]
+      });*/
+
+
+    }
+  }
+
 
 }

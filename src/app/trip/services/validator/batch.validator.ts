@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {Batch, BatchUtils, BatchWeight} from "../model/batch.model";

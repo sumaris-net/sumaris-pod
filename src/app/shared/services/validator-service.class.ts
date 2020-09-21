@@ -1,4 +1,4 @@
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormGroup} from "@angular/forms";
 
 export interface IValidatorService<T> extends ValidatorService {

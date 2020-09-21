@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { ValidatorService } from "angular4-material-table";
+import { ValidatorService } from "@e-is/ngx-material-table";
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { Person } from "../../../core/services/model/person.model";
 import { AccountValidatorService } from "../../../core/core.module";
