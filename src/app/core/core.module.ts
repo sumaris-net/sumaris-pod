@@ -128,7 +128,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     IonicModule.forRoot(),
     CacheModule.forRoot(),
     IonicStorageModule.forRoot({
-      name: 'sumaris',
+      name: 'sumaris', // default
       ...environment.storage
     }),
     TranslateModule.forRoot({

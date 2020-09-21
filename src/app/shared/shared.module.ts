@@ -63,6 +63,7 @@ import {SharedDirectivesModule} from "./directives/directives.module";
 import {SharedPipesModule} from "./pipes/pipes.module";
 import {AppLoadingSpinner} from "./form/loading-spinner";
 import {SharedGestureModule} from "./gesture/gesture.module";
+import {QuicklinkModule} from "ngx-quicklink";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -97,7 +98,8 @@ export {
     TextMaskModule,
     ColorPickerModule,
     SharedHotkeysModule,
-    DragDropModule
+    DragDropModule,
+    QuicklinkModule // See https://web.dev/route-preloading-in-angular/
   ],
   declarations: [
     ToolbarComponent,
@@ -118,7 +120,8 @@ export {
     TranslateModule,
     ColorPickerModule,
     AppFormField,
-    AppLoadingSpinner
+    AppLoadingSpinner,
+    QuicklinkModule
   ],
   providers: [
     ProgressBarService,

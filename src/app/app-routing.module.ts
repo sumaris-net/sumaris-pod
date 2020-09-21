@@ -10,15 +10,9 @@ import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.
 import {SettingsPage} from "./core/settings/settings.page";
 import {LandingPage} from "./trip/landing/landing.page";
 import {AuctionControlPage} from "./trip/auctioncontrol/auction-control.page";
-import {IonicRouteStrategy} from "@ionic/angular";
 import {AuthGuardService} from "./core/services/auth-guard.service";
 import {LandedTripPage} from "./trip/landedtrip/landed-trip.page";
-
-const routeOptions: ExtraOptions = {
-  enableTracing: false,
-  //enableTracing: !environment.production,
-  useHash: false
-};
+import {SHARED_ROUTE_OPTIONS, SharedRoutingModule} from "./shared/shared-routing.module";
 
 const routes: Routes = [
   // Core path
@@ -235,35 +229,13 @@ const routes: Routes = [
 ];
 
 
-@Injectable()
-export class CustomReuseStrategy extends IonicRouteStrategy {
-
-  shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
-    const result = super.shouldReuseRoute(future, curr);
-
-    // Force to reuse the route if path change from [/new] -> [/:id]
-    if (!result && future.routeConfig && future.routeConfig === curr.routeConfig) {
-      const pathIdParam = future.routeConfig.data && future.routeConfig.data.pathIdParam || 'id';
-      const futureId = future.params[pathIdParam] === 'new' ?
-        (future.queryParams[pathIdParam] || future.queryParams['id']) : future.params[pathIdParam];
-      const currId = curr.params[pathIdParam] === 'new' ?
-        (curr.queryParams[pathIdParam] || curr.queryParams['id']) : curr.params[pathIdParam];
-      return futureId === currId;
-    }
-
-    return result;
-  }
-}
-
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, routeOptions)
+    SharedRoutingModule,
+    RouterModule.forRoot(routes, SHARED_ROUTE_OPTIONS)
   ],
   exports: [
     RouterModule
-  ],
-  providers: [
-    { provide: RouteReuseStrategy, useClass: CustomReuseStrategy }
   ]
 })
 export class AppRoutingModule {

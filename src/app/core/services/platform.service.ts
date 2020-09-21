@@ -176,7 +176,7 @@ export class PlatformService {
       return Promise.resolve(forage);
     }
 
-    console.info(`[platform] Starting storage [OK] {name: '${forage.config().name}', driver: '${forage.driver()}'}`);
+    console.info(`[platform] Starting storage [OK] {name: '${forage.config().name}', driver: '${forage.driver()}', size: ${forage.config().size}`);
     console.debug(`[platform] Storage supports: {${forage.WEBSQL}: ${forage.supports(forage.WEBSQL)}, ${forage.INDEXEDDB}: ${forage.supports(forage.INDEXEDDB)}, ${forage.LOCALSTORAGE}: ${forage.supports(forage.LOCALSTORAGE)}}`);
 
     return forage;

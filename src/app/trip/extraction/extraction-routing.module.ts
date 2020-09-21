@@ -4,6 +4,7 @@ import {NgModule} from "@angular/core";
 import {ExtractionDataPage} from "./extraction-data.page";
 import {AggregationTypePage} from "./aggregation-type.page";
 import {ExtractionMapPage} from "./extraction-map.page";
+import {SharedModule} from "../../shared/shared.module";
 
 const routes: Routes = [
   {
@@ -42,7 +43,10 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
+  imports: [
+    SharedModule,
+    RouterModule.forChild(routes)
+  ],
   exports: [RouterModule]
 })
 export class ExtractionRoutingModule {
