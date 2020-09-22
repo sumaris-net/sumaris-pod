@@ -26,7 +26,6 @@ import {BehaviorSubject} from "rxjs";
 import {distinctUntilChanged} from "rxjs/operators";
 import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {isOnField} from "../../core/services/pipes/usage-mode.utils";
 
 @Component({
   selector: 'app-form-operation',
