@@ -25,9 +25,8 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.QualityFlagEnum;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.DataFetchOptions;
@@ -41,7 +40,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
-import java.util.Date;
 
 public class TripRepositoryImpl
     extends RootDataRepositoryImpl<Trip, Integer, TripVO, TripFilterVO>

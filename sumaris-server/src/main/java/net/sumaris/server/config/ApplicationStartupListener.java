@@ -29,10 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ApplicationStartupListener implements ApplicationListener<ApplicationReadyEvent> {
+public class ApplicationStartupListener {
     private static final Logger log = LoggerFactory.getLogger(ApplicationStartupListener.class);
 
     private final String port;
@@ -42,8 +43,8 @@ public class ApplicationStartupListener implements ApplicationListener<Applicati
         this.port = port;
     }
 
-    @Override
-    public void onApplicationEvent(final ApplicationReadyEvent event) {
+    @EventListener
+    protected void onApplicationEvent(final ApplicationReadyEvent event) {
         log.info(I18n.t("sumaris.server.started", this.port));
     }
 }

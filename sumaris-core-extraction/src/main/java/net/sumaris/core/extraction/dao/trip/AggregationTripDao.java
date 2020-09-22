@@ -30,6 +30,5 @@ import net.sumaris.core.extraction.dao.ExtractionDao;
  */
 public interface AggregationTripDao extends AggregationDao  {
 
-    String TR_SHEET_NAME = ExtractionDao.TABLE_NAME_PREFIX;
 
 }

@@ -22,9 +22,12 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = QualitativeValue.class)
 public enum QualitativeValueEnum implements Serializable  {
 
     SORTING_BULK(20, "SORTING_BULK"),
@@ -44,7 +47,7 @@ public enum QualitativeValueEnum implements Serializable  {
 
     public static QualitativeValueEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown QualitativeValueEnum: " + id));
     }

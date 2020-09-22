@@ -28,8 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public interface SoftwareService {
 
-    SoftwareVO getDefault();
-
     SoftwareVO get(int id);
 
     SoftwareVO getByLabel(String label);

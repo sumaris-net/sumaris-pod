@@ -32,8 +32,6 @@ import com.google.common.collect.Sets;
 import liquibase.exception.LiquibaseException;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
-import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
-import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateConnectionProvider;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -83,7 +81,6 @@ import java.io.InputStream;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 
 /**
@@ -98,9 +95,6 @@ public class DatabaseSchemaDaoImpl
     /** Logger. */
     private static final Logger log =
             LoggerFactory.getLogger(DatabaseSchemaDaoImpl.class);
-
-
-    private List<DatabaseSchemaListener> listeners = new CopyOnWriteArrayList<>();
 
     @Autowired
     private Liquibase liquibase;
@@ -167,13 +161,6 @@ public class DatabaseSchemaDaoImpl
             } catch (VersionNotFoundException e) {
                 // silent
             }
-        }
-    }
-
-    @Override
-    public void addListener(DatabaseSchemaListener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
         }
     }
 
@@ -747,26 +734,5 @@ public class DatabaseSchemaDaoImpl
         throw new SumarisTechnicalException("Could not determine database type");
     }
 
-    public void fireOnSchemaUpdatedEvent() {
-
-        try {
-            final SchemaUpdatedEvent event = new SchemaUpdatedEvent(getSchemaVersion(), config.getConnectionProperties());
-
-            listeners.forEach(l -> {
-                try {
-                    l.onSchemaUpdated(event);
-                } catch(Throwable t) {
-                    log.error("Database schema listener error (onSchemaUpdated): " + t.getMessage(), t);
-                    // Continue, to avoid transaction cancellation
-                }
-            });
-
-        }
-        catch (VersionNotFoundException e) {
-            log.error("Could not emit event to listeners: " + e.getMessage());
-        }
-
-
-    }
 
 }

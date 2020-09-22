@@ -28,8 +28,8 @@ import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.service.AggregationService;
+import net.sumaris.core.extraction.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.vo.AggregationResultVO;
 import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
@@ -108,10 +108,10 @@ public class AggregationGraphQLService {
 
         // Fill default values for strata
         if (strata.getSpaceColumnName() == null) {
-            strata.setSpaceColumnName(AggregationRdbTripDao.COLUMN_SQUARE);
+            strata.setSpaceColumnName(AggRdbSpecification.COLUMN_SQUARE);
         }
         if (strata.getTimeColumnName() == null){
-            strata.setTimeColumnName(AggregationRdbTripDao.COLUMN_YEAR);
+            strata.setTimeColumnName(AggRdbSpecification.COLUMN_YEAR);
         }
 
         return GeoJsonExtractions.toFeatureCollection(

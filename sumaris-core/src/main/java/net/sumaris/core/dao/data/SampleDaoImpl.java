@@ -27,10 +27,13 @@ import com.google.common.collect.Sets;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.Matrix;
 import net.sumaris.core.model.referential.pmfm.Unit;
+import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.util.Beans;
@@ -47,6 +50,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -79,13 +83,10 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
     @Autowired
     private PersonDao personDao;
 
-    private int unitIdNone;
-
     private boolean enableSaveUsingHash;
 
-    @PostConstruct
-    protected void init() {
-        this.unitIdNone = config.getUnitIdNone();
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady() {
         this.enableSaveUsingHash = config.enableSampleHashOptimization();
     }
 
@@ -401,7 +402,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         target.setMatrix(matrix);
 
         // Size Unit
-        if (source.getSizeUnit() != null && source.getSizeUnit().getId().intValue() != unitIdNone) {
+        if (source.getSizeUnit() != null && source.getSizeUnit().getId() != UnitEnum.NONE.getId()) {
             target.setSizeUnit(source.getSizeUnit().getLabel());
         }
 

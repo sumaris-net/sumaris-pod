@@ -41,7 +41,7 @@
     <server.account.register.confirm.url>${server.url}/api/confirmEmail/?email={email}&amp;code={code}</server.account.register.confirm.url>
     <admin.email>sumaris.net@gmail.com</admin.email>
 
-    <maven.jar.main.class>net.sumaris.server.config.Application</maven.jar.main.class>
+    <maven.jar.main.class>net.sumaris.server.Application</maven.jar.main.class>
 
     <kotlin.version>1.3.70</kotlin.version>
   </properties>

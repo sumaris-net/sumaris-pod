@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;

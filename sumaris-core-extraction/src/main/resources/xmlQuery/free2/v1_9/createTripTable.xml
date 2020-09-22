@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="extractionCreateTripTable">
+
+  <query type="create" temp="false" table="&amp;tripTableName" option="DISTINCT">
+
+    <!-- PK -->
+    <select alias="TYPE" type="text">'TR'</select>
+    <select alias="PROJET" type="text">P.LABEL</select>
+    <select alias="ANNEE" type="number">EXTRACT(YEAR FROM T.RETURN_DATE_TIME)</select>
+    <select alias="ID_MAREE" type="number">T.ID</select>
+
+    <!-- Hidden columns used by linked tables -->
+    <select alias="TRIP_CODE" type="hidden">T.ID</select>
+    <select alias="PROJECT" type="hidden">P.LABEL</select>
+
+    <!-- other fields -->
+    <select alias="ID_NAVIRE" type="text">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK))</select>
+    <select alias="NOM_NAVIRE" type="text">VF.NAME</select>
+    <select alias="LONGUEUR" type="number">VF.LENGTH_OVER_ALL / 100</select>
+    <select alias="PUISSANCE" type="number">VF.ADMINISTRATIVE_POWER</select>
+    <select alias="DATE_DEBUT" type="date">TO_CHAR(T.DEPARTURE_DATE_TIME, 'DD-MM-YYYY HH24:MI:SS')</select>
+    <select alias="DATE_FIN" type="date">TO_CHAR(T.RETURN_DATE_TIME, 'DD-MM-YYYY HH24:MI:SS')</select>
+    <select alias="PORT_DEBARQUEMENT" type="text">L.LABEL</select>
+    <select alias="DATE_VENTE" type="date">TO_CHAR(SALE.START_DATE_TIME, 'DD-MM-YYYY')</select>
+
+    <select alias="OBSERVATEUR1" type="text">(CASE WHEN (OBS1.ID IS NOT NULL) THEN
+      upper(OBS1.LAST_NAME) || ' ' || OBS1.FIRST_NAME
+      END)</select>
+    <select alias="OBSERVATEUR2" type="text">(CASE WHEN (OBS2.ID IS NOT NULL) THEN
+      upper(OBS2.LAST_NAME) || ' ' || OBS2.FIRST_NAME
+      END)</select>
+
+    <select alias="SERVICE" type="text">COALESCE(OBS1_DEP.NAME, D.NAME)</select>
+
+    <select alias="VALID_PROGRAMME" type="text">(case when (T.QUALIFICATION_DATE is NOT NULL) then 'Données valides' end)</select>
+    <select alias="VALID_STE" type="text">(case when (T.VALIDATION_DATE is NOT NULL) then 'Données valides' else 'Non' end)</select>
+
+    <select alias="COMMENTAIRE" type="text">T.COMMENTS</select>
+
+    <!-- Same as PMFM 'CONTRACT_CODE' -->
+    <select alias="PRG_RATTACHEMENT" type="text"><![CDATA[
+    (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
+    WHERE
+      VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&contractCodePmfmId)]]></select>
+
+    <!-- TODO Ajouter cette colonne dans l'entité Trip -->
+    <select alias="SAMPLING_STRATA" type="text">null</select>
+
+    <from alias="T">TRIP</from>
+    <from join="true">INNER JOIN PROGRAM P ON P.ID = T.PROGRAM_FK</from>
+    <!-- trip return harbour -->
+    <from join="true">INNER JOIN LOCATION L ON L.ID = T.RETURN_LOCATION_FK</from>
+    <!-- vessel -->
+    <from join="true">INNER JOIN VESSEL_FEATURES VF ON VF.VESSEL_FK = T.VESSEL_FK
+      AND VF.START_DATE &lt;= T.DEPARTURE_DATE_TIME
+      AND NVL(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) &gt;= T.DEPARTURE_DATE_TIME
+    </from>
+    <!-- vessel registration -->
+    <from join="true">LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON VRP.VESSEL_FK = T.VESSEL_FK
+      AND VRP.START_DATE &lt;= T.DEPARTURE_DATE_TIME
+      AND NVL(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) &gt;= T.DEPARTURE_DATE_TIME
+    </from>
+
+    <!-- recorder department -->
+    <from join="true">INNER JOIN DEPARTMENT D on D.ID = T.RECORDER_DEPARTMENT_FK</from>
+
+    <!--  sale -->
+    <from join="true">LEFT OUTER JOIN SALE ON TRIP_FK = T.ID</from>
+
+    <!-- Get observers -->
+    <from join="true">LEFT OUTER JOIN (SELECT
+      T2OP.TRIP_FK as TRIP_FK,
+      MIN(T2OP.PERSON_FK) AS OBS1_PERSON_FK,
+      MAX(T2OP.PERSON_FK) AS OBS2_PERSON_FK
+      FROM TRIP2OBSERVER_PERSON T2OP
+      GROUP BY T2OP.TRIP_FK
+      ) TRIP_OBSERVERS ON TRIP_OBSERVERS.TRIP_FK = T.ID</from>
+    <from join="true">LEFT OUTER JOIN PERSON OBS1 ON OBS1.ID = TRIP_OBSERVERS.OBS1_PERSON_FK</from>
+    <from join="true">LEFT OUTER JOIN DEPARTMENT OBS1_DEP ON OBS1_DEP.ID = OBS1.DEPARTMENT_FK</from>
+    <from join="true">LEFT OUTER JOIN PERSON OBS2 ON OBS2.ID = TRIP_OBSERVERS.OBS2_PERSON_FK AND TRIP_OBSERVERS.OBS2_PERSON_FK &lt;&gt; TRIP_OBSERVERS.OBS1_PERSON_FK</from>
+
+    <where>1=1</where>
+    <where operator="AND" group="startDateFilter"><![CDATA[T.RETURN_DATE_TIME >= &startDate]]></where>
+    <where operator="AND" group="endDateFilter"><![CDATA[T.DEPARTURE_DATE_TIME <= &endDate]]></where>
+
+    <where operator="AND" group="programFilter">
+      <in field="P.LABEL"><![CDATA[&progLabels]]></in>
+    </where>
+    <where operator="AND" group="locationFilter">
+      <in field="T.RETURN_LOCATION_FK"><![CDATA[&locationIds]]></in>
+    </where>
+    <where operator="AND" group="departmentFilter">
+      <in field="T.RECORDER_DEPARTMENT_FK"><![CDATA[&recDepIds]]></in>
+    </where>
+    <where operator="AND" group="vesselFilter">
+      <in field="T.VESSEL_FK"><![CDATA[&vesselIds]]></in>
+    </where>
+
+    <!-- Exclude not terminated trips -->
+    <where operator="AND">T.CONTROL_DATE IS NOT NULL</where>
+
+    <orderby direction="ASC">T.ID</orderby>
+
+  </query>
+
+</queries>

@@ -22,8 +22,14 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import java.io.Serializable;
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 
+import java.io.Serializable;
+import java.util.Arrays;
+
+@EntityEnum(entity = Status.class, joinAttributes = {IEntity.Fields.ID})
 public enum StatusEnum implements Serializable {
 
     DISABLE(0),
@@ -49,12 +55,8 @@ public enum StatusEnum implements Serializable {
 
 
     public static StatusEnum valueOf(final int id) {
-        switch (id) {
-            case 0: return DISABLE;
-            case 1: return ENABLE;
-            case 2: return TEMPORARY;
-            case 3: return DELETED;
-        }
-        throw new IllegalArgumentException("Unknown StatusEnum: " + id);
+        return Arrays.stream(values())
+                .filter(enumValue -> enumValue.id == id)
+                .findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown StatusEnum: " + id));
     }
 }

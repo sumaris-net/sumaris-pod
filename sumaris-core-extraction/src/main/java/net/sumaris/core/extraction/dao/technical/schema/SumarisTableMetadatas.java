@@ -70,6 +70,8 @@ public class SumarisTableMetadatas {
 
         StringBuilder sql = new StringBuilder();
 
+        //StringBuilder criterionSql = new StringBuilder();
+
         StringBuilder logicalOperator = new StringBuilder();
         String aliasWithPoint = tableAlias != null ? (tableAlias + ".") : "";
 
@@ -87,7 +89,10 @@ public class SumarisTableMetadatas {
                             // Continue (=skip)
                         }
                     } else {
-                        sql.append(logicalOperator.toString())
+                        //criterionSql.setLength(0); // Reset
+                        //criterionSql.append(aliasWithPoint)
+                        //        .append(column.getName());
+                        sql.append(logicalOperator)
                                 .append(aliasWithPoint)
                                 .append(column.getName());
 
@@ -142,6 +147,9 @@ public class SumarisTableMetadatas {
                                     break;
                             }
                         }
+
+                        //sql.append(logicalOperator.toString()).append(criterionSql);
+
                     }
                 });
 

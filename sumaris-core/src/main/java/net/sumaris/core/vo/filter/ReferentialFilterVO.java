@@ -37,6 +37,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class ReferentialFilterVO implements Serializable {
 
+    private Integer id;
     private String label;
     private String name;
 

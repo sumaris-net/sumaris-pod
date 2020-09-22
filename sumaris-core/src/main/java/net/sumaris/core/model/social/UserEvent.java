@@ -36,9 +36,6 @@ import java.util.Date;
 @Entity
 @Table(name = "user_event")
 @Cacheable
-/**
- * TODO: complete this entity class
- */
 public class UserEvent implements IUpdateDateEntityBean<Integer, Date> {
 
     static final int CRYPTO_SIGNATURE_LENGTH = 100;
@@ -68,16 +65,16 @@ public class UserEvent implements IUpdateDateEntityBean<Integer, Date> {
     private String eventType;
 
     @Lob
-    @Column(length=20971520, nullable = true)
+    @Column(length=20971520)
     private String content;
 
-    @Column(name = "hash", nullable = true, length = CRYPTO_HASH_LENGTH)
+    @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
     private String hash;
 
-    @Column(name = "signature", nullable = true, length = CRYPTO_SIGNATURE_LENGTH)
+    @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String signature;
 
-    @Column(name = "read_signature", nullable = true, length = CRYPTO_SIGNATURE_LENGTH)
+    @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String readSignature;
 
     public String toString() {

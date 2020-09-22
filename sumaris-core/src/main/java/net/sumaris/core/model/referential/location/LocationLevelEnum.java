@@ -22,11 +22,13 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = LocationLevel.class)
 public enum LocationLevelEnum implements Serializable {
-
 
     COUNTRY(1, "Country"),
     HARBOUR(2, "Port"),
@@ -39,7 +41,7 @@ public enum LocationLevelEnum implements Serializable {
 
     public static LocationLevelEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + id));
     }

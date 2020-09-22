@@ -27,10 +27,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonGroupType;
-import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
-import net.sumaris.core.service.referential.taxon.TaxonGroupService;
-import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.*;
 import org.slf4j.Logger;
@@ -70,7 +67,7 @@ public class TaxonNameDaoReadTest extends AbstractDaoTest{
     public void getAllByTaxonGroupId() {
         // RAJ - Rajidae
         {
-            TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("RAJ", TaxonGroupTypeId.FAO.getId());
+            TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("RAJ", TaxonGroupTypeEnum.FAO.getId());
             Assume.assumeNotNull(tg);
             List<TaxonNameVO> taxonNames = dao.getAllByTaxonGroupId(tg.getId());
 
@@ -80,7 +77,7 @@ public class TaxonNameDaoReadTest extends AbstractDaoTest{
 
         // SKA - Raja spp
         {
-            TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("SKA", TaxonGroupTypeId.FAO.getId());
+            TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("SKA", TaxonGroupTypeEnum.FAO.getId());
             Assume.assumeNotNull(tg);
             List<TaxonNameVO> taxonNames = dao.getAllByTaxonGroupId(tg.getId());
 
@@ -90,7 +87,7 @@ public class TaxonNameDaoReadTest extends AbstractDaoTest{
 
         // MNZ - Baudroie nca (=Lophius spp)
         {
-            TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeId.FAO.getId());
+            TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeEnum.FAO.getId());
             Assume.assumeNotNull(tg);
             List<TaxonNameVO> taxonNames = dao.getAllByTaxonGroupId(tg.getId());
 

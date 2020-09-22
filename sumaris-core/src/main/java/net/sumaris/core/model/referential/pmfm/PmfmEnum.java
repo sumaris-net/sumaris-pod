@@ -22,12 +22,16 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = Pmfm.class, joinAttributes = Pmfm.Fields.LABEL, required = false)
 public enum PmfmEnum implements Serializable  {
 
     SMALLER_MESH_GAUGE_MM(3, "SMALLER_MESH_GAUGE_MM"),
+    GEAR_SPEED(9, "GEAR_SPEED"),
     HEADLINE_CUMULATIVE_LENGTH(12, "HEADLINE_CUMULATIVE_LENGTH"),
     BEAM_CUMULATIVE_LENGTH(13, "BEAM_CUMULATIVE_LENGTH"),
     BOTTOM_DEPTH_M(30, "BOTTOM_DEPTH_M"),
@@ -48,6 +52,7 @@ public enum PmfmEnum implements Serializable  {
     SEA_STATE(33, "SEA_STATE"),
     TRIP_PROGRESS(34,"TRIP_PROGRESS"),
     SURVIVAL_SAMPLING_TYPE(35, "SURVIVAL_SAMPLING_TYPE"),
+    CONTRACT_CODE(311, "CONTRACT_CODE"),
 
     LANDING_WEIGHT(50, "LANDING_WEIGHT"),
     SAND_STONES_WEIGHT_RANGE(51, "SAND_STONES_WEIGHT_RANGE"),
@@ -92,7 +97,7 @@ public enum PmfmEnum implements Serializable  {
 
     public static PmfmEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown PmfmEnum: " + id));
     }

@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.dao.trip;
 
 import com.google.common.collect.Lists;
 import net.sumaris.core.extraction.dao.ExtractionDao;
+import net.sumaris.core.extraction.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
@@ -40,7 +41,6 @@ import java.util.List;
  */
 public interface ExtractionTripDao extends ExtractionDao {
 
-    String TR_SHEET_NAME = "TR";
 
     default ExtractionTripFilterVO toTripFilterVO(ExtractionFilterVO source){
         ExtractionTripFilterVO target = new ExtractionTripFilterVO();
@@ -71,7 +71,8 @@ public interface ExtractionTripDao extends ExtractionDao {
         return target;
     }
 
-    default ExtractionFilterVO toExtractionFilterVO(ExtractionTripFilterVO source){
+    default ExtractionFilterVO toExtractionFilterVO(ExtractionTripFilterVO source,
+                                                    String tripSheetName){
         ExtractionFilterVO target = new ExtractionFilterVO();
         if (source == null) return target;
 
@@ -82,11 +83,11 @@ public interface ExtractionTripDao extends ExtractionDao {
 
         if (StringUtils.isNotBlank(source.getProgramLabel())) {
             ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO();
-            criterion.setName("project");
+            criterion.setName(RdbSpecification.COLUMN_PROJECT);
             criterion.setOperator(ExtractionFilterOperatorEnum.EQUALS.getSymbol());
             criterion.setValue(source.getProgramLabel());
 
-            criterion.setSheetName(TR_SHEET_NAME);
+            criterion.setSheetName(tripSheetName);
 
             criteria.add(criterion);
         }

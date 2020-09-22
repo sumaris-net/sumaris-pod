@@ -31,7 +31,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.QualityFlagEnum;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;

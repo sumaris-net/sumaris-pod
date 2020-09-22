@@ -22,32 +22,22 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = Program.class, joinAttributes = {Program.Fields.LABEL})
 public enum ProgramEnum implements Serializable {
 
-    SIH(0); // TODO: allow to override using enumeration file
+    SIH(0, "SIH");
 
     private int id;
+    private String label;
 
-    ProgramEnum(int id) {
+    ProgramEnum(int id, String label) {
         this.id = id;
-    }
-
-    /**
-     * Returns the database row id
-     *
-     * @return int the id
-     */
-    public int getId()
-    {
-        return this.id;
-    }
-
-    public void setId(Integer id)
-    {
-        this.id = id;
+        this.label = label;
     }
 
     public static ProgramEnum valueOf(final int id) {
@@ -60,5 +50,21 @@ public enum ProgramEnum implements Serializable {
     public static ProgramEnum fromLabel(final String label) {
         return Arrays.stream(values()).filter(item -> item.name().equalsIgnoreCase(label)).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown ProgramEnum label: " + label));
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 }
