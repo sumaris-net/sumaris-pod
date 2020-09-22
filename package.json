@@ -147,13 +147,13 @@
     "karma-coverage-istanbul-reporter": "~3.0.3",
     "karma-jasmine": "~4.0.1",
     "karma-jasmine-html-reporter": "^1.5.4",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.14.1",
     "protractor": "~7.0.0",
     "sass-loader": "^7.3.1",
     "tar": "^5.0.5",
-    "ts-node": "^8.3.0",
-    "typescript": "~3.9.6",
-    "webpack": "^4.43.0"
+    "ts-node": "^8.10.2",
+    "typescript": "~3.9.7",
+    "webpack": "^4.44.2"
   },
   "cordova": {
     "plugins": {
