@@ -697,7 +697,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // Scientific species is required, if not set in root batches
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
-        showIndividualCount: !this.isOnFieldMode,
+        showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
         availableParents,
         availableSubBatchesFn: this.availableSubBatchesFn,
         onNewParentClick

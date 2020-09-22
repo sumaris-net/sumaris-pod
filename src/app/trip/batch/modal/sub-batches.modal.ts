@@ -48,6 +48,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   private _selectedParent: BatchGroup;
   private _hiddenData: SubBatch[];
   private _rowAnimation: Animation;
+  private isOnFieldMode: boolean;
 
   $title = new Subject<string>();
 
@@ -115,6 +116,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     super.ngOnInit();
 
     // default values
+    this.isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
     this.showParentGroup = toBoolean(this.showParentGroup, true);
 
