@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Get to the root project
+if [[ "_" == "_${PROJECT_DIR}" ]]; then
+  SCRIPT_DIR=$(dirname $0)
+  PROJECT_DIR=$(cd ${SCRIPT_DIR}/.. && pwd)
+  export PROJECT_DIR
+fi;
+
+# Preparing Android environment
+cd ${PROJECT_DIR}
+source ${PROJECT_DIR}/scripts/env-global.sh
+
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
 if [[ ! "$branch" = "master" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];
@@ -9,8 +20,8 @@ then
 fi
 
 ### Get version to release
-current=`grep -P "version\": \"\d+.\d+.\d+(-(\w+)[0-9]+)" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(\w+)[0-9]+)"`
-if [[ "_$version" != "_" ]]; then
+current=`grep -m1 -P "version\": \"\d+.\d+.\d+(-(\w+)[0-9]+)?" package.json | grep -oP "\d+.\d+.\d+(-(\w+)[0-9]+)?"`
+if [[ "_$current" == "_" ]]; then
   echo "ERROR: Unable to read 'version' in the file 'package.json'."
   echo " - Make sure the file 'package.json' exists and is readable."
   exit 1
