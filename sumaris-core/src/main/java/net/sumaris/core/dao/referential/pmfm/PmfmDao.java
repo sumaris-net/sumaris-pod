@@ -56,4 +56,7 @@ public interface PmfmDao {
 
     @Cacheable(cacheNames = CacheNames.PMFM_HAS_SUFFIX)
     boolean hasLabelSuffix(int pmfmId, String... labelSuffixes);
+
+    @Cacheable(cacheNames = CacheNames.PMFM_HAS_MATRIX)
+    boolean hasMatrixId(int pmfmId, int... matrixIds);
 }

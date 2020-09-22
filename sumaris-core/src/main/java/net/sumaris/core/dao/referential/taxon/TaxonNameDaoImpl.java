@@ -134,7 +134,7 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
                 .where(builder.and(
                         // Filter on taxonomic level (species+ subspecies)
                         builder.in(root.get(TaxonName.Fields.TAXONOMIC_LEVEL).get(TaxonomicLevel.Fields.ID))
-                               .value(ImmutableList.of(TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId())),
+                               .value(ImmutableList.of(TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId())),
                         // Filter on is_referent
                         builder.or(
                                 builder.isNull(withSynonymParam),
@@ -205,7 +205,7 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
                         builder.equal(root.get(TaxonGroup2TaxonHierarchy.Fields.PARENT_TAXON_GROUP).get(TaxonGroup.Fields.ID), taxonGroupIdParam),
                         // Filter on taxonomic level (species and subspecies)
                         builder.in(tn.get(TaxonName.Fields.TAXONOMIC_LEVEL).get(TaxonomicLevel.Fields.ID))
-                                .value(ImmutableList.of(TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId())),
+                                .value(ImmutableList.of(TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId())),
                         // Filter on is_referent
                         builder.equal(tn.get(TaxonName.Fields.IS_REFERENT), Boolean.TRUE)
                 ));

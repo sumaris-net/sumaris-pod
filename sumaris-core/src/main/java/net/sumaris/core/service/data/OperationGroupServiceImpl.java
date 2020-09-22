@@ -179,10 +179,11 @@ public class OperationGroupServiceImpl implements OperationGroupService {
             Map<Integer, String> vesselUseMeasurements = Maps.newLinkedHashMap();
             Map<Integer, String> gearUseMeasurements = Maps.newLinkedHashMap();
             source.getMeasurementValues().forEach((pmfmId, value) -> {
-                if (pmfmService.isVesselUsePmfm(pmfmId)) {
-                    vesselUseMeasurements.putIfAbsent(pmfmId, value);
-                } else if (pmfmService.isGearUsePmfm(pmfmId)) {
+                if (pmfmService.isGearPmfm(pmfmId)) {
                     gearUseMeasurements.putIfAbsent(pmfmId, value);
+                }
+                else {
+                    vesselUseMeasurements.putIfAbsent(pmfmId, value);
                 }
             });
 

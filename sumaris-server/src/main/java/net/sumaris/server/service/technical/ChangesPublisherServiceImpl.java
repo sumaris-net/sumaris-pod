@@ -53,7 +53,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
     private static final Logger log =
             LoggerFactory.getLogger(ChangesPublisherServiceImpl.class);
 
-    private final AtomicLong publicherCount = new AtomicLong(0);
+    private final AtomicLong publisherCount = new AtomicLong(0);
 
     @Autowired
     private EntityDao dataChangeDao;
@@ -86,7 +86,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
             throw new DataNotFoundException(I18n.t("sumaris.error.notFound", entityClass.getSimpleName(), id));
         }
 
-        log.info(String.format("Checking changes on %s #%s every %s sec. (total publishers: %s)", entityClass.getSimpleName(), id, minIntervalInSecond, publicherCount.incrementAndGet()));
+        log.info(String.format("Checking changes on %s #%s every %s sec. (total publishers: %s)", entityClass.getSimpleName(), id, minIntervalInSecond, publisherCount.incrementAndGet()));
 
 
         final Calendar lastUpdateDate = Calendar.getInstance();
@@ -98,7 +98,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
 
         // Create stop event, after a too long delay (to be sure old publisher are closed)
         Observable stop = Observable.just(Boolean.TRUE).delay(1, TimeUnit.HOURS);
-        stop.subscribe(o -> log.debug(String.format("Closing publisher on %s #%s: max time reached. (total publishers: %s)", entityClass.getSimpleName(), id, publicherCount.decrementAndGet())));
+        stop.subscribe(o -> log.debug(String.format("Closing publisher on %s #%s: max time reached. (total publishers: %s)", entityClass.getSimpleName(), id, publisherCount.decrementAndGet())));
 
         Observable<V> observable = Observable
                 .interval(minIntervalInSecond, TimeUnit.SECONDS)

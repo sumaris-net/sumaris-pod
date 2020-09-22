@@ -25,13 +25,7 @@ package net.sumaris.core.action;
  */
 
 
-import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.schema.DatabaseSchemaDao;
-import net.sumaris.core.dao.schema.DatabaseSchemaDaoImpl;
-import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import org.nuiton.version.Version;
@@ -62,7 +56,7 @@ public class DatabaseUpdateSchemaAction {
 
 		// Getting the database version
 		try {
-			Version actualDbVersion = service.getDbVersion();
+			Version actualDbVersion = service.getSchemaVersion().orElse(null);
 			// result could be null, is DB is empty (mantis #21013)
 			if (actualDbVersion == null) {
 				log.warn("Could not get database schema version");

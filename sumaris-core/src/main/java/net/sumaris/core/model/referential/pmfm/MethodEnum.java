@@ -22,9 +22,12 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = Method.class)
 public enum MethodEnum implements Serializable  {
 
     UNKNOWN(0, "UNK"),

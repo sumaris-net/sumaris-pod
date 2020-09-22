@@ -22,9 +22,12 @@
 
 package net.sumaris.core.model.referential.pmfm;
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
+@EntityEnum(entity = Unit.class)
 public enum UnitEnum implements Serializable  {
 
     NONE(0, "None"),
@@ -34,7 +37,7 @@ public enum UnitEnum implements Serializable  {
 
     public static UnitEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown UnitEnum: " + id));
     }

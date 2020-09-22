@@ -325,6 +325,20 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "${sumaris.data.directory}/db-backup",
             File.class,
             false),
+    TRASH_DIRECTORY(
+            "sumaris.persistence.trash.directory",
+            n("sumaris.config.option.persistence.trash.directory.description"),
+            "${sumaris.data.directory}/trash",
+            File.class,
+            false),
+
+    ENABLE_ENTITY_TRASH(
+            "sumaris.persistence.trash.enable",
+            n("sumaris.config.option.persistence.trash.enable.description"),
+            Boolean.FALSE.toString(),
+            boolean.class,
+            false),
+
     HIBERNATE_SHOW_SQL(
             "spring.jpa.show-sql",
             n("sumaris.config.option.spring.jpa.show-sql.description"),

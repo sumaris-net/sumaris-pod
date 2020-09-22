@@ -22,12 +22,15 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * @author peck7 on 13/05/2020.
  */
+@EntityEnum(entity = SaleType.class)
 public enum SaleTypeEnum implements Serializable {
 
     OTHER(4, "Other")
@@ -35,7 +38,7 @@ public enum SaleTypeEnum implements Serializable {
 
     public static SaleTypeEnum valueOf(final int id) {
         return Arrays.stream(values())
-            .filter(level -> level.id == id)
+            .filter(enumValue -> enumValue.id == id)
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown SaleTypeEnum: " + id));
     }

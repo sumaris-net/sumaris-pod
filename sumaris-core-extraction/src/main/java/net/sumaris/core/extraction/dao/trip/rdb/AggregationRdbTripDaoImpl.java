@@ -23,7 +23,8 @@ package net.sumaris.core.extraction.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -33,9 +34,10 @@ import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
+import net.sumaris.core.extraction.specification.AggRdbSpecification;
+import net.sumaris.core.extraction.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
-import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripVersion;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
@@ -70,21 +72,15 @@ public class AggregationRdbTripDaoImpl<
         F extends ExtractionFilterVO,
         S extends AggregationStrataVO>
         extends ExtractionBaseDaoImpl
-        implements AggregationRdbTripDao<C, F, S>, AggregationTripDao {
+        implements AggregationRdbTripDao<C, F, S>,
+        AggregationTripDao, AggRdbSpecification {
 
     private static final Logger log = LoggerFactory.getLogger(AggregationRdbTripDaoImpl.class);
 
     private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + TR_SHEET_NAME + "_%s";
     private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HH_SHEET_NAME + "_%s";
     private static final String SL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + SL_SHEET_NAME + "_%s";
-    private static final String HL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HL_SHEET_NAME + "_%s";
-    private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + CA_SHEET_NAME + "_%s";
 
-    private static List<String> SPACE_STRATA = ImmutableList.of("area", "rect", "square");
-    private static List<String> TIME_STRATA = ImmutableList.of("year", "quarter", "month");
-    private static Map<String, List<String>> AGG_STRATA_BY_SHEETNAME = ImmutableMap.<String, List<String>>builder()
-            .put(HH_SHEET_NAME, ImmutableList.of(COLUMN_TRIP_COUNT, COLUMN_STATION_COUNT))
-            .build();
 
 
     @Autowired
@@ -113,16 +109,14 @@ public class AggregationRdbTripDaoImpl<
         R context = createNewContext();
         context.setTripFilter(extractionRdbTripDao.toTripFilterVO(filter));
         context.setFilter(filter);
-        context.setFormatName(RDB_FORMAT);
-        context.setFormatVersion(ExtractionRdbTripVersion.VERSION_1_3.getLabel());
+        context.setFormatName(AggRdbSpecification.FORMAT);
+        context.setFormatVersion(AggRdbSpecification.VERSION_1_4);
         context.setId(System.currentTimeMillis());
 
         // Compute table names
         context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
         context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
         context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
 
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
@@ -161,7 +155,7 @@ public class AggregationRdbTripDaoImpl<
             String spaceStrata = strata.getSpaceColumnName() != null ? strata.getSpaceColumnName().toLowerCase() : COLUMN_AREA;
 
             // Replace alias
-            if (COLUMN_ALIAS.containsKey(spaceStrata)) spaceStrata = COLUMN_ALIAS.get(spaceStrata);
+            spaceStrata = COLUMN_ALIAS.containsKey(spaceStrata) ? COLUMN_ALIAS.get(spaceStrata) : spaceStrata;
 
             switch (spaceStrata) {
                 case COLUMN_SQUARE:
@@ -261,14 +255,16 @@ public class AggregationRdbTripDaoImpl<
 
     protected XMLQuery createStationQuery(ExtractionProductVO source, AggregationRdbTripContextVO context) {
 
-        String rawStationTableName = source.getTableNameBySheetName(ExtractionRdbTripDao.HH_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException("Missing HH table"));
+        String rawStationTableName = source.getTableNameBySheetName(RdbSpecification.HH_SHEET_NAME)
+                .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HH_SHEET_NAME)));
+        String rawTripTableName = source.getTableNameBySheetName(RdbSpecification.TR_SHEET_NAME)
+                .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.TR_SHEET_NAME)));
+
         SumarisTableMetadata rawStationTable = databaseMetadata.getTable(rawStationTableName);
 
-
         XMLQuery xmlQuery = createXMLQuery(context, "createStationTable");
-        xmlQuery.bind("rawTripTableName", source.getTableNameBySheetName(ExtractionRdbTripDao.TR_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException("Missing TR table")));
+
+        xmlQuery.bind("rawTripTableName", rawTripTableName);
         xmlQuery.bind("rawStationTableName", rawStationTableName);
         xmlQuery.bind("stationTableName", context.getStationTableName());
 
@@ -326,12 +322,12 @@ public class AggregationRdbTripDaoImpl<
 
         // Clean row using generic tripFilter
         if (count > 0) {
-            count -= cleanRow(context.getSpeciesLengthTableName(), context.getFilter(), HL_SHEET_NAME);
+            count -= cleanRow(context.getSpeciesLengthTableName(), context.getFilter(), RdbSpecification.HL_SHEET_NAME);
         }
 
         // Add result table to context
         if (count > 0) {
-            context.addTableName(context.getSpeciesLengthTableName(), HL_SHEET_NAME);
+            context.addTableName(context.getSpeciesLengthTableName(), RdbSpecification.HL_SHEET_NAME);
             log.debug(String.format("Species length table: %s rows inserted", count));
         }
         return count;

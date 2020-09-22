@@ -22,14 +22,12 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
+import liquibase.util.csv.opencsv.CSVReader;
 import net.sumaris.core.extraction.dao.DatabaseResource;
-
-import java.io.File;
-import java.io.IOException;
-
-import net.sumaris.core.extraction.vo.AggregationTypeVO;
+import net.sumaris.core.extraction.specification.Free2Specification;
+import net.sumaris.core.extraction.specification.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
-import net.sumaris.core.extraction.vo.ExtractionRawFormatEnum;
+import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Files;
@@ -38,9 +36,13 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -54,37 +56,54 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     private ExtractionService service;
 
     @Test
-    public void extractLiveTripAsFile_RDB() {
+    public void exportRdbFormat() {
 
         // Test the RDB format
         service.executeAndDumpTrips(ExtractionRawFormatEnum.RDB, null);
     }
 
     @Test
-    public void extractLiveTripAsFile_Free() {
+    public void exportFree1Format() {
 
-        // Test the RDB format
-        service.executeAndDumpTrips(ExtractionRawFormatEnum.FREE, null);
+        // Test the FREE 1 format
+        service.executeAndDumpTrips(ExtractionRawFormatEnum.FREE1, null);
     }
 
     @Test
-    public void extractLiveTripAsFile_SurvivalTest() {
+    public void exportFree2Format() throws IOException {
+
+        // Test the FREE v2 format
+        File outputFile = service.executeAndDumpTrips(ExtractionRawFormatEnum.FREE2, null);
+
+        File root = unpack(outputFile, ExtractionRawFormatEnum.FREE2);
+
+        // TR
+        File tripFile = new File(root, Free2Specification.TRIP_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLine(tripFile) > 1);
+
+        // HH
+        File stationFile = new File(root, Free2Specification.STATION_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLine(stationFile) > 1);
+
+        // ENGIN
+        File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME+".csv");
+        Assert.assertTrue(countLine(gearFile) > 1);
+    }
+
+    @Test
+    public void exportSurvivalTestFormat() throws IOException  {
 
         // Test Survival test format
         File outputFile = service.executeAndDumpTrips(ExtractionRawFormatEnum.SURVIVAL_TEST, null);
+        File root = unpack(outputFile, ExtractionRawFormatEnum.SURVIVAL_TEST);
 
-        File debugFile = new File("target/result.zip");
-        File debugDirectory = new File("target/result");
-        try {
-            Files.deleteQuietly(debugFile);
-            Files.copyFile(outputFile, debugFile);
+        // RL (release)
+        File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME+".csv");
+        Assert.assertTrue(countLine(releaseFile) > 1);
 
-            FileUtils.forceMkdir(debugDirectory);
-            ZipUtils.uncompressFileToPath(debugFile, debugDirectory.getPath(), true);
-        }
-        catch(IOException e) {
-            // Silent
-        }
+        // ST (Survival test)
+        File stFile = new File(root, SurvivalTestSpecification.ST_SHEET_NAME+".csv");
+        Assert.assertTrue(countLine(stFile) > 1);
     }
 
 
@@ -103,5 +122,43 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         ExtractionTypeVO savedType = service.save(type, null);
 
         Assert.assertNotNull(savedType);
+    }
+
+    /* -- protected methods -- */
+
+    protected int countLine(File file) throws IOException {
+        Files.checkExists(file);
+
+        FileReader fr = new FileReader(file);
+        try {
+            CSVReader read = new CSVReader(fr);
+            List<String[]> lines = read.readAll();
+
+            read.close();
+
+            return lines.size();
+        }
+        finally {
+            fr.close();
+        }
+    }
+
+    protected File unpack(File outputFile, ExtractionRawFormatEnum format) {
+
+        File debugFile = new File("target/result.zip");
+        File debugDirectory = new File("target/result/" + format.getLabel() + '_' + format.getVersion());
+        try {
+            Files.deleteQuietly(debugFile);
+            Files.copyFile(outputFile, debugFile);
+
+            Files.deleteQuietly(debugDirectory);
+            FileUtils.forceMkdir(debugDirectory);
+
+            ZipUtils.uncompressFileToPath(debugFile, debugDirectory.getPath(), true);
+
+        } catch (IOException e) {
+            Assert.fail(e.getMessage());
+        }
+        return debugDirectory;
     }
 }

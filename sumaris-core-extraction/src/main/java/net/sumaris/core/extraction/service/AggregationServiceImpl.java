@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.extraction.ExtractionProductDao;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
+import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
@@ -52,7 +53,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -347,7 +347,9 @@ public class AggregationServiceImpl implements AggregationService {
         switch (format) {
             case RDB:
             case COST:
-            case FREE:
+            case FREE1:
+
+            //case FREE2: // TODO: test FREE2 is compatible
             case SURVIVAL_TEST:
                 return aggregationRdbTripDao.aggregate(source, filter);
             default:

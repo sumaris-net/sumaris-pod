@@ -1,1 +1,2 @@
 net.sumaris.core.config.SumarisCoreConfigurationProvider
+net.sumaris.core.config.SumarisConfigurationEntityEnumProvider

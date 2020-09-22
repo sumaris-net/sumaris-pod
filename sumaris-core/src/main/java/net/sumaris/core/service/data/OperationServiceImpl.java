@@ -167,6 +167,8 @@ public class OperationServiceImpl implements OperationService {
 			else {
 				List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
 				measurements.forEach(m -> fillDefaultProperties(source, m, VesselUseMeasurement.class));
+
+				// TODO: dispatch measurement by GEAR/NOT GEAR
 				measurements = measurementDao.saveOperationVesselUseMeasurements(source.getId(), measurements);
 				source.setMeasurements(measurements);
 			}

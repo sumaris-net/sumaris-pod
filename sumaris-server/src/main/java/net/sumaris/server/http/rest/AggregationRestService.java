@@ -30,6 +30,7 @@ import net.sumaris.core.dao.referential.location.Locations;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.service.ExtractionService;
+import net.sumaris.core.extraction.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.server.http.geojson.GeoJsonGeometries;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
@@ -77,9 +78,9 @@ public class AggregationRestService {
         if (size > 1000) size = 1000;
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setTimeColumnName(StringUtils.isNotBlank(timeStrata) ? timeStrata : AggregationRdbTripDao.COLUMN_YEAR);
-        strata.setSpaceColumnName(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : AggregationRdbTripDao.COLUMN_SQUARE);
-        strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggregationRdbTripDao.COLUMN_STATION_COUNT);
+        strata.setTimeColumnName(StringUtils.isNotBlank(timeStrata) ? timeStrata : AggRdbSpecification.COLUMN_YEAR);
+        strata.setSpaceColumnName(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : AggRdbSpecification.COLUMN_SQUARE);
+        strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_STATION_COUNT);
         strata.setTechColumnName(null);
 
         return GeoJsonExtractions.toFeatureCollection(aggregationService.read(

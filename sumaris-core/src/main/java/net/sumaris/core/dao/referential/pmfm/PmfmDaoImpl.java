@@ -60,13 +60,6 @@ public class PmfmDaoImpl extends BaseReferentialDaoImpl<Pmfm, PmfmVO> implements
     @Autowired
     private ReferentialDao referentialDao;
 
-    public int unitIdNone;
-
-    @PostConstruct
-    protected void init() {
-        this.unitIdNone = config.getUnitIdNone();
-    }
-
     @Override
     protected Class getDomainClass() {
         return Pmfm.class;
@@ -154,7 +147,7 @@ public class PmfmDaoImpl extends BaseReferentialDaoImpl<Pmfm, PmfmVO> implements
         Unit unit = source.getUnit();
         if (unit != null && unit.getId() != null) {
             target.setUnitId(unit.getId());
-            if (unit.getId() != unitIdNone) {
+            if (UnitEnum.NONE.getId() != unit.getId()) {
                 target.setUnitLabel(unit.getLabel());
             }
         }
@@ -211,6 +204,14 @@ public class PmfmDaoImpl extends BaseReferentialDaoImpl<Pmfm, PmfmVO> implements
         return Optional.ofNullable(getOne(pmfmId))
                 .map(Pmfm::getLabel)
                 .map(StringUtils.endsWithFunction(labelSuffixes))
+                .orElse(false);
+    }
+
+    @Override
+    public boolean hasMatrixId(int pmfmId, int... matrixIds) {
+        return Optional.ofNullable(getOne(pmfmId))
+                .map(Pmfm::getMatrix)
+                .map(matrix -> matrix != null && Arrays.binarySearch(matrixIds, matrix.getId()) != -1)
                 .orElse(false);
     }
 

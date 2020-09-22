@@ -141,6 +141,11 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean pmfmHasMatrix() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_HAS_MATRIX, 600);
+    }
+
+    @Bean
     public EhCacheFactoryBean taxonNameByTaxonReferenceId() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, 600);
     }

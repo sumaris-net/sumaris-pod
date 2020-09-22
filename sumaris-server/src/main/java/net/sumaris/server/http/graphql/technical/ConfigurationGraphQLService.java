@@ -32,6 +32,7 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Ehcache;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.technical.CacheStatistics;
+import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.ConfigurationVO;
@@ -69,6 +70,9 @@ public class ConfigurationGraphQLService {
 
     @Autowired
     private SoftwareService service;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Autowired
     private AdministrationGraphQLService administrationGraphQLService;
@@ -127,10 +131,10 @@ public class ConfigurationGraphQLService {
         if (id != null) {
             return service.get(id);
         }
-        if (net.sumaris.core.util.StringUtils.isNotBlank(label)) {
-            return service.getByLabel(label);
+        if (label == null) {
+            return configurationService.getCurrentSoftware();
         }
-        return service.getDefault();
+        return service.getByLabel(label);
     }
 
     @GraphQLMutation(name = "saveSoftware", description = "Save a software configuration")

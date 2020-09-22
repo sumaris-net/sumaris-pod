@@ -79,7 +79,7 @@ public class LocationServiceImpl implements LocationService{
     public void insertOrUpdateRectangleLocations() {
 
         if (log.isInfoEnabled()) {
-            log.info("Checking all statistical rectangles exists...");
+            log.info("Checking statistical rectangles in table {LOCATION}...");
         }
 
         // Retrieve location levels
@@ -114,11 +114,11 @@ public class LocationServiceImpl implements LocationService{
                 .build();
 
         if (labels.size() == existingLocations.size()) {
-            log.info(String.format("No missing rectangle detected (%s found)", existingLocations.size()));
+            log.info(String.format("Statistical rectangle already loaded (%s exists)", existingLocations.size()));
             return;
         }
 
-        log.info(String.format("Inserting missing rectangle (%s existing - %s expected)", existingLocations.size(), labels.size()));
+        log.info(String.format("Inserting statistical rectangles... (%s found, %s expected)", existingLocations.size(), labels.size()));
 
         for (String label: labels) {
 
@@ -139,14 +139,14 @@ public class LocationServiceImpl implements LocationService{
             }
         }
         if (log.isInfoEnabled()) {
-            log.info(String.format("LOCATION: INSERT count: %s", locationInsertCount));
+            log.info(String.format("Statistical rectangles successfully inserted (%s inserts)", locationInsertCount));
         }
     }
 
     @Override
     public void insertOrUpdateSquares10() {
         if (log.isInfoEnabled()) {
-            log.info("Checking all squares 10'x10' exists...");
+            log.info("Checking squares 10'x10' in table {LOCATION}...");
         }
 
         // Retrieve location levels
@@ -173,11 +173,11 @@ public class LocationServiceImpl implements LocationService{
         Set<String> labels = Locations.getAllSquare10Labels(resourceLoader, false);
 
         if (labels.size() == existingLocations.size()) {
-            log.info(String.format("No missing square 10'x10' (%s found)", existingLocations.size()));
+            log.info(String.format("Square 10'x10' already loaded in {LOCATION} (%s found)", existingLocations.size()));
             return;
         }
 
-        log.info(String.format("Inserting missing square 10'x10' (%s existing - %s expected)", existingLocations.size(), labels.size()));
+        log.info(String.format("Inserting square 10'x10'... (%s found, %s expected)", existingLocations.size(), labels.size()));
 
         for (String label: labels) {
 
@@ -213,8 +213,9 @@ public class LocationServiceImpl implements LocationService{
         }
 
         if (log.isInfoEnabled()) {
-            log.info(String.format("LOCATION: INSERT count: %s", locationInsertCount));
-            log.info(String.format("LOCATION_ASSOCIATION: INSERT count: %s", locationAssociationInsertCount));
+            log.info(String.format("Square 10'x10' successfully inserted (%s inserts, %s location associations) ",
+                    locationInsertCount,
+                    locationAssociationInsertCount));
         }
     }
 
