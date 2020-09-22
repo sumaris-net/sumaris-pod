@@ -163,8 +163,8 @@ fi
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
-cd $PROJECT_DIR
-./github.sh "$task" ''"$description"''
+cd $PROJECT_DIR/scripts
+./release-to-github.sh "$task" ''"$description"''
 [[ $? -ne 0 ]] && exit 1
 
 #echo "----------------------------------"

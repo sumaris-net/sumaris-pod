@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Get to the root project
+if [[ "_" == "_${PROJECT_DIR}" ]]; then
+  SCRIPT_DIR=$(dirname $0)
+  PROJECT_DIR=$(cd ${SCRIPT_DIR}/.. && pwd)
+  export PROJECT_DIR
+fi;
+
+# Preparing Android environment
+cd ${PROJECT_DIR}
+source ${PROJECT_DIR}/scripts/env-global.sh
+
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
 if [[ ! "$branch" = "master" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];

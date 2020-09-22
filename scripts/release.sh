@@ -138,7 +138,8 @@ echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
 
-./github.sh $1 ''"$description"''
+cd $PROJECT_DIR/scripts
+./release-to-github.sh $1 ''"$description"''
 [[ $? -ne 0 ]] && exit 1
 
 #echo "----------------------------------"
