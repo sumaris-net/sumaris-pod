@@ -21,7 +21,6 @@ import {
   mergeMap,
   startWith,
   switchMap,
-  takeUntil,
   tap
 } from "rxjs/operators";
 import {TableElement} from "@e-is/ngx-material-table";
@@ -34,7 +33,7 @@ import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils, IAppForm} from "../form/form.utils";
-import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
+import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
@@ -43,10 +42,9 @@ import {
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/material.autocomplete";
-import {ToastOptions} from "@ionic/core";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
-import {NetworkService} from "../services/network.service";
+import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
@@ -138,6 +136,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   @Output() onConfirmEditCreateRow = new EventEmitter<TableElement<T>>();
 
   @Output() onCancelOrDeleteRow = new EventEmitter<TableElement<T>>();
+
+  @Output() onBeforeDeleteRows = createPromiseEventEmitter<boolean, {rows: TableElement<T>[]}>();
 
   @Output()
   get dirty(): boolean {
@@ -518,8 +518,22 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return true;
   }
 
-  cancelOrDelete(event: any, row: TableElement<T>) {
+  cancelOrDelete(event: any, row: TableElement<T>, confirm?: boolean) {
     this.editedRow = undefined; // unselect row
+
+
+    // Check confirmation
+    if (!confirm && row.id !== -1 && (this.confirmBeforeDelete || this.onBeforeDeleteRows.observers.length > 0)) {
+      event.stopPropagation();
+      this.canDeleteRows([row])
+        .then(canDelete => {
+          if (!canDelete) return; // Skip
+          // Loop with confirmation
+          this.cancelOrDelete(event, row, true);
+        });
+      return;
+    }
+
     this.onCancelOrDeleteRow.next(row);
     event.stopPropagation();
 
@@ -529,7 +543,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (row.id === -1) {
       this.resultsLength--;
     }
-    //this.markForCheck();
   }
 
   addRow(event?: any): boolean {
@@ -590,7 +603,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   /** Selects all rows if they are not all selected; otherwise clear selection. */
   async masterToggle() {
 
-    console.log('TODO check masterToggle');
     if (this.loading) return;
     if (this.isAllSelected()) {
       this.selection.clear();
@@ -600,18 +612,16 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  async deleteSelection(confirm?: boolean): Promise<void> {
+  async deleteSelection(event: UIEvent): Promise<number> {
     if (this.readOnly) {
       throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
     }
-    if (!this._enabled) return;
-    if (this.loading || this.selection.isEmpty()) return;
+    if (!this._enabled) return 0;
+    if (this.loading || this.selection.isEmpty()) return 0;
 
-    if (this.confirmBeforeDelete && !confirm) {
-      confirm = await this.askDeleteConfirmation();
-      if (!confirm) return; // user cancelled
-      return await this.deleteSelection(true); // Loop with confirmation
-    }
+    // Check if can delete
+    const canDelete = await this.canDeleteRows(this.selection.selected);
+    if (!canDelete) return 0; // Cannot delete
 
     // If data need to be saved first: do it
     if (this._dirty && this.saveBeforeDelete) {
@@ -630,13 +640,16 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       .sort((a, b) => a.id > b.id ? -1 : 1);
 
     try {
+      const deleteCount = rowsToDelete.length;
       await this._dataSource.deleteAll(rowsToDelete);
-      this.resultsLength -= rowsToDelete.length;
+      this.resultsLength -= deleteCount;
       this.selection.clear();
       this.editedRow = undefined;
       this.markAsDirty();
+      return deleteCount;
     } catch (err) {
       this.error = err && err.message || err;
+      return 0;
     }
   }
 
@@ -734,6 +747,30 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
 
   /* -- protected method -- */
+
+  protected async canDeleteRows(rows: TableElement<T>[]): Promise<boolean> {
+
+    // Check using emitter
+    if (this.onBeforeDeleteRows.observers.length > 0) {
+      try {
+        const canDelete = await emitPromiseEvent(this.onBeforeDeleteRows, 'canDelete', {
+          detail: {rows}
+        });
+        if (!canDelete) return false;
+      }
+      catch (err) {
+        if (err === 'CANCELLED') return false; // User cancel
+        console.error("Error while checking if can delete rows", err);
+        throw err;
+      }
+    }
+
+    // Ask user confirmation
+    if (this.confirmBeforeDelete) {
+      return this.askDeleteConfirmation();
+    }
+    return true;
+  }
 
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
     if (!this.allowRowDetail) return false;

@@ -453,7 +453,9 @@
         "TITLE": "Existing gears"
       },
       "ERROR": {
-        "LOAD_PHYSICAL_GEARS_ERROR": "Error while loading gears."
+        "LOAD_PHYSICAL_GEARS_ERROR": "Error while loading gears.",
+        "CANNOT_DELETE": "Deletion not possible",
+        "CANNOT_DELETE_USED_GEAR_HELP": "Gear(s) used in one or more operations.<br/><br/>Please <b>edit these operations</b> before trying again."
       }
     },
     "OPERATION": {

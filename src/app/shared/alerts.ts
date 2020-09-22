@@ -183,11 +183,14 @@ export async function askConfirmation(
 export async function showError(
   messageKey: string,
   alertCtrl: AlertController,
-  translate: TranslateService) {
-  if (!alertCtrl || !translate) throw new Error("Missing required argument 'alertCtrl' or 'translate'");
-  const translations = translate.instant(['COMMON.BTN_OK', messageKey, 'ERROR.ALERT_HEADER']);
+  translate: TranslateService, opts? : {
+    titleKey?: string;
+  }) {
+  if (!messageKey || !alertCtrl || !translate) throw new Error("Missing a required argument ('messageKey', 'alertCtrl' or 'translate')");
+  const titleKey = opts && opts.titleKey || 'ERROR.ALERT_HEADER';
+  const translations = translate.instant(['COMMON.BTN_OK', messageKey, titleKey]);
   const alert = await alertCtrl.create({
-    header: translations['ERROR.ALERT_HEADER'],
+    header: translations[titleKey],
     message: translations[messageKey],
     buttons: [
       {

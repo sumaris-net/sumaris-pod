@@ -96,15 +96,6 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
     this.debug = !environment.production;
   }
 
-  async deleteSelection(confirm?: boolean): Promise<void> {
-
-    await super.deleteSelection(confirm);
-
-    if (confirm) {
-      this._dirty = true;
-    }
-  }
-
   protected onRowCreated(row: TableElement<Referential>) {
     const defaultValues = {
       entityName: this.entityName

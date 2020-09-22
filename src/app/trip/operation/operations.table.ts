@@ -202,6 +202,14 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     return super.clickRow(event, row);
   }
 
+  async getUsedPhysicalGearIds(): Promise<number[]> {
+    return (await this.dataSource.getRows())
+      .map(ope => ope.currentData.physicalGear)
+      .filter(isNotNil)
+      .map(gear => gear.id)
+      .reduce( (res, id) => res.includes(id) ? res : res.concat(id), []);
+  }
+
   referentialToString = referentialToString;
 
   /* -- protected methods -- */

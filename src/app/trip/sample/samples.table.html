@@ -7,7 +7,7 @@
   </button>
   <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled"
           [title]="'COMMON.BTN_DELETE'|translate"
-          (click)="deleteSelection()">
+          (click)="deleteSelection($event)">
     <mat-icon>delete</mat-icon>
   </button>
 

@@ -26,7 +26,9 @@ export class CustomReuseStrategy extends IonicRouteStrategy {
         (future.queryParams[pathIdParam] || future.queryParams['id']) : future.params[pathIdParam];
       const currId = curr.params[pathIdParam] === 'new' ?
         (curr.queryParams[pathIdParam] || curr.queryParams['id']) : curr.params[pathIdParam];
-      return futureId === currId;
+      return futureId === currId &&
+        // Always reload 'new' page
+        currId !== 'new';
     }
 
     return result;
