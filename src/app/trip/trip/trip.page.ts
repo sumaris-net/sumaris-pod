@@ -5,7 +5,7 @@ import {TripForm} from './trip.form';
 import {SaleForm} from '../sale/sale.form';
 import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {EntityUtils, environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
+import {environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
 import {EntityServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
 import * as moment from "moment";
@@ -24,8 +24,10 @@ import {PromiseEvent} from "../../shared/events";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {filter, first} from "rxjs/operators";
+import {filter} from "rxjs/operators";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {TableElement} from "@e-is/ngx-material-table";
+import {Alerts} from "../../shared/alerts";
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -113,6 +115,24 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Cascade refresh to operation tables
     this.onUpdateView.subscribe(() => this.operationTable.onRefresh.emit());
+
+    this.registerSubscription(
+      this.physicalGearTable.onBeforeDeleteRows
+        .subscribe(async (event) => {
+          const rows = (event.detail.rows as TableElement<PhysicalGear>[]);
+          const usedGearIds = await this.operationTable.getUsedPhysicalGearIds();
+          const usedGears = rows.map(row => row.currentData)
+            .filter(gear => usedGearIds.includes(gear.id));
+
+          const canDelete = (usedGears.length == 0);
+          event.detail.success(canDelete);
+          if (!canDelete) {
+            await Alerts.showError('TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE_USED_GEAR_HELP',
+              this.alertCtrl, this.translate, {
+                titleKey: 'TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE'
+              });
+          }
+        }));
   }
 
   protected registerForms() {

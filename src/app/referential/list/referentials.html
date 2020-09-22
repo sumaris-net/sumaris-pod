@@ -47,7 +47,7 @@
         <button mat-icon-button
                 class="hidden-xs hidden-sm"
                 *ngIf="canEdit" [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="deleteSelection()" >
+                (click)="deleteSelection($event)" >
           <mat-icon>delete</mat-icon>
         </button>
       </ng-template>

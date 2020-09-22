@@ -135,6 +135,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         )
         .subscribe(program => this.onProgramChanged.next(program)));
 
+    // Watch trip, to load last operations
     this.registerSubscription(
       this.$tripId
         .pipe(
@@ -162,7 +163,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       )
       .subscribe(data => this.$lastOperations.next(data))
     );
-    //}
   }
 
   async ngAfterViewInit(): Promise<void> {

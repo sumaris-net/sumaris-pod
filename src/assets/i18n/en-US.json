@@ -453,7 +453,9 @@
         "TITLE": "Existing gears"
       },
       "ERROR": {
-        "LOAD_PHYSICAL_GEARS_ERROR": "Error while loading gears."
+        "LOAD_PHYSICAL_GEARS_ERROR": "Error while loading gears.",
+        "CANNOT_DELETE": "Deletion not possible",
+        "CANNOT_DELETE_USED_GEAR_HELP": "Gear(s) used in one or more operations.<br/><br/>Please <b>edit these operations</b> before trying again."
       }
     },
     "OPERATION": {
@@ -1361,7 +1363,9 @@
     "LOAD_DATA_ERROR": "Error while loading data.<small><br/>If the problem persists, please contact your administrator.</small>",
     "NETWORK_REQUIRED": "No network connection.<br/><b>Check your network connection</b> before trying again.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
-    "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode."
+    "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode.",
+    "COPY_STORAGE_ERROR": "Error during data copy",
+    "DATA_MIGRATION_FAILED": "Faile to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1376,6 +1380,8 @@
   },
   "INFO": {
     "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server.",
-    "DEBUG_DATA_SEND": "Help request sent to administrator"
+    "DEBUG_DATA_SEND": "Help request sent to administrator",
+    "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
+    "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!"
   }
 }

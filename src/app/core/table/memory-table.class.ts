@@ -70,14 +70,5 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
       this.onRefresh.emit();
     }
   }
-
-  async deleteSelection(confirm?: boolean): Promise<void> {
-
-    await super.deleteSelection(confirm);
-
-    if (confirm) {
-      this._dirty = true;
-    }
-  }
 }
 

@@ -7,7 +7,7 @@ export interface PromiseEventPayload<T = any> {
 
 export type PromiseEvent<T = any, D = void> = CustomEvent<PromiseEventPayload<T> & D>;
 
-export function createPromiseEventEmitter<T = any, D = void>() {
+export function createPromiseEventEmitter<T = any, D = void>(): EventEmitter<PromiseEvent<T, D>> {
   return new EventEmitter<PromiseEvent<T, D>>(true);
 }
 

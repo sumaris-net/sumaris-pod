@@ -5,7 +5,7 @@
     <mat-icon>add</mat-icon>
   </button>
   <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
-    (click)="deleteSelection()">
+    (click)="deleteSelection($event)">
     <mat-icon>delete</mat-icon>
   </button>
   <button mat-icon-button small color="light" *ngIf="!selection.hasValue() && enabled" [title]="'TRIP.SAMPLE.TABLE.BTN_AUTO_FILL'|translate"

@@ -453,7 +453,9 @@
         "TITLE": "Engins existants"
       },
       "ERROR": {
-        "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins."
+        "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins.",
+        "CANNOT_DELETE": "Suppression impossible",
+        "CANNOT_DELETE_USED_GEAR_HELP": "Engin(s) utilisé(s) dans une ou plusieurs opérations.<br/><br/>Veuillez <b>modifier ces opérations</b> avant de réessayer."
       }
     },
     "OPERATION": {
