@@ -1,12 +1,12 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {toNumber} from "../../../shared/functions";
 import {Batch} from "../model/batch.model";
 import {SubBatch} from "../model/subbatch.model";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class SubBatchValidatorService implements ValidatorService {
 
   constructor(

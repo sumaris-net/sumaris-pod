@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/functions';
-import {TableDataSource, TableElement} from "angular4-material-table";
+import {TableDataSource, TableElement} from "@e-is/ngx-material-table";
 import {
   AggregationType,
   ExtractionColumn,
@@ -145,6 +145,8 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
 
       this.canAggregate = this.type && !this.type.isSpatial && this.accountService.isSupervisor();
 
+      this.resetPaginatorAndSort();
+
       // Close the filter panel
       if (this.filterExpansionPanel && this.filterExpansionPanel.expanded) {
         this.filterExpansionPanel.close();
@@ -164,9 +166,13 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     super.setSheetName(sheetName, opts);
 
     if (resetPaginator) {
-      this.sort.active = undefined;
-      this.paginator.pageIndex = 0;
+      this.resetPaginatorAndSort();
     }
+  }
+
+  resetPaginatorAndSort() {
+    this.sort.active = undefined;
+    this.paginator.pageIndex = 0;
   }
 
   async openSelectColumnsModal(event: any): Promise<any> {

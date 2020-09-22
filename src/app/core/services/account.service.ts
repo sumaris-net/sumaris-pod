@@ -18,7 +18,6 @@ import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {NetworkService} from "./network.service";
 import {FileService} from "../../shared/file/file.service";
-import {PlatformService} from "./platform.service";
 import {Referential, ReferentialUtils, StatusIds} from "./model/referential.model";
 
 
@@ -209,7 +208,6 @@ export class AccountService extends BaseEntityService {
 
   constructor(
     private cryptoService: CryptoService,
-    protected platform: PlatformService,
     protected network: NetworkService,
     protected graphql: GraphqlService,
     protected settings: LocalSettingsService,
@@ -217,16 +215,19 @@ export class AccountService extends BaseEntityService {
     protected file: FileService
   ) {
     super(graphql);
+    this._debug = !environment.production;
+    if (this._debug) console.debug('[account-service] Creating service');
 
     this.resetData();
-
-    this.start();
 
     // Send auth token to the graphql layer, when changed
     this.onAuthTokenChange.subscribe((token) => this.graphql.setAuthToken(token));
 
     // Listen network restart
     this.graphql.onStart.subscribe(async () => {
+      if (!this._started) {
+        this.ready();
+      }
       if (this._started && this.isLogin()) {
         console.debug("[account] Restarting, to retry to authenticate...");
         this.restart();
@@ -242,10 +243,9 @@ export class AccountService extends BaseEntityService {
         await sleep(500);
         return this.ready();
       }
-    })
+    });
 
-    // For DEV only
-    this._debug = !environment.production;
+
   }
 
   private resetData() {
@@ -259,9 +259,9 @@ export class AccountService extends BaseEntityService {
     this.data.department = null;
   }
 
-  async start() {
+  start(): Promise<void> {
     if (this._startPromise) return this._startPromise;
-    if (this._started) return;
+    if (this._started) return Promise.resolve();
 
     // Restoring local settings
     this._startPromise = this.settings.ready()

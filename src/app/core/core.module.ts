@@ -1,7 +1,6 @@
-import {NgModule} from '@angular/core';
+import {ModuleWithProviders, NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
-import {AccountService} from './services/account.service';
 import {AccountValidatorService} from './services/validator/account.validator';
 import {UserSettingsValidatorService} from './services/validator/user-settings.validator';
 import {BaseEntityService} from './services/base.data-service.class';
@@ -11,6 +10,7 @@ import {AboutModal} from './about/modal-about';
 import {RegisterConfirmPage} from "./register/confirm/confirm";
 import {AccountPage} from "./account/account";
 import {
+  EntitiesService,
   fromDateISOString,
   isNil,
   isNotNil,
@@ -18,7 +18,6 @@ import {
   LoadResult,
   nullIfUndefined,
   SharedModule,
-  EntitiesService,
   toDateISOString
 } from '../shared/shared.module';
 import {AppForm} from './form/form.class';
@@ -29,14 +28,11 @@ import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from './table/ta
 import {EntitiesTableDataSource} from './table/entities-table-datasource.class';
 import {TableSelectColumnsComponent} from './table/table-select-columns.component';
 import {MenuComponent} from './menu/menu.component';
-import {ReactiveFormsModule} from "@angular/forms";
 import {IonicStorageModule} from '@ionic/storage';
 import {HomePage} from './home/home';
 import {RegisterForm} from './register/form/form-register';
 import {RegisterModal} from './register/modal/modal-register';
 import {AppGraphQLModule} from './graphql/graphql.module';
-import {DateAdapter} from "@angular/material/core";
-import * as moment from "moment/moment";
 import {AppFormUtils, FormArrayHelper} from './form/form.utils';
 import {AppTableUtils} from './table/table.utils';
 import {IReferentialRef, Referential, ReferentialRef, referentialToString} from './services/model/referential.model';
@@ -54,19 +50,15 @@ import {
   PropertiesMap
 } from './services/model/entity.model';
 // import ngx-translate and the http loader
-import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {HttpClientModule} from '@angular/common/http';
 import {SelectPeerModal} from "./peer/select-peer.modal";
 import {SettingsPage} from "./settings/settings.page";
-import {LocalSettingsValidatorService} from "./services/validator/local-settings.validator";
-import {LocalSettingsService} from "./services/local-settings.service";
 import {AppEntityEditor} from "./form/editor.class";
-import {EntitiesStorage} from "./services/entities-storage.service";
-import {IonicModule} from "@ionic/angular";
 import {CacheModule} from "ionic-cache";
 import {AppPropertiesForm} from "./form/properties.form";
 import {AppListForm} from "./form/list.form";
+import {PlatformService} from "./services/platform.service";
+import {IsNotOnFieldModePipe, IsOnFieldModePipe} from "./services/pipes/usage-mode.pipes";
 
 export {
   environment,
@@ -109,13 +101,6 @@ export {
   PropertiesMap
 };
 
-export function HttpLoaderFactory(http: HttpClient) {
-  if (environment.production) {
-    // This is need to force a reload, after an app update
-    return new TranslateHttpLoader(http, './assets/i18n/', `-${environment.version}.json`);
-  }
-  return new TranslateHttpLoader(http, './assets/i18n/', `.json`);
-}
 
 @NgModule({
   imports: [
@@ -124,24 +109,18 @@ export function HttpLoaderFactory(http: HttpClient) {
     HttpClientModule,
     AppGraphQLModule,
     SharedModule,
-    ReactiveFormsModule,
-    IonicModule.forRoot(),
-    CacheModule.forRoot(),
-    IonicStorageModule.forRoot({
-      name: 'sumaris',
-      driverOrder: ['indexeddb', 'sqlite', 'websql']
-    }),
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [HttpClient]
-      }
-    })
+    CacheModule,
+    IonicStorageModule
   ],
 
   declarations: [
+    // Pipes
+    IsOnFieldModePipe,
+    IsNotOnFieldModePipe,
+
+    // Home and menu
     HomePage,
+    MenuComponent,
     AboutModal,
 
     // Auth & Register
@@ -156,16 +135,15 @@ export function HttpLoaderFactory(http: HttpClient) {
     // Network
     SelectPeerModal,
 
-    // Components
-    MenuComponent,
+    // Other components
     TableSelectColumnsComponent,
     EntityMetadataComponent,
     FormButtonsBarComponent,
     AppPropertiesForm,
     AppListForm
+
   ],
   exports: [
-    CommonModule,
     SharedModule,
     RouterModule,
     AppGraphQLModule,
@@ -176,73 +154,21 @@ export function HttpLoaderFactory(http: HttpClient) {
     EntityMetadataComponent,
     FormButtonsBarComponent,
     MenuComponent,
-    ReactiveFormsModule,
-    TranslateModule,
     AboutModal,
     AppPropertiesForm,
-    AppListForm
-  ],
-  providers: [
-    LocalSettingsService,
-    AccountValidatorService,
-    UserSettingsValidatorService,
-    LocalSettingsValidatorService,
-    EntitiesStorage
+    AppListForm,
+    IsOnFieldModePipe,
+    IsNotOnFieldModePipe
   ]
 })
 export class CoreModule {
 
-  constructor(
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    accountService: AccountService,
-    dateAdapter: DateAdapter<any>) {
+  static forRoot(): ModuleWithProviders<CoreModule> {
 
-    console.info("[core] Starting module...");
-
-    // this language will be used as a fallback when a translation isn't found in the current language
-    translate.setDefaultLang(environment.defaultLocale);
-
-    // When locale changes, apply to date adapter
-    translate.onLangChange.subscribe(event => {
-      if (event && event.lang) {
-
-        // force 'en' as 'en_GB'
-        if (event.lang === 'en') {
-          event.lang = "en_GB";
-        }
-
-        // Config date adapter
-        dateAdapter.setLocale(event.lang);
-
-        // config moment lib
-        try {
-          moment.locale(event.lang);
-          console.debug('[app] Use locale {' + event.lang + '}');
-        }
-          // If error, fallback to en
-        catch (err) {
-          dateAdapter.setLocale('en');
-          moment.locale('en');
-          console.warn('[app] Unknown local for moment lib. Using default [en]');
-        }
-
-      }
-    });
-
-    settings.onChange.subscribe(data => {
-      if (data && data.locale && data.locale !== translate.currentLang) {
-        translate.use(data.locale);
-      }
-    });
-
-    accountService.onLogin.subscribe(account => {
-      if (settings.settings.accountInheritance) {
-        if (account.settings && account.settings.locale && account.settings.locale !== translate.currentLang) {
-          translate.use(account.settings.locale);
-        }
-      }
-    });
+    console.info("[core] Creating module (root)");
+    return {
+      ngModule: CoreModule,
+      providers: [ PlatformService ]
+    }
   }
-
 }

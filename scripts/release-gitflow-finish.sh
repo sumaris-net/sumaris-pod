@@ -48,4 +48,4 @@ git commit -m "$description"
 # -n: don't tag (github.sh already do it)
 # -m: use default message
 # -p: push all tags after finish
-git flow release finish -F -p -n -m "$version"
+git flow release finish -F -p -n "$version"

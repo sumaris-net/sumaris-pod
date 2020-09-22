@@ -23,7 +23,7 @@ export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withMetiers?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class TripValidatorService<O extends TripValidatorOptions = TripValidatorOptions>
   extends DataRootEntityValidatorService<Trip, O> {
 

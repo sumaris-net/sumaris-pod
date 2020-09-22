@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup, ValidatorFn} from "@angular/forms";
 
 import {toBoolean} from '../../../shared/functions';
@@ -16,7 +16,7 @@ export interface MeasurementsValidatorOptions {
   forceOptional?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class MeasurementsValidatorService<T extends Measurement = Measurement, O extends MeasurementsValidatorOptions = MeasurementsValidatorOptions>
   implements ValidatorService {
 

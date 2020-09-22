@@ -46,6 +46,7 @@ const routes: Routes = [
     IonicModule,
     ReactiveFormsModule,
     SharedMaterialModule,
+    TranslateModule.forChild(),
     RouterModule.forChild(routes)
   ],
   declarations: [

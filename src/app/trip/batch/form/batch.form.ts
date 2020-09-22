@@ -84,10 +84,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
   $allPmfms = new BehaviorSubject<PmfmStrategy[]>(null);
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
 

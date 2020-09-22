@@ -5,7 +5,7 @@ import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
 import {catchError, map, switchMap, throttleTime} from "rxjs/operators";
 import {Entity, EntityUtils} from "./model/entity.model";
-import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/entity-service.class";
 
 
@@ -201,6 +201,7 @@ export class EntityStore<T extends Entity<T>> {
 @Injectable({providedIn: 'root'})
 export class EntitiesStorage {
 
+  private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<void>;
   private _subscription = new Subscription();
@@ -211,9 +212,8 @@ export class EntitiesStorage {
   private _dirty = false;
   private _saving = false;
 
-  public onStart = new Subject<void>();
 
-  protected _debug = false;
+  onStart = new Subject<void>();
 
   get dirty(): boolean {
     return this._dirty || Object.entries(this._stores).find(([entityName, store]) => store.dirty) !== undefined;
@@ -224,11 +224,9 @@ export class EntitiesStorage {
     private storage: Storage
   ) {
 
-    this.platform.ready()
-      .then(() => this.start());
-
     // For DEV only
     this._debug = !environment.production;
+    if (this._debug) console.debug('[entity-store] Creating service');
   }
 
   watchAll<T extends Entity<T>>(entityName: string,
@@ -463,17 +461,17 @@ export class EntitiesStorage {
     return entityOrName.constructor.name + 'VO';
   }
 
-  protected async ready() {
-    if (this._started) return;
+  ready(): Promise<void> {
+    if (this._started) return Promise.resolve();
     return this.start();
   }
 
-  protected async start() {
+  start(): Promise<void> {
     if (this._startPromise) return this._startPromise;
-    if (this._started) return;
+    if (this._started) return Promise.resolve();
 
     const now = Date.now();
-    console.info("[entity-storage] Starting...");
+    console.info(`[entity-storage] Starting entities storage...`);
 
     // Restore sequences
     this._startPromise = this.restoreLocally()
@@ -491,6 +489,7 @@ export class EntitiesStorage {
 
         this._started = true;
         this._startPromise = undefined;
+
         console.info(`[entity-storage] Starting [OK] in ${Date.now() - now}ms`);
 
         // Emit event
@@ -500,7 +499,7 @@ export class EntitiesStorage {
     return this._startPromise;
   }
 
-  protected async stop() {
+  public async stop() {
     this._started = false;
     this._subscription.unsubscribe();
     this._subscription = new Subscription();
@@ -510,7 +509,7 @@ export class EntitiesStorage {
     }
   }
 
-  protected async restart() {
+  public async restart() {
     if (this._started) await this.stop();
     await this.start();
   }
@@ -531,6 +530,9 @@ export class EntitiesStorage {
             if (entities instanceof Array && entities.length) {
               entitiesCount += entities.length;
               //if (this._debug) console.debug(`[entity-storage] - Restoring ${entities.length} ${entityName}...`);
+              if (entities.length >= 1000) {
+                console.warn(`[entity-storage] - Restoring ${entities.length} ${entityName}...`);
+              }
 
               // Create a entity store, with all given entities
               this._stores[entityName] = EntityStore.fromEntities<any>(entities, {

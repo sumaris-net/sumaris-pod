@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {AppForm} from "../../core/core.module";
+import {AppForm, isNotNil} from "../../core/core.module";
 import {FishingArea} from "../services/model/fishing-area.model";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
@@ -10,6 +10,8 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FishingAreaValidatorService} from "../services/validator/fishing-area.validator";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {debounceTime, distinctUntilChanged, filter, pluck} from "rxjs/operators";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-fishing-area-form',
@@ -25,6 +27,7 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
   @Input() showDistanceToCoastGradient = true;
   @Input() showDepthGradient = true;
   @Input() showNearbySpecificArea = true;
+  @Input() locationLevelIds = [LocationLevelIds.ICES_RECTANGLE];
 
   get empty(): boolean {
     const value = this.value;
@@ -58,13 +61,12 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
     // Set if required or not
     this.validatorService.updateFormGroup(this.form, {required: this.required});
 
-    // Combo: sale locations
+    // Combo: fishing area
     this.registerAutocompleteField('location', {
-      service: this.referentialRefService,
-      filter: {
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         entityName: 'Location',
-        levelId: LocationLevelIds.SEA_AREA
-      }
+        levelIds: this.locationLevelIds
+      })
     });
 
     // Combo: distance to coast gradient
@@ -81,7 +83,6 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
     this.registerAutocompleteField('nearbySpecificArea', {
       suggestFn: (value, options) => this.suggest(value, options, 'NearbySpecificArea')
     });
-
   }
 
   private suggest(value: string, options: any, entityName: string) {

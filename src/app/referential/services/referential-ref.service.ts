@@ -81,9 +81,6 @@ export class ReferentialRefService extends BaseEntityService
     protected entities: EntitiesStorage
   ) {
     super(graphql);
-
-    // -- For DEV only
-    this._debug = !environment.production;
   }
 
   /**
@@ -197,15 +194,7 @@ export class ReferentialRefService extends BaseEntityService
         || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
         || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        label: filter.label,
-        name: filter.name,
-        searchText: filter.searchText,
-        searchAttribute: filter.searchAttribute,
-        searchJoin: filter.searchJoin,
-        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
 
 
@@ -430,7 +419,11 @@ export class ReferentialRefService extends BaseEntityService
           filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO] };
           break;
         case 'Location':
-          filter = {entityName, statusIds, levelIds: Object.keys(LocationLevelIds).map(key => LocationLevelIds[key]) };
+          filter = {entityName, statusIds, levelIds: Object.keys(LocationLevelIds)
+              .map(key => parseInt(LocationLevelIds[key]))
+              // Exclude rectangles (because more than 7200 rect exists !)
+              // TODO: find a way to add it, depending on the program properties ?
+              .filter(id => id != LocationLevelIds.ICES_RECTANGLE)};
           break;
         default:
           filter = {entityName, statusIds};

@@ -54,16 +54,17 @@ export declare type NetworkEventType = 'start'|'peerChanged'|'statusChanged'|'re
 @Injectable({providedIn: 'root'})
 export class NetworkService {
 
+  private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<any>;
   private _subscription = new Subscription();
-  private _debug = false;
   private _peer: Peer;
   private _deviceConnectionType: ConnectionType;
   private _forceOffline: boolean;
   private _listeners: {
    [key: string]: ((data?: any) => Promise<void>)[]
   } = {};
+
 
   onStart = new Subject<Peer>();
   onPeerChanges = this.onStart.pipe(
@@ -117,11 +118,9 @@ export class NetworkService {
   ) {
     this.resetData();
 
-    // Start the service
-    this.start();
-
     // For DEV only
     this._debug = !environment.production;
+    if (this._debug) console.debug('[network] Creating service');
   }
 
   /**

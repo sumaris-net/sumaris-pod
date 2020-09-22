@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, Input} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {BatchGroupValidatorService} from "../../services/validator/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
@@ -697,7 +697,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // Scientific species is required, if not set in root batches
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
-        showIndividualCount: !this.isOnFieldMode,
+        showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
         availableParents,
         availableSubBatchesFn: this.availableSubBatchesFn,
         onNewParentClick

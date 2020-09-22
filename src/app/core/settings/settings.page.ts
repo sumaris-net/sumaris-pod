@@ -10,7 +10,7 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {AppFormUtils, FormArrayHelper} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocalSettingsValidatorService} from "../services/validator/local-settings.validator";
 import {PlatformService} from "../services/platform.service";
 import {NetworkService} from "../services/network.service";

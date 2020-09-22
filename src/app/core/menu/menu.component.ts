@@ -27,6 +27,7 @@ import {BehaviorSubject, merge, Subscription} from "rxjs";
 import {ConfigService} from "../services/config.service";
 import {mergeMap, tap} from "rxjs/operators";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {PlatformService} from "../services/platform.service";
 
 export interface MenuItem {
   title: string;
@@ -73,7 +74,7 @@ export class MenuItems {
 
     // If enable by config
     if (item.ifProperty) {
-      console.log("TODO if property " + item.ifProperty, config && config.properties);
+      //console.debug("[menu] Checking if property enable ? " + item.ifProperty, config && config.properties);
       const isEnableByConfig = config && config.properties[item.ifProperty] === 'true';
       if (!isEnableByConfig) {
         if (opts.debug) console.debug("[menu] Config property '" + item.ifProperty + "' not 'true' for ", item.path);
@@ -123,6 +124,7 @@ export class MenuComponent implements OnInit {
   @ViewChild('splitPane', { static: true }) splitPane: IonSplitPane;
 
   constructor (
+    protected platformService: PlatformService,
     protected accountService: AccountService,
     protected router: Router,
     protected menu: MenuController,
@@ -146,11 +148,13 @@ export class MenuComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     this.splitPaneOpened = true;
+    this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
 
-    // Wait account first start
-    await this.accountService.ready();
+    // Wait platform started
+    await this.platformService.ready();
+
+    this.splitPaneOpened = true;
 
     // Update component when refresh is need (=login events or config changed)
     this._subscription.add(
@@ -181,8 +185,6 @@ export class MenuComponent implements OnInit {
     console.info('[menu] Update using logged account');
     this.account = account;
     this.isLogin = true;
-    //this.splitPaneOpened = true;
-    //this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     await this.refreshMenuItems();
 
     setTimeout(() => {

@@ -23,7 +23,7 @@ import {FormGroup} from "@angular/forms";
 import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
-
+import {ServerErrorCodes} from "../services/errors";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;
@@ -80,7 +80,7 @@ export abstract class AppEntityEditor<
   }
 
   get isOnFieldMode(): boolean {
-    return this._usageMode ? this._usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+    return this.settings.isOnFieldMode(this._usageMode);
   }
 
   get isNewData(): boolean {
@@ -403,6 +403,8 @@ export abstract class AppEntityEditor<
       // Save form
       const updatedData = await this.dataService.save(data, options);
 
+      await this.onEntitySaved(updatedData);
+
       // Update the view (e.g metadata)
       this.updateView(updatedData, options);
 
@@ -540,6 +542,10 @@ export abstract class AppEntityEditor<
     // can be overwrite by subclasses
   }
 
+  protected async onEntitySaved(data: T): Promise<void> {
+    // can be overwrite by subclasses
+  }
+
   protected async onEntityDeleted(data: T): Promise<void> {
     // can be overwrite by subclasses
   }
@@ -633,4 +639,3 @@ export abstract class AppEntityEditor<
   }
 }
 
-import {ServerErrorCodes} from "../services/errors";

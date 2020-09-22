@@ -19,6 +19,8 @@ import {PlatformService} from "../../core/services/platform.service";
 
 export class ReferentialFilter {
   entityName: string;
+
+  id?: number;
   label?: string;
   name?: string;
 
@@ -45,6 +47,7 @@ export class ReferentialFilter {
   static asPodObject(filter: ReferentialFilter): any {
     if (!filter) return filter;
     return {
+      id: filter.id,
       label: filter.label,
       name: filter.name,
       searchText: filter.searchText,
@@ -57,6 +60,7 @@ export class ReferentialFilter {
 }
 export const ReferentialFilterKeys: KeysEnum<ReferentialFilter> = {
   entityName: true,
+  id: true,
   label: true,
   name: true,
   statusId: true,

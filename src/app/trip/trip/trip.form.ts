@@ -103,10 +103,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.setValue(json);
   }
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   get observersForm(): FormArray {
     return this.form.controls.observers as FormArray;
   }

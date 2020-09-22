@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {Batch, BatchUtils, BatchWeight} from "../model/batch.model";
@@ -8,7 +8,7 @@ import {isNil, isNotNilOrNaN, toBoolean, toNumber} from "../../../shared/functio
 import {MethodIds} from "../../../referential/services/model/model.enum";
 import {Subject, Subscription} from "rxjs";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
 
   constructor(

@@ -5,7 +5,7 @@ import {ObservedLocation} from "../model/observed-location.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {DataRootEntityValidatorService} from "../../../data/services/validator/root-data-entity.validator";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ObservedLocationValidatorService extends DataRootEntityValidatorService<ObservedLocation>{
 
   constructor(

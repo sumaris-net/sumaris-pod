@@ -1,5 +1,5 @@
 import {Directive, Injector, Input} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {AppTable, EntitiesTableDataSource, Entity} from "../../core/core.module";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {ActivatedRoute, Router} from "@angular/router";

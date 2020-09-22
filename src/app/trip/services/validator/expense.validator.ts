@@ -5,7 +5,7 @@ import {Measurement} from "../model/measurement.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {ProgramService} from "../../../referential/services/program.service";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ExpenseValidatorService extends MeasurementsValidatorService {
 
   constructor(

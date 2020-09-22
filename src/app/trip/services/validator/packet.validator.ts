@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {
   SharedFormArrayValidators,
@@ -19,7 +19,7 @@ export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withSaleProducts?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PacketValidatorService<O extends PacketValidatorOptions = PacketValidatorOptions>
   extends DataEntityValidatorService<Packet, O> implements ValidatorService {
 

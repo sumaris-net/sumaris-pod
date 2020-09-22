@@ -6,7 +6,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {toNumber} from "../../../shared/functions";
 import {ReferentialValidatorService} from "./referential.validator";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class StrategyValidatorService extends ReferentialValidatorService<Strategy> {
 
   constructor(
@@ -17,7 +17,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
   }
 
   getFormGroup(data?: Strategy): FormGroup {
-    console.debug("[strategy-validator] Creating strategy form");
+    //console.debug("[strategy-validator] Creating strategy form");
 
     return this.formBuilder.group({
       id: [toNumber(data && data.id, null)],

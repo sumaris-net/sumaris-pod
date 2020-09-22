@@ -8,7 +8,7 @@ import {environment} from "../../../environments/environment";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {BehaviorSubject, Observable} from "rxjs";
 import {IReferentialRef} from "../../core/services/model/referential.model";
-import {TableElement} from "angular4-material-table";
+import {TableElement} from "@e-is/ngx-material-table";
 import {ProductSaleModal} from "../sale/product-sale.modal";
 import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";

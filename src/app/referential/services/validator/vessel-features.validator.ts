@@ -1,11 +1,11 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {QualityFlagIds} from "../model/model.enum";
 import {VesselFeatures} from "../model/vessel.model";
 import {SharedValidators} from "../../../shared/validator/validators";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class VesselFeaturesValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder) {

@@ -1,6 +1,6 @@
 import {Directive, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {
   AppTable,
   EntitiesTableDataSource,

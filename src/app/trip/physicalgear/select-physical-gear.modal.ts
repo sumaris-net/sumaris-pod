@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearFilter, PhysicalGearService} from "../services/physicalgear.service";
-import {TableElement} from "angular4-material-table";
+import {TableElement} from "@e-is/ngx-material-table";
 import {PhysicalGear} from "../services/model/trip.model";
 import {isNotNil, toBoolean} from "../../shared/functions";
 import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";

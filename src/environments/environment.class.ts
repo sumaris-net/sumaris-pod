@@ -1,4 +1,5 @@
 import {FetchPolicy} from "apollo-client";
+import {StorageConfig} from "@ionic/storage";
 export class Environment {
   name: string;
   version: string;
@@ -26,4 +27,7 @@ export class Environment {
   defaultDepartmentId?: number;
   defaultAppName?: string;
   defaultAndroidInstallUrl?: string;
+
+  // Storage
+  storage?: Partial<StorageConfig>
 }

@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {PositionValidatorService} from "./position.validator";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
@@ -19,7 +19,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   withMeasurements?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class OperationValidatorService<O extends OperationValidatorOptions = OperationValidatorOptions>
   extends DataEntityValidatorService<Operation, O>
   implements ValidatorService {

@@ -243,7 +243,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     self = self || this;
     if (isNil(type)) return undefined;
     const key = `EXTRACTION.${type.category}.${type.format}.TITLE`.toUpperCase();
-    let message = self.translate.instant(key);
+    let message = self.translate.instant(key, type);
 
     if (message !== key) return message;
     // No I18n translation: continue
@@ -299,7 +299,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   getFilterAsQueryParams(): any {
     const params: any = {
       category: this.type && this.type.category,
-      label: this.type && this.type.label
+      label: this.type && this.type.label,
+      version: this.type && this.type.version
     };
     const filter = this.getFilterValue();
     if (filter.sheetName) {

@@ -9,7 +9,7 @@ import {
   OnInit,
   Output
 } from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {environment, referentialToString, EntitiesService} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";

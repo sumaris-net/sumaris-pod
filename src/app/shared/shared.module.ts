@@ -1,4 +1,4 @@
-import {NgModule} from "@angular/core";
+import {ModuleWithProviders, NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {SharedMaterialModule} from "./material/material.module";
 import {ReactiveFormsModule} from "@angular/forms";
@@ -50,7 +50,7 @@ import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
 import {AudioProvider} from "./audio/audio";
-import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
+import {CloseScrollStrategy, FullscreenOverlayContainer, Overlay, OverlayContainer} from '@angular/cdk/overlay';
 import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
 import {FileService} from "./file/file.service";
 import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
@@ -63,6 +63,11 @@ import {SharedDirectivesModule} from "./directives/directives.module";
 import {SharedPipesModule} from "./pipes/pipes.module";
 import {AppLoadingSpinner} from "./form/loading-spinner";
 import {SharedGestureModule} from "./gesture/gesture.module";
+import {QuicklinkModule} from "ngx-quicklink";
+import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
+import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
+import {HighlightPipe} from "./pipes/highlight.pipe";
+import {NumberFormatPipe} from "./pipes/number-format.pipe";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -93,11 +98,12 @@ export {
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
-    TranslateModule.forChild(),
+    TranslateModule,
     TextMaskModule,
     ColorPickerModule,
     SharedHotkeysModule,
-    DragDropModule
+    DragDropModule,
+    QuicklinkModule // See https://web.dev/route-preloading-in-angular/
   ],
   declarations: [
     ToolbarComponent,
@@ -106,8 +112,8 @@ export {
     AppLoadingSpinner
   ],
   exports: [
-    ReactiveFormsModule,
     IonicModule,
+    ReactiveFormsModule,
     SharedGestureModule,
     SharedMaterialModule,
     SharedDirectivesModule,
@@ -118,31 +124,52 @@ export {
     TranslateModule,
     ColorPickerModule,
     AppFormField,
-    AppLoadingSpinner
-  ],
-  providers: [
-    ProgressBarService,
-    AudioProvider,
-    FileService,
-    {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},
-    {
-      provide: MatPaginatorIntl,
-      useFactory: (translate) => {
-        const service = new MatPaginatorI18n();
-        service.injectTranslateService(translate);
-        return service;
-      },
-      deps: [TranslateService]
-    },
-    // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
-    //{ provide: Overlay, useClass: Overlay},
-    { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
-    { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
-    { provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
-        autoActiveFirstOption: true
-      }
-    }
+    AppLoadingSpinner,
+    QuicklinkModule
   ]
 })
 export class SharedModule {
+
+  static forRoot(): ModuleWithProviders<SharedModule> {
+    console.debug('[shared] Creating module (root)');
+
+    return {
+      ngModule: SharedModule,
+      providers: [
+        ProgressBarService,
+        AudioProvider,
+        FileService,
+
+        // Export Pipes as providers
+        DateFormatPipe,
+        DateFromNowPipe,
+        DateDiffDurationPipe,
+        LatLongFormatPipe,
+        LatitudeFormatPipe,
+        LongitudeFormatPipe,
+        HighlightPipe,
+        NumberFormatPipe,
+
+        {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
+        {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},
+        {
+          provide: MatPaginatorIntl,
+          useFactory: (translate) => {
+            const service = new MatPaginatorI18n();
+            service.injectTranslateService(translate);
+            return service;
+          },
+          deps: [TranslateService]
+        },
+        // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
+        //{ provide: Overlay, useClass: Overlay},
+        { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+        { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+        { provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
+            autoActiveFirstOption: true
+          }
+        }
+      ]
+    }
+  }
 }

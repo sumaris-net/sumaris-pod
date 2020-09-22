@@ -35,6 +35,9 @@ mat-table  {
   .mat-cell {
     padding-left: 0.5em;
     text-overflow: ellipsis;
+    display: grid;
+    max-height: 53px;
+    overflow-wrap: break-word;
   }
 
   .mat-column-eu_metier_level6 {

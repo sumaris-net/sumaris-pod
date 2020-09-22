@@ -6,7 +6,7 @@ import {ReferentialValidatorService} from "./referential.validator";
 import {Pmfm} from "../model/pmfm.model";
 
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
 
   constructor(

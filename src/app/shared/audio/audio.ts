@@ -44,8 +44,7 @@ export class AudioProvider {
   }
 
   public async ready() {
-    if (this._started) return;
-
+    if (this._started) return Promise.resolve();
     await this.start();
   }
 
@@ -165,9 +164,9 @@ export class AudioProvider {
 
   /* -- protected methods  -- */
 
-  async start() {
+  start() {
     if (this._startPromise) return this._startPromise;
-    if (this._started) return;
+    if (this._started) return Promise.resolve();
 
     let cordova: boolean;
     this._startPromise = this.platform.ready()

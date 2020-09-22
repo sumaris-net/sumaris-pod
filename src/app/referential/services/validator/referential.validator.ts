@@ -3,7 +3,7 @@ import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angul
 import {Referential} from "../../../core/services/model/referential.model";
 import {AppValidatorService} from "../../../core/services/validator/base.validator.class";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ReferentialValidatorService<T extends Referential = Referential>
   extends AppValidatorService<T> {
 

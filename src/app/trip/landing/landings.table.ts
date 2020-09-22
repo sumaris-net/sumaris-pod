@@ -10,7 +10,7 @@ import {
   OnInit,
   Output
 } from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 
 import {personsToString} from "../../core/services/model/person.model";
 import {referentialToString} from "../../core/services/model/referential.model";

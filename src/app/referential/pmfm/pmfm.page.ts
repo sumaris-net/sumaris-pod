@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
 import {AppEntityEditor, environment, isNil, joinPropertiesPath} from "../../core/core.module";
 import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";

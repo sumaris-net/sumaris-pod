@@ -157,7 +157,13 @@
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Statut par défaut pour un nouveau navire"
       },
-      "TESTING": "Mode développeur ?"
+      "ENUMERATION": {
+        "LOCATION_LEVEL_COUNTRY_ID": "Référentiel > Niveau de lieu > Pays",
+        "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
+        "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée"
+      },
+      "TESTING": "Mode développeur ?",
+      "ENTITY_TRASH": "Activer la corbeille du pod ?"
     },
     "CACHE": {
       "NAME": "Nom",
@@ -500,7 +506,8 @@
         "COMMENTS": "Commentaires"
       },
       "ERROR": {
-        "FIELD_DATE_OUTSIDE_TRIP": "Date hors de la marée",
+        "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
+        "FIELD_DATE_AFTER_TRIP": "Après le retour de la marée",
         "LOAD_OPERATION_ERROR": "Erreur de chargement de l'opération.",
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
@@ -682,8 +689,8 @@
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Ajout d'un navire",
       "TAB_VESSELS": "Recherche",
-      "TAB_LANDINGS": "Navires déjà observés",
-      "TAB_NEW_VESSEL": "Créer nouveau navire"
+      "TAB_LANDINGS": "Historique",
+      "TAB_NEW_VESSEL": "Nouveau navire"
     },
     "TABLE": {
       "TITLE": "Contrôles en criée",
@@ -1082,15 +1089,14 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation sur site > Date de fin ?",
-      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation sur site > Niveau du lieu",
-      "LOCATION_LEVEL_PORT": "Ports",
-      "LOCATION_LEVEL_AUCTION": "Criées",
+      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation sur site > Niveau(x) de lieu",
       "LANDING_EDITOR": "Observation sur site > Débarquement: éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
-      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?"
+      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
@@ -1245,13 +1251,25 @@
           "HL": "Mensurations (HL)"
         }
       },
-      "FREE": {
-        "TITLE": "Données brutes (FREE v1)",
+      "FREE1": {
+        "TITLE": "Données brutes (FREE v{{version}})",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",
           "SL": "Captures (SL)",
           "HL": "Mensurations (HL)"
+        }
+      },
+      "FREE2": {
+        "TITLE": "Données brutes (FREE2 v{{version}})",
+        "SHEET": {
+          "MAREE": "Marées",
+          "OPERATION_PECHE": "Opérations",
+          "ENGINS": "Engins",
+          "STRATEGIE": "Stratégie",
+          "DETAIL": "Détail",
+          "CAPTURES": "Captures",
+          "MESURES": "Mensures"
         }
       },
       "SURVIVAL_TEST": {
@@ -1365,7 +1383,9 @@
     "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "NETWORK_REQUIRED": "Connexion au réseau impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
-    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne."
+    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
+    "COPY_STORAGE_ERROR": "Erreur de copie des données",
+    "DATA_MIGRATION_FAILED": "Echec de la migration de données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1380,6 +1400,8 @@
   },
   "INFO" : {
     "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur.",
-    "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur."
+    "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur.",
+    "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",
+    "DATA_MIGRATION_SUCCEED": "Restauration de données <b>terminée avec succès</b> !"
   }
 }

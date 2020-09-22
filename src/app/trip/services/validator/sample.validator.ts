@@ -1,11 +1,11 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {Sample} from "../model/sample.model";
 import {toNumber} from "../../../shared/functions";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class SampleValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder) {

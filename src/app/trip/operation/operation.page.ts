@@ -95,10 +95,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   @ViewChild('individualMonitoringTable', { static: true }) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
   @ViewChild('individualReleaseTable', { static: true }) individualReleaseTable: SubSamplesTable;
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   get form(): FormGroup {
     return this.opeForm.form;
   }
@@ -172,7 +168,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   async ngAfterViewInit(): Promise<void> {
 
     this.registerSubscription(
-      this.opeForm.form.controls['physicalGear'].valueChanges
+      this.form.get('physicalGear').valueChanges
         .subscribe((res) => {
           if (this.loading) return; // SKip during loading
           const gearId = res && res.gear && res.gear.id || null;

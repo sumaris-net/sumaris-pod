@@ -21,7 +21,7 @@ import {ReferentialValidatorService} from "../services/validator/referential.val
 import {Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model/strategy.model";
 import {Program} from "../services/model/program.model";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {TableElement} from "angular4-material-table";
+import {TableElement} from "@e-is/ngx-material-table";
 
 @Component({
   selector: 'app-strategy-form',

@@ -2,11 +2,11 @@ import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Program} from "../model/program.model";
 
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ProgramValidatorService implements ValidatorService {
 
   constructor(

@@ -1,4 +1,4 @@
-import {ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {IValidatorService} from "../../../shared/services/validator-service.class";
 import {Directive} from "@angular/core";

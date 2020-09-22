@@ -4,7 +4,7 @@ import {SharedFormArrayValidators, SharedValidators} from "../../../shared/valid
 import {AggregationStrata, AggregationType} from "../model/extraction.model";
 import {AppValidatorService} from "../../../core/services/validator/base.validator.class";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class AggregationTypeValidatorService extends AppValidatorService<AggregationType> {
 
   constructor(

@@ -47,6 +47,13 @@
           <button type="button" mat-icon-button tabindex="-1" matSuffix #datePickerButton2 (click)="openDatePicker($event, datePicker2)" [disabled]="formControl.disabled">
             <div *ngIf="mobile; then iconDate; else iconDesktop"></div>
           </button>
+          <button matSuffix mat-icon-button tabindex="-1"
+                  type="button"
+                  *ngIf="clearable"
+                  (click)="writeValue(null)"
+                  [hidden]="formControl.disabled || !formControl.value">
+            <mat-icon>close</mat-icon>
+          </button>
         </mat-form-field>
         <mat-datepicker #datePicker2
                         [touchUi]="mobile"
@@ -153,11 +160,9 @@
 <!-- no time (day without time) -->
 <ng-template #writableNoTime>
   <form [formGroup]="form">
-    <mat-form-field [floatLabel]="floatLabel"
-                    >
+    <mat-form-field [floatLabel]="floatLabel">
 
       <mat-label>{{placeholder}}</mat-label>
-
       <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
 
       <input matInput #matInput autocomplete="off" type="text"

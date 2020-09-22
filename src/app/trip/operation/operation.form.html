@@ -104,7 +104,8 @@
                                    [placeholder]="'COMMON.DATE'|translate"
                                    [tabindex]="tabindex+10"
                                    [startDate]="form.controls.startDateTime.value"
-                                   [required]="!isOnFieldMode">
+                                   [required]="usageMode|isNotOnField"
+                                   [clearable]="usageMode|isOnField">
 
                 <mat-hint align="end" *ngIf="endDateTimeControl.value && !endDateTimeControl.errors">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls.startDateTime.value,
@@ -118,7 +119,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+12"
-                                 [required]="!isOnFieldMode"
+                                 [required]="usageMode|isNotOnField"
                                  [defaultSign]="defaultLatitudeSign">
               </mat-latlong-field>
             </ion-col>
@@ -127,7 +128,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+15"
-                                 [required]="!isOnFieldMode"
+                                 [required]="usageMode|isNotOnField"
                                  [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event, 'endPosition')"

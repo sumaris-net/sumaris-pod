@@ -13,7 +13,7 @@ export interface FishingAreaValidatorOptions extends DataEntityValidatorOptions 
   required?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class FishingAreaValidatorService<O extends FishingAreaValidatorOptions = FishingAreaValidatorOptions>
   extends DataEntityValidatorService<FishingArea, FishingAreaValidatorOptions> {
 

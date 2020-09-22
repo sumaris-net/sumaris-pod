@@ -2,10 +2,13 @@
 
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {
+  // Lands
   COUNTRY: 1,
   PORT: 2,
   AUCTION: 3,
-  SEA_AREA: 4
+
+  // At sea
+  ICES_RECTANGLE: 4
 };
 
 export const GearLevelIds = {

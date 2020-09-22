@@ -102,10 +102,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
           this.operationTable.showMap = program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
-          // If new data, enable gears and operations tabs
           if (this.isNewData) {
+            // If new data, enable gears tab
             this.showGearTable = true;
-            this.showOperationTable = true;
+            // BUT leave operation gear have been filled
+            this.showOperationTable = false;
           }
         })
     );
@@ -174,15 +175,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // If new data
     if (this.isNewData) {
       // Enable gears and operations tabs, if a program has been selected
-      if (ReferentialUtils.isNotEmpty(this.programSubject.getValue())) {
-        this.showGearTable = true;
-        this.showOperationTable = true;
-
-      }
-      else {
-        this.showGearTable = false;
-        this.showOperationTable = false;
-      }
+      this.showGearTable = ReferentialUtils.isNotEmpty(this.programSubject.getValue());
+      this.showOperationTable = false;
     }
     else {
       this.showGearTable = true;
@@ -207,7 +201,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Operations table
     if (!isNew && this.operationTable) {
       this.operationTable.setTripId(data.id, {emitEvent: false});
-      //this.operationTable.onRefresh.emit();
     }
   }
 

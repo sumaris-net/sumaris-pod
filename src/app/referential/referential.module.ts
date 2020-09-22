@@ -46,8 +46,7 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule,
-    ReferentialRoutingModule
+    CoreModule
   ],
   declarations: [
     ReferentialsPage,
@@ -88,25 +87,6 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
     SelectReferentialModal,
     PmfmFormField,
     PmfmQvFormField
-  ],
-  providers: [
-    ReferentialRefService,
-    ReferentialService,
-    ReferentialValidatorService,
-    ProgramService,
-    VesselService,
-    VesselValidatorService,
-    VesselFeaturesValidatorService,
-    VesselRegistrationValidatorService,
-    ProgramValidatorService,
-    StrategyValidatorService,
-    PmfmStrategyValidatorService,
-    SoftwareService,
-    SoftwareValidatorService,
-    PmfmService,
-    PmfmValidatorService,
-    ParameterService,
-    ParameterValidatorService
   ]
 })
 export class ReferentialModule {

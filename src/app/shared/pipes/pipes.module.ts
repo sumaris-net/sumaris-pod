@@ -1,4 +1,4 @@
-import {NgModule} from "@angular/core";
+import {ModuleWithProviders, NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {TranslateModule} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
@@ -44,17 +44,8 @@ import {MathAbsPipe} from "./math-abs.pipe";
     NumberFormatPipe,
     FileSizePipe,
     MathAbsPipe
-  ],
-  providers: [
-    DateFormatPipe,
-    DateFromNowPipe,
-    DateDiffDurationPipe,
-    LatLongFormatPipe,
-    LatitudeFormatPipe,
-    LongitudeFormatPipe,
-    HighlightPipe,
-    NumberFormatPipe
   ]
 })
 export class SharedPipesModule {
+
 }
