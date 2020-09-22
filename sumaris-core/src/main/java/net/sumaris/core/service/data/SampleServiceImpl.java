@@ -54,7 +54,6 @@ public class SampleServiceImpl implements SampleService {
 
 	@Autowired
 	protected SampleRepository sampleRepository;
-//	protected SampleDao sampleDao;
 
 	@Autowired
 	protected MeasurementDao measurementDao;
@@ -62,13 +61,11 @@ public class SampleServiceImpl implements SampleService {
 	@Override
 	public List<SampleVO> getAllByOperationId(int operationId) {
 		return sampleRepository.findAll(SampleFilterVO.builder().operationId(operationId).build());
-//		return sampleDao.getAllByOperationId(tripId);
 	}
 
 	@Override
 	public List<SampleVO> getAllByLandingId(int landingId) {
 		return sampleRepository.findAll(SampleFilterVO.builder().landingId(landingId).build());
-//		return sampleDao.getAllByLandingId(landingId);
 	}
 
 	@Override
