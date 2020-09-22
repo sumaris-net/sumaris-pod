@@ -8,6 +8,7 @@ import {SoftwarePage} from "./software/software.page";
 import {ParameterPage} from "./pmfm/parameter.page";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {SharedRoutingModule} from "../shared/shared-routing.module";
+import {ReferentialModule} from "./referential.module";
 
 const routes: Routes = [
   {
@@ -94,6 +95,7 @@ const routes: Routes = [
 @NgModule({
   imports: [
     SharedRoutingModule,
+    ReferentialModule,
     RouterModule.forChild(routes)
   ],
   exports: [RouterModule]

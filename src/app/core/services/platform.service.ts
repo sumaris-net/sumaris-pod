@@ -17,10 +17,17 @@ import {concatPromises} from "../../shared/observables";
 import {StorageUtils} from "../../shared/services/storage.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
+import {environment} from "../../../environments/environment";
+import * as moment from "moment/moment";
+import {DateAdapter} from "@angular/material/core";
+import {AccountService} from "./account.service";
+import {timer} from "rxjs";
+import {filter, first, tap} from "rxjs/operators";
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
 
+  private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<void>;
   private _mobile: boolean;
@@ -39,17 +46,22 @@ export class PlatformService {
     private platform: Platform,
     private toastController: ToastController,
     private translate: TranslateService,
+    private dateAdapter: DateAdapter<any>,
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
     private keyboard: Keyboard,
     private entitiesStorage: EntitiesStorage,
     private settings: LocalSettingsService,
     private networkService: NetworkService,
+    private accountService: AccountService,
     private cache: CacheService,
     private storage: Storage,
     private audioProvider: AudioProvider,
     @Optional() private browser: InAppBrowser
   ) {
+
+    this._debug = !environment.production;
+    if (this._debug) console.debug('[platform] Creating service');
 
     this.start();
   }
@@ -74,7 +86,7 @@ export class PlatformService {
     return this.platform.height();
   }
 
-  protected start(): Promise<void> {
+  start(): Promise<void> {
     if (this._startPromise) return this._startPromise;
     if (this._started) return Promise.resolve();
 
@@ -95,6 +107,8 @@ export class PlatformService {
           this.settings.mobile = this._mobile;
           this.settings.touchUi = this.touchUi;
         }
+
+        this.configureTranslate();
     })
     .then(() => this.storageReady())
     .then((forage) => this.migrateStorage(forage))
@@ -124,9 +138,23 @@ export class PlatformService {
     return this._startPromise;
   }
 
-  ready(): Promise<void> {
+  /**
+   * Wait platform is ready.<br/>
+   * Important: this will NOT start the platform, has it should be started by the AppComponent
+   * @param opts
+   */
+  ready(opts?: {
+    checkPeriod: number;
+  }): Promise<any> {
+    const period = opts && opts.checkPeriod || 300;
     if (this._started) return Promise.resolve();
-    return this.start();
+    return timer(period, period)
+      .pipe(
+        // For DEBUG :
+        tap(() => this._debug && console.debug("Waiting platform ready...")),
+        filter(() => this._started),
+        first()
+      ).toPromise();
   }
 
   open(url: string, target?: string, features?: string, replace?: boolean) {
@@ -141,7 +169,8 @@ export class PlatformService {
   /* -- protected methods -- */
 
   protected configureCordovaPlugins() {
-    console.info("[platform] Setting Cordova plugins...");
+    console.info("[platform] Configuring Cordova plugins...");
+
     this.statusBar.styleDefault();
     this.statusBar.overlaysWebView(false);
     this.keyboard.hideFormAccessoryBar(true);
@@ -157,6 +186,54 @@ export class PlatformService {
     }
   }
 
+
+  protected configureTranslate() {
+    console.info("[platform] Configuring translate...");
+
+    // this language will be used as a fallback when a translation isn't found in the current language
+    this.translate.setDefaultLang(environment.defaultLocale);
+
+    // When locale changes, apply to date adapter
+    this.translate.onLangChange.subscribe(event => {
+      if (event && event.lang) {
+
+        // force 'en' as 'en_GB'
+        if (event.lang === 'en') {
+          event.lang = "en_GB";
+        }
+
+        // Config date adapter
+        this.dateAdapter.setLocale(event.lang);
+
+        // config moment lib
+        try {
+          moment.locale(event.lang);
+          console.debug('[platform] Use locale {' + event.lang + '}');
+        }
+          // If error, fallback to en
+        catch (err) {
+          this.dateAdapter.setLocale('en');
+          moment.locale('en');
+          console.warn('[platform] Unknown local for moment lib. Using default [en]');
+        }
+      }
+    });
+
+    this.settings.onChange.subscribe(data => {
+      if (data && data.locale && data.locale !== this.translate.currentLang) {
+        this.translate.use(data.locale);
+      }
+    });
+
+    this.accountService.onLogin.subscribe(account => {
+      if (this.settings.settings.accountInheritance) {
+        if (account.settings && account.settings.locale && account.settings.locale !== this.translate.currentLang) {
+          this.translate.use(account.settings.locale);
+        }
+      }
+    });
+  }
+
   protected configureCache(online?: boolean) {
     online = isNotNil(online) ? online : this.cache.isOnline();
     const cacheTTL = online ? 3600 /* 1h */ : 3600 * 24 * 30; /* 1 month */
@@ -164,6 +241,7 @@ export class PlatformService {
     this.cache.setDefaultTTL(cacheTTL);
     this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
   }
+
 
   protected async storageReady(): Promise<LocalForage> {
 
@@ -233,8 +311,6 @@ export class PlatformService {
         });
       }
     }
-
-
   }
 
   protected showToast(opts: ShowToastOptions): Promise<HTMLIonToastElement> {
@@ -244,8 +320,7 @@ export class PlatformService {
         ...opts,
         onWillPresent: (t) => resolve(t)
       });
-    })
-
+    });
   }
 }
 

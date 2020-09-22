@@ -6,7 +6,7 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ProgramValidatorService implements ValidatorService {
 
   constructor(

@@ -6,7 +6,7 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {isNotNil} from "../../../shared/functions";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PmfmStrategyValidatorService implements ValidatorService {
 
   constructor(

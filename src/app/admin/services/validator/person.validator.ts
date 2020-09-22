@@ -6,7 +6,7 @@ import { AccountValidatorService } from "../../../core/core.module";
 import { Account } from "../../../core/services/model/account.model";
 import { SharedValidators } from "../../../shared/validator/validators";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PersonValidatorService implements ValidatorService {
 
   constructor(

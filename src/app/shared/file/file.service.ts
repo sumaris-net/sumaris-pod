@@ -13,14 +13,12 @@ import {environment} from "../../../environments/environment";
   providedIn: 'root',
   deps: [
     Platform,
-    //FileTransfer,
-    // File,
     HttpClient
   ]
 })
 export class FileService {
 
-  private _debug = false;
+  private readonly _debug: boolean;
   private _started = false;
 
   private _imageDirectory: string;
@@ -36,9 +34,10 @@ export class FileService {
     //private transfer: FileTransfer,
     //@Optional() private file: File,
     private http: HttpClient) {
-    platform.ready().then(() => this.start());
 
     this._debug = !environment.production;
+
+    platform.ready().then(() => this.start());
   }
 
   getImages(sources: string[], opts?: Base64ImageResizeOptions & {

@@ -19,7 +19,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   withMeasurements?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class OperationValidatorService<O extends OperationValidatorOptions = OperationValidatorOptions>
   extends DataEntityValidatorService<Operation, O>
   implements ValidatorService {

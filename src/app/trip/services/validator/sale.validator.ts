@@ -14,7 +14,7 @@ export interface SaleValidatorOptions extends DataRootEntityValidatorOptions {
   withProgram?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidatorOptions>
   extends DataRootEntityValidatorService<Sale, SaleValidatorOptions> {
 

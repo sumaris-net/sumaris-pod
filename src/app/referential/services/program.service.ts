@@ -359,9 +359,7 @@ export class ProgramService extends BaseEntityService
     protected entities: EntitiesStorage
   ) {
     super(graphql);
-
-    // -- For DEV only
-    this._debug = !environment.production;
+    if (this._debug) console.debug('[program-service] Creating service');
   }
 
   /**

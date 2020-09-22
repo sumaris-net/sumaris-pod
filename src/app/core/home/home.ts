@@ -46,6 +46,7 @@ export const APP_HOME_BUTTONS = new InjectionToken<MenuItem[]>('homeButton');
 export class HomePage implements OnDestroy {
 
   private readonly _debug: boolean;
+  private _started = false;
   private _subscription = new Subscription();
   private _config: Configuration;
 
@@ -69,7 +70,8 @@ export class HomePage implements OnDestroy {
   $filteredButtons = new BehaviorSubject<MenuItem[]>(undefined);
 
   get currentLocaleCode(): string {
-    return (this.translate.currentLang || this.translate.defaultLang).substr(0,2);
+    return this.loading ? '' :
+    (this.translate.currentLang || this.translate.defaultLang).substr(0,2);
   }
 
   constructor(
@@ -194,6 +196,8 @@ export class HomePage implements OnDestroy {
           this.markForCheck();
         })
     );
+
+    this._started = true;
   }
 
   protected async showToast(opts: ShowToastOptions) {

@@ -19,7 +19,7 @@ export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withSaleProducts?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PacketValidatorService<O extends PacketValidatorOptions = PacketValidatorOptions>
   extends DataEntityValidatorService<Packet, O> implements ValidatorService {
 

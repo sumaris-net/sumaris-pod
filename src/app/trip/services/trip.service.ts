@@ -55,6 +55,7 @@ import {ObservedLocationFilter, ObservedLocationFilterKeys} from "./observed-loc
 import {UserEventService} from "../../social/services/user-event.service";
 import {UserEvent} from "../../social/services/model/user-event.model";
 import {showError} from "../../shared/alerts";
+import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -465,6 +466,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     // FOR DEV ONLY
     this._debug = !environment.production;
+    if (this._debug)console.debug('[trip-service] Creating service');
   }
 
   /**

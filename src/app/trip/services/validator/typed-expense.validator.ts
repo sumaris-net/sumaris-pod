@@ -10,7 +10,7 @@ interface TypedExpenseValidatorOptions extends MeasurementsValidatorOptions {
   totalPmfm?: PmfmStrategy;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class TypedExpenseValidatorService extends MeasurementsValidatorService<Measurement, TypedExpenseValidatorOptions> {
 
   getFormGroupConfig(data: Measurement[], opts?: TypedExpenseValidatorOptions): { [p: string]: any } {

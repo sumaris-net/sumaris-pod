@@ -23,7 +23,7 @@ export interface ProductValidatorOptions extends DataEntityValidatorOptions {
   withSaleProducts?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ProductValidatorService<O extends ProductValidatorOptions = ProductValidatorOptions>
   extends DataEntityValidatorService<Product, O> implements ValidatorService {
 

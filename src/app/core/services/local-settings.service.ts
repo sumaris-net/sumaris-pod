@@ -31,15 +31,14 @@ export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<Partial<LocalSettin
 })
 export class LocalSettingsService {
 
-  private _debug = false;
-  private _startPromise: Promise<any>;
+  private readonly _debug: boolean;
   private _started = false;
+  private _startPromise: Promise<any>;
   private _additionalFields: FormFieldDefinition[] = [];
   private _$persist: EventEmitter<any>;
-
   private data: LocalSettings;
 
-  public onChange = new Subject<LocalSettings>();
+  onChange = new Subject<LocalSettings>();
 
   get settings(): LocalSettings {
     return this.data || this.defaultSettings;
@@ -90,11 +89,9 @@ export class LocalSettingsService {
 
     this.resetData();
 
-
-    // TODO for DEV only
-    //this._debug = !environment.production;
+    this._debug = !environment.production;
+    if (this._debug) console.debug('[settings] Creating service');
   }
-
 
   start(): Promise<LocalSettings> {
     if (this._startPromise) return this._startPromise;

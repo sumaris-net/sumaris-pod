@@ -13,8 +13,7 @@ import {SocialModule} from "../social/social.module";
     CommonModule,
     CoreModule,
     SocialModule,
-    ReferentialModule,
-    AdminRoutingModule
+    ReferentialModule
   ],
   declarations: [
     UsersPage,
@@ -23,11 +22,11 @@ import {SocialModule} from "../social/social.module";
   exports: [
     UsersPage,
     ConfigurationPage
-  ],
-  providers: [
-    // PersonService,
-    PersonValidatorService
   ]
 })
 export class AdminModule {
+
+  constructor() {
+    console.debug('[admin] Creating module');
+  }
 }

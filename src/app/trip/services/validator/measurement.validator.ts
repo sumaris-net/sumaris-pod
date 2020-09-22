@@ -16,7 +16,7 @@ export interface MeasurementsValidatorOptions {
   forceOptional?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class MeasurementsValidatorService<T extends Measurement = Measurement, O extends MeasurementsValidatorOptions = MeasurementsValidatorOptions>
   implements ValidatorService {
 

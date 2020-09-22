@@ -5,7 +5,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {toNumber} from "../../../shared/functions";
 import {PhysicalGear} from "../model/trip.model";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PhysicalGearValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder) {

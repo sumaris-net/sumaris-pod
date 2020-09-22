@@ -9,7 +9,7 @@ import {FormBuilder, Validators} from "@angular/forms";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {SharedValidators} from "../../../shared/validator/validators";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PacketCompositionValidatorService
   extends DataEntityValidatorService<PacketComposition> implements ValidatorService {
 

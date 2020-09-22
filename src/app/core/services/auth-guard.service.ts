@@ -4,18 +4,18 @@ import {Observable} from 'rxjs';
 import {ModalController} from "@ionic/angular";
 import {AuthModal} from "../auth/modal/modal-auth";
 import {AccountService} from "./account.service";
+import {environment} from "../../../environments/environment";
 
 @Injectable({providedIn: 'root'})
 export class AuthGuardService implements CanActivate {
 
-  private _debug = false;
+  private readonly _debug: boolean;
 
   constructor(private accountService: AccountService,
     private modalCtrl: ModalController,
     private router: Router
   ) {
-    // -- For DEV only
-    //this._debug = true;
+    this._debug = !environment.production;
   }
 
   canActivate(

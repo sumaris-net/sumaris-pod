@@ -81,9 +81,6 @@ export class ReferentialRefService extends BaseEntityService
     protected entities: EntitiesStorage
   ) {
     super(graphql);
-
-    // -- For DEV only
-    this._debug = !environment.production;
   }
 
   /**

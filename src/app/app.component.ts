@@ -37,7 +37,7 @@ export class AppComponent {
   async start() {
     console.info('[app] Starting...');
 
-    await this.platform.ready();
+    await this.platform.start();
 
     // Listen for config changed
     this.configService.config.subscribe(config => this.onConfigChanged(config));

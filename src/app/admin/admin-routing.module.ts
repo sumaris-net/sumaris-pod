@@ -4,6 +4,7 @@ import {AuthGuardService} from "../core/services/auth-guard.service";
 import {NgModule} from "@angular/core";
 import {ConfigurationPage} from "./config/configuration.page";
 import {SharedRoutingModule} from "../shared/shared-routing.module";
+import {AdminModule} from "./admin.module";
 
 const routes: Routes = [
   {
@@ -29,6 +30,7 @@ const routes: Routes = [
 @NgModule({
   imports: [
     SharedRoutingModule,
+    AdminModule,
     RouterModule.forChild(routes)
   ],
   exports: [RouterModule]

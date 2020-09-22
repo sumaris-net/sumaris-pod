@@ -13,7 +13,7 @@ export interface VesselActivityValidatorOptions extends DataEntityValidatorOptio
   required?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class VesselActivityValidatorService<T extends VesselActivity = VesselActivity, O extends VesselActivityValidatorOptions = VesselActivityValidatorOptions>
   implements ValidatorService {
 

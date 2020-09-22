@@ -6,7 +6,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {VesselFeaturesValidatorService} from "./vessel-features.validator";
 import {VesselRegistrationValidatorService} from "./vessel-registration.validator";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class VesselValidatorService implements ValidatorService {
 
   constructor(

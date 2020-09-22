@@ -6,7 +6,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {toNumber} from "../../../shared/functions";
 import {ReferentialValidatorService} from "./referential.validator";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class StrategyValidatorService extends ReferentialValidatorService<Strategy> {
 
   constructor(

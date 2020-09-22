@@ -4,7 +4,7 @@ import {BatchValidatorService} from "./batch.validator";
 import {BatchGroup} from "../model/batch-group.model";
 import {SharedValidators} from "../../../shared/validator/validators";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup> {
 
   constructor(

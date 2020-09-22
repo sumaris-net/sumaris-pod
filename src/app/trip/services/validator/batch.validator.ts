@@ -8,7 +8,7 @@ import {isNil, isNotNilOrNaN, toBoolean, toNumber} from "../../../shared/functio
 import {MethodIds} from "../../../referential/services/model/model.enum";
 import {Subject, Subscription} from "rxjs";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
 
   constructor(

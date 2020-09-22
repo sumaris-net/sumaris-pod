@@ -201,6 +201,7 @@ export class EntityStore<T extends Entity<T>> {
 @Injectable({providedIn: 'root'})
 export class EntitiesStorage {
 
+  private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<void>;
   private _subscription = new Subscription();
@@ -211,9 +212,8 @@ export class EntitiesStorage {
   private _dirty = false;
   private _saving = false;
 
-  public onStart = new Subject<void>();
 
-  protected _debug = false;
+  onStart = new Subject<void>();
 
   get dirty(): boolean {
     return this._dirty || Object.entries(this._stores).find(([entityName, store]) => store.dirty) !== undefined;
@@ -224,9 +224,9 @@ export class EntitiesStorage {
     private storage: Storage
   ) {
 
-
     // For DEV only
     this._debug = !environment.production;
+    if (this._debug) console.debug('[entity-store] Creating service');
   }
 
   watchAll<T extends Entity<T>>(entityName: string,

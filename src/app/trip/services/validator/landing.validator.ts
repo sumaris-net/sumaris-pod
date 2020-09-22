@@ -12,7 +12,7 @@ export interface LandingValidatorOptions extends DataRootEntityValidatorOptions 
   withMeasurements?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class LandingValidatorService<O extends LandingValidatorOptions = LandingValidatorOptions>
   extends DataRootVesselEntityValidatorService<Landing, O> {
 

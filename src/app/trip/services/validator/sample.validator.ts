@@ -5,7 +5,7 @@ import {SharedFormGroupValidators, SharedValidators} from "../../../shared/valid
 import {Sample} from "../model/sample.model";
 import {toNumber} from "../../../shared/functions";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class SampleValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder) {

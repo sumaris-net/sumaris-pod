@@ -46,7 +46,7 @@ export interface MutableWatchQueryInfo<D, T = any, V = R> {
 
 export abstract class BaseEntityService<T = any, F = any>{
 
-  protected _debug = false;
+  protected _debug: boolean;
   protected _mutableWatchQueries: MutableWatchQueryInfo<any>[] = [];
 
   // Max updated queries, for this entity.

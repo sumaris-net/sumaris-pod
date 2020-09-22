@@ -221,9 +221,6 @@ export class ExtractionService extends BaseEntityService {
     protected accountService: AccountService
   ) {
     super(graphql);
-
-    // FOR DEV ONLY
-    this._debug = !environment.production;
   }
 
   /**

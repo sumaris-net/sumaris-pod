@@ -5,7 +5,7 @@ import {Moment} from "moment";
 import {toNumber} from "../../../shared/functions";
 import {VesselPosition} from "../model/trip.model";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PositionValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder) {

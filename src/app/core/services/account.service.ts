@@ -18,7 +18,6 @@ import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {NetworkService} from "./network.service";
 import {FileService} from "../../shared/file/file.service";
-import {PlatformService} from "./platform.service";
 import {Referential, ReferentialUtils, StatusIds} from "./model/referential.model";
 
 
@@ -209,7 +208,6 @@ export class AccountService extends BaseEntityService {
 
   constructor(
     private cryptoService: CryptoService,
-    protected platform: PlatformService,
     protected network: NetworkService,
     protected graphql: GraphqlService,
     protected settings: LocalSettingsService,
@@ -217,10 +215,10 @@ export class AccountService extends BaseEntityService {
     protected file: FileService
   ) {
     super(graphql);
+    this._debug = !environment.production;
+    if (this._debug) console.debug('[account-service] Creating service');
 
     this.resetData();
-
-    //this.start();
 
     // Send auth token to the graphql layer, when changed
     this.onAuthTokenChange.subscribe((token) => this.graphql.setAuthToken(token));
@@ -245,10 +243,9 @@ export class AccountService extends BaseEntityService {
         await sleep(500);
         return this.ready();
       }
-    })
+    });
 
-    // For DEV only
-    this._debug = !environment.production;
+
   }
 
   private resetData() {

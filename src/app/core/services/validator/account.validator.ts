@@ -8,7 +8,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {AppValidatorService} from "./base.validator.class";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class AccountValidatorService extends AppValidatorService<Account> {
 
   constructor(

@@ -18,7 +18,7 @@ export interface OperationGroupValidatorOptions extends DataEntityValidatorOptio
   withMeasurements?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class OperationGroupValidatorService<O extends OperationGroupValidatorOptions = OperationGroupValidatorOptions>
   extends DataEntityValidatorService<OperationGroup, O> implements ValidatorService {
 

@@ -5,7 +5,7 @@ import {QualityFlagIds} from "../model/model.enum";
 import {VesselFeatures} from "../model/vessel.model";
 import {SharedValidators} from "../../../shared/validator/validators";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class VesselFeaturesValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder) {

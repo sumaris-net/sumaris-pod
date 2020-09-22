@@ -4,7 +4,7 @@ import {ReferentialValidatorService} from "./referential.validator";
 import {Parameter} from "../model/parameter.model";
 import {Referential} from "../../../core/services/model/referential.model";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ParameterValidatorService extends ReferentialValidatorService<Parameter> {
 
   constructor(

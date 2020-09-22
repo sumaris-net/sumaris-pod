@@ -11,7 +11,7 @@ export interface AggregatedLandingValidatorOptions extends DataEntityValidatorOp
   // required?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class AggregatedLandingValidatorService<T extends AggregatedLanding = AggregatedLanding, O extends AggregatedLandingValidatorOptions = AggregatedLandingValidatorOptions>
   implements ValidatorService {
 

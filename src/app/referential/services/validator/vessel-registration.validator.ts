@@ -4,7 +4,7 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {VesselRegistration} from "../model/vessel.model";
 import {SharedValidators} from "../../../shared/validator/validators";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class VesselRegistrationValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder) {

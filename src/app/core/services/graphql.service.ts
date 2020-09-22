@@ -51,6 +51,7 @@ export interface MutateQueryOptions<T, V = R> {
 @Injectable({providedIn: 'root'})
 export class GraphqlService {
 
+  private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<any>;
   private _subscription = new Subscription();
@@ -64,7 +65,6 @@ export class GraphqlService {
 
   public onStart = new Subject<void>();
 
-  protected _debug = false;
 
   get started(): boolean {
     return this._started;
@@ -78,12 +78,8 @@ export class GraphqlService {
     private storage: Storage
   ) {
 
+    this._debug = !environment.production;
     this._defaultFetchPolicy = environment.apolloFetchPolicy;
-
-    // Start
-    /*if (this.network.started) {
-      this.start();
-    }*/
 
     // Restart if network restart
     this.network.on('start', () => this.restart());
@@ -111,7 +107,6 @@ export class GraphqlService {
       )
       .subscribe(() => this.network.setForceOffline(true, {displayToast: true}))
 
-    this._debug = !environment.production;
   }
 
   ready(): Promise<void> {

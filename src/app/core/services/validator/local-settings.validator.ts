@@ -6,7 +6,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {NetworkService} from "../network.service";
 import {AppValidatorService} from "./base.validator.class";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class LocalSettingsValidatorService extends AppValidatorService<LocalSettings> {
 
   constructor(

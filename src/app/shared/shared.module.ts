@@ -1,4 +1,4 @@
-import {NgModule} from "@angular/core";
+import {ModuleWithProviders, NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {SharedMaterialModule} from "./material/material.module";
 import {ReactiveFormsModule} from "@angular/forms";
@@ -50,7 +50,7 @@ import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
 import {AudioProvider} from "./audio/audio";
-import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
+import {CloseScrollStrategy, FullscreenOverlayContainer, Overlay, OverlayContainer} from '@angular/cdk/overlay';
 import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
 import {FileService} from "./file/file.service";
 import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
@@ -94,7 +94,7 @@ export {
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
-    TranslateModule.forChild(),
+    TranslateModule,
     TextMaskModule,
     ColorPickerModule,
     SharedHotkeysModule,
@@ -108,8 +108,8 @@ export {
     AppLoadingSpinner
   ],
   exports: [
-    ReactiveFormsModule,
     IonicModule,
+    ReactiveFormsModule,
     SharedGestureModule,
     SharedMaterialModule,
     SharedDirectivesModule,
@@ -122,30 +122,40 @@ export {
     AppFormField,
     AppLoadingSpinner,
     QuicklinkModule
-  ],
-  providers: [
-    ProgressBarService,
-    AudioProvider,
-    FileService,
-    {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},
-    {
-      provide: MatPaginatorIntl,
-      useFactory: (translate) => {
-        const service = new MatPaginatorI18n();
-        service.injectTranslateService(translate);
-        return service;
-      },
-      deps: [TranslateService]
-    },
-    // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
-    //{ provide: Overlay, useClass: Overlay},
-    { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
-    { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
-    { provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
-        autoActiveFirstOption: true
-      }
-    }
   ]
 })
 export class SharedModule {
+
+  static forRoot(): ModuleWithProviders<SharedModule> {
+    console.debug('[shared] Creating module (root)');
+
+    return {
+      ngModule: SharedModule,
+      providers: [
+        ProgressBarService,
+        AudioProvider,
+        FileService,
+
+        {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
+        {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},
+        {
+          provide: MatPaginatorIntl,
+          useFactory: (translate) => {
+            const service = new MatPaginatorI18n();
+            service.injectTranslateService(translate);
+            return service;
+          },
+          deps: [TranslateService]
+        },
+        // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
+        //{ provide: Overlay, useClass: Overlay},
+        { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+        { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+        { provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
+            autoActiveFirstOption: true
+          }
+        }
+      ]
+    }
+  }
 }

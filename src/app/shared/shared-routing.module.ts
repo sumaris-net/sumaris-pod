@@ -17,7 +17,9 @@ export class CustomReuseStrategy extends IonicRouteStrategy {
   shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
     const result = super.shouldReuseRoute(future, curr);
 
-    // Force to reuse the route if path change from [/new] -> [/:id]
+    // Force to reuse the route when:
+    // - path change from [/new] -> [/:id]
+    // - or path change from [/new] -> [/new?id=:id]
     if (!result && future.routeConfig && future.routeConfig === curr.routeConfig) {
       const pathIdParam = future.routeConfig.data && future.routeConfig.data.pathIdParam || 'id';
       const futureId = future.params[pathIdParam] === 'new' ?

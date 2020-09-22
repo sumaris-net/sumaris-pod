@@ -6,7 +6,7 @@ import {toNumber} from "../../../shared/functions";
 import {Batch} from "../model/batch.model";
 import {SubBatch} from "../model/subbatch.model";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class SubBatchValidatorService implements ValidatorService {
 
   constructor(

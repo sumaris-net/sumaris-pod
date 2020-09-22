@@ -1,4 +1,4 @@
-import {NgModule} from '@angular/core';
+import {ModuleWithProviders, NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 import {AccountService} from './services/account.service';
@@ -67,6 +67,7 @@ import {IonicModule} from "@ionic/angular";
 import {CacheModule} from "ionic-cache";
 import {AppPropertiesForm} from "./form/properties.form";
 import {AppListForm} from "./form/list.form";
+import {PlatformService} from "./services/platform.service";
 
 export {
   environment,
@@ -109,13 +110,6 @@ export {
   PropertiesMap
 };
 
-export function HttpLoaderFactory(http: HttpClient) {
-  if (environment.production) {
-    // This is need to force a reload, after an app update
-    return new TranslateHttpLoader(http, './assets/i18n/', `-${environment.version}.json`);
-  }
-  return new TranslateHttpLoader(http, './assets/i18n/', `.json`);
-}
 
 @NgModule({
   imports: [
@@ -124,20 +118,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     HttpClientModule,
     AppGraphQLModule,
     SharedModule,
-    ReactiveFormsModule,
-    IonicModule.forRoot(),
-    CacheModule.forRoot(),
-    IonicStorageModule.forRoot({
-      name: 'sumaris', // default
-      ...environment.storage
-    }),
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [HttpClient]
-      }
-    })
+    CacheModule,
+    IonicStorageModule
   ],
 
   declarations: [
@@ -165,7 +147,6 @@ export function HttpLoaderFactory(http: HttpClient) {
     AppListForm
   ],
   exports: [
-    CommonModule,
     SharedModule,
     RouterModule,
     AppGraphQLModule,
@@ -176,73 +157,19 @@ export function HttpLoaderFactory(http: HttpClient) {
     EntityMetadataComponent,
     FormButtonsBarComponent,
     MenuComponent,
-    ReactiveFormsModule,
-    TranslateModule,
     AboutModal,
     AppPropertiesForm,
     AppListForm
-  ],
-  providers: [
-    LocalSettingsService,
-    AccountValidatorService,
-    UserSettingsValidatorService,
-    LocalSettingsValidatorService,
-    EntitiesStorage
   ]
 })
 export class CoreModule {
 
-  constructor(
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    accountService: AccountService,
-    dateAdapter: DateAdapter<any>) {
+  static forRoot(): ModuleWithProviders<CoreModule> {
 
-    console.info("[core] Starting module...");
-
-    // this language will be used as a fallback when a translation isn't found in the current language
-    translate.setDefaultLang(environment.defaultLocale);
-
-    // When locale changes, apply to date adapter
-    translate.onLangChange.subscribe(event => {
-      if (event && event.lang) {
-
-        // force 'en' as 'en_GB'
-        if (event.lang === 'en') {
-          event.lang = "en_GB";
-        }
-
-        // Config date adapter
-        dateAdapter.setLocale(event.lang);
-
-        // config moment lib
-        try {
-          moment.locale(event.lang);
-          console.debug('[app] Use locale {' + event.lang + '}');
-        }
-          // If error, fallback to en
-        catch (err) {
-          dateAdapter.setLocale('en');
-          moment.locale('en');
-          console.warn('[app] Unknown local for moment lib. Using default [en]');
-        }
-
-      }
-    });
-
-    settings.onChange.subscribe(data => {
-      if (data && data.locale && data.locale !== translate.currentLang) {
-        translate.use(data.locale);
-      }
-    });
-
-    accountService.onLogin.subscribe(account => {
-      if (settings.settings.accountInheritance) {
-        if (account.settings && account.settings.locale && account.settings.locale !== translate.currentLang) {
-          translate.use(account.settings.locale);
-        }
-      }
-    });
+    console.info("[core] Creating module (root)");
+    return {
+      ngModule: CoreModule,
+      providers: [ PlatformService ]
+    }
   }
-
 }

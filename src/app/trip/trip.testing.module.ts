@@ -4,6 +4,8 @@ import {CommonModule} from "@angular/common";
 import {CoreModule} from "../core/core.module";
 import {BatchTreeTestPage} from "./batch/testing/batch-tree.test";
 import {TripModule} from "./trip.module";
+import {SharedModule} from "../shared/shared.module";
+import {TranslateModule} from "@ngx-translate/core";
 
 const routes: Routes = [
   {
@@ -21,7 +23,9 @@ const routes: Routes = [
 @NgModule({
   imports: [
     CommonModule,
+    SharedModule,
     CoreModule,
+    TranslateModule.forChild(),
     RouterModule.forChild(routes),
     TripModule
   ],

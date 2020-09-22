@@ -40,9 +40,6 @@ export class ParameterService extends BaseEntityService implements EntityService
     protected referentialService: ReferentialService
   ) {
     super(graphql);
-
-    // For DEV only
-    this._debug = !environment.production;
   }
 
   async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {

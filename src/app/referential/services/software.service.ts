@@ -48,9 +48,7 @@ const SaveMutation: any = gql`
 `;
 
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({providedIn: 'root'})
 export class SoftwareService<T extends Software = Software>
   extends BaseEntityService<T>
   implements EntityService<T> {
@@ -59,8 +57,6 @@ export class SoftwareService<T extends Software = Software>
     protected graphql: GraphqlService
   ) {
     super(graphql);
-
-    this._debug = !environment.production;
 
     if (this._debug) console.debug("[software-service] Creating service");
   }

@@ -17,24 +17,27 @@ import {AppRoutingModule} from "./app-routing.module";
 import {CoreModule} from "./core/core.module";
 
 import {environment} from "../environments/environment";
-import {HttpClientModule} from "@angular/common/http";
+import {HttpClient, HttpClientModule} from "@angular/common/http";
 import {HTTP} from "@ionic-native/http/ngx";
 import {Camera} from "@ionic-native/camera/ngx";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
 import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
 import {LocalSettings} from "./core/services/model/settings.model";
-import {TripModule} from "./trip/trip.module";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
-import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service";
+import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
 import {TripConfigOptions} from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 import {APP_MENU_ITEMS} from "./core/menu/menu.component";
 import {APP_HOME_BUTTONS} from "./core/home/home";
 import {ConfigOptions} from "./core/services/config/core.config";
-import {SocialModule} from "./social/social.module";
 import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material.testing.page";
+import {IonicModule} from "@ionic/angular";
+import {CacheModule} from "ionic-cache";
+import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
+import {SharedModule} from "./shared/shared.module";
+import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
 
 
 @NgModule({
@@ -46,11 +49,24 @@ import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    IonicModule.forRoot(),
+    CacheModule.forRoot(),
+    IonicStorageModule.forRoot({
+      name: 'sumaris', // default
+      ...environment.storage
+    }),
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpTranslateLoaderFactory,
+        deps: [HttpClient]
+      }
+    }),
+
     // functional modules
-    AppRoutingModule,
-    CoreModule,
-    SocialModule,
-    TripModule
+    CoreModule.forRoot(),
+    SharedModule.forRoot(),
+    AppRoutingModule
   ],
   providers: [
     StatusBar,
@@ -63,7 +79,7 @@ import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material
     Vibration,
     InAppBrowser,
     AudioManagement,
-    ConfigService,
+
     {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     {provide: MAT_DATE_LOCALE, useValue: 'en'},
@@ -164,4 +180,8 @@ import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {
+
+  constructor() {
+    console.debug('[app] Creating module');
+  }
 }

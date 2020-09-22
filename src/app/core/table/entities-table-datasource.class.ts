@@ -9,6 +9,7 @@ import {EntitiesServiceWatchOptions} from "../../shared/services/entity-service.
 import {SortDirection} from "@angular/material/sort";
 import {CollectionViewer} from "@angular/cdk/collections";
 import {firstNotNilPromise} from "../../shared/observables";
+import {environment} from "../../../environments/environment";
 
 
 export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> extends EntitiesServiceWatchOptions {
@@ -29,7 +30,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     extends TableDataSource<T>
     implements OnDestroy {
 
-  protected _debug = false;
+  protected readonly _debug: boolean;
   protected _config: AppTableDataSourceOptions<T, O>;
   protected _creating = false;
   protected _saving = false;
@@ -76,9 +77,8 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     };
     this._useValidator = isNotNil(validatorService);
 
-
     // For DEV ONLY
-    //this._debug = !environment.production;
+    this._debug = !environment.production;
   }
 
   ngOnDestroy() {
