@@ -64,6 +64,10 @@ import {SharedPipesModule} from "./pipes/pipes.module";
 import {AppLoadingSpinner} from "./form/loading-spinner";
 import {SharedGestureModule} from "./gesture/gesture.module";
 import {QuicklinkModule} from "ngx-quicklink";
+import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
+import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
+import {HighlightPipe} from "./pipes/highlight.pipe";
+import {NumberFormatPipe} from "./pipes/number-format.pipe";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -135,6 +139,16 @@ export class SharedModule {
         ProgressBarService,
         AudioProvider,
         FileService,
+
+        // Export Pipes as providers
+        DateFormatPipe,
+        DateFromNowPipe,
+        DateDiffDurationPipe,
+        LatLongFormatPipe,
+        LatitudeFormatPipe,
+        LongitudeFormatPipe,
+        HighlightPipe,
+        NumberFormatPipe,
 
         {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
         {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},

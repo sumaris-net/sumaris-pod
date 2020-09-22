@@ -130,10 +130,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     return this._availableParents;
   }
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   get enableIndividualCount(): boolean {
     return this.enableIndividualCountControl.value;
   }

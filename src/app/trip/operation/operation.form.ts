@@ -26,6 +26,7 @@ import {BehaviorSubject} from "rxjs";
 import {distinctUntilChanged} from "rxjs/operators";
 import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {isOnField} from "../../core/services/pipes/usage-mode.utils";
 
 @Component({
   selector: 'app-form-operation',
@@ -94,10 +95,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: OperationValidatorService,
@@ -113,7 +110,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   ngOnInit() {
-    this.usageMode = this.usageMode || (this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK');
+    this.usageMode = this.settings.isOnFieldMode(this.usageMode) ? 'FIELD' : 'DESK';
     this.latLongFormat = this.settings.latLongFormat;
 
     this.enableGeolocation = (this.usageMode === 'FIELD') && this.settings.mobile;

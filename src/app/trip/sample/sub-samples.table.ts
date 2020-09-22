@@ -74,10 +74,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     return this.getValue();
   }
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   @Input() showLabelColumn = false;
 
   @Input() usageMode: UsageMode;
@@ -221,9 +217,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     if (!this.showLabelColumn) {
       // Generate label
       data.label = this.acquisitionLevel + "#" + data.rankOrder;
-    } else if (this.isOnFieldMode) {
-      // Copy previous label ?
-      //this.memoryDataService
     }
   }
 

@@ -38,10 +38,6 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   @Input() usageMode: UsageMode;
   @Input() packetSalePmfms: PmfmStrategy[];
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   get value(): any {
     const json = this.form.value;
 

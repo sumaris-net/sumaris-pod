@@ -23,7 +23,7 @@ import {FormGroup} from "@angular/forms";
 import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
-
+import {ServerErrorCodes} from "../services/errors";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;
@@ -80,7 +80,7 @@ export abstract class AppEntityEditor<
   }
 
   get isOnFieldMode(): boolean {
-    return this._usageMode ? this._usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+    return this.settings.isOnFieldMode(this._usageMode);
   }
 
   get isNewData(): boolean {
@@ -639,4 +639,3 @@ export abstract class AppEntityEditor<
   }
 }
 
-import {ServerErrorCodes} from "../services/errors";

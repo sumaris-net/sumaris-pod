@@ -60,12 +60,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return this.memoryDataService.value;
   }
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   @Input() usageMode: UsageMode;
-
   @Input() showLabelColumn = false;
   @Input() showCommentsColumn = true;
   @Input() showDateTimeColumn = true;
@@ -194,7 +189,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Default date
     if (isNotNil(this.defaultSampleDate)) {
       data.sampleDate = this.defaultSampleDate;
-    } else if (this.isOnFieldMode) {
+    } else if (this.settings.isOnFieldMode(this.usageMode)) {
       data.sampleDate = moment();
     }
 

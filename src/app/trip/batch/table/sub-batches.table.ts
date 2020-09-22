@@ -120,10 +120,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     return this.getValue();
   }
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   @Input()
   set showParentColumn(value: boolean) {
     this.setShowColumn('parent', value);

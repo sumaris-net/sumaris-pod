@@ -95,10 +95,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   @ViewChild('individualMonitoringTable', { static: true }) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
   @ViewChild('individualReleaseTable', { static: true }) individualReleaseTable: SubSamplesTable;
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   get form(): FormGroup {
     return this.opeForm.form;
   }

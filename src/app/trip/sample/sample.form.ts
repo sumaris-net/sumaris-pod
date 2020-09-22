@@ -41,10 +41,6 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,

@@ -45,10 +45,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   @Input() showError = true;
   @Input() usageMode: UsageMode;
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   get value(): any {
     const json = this.form.value;
 

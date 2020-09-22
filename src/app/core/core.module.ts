@@ -1,7 +1,6 @@
 import {ModuleWithProviders, NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
-import {AccountService} from './services/account.service';
 import {AccountValidatorService} from './services/validator/account.validator';
 import {UserSettingsValidatorService} from './services/validator/user-settings.validator';
 import {BaseEntityService} from './services/base.data-service.class';
@@ -11,6 +10,7 @@ import {AboutModal} from './about/modal-about';
 import {RegisterConfirmPage} from "./register/confirm/confirm";
 import {AccountPage} from "./account/account";
 import {
+  EntitiesService,
   fromDateISOString,
   isNil,
   isNotNil,
@@ -18,7 +18,6 @@ import {
   LoadResult,
   nullIfUndefined,
   SharedModule,
-  EntitiesService,
   toDateISOString
 } from '../shared/shared.module';
 import {AppForm} from './form/form.class';
@@ -29,14 +28,11 @@ import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from './table/ta
 import {EntitiesTableDataSource} from './table/entities-table-datasource.class';
 import {TableSelectColumnsComponent} from './table/table-select-columns.component';
 import {MenuComponent} from './menu/menu.component';
-import {ReactiveFormsModule} from "@angular/forms";
 import {IonicStorageModule} from '@ionic/storage';
 import {HomePage} from './home/home';
 import {RegisterForm} from './register/form/form-register';
 import {RegisterModal} from './register/modal/modal-register';
 import {AppGraphQLModule} from './graphql/graphql.module';
-import {DateAdapter} from "@angular/material/core";
-import * as moment from "moment/moment";
 import {AppFormUtils, FormArrayHelper} from './form/form.utils';
 import {AppTableUtils} from './table/table.utils';
 import {IReferentialRef, Referential, ReferentialRef, referentialToString} from './services/model/referential.model';
@@ -54,20 +50,15 @@ import {
   PropertiesMap
 } from './services/model/entity.model';
 // import ngx-translate and the http loader
-import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {HttpClientModule} from '@angular/common/http';
 import {SelectPeerModal} from "./peer/select-peer.modal";
 import {SettingsPage} from "./settings/settings.page";
-import {LocalSettingsValidatorService} from "./services/validator/local-settings.validator";
-import {LocalSettingsService} from "./services/local-settings.service";
 import {AppEntityEditor} from "./form/editor.class";
-import {EntitiesStorage} from "./services/entities-storage.service";
-import {IonicModule} from "@ionic/angular";
 import {CacheModule} from "ionic-cache";
 import {AppPropertiesForm} from "./form/properties.form";
 import {AppListForm} from "./form/list.form";
 import {PlatformService} from "./services/platform.service";
+import {IsNotOnFieldModePipe, IsOnFieldModePipe} from "./services/pipes/usage-mode.pipes";
 
 export {
   environment,
@@ -123,7 +114,13 @@ export {
   ],
 
   declarations: [
+    // Pipes
+    IsOnFieldModePipe,
+    IsNotOnFieldModePipe,
+
+    // Home and menu
     HomePage,
+    MenuComponent,
     AboutModal,
 
     // Auth & Register
@@ -138,13 +135,13 @@ export {
     // Network
     SelectPeerModal,
 
-    // Components
-    MenuComponent,
+    // Other components
     TableSelectColumnsComponent,
     EntityMetadataComponent,
     FormButtonsBarComponent,
     AppPropertiesForm,
     AppListForm
+
   ],
   exports: [
     SharedModule,
@@ -159,7 +156,9 @@ export {
     MenuComponent,
     AboutModal,
     AppPropertiesForm,
-    AppListForm
+    AppListForm,
+    IsOnFieldModePipe,
+    IsNotOnFieldModePipe
   ]
 })
 export class CoreModule {

@@ -81,10 +81,6 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     return this.memoryDataService.value;
   }
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   @Input() usageMode: UsageMode;
 
   @Input()

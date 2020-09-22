@@ -37,10 +37,6 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   @Input() usageMode: UsageMode;
   @Input() productSalePmfms: PmfmStrategy[];
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   get value(): any {
     const json = this.form.value;
 

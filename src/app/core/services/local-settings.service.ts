@@ -128,8 +128,8 @@ export class LocalSettingsService {
     return this.usageMode === mode;
   }
 
-  isFieldUsageMode(): boolean {
-    return this.usageMode === 'FIELD';
+  isOnFieldMode(value?: UsageMode): boolean {
+    return (value || this.usageMode) === 'FIELD';
   }
 
   async restoreLocally(): Promise<LocalSettings | undefined> {
