@@ -1,0 +1,174 @@
+<ion-header>
+  <ion-toolbar color="secondary">
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>
+      {{'TRIP.TRASH.TITLE' | translate }}
+    </ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-spinner *ngIf="loading"></ion-spinner>
+
+      <!--<ion-button *ngIf="!loading && hasSelection()" (click)="close($event)"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon name="checkmark"></ion-icon>
+      </ion-button>-->
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-no-padding">
+  <!-- table -->
+  <mat-table [dataSource]="dataSource" matSort
+             [matSortActive]="sortBy"
+             [matSortDirection]="sortDirection"
+             matSortDisableClear [trackBy]="trackByFn">
+
+    <ng-container matColumnDef="select">
+      <mat-header-cell *matHeaderCellDef >
+        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                      [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-checkbox>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+        </mat-checkbox>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Id Column -->
+    <ng-container matColumnDef="id">
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
+        <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id | mathAbs }}</mat-cell>
+    </ng-container>
+
+    <!-- Program Column -->
+    <ng-container matColumnDef="program">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{row.currentData.program | referentialToString:['label']}}
+      </mat-cell>
+    </ng-container>
+
+    <!-- Vessel Column -->
+    <ng-container matColumnDef="vessel">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-label>{{row.currentData.vesselSnapshot | referentialToString:displayedAttributes.vesselSnapshot }}</ion-label>
+      </mat-cell>
+    </ng-container>
+
+    <!-- departure location -->
+    <ng-container matColumnDef="departureLocation">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{row.currentData.departureLocation | referentialToString:displayedAttributes.location }}
+      </mat-cell>
+    </ng-container>
+
+    <!-- departure date time  -->
+    <ng-container matColumnDef="departureDateTime">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.TABLE.DEPARTURE_DATE_TIME</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.departureDateTime|dateFormat:{time:true} }}</ion-text>
+      </mat-cell>
+
+    </ng-container>
+
+    <!-- return date time -->
+    <ng-container matColumnDef="returnDateTime">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.TABLE.RETURN_DATE_TIME</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{ row.currentData?.returnDateTime|dateFormat:{time: true} }}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Observers -->
+    <ng-container matColumnDef="observers">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.TABLE.OBSERVERS</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{ row.currentData?.observers | personToString }}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Comments column -->
+    <ng-container matColumnDef="comments">
+      <mat-header-cell *matHeaderCellDef>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-icon color="primary" *ngIf="row.currentData.comments" [title]="row.currentData.comments">comment</mat-icon>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Actions buttons column -->
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <button mat-icon-button color="light"
+                [title]="'COMMON.BTN_RESTORE'|translate"
+                (click)="restoreTrips($event, [row])">
+          <mat-icon>restore_from_trash</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)">
+    </mat-row>
+  </mat-table>
+
+  <ion-row class="ion-no-padding">
+    <ion-col></ion-col>
+    <ion-col class="ion-no-padding" size="auto">
+      <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      </mat-paginator>
+    </ion-col>
+  </ion-row>
+</ion-content>
+
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <ion-toolbar>
+
+    <ion-row class="ion-no-padding" nowrap>
+      <ion-col></ion-col>
+
+      <!-- buttons -->
+      <ion-col size="auto">
+        <ion-button fill="clear" color="dark"
+                    (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button [fill]="selection.isEmpty() ? 'clear' : 'solid'"
+                    [disabled]="selection.isEmpty()"
+                    (click)="restoreTrips($event, selection.selected)"
+                    color="primary">
+          <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-toolbar>
+</ion-footer>

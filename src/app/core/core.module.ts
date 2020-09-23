@@ -1,5 +1,4 @@
 import {ModuleWithProviders, NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 import {AccountValidatorService} from './services/validator/account.validator';
 import {UserSettingsValidatorService} from './services/validator/user-settings.validator';
@@ -59,6 +58,7 @@ import {AppPropertiesForm} from "./form/properties.form";
 import {AppListForm} from "./form/list.form";
 import {PlatformService} from "./services/platform.service";
 import {IsNotOnFieldModePipe, IsOnFieldModePipe} from "./services/pipes/usage-mode.pipes";
+import {PersonToStringPipe} from "./services/pipes/person-to-string.pipe";
 
 export {
   environment,
@@ -104,11 +104,10 @@ export {
 
 @NgModule({
   imports: [
-    CommonModule,
+    SharedModule,
     RouterModule,
     HttpClientModule,
     AppGraphQLModule,
-    SharedModule,
     CacheModule,
     IonicStorageModule
   ],
@@ -117,6 +116,7 @@ export {
     // Pipes
     IsOnFieldModePipe,
     IsNotOnFieldModePipe,
+    PersonToStringPipe,
 
     // Home and menu
     HomePage,
@@ -147,6 +147,13 @@ export {
     SharedModule,
     RouterModule,
     AppGraphQLModule,
+
+    // Pipes
+    IsOnFieldModePipe,
+    IsNotOnFieldModePipe,
+    PersonToStringPipe,
+
+    // Components
     HomePage,
     AuthForm,
     AuthModal,
@@ -156,9 +163,7 @@ export {
     MenuComponent,
     AboutModal,
     AppPropertiesForm,
-    AppListForm,
-    IsOnFieldModePipe,
-    IsNotOnFieldModePipe
+    AppListForm
   ]
 })
 export class CoreModule {

@@ -45,7 +45,6 @@ import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-load
     AppComponent
   ],
   imports: [
-    CommonModule,
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,

@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {DataEntity, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from '../../data/services/model/data-entity.model';
+import {DataEntity, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from '../services/model/data-entity.model';
 // import fade in animation
 import {fadeInAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AccountService} from "../../core/services/account.service";
@@ -14,11 +14,11 @@ import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {environment} from "../../../environments/environment";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {RootDataEntity} from "../../data/services/model/root-data-entity.model";
+import {AppRootDataEditor} from "../form/root-data-editor.class";
+import {RootDataEntity} from "../services/model/root-data-entity.model";
 import {ReferentialRef} from "../../core/services/model/referential.model";
-import {qualityFlagToColor} from "../../data/services/model/model.utils";
-import {Entity, StatusIds} from "../../core/core.module";
+import {qualityFlagToColor} from "../services/model/model.utils";
+import {StatusIds} from "../../core/core.module";
 import {UserEventService} from "../../social/services/user-event.service";
 import {OverlayEventDetail} from "@ionic/core";
 

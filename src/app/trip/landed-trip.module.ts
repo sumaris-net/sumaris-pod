@@ -1,10 +1,4 @@
 import {NgModule} from '@angular/core';
-import {TripTable} from './trip/trips.table';
-import {TripPage} from './trip/trip.page';
-import {SaleForm} from './sale/sale.form';
-import {MeasurementsForm} from './measurement/measurements.form.component';
-import {MeasurementValuesForm} from './measurement/measurement-values.form.class';
-import {EntityQualityFormComponent} from "./quality/entity-quality-form.component";
 import {ObservedLocationForm} from "./observedlocation/observed-location.form";
 import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
@@ -34,19 +28,16 @@ import {AggregatedLandingModal} from "./aggregated-landing/aggregated-landing.mo
 import {TripModule} from "./trip.module";
 import {CoreModule} from "../core/core.module";
 import {ReferentialModule} from "../referential/referential.module";
-import {TranslateModule} from "@ngx-translate/core";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
-import {CommonModule} from "@angular/common";
+import {DataModule} from "../data/data.module";
 
-export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
 @NgModule({
   imports: [
-    CommonModule,
     CoreModule,
+    DataModule,
     TripModule,
-    ReferentialModule,
-    TranslateModule.forChild()
+    ReferentialModule
   ],
   declarations: [
     ObservedLocationForm,
@@ -78,7 +69,6 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SelectVesselsModal
   ],
   exports: [
-    TripModule,
     LandingsTable,
     LandingForm,
     LandingPage,

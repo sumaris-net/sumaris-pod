@@ -38,6 +38,8 @@
     "BTN_HIDE_MENU": "Masquer le menu",
     "BTN_SHOW_MENU": "Afficher le menu",
     "BTN_SHOW_MORE": "Afficher plus",
+    "BTN_SHOW_TRASH_DOTS": "Ouvrir la corbeille...",
+    "BTN_CLEAN_TRASH": "Vider la corbeille",
     "BTN_LOGOUT": "Quitter",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
@@ -411,6 +413,9 @@
         "READY_TO_SYNC_HELP": "Marées en attente d'envoi",
         "SYNC_HELP": "Marées synchronisées"
       }
+    },
+    "TRASH": {
+      "TITLE": "Corbeille"
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",

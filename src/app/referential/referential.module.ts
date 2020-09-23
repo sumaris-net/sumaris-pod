@@ -41,14 +41,21 @@ import {ReferentialRefTable} from "./list/referential-ref.table";
 import {StrategyForm} from "./strategy/strategy.form";
 import {PmfmQvFormField} from "./pmfm/pmfm-qv.form-field.component";
 import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
+import {ReferentialToStringPipe} from "./services/pipes/referential-to-string.pipe";
+import {TranslateModule} from "@ngx-translate/core";
+import {SharedModule} from "../shared/shared.module";
 
 
 @NgModule({
   imports: [
-    CommonModule,
-    CoreModule
+    CoreModule,
+    TranslateModule.forChild()
   ],
   declarations: [
+    // Pipes
+    ReferentialToStringPipe,
+
+    // Components
     ReferentialsPage,
     ReferentialForm,
     VesselsTable,
@@ -72,6 +79,12 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
     PmfmQvFormField
   ],
   exports: [
+    TranslateModule,
+
+    // Pipes
+    ReferentialToStringPipe,
+
+    // Components
     ReferentialsPage,
     ReferentialForm,
     VesselsTable,

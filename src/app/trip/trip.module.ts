@@ -1,6 +1,5 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {CoreModule} from '../core/core.module';
 import {TripTable} from './trip/trips.table';
 import {TripPage} from './trip/trip.page';
 import {TripForm} from './trip/trip.form';
@@ -19,7 +18,6 @@ import {BatchesTable} from './batch/table/batches.table';
 import {SubBatchesTable} from './batch/table/sub-batches.table';
 import {IndividualMonitoringSubSamplesTable} from './sample/individualmonitoring/individual-monitoring-samples.table';
 import {MeasurementValuesForm} from './measurement/measurement-values.form.class';
-import {EntityQualityFormComponent} from "./quality/entity-quality-form.component";
 import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {SubBatchesModal} from "./batch/modal/sub-batches.modal";
 import {SubBatchForm} from "./batch/form/sub-batch.form";
@@ -37,57 +35,55 @@ import {DataModule} from "../data/data.module";
 import {OperationsMap} from "./operation/map/operations.map";
 import {SocialModule} from "../social/social.module";
 import {BatchModal} from "./batch/modal/batch.modal";
+import {TripTrashModal} from "./trip/trash/trip-trash.modal";
+import {CoreModule} from "../core/core.module";
+import {TranslateModule} from "@ngx-translate/core";
 
-export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
+export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm };
 
 @NgModule({
   imports: [
-    CommonModule,
     CoreModule,
-    LeafletModule,
     ReferentialModule,
     DataModule,
-    SocialModule
+    SocialModule,
+    LeafletModule
   ],
   declarations: [
     TripTable,
-    TripPage,
     TripForm,
+    TripPage,
+    TripTrashModal,
+    PhysicalGearTable,
+    PhysicalGearForm,
     PhysicalGearModal,
     SelectPhysicalGearModal,
     SaleForm,
-    PhysicalGearForm,
-    PhysicalGearTable,
+    OperationsTable,
     OperationForm,
     OperationPage,
-    OperationsTable,
     OperationsMap,
     MeasurementsForm,
     CatchBatchForm,
-    SamplesTable,
-    SubSamplesTable,
-    BatchGroupsTable,
     BatchesTable,
-    SubBatchesTable,
-    SubBatchForm,
-    SubBatchesModal,
     BatchForm,
     BatchModal,
+    SubBatchesTable,
+    SubBatchForm,
+    SubBatchModal,
+    SubBatchesModal,
+    BatchGroupsTable,
+    BatchGroupForm,
     BatchGroupModal,
     BatchTreeComponent,
-    BatchGroupForm,
-    SubBatchModal,
+    SamplesTable,
     SampleForm,
     SampleModal,
-    IndividualMonitoringSubSamplesTable,
-    EntityQualityFormComponent
+    SubSamplesTable,
+    IndividualMonitoringSubSamplesTable
   ],
   exports: [
-    // Modules
-    CoreModule,
-    DataModule,
-    SocialModule,
-    ReferentialModule,
+    // Pipes
 
     // Components
     TripTable,
@@ -101,7 +97,6 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     OperationPage,
     OperationsTable,
     MeasurementsForm,
-    EntityQualityFormComponent,
     BatchForm,
     BatchTreeComponent,
     SubBatchForm,
