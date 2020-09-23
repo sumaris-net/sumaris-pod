@@ -40,6 +40,7 @@
     "BTN_SHOW_MORE": "Afficher plus",
     "BTN_SHOW_TRASH_DOTS": "Ouvrir la corbeille...",
     "BTN_CLEAN_TRASH": "Vider la corbeille",
+    "BTN_RESTORE": "Restaurer",
     "BTN_LOGOUT": "Quitter",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
@@ -415,7 +416,8 @@
       }
     },
     "TRASH": {
-      "TITLE": "Corbeille"
+      "TITLE": "Corbeille",
+      "DELETION_DATE": "Date de suppression"
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",

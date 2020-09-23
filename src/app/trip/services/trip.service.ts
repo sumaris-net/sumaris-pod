@@ -231,6 +231,7 @@ export class TripFilter {
   recorderDepartmentId?: number;
   recorderPersonId?: number;
   synchronizationStatus?: SynchronizationStatus;
+  trash?: boolean;
 
   static isEmpty(f: TripFilter|any): boolean {
     return Beans.isEmpty<TripFilter>({...f, synchronizationStatus: null}, TripFilterKeys, {
@@ -302,9 +303,9 @@ export class TripFilter {
     if (!f) return f;
     return {
       ...f,
-      // Serialize all dates
-      startDate: f && toDateISOString(f.startDate),
-      endDate: f && toDateISOString(f.endDate),
+      // Convert dates to string
+      startDate: toDateISOString(f.startDate),
+      endDate: toDateISOString(f.endDate),
       // Remove fields that not exists in pod
       synchronizationStatus: undefined
     };
@@ -319,7 +320,8 @@ export const TripFilterKeys: KeysEnum<TripFilter> = {
   locationId: true,
   recorderDepartmentId: true,
   recorderPersonId: true,
-  synchronizationStatus: true
+  synchronizationStatus: true,
+  trash: true
 }
 
 export interface TripServiceLoadOption extends EntityServiceLoadOptions {

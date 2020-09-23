@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {Trip} from "../../services/model/trip.model";
@@ -19,19 +19,22 @@ import {environment} from "../../../../environments/environment";
 import {personsToString} from "../../../core/services/model/person.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
+import {SynchronizationStatus} from "../../../data/services/model/root-data-entity.model";
 
 @Component({
   selector: 'app-trip-trash-modal',
   templateUrl: './trip-trash.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripTrashModal extends AppTable<Trip> implements OnInit, OnDestroy {
+export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
 
   isAdmin: boolean;
   displayedAttributes: {
     [key: string]: string[]
   };
+
+  @Input() synchronizationStatus: SynchronizationStatus;
 
   constructor(
     protected injector: Injector,
@@ -57,6 +60,7 @@ export class TripTrashModal extends AppTable<Trip> implements OnInit, OnDestroy 
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat([
+          'updateDate',
           'program',
           'vessel',
           'departureLocation',
@@ -74,6 +78,7 @@ export class TripTrashModal extends AppTable<Trip> implements OnInit, OnDestroy 
       }),
       {
         //synchronizationStatus: SynchronizationStatusEnum.DELETED
+        trash: true
       },
       injector
     );
@@ -85,8 +90,8 @@ export class TripTrashModal extends AppTable<Trip> implements OnInit, OnDestroy 
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
-    this.autoLoad = true;
-    this.sortBy = 'departureDateTime';
+    this.autoLoad = false;
+    this.sortBy = 'updateDate';
     this.sortDirection = 'desc';
 
     // FOR DEV ONLY ----
@@ -103,11 +108,13 @@ export class TripTrashModal extends AppTable<Trip> implements OnInit, OnDestroy 
       location: this.settings.getFieldDisplayAttributes('location')
     };
 
-    // Load trips
-    /*setTimeout(() => {
-      this.onRefresh.next("modal");
-      this.markForCheck();
-    }, 200);*/
+    this.setFilter(
+      {
+        ...this.filter,
+        synchronizationStatus: this.synchronizationStatus
+      },
+      {emitEvent: true}
+    );
 
   }
 
@@ -117,6 +124,22 @@ export class TripTrashModal extends AppTable<Trip> implements OnInit, OnDestroy 
 
   restoreTrips(event: UIEvent, rows: TableElement<Trip>[]) {
 
+  }
+
+  clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
+    if (this.selection.isEmpty()) {
+      this.selection.select(row);
+    }
+    else if (!this.selection.isSelected(row)) {
+      if (!event.ctrlKey) {
+        this.selection.clear();
+      }
+      this.selection.select(row);
+    }
+    else {
+      this.selection.toggle(row);
+    }
+    return true;
   }
 
   async close(event?: any) {

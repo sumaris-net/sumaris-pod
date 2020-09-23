@@ -374,7 +374,11 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     console.debug('[trips] Opening trash modal...');
     const modal = await this.modalCtrl.create({
       component: TripTrashModal,
-      componentProps: {}
+      componentProps: {
+        synchronizationStatus: this.filter.synchronizationStatus
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
     });
 
     // Open the modal

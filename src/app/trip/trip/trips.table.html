@@ -32,8 +32,10 @@
     <mat-icon>view_column</mat-icon>
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
   </button>
+
   <!-- trash -->
   <button mat-menu-item
+          *ngIf="isAdmin || synchronizationStatus !== 'SYNC'"
           (click)="openTrashModal($event)">
     <mat-icon>delete_sweep</mat-icon>
     <ion-label translate>COMMON.BTN_SHOW_TRASH_DOTS</ion-label>

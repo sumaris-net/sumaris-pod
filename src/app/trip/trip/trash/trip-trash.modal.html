@@ -26,7 +26,7 @@
 <ion-content class="ion-no-padding">
   <!-- table -->
   <mat-table [dataSource]="dataSource" matSort
-             [matSortActive]="sortBy"
+             matSortActive="updateDate"
              [matSortDirection]="sortDirection"
              matSortDisableClear [trackBy]="trackByFn">
 
@@ -44,15 +44,23 @@
 
     <!-- Id Column -->
     <ng-container matColumnDef="id">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
+      <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!isAdmin">
         <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id | mathAbs }}</mat-cell>
     </ng-container>
 
+    <!-- Update date Column -->
+    <ng-container matColumnDef="updateDate">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.TRASH.DELETION_DATE</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.currentData.updateDate | dateFormat:{time:true} }}</mat-cell>
+    </ng-container>
+
     <!-- Program Column -->
     <ng-container matColumnDef="program">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <mat-header-cell *matHeaderCellDef>
         <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
@@ -62,7 +70,7 @@
 
     <!-- Vessel Column -->
     <ng-container matColumnDef="vessel">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <mat-header-cell *matHeaderCellDef>
         <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
@@ -82,7 +90,7 @@
 
     <!-- departure date time  -->
     <ng-container matColumnDef="departureDateTime">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <mat-header-cell *matHeaderCellDef>
         <ion-label translate>TRIP.TABLE.DEPARTURE_DATE_TIME</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
@@ -93,7 +101,7 @@
 
     <!-- return date time -->
     <ng-container matColumnDef="returnDateTime">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <mat-header-cell *matHeaderCellDef>
         <ion-label translate>TRIP.TABLE.RETURN_DATE_TIME</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
@@ -103,7 +111,7 @@
 
     <!-- Observers -->
     <ng-container matColumnDef="observers">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <mat-header-cell *matHeaderCellDef>
         <ion-label translate>TRIP.TABLE.OBSERVERS</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
@@ -134,7 +142,10 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)">
+    <mat-row *matRowDef="let row; columns: displayedColumns;"
+             class="mat-row-disabled"
+             [class.mat-row-selected]="selection.isSelected(row)"
+             (click)="clickRow($event, row)">
     </mat-row>
   </mat-table>
 
@@ -165,8 +176,8 @@
         <ion-button [fill]="selection.isEmpty() ? 'clear' : 'solid'"
                     [disabled]="selection.isEmpty()"
                     (click)="restoreTrips($event, selection.selected)"
-                    color="primary">
-          <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+                    color="danger">
+          <ion-label translate>COMMON.BTN_RESTORE</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
