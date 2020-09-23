@@ -50,7 +50,7 @@ import java.util.Objects;
  */
 @Service
 @Transactional
-public class UserEventGraphQLService {
+public class SocialGraphQLService {
 
     final static int DEFAULT_PAGE_SIZE = 100;
     final static int MAX_PAGE_SIZE = 1000;
@@ -64,7 +64,7 @@ public class UserEventGraphQLService {
     @Autowired
     private AuthService authService;
 
-    /* -- Data -- */
+    /* -- User event -- */
 
     @GraphQLMutation(name = "saveUserEvent", description = "Sent data to admin, for debug")
     @IsUser
@@ -132,5 +132,9 @@ public class UserEventGraphQLService {
 
         return userEventService.findAll(filter, page);
     }
+
+    /* -- User interaction -- */
+
+
 
 }

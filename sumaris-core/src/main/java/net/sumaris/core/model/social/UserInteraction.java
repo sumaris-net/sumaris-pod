@@ -27,6 +27,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ISignedEntityBean;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.referential.ObjectType;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -35,13 +36,13 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @Entity
-@Table(name = "user_event")
+@Table(name = "user_interaction")
 @Cacheable
-public class UserEvent implements ISignedEntityBean<Integer, Date> {
+public class UserInteraction implements ISignedEntityBean<Integer, Date> {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_EVENT_SEQ")
-    @SequenceGenerator(name = "USER_EVENT_SEQ", sequenceName="USER_EVENT_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_INTERACTION_SEQ")
+    @SequenceGenerator(name = "USER_INTERACTION_SEQ", sequenceName="USER_INTERACTION_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -55,15 +56,18 @@ public class UserEvent implements ISignedEntityBean<Integer, Date> {
     @Column(name = "issuer", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
     private String issuer;
 
-    @Column(name = "recipient", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
-    private String recipient;
+    @Column(name = "interaction_type", nullable = false, length = 30)
+    private String interactionType;
 
-    @Column(name = "event_type", nullable = false, length = 30)
-    private String eventType;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObjectType.class)
+    @JoinColumn(name = "object_type_fk", nullable = false)
+    private ObjectType objectType;
 
-    @Lob
-    @Column(length=20971520)
-    private String content;
+    @Column(name = "object_id", nullable = false)
+    private Integer objectId;
+
+    @Column(length = IDataEntity.LENGTH_COMMENTS)
+    private String comment;
 
     @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
     private String hash;
@@ -71,12 +75,9 @@ public class UserEvent implements ISignedEntityBean<Integer, Date> {
     @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String signature;
 
-    @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
-    private String readSignature;
-
     public String toString() {
         return new StringBuilder().append(super.toString())
-                .append(",eventType=").append(this.eventType)
+                .append(",interactionType=").append(this.interactionType)
                 .append(",issuer=").append(this.issuer)
                 .append(",hash=").append(this.hash)
                 .toString();
