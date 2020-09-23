@@ -39,7 +39,6 @@ import net.sumaris.core.event.schema.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.DenyDeletionException;
-import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;

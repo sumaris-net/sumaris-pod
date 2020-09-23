@@ -1,8 +1,8 @@
-package net.sumaris.core.dao.technical;
+package net.sumaris.server.service.technical;
 
 /*-
  * #%L
- * SUMARiS:: Core shared
+ * SUMARiS:: Server
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,20 +22,21 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
-import org.springframework.data.domain.Sort;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
+import org.reactivestreams.Publisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 
-public enum SortDirection {
-    ASC,
-    DESC;
+@Transactional(readOnly = true)
+public interface TrashService {
 
-    public static SortDirection fromString(String direction) {
-        return direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null;
-    }
+    <V> Page<V> findAll(String entityName, Pageable pageable, Class<? extends V> clazz);
 
-    public static Optional<SortDirection> fromSort(Sort sort) {
-        return sort == null ? Optional.empty() : sort.stream().findFirst()
-                .map(o -> o.isAscending() ? ASC : DESC);
-    }
+    long count(String entityName);
 }

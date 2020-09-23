@@ -545,15 +545,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * Should add the data, inside a delete event?<br/>
-     * Always true when trash is enable
-     * @return
-     */
-    public boolean enableDataInsideDeleteEvents(){
-        return enableEntityTrash();
-    }
-
-    /**
      * <p>getDbName.</p>
      *
      * @return a {@link String} object.

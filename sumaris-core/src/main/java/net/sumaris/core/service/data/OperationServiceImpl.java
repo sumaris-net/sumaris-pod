@@ -30,9 +30,11 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.OperationDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.GearUseMeasurement;
-import net.sumaris.core.model.data.IMeasurementEntity;
-import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -40,6 +42,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -72,6 +76,16 @@ public class OperationServiceImpl implements OperationService {
 
 	@Autowired
 	protected FishingAreaService fishingAreaService;
+
+	@Autowired
+	private ApplicationEventPublisher publisher;
+
+	private boolean enableTrash = false;
+
+	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+	protected void onConfigurationReady(ConfigurationEvent event) {
+		this.enableTrash = event.getConfig().enableEntityTrash();
+	}
 
 	@Override
 	public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
@@ -128,7 +142,16 @@ public class OperationServiceImpl implements OperationService {
 
 	@Override
 	public void delete(int id) {
+		// Construct the delete event
+		// (should be done before deletion, to be able to get the VO)
+		EntityDeleteEvent event = new EntityDeleteEvent(id, Operation.class.getSimpleName(), enableTrash ? get(id) : null);
+
+		// Apply deletion
 		operationDao.delete(id);
+
+		// Emit the event
+		publisher.publishEvent(event);
+
 	}
 	@Override
 	public void delete(List<Integer> ids) {

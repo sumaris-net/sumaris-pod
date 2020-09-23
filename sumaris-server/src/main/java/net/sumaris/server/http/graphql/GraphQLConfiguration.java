@@ -40,6 +40,7 @@ import net.sumaris.server.http.graphql.security.AuthGraphQLService;
 import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.social.SocialGraphQLService;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
+import net.sumaris.server.http.graphql.technical.TrashGraphQLService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +70,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     private ConfigurationGraphQLService configurationService;
 
     @Autowired
-    private SocialGraphQLService socialGraphQLService;
+    private SocialGraphQLService socialService;
+
+    @Autowired
+    private TrashGraphQLService trashService;
 
     @Autowired
     private DataGraphQLService dataService;
@@ -100,9 +104,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         return new GraphQLSchemaGenerator()
                 .withResolverBuilders(new AnnotatedResolverBuilder())
 
-                // Auth and configuration
+                // Auth and technical
                 .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
                 .withOperationsFromSingleton(configurationService, ConfigurationGraphQLService.class)
+                .withOperationsFromSingleton(trashService, TrashGraphQLService.class)
 
                 // Administration & Referential
                 .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
@@ -118,7 +123,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 .withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class)
 
                 // Social
-                .withOperationsFromSingleton(socialGraphQLService, SocialGraphQLService.class)
+                .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
 
                 .withTypeTransformer(new DefaultTypeTransformer(false, true)
                         // Replace unbounded IEntity<ID> with IEntity<Serializable>

@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
@@ -47,9 +48,11 @@ import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
+import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,6 +73,9 @@ public class DataGraphQLService {
 
     @Autowired
     private TripService tripService;
+
+    @Autowired
+    private TrashService trashService;
 
     @Autowired
     private ObservedLocationService observedLocationService;
@@ -225,14 +231,29 @@ public class DataGraphQLService {
     public List<TripVO> findTripsByFilter(@GraphQLArgument(name = "filter") TripFilterVO filter,
                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                          @GraphQLArgument(name = "sortBy", defaultValue = TripVO.Fields.DEPARTURE_DATE_TIME) String sort,
-                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                          @GraphQLArgument(name = "sortBy") String sort,
+                                          @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
                                           @GraphQLEnvironment() Set<String> fields
                                   ) {
 
-        final List<TripVO> result = tripService.findByFilter(fillTripFilterDefaults(filter),
-                offset, size, sort,
-                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
+        filter = fillTripFilterDefaults(filter);
+        SortDirection sortDirection = direction != null ? SortDirection.valueOf(direction.toUpperCase()) : SortDirection.DESC;
+
+        // Read from trash
+        if (filter.getTrash()) {
+            // Authorized access to admin only
+            if (!authService.isAdmin()) throw new AccessDeniedException("Cannot access to trash");
+            sort = sort != null ? sort : TripVO.Fields.UPDATE_DATE;
+            return trashService.findAll(Trip.class.getSimpleName(),
+                    Pageables.create(offset, size, sort, sortDirection),
+                    TripVO.class).getContent();
+        }
+        else {
+            sort = sort != null ? sort : TripVO.Fields.DEPARTURE_DATE_TIME;
+        }
+
+        final List<TripVO> result = tripService.findByFilter(filter,
+                offset, size, sort, sortDirection,
                 getFetchOptions(fields));
 
         // Add additional properties if needed
@@ -245,6 +266,10 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter) {
+        if (filter.getTrash()) {
+            if (!authService.isAdmin()) throw new AccessDeniedException("Cannot access to trash");
+            return trashService.count(Trip.class.getSimpleName());
+        }
         return tripService.countByFilter(fillTripFilterDefaults(filter));
     }
 
@@ -1291,7 +1316,6 @@ public class DataGraphQLService {
                 result.setRecorderPersonId(-999); // Hide all. Should neveer occur
             }
         }
-
         return result;
     }
 
