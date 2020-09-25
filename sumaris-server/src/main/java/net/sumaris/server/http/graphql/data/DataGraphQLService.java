@@ -233,6 +233,7 @@ public class DataGraphQLService {
                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                           @GraphQLArgument(name = "sortBy") String sort,
                                           @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
+                                          @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
                                           @GraphQLEnvironment() Set<String> fields
                                   ) {
 
@@ -240,17 +241,21 @@ public class DataGraphQLService {
         SortDirection sortDirection = direction != null ? SortDirection.valueOf(direction.toUpperCase()) : SortDirection.DESC;
 
         // Read from trash
-        if (filter.getTrash()) {
-            // Authorized access to admin only
-            if (!authService.isAdmin()) throw new AccessDeniedException("Cannot access to trash");
+        if (trash) {
+            // Check user is admin
+            checkIsAdmin("Cannot access to trash");
+
+            // Set default sort
             sort = sort != null ? sort : TripVO.Fields.UPDATE_DATE;
+
+            // Call the trash service
             return trashService.findAll(Trip.class.getSimpleName(),
                     Pageables.create(offset, size, sort, sortDirection),
                     TripVO.class).getContent();
         }
-        else {
-            sort = sort != null ? sort : TripVO.Fields.DEPARTURE_DATE_TIME;
-        }
+
+        // Set default sort
+        sort = sort != null ? sort : TripVO.Fields.DEPARTURE_DATE_TIME;
 
         final List<TripVO> result = tripService.findByFilter(filter,
                 offset, size, sort, sortDirection,
@@ -265,11 +270,16 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "tripsCount", description = "Get trips count")
     @Transactional(readOnly = true)
     @IsUser
-    public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter) {
-        if (filter.getTrash()) {
-            if (!authService.isAdmin()) throw new AccessDeniedException("Cannot access to trash");
+    public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter,
+                              @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
+        if (trash) {
+            // Check user is admin
+            checkIsAdmin("Cannot access to trash");
+
+            // Call the trash service
             return trashService.count(Trip.class.getSimpleName());
         }
+
         return tripService.countByFilter(fillTripFilterDefaults(filter));
     }
 
@@ -1322,5 +1332,12 @@ public class DataGraphQLService {
     protected boolean canAccessNotSelfData() {
         String minRole = config.getAuthNotSelfDataRole();
         return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
+    }
+
+    /**
+     * Check user is admin
+     */
+    protected void checkIsAdmin(String message) {
+        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Forbidden");
     }
 }

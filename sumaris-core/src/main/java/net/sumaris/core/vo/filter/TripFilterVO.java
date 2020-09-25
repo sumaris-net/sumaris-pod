@@ -51,7 +51,4 @@ public class TripFilterVO implements IRootDataFilter, IVesselFilter {
 
     private Integer locationId;
 
-    @Builder.Default
-    private Boolean trash = false;
-
 }
