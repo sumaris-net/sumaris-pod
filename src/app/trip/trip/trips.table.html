@@ -308,7 +308,7 @@
         <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{row.currentData.program | referentialToString: displayedAttributes.program }}
+        {{row.currentData.program | referentialToString: autocompleteFields.program.attributes }}
       </mat-cell>
     </ng-container>
 
@@ -318,7 +318,7 @@
         <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData.vesselSnapshot | referentialToString:displayedAttributes.vesselSnapshot }}</ion-label>
+        <ion-label>{{row.currentData.vesselSnapshot | referentialToString:autocompleteFields.vesselSnapshot.attributes }}</ion-label>
       </mat-cell>
     </ng-container>
 
@@ -328,7 +328,7 @@
         <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{row.currentData.departureLocation | referentialToString:displayedAttributes.location }}
+        {{row.currentData.departureLocation | referentialToString:autocompleteFields.location.attributes }}
       </mat-cell>
     </ng-container>
 

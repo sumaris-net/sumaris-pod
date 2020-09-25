@@ -24,13 +24,18 @@ import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
 import {ConnectionType, NetworkService} from "../../core/services/network.service";
+import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
-import {personsToString} from "../../core/services/model/person.model";
+import {personsToString, personToString} from "../../core/services/model/person.model";
 import {concatPromises} from "../../shared/observables";
 import {isEmptyArray} from "../../shared/functions";
 import {Trip} from "../services/model/trip.model";
+import {PersonService} from "../../admin/services/person.service";
+import {StatusIds} from "../../core/services/model/model.enum";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {qualityFlagToColor} from "../../data/services/model/model.utils";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
 
@@ -82,6 +87,9 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected accountService: AccountService,
     protected service: TripService,
     protected userEventService: UserEventService,
+    protected personService: PersonService,
+    protected referentialRefService: ReferentialRefService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
@@ -158,13 +166,53 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
         )
         .subscribe((type) => this.onNetworkStatusChanged(type)));
 
-    // Set column displayed attributes
-    this.displayedAttributes = {
-      program: ['label'],
-      location: this.settings.getFieldDisplayAttributes('location'),
-      vesselSnapshot: this.settings.getFieldDisplayAttributes('vesselSnapshot'),
-      department: this.settings.getFieldDisplayAttributes('department')
-    }
+    // Programs combo (filter)
+    this.registerAutocompleteField('program', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Program'
+      },
+      mobile: this.mobile
+    });
+
+    // Locations combo (filter)
+    this.registerAutocompleteField('location', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.PORT
+      },
+      mobile: this.mobile
+    });
+
+    // Combo: vessels
+    this.registerAutocompleteField('vesselSnapshot', {
+      service: this.vesselSnapshotService,
+      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
+    });
+
+    // Combo: recorder department
+    this.registerAutocompleteField('department', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Department'
+      },
+      mobile: this.mobile
+    });
+
+    // Combo: recorder person
+    this.registerAutocompleteField('person', {
+      service: this.personService,
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+      },
+      attributes: ['lastName', 'firstName', 'department.name'],
+      displayWith: personToString,
+      mobile: this.mobile
+    });
 
     // Update filter when changes
     this.registerSubscription(
