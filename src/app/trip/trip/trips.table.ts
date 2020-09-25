@@ -24,15 +24,12 @@ import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
 import {ConnectionType, NetworkService} from "../../core/services/network.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
 import {personsToString} from "../../core/services/model/person.model";
 import {concatPromises} from "../../shared/observables";
 import {isEmptyArray} from "../../shared/functions";
 import {Trip} from "../services/model/trip.model";
-import {PersonService} from "../../admin/services/person.service";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
@@ -85,9 +82,6 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected accountService: AccountService,
     protected service: TripService,
     protected userEventService: UserEventService,
-    protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
-    protected vesselSnapshotService: VesselSnapshotService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,

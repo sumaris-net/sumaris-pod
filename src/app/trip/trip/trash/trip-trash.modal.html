@@ -12,18 +12,20 @@
     </ion-title>
 
     <ion-buttons slot="end">
-
       <ion-spinner *ngIf="loading"></ion-spinner>
-
-      <!--<ion-button *ngIf="!loading && hasSelection()" (click)="close($event)"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon name="checkmark"></ion-icon>
-      </ion-button>-->
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-no-padding">
+
+  <!-- error -->
+  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+
   <!-- table -->
   <mat-table [dataSource]="dataSource" matSort
              matSortActive="updateDate"
@@ -135,7 +137,7 @@
       <mat-cell *matCellDef="let row">
         <button mat-icon-button color="light"
                 [title]="'COMMON.BTN_RESTORE'|translate"
-                (click)="restoreTrips($event, [row])">
+                (click)="restore($event, [row])">
           <mat-icon>restore_from_trash</mat-icon>
         </button>
       </mat-cell>
@@ -168,16 +170,16 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark"
-                    (click)="cancel()">
-          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
-        </ion-button>
-
         <ion-button [fill]="selection.isEmpty() ? 'clear' : 'solid'"
                     [disabled]="selection.isEmpty()"
-                    (click)="restoreTrips($event, selection.selected)"
+                    (click)="closeAndRestore($event, selection.selected)"
                     color="danger">
           <ion-label translate>COMMON.BTN_RESTORE</ion-label>
+        </ion-button>
+
+        <ion-button fill="clear" color="dark"
+                    (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CLOSE</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>

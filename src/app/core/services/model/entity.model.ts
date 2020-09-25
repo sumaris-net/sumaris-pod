@@ -10,6 +10,7 @@ import {
 } from "../../../shared/functions";
 import {FormFieldValue} from "../../../shared/form/field.model";
 import {FilterFn} from "../../../shared/services/entity-service.class";
+import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 
 
 export declare interface Cloneable<T> {
@@ -269,5 +270,13 @@ export abstract class EntityUtils {
       child.parent = source;
       this.treeFillParent(child); // Loop
     });
+  }
+
+  static isLocal(entity: IEntity<any>): boolean {
+    return entity && (isNotNil(entity.id) && entity.id < 0);
+  }
+
+  static isRemote(entity: IEntity<any>): boolean {
+    return entity && !EntityUtils.isLocal(entity);
   }
 }

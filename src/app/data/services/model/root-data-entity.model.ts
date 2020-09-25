@@ -1,4 +1,4 @@
-import {fromDateISOString, toDateISOString} from "../../../core/core.module";
+import {fromDateISOString, isNil, toDateISOString} from "../../../core/core.module";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {Person} from "../../../core/services/model/person.model";
 import {Moment} from "moment/moment";
@@ -9,10 +9,10 @@ import {IWithProgramEntity, IWithRecorderPersonEntity} from "./model.utils";
 
 export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
 export const SynchronizationStatusEnum = {
-  DIRTY: 'DIRTY',
-  READY_TO_SYNC: 'READY_TO_SYNC',
-  SYNC: 'SYNC',
-  DELETED: 'DELETED'
+  DIRTY: <SynchronizationStatus>'DIRTY',
+  READY_TO_SYNC: <SynchronizationStatus>'READY_TO_SYNC',
+  SYNC: <SynchronizationStatus>'SYNC',
+  DELETED: <SynchronizationStatus>'DELETED'
 };
 
 export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
@@ -76,4 +76,13 @@ export abstract class DataRootEntityUtils {
       target['creationDate'] = fromDateISOString(source['creationDate']);
     }
   }
+
+  static isLocal(entity: RootDataEntity<any>): boolean {
+    return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);
+  }
+
+  static isRemote(entity: RootDataEntity<any>): boolean {
+    return entity && !DataRootEntityUtils.isLocal(entity);
+  }
+
 }

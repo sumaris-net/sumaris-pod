@@ -8,10 +8,6 @@ import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {AccountService} from "../../../core/services/account.service";
 import {TripFilter, TripService} from "../../services/trip.service";
-import {UserEventService} from "../../../social/services/user-event.service";
-import {PersonService} from "../../../admin/services/person.service";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {VesselSnapshotService} from "../../../referential/services/vessel-snapshot.service";
 import {FormBuilder} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
@@ -19,7 +15,9 @@ import {environment} from "../../../../environments/environment";
 import {personsToString} from "../../../core/services/model/person.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
-import {SynchronizationStatus} from "../../../data/services/model/root-data-entity.model";
+import {SynchronizationStatus, SynchronizationStatusEnum} from "../../../data/services/model/root-data-entity.model";
+import {isEmptyArray, isNotNil} from "../../../shared/functions";
+import {OperationService} from "../../services/operation.service";
 
 @Component({
   selector: 'app-trip-trash-modal',
@@ -46,10 +44,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     protected settings: LocalSettingsService,
     protected accountService: AccountService,
     protected service: TripService,
-    protected userEventService: UserEventService,
-    protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
-    protected vesselSnapshotService: VesselSnapshotService,
+    protected operationService: OperationService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
@@ -73,13 +68,11 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
-          saveOnlyDirtyRows: true
+          saveOnlyDirtyRows: true,
+          trash: true
         }
       }),
-      {
-        //synchronizationStatus: SynchronizationStatusEnum.DELETED
-        trash: true
-      },
+      {},
       injector
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
@@ -122,11 +115,61 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     super.ngOnDestroy();
   }
 
-  restoreTrips(event: UIEvent, rows: TableElement<Trip>[]) {
+  async closeAndRestore(event: UIEvent, rows: TableElement<Trip>[]) {
 
+    await this.restore(event, rows)
+
+    return this.close();
+  }
+
+  async restore(event: UIEvent, rows: TableElement<Trip>[]) {
+    if (this.loading) return; // Skip
+
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    this.markAsLoading();
+
+    try {
+      const entities = (rows || []).map(row => row.currentData).filter(isNotNil);
+      if (isEmptyArray(entities)) return; // Skip
+
+      // Set the newt synchronization status (DIRTY or null)
+      const synchronizationStatus = (!this.synchronizationStatus || this.synchronizationStatus !== 'SYNC') ?
+        SynchronizationStatusEnum.DIRTY : null;
+      entities.forEach(source => {
+        source.synchronizationStatus = synchronizationStatus;
+      });
+
+      // Execute restore
+      await this.service.restoreFromTrash(entities);
+
+      this.selection.deselect(...rows);
+
+      // Success toast
+      setTimeout(() => {
+        this.showToast({
+          type: "info",
+          message: rows.length === 1 ?
+            'TRIP.TRASH.INFO.ONE_TRIP_RESTORED' :
+            'TRIP.TRASH.INFO.MANY_TRIPS_RESTORED' });
+      }, 200);
+
+    }
+    catch(err) {
+      console.error(err && err.message || err, err);
+      this.error = err && err.message || err;
+    }
+    finally {
+      this.markAsLoaded();
+    }
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
+    if (event && event.defaultPrevented) return; // Skip
+
     if (this.selection.isEmpty()) {
       this.selection.select(row);
     }

@@ -12,6 +12,7 @@ const TOAST_MAX_STACK_SIZE = 4;
 
 export declare interface ShowToastOptions extends ToastOptions {
   type?: 'error'|'warning'|'info';
+  messageParams?: any;
   showCloseButton?: boolean;
   onWillPresent?: (toast: HTMLIonToastElement) => void;
 }
@@ -28,7 +29,7 @@ export class Toasts {
     if (!toastController || !translate) {
       console.error("Missing required argument 'toastController' or 'translate'");
       if (opts.message instanceof IonicSafeString) console.info("[toasts] message: " + (translate && translate.instant(opts.message.value) || opts.message.value));
-      else if (typeof opts.message === "string") console.info("[toasts] message: " + (translate && translate.instant(opts.message) || opts.message));
+      else if (typeof opts.message === "string") console.info("[toasts] message: " + (translate && translate.instant(opts.message, opts.messageParams) || opts.message));
       return Promise.resolve({});
     }
 
@@ -97,7 +98,10 @@ export class Toasts {
 
     opts.cssClass = cssArray;
 
-    const translations = await translate.instant(i18nKeys);
+    const translations = translate.instant(i18nKeys);
+    if (opts.messageParams) {
+      translations[message] = translate.instant(message, opts.messageParams);
+    }
 
     if (closeButton) {
       closeButton.text = translations[closeButton.text];

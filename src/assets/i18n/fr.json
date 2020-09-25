@@ -417,7 +417,11 @@
     },
     "TRASH": {
       "TITLE": "Corbeille",
-      "DELETION_DATE": "Date de suppression"
+      "DELETION_DATE": "Date de suppression",
+      "INFO": {
+        "ONE_TRIP_RESTORED": "Marée restaurée avec succès !",
+        "MANY_TRIPS_RESTORED": "Marées restaurées avec succès !"
+      }
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",

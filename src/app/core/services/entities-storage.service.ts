@@ -8,7 +8,6 @@ import {Entity, EntityUtils} from "./model/entity.model";
 import {isEmptyArray, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/entity-service.class";
 
-
 export const ENTITIES_STORAGE_KEY = "entities";
 
 export class EntityStore<T extends Entity<T>> {
@@ -17,7 +16,7 @@ export class EntityStore<T extends Entity<T>> {
                                            opts?: {
                                              name?: string;
                                              emitEvent?: boolean;
-                                             onlyTemporaryId?: boolean;
+                                             onlyTemporary?: boolean;
                                            }): EntityStore<T> {
     const target = new EntityStore<T>(opts && opts.name || undefined);
     target.setEntities(entities, opts);
@@ -58,6 +57,36 @@ export class EntityStore<T extends Entity<T>> {
     const index = this.indexById[id];
     if (isNil(index)) return undefined;
     return this._entities[index];
+  }
+
+  watchAll(opts?: {
+            offset?: number;
+            size?: number;
+            sortBy?: string;
+            sortDirection?: string;
+            filter?: (T) => boolean;
+          }): Observable<LoadResult<T>> {
+
+    return this.entitiesSubject
+      .pipe(
+        map(data => this.reduceAndSort(data, opts))
+      );
+  }
+
+  /**
+   * WIll apply a filter, then a sort, then a page slice
+   * @param data
+   * @param opts
+   */
+  loadAll(opts?: {
+    offset?: number;
+    size?: number;
+    sortBy?: string;
+    sortDirection?: string;
+    filter?: (T) => boolean;
+  }): LoadResult<T> {
+
+    return this.reduceAndSort(this._entities, opts);
   }
 
   save(entity: T, opts? : {emitEvent?: boolean}): T {
@@ -118,7 +147,7 @@ export class EntityStore<T extends Entity<T>> {
       this.emitEvent();
     }
 
-    return result || this.entities;
+    return result || this._entities.slice();
   }
 
   delete(id: number, opts?: {emitEvent?: boolean}): T | undefined {
@@ -162,10 +191,10 @@ export class EntityStore<T extends Entity<T>> {
 
   /* -- protected methods -- */
 
-  protected setEntities(entities: T[], opts?: {emitEvent?: boolean, filterTemporary?: boolean;}) {
+  protected setEntities(entities: T[], opts?: {emitEvent?: boolean, onlyTemporary?: boolean;}) {
     this._entities = entities && (
-      opts && opts.filterTemporary
-        // Filter NOT nil and only local id
+      (!opts || opts.onlyTemporary !== false)
+        // Filter NOT nil and only local id (by default)
         ? entities.filter(item => isNotNil(item) && item.id < 0)
         // Filter NOT nil
         : entities.filter(isNotNil)) || [];
@@ -185,6 +214,65 @@ export class EntityStore<T extends Entity<T>> {
   }
 
   /**
+   * WIll apply a filter, then a sort, then a page slice
+   * @param data
+   * @param opts
+   */
+  protected reduceAndSort(data: T[],
+                          opts?: {
+                            offset?: number;
+                            size?: number;
+                            sortBy?: string;
+                            sortDirection?: string;
+                            filter?: (T) => boolean;
+                          }): LoadResult<T> {
+
+    if (!opts || !data.length) {
+      // Return all (but copy array)
+      return {data: data.slice(), total: data.length};
+    }
+
+    // Apply the filter, if any
+    if (opts.filter) {
+      data = data.filter(isNotNil).filter(opts.filter);
+    }
+
+    // Compute the total length
+    const total = data.length;
+
+    // If page size=0 (e.g. only need total)
+    if (opts.size === 0) return {data: [], total};
+
+    // Sort by
+    if (data.length && opts.sortBy) {
+      EntityUtils.sort(data, opts.sortBy, opts.sortDirection);
+    }
+
+    // Slice in a page (using offset and size)
+    if (opts.offset > 0) {
+
+      // Offset after the end: no result
+      if (opts.offset >= data.length || opts.size === 0) {
+        data = [];
+      }
+      else {
+        data = (opts.size > 0 && ((opts.offset + opts.size) < data.length)) ?
+          // Slice using limit to size
+          data.slice(opts.offset, (opts.offset + opts.size) - 1) :
+          // Slice without limit
+          data.slice(opts.offset);
+      }
+    }
+    else if (opts.size > 0){
+      data = data.slice(0, opts.size - 1);
+    } else if (opts.size < 0){
+      // Force to keep all data
+    }
+
+    return {data, total};
+  }
+
+  /**
    * Update the entitiesSubject.
    *
    * Before wending items, a filter is apply, to remove null value.
@@ -201,6 +289,8 @@ export class EntityStore<T extends Entity<T>> {
 @Injectable({providedIn: 'root'})
 export class EntitiesStorage {
 
+  public static TRASH_PREFIX = "Trash#";
+
   private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<void>;
@@ -212,11 +302,10 @@ export class EntitiesStorage {
   private _dirty = false;
   private _saving = false;
 
-
   onStart = new Subject<void>();
 
   get dirty(): boolean {
-    return this._dirty || Object.entries(this._stores).find(([entityName, store]) => store.dirty) !== undefined;
+    return this._dirty || Object.entries(this._stores).find(([_, store]) => store.dirty) !== undefined;
   }
 
   public constructor(
@@ -235,6 +324,7 @@ export class EntitiesStorage {
                                   size?: number;
                                   sortBy?: string;
                                   sortDirection?: string;
+                                  trash?: boolean;
                                   filter?: (T) => boolean;
                                 }): Observable<LoadResult<T>> {
     // Make sure store is ready
@@ -243,11 +333,9 @@ export class EntitiesStorage {
         .pipe(switchMap(() => this.watchAll<T>(entityName, opts))); // Loop
     }
 
-    const entityStore = this.getEntityStore<T>(entityName, {create: true});
-    return entityStore.entitiesSubject
-      .pipe(
-        map(data => this.reduceAndSort(data, opts))
-      );
+    const storeName = opts && opts.trash ? (EntitiesStorage.TRASH_PREFIX + entityName) : entityName;
+    return this.getEntityStore<T>(storeName, {create: true})
+      .watchAll(opts);
   }
 
   async loadAll<T extends Entity<T>>(entityName: string,
@@ -267,7 +355,7 @@ export class EntitiesStorage {
     const entityStore = this.getEntityStore<T>(entityName, {create: false});
     if (!entityStore) return {data: [], total: 0}; // No store for this entity name
 
-    return this.reduceAndSort(entityStore.entities, opts);
+    return entityStore.loadAll(opts);
   }
 
   async load<T extends Entity<T>>(id: number, entityName: string): Promise<T> {
@@ -310,8 +398,8 @@ export class EntitiesStorage {
     await this.ready();
 
     this._dirty = true;
-    const entityName = opts && opts.entityName || this.detectEntityName(entity);
-    this.getEntityStore<T>(entityName)
+    let storeName = opts && opts.entityName || this.detectEntityName(entity);
+    this.getEntityStore<T>(storeName)
       .save(entity, opts);
 
     // Ask to save
@@ -324,7 +412,7 @@ export class EntitiesStorage {
     entityName?: string;
     emitEvent?: boolean;
   }): Promise<T[]> {
-    if (isEmptyArray(entities)) return; // skip
+    if (isEmptyArray(entities)) return entities; // skip
 
     await this.ready();
 
@@ -334,46 +422,176 @@ export class EntitiesStorage {
       .saveAll(entities, opts);
   }
 
-  async delete<T extends Entity<T>>(entity: T, entityName?: string): Promise<T> {
-    if (!entity) return; // skip
+  async delete<T extends Entity<T>>(entity: T, opts?: {
+    entityName?: string;
+  }): Promise<T> {
+    if (!entity) return undefined; // skip
+
     await this.ready();
 
-    entityName = entityName || this.detectEntityName(entity);
-    return this.deleteById(entity.id, entityName);
+    return this.deleteById(entity.id, {
+      ...opts,
+      entityName: opts && opts.entityName || this.detectEntityName(entity)
+    });
   }
 
-  async deleteById<T extends Entity<T>>(id: number, entityName: string): Promise<T> {
+  async deleteById<T extends Entity<T>>(id: number, opts: {
+    entityName: string;
+    emitEvent?: boolean;
+  }): Promise<T> {
     await this.ready();
 
-    if (isNilOrBlank(entityName)) throw new Error('Missing entityName !');
+    if (!opts || isNilOrBlank(opts.entityName)) throw new Error("Missing argument 'opts' or 'entityName'");
     //if (id >= 0) throw new Error('Invalid id a local entity (not a negative number): ' + id);
 
-    const entityStore = this.getEntityStore<T>(entityName, {create: false});
+    const entityStore = this.getEntityStore<T>(opts.entityName, {create: false});
     if (!entityStore) return undefined;
 
-    this._dirty = true;
+    const deletedEntity = entityStore.delete(id, opts);
 
-    // Ask to save
-    this._$save.emit();
+    // If something deleted
+    if (deletedEntity) {
 
-    return entityStore.delete(id);
+      // Mark as dirty
+      this._dirty = true;
+
+      // Ask to save
+      this._$save.emit();
+    }
+
+    return deletedEntity;
   }
 
-  async deleteMany<T extends Entity<T>>(ids: number[], entityName): Promise<T[]> {
+  async deleteMany<T extends Entity<T>>(ids: number[], opts: {
+    entityName: string;
+    emitEvent?: boolean;
+  }): Promise<T[]> {
     await this.ready();
 
-    if (isNilOrBlank(entityName)) throw new Error('Missing entityName !');
+    if (!opts || isNilOrBlank(opts.entityName)) throw new Error("Missing argument 'opts' or 'opts.entityName'");
 
-    const entityStore = this.getEntityStore<T>(entityName, {create: false});
+    const entityStore = this.getEntityStore<T>(opts.entityName, {create: false});
     if (!entityStore) return undefined;
 
-    const deletedEntities = entityStore.deleteMany(ids);
-    this._dirty = this._dirty || deletedEntities.length > 0;
+    // Do deletion
+    const deletedEntities = entityStore.deleteMany(ids, opts);
 
-    // Ask to save
-    if (this._dirty) this._$save.emit();
+    // If something deleted
+    if (deletedEntities.length > 0) {
+
+      // Mark as dirty
+      this._dirty = true;
+
+      // Mark as save need
+      this._$save.emit();
+
+    }
 
     return deletedEntities;
+  }
+
+  async deleteFromTrash<T extends Entity<T>>(entity: T, opts?: {
+    entityName?: string;
+  }): Promise<T> {
+    if (!entity) return undefined; // skip
+
+    await this.ready();
+
+    return this.deleteFromTrashById(entity.id, {
+      ...opts,
+      entityName: opts && opts.entityName || this.detectEntityName(entity)
+    });
+  }
+
+  async deleteFromTrashById<T extends Entity<T>>(id: number, opts: {
+    entityName: string;
+    emitEvent?: boolean;
+  }): Promise<T> {
+    await this.ready();
+
+    if (!opts || isNilOrBlank(opts.entityName)) throw new Error("Missing argument 'opts' or 'entityName'");
+
+    return this.deleteById(id, {
+      ...opts,
+      entityName: EntitiesStorage.TRASH_PREFIX + opts.entityName
+    });
+  }
+
+  async moveToTrash<T extends Entity<T>>(entity: T, opts?: {
+    entityName?: string;
+    emitEvent?: boolean;
+  }): Promise<T> {
+    if (!entity) return undefined; // skip
+
+    await this.ready();
+
+    const entityName = opts && opts.entityName || this.detectEntityName(entity);
+
+    // Delete entity by id, if exists
+    const entityStore = this.getEntityStore<T>(entityName);
+    if (entityStore) entityStore.delete(entity.id, opts);
+
+    // Clean id (a new id will be set by the trash store)
+    entity.id = undefined;
+
+    // Add to trash
+    const trashName = EntitiesStorage.TRASH_PREFIX + entityName;
+    this.getEntityStore<T>(trashName).save(entity, opts);
+
+    this._$save.emit();
+
+    return entity;
+  }
+
+  async moveManyToTrash<T extends Entity<T>>(ids: number[], opts: {
+    entityName: string;
+    emitEvent?: boolean;
+  }): Promise<T[]> {
+    await this.ready();
+
+    if (!opts || isNilOrBlank(opts.entityName)) throw new Error("Missing argument 'opts.entityName'");
+
+    const entityStore = this.getEntityStore<T>(opts.entityName, {create: false});
+    if (!entityStore) return undefined;
+
+    // Do deletion
+    const deletedEntities = entityStore.deleteMany(ids, opts);
+
+    // If something deleted
+    if (deletedEntities.length > 0) {
+
+      // Clean ids (new ids will be set by the trash store)
+      deletedEntities.forEach(e => e.id = undefined);
+
+      const trashName = EntitiesStorage.TRASH_PREFIX + opts.entityName;
+      this.getEntityStore<T>(trashName, {create: true})
+        .saveAll(deletedEntities, opts);
+
+      // Mark as dirty
+      this._dirty = true;
+
+      // Mark as save need
+      this._$save.emit();
+    }
+
+    return deletedEntities;
+  }
+
+  async saveToTrash<T extends Entity<T>>(entity: T, opts?: {
+    entityName?: string;
+    emitEvent?: boolean;
+  }): Promise<T> {
+    if (!entity) return undefined; // skip
+
+    await this.ready();
+
+    const entityName = opts && opts.entityName || this.detectEntityName(entity);
+    const trashName = EntitiesStorage.TRASH_PREFIX + entityName;
+    this.getEntityStore<T>(trashName).save(entity, opts);
+
+    this._$save.emit();
+
+    return entity;
   }
 
   persist(): Promise<void> {
@@ -381,84 +599,6 @@ export class EntitiesStorage {
       return this.storeLocally();
     }
     return Promise.resolve();
-  }
-
-  /* -- protected methods -- */
-
-  /**
-   * WIll apply a filter, then a sort, then a page slice
-   * @param data
-   * @param opts
-   */
-  protected reduceAndSort<T extends Entity<T>>(data: T[],
-                                               opts?: {
-                              offset?: number;
-                              size?: number;
-                              sortBy?: string;
-                              sortDirection?: string;
-                              filter?: (T) => boolean;
-                            }): LoadResult<T> {
-
-    if (!opts || !data.length) return {data, total: data.length};
-
-    // Apply the filter, if any
-    if (opts.filter) {
-      data = data.filter(isNotNil).filter(opts.filter);
-    }
-
-    // Compute the total length
-    const total = data.length;
-
-    // If page size=0 (e.g. only need total)
-    if (opts.size === 0) return {data: [], total};
-
-    // Sort by
-    if (data.length && opts.sortBy) {
-      EntityUtils.sort(data, opts.sortBy, opts.sortDirection);
-    }
-
-    // Slice in a page (using offset and size)
-    if (opts.offset > 0) {
-
-      // Offset after the end: no result
-      if (opts.offset >= data.length || opts.size === 0) {
-        data = [];
-      }
-      else {
-        data = (opts.size > 0 && ((opts.offset + opts.size) < data.length)) ?
-          // Slice using limit to size
-          data.slice(opts.offset, (opts.offset + opts.size) - 1) :
-          // Slice without limit
-          data.slice(opts.offset);
-      }
-    }
-    else if (opts.size > 0){
-      data = data.slice(0, opts.size - 1);
-    } else if (opts.size < 0){
-      // Force to keep all data
-    }
-
-    return {data, total};
-  }
-
-  protected getEntityStore<T extends Entity<T>>(entityName: string, opts?: {
-    create?: boolean;
-  }): EntityStore<T> {
-    let res = this._stores[entityName];
-    if (!res && (!opts || opts.create !== false)) {
-      res = new EntityStore<T>(entityName);
-      this._stores[entityName] = res;
-    }
-    return res;
-  }
-
-  protected detectEntityName(entityOrName: string | Entity<any>): string {
-    if (!entityOrName) throw Error("Unable to detect entityName of object: " + entityOrName);
-    if (typeof entityOrName === 'string') return entityOrName;
-    if (entityOrName.__typename) {
-      return entityOrName.__typename;
-    }
-    return entityOrName.constructor.name + 'VO';
   }
 
   ready(): Promise<void> {
@@ -476,6 +616,7 @@ export class EntitiesStorage {
     // Restore sequences
     this._startPromise = this.restoreLocally()
       .then(() => {
+        // Start a save timer
         this._subscription.add(
           merge(
             this._$save,
@@ -499,7 +640,7 @@ export class EntitiesStorage {
     return this._startPromise;
   }
 
-  public async stop() {
+  async stop() {
     this._started = false;
     this._subscription.unsubscribe();
     this._subscription = new Subscription();
@@ -509,9 +650,36 @@ export class EntitiesStorage {
     }
   }
 
-  public async restart() {
+  async restart() {
     if (this._started) await this.stop();
     await this.start();
+  }
+
+  /* -- protected methods -- */
+
+  protected createEntityStore<T extends Entity<T>>(name?: string, entities?: T[]): EntityStore<T> {
+    if (!entities) return new EntityStore<T>(name);
+    return EntityStore.fromEntities(entities, {name});
+  }
+
+  protected getEntityStore<T extends Entity<T>>(entityName: string, opts?: {
+    create?: boolean;
+  }): EntityStore<T> {
+    let res = this._stores[entityName];
+    if (!res && (!opts || opts.create !== false)) {
+      res = this.createEntityStore(entityName);
+      this._stores[entityName] = res;
+    }
+    return res;
+  }
+
+  protected detectEntityName(entityOrName: string | Entity<any>): string {
+    if (!entityOrName) throw Error("Unable to detect entityName of object: " + entityOrName);
+    if (typeof entityOrName === 'string') return entityOrName;
+    if (entityOrName.__typename) {
+      return entityOrName.__typename;
+    }
+    return entityOrName.constructor.name + 'VO';
   }
 
   protected async restoreLocally() {
@@ -523,7 +691,8 @@ export class EntitiesStorage {
     if (this._debug) console.info("[entity-storage] Restoring entities...");
     let entitiesCount = 0;
     await Promise.all(
-      entityNames.map((entityName) => {
+      entityNames.map(entityName => {
+
         return this.storage.get(ENTITIES_STORAGE_KEY + '#' + entityName)
           .then(entities => {
             // If there is something to restore
@@ -535,9 +704,7 @@ export class EntitiesStorage {
               }
 
               // Create a entity store, with all given entities
-              this._stores[entityName] = EntityStore.fromEntities<any>(entities, {
-                name: entityName
-              });
+              this._stores[entityName] = this.createEntityStore(entityName, entities);
             }
           });
       })
