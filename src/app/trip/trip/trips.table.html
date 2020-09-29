@@ -308,7 +308,7 @@
         <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{row.currentData.program | referentialToString: autocompleteFields.program.attributes }}
+        {{row.currentData.program | referentialToString: ['label'] }}
       </mat-cell>
     </ng-container>
 
