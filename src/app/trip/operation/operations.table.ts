@@ -100,7 +100,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.saveBeforeDelete = false;
     this.autoLoad = false; // waiting parent to be loaded
 
-    this.pageSize = 1000; // Do not use paginator
+    this.pageSize = -1; // Do not use paginator
     this.sortBy = this.mobile ? 'startDateTime' : 'endDateTime';
     this.sortDirection = this.mobile ? 'desc' : 'asc';
 
@@ -172,6 +172,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       component: OperationsMap,
       componentProps: {
         operations,
+        latLongPattern: this.latLongPattern,
         program: this.program
       },
       keyboardClose: true,

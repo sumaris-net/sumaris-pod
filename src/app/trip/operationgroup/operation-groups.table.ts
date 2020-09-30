@@ -72,7 +72,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
-    this.pageSize = 1000; // Do not use paginator
+    this.pageSize = -1; // Do not use paginator
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;

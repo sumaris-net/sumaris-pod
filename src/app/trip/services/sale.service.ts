@@ -159,7 +159,7 @@ export class SaleService extends BaseEntityService<Sale, SaleFilter> implements 
 
     const variables: any = {
       offset: offset || 0,
-      size: size || 1000,
+      size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'startDateTime',
       sortDirection: sortDirection || 'asc',
       filter: filter
@@ -181,21 +181,23 @@ export class SaleService extends BaseEntityService<Sale, SaleFilter> implements 
           const data = (res && res.sales || []).map(Sale.fromObject);
           if (this._debug) console.debug(`[sale-service] Loaded ${data.length} sales`);
 
-          // Compute rankOrderOnPeriod, by parent entity
-          if (filter && filter.observedLocationId) {
-            let rankOrder = 1;
-            // apply a sorted copy (do NOT change original order), then compute rankOrder
-            data.slice().sort(sortByEndDateOrStartDateFn)
-              .forEach(o => o.rankOrder = rankOrder++);
+          // Compute rankOrderOnPeriod, when loading by parent entity
+          if (offset === 0 && (size === -1) && filter && filter.observedLocationId) {
+            if (offset === 0 && (size === -1)) {
+              let rankOrder = 1;
+              // apply a sorted copy (do NOT change original order), then compute rankOrder
+              data.slice().sort(sortByEndDateOrStartDateFn)
+                .forEach(o => o.rankOrder = rankOrder++);
 
-            // sort by rankOrder (aka id)
-            if (!sortBy || sortBy == 'id') {
-              const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-              data.sort((a, b) => {
-                const valueA = a.rankOrder;
-                const valueB = b.rankOrder;
-                return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-              });
+              // sort by rankOrder (aka id)
+              if (!sortBy || sortBy == 'id') {
+                const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+                data.sort((a, b) => {
+                  const valueA = a.rankOrder;
+                  const valueB = b.rankOrder;
+                  return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+                });
+              }
             }
           }
 

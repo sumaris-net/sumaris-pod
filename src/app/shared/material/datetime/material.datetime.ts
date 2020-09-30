@@ -4,7 +4,7 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  Input,
+  Input, OnDestroy,
   OnInit,
   Optional,
   QueryList,
@@ -33,9 +33,10 @@ import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
 import {isFocusableElement} from "../../focusable";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
 import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
+import {firstNotNilPromise} from "../../observables";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -69,9 +70,10 @@ declare interface NgxTimePicker {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
+export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
+  private _subscription = new Subscription();
   protected writing = true;
   protected disabling = false;
   protected _tabindex: number;
@@ -173,32 +175,41 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     this.formControl.setValidators(this.required ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
 
     // Get patterns to display date and date+time
-    const patterns = this.translate.instant(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN']);
-    this.updatePattern(patterns);
+    //this.updatePattern(this.translate.instant(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN']))
+    this._subscription.add(
+        this.translate.get(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN'])
+            .subscribe((patterns) => this.updatePattern(patterns))
+    );
 
-    this.form.valueChanges
-      .subscribe((value) => this.onFormChange(value));
+    this._subscription.add(
+      this.form.valueChanges.subscribe((value) => this.onFormChange(value)));
 
     // Listen status changes outside the component (e.g. when setErrors() is calling on the formControl)
-    this.formControl.statusChanges
-      .subscribe((status) => {
-        if (this.readonly || this.writing || this.disabling) return; // Skip
-        if (status === 'INVALID') {
-          $error.next(this.formControl.errors);
-        }
-        else if (status === 'VALID') {
-          $error.next(null);
-        }
-        this.form.controls.day.updateValueAndValidity({onlySelf: true, emitEvent: false});
-        this.markForCheck();
-      });
+    this._subscription.add(
+      this.formControl.statusChanges
+        .subscribe((status) => {
+          if (this.readonly || this.writing || this.disabling) return; // Skip
+          if (status === 'INVALID') {
+            $error.next(this.formControl.errors);
+          }
+          else if (status === 'VALID') {
+            $error.next(null);
+          }
+          this.form.controls.day.updateValueAndValidity({onlySelf: true, emitEvent: false});
+          this.markForCheck();
+        }));
 
     this.updateTabIndex();
 
     this.writing = false;
   }
 
+  ngOnDestroy() {
+    this._subscription.unsubscribe();
+  }
+
   writeValue(obj: any): void {
+
     if (this.writing) return;
 
     if (isNilOrBlank(obj)) {
@@ -236,7 +247,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
       minutes = minutes < 10 ? ('0' + minutes) : minutes;
       // Set form value
       this.form.patchValue({
-        day: this._value.clone().startOf('day').format(this.dayPattern),
+        day: this.dateAdapter.format(this._value.clone().startOf('day'), this.dayPattern),
         hour: `${hour}:${minutes}`
       }, {emitEvent: false});
     }
@@ -246,7 +257,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
       //console.log("call writeValue()", this.date, this.formControl);
       // Set form value
       this.form.patchValue({
-        day: this._value.clone().startOf('day').format(this.dayPattern)
+        day: this.dateAdapter.format(this._value.clone().startOf('day'), this.dayPattern)
       }, {emitEvent: false});
     }
     this.writing = false;
@@ -276,10 +287,10 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     this.markForCheck();
   }
 
-  private updatePattern(patterns: string[]) {
+  private updatePattern(patterns: {[key: string]: string}) {
     this.displayPattern = (this.displayTime) ?
       (patterns['COMMON.DATE_TIME_PATTERN'] !== 'COMMON.DATE_TIME_PATTERN' ? patterns['COMMON.DATE_TIME_PATTERN'] : 'L LT') :
-      (this.displayPattern = patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+      (patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
     this.dayPattern = (patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
   }
 
@@ -332,7 +343,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     this._value = date && this.dateAdapter.parse(date.clone(), DATE_ISO_PATTERN);
 
     // Get the model value
-    const dateStr = date && date.isValid() && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
+    const dateStr = date && date.isValid() && this.dateAdapter.format(date, DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
     //console.debug("[mat-date-time] Setting date: ", dateStr);
     this.formControl.patchValue(dateStr, {emitEvent: false});
     //this.formControl.updateValueAndValidity();
@@ -368,10 +379,10 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     }
 
     // update day value
-    this.form.controls.day.setValue(day && day.format(this.dayPattern), {emitEvent: false});
+    this.form.controls.day.setValue(day && this.dateAdapter.format(day, this.dayPattern), {emitEvent: false});
 
     // Get the model value
-    const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
+    const dateStr = date && this.dateAdapter.format(date, DATE_ISO_PATTERN).replace('+00:00', 'Z');
     this.formControl.patchValue(dateStr, {emitEvent: false});
     this.writing = false;
     this.markForCheck();
