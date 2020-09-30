@@ -1,6 +1,13 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {EntitiesService, EntityServiceLoadOptions, isNil, isNilOrBlank, LoadResult} from "../../shared/shared.module";
+import {
+  EntitiesService,
+  EntityServiceLoadOptions,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  LoadResult
+} from "../../shared/shared.module";
 import {BaseEntityService, Entity, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -12,7 +19,7 @@ import {SocialFragments} from "./social.fragments";
 import {SortDirection} from "@angular/material/sort";
 import {EntitiesServiceWatchOptions, Page} from "../../shared/services/entity-service.class";
 import {map} from "rxjs/operators";
-import {toNumber} from "../../shared/functions";
+import {isEmptyArray, toNumber} from "../../shared/functions";
 import {IEntity} from "../../core/services/model/entity.model";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
@@ -20,6 +27,10 @@ import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {NetworkService} from "../../core/services/network.service";
 import {options} from "ionicons/icons";
+import {Trip} from "../../trip/services/model/trip.model";
+import {DataRootEntityUtils} from "../../data/services/model/root-data-entity.model";
+import {concatPromises} from "../../shared/observables";
+import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 
 export class UserEventFilter {
   issuer?: string;
@@ -44,6 +55,11 @@ const LoadAllQuery: any = gql`
   ${SocialFragments.lightUserEvent}
 `;
 
+const DeleteByIdsMutation: any = gql`
+  mutation DeleteUserEvents($ids:[Int]){
+    deleteUserEvents(ids: $ids)
+  }
+`;
 
 const LoadAllWithContentQuery: any = gql`
   query UserEventsWithContent($filter: UserEventFilterVOInput, $page: PageInput){
@@ -75,17 +91,6 @@ export class UserEventService extends BaseEntityService<UserEvent>
     this._debug = !environment.production;
   }
 
-  saveAll(data: UserEvent[], options?: any): Promise<UserEvent[]> {
-    return Promise.all(data
-      .map(entity => this.save(entity, options))
-    );
-  }
-
-  deleteAll(data: UserEvent[], options?: any): Promise<any> {
-    return Promise.all(data
-      .map(entity => this.delete(entity, options))
-    );
-  }
 
   /**
    *
@@ -111,7 +116,8 @@ export class UserEventService extends BaseEntityService<UserEvent>
             options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug("[user-event-service] Loading user events...", filter);
+    //if (this._debug)
+    console.debug("[user-event-service] Loading user events...", filter);
 
     filter = filter || {};
 
@@ -142,18 +148,26 @@ export class UserEventService extends BaseEntityService<UserEvent>
       error: {code: ErrorCodes.LOAD_USER_EVENTS_ERROR, message: "SOCIAL.ERROR.LOAD_USER_EVENTS_ERROR"},
       fetchPolicy: options && options.fetchPolicy || undefined
     })
-    .pipe(
-      map(res => {
-        const data = res && res.userEvents.map(UserEvent.fromObject);
-        if (now) {
-          console.debug(`[user-event-service] ${data.length} user events loaded in ${Date.now() - now}ms`);
-          now = null;
-        }
-        return {
-          data,
-          total: res && toNumber(res.userEventCount, data.length)
-        };
-      })
+      .pipe(
+        map(res => {
+          const data = res && res.userEvents.map(UserEvent.fromObject);
+
+
+          if (now) {
+            console.debug(`[user-event-service] ${data.length} user events loaded in ${Date.now() - now}ms`);
+            now = null;
+          }
+          return {
+            data,
+            total: res && toNumber(res.userEventCount, data.length)
+          };
+        })
+      );
+  }
+
+  saveAll(data: UserEvent[], options?: any): Promise<UserEvent[]> {
+    return Promise.all(data
+      .map(entity => this.save(entity, options))
     );
   }
 
@@ -189,6 +203,13 @@ export class UserEventService extends BaseEntityService<UserEvent>
           if (isNew) {
             this.insertIntoMutableCachedQuery(proxy,{
               query: LoadAllQuery,
+              data: {
+                ...savedEntity,
+                content: null
+              }
+            });
+            this.insertIntoMutableCachedQuery(proxy,{
+              query: LoadAllWithContentQuery,
               data: savedEntity
             });
           }
@@ -199,11 +220,51 @@ export class UserEventService extends BaseEntityService<UserEvent>
     return entity;
   }
 
+
+
+  /**
+   * Save many trips
+   * @param entities
+   * @param opts
+   */
+  async deleteAll(entities: UserEvent[], opts?: {
+    trash?: boolean; // True by default
+  }): Promise<any> {
+
+    const ids = entities && entities
+      .map(t => t.id);
+    if (isEmptyArray(ids)) return; // stop, if nothing else to do
+
+    const now = Date.now();
+    if (this._debug) console.debug("[user-event-service] Deleting events... ids:", ids);
+
+    await this.graphql.mutate<any>({
+      mutation: DeleteByIdsMutation,
+      variables: {
+        ids
+      },
+      update: (proxy) => {
+        // Remove from caches
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllQuery,
+          ids
+        });
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllWithContentQuery,
+          ids
+        });
+
+        if (this._debug) console.debug(`[user-event-service] Events deleted in ${Date.now() - now}ms`);
+      }
+    });
+  }
+
   /**
    * Delete userEvent entities
    */
-  async delete(entity: UserEvent, options?: any): Promise<any> {
-    throw new Error('Not implemented yet');
+  async delete(data: UserEvent): Promise<any> {
+    if (!data) return; // skip
+    await this.deleteAll([data]);
   }
 
   listenChanges(id: number, options?: any): Observable<UserEvent | undefined> {
@@ -260,7 +321,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
         context = context();
       }
       if (context instanceof Promise) {
-        context = await opts.context;
+        context = await context;
       }
 
       // Send the message

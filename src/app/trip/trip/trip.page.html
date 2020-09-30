@@ -52,7 +52,9 @@
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+  <mat-tab-group #tabGroup
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
                  dynamicHeight>
 

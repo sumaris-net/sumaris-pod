@@ -1332,9 +1332,22 @@
     }
   },
   "SOCIAL": {
+    "USER_EVENT": {
+      "EVENT_TYPE": "Type",
+      "CREATION_DATE": "Date/Heure",
+      "MESSAGE": "Message",
+      "CONTEXT": "Contexte",
+      "BTN_COPY_TO_LOCAL": "Copier localement",
+      "INFO": {
+        "COPIED_LOCALLY": "Copier localement avec succès"
+      }
+    },
     "EVENT_TYPE_ENUM": {
       "DEBUG_DATA": "Donnée de debuggage",
       "INBOX_MESSAGE": "Message entrant"
+    },
+    "CONTEXT": {
+      "TRIP": "Marée"
     },
     "ERROR": {
       "LOAD_USER_EVENTS_ERROR": "Erreur de chargement des notifications",

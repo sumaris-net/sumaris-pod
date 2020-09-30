@@ -389,6 +389,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   ngAfterViewInit() {
     if (!this.table) console.warn(`[table] Missing <mat-table> in the HTML template! Component: ${this.constructor.name}`);
+
+    if (!this.displayedColumns) console.warn(`[table] Missing 'displayedColumns'. Did you call super.ngOnInit() in component ${this.constructor.name} ?`);
   }
 
   ngOnDestroy() {

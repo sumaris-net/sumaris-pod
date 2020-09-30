@@ -1,7 +1,7 @@
 import {PredefinedColors} from "@ionic/core";
 import {isNil, isNotNil} from "../functions";
 
-declare type ColorName = PredefinedColors |
+export declare type ColorName = PredefinedColors |
   'white'
   | 'red'
   | 'green'
