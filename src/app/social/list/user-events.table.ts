@@ -194,6 +194,7 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
 
       // Convert to entity, then to JSON (without local id)
       const entity = details.fromObject(context);
+      entity.id = null;
       entity.synchronizationStatus = SynchronizationStatusEnum.DIRTY;
       const json = entity.asObject({minify: false,
         keepTypename: true,

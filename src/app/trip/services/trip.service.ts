@@ -807,11 +807,16 @@ export class TripService extends RootDataService<Trip, TripFilter>
         withOperation: true,
         enableOptimisticResponse: false // Optimistice response not need
       });
+
       if (isNil(entity.id) || entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR};
       }
     } catch (err) {
-      throw {...err, code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
+      throw {...err,
+        code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR,
+        message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR",
+        context: entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
+      };
     }
 
     try {

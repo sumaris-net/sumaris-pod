@@ -119,6 +119,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
     //if (this._debug)
     console.debug("[user-event-service] Loading user events...", filter);
 
+    page.sortDirection = page.sortDirection && page.sortDirection.toUpperCase() as SortDirection;
     filter = filter || {};
 
     // Force recipient to current issuer, if not admin and not specified
