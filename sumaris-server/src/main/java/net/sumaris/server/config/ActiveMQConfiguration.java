@@ -75,7 +75,7 @@ public class ActiveMQConfiguration {
     )
     @ConditionalOnClass(name = "org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter")
     public ConnectionFactory connectionFactory(SumarisServerConfiguration config) {
-        log.info(String.format("Starting JMS (using ActiveMQ)... {brokerUrl: '%s', store: 'KahaDB'}...", config.getActiveMQBrokerURL()));
+        log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s', store: 'KahaDB'}...", config.getActiveMQBrokerURL()));
 
         // Enable persistence, with file storage
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(config.getActiveMQBrokerURL());

@@ -25,6 +25,7 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -36,7 +37,8 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
-public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
+public class OperationVO implements IUpdateDateEntityBean<Integer, Date>,
+        IValueObject<Integer> {
 
     private Integer id;
     private Integer rankOrderOnPeriod;

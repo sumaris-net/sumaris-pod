@@ -20,14 +20,13 @@
  * #L%
  */
 
-package net.sumaris.core.event;
+package net.sumaris.core.jms;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.service.data.TripServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -42,15 +41,15 @@ import javax.annotation.Resource;
 
 @Component
 @ConditionalOnClass(JmsTemplate.class)
-public class DataEntityJmsNotifier {
-    private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
+public class EntityJmsNotifier {
+    private static final Logger log = LoggerFactory.getLogger(EntityJmsNotifier.class);
 
     @Resource
     private JmsTemplate jmsTemplate;
 
     @PostConstruct
     protected void init() {
-        log.info("Starting JMS entity notifier...");
+        log.info("Starting JMS notifier, for entity events...");
     }
 
     @Async
@@ -66,7 +65,7 @@ public class DataEntityJmsNotifier {
         // Compute a destination name
         String destinationName = event.getOperation().name().toLowerCase() + event.getEntityName();
 
-        if (log.isDebugEnabled()) log.debug(String.format("Send JMS message '%s' {id: %s}",
+        if (log.isDebugEnabled()) log.debug(String.format("Sending JMS message... {destination: '%s', id: %s}",
                 destinationName, event.getId()));
 
         // Send data, or ID

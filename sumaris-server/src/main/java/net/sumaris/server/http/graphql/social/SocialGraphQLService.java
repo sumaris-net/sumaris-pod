@@ -37,6 +37,7 @@ import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.security.AuthService;
+import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,7 @@ import java.util.Objects;
  */
 @Service
 @Transactional
-public class UserEventGraphQLService {
+public class SocialGraphQLService {
 
     final static int DEFAULT_PAGE_SIZE = 100;
     final static int MAX_PAGE_SIZE = 1000;
@@ -64,7 +65,7 @@ public class UserEventGraphQLService {
     @Autowired
     private AuthService authService;
 
-    /* -- Data -- */
+    /* -- User event -- */
 
     @GraphQLMutation(name = "saveUserEvent", description = "Sent data to admin, for debug")
     @IsUser
@@ -132,5 +133,22 @@ public class UserEventGraphQLService {
 
         return userEventService.findAll(filter, page);
     }
+
+    @GraphQLMutation(name = "deleteUserEvent", description = "Delete a user event")
+    @IsAdmin
+    public void deleteUserEvent(@GraphQLArgument(name = "id") int id) {
+        userEventService.delete(id);
+    }
+
+    @GraphQLMutation(name = "deleteUserEvents", description = "Delete many user events")
+    @IsAdmin
+    public void deleteUserEvents(@GraphQLArgument(name = "ids") List<Integer> ids) {
+        userEventService.delete(ids);
+    }
+
+
+    /* -- User interaction -- */
+
+
 
 }

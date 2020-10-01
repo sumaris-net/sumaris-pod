@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.data.LandingRepository;
@@ -105,11 +106,11 @@ public class TripServiceImpl implements TripService {
     @Autowired
     private FishingAreaService fishingAreaService;
 
-    private boolean joinDataToDeleteEvents = false;
+    private boolean enableTrash = false;
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        this.joinDataToDeleteEvents = event.getConfig().enableDataInsideDeleteEvents();
+        this.enableTrash = event.getConfig().enableEntityTrash();
     }
 
     @Override
@@ -435,20 +436,26 @@ public class TripServiceImpl implements TripService {
     @Override
     public void delete(int id) {
 
-        // Load the existing trip (need by trash service)
-        TripVO trip = null;
-        if (joinDataToDeleteEvents) {
-            trip = get(id);
-            trip.setOperations(
-                    operationService.getAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC));
-            // TODO BLA: need to add operation groups ? (ask to LPT)
+        // Create events (before deletion, to be able to join VO)
+        List<EntityDeleteEvent> events = Lists.newArrayList();
+        if (enableTrash) {
+            events.add(new EntityDeleteEvent(id, Trip.class.getSimpleName(), get(id)));
+
+            // Add each operations
+            Beans.getStream(operationService.getAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC))
+                .forEach(ope -> events.add(new EntityDeleteEvent(ope.getId(), Operation.class.getSimpleName(), ope)));
+
+            // TODO BLA: add operation groups ? (ask LPT)
+        }
+        else {
+            events.add(new EntityDeleteEvent(id, Trip.class.getSimpleName()));
         }
 
         // Apply deletion
         tripRepository.deleteById(id);
 
-        // Publish delete event
-        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), trip));
+        // Publish events
+        events.forEach(publisher::publishEvent);
     }
 
     @Override

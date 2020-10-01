@@ -24,24 +24,16 @@ package net.sumaris.core.service.social;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.data.FishingAreaRepository;
-import net.sumaris.core.dao.data.OperationGroupDao;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.social.EventTypeEnum;
-import net.sumaris.core.service.data.FishingAreaService;
-import net.sumaris.core.vo.data.FishingAreaVO;
-import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -58,6 +50,12 @@ public class UserEventServiceImpl implements UserEventService {
     }
 
     @Override
+    public List<UserEventVO> findAll(UserEventFilterVO filter, Page page) {
+        return userEventRepository.findAllVO(userEventRepository.toSpecification(filter), page)
+                .stream().collect(Collectors.toList());
+    }
+
+    @Override
     public UserEventVO save(UserEventVO event) {
         Preconditions.checkNotNull(event);
         Preconditions.checkNotNull(event.getIssuer());
@@ -71,8 +69,15 @@ public class UserEventServiceImpl implements UserEventService {
     }
 
     @Override
-    public List<UserEventVO> findAll(UserEventFilterVO filter, Page page) {
-        return userEventRepository.findAllVO(userEventRepository.toSpecification(filter), page)
-                .stream().collect(Collectors.toList());
+    public void delete(int id) {
+        userEventRepository.deleteById(id);
+    }
+
+    @Override
+    public void delete(List<Integer> ids) {
+        Preconditions.checkNotNull(ids);
+        ids.stream()
+                .filter(Objects::nonNull)
+                .forEach(this::delete);
     }
 }
