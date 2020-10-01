@@ -59,15 +59,15 @@
   </modules>
 
   <scm>
-    <url>https://github.com/sumaris-net/sumaris-pod.git</url>
-    <connection>scm:git:[fetch=]https://github.com/sumaris-net/sumaris-pod.git[push=]ssh://git@github.com/sumaris-net/sumaris-pod.git</connection>
+    <url>https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod.git</url>
+    <connection>scm:git:https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod.git</connection>
     <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
-    <system>github</system>
+    <system>gitlab</system>
     <url>
-      https://github.com/sumaris-net/sumaris-pod/issues
+      https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod/issues
     </url>
   </issueManagement>
 
@@ -1746,7 +1746,7 @@
               <escapeHTML>false</escapeHTML>
               <feedType>rss_2.0</feedType>
               <issueLinkTemplatePerSystem>
-                <default>https://github.com/sumaris-net/sumaris-pod/issues/%ISSUE%</default>
+                <default>https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod/-/issues/%ISSUE%</default>
               </issueLinkTemplatePerSystem>
             </configuration>
           </plugin>
