@@ -71,9 +71,6 @@ public class PacketServiceImpl implements PacketService {
     private BatchDao batchDao;
 
     @Autowired
-    private PmfmService pmfmService;
-
-    @Autowired
     private MeasurementDao measurementDao;
 
     @Autowired
@@ -81,11 +78,7 @@ public class PacketServiceImpl implements PacketService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        initPmfms();
-    }
-
-    private void initPmfms() {
-        // (e.g. use findByLabel())
+        // Init pmfm ids
         this.calculatedWeightPmfmId = PmfmEnum.BATCH_CALCULATED_WEIGHT.getId();
         this.measuredWeightPmfmId = PmfmEnum.BATCH_MEASURED_WEIGHT.getId();
         this.estimatedRatioPmfmId = PmfmEnum.BATCH_ESTIMATED_RATIO.getId();
