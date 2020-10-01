@@ -456,7 +456,7 @@ export class ExtractionService extends BaseEntityService {
       strata: strata,
       filter: filter,
       offset: offset || 0,
-      size: size || 1000
+      size: size >= 0 ? size : 1000
     };
 
     const res = await this.graphql.query<{ aggregationGeoJson: any }>({

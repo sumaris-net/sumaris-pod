@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {EMPTY, Observable} from "rxjs";
-import {filter, map, throttleTime} from "rxjs/operators";
+import {filter, first, map, tap, throttleTime} from "rxjs/operators";
 import {
   EntitiesService,
   EntityService,
@@ -39,6 +39,7 @@ import {QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {concatPromises, firstNotNilPromise} from "../../shared/observables";
 import {DataRootEntityUtils} from "../../data/services/model/root-data-entity.model";
+import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -244,12 +245,12 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     this._debug = !environment.production;
   }
 
-  async loadAllByTrip(filter?: OperationFilter & { tripId: number; }, opts?: OperationServiceWatchOptions): Promise<Operation[]> {
-    return firstNotNilPromise(
-      this.watchAll(0, -1, null, null, filter, opts)
-        .pipe(
-          map(res => res.data)
-        ));
+  async loadAllByTrip(filter?: OperationFilter & { tripId: number; }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
+    return firstNotNilPromise(this.watchAllByTrip(filter, opts));
+  }
+
+  watchAllByTrip(filter?: OperationFilter & { tripId: number; }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
+      return this.watchAll(0, -1, null, null, filter, opts);
   }
 
   async loadAll(offset: number,
@@ -295,7 +296,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     const variables: QueryVariables<OperationFilter> = {
       offset: offset || 0,
-      size: size || 1000,
+      size: size >= 0 ? size : 1000,
       sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
       trash: opts && opts.trash || false,
@@ -327,12 +328,12 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
         }
 
         // Compute rankOrder and re-sort (if enable AND all data fetched)
-        if (offset === 0 && size === 1000 && (!opts || opts.computeRankOrder !== false)) {
+        if (offset === 0 && size === -1 && (!opts || opts.computeRankOrder !== false)) {
           this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
         }
 
         return {
-          data: data,
+          data,
           total: data.length
         };
       }));
@@ -374,7 +375,6 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     finally {
       this.loading = false;
     }
-
   }
 
   async delete(data: Operation, options?: any): Promise<any> {
@@ -604,7 +604,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     const variables: any = {
       offset: offset || 0,
-      size: size || 1000,
+      size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
       trash: opts && opts.trash || false,
@@ -619,9 +619,8 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       .pipe(map(res => {
         const data = (res && res.data || []).map(source => Operation.fromObject(source, opts));
 
-        // Compute rankOrder and re-sort if need
-        // (only if all operation have been loaded)
-        if (offset === 0 && size === 1000) {
+        // Compute rankOrder and re-sort (if enable AND all data fetched)
+        if (offset === 0 && size === -1 && (!opts || opts.computeRankOrder !== false)) {
           this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
         }
 
@@ -630,6 +629,36 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
           total: data.length
         };
       }))
+  }
+
+  /**
+   * Compute rank order of the given operation. This function will load all operations, to compute the rank order.
+   * Please use opts={fetchPolicy: 'cache-first'} when possible
+   * @param source
+   * @param opts
+   */
+  computeRankOrder(source: Operation, opts?: { fetchPolicy?: FetchPolicy; } ): Promise<number> {
+    return this.watchRankOrder(source, opts)
+      .pipe(first())
+      .toPromise();
+  }
+
+  /**
+   * Compute rank order of the operation
+   * @param source
+   * @param opts
+   */
+  watchRankOrder(source: Operation, opts?: { fetchPolicy?: WatchQueryFetchPolicy; }): Observable<number> {
+    console.debug(`[operation-service] Loading rankOrder of operation #${source.id}...`);
+    const tripId = isNotNil(source.tripId) ? source.tripId : source.trip && source.trip.id;
+    return this.watchAllByTrip({tripId}, opts)
+      .pipe(
+        map(res => {
+          const existingOperation = (res && res.data ||[]).find(o => o.id === source.id);
+          console.log('rankOrderOnPeriod=' + existingOperation && existingOperation.rankOrderOnPeriod);
+          return existingOperation ? existingOperation.rankOrderOnPeriod : null;
+        })
+      );
   }
 
   /* -- protected methods -- */

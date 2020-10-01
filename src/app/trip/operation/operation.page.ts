@@ -458,9 +458,17 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     // Existing operation
-    return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
-      startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
-    }).toPromise()) as string;
+    if (this.platform.mobile) {
+      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
+        startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
+      }).toPromise()) as string;
+    }
+    else {
+      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
+        startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string,
+        rankOrder: await this.service.computeRankOrder(data, {fetchPolicy: 'cache-first'})
+      }).toPromise()) as string;
+    }
   }
 
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {

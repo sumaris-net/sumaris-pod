@@ -1,5 +1,4 @@
 import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
 import {TripTable} from './trip/trips.table';
 import {TripPage} from './trip/trip.page';
 import {TripForm} from './trip/trip.form';
@@ -47,7 +46,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm 
     ReferentialModule,
     DataModule,
     SocialModule,
-    LeafletModule
+    LeafletModule,
+    TranslateModule.forChild()
   ],
   declarations: [
     TripTable,
@@ -83,6 +83,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm 
     IndividualMonitoringSubSamplesTable
   ],
   exports: [
+    TranslateModule,
+
     // Pipes
 
     // Components

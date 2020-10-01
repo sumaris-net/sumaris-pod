@@ -38,9 +38,8 @@ export class EntityStore<T extends Entity<T>> {
 
   constructor(name?: string) {
     this.name = name;
-    this._entities = [];
-    this.sequence = 0;
-    this.indexById = {};
+    this.reset();
+    this.dirty = false;
   }
 
   nextValue(): number {
@@ -187,6 +186,20 @@ export class EntityStore<T extends Entity<T>> {
     }
 
     return deletedEntities;
+  }
+
+  reset(opts? : {emitEvent?: boolean}) {
+    this._entities = [];
+    this.sequence = 0;
+    this.indexById = {};
+
+    this.dirty = true;
+
+    // Emit update event
+    if (!opts || opts.emitEvent !== false) {
+      this.emitEvent();
+
+    }
   }
 
   /* -- protected methods -- */
@@ -592,6 +605,20 @@ export class EntitiesStorage {
     this._$save.emit();
 
     return entity;
+  }
+
+  async clearTrash(entityName: string) {
+    await this.ready();
+
+    const trashName = EntitiesStorage.TRASH_PREFIX + entityName;
+    const entityStore = this.getEntityStore(trashName, {create: false});
+    if (!entityStore) return; // Skip
+
+    entityStore.reset();
+    entityStore.dirty = true;
+    this._dirty = true;
+
+    this._$save.emit();
   }
 
   persist(): Promise<void> {

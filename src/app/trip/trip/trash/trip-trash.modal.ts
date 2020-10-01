@@ -12,12 +12,11 @@ import {FormBuilder} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
 import {environment} from "../../../../environments/environment";
-import {personsToString} from "../../../core/services/model/person.model";
 import {TableElement} from "@e-is/ngx-material-table";
-import {ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
 import {SynchronizationStatus, SynchronizationStatusEnum} from "../../../data/services/model/root-data-entity.model";
 import {isEmptyArray, isNotNil} from "../../../shared/functions";
 import {OperationService} from "../../services/operation.service";
+import {EntitiesStorage} from "../../../core/services/entities-storage.service";
 
 @Component({
   selector: 'app-trip-trash-modal',
@@ -44,6 +43,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     protected settings: LocalSettingsService,
     protected accountService: AccountService,
     protected service: TripService,
+    protected entities: EntitiesStorage,
     protected operationService: OperationService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
@@ -193,12 +193,26 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     await this.viewCtrl.dismiss();
   }
 
-  personsToString = personsToString;
-  referentialToString = referentialToString;
+  async cleanLocalTrash(event?: UIEvent, confirm?: boolean) {
 
-  programToString(item: ReferentialRef) {
-    return item && item.label || undefined;
+    if (!confirm) {
+      confirm = await this.askDeleteConfirmation(event);
+      if (!confirm) return; // skip
+    }
+
+    console.debug('[trip-trash] Cleaning the trash...');
+    await this.entities.clearTrash(Trip.TYPENAME);
+
+    await this.close();
+
+    // Success toast
+    setTimeout(() => {
+      this.showToast({
+        message: 'TRIP.TRASH.INFO.LOCAL_TRASH_CLEANED' });
+    }, 200);
+
   }
+
   /* -- protected method -- */
 
   protected markForCheck() {

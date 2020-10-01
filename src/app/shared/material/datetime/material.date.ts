@@ -4,7 +4,7 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  Input,
+  Input, OnDestroy,
   OnInit,
   Optional,
   QueryList,
@@ -30,7 +30,7 @@ import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../func
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import {FloatLabelType} from "@angular/material/form-field";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
 import {DateAdapter} from "@angular/material/core";
@@ -56,9 +56,10 @@ const noop = () => {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatDate implements OnInit, ControlValueAccessor, InputElement {
+export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
+  private _subscription = new Subscription();
   protected writing = true;
   protected disabling = false;
   protected _tabindex: number;
@@ -144,29 +145,38 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     this.formControl.setValidators(this.required ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
 
     // Get patterns to display date
-    const patterns = this.translate.instant(['COMMON.DATE_PATTERN']);
-    this.updatePattern(patterns);
+    this.updatePattern(this.translate.instant(['COMMON.DATE_PATTERN']))
+    this._subscription.add(
+      this.translate.get(['COMMON.DATE_PATTERN'])
+        .subscribe((patterns) => this.updatePattern(patterns))
+    );
 
-    this.dayControl.valueChanges
-      .subscribe((value) => this.onFormChange(value));
+    this._subscription.add(
+      this.dayControl.valueChanges
+       .subscribe((value) => this.onFormChange(value)));
 
     // Listen status changes outside the component (e.g. when setErrors() is calling on the formControl)
-    this.formControl.statusChanges
-      .subscribe((status) => {
-        if (this.readonly || this.writing || this.disabling) return; // Skip
-        if (status === 'INVALID') {
-          $error.next(this.formControl.errors);
-        }
-        else if (status === 'VALID') {
-          $error.next(null);
-        }
-        this.dayControl.updateValueAndValidity({onlySelf: true, emitEvent: false});
-        this.markForCheck();
-      });
+    this._subscription.add(
+      this.formControl.statusChanges
+        .subscribe((status) => {
+          if (this.readonly || this.writing || this.disabling) return; // Skip
+          if (status === 'INVALID') {
+            $error.next(this.formControl.errors);
+          }
+          else if (status === 'VALID') {
+            $error.next(null);
+          }
+          this.dayControl.updateValueAndValidity({onlySelf: true, emitEvent: false});
+          this.markForCheck();
+        }));
 
     this.updateTabIndex();
 
     this.writing = false;
+  }
+
+  ngOnDestroy() {
+    this._subscription.unsubscribe();
   }
 
   writeValue(obj: any): void {
@@ -194,7 +204,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
 
     //console.log("call writeValue()", this.date, this.formControl);
     // Set form value
-    this.dayControl.patchValue(this._value.clone().startOf('day').format(this.dayPattern), {emitEvent: false});
+    this.dayControl.patchValue(this.dateAdapter.format(this._value.clone().startOf('day'), this.dayPattern), {emitEvent: false});
     this.writing = false;
     this.markForCheck();
   }
@@ -235,10 +245,10 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     day = date && date.clone().startOf('day');
 
     // update day value
-    this.dayControl.setValue(day && day.format(this.dayPattern), {emitEvent: false});
+    this.dayControl.setValue(date && this.dateAdapter.format(day, this.dayPattern), {emitEvent: false});
 
     // Get the model value
-    const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
+    const dateStr = date && this.dateAdapter.format(date, DATE_ISO_PATTERN).replace('+00:00', 'Z');
     this.formControl.patchValue(dateStr, {emitEvent: false});
     this.writing = false;
     this.markForCheck();
@@ -246,9 +256,8 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     this._onChangeCallback(dateStr);
   }
 
-  private updatePattern(patterns: string[]) {
-    this.displayPattern =
-            (this.displayPattern = patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+  private updatePattern(patterns: {[key: string]: string}) {
+    this.displayPattern = patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L';
     this.dayPattern = (patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
   }
 
@@ -258,7 +267,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
 
     if (this.dayControl.invalid) {
       this.formControl.markAsPending();
-      this.formControl.setErrors(Object.assign({}, this.dayControl.errors));
+      this.formControl.setErrors({...this.dayControl.errors});
       this.writing = false;
       return;
     }
@@ -280,7 +289,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     this._value = date && this.dateAdapter.parse(date.clone(), DATE_ISO_PATTERN);
 
     // Get the model value
-    const dateStr = date && date.isValid() && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
+    const dateStr = date && date.isValid() && this.dateAdapter.format(date, DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
     //console.debug("[mat-date-time] Setting date: ", dateStr);
     this.formControl.patchValue(dateStr, {emitEvent: false});
     //this.formControl.updateValueAndValidity();
@@ -292,7 +301,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
 
 
 
-  public checkIfTouched() {
+  checkIfTouched() {
     if (this.dayControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();

@@ -212,7 +212,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
 
       this.userEventService.showToastErrorWithContext({
         error,
-        context: () => this.data.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
+        context: () => error && error.context || this.data.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
       });
 
     }

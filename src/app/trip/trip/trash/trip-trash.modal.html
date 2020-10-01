@@ -12,10 +12,42 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-spinner *ngIf="loading"></ion-spinner>
+      <!-- loading spinner -->
+      <ion-spinner *ngIf="loadingSubject|async; else endButtons"></ion-spinner>
+
+      <!-- top buttons -->
+      <ng-template #endButtons>
+        <button mat-icon-button
+                [title]="'COMMON.BTN_OPTIONS'|translate"
+                [matMenuTriggerFor]="optionsMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </ng-template>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+
+<!-- options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- display columns -->
+  <button mat-menu-item
+          (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- Clean local trash -->
+  <button mat-menu-item *ngIf="synchronizationStatus === 'DIRTY'"
+          (click)="cleanLocalTrash($event)">
+    <mat-icon color="warn">delete_forever</mat-icon>
+    <ion-label color="danger" translate>COMMON.BTN_CLEAN_TRASH</ion-label>
+  </button>
+
+</mat-menu>
 
 <ion-content class="ion-no-padding">
 
@@ -135,10 +167,10 @@
       <mat-header-cell *matHeaderCellDef>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <button mat-icon-button color="light"
+        <button mat-icon-button color="warn"
                 [title]="'COMMON.BTN_RESTORE'|translate"
                 (click)="restore($event, [row])">
-          <mat-icon>restore_from_trash</mat-icon>
+          <mat-icon>open_in_new</mat-icon>
         </button>
       </mat-cell>
     </ng-container>
@@ -152,7 +184,7 @@
   </mat-table>
 
   <ion-row class="ion-no-padding">
-    <ion-col></ion-col>
+    <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
     <ion-col class="ion-no-padding" size="auto">
       <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>

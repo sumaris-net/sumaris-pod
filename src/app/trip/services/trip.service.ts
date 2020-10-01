@@ -39,7 +39,7 @@ import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {concatPromises} from "../../shared/observables";
+import {concatPromises, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./validator/trip.validator";
 import {FormErrors} from "../../core/form/form.utils";
@@ -807,11 +807,16 @@ export class TripService extends RootDataService<Trip, TripFilter>
         withOperation: true,
         enableOptimisticResponse: false // Optimistice response not need
       });
+
       if (isNil(entity.id) || entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR};
       }
     } catch (err) {
-      throw {...err, code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
+      throw {...err,
+        code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR,
+        message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR",
+        context: entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
+      };
     }
 
     try {
@@ -1085,15 +1090,17 @@ export class TripService extends RootDataService<Trip, TripFilter>
       await concatPromises(localEntities.map(entity => async () => {
 
         // Load trip's operations
-        const operations = await this.operationService.loadAllByTrip({tripId: entity.id});
+        const res = await this.operationService.loadAllByTrip({tripId: entity.id});
+        const operations = res && res.data;
 
         await this.entities.delete(entity, {entityName: Trip.TYPENAME});
-        await this.operationService.deleteAll(operations, {trash: false});
+        if (isNotNil(operations)) {
+          await this.operationService.deleteAll(operations, {trash: false});
+        }
 
         if (trash) {
           // Fill trip's operation, before moving it to trash
           entity.operations = operations;
-
 
           const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
 
@@ -1186,7 +1193,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       defer(() =>  this.personService.executeImport(jobOpts)),
       defer(() => this.vesselSnapshotService.executeImport(jobOpts)),
       defer(() => this.programService.executeImport(jobOpts)),
-      // Save date to local storage
+      // Save data to local storage
       defer(() =>
         timer()
           .pipe(
@@ -1266,11 +1273,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     if (options && options.withOperation) {
 
       // Load operations
-      const res = await this.operationService.watchAll(0, 1000, null, null, {
-        tripId: id
-      }, {
-        fetchPolicy: "network-only"
-      }).toPromise();
+      const res = await firstNotNilPromise(this.operationService.watchAllByTrip({tripId: id}, {fetchPolicy: "network-only"}));
 
       // Save operations locally
       await Promise.all((res && res.data || []).map(op => {
