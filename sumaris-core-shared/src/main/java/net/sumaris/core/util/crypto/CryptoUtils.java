@@ -25,13 +25,14 @@ package net.sumaris.core.util.crypto;
 
 import com.lambdaworks.codec.Base64;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Files;
 import org.abstractj.kalium.crypto.Util;
 
 import java.nio.charset.Charset;
 
 public class CryptoUtils extends Util {
 	
-	public static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
+	public static final Charset CHARSET_UTF8 = Files.CHARSET_UTF8;
 	public static final Charset CHARSET_ASCII = Charset.forName("US-ASCII");
 	
 	public static byte[] zeros(int n) {

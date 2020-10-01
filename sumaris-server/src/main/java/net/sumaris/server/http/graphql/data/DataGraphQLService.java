@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
@@ -47,9 +48,11 @@ import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
+import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,6 +73,9 @@ public class DataGraphQLService {
 
     @Autowired
     private TripService tripService;
+
+    @Autowired
+    private TrashService trashService;
 
     @Autowired
     private ObservedLocationService observedLocationService;
@@ -225,14 +231,34 @@ public class DataGraphQLService {
     public List<TripVO> findTripsByFilter(@GraphQLArgument(name = "filter") TripFilterVO filter,
                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                          @GraphQLArgument(name = "sortBy", defaultValue = TripVO.Fields.DEPARTURE_DATE_TIME) String sort,
-                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                          @GraphQLArgument(name = "sortBy") String sort,
+                                          @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
+                                          @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
                                           @GraphQLEnvironment() Set<String> fields
                                   ) {
 
-        final List<TripVO> result = tripService.findByFilter(fillTripFilterDefaults(filter),
-                offset, size, sort,
-                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
+        filter = fillTripFilterDefaults(filter);
+        SortDirection sortDirection = direction != null ? SortDirection.valueOf(direction.toUpperCase()) : SortDirection.DESC;
+
+        // Read from trash
+        if (trash) {
+            // Check user is admin
+            checkIsAdmin("Cannot access to trash");
+
+            // Set default sort
+            sort = sort != null ? sort : TripVO.Fields.UPDATE_DATE;
+
+            // Call the trash service
+            return trashService.findAll(Trip.class.getSimpleName(),
+                    Pageables.create(offset, size, sort, sortDirection),
+                    TripVO.class).getContent();
+        }
+
+        // Set default sort
+        sort = sort != null ? sort : TripVO.Fields.DEPARTURE_DATE_TIME;
+
+        final List<TripVO> result = tripService.findByFilter(filter,
+                offset, size, sort, sortDirection,
                 getFetchOptions(fields));
 
         // Add additional properties if needed
@@ -244,7 +270,16 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "tripsCount", description = "Get trips count")
     @Transactional(readOnly = true)
     @IsUser
-    public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter) {
+    public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter,
+                              @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
+        if (trash) {
+            // Check user is admin
+            checkIsAdmin("Cannot access to trash");
+
+            // Call the trash service
+            return trashService.count(Trip.class.getSimpleName());
+        }
+
         return tripService.countByFilter(fillTripFilterDefaults(filter));
     }
 
@@ -1291,12 +1326,18 @@ public class DataGraphQLService {
                 result.setRecorderPersonId(-999); // Hide all. Should neveer occur
             }
         }
-
         return result;
     }
 
     protected boolean canAccessNotSelfData() {
         String minRole = config.getAuthNotSelfDataRole();
         return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
+    }
+
+    /**
+     * Check user is admin
+     */
+    protected void checkIsAdmin(String message) {
+        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Forbidden");
     }
 }

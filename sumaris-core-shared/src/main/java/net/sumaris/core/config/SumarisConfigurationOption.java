@@ -335,7 +335,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     ENABLE_ENTITY_TRASH(
             "sumaris.persistence.trash.enable",
             n("sumaris.config.option.persistence.trash.enable.description"),
-            Boolean.FALSE.toString(),
+            Boolean.TRUE.toString(),
             boolean.class,
             false),
 

@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class PacketCompositionVO implements IEntity<Integer> {
+public class PacketCompositionVO implements IEntity<Integer>, IValueObject<Integer> {
 
     @EqualsAndHashCode.Exclude
     private Integer id;
