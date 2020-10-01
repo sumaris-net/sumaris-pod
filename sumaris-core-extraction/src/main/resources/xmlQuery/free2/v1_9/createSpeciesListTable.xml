@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<queries name="extractionCreateSpeciesListTable">
+
+  <query type="create" temp="false" table="&amp;speciesListTableName" option="DISTINCT">
+
+    <!-- PK -->
+    <select alias="TYPE" type="text">'Captures'</select>
+    <select alias="ID_VRAC" type="number">SL.ID_VRAC</select>
+    <select alias="ID_DETAIL" type="number">null</select>
+    <select alias="ID_LOT" type="number">SL.ID_VRAC</select>
+    <select alias="ID_CAPTURE" type="number">SL.SAMPLE_ID</select>
+
+    <select alias="SPECIES" type="text">TN.NAME</select>
+    <select alias="ESPECE_COM" type="text">TG.NAME</select>
+
+    <!--
+    <select alias="" type="text">''</select>
+    <select alias="" type="number">null</select>
+    -->
+
+    <select alias="EXHAUSTIF" type="text">'Oui'</select>
+    <select alias="TAUX_ECH" type="number">SL.TAUX_ECH</select>
+    <select alias="POIDS_REF_VRAC" type="number">SL.SUBSAMPLE_WEIGHT</select>
+
+    <from alias="SL">&amp;rawSpeciesListTableName</from>
+    <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SL.TAXON_GROUP_ID</from>
+    <from join="true">LEFT OUTER JOIN TAXON_GROUP_HISTORICAL_RECORD TGH ON TGH.TAXON_GROUP_FK = SL.TAXON_GROUP_ID</from>
+    <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = TGH.REFERENCE_TAXON_FK AND TN.IS_REFERENT=1</from>
+
+
+
+  </query>
+
+</queries>
