@@ -85,12 +85,12 @@ public class LocationServiceImpl implements LocationService{
         // Retrieve location levels
         Map<String, LocationLevel> locationLevels = createAndGetLocationLevels(ImmutableMap.<String, String>builder()
                 .put(LocationLevelEnum.RECTANGLE_ICES.getLabel(), "ICES rectangle")
-                .put(LocationLevelEnum.RECTANGLE_CGPM_GFCM.getLabel(), "CGPM/GFCM rectangle")
+                .put(LocationLevelEnum.RECTANGLE_GFCM.getLabel(), "CGPM/GFCM rectangle")
                 .build());
 
         LocationLevel icesRectangleLocationLevel = locationLevels.get(LocationLevelEnum.RECTANGLE_ICES.getLabel());
         Objects.requireNonNull(icesRectangleLocationLevel);
-        LocationLevel cgpmRquareLocationLevel = locationLevels.get(LocationLevelEnum.RECTANGLE_CGPM_GFCM.getLabel());
+        LocationLevel cgpmRquareLocationLevel = locationLevels.get(LocationLevelEnum.RECTANGLE_GFCM.getLabel());
         Objects.requireNonNull(cgpmRquareLocationLevel);
 
         ValidityStatus validStatus = validityStatusDao.getOne(ValidityStatusEnum.VALID.getId());
@@ -224,12 +224,12 @@ public class LocationServiceImpl implements LocationService{
         // Retrieve location levels
         Map<String, LocationLevel> locationLevels = createAndGetLocationLevels(ImmutableMap.<String, String>builder()
                 .put(LocationLevelEnum.RECTANGLE_ICES.getLabel(), "ICES rectangle")
-                .put(LocationLevelEnum.RECTANGLE_CGPM_GFCM.getLabel(), "CGPM/GFCM rectangle")
+                .put(LocationLevelEnum.RECTANGLE_GFCM.getLabel(), "CGPM/GFCM rectangle")
                 .put(LocationLevelEnum.SQUARE_10.getLabel(), "Square 10' x 10'")
                 .build());
         LocationLevel icesRectangleLocationLevel = locationLevels.get(LocationLevelEnum.RECTANGLE_ICES.getLabel());
         Objects.requireNonNull(icesRectangleLocationLevel);
-        LocationLevel cgpmRectangleLocationLevel = locationLevels.get(LocationLevelEnum.RECTANGLE_CGPM_GFCM.getLabel());
+        LocationLevel cgpmRectangleLocationLevel = locationLevels.get(LocationLevelEnum.RECTANGLE_GFCM.getLabel());
         Objects.requireNonNull(cgpmRectangleLocationLevel);
         LocationLevel square10LocationLevel = locationLevels.get(LocationLevelEnum.SQUARE_10.getLabel());
         Preconditions.checkNotNull(square10LocationLevel);
@@ -509,7 +509,7 @@ public class LocationServiceImpl implements LocationService{
         // Retrieve location levels
         Map<String, LocationLevel> locationLevels = createAndGetLocationLevels(ImmutableMap.<String, String>builder()
                 .put(LocationLevelEnum.RECTANGLE_ICES.getLabel(), "ICES rectangle")
-                .put(LocationLevelEnum.RECTANGLE_CGPM_GFCM.getLabel(), "CGPM/GFCM rectangle")
+                .put(LocationLevelEnum.RECTANGLE_GFCM.getLabel(), "CGPM/GFCM rectangle")
                 .build());
 
         // Get existing rectangles

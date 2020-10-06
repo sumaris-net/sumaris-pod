@@ -29,6 +29,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.pmfm.MethodEnum;

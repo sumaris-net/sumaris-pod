@@ -31,6 +31,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.referential.pmfm.Matrix;
 import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;

@@ -331,6 +331,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                             entityClassName,
                             enumContentBuilder.substring(2),
                             configKeysBuilder.substring(2)));
+                    Beans.setProperty(enumValue, IEntity.Fields.ID, -1);
                 }
             });
         });

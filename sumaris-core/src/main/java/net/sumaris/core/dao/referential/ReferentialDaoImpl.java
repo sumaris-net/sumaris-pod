@@ -138,7 +138,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     // Program
                     ProgramPrivilege.class,
                     // Technical
-                    SystemVersion.class
+                    SystemVersion.class,
+
+                    OriginItemType.class
             ), Class::getSimpleName);
 
     private Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();

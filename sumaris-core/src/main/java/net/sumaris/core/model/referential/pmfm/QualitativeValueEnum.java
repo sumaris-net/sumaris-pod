@@ -73,8 +73,16 @@ public enum QualitativeValueEnum implements Serializable  {
         return this.id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getLabel()
     {
         return this.label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 }

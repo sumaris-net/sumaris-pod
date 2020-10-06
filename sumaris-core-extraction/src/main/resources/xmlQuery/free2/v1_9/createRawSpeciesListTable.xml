@@ -34,13 +34,8 @@
 
     <select alias="ID_VRAC" type="hidden">CATCH_B.ID + SORTING_B.RANK_ORDER</select>
     <select alias="NUM_VRAC" type="hidden">SORTING_B.RANK_ORDER</select>
-
-    <select alias="PR_PNR" type="text"><![CDATA[(SELECT
-        CASE
-          WHEN QV.ID = &landingQvId THEN 'PR'
-          WHEN QV.ID = &discardQvId THEN 'PNR'
-          ELSE null
-        END CASE
+    <select alias="CATCH_CATEGORY" type="text"><![CDATA[(SELECT
+        DECODE(QV.ID, &discardQvId, 'DIS', &landingQvId, 'LAN', null)
       FROM SORTING_MEASUREMENT_B SM
         INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
       WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&catchCategoryPmfmId
@@ -57,8 +52,12 @@
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=1)
       )]]>
     </select>
-    <select alias="TAUX_ECH" type="number">SAMPLING_B.SAMPLING_RATIO</select>
-
+    <select alias="SUBSAMPLE_WEIGHT_PMFM_ID" type="number"><![CDATA[COALESCE(
+      (SELECT QM.PMFM_FK FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SAMPLING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=1),
+      (SELECT QM.PMFM_FK FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=1)
+      )]]>
+    </select>
+    <select alias="SAMPLING_RATIO" type="number">SAMPLING_B.SAMPLING_RATIO</select>
 
 
     <!-- need to link other tables -->

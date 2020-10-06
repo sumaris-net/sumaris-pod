@@ -437,25 +437,19 @@ public class TripServiceImpl implements TripService {
     public void delete(int id) {
 
         // Create events (before deletion, to be able to join VO)
-        List<EntityDeleteEvent> events = Lists.newArrayList();
+        TripVO deletedTrip = null;
         if (enableTrash) {
-            events.add(new EntityDeleteEvent(id, Trip.class.getSimpleName(), get(id)));
-
-            // Add each operations
-            Beans.getStream(operationService.getAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC))
-                .forEach(ope -> events.add(new EntityDeleteEvent(ope.getId(), Operation.class.getSimpleName(), ope)));
+            deletedTrip = get(id);
+            deletedTrip.setOperations(operationService.getAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC));
 
             // TODO BLA: add operation groups ? (ask LPT)
-        }
-        else {
-            events.add(new EntityDeleteEvent(id, Trip.class.getSimpleName()));
         }
 
         // Apply deletion
         tripRepository.deleteById(id);
 
         // Publish events
-        events.forEach(publisher::publishEvent);
+        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), deletedTrip));
     }
 
     @Override

@@ -35,7 +35,12 @@
 
     <!-- PK (new fields) -->
     <select alias="SPECIES" type="text">TG.LABEL</select>
-    <select alias="CATCH_CATEGORY" type="text">(SELECT QV.LABEL FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&amp;catchCategoryPmfmId)</select>
+    <select alias="CATCH_CATEGORY" type="text"><![CDATA[(SELECT
+        DECODE(QV.ID, &discardQvId, 'DIS', &landingQvId, 'LAN', null)
+      FROM SORTING_MEASUREMENT_B SM
+        INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
+      WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&catchCategoryPmfmId
+    )]]></select>
     <select alias="LANDING_CATEGORY" type="text">null</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">null</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select>

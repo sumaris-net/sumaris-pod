@@ -37,7 +37,11 @@ import java.util.Set;
 @Data
 @FieldNameConstants
 @Entity
-@Table(name = "pmfm")
+@Table(name = "pmfm",
+        uniqueConstraints = {
+            @UniqueConstraint(name="pmfm_unique_c", columnNames = {"parameter_fk", "matrix_fk", "fraction_fk", "method_fk", "unit_fk"})
+        }
+)
 @Cacheable
 public class Pmfm implements IReferentialWithStatusEntity {
 
@@ -58,7 +62,7 @@ public class Pmfm implements IReferentialWithStatusEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(length = IItemReferentialEntity.LENGTH_LABEL)
+    @Column(length = IItemReferentialEntity.LENGTH_LABEL, unique = true)
     private String label;
 
     /**

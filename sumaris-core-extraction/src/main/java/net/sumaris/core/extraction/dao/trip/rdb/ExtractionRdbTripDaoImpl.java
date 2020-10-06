@@ -41,6 +41,7 @@ import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
@@ -434,6 +435,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
         // Bind some ids
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
+        xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
+        xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
 
         // Exclude not valid station
         xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
