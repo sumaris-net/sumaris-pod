@@ -397,4 +397,88 @@
     </changeSet>
 
 
+
+    <!-- Add missing origin item type -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-406">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM ORIGIN_ITEM_TYPE</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            INSERT INTO ORIGIN_ITEM_TYPE (ID, LABEL, NAME, DESCRIPTION, CREATION_DATE, UPDATE_DATE, STATUS_FK, COMMENTS) VALUES (4, 'FAO', 'FAO', null, sysdate, now, 1, null);
+            INSERT INTO ORIGIN_ITEM_TYPE (ID, LABEL, NAME, DESCRIPTION, CREATION_DATE, UPDATE_DATE, STATUS_FK, COMMENTS) VALUES (5, 'HARMONIE', 'SIH-HARMONIE Ifremer', null, sysdate, now, 1, null);
+            ALTER SEQUENCE ORIGIN_ITEM_TYPE_SEQ RESTART WITH 5;
+            select NEXT VALUE FOR ORIGIN_ITEM_TYPE_SEQ from STATUS where ID=1;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Insert LOCATION_LEVEL used by WEIGHT_LENGTH_CONVERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-407" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM LOCATION_LEVEL where ID IN (101, 110, 111, 140, 141)</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (101, 'FAO_AREA', 'Zone FAO', sysdate, now, null, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (110, 'ICES_SUB_AREA', 'Sous-zone CIEM/ICES', sysdate, now, 101, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (111, 'ICES_DIVISION', 'Division CIEM/ICES', sysdate, now, 110, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (112, 'ICES_SUB_DIVISION', 'Sous-Division CIEM/ICES', sysdate, now, 111, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (140, 'GFCM_SUB_AREA', 'Sous-zone CGPM/GFCM', sysdate, now, 101, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (141, 'GFCM_DIVISION', 'Division CGPM/GFCM', sysdate, now, 140, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (142, 'GFCM_SUB_DIVISION', 'Sous-Division CGPM/GFCM', sysdate, now, 141, 2, null, null, 1);
+            ALTER SEQUENCE LOCATION_LEVEL_SEQ RESTART WITH 300;
+            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from STATUS where ID=1;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Insert LOCATION used by WEIGHT_LENGTH_CONVERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-408">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM LOCATION where LOCATION_LEVEL_FK in (111,145)</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_location-1.4.2.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+
+    <!-- Insert PARAMETER used by WEIGHT_LENGTH_CONVERSION
+         Query used on SIH-Adagio: SELECT distinct P.* from WEIGHT_LENGTH_CONVERSION WLC inner join PARAMETER P on WLC.LENGTH_PARAMETER_FK = P.CODE;
+     -->
+    <changeSet id="benoit.lavenier@e-is.pro" author="1600856443393-409">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER where LABEL IN ('WIDTH_CARAPACE', 'LENGTH_CARAPACE', 'LENGTH_MANTLE')</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'WIDTH_CARAPACE', 'Largeur céphalothoracique (LAC)', 'Largeur céphalothoracique de l''individu', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_LM_FORK', 'Longueur maxillaire inférieur-fourche caudale (LMF) (ex. marlin et espadon)', 'Longueur maxillaire inférieur fourche caudale de l''individu (Espadon, Marlin)', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'HEIGHT', 'Hauteur de l''individu (H)', 'Hauteur de l''individu (crustacé, coquillage ou poisson)', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_CARAPACE', 'Longueur céphalothoracique (LC)', 'Longueur céphalothoracique de l''individu', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_FORK', 'Longueur à la fourche (LF)', 'Longueur maxillaire supérieur fourche caudale de l''individu (Thonidés, etc.)', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_MANTLE', 'Longueur du manteau (LM)', 'Longueur du manteau de l''individu (pour les Céphalopodes seulement : seiches, calmars, encornets, poulpes).', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_PREANAL', 'Longueur préanale (LPA)', 'Longueur préanale (LPA)', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'SEGMENT_LENGTH', 'Longueur du deuxième segment (langoustine) au centième de mm', 'Longueur du deuxième segment (langoustine) au centième de mm', 0, sysdate, now, 1, 0, null);
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Insert WEIGHT_LENGTH_CONVERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-410">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM WEIGHT_LENGTH_CONVERSION</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_weight_length_conversion-1.4.2.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
 </databaseChangeLog>

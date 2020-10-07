@@ -41,8 +41,10 @@ public enum LocationLevelEnum implements Serializable {
     AREA_FAO(101, "FAO_AREA"),  // Zone FAO
     SUB_AREA_ICES(110, "ICES_SUB_AREA"), // Sous-zone CIEM (=ICES)
     DIVISION_ICES(111, "ICES_DIVISION"), // Division CIEM (=ICES)
+    SUB_DIVISION_ICES(112, "ICES_SUB_DIVISION"), // Sous-Division CIEM (=ICES)
     SUB_AREA_GFCM(140, "GFCM_SUB_AREA"), // Sous-zone CGPM (=GFCM)
-    DIVISION_GFCM(141, "GFCM_DIVISION") // Division CGPM (=GFCM)
+    DIVISION_GFCM(141, "GFCM_DIVISION"), // Division CGPM (=GFCM)
+    SUB_DIVISION_GFCM(142, "GFCM_SUB_DIVISION") // Sous-Division CGPM (=GFCM)
     ;
 
     public static LocationLevelEnum valueOf(final int id) {

@@ -333,15 +333,6 @@
     <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="denormalized_batch_sort_val" constraintName="FK2cjuvlee3bud6b25uxe0wgchc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-150">
-    <preConditions onFail="MARK_RAN">
-      <not><columnExists tableName="location_association" columnName="is_main_association"/></not>
-    </preConditions>
-    <addColumn tableName="location_association">
-      <column name="is_main_association" type="boolean"/>
-    </addColumn>
-  </changeSet>
-
   <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-151" failOnError="false">
     <addUniqueConstraint columnNames="label" constraintName="PARAMETER_LABEL_UNIQUE_C" tableName="parameter"/>
   </changeSet>
