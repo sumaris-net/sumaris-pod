@@ -72,9 +72,9 @@ public class CacheConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean({org.springframework.cache.ehcache.EhCacheCacheManager.class})
-    public org.springframework.cache.ehcache.EhCacheCacheManager cacheManager() {
-        org.springframework.cache.ehcache.EhCacheCacheManager cacheManager = new EhCacheCacheManager();
+    @ConditionalOnMissingBean({EhCacheCacheManager.class})
+    public EhCacheCacheManager cacheManager() {
+        EhCacheCacheManager cacheManager = new EhCacheCacheManager();
         cacheManager.setCacheManager(ehcache());
         return cacheManager;
     }
@@ -187,7 +187,7 @@ public class CacheConfiguration {
 
 
     /* protected */
-    protected net.sf.ehcache.CacheManager ehcache() {
+    protected CacheManager ehcache() {
         return cacheManager != null ? cacheManager : ehcacheFactory().getObject();
     }
 

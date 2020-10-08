@@ -130,7 +130,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
 
-        // get all config providers
+        // find all config providers
         Set<ApplicationConfigProvider> providers =
                 ApplicationConfigHelper.getProviders(null,
                         null,
@@ -745,7 +745,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     /**
      * <p>getLaunchMode.</p>
      *
-     * @return a {@link java.lang.String} object.
+     * @return a {@link String} object.
      */
     public String getLaunchMode() {
         return applicationConfig.getOption(SumarisConfigurationOption.LAUNCH_MODE.getKey());

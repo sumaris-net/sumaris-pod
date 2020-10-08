@@ -25,23 +25,32 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.landing.LandingRepository;
+import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.LandingMeasurement;
-import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.LandingVO;
+import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -60,13 +69,28 @@ public class LandingServiceImpl implements LandingService {
     protected LandingRepository landingRepository;
 
     @Autowired
+    protected TripRepository tripRepository;
+
+    @Autowired
     protected MeasurementDao measurementDao;
 
     @Autowired
     protected SampleService sampleService;
 
+    @Autowired
+    private ApplicationEventPublisher publisher;
+
+    private boolean enableTrash = false;
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady(ConfigurationEvent event) {
+        this.enableTrash = event.getConfig().enableEntityTrash();
+    }
+
     @Override
     public List<LandingVO> findAll(LandingFilterVO filter, Page page, DataFetchOptions fetchOptions) {
+
+        if (filter == null) filter = LandingFilterVO.builder().build();
 
         if (page != null) {
 
@@ -110,6 +134,8 @@ public class LandingServiceImpl implements LandingService {
         // Reset control date
         source.setControlDate(null);
 
+        boolean isNew = source.getId() == null;
+
         // Save
         LandingVO savedLanding = landingRepository.save(source);
 
@@ -143,6 +169,13 @@ public class LandingServiceImpl implements LandingService {
             savedLanding.setSamples(samples);
         }
 
+        // Publish event
+        if (isNew) {
+            publisher.publishEvent(new EntityInsertEvent(savedLanding.getId(), Landing.class.getSimpleName(), savedLanding));
+        } else {
+            publisher.publishEvent(new EntityUpdateEvent(savedLanding.getId(), Landing.class.getSimpleName(), savedLanding));
+        }
+
         return savedLanding;
     }
 
@@ -157,7 +190,27 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public void delete(int id) {
+
+        // Create events (before deletion, to be able to join VO)
+        LandingVO deletedVO = null;
+        Integer tripId = null;
+        if (enableTrash) {
+            deletedVO = get(id);
+            tripId = deletedVO.getTripId();
+            if (tripId != null) {
+                deletedVO.setTrip(tripRepository.get(tripId)); // TODO full VO loading
+            }
+        }
+
+        if (tripId != null) {
+            tripRepository.deleteById(tripId);
+        }
+
+        // Apply deletion
         landingRepository.deleteById(id);
+
+        // Publish events
+        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), deletedVO));
     }
 
     @Override

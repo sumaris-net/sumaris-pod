@@ -25,7 +25,9 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -33,7 +35,6 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
@@ -45,18 +46,23 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.filter.StrategyRelatedFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,14 +70,14 @@ import java.util.stream.Collectors;
 
 @Repository("pmfmStrategyRepository")
 public class PmfmStrategyRepositoryImpl
-        extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, PmfmStrategyVO>
+    extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, PmfmStrategyVO>
         implements PmfmStrategyRepository {
 
     /**
      * Logger.
      */
     private static final Logger log =
-            LoggerFactory.getLogger(PmfmStrategyRepositoryImpl.class);
+        LoggerFactory.getLogger(PmfmStrategyRepositoryImpl.class);
 
 
     private Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
@@ -82,10 +88,9 @@ public class PmfmStrategyRepositoryImpl
     @Autowired
     private SumarisConfiguration config;
 
-
     @Autowired
     PmfmStrategyRepositoryImpl(EntityManager entityManager) {
-        super(PmfmStrategy.class, entityManager);
+        super(PmfmStrategy.class, PmfmStrategyVO.class, entityManager);
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
@@ -94,64 +99,37 @@ public class PmfmStrategyRepositoryImpl
     }
 
     @Override
-    public Class<PmfmStrategyVO> getVOClass() {
-        return PmfmStrategyVO.class;
+    @Cacheable(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID)
+    public List<PmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions) {
+
+        return findAll(
+            toSpecification(StrategyRelatedFilterVO.builder().strategyId(strategyId).build()),
+            Sort.by(PmfmStrategy.Fields.RANK_ORDER)
+        )
+            .stream()
+            .map(entity -> toVO(entity, fetchOptions))
+            .collect(Collectors.toList());
+
     }
 
     @Override
-    public List<PmfmStrategyVO> findByStrategyId(int strategyId, boolean enablePmfmInheritance) {
+    public List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions) {
 
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<PmfmStrategy> query = builder.createQuery(PmfmStrategy.class);
-        Root<PmfmStrategy> root = query.from(PmfmStrategy.class);
+        return findAll(
+            toSpecification(StrategyRelatedFilterVO.builder().programId(programId).acquisitionLevelId(acquisitionLevelId).build()),
+            Sort.by(PmfmStrategy.Fields.RANK_ORDER)
+        )
+            .stream()
+            .map(entity -> toVO(entity, fetchOptions))
+            .collect(Collectors.toList());
 
-        ParameterExpression<Integer> strategyIdParam = builder.parameter(Integer.class);
-
-        Join<PmfmStrategy, Strategy> strategyInnerJoin = root.join(PmfmStrategy.Fields.STRATEGY, JoinType.INNER);
-
-        query.select(root)
-                .where(builder.equal(strategyInnerJoin.get(Strategy.Fields.ID), strategyIdParam))
-                // Sort by rank order
-                .orderBy(builder.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
-
-        return getEntityManager()
-                .createQuery(query)
-                .setParameter(strategyIdParam, strategyId)
-                .getResultStream()
-                .map(entity -> this.toVO(entity, enablePmfmInheritance))
-                .collect(Collectors.toList());
     }
 
-    @Override
-    public List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, boolean enablePmfmInheritance) {
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<PmfmStrategy> query = builder.createQuery(PmfmStrategy.class);
-        Root<PmfmStrategy> root = query.from(PmfmStrategy.class);
-
-        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
-        ParameterExpression<Integer> acquisitionLevelIdParam = builder.parameter(Integer.class);
-
-        Join<PmfmStrategy, Strategy> strategyInnerJoin = root.join(PmfmStrategy.Fields.STRATEGY, JoinType.INNER);
-
-        query.select(root)
-                .where(
-                        builder.and(
-                                builder.equal(strategyInnerJoin.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
-                                builder.equal(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID), acquisitionLevelIdParam)
-                        ));
-
-        // Sort by rank order
-        query.orderBy(builder.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
-
-        return getEntityManager()
-                .createQuery(query)
-                .setParameter(programIdParam, programId)
-                .setParameter(acquisitionLevelIdParam, acquisitionLevelId)
-                .getResultStream()
-                .map(entity -> this.toVO(entity, enablePmfmInheritance))
-                .collect(Collectors.toList());
+    protected Specification<PmfmStrategy> toSpecification(StrategyRelatedFilterVO filter) {
+        return BindableSpecification.where(hasProgramId(filter.getProgramId()))
+            .and(hasStrategyId(filter.getStrategyId()))
+            .and(hasAcquisitionLevelId(filter.getAcquisitionLevelId()));
     }
-
 
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source) {
@@ -160,11 +138,6 @@ public class PmfmStrategyRepositoryImpl
 
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions) {
-        return toVO(source, fetchOptions.isWithPmfmStrategyInheritance());
-    }
-
-    @Override
-    public PmfmStrategyVO toVO(PmfmStrategy source, boolean enablePmfmInheritance) {
         if (source == null) return null;
 
         Pmfm pmfm = source.getPmfm();
@@ -173,7 +146,7 @@ public class PmfmStrategyRepositoryImpl
         PmfmStrategyVO target = new PmfmStrategyVO();
 
         // Copy properties, from Pmfm first (if inherit enable), then from source
-        if (enablePmfmInheritance) {
+        if (fetchOptions.isWithPmfmStrategyInheritance()) {
             Beans.copyProperties(pmfm, target);
         }
         Beans.copyProperties(source, target);
@@ -219,19 +192,19 @@ public class PmfmStrategyRepositoryImpl
         // Qualitative values
         if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
-                    .stream()
-                    .map(referentialDao::toReferentialVO)
-                    .collect(Collectors.toList());
+                .stream()
+                .map(referentialDao::toVO)
+                .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
         }
 
         // Gears
         if (CollectionUtils.isNotEmpty(source.getGears())) {
             List<String> gears = source.getGears()
-                    .stream()
-                    .map(Gear::getLabel)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                .stream()
+                .map(Gear::getLabel)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
             target.setGears(gears);
 
             target.setGearIds(Beans.collectIds(source.getGears()));
@@ -251,10 +224,15 @@ public class PmfmStrategyRepositoryImpl
     }
 
     @Override
+    @Caching(
+        evict = {
+            @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, allEntries = true) // FIXME fix error 'null' when using key='#strategyId'
+        }
+    )
     public List<PmfmStrategyVO> saveByStrategyId(int strategyId, List<PmfmStrategyVO> sources) {
         Preconditions.checkNotNull(sources);
 
-        Strategy parent = get(Strategy.class, strategyId);
+        Strategy parent = find(Strategy.class, strategyId);
 
         sources.forEach(source -> {
             source.setStrategyId(strategyId);
@@ -289,7 +267,7 @@ public class PmfmStrategyRepositoryImpl
 
         // Pmfm
         Integer pmfmId = source.getPmfmId() != null ? source.getPmfmId() :
-                (source.getPmfm() != null ? source.getPmfm().getId() : null);
+            (source.getPmfm() != null ? source.getPmfm().getId() : null);
         if (pmfmId == null) throw new DataIntegrityViolationException("Missing pmfmId or pmfm.id in a PmfmStrategyVO");
         target.setPmfm(load(Pmfm.class, pmfmId));
 
@@ -322,7 +300,6 @@ public class PmfmStrategyRepositoryImpl
     }
 
     /* -- protected methods -- */
-
 
     private int getAcquisitionLevelIdByLabel(String label) {
         Integer acquisitionLevelId = acquisitionLevelIdByLabel.get(label);

@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Vessel;
@@ -64,7 +64,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
     private static final Logger log = LoggerFactory.getLogger(VesselSnapshotDaoImpl.class);
 
     @Autowired
-    private LocationDao locationDao;
+    private LocationRepository locationRepository;
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -96,7 +96,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
 
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<VesselSnapshotResult> query = cb.createQuery(VesselSnapshotResult.class);
         Root<VesselFeatures> root = query.from(VesselFeatures.class);
 
@@ -189,7 +189,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
         String searchTextAsPrefix = Daos.getEscapedSearchText(filter.getSearchText());
         String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
 
-        TypedQuery<VesselSnapshotResult> q = entityManager.createQuery(query)
+        TypedQuery<VesselSnapshotResult> q = getEntityManager().createQuery(query)
             .setParameter(dateParam, filter.getDate())
             .setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
             .setParameter(vesselIdParam, filter.getVesselId())
@@ -239,11 +239,11 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
         target.setQualityFlagId(features.getQualityFlag().getId());
 
         // Vessel type
-        ReferentialVO vesselType = referentialDao.toReferentialVO(features.getVessel().getVesselType());
+        ReferentialVO vesselType = referentialDao.toVO(features.getVessel().getVesselType());
         target.setVesselType(vesselType);
 
         // base port location
-        LocationVO basePortLocation = locationDao.toLocationVO(features.getBasePortLocation());
+        LocationVO basePortLocation = locationRepository.toVO(features.getBasePortLocation());
         target.setBasePortLocation(basePortLocation);
 
         // Recorder department
@@ -257,7 +257,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
             // Registration code
             target.setRegistrationCode(period.getRegistrationCode());
             // Registration location
-            LocationVO registrationLocation = locationDao.toLocationVO(period.getRegistrationLocation());
+            LocationVO registrationLocation = locationRepository.toVO(period.getRegistrationLocation());
             target.setRegistrationLocation(registrationLocation);
         }
 

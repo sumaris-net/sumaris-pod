@@ -24,15 +24,14 @@ package net.sumaris.core.dao.data;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.user.DepartmentDao;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.DepartmentRepository;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.IDataEntity;
@@ -46,38 +45,33 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.filter.IDataFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.LockTimeoutException;
-import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 30/03/2020.
  */
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
-public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends Serializable>
-    extends SumarisJpaRepositoryImpl<E, ID, V>
-    implements DataRepository<E, ID, V, F> {
+public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends DataFetchOptions>
+    extends SumarisJpaRepositoryImpl<E, Integer, V>
+    implements DataRepository<E, V, F, O>, DataSpecifications<E> {
 
     /**
      * Logger.
@@ -85,20 +79,16 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     private static final Logger log =
         LoggerFactory.getLogger(DataRepositoryImpl.class);
 
-    private boolean checkUpdateDate = true;
-
-    private boolean enableLockForUpdate = false;
-
     private String[] copyExcludeProperties = new String[]{IUpdateDateEntityBean.Fields.UPDATE_DATE};
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     @Autowired
-    private DepartmentDao departmentDao;
+    private DepartmentRepository departmentRepository;
 
-    protected DataRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
-        super(domainClass, entityManager);
+    protected DataRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
+        super(domainClass, voClass, entityManager);
     }
 
     @Override
@@ -107,7 +97,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     }
 
     @Override
-    public List<V> findAll(F filter, DataFetchOptions fetchOptions) {
+    public List<V> findAll(F filter, O fetchOptions) {
         return findAll(toSpecification(filter)).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
@@ -120,25 +110,25 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     }
 
     @Override
-    public Page<V> findAll(F filter, Pageable pageable, DataFetchOptions fetchOptions) {
+    public Page<V> findAll(F filter, Pageable pageable, O fetchOptions) {
         return findAll(toSpecification(filter), pageable)
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, DataFetchOptions fetchOptions) {
+    public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, O fetchOptions) {
         return findAll(filter, page.asPageable(), fetchOptions)
                 .stream().collect(Collectors.toList());
     }
 
     @Override
-    public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
-        return findAll(PageRequest.of(offset / size, size, Sort.Direction.fromString(sortDirection.toString()), sortAttribute))
+    public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
+        return findAll(Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
+    public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
         return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
@@ -154,12 +144,12 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     }
 
     @Override
-    public Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable, DataFetchOptions fetchOptions) {
+    public Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable, O fetchOptions) {
         return super.findAll(spec, pageable).map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public List<V> findAllVO(@Nullable Specification<E> spec, DataFetchOptions fetchOptions) {
+    public List<V> findAllVO(@Nullable Specification<E> spec, O fetchOptions) {
         return super.findAll(spec).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
@@ -171,47 +161,29 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     }
 
     @Override
-    public V get(ID id) {
+    public Optional<V> findById(int id) {
+        return findById(id, null);
+    }
+
+    @Override
+    public Optional<V> findById(int id, O fetchOptions) {
+        return super.findById(id).map(entity -> toVO(entity, fetchOptions));
+    }
+
+    @Override
+    public V get(Integer id) {
         return toVO(this.getOne(id));
     }
 
     @Override
-    public V get(ID id, DataFetchOptions fetchOptions) {
+    public V get(Integer id, O fetchOptions) {
         return toVO(this.getOne(id), fetchOptions);
-    }
-
-    @Override
-    public V save(V vo) {
-        E entity = toEntity(vo);
-
-        boolean isNew = entity.getId() == null;
-        if (!isNew) {
-            // Check update date
-            if (checkUpdateDate) Daos.checkUpdateDateForUpdate(vo, entity);
-
-            if (enableLockForUpdate) lockForUpdate(entity);
-        }
-
-        // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-        entity.setUpdateDate(newUpdateDate);
-
-        E savedEntity = save(entity);
-
-        // Update VO
-        onAfterSaveEntity(vo, savedEntity, isNew);
-
-        return vo;
     }
 
     @Override
     public V control(V vo) {
         Preconditions.checkNotNull(vo);
-
         E entity = getOne(vo.getId());
-        if (entity == null) {
-            throw new DataRetrievalFailureException(String.format("E {%s} not found", vo.getId()));
-        }
 
         // Check update date
         Daos.checkUpdateDateForUpdate(vo, entity);
@@ -220,18 +192,17 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         lockForUpdate(entity);
 
         // TODO CONTROL PROCESS HERE
-        Date controlDate = getDatabaseCurrentTimestamp();
-        entity.setControlDate(controlDate);
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setControlDate(newUpdateDate);
 
         // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
         // Save entityName
         getEntityManager().merge(entity);
 
         // Update source
-        vo.setControlDate(controlDate);
+        vo.setControlDate(newUpdateDate);
         vo.setUpdateDate(newUpdateDate);
 
         return vo;
@@ -250,23 +221,19 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     @Override
     public V qualify(V vo) {
         Preconditions.checkNotNull(vo);
-
         E entity = getOne(vo.getId());
-        if (entity == null) {
-            throw new DataRetrievalFailureException(String.format("E {%s} not found", vo.getId()));
-        }
 
         // Check update date
-        if (checkUpdateDate) Daos.checkUpdateDateForUpdate(vo, entity);
+        if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        if (enableLockForUpdate) lockForUpdate(entity);
+        if (isLockForUpdate()) lockForUpdate(entity);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
-        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId().intValue() : 0;
+        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId() : 0;
 
         // If not qualify, then remove the qualification date
         if (qualityFlagId == QualityFlagEnum.NOT_QUALIFED.getId()) {
@@ -275,8 +242,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         else {
             entity.setQualificationDate(newUpdateDate);
         }
-        // Apply a get, because can return a null value (e.g. if id is not in the DB instance)
-        entity.setQualityFlag(get(QualityFlag.class, Integer.valueOf(qualityFlagId)));
+        // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
+        entity.setQualityFlag(find(QualityFlag.class, qualityFlagId));
 
         // TODO UNVALIDATION PROCESS HERE
         // - insert into qualification history
@@ -300,17 +267,28 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         return toVO(source, null);
     }
 
-    public V toVO(E source, DataFetchOptions fetchOptions) {
+    public V toVO(E source, O fetchOptions) {
         V target = createVO();
         toVO(source, target, fetchOptions, true);
         return target;
     }
 
-    public void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    @Override
+    public void toVO(E source, V target, boolean copyIfNull) {
+        toVO(source, target, null, copyIfNull);
+    }
+
+    public void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
 
         // Quality flag
         target.setQualityFlagId(source.getQualityFlag().getId());
+
+        // Recorder department
+        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
+            DepartmentVO recorderDepartment = departmentRepository.toVO(source.getRecorderDepartment());
+            target.setRecorderDepartment(recorderDepartment);
+        }
 
         // Vessel
         if (source instanceof IWithVesselEntity && target instanceof IWithVesselSnapshotEntity) {
@@ -319,51 +297,25 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
             ((IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>) target).setVesselSnapshot(vesselSnapshot);
         }
 
-        // Recorder department
-        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
-            DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
-            target.setRecorderDepartment(recorderDepartment);
-        }
-
         // Observers
         if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
             Set<Person> sourceObservers = ((IWithObserversEntity) source).getObservers();
             if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(sourceObservers)) {
                 Set<PersonVO> observers = sourceObservers.stream()
-                    .map(personDao::toPersonVO)
+                    .map(personRepository::toVO)
                     .collect(Collectors.toSet());
                 ((IWithObserversEntity<Integer, PersonVO>) target).setObservers(observers);
             }
         }
     }
 
-    @Override
-    public Specification<E> toSpecification(@Nullable F filter) {
-        throw new NotImplementedException("Not implemented yet. Should be override by subclass");
+    protected Specification<E> toSpecification(F filter) {
+        // default specification
+        return BindableSpecification
+            .where(hasRecorderDepartmentId(filter.getRecorderDepartmentId()));
     }
 
     /* -- protected methods -- */
-
-    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
-        vo.setId(savedEntity.getId());
-        vo.setUpdateDate(savedEntity.getUpdateDate());
-    }
-
-    protected boolean isCheckUpdateDate() {
-        return checkUpdateDate;
-    }
-
-    protected void setCheckUpdateDate(boolean checkUpdateDate) {
-        this.checkUpdateDate = checkUpdateDate;
-    }
-
-    protected boolean isLockForUpdateEnable() {
-        return enableLockForUpdate;
-    }
-
-    protected void setEnableForUpdate(boolean enableLockForUpdate) {
-        this.enableLockForUpdate = enableLockForUpdate;
-    }
 
     protected String[] getCopyExcludeProperties() {
         return this.copyExcludeProperties;
@@ -373,21 +325,4 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         this.copyExcludeProperties = excludedProperties;
     }
 
-    protected void lockForUpdate(IEntity<?> entity) {
-        lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
-    }
-
-    protected void lockForUpdate(IEntity<?> entity, LockModeType modeType) {
-        // Lock entityName
-        try {
-            getEntityManager().lock(entity, modeType);
-        } catch (LockTimeoutException e) {
-            throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
-                    getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
-        }
-    }
-
-    protected String getTableName(String entityName) {
-        return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
-    }
 }

@@ -27,17 +27,20 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.MultiPolygon;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.ValidityStatusDao;
+import net.sumaris.core.dao.referential.StatusRepository;
+import net.sumaris.core.dao.referential.ValidityStatusRepository;
 import net.sumaris.core.dao.referential.location.*;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.ValidityStatus;
 import net.sumaris.core.model.referential.ValidityStatusEnum;
 import net.sumaris.core.model.referential.location.*;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
+import org.locationtech.jts.geom.Geometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,19 +58,22 @@ public class LocationServiceImpl implements LocationService{
     private static final Logger log = LoggerFactory.getLogger(LocationServiceImpl.class);
 
     @Autowired
-    protected LocationDao locationDao;
+    protected LocationRepository locationRepository;
 
     @Autowired
-    protected LocationAreaDao locationAreaDao;
+    protected LocationAreaRepository locationAreaRepository;
 
     @Autowired
-    protected ValidityStatusDao validityStatusDao;
+    protected StatusRepository statusRepository;
 
     @Autowired
-    protected LocationLevelDao locationLevelDao;
+    protected ValidityStatusRepository validityStatusRepository;
 
     @Autowired
-    protected LocationClassificationDao locationClassificationDao;
+    protected LocationLevelRepository locationLevelRepository;
+
+    @Autowired
+    protected LocationClassificationRepository locationClassificationRepository;
 
     @Autowired
     protected ReferentialDao referentialDao;
@@ -93,12 +99,13 @@ public class LocationServiceImpl implements LocationService{
         LocationLevel cgpmRquareLocationLevel = locationLevels.get(LocationLevelEnum.RECTANGLE_CGPM_GFCM.getLabel());
         Objects.requireNonNull(cgpmRquareLocationLevel);
 
-        ValidityStatus validStatus = validityStatusDao.getOne(ValidityStatusEnum.VALID.getId());
+        Status enableStatus = statusRepository.getEnableStatus();
+        ValidityStatus validStatus = validityStatusRepository.getOne(ValidityStatusEnum.VALID.getId());
 
         // Existing rectangles
         List<LocationVO> existingLocations = locationLevels.values().stream()
-                .map(level -> locationDao.getByLocationLevel(level.getId()))
-                .flatMap(list -> list.stream())
+                .map(level -> getLocationsByLocationLevelId(level.getId()))
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
         Map<String, LocationVO> rectangleByLabelMap = Beans.splitByProperty(existingLocations, Location.Fields.LABEL);
@@ -133,8 +140,9 @@ public class LocationServiceImpl implements LocationService{
                 else {
                     location.setLocationLevel(icesRectangleLocationLevel);
                 }
+                location.setStatus(enableStatus);
                 location.setValidityStatus(validStatus);
-                locationDao.create(location);
+                locationRepository.save(location);
                 locationInsertCount++;
             }
         }
@@ -157,13 +165,14 @@ public class LocationServiceImpl implements LocationService{
         LocationLevel square10LocationLevel = locationLevels.get(LocationLevelEnum.SQUARE_10.getLabel());
         Objects.requireNonNull(square10LocationLevel);
 
-        ValidityStatus validStatus = validityStatusDao.getOne(ValidityStatusEnum.VALID.getId());
+        Status enableStatus = statusRepository.getEnableStatus();
+        ValidityStatus validStatus = validityStatusRepository.getOne(ValidityStatusEnum.VALID.getId());
 
         // Get existing rectangle
         Map<String, LocationVO> rectangleByLabelMap = Beans.splitByProperty(getExistingRectangles(), Location.Fields.LABEL);
 
         // Get existing locations
-        List<LocationVO> existingLocations = locationDao.getByLocationLevel(square10LocationLevel.getId());
+        List<LocationVO> existingLocations = getLocationsByLocationLevelId(square10LocationLevel.getId());
         Map<String, LocationVO> locationByLabelMap = Beans.splitByProperty(existingLocations, Location.Fields.LABEL);
 
         int locationInsertCount = 0;
@@ -188,9 +197,10 @@ public class LocationServiceImpl implements LocationService{
                 location.setCreationDate(creationDate);
                 location.setUpdateDate(creationDate);
                 location.setLocationLevel(square10LocationLevel);
+                location.setStatus(enableStatus);
                 location.setValidityStatus(validStatus);
-                location = locationDao.create(location);
-                locationByLabelMap.put(label, locationDao.toLocationVO(location));
+                locationRepository.save(location);
+                locationByLabelMap.put(label, locationRepository.toVO(location));
                 locationInsertCount++;
             }
         }
@@ -205,8 +215,8 @@ public class LocationServiceImpl implements LocationService{
                 LocationVO childLocation = locationByLabelMap.get(label);
 
                 // Update the square parent, if need:
-                if (parentLocation != null && !locationDao.hasAssociation(childLocation.getId(), parentLocation.getId())) {
-                    locationDao.addAssociation(childLocation.getId(), parentLocation.getId(), 1d);
+                if (parentLocation != null && !locationRepository.hasAssociation(childLocation.getId(), parentLocation.getId())) {
+                    locationRepository.addAssociation(childLocation.getId(), parentLocation.getId(), 1d);
                     locationAssociationInsertCount++;
                 }
             }
@@ -234,7 +244,7 @@ public class LocationServiceImpl implements LocationService{
         LocationLevel square10LocationLevel = locationLevels.get(LocationLevelEnum.SQUARE_10.getLabel());
         Preconditions.checkNotNull(square10LocationLevel);
 
-        ValidityStatus notValidStatus = validityStatusDao.getOne(ValidityStatusEnum.INVALID.getId());
+        ValidityStatus notValidStatus = validityStatusRepository.getOne(ValidityStatusEnum.INVALID.getId());
         Pattern rectangleLabelPattern = Pattern.compile("[M]?[0-9]{2,3}[A-Z][0-9]");
 
         Map<String, LocationVO> rectangleByLabelMap = Maps.newHashMap();
@@ -246,7 +256,7 @@ public class LocationServiceImpl implements LocationService{
 
         // Get existing rectangles
         List<LocationVO> rectangleLocations = getExistingRectangles();
-        List<LocationVO> square10Locations = locationDao.getByLocationLevel(square10LocationLevel.getId());
+        List<LocationVO> square10Locations = getLocationsByLocationLevelId(square10LocationLevel.getId());
 
         while (rectangleLocations.size() > 0) {
             for (LocationVO location : rectangleLocations) {
@@ -262,20 +272,20 @@ public class LocationServiceImpl implements LocationService{
                 }
 
                 // Load rectangle geometry
-                LocationArea locationArea = locationAreaDao.findById(objectId).orElse(null);
-                MultiPolygon geometry = (MultiPolygon) Locations.getGeometryFromRectangleLabel(rectangleLabel, true);
+                LocationArea locationArea = locationAreaRepository.findById(objectId).orElse(null);
+                Geometry geometry = Locations.getGeometryFromRectangleLabel(rectangleLabel, true);
                 Preconditions.checkNotNull(geometry, "No geometry found for rectangle with label:" + rectangleLabel);
 
                 if (locationArea == null) {
                     locationArea = new LocationArea();
                     locationArea.setId(objectId);
                     locationArea.setPosition(geometry);
-                    locationAreaDao.save(locationArea);
+                    locationAreaRepository.save(locationArea);
                     locationAreaInsertCount++;
                 } else if (locationArea.getPosition() == null
                         || !geometry.equals(locationArea.getPosition())) {
                     locationArea.setPosition(geometry);
-                    locationAreaDao.save(locationArea);
+                    locationAreaRepository.save(locationArea);
                     locationAreaUpdateCount++;
                 }
 
@@ -283,7 +293,7 @@ public class LocationServiceImpl implements LocationService{
                 rectangleByLabelMap.put(rectangleLabel, location);
             }
 
-            // Reset location list (could be fiil if new rectangle are found
+            // Reset location list (could be fill if new rectangle are found
             rectangleLocations = Lists.newArrayList();
 
             // Get all squares
@@ -297,20 +307,20 @@ public class LocationServiceImpl implements LocationService{
                 }
 
                 // Load square geometry
-                LocationArea locationArea = locationAreaDao.getOne(objectId);
-                MultiPolygon geometry = (MultiPolygon) Locations.getGeometryFromSquare10Label(squareLabel);
+                LocationArea locationArea = locationAreaRepository.getOne(objectId);
+                Geometry geometry = Locations.getGeometryFromSquare10Label(squareLabel);
                 Preconditions.checkNotNull(geometry, "No geometry found for square with label:" + squareLabel);
 
                 if (locationArea == null) {
                     locationArea = new LocationArea();
                     locationArea.setId(objectId);
                     locationArea.setPosition(geometry);
-                    locationAreaDao.save(locationArea);
+                    locationAreaRepository.save(locationArea);
                     locationAreaInsertCount++;
                 } else if (locationArea.getPosition() == null
                         || !geometry.equals(locationArea.getPosition())) {
                     locationArea.setPosition(geometry);
-                    locationAreaDao.save(locationArea);
+                    locationAreaRepository.save(locationArea);
                     locationAreaUpdateCount++;
                 }
 
@@ -331,18 +341,18 @@ public class LocationServiceImpl implements LocationService{
                         parentLocation.setLevelId(icesRectangleLocationLevel.getId());
                     }
                     parentLocation.setValidityStatusId(notValidStatus.getId());
-                    parentLocation = (LocationVO)referentialDao.save(parentLocation);
+                    parentLocation = locationRepository.save(parentLocation);
 
                     // Add this new rectangle to the list, to enable geometry creation in the next <for> iteration
-                    if (rectangleLocations.contains(parentLocation) == false) {
+                    if (!rectangleLocations.contains(parentLocation)) {
                         rectangleLocations.add(parentLocation);
                         rectangleByLabelMap.put(parentRectangleLabel, parentLocation);
                     }
                 }
 
                 // Update the square parent, if need:
-                if (parentLocation != null && !locationDao.hasAssociation(location.getId(), parentLocation.getId())) {
-                    locationDao.addAssociation(location.getId(), parentLocation.getId(), 1d);
+                if (parentLocation != null && !locationRepository.hasAssociation(location.getId(), parentLocation.getId())) {
+                    locationRepository.addAssociation(location.getId(), parentLocation.getId(), 1d);
                     locationUpdateCount++;
                 }
             }
@@ -364,7 +374,7 @@ public class LocationServiceImpl implements LocationService{
         if (log.isInfoEnabled()) {
             log.info("Updating location hierarchy...");
         }
-        locationDao.updateLocationHierarchy();
+        locationRepository.updateLocationHierarchy();
     }
 
     @Override
@@ -377,8 +387,8 @@ public class LocationServiceImpl implements LocationService{
                 .put(LocationLevelLabels.COUNTRY, "Country")
                 .build());
 
-        LocationLevel countryLocationLevel = locationLevels.get(LocationLevelLabels.COUNTRY);
-        LocationLevel portLocationLevel = locationLevels.get(LocationLevelLabels.HARBOUR);
+        LocationLevel countryLocationLevel = locationLevels.find(LocationLevelLabels.COUNTRY);
+        LocationLevel portLocationLevel = locationLevels.find(LocationLevelLabels.HARBOUR);
 
         List<Integer> processedPorts = Lists.newArrayList();
         List<Location> countries = locationDao.getLocationByLocationLevel(countryLocationLevel.getId());
@@ -452,11 +462,11 @@ public class LocationServiceImpl implements LocationService{
             throw new IllegalArgumentException("Arguments 'latitude' and 'longitude' should not be null.");
         }
 
-        // Try to get a statistical rectangle
+        // Try to find a statistical rectangle
         String rectangleLabel = Locations.getRectangleLabelByLatLong(latitude, longitude);
         if (StringUtils.isNotBlank(rectangleLabel)) return rectangleLabel;
 
-        // TODO: get it from spatial query ?
+        // TODO: find it from spatial query ?
 
         // Otherwise, return null
         return null;
@@ -466,8 +476,8 @@ public class LocationServiceImpl implements LocationService{
     public Integer getLocationIdByLatLong(Number latitude, Number longitude) {
         String locationLabel = getLocationLabelByLatLong(latitude, longitude);
         if (locationLabel == null) return null;
-        ReferentialVO location = referentialDao.findByUniqueLabel(Location.class.getSimpleName(), locationLabel);
-        return location == null ? null : location.getId();
+        Optional<ReferentialVO> location = referentialDao.findByUniqueLabel(Location.class.getSimpleName(), locationLabel);
+        return location.map(ReferentialVO::getId).orElse(null);
     }
 
     @Override
@@ -483,12 +493,12 @@ public class LocationServiceImpl implements LocationService{
         Map<String, LocationLevel> result = Maps.newHashMap();
 
         Date creationDate = new Date();
-        LocationClassification defaultClassification = locationClassificationDao.getByLabel(LocationClassificationEnum.SEA.getLabel());
+        LocationClassification defaultClassification = locationClassificationRepository.getByLabel(LocationClassificationEnum.SEA.getLabel());
 
         for (String label: levels.keySet()) {
             String name = StringUtils.trimToNull(levels.get(label));
 
-            LocationLevel locationLevel = locationLevelDao.findByLabel(label);
+            LocationLevel locationLevel = locationLevelRepository.findByLabel(label);
             if (locationLevel == null) {
                 if (log.isInfoEnabled()) {
                     log.info(String.format("Adding new LocationLevel with label {%s}", label));
@@ -498,7 +508,8 @@ public class LocationServiceImpl implements LocationService{
                 locationLevel.setName(name);
                 locationLevel.setCreationDate(creationDate);
                 locationLevel.setLocationClassification(defaultClassification);
-                locationLevel = locationLevelDao.create(locationLevel);
+                locationLevel.setStatus(statusRepository.getEnableStatus());
+                locationLevel = locationLevelRepository.save(locationLevel);
             }
             result.put(label, locationLevel);
         }
@@ -515,9 +526,13 @@ public class LocationServiceImpl implements LocationService{
         // Get existing rectangles
         return locationLevels.values()
                 .stream()
-                .map(level -> locationDao.getByLocationLevel(level.getId()))
-                .flatMap(list -> list.stream())
+                .map(level -> getLocationsByLocationLevelId(level.getId()))
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
+    }
+
+    protected List<LocationVO> getLocationsByLocationLevelId(int locationLevelId) {
+        return locationRepository.findAll(ReferentialFilterVO.builder().levelId(locationLevelId).build());
     }
 }

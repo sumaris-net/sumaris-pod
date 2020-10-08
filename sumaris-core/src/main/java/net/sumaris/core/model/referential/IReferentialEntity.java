@@ -24,12 +24,10 @@ package net.sumaris.core.model.referential;
 
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 
-import java.io.Serializable;
 import java.util.Date;
 
 public interface IReferentialEntity
-        extends Serializable,
-                IUpdateDateEntityBean<Integer, Date> {
+        extends IUpdateDateEntityBean<Integer, Date> {
 
     int SEQUENCE_ALLOCATION_SIZE = 1;
 

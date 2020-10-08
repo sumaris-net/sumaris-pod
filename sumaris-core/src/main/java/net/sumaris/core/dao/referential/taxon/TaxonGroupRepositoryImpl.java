@@ -28,9 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
-import net.sumaris.core.dao.referential.ReferentialSpecifications;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
-import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -41,12 +39,8 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
@@ -58,7 +52,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
-import javax.persistence.Parameter;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
@@ -67,23 +60,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class TaxonGroupRepositoryImpl
-    extends ReferentialRepositoryImpl<TaxonGroup, TaxonGroupVO, ReferentialFilterVO>
-    implements TaxonGroupRepositoryExtend {
+    extends ReferentialRepositoryImpl<TaxonGroup, TaxonGroupVO, ReferentialFilterVO, ReferentialFetchOptions>
+    implements TaxonGroupSpecifications {
 
     private static final Logger log =
         LoggerFactory.getLogger(TaxonGroupRepositoryImpl.class);
 
     @Autowired
-    private TaxonNameDao taxonNameDao;
+    private TaxonNameRepository taxonNameRepository;
 
     @Autowired
     private ReferentialDao referentialDao;
 
     @Autowired
-    private PmfmDao pmfmDao;
+    private PmfmRepository pmfmRepository;
 
     public TaxonGroupRepositoryImpl(EntityManager entityManager) {
-        super(TaxonGroup.class, entityManager);
+        super(TaxonGroup.class, TaxonGroupVO.class, entityManager);
     }
 
     @Override
@@ -96,29 +89,12 @@ public class TaxonGroupRepositoryImpl
 
         Preconditions.checkNotNull(filter);
 
-        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
-
         TypedQuery<TaxonGroup> query = getQuery(toSpecification(filter), TaxonGroup.class,
-                Pageables.create(offset, size, sortAttribute, sortDirection));
-
-        Parameter<String> searchTextParam = query.getParameter(ReferentialSpecifications.SEARCH_TEXT_PARAMETER, String.class);
-        if (searchTextParam != null) {
-            query.setParameter(searchTextParam, searchText);
-        }
+            Pageables.create(offset, size, sortAttribute, sortDirection));
 
         return query.getResultStream()
-            .distinct()
             .map(this::toVO)
             .collect(Collectors.toList());
-    }
-
-    @Override
-    public void toVO(TaxonGroup source, TaxonGroupVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
-        super.toVO(source, target, fetchOptions, copyIfNull);
-
-        // StatusId
-        target.setStatusId(source.getStatus().getId());
-
     }
 
     @Override
@@ -227,8 +203,8 @@ public class TaxonGroupRepositoryImpl
                         insertCounter.increment();
                     }
 
-                    TaxonNameVO parent = taxonNameDao.getTaxonNameReferent(childId);
-                    List<TaxonName> children = taxonNameDao.getAllTaxonNameByParentIds(ImmutableList.of(parent.getId()));
+                    TaxonNameVO parent = taxonNameRepository.getTaxonNameReferent(childId);
+                    List<TaxonName> children = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(parent.getId()));
                     while (CollectionUtils.isNotEmpty(children)) {
                         children.forEach(child -> {
                             Integer inheritedChildId = child.getReferenceTaxon().getId();
@@ -243,7 +219,7 @@ public class TaxonGroupRepositoryImpl
                                 insertCounter.increment();
                             }
                         });
-                        children = taxonNameDao.getAllTaxonNameByParentIds(
+                        children = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(
                             children.stream()
                                 .map(TaxonName::getId)
                                 .collect(Collectors.toList()));
@@ -282,7 +258,7 @@ public class TaxonGroupRepositoryImpl
             .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
             .setParameter("locationId", locationId)
             .getResultStream()
-            .map(p -> referentialDao.toReferentialVO(p))
+            .map(p -> referentialDao.toVO(p))
             .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(result)) {
@@ -290,7 +266,7 @@ public class TaxonGroupRepositoryImpl
         }
 
         // Nothing found for this taxon group, so return all dressings
-        PmfmVO pmfm = pmfmDao.get(PmfmEnum.DRESSING.getId());
+        PmfmVO pmfm = pmfmRepository.get(PmfmEnum.DRESSING.getId());
         if (pmfm == null) {
             throw new DataRetrievalFailureException("PMFM for dressing not found");
         }
@@ -310,7 +286,7 @@ public class TaxonGroupRepositoryImpl
             .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
             .setParameter("locationId", locationId)
             .getResultStream()
-            .map(p -> referentialDao.toReferentialVO(p))
+            .map(p -> referentialDao.toVO(p))
             .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(result)) {
@@ -318,7 +294,7 @@ public class TaxonGroupRepositoryImpl
         }
 
         // Nothing found for this taxon group, so return all dressings
-        PmfmVO pmfm = pmfmDao.get(PmfmEnum.PRESERVATION.getId());
+        PmfmVO pmfm = pmfmRepository.get(PmfmEnum.PRESERVATION.getId());
         if (pmfm == null) {
             throw new DataRetrievalFailureException("PMFM for preservation not found");
         }
@@ -339,19 +315,14 @@ public class TaxonGroupRepositoryImpl
     }
 
     @Override
-    public Class<TaxonGroupVO> getVOClass() {
-        return TaxonGroupVO.class;
-    }
+    protected Specification<TaxonGroup> toSpecification(ReferentialFilterVO filter) {
+        Preconditions.checkNotNull(filter);
+        Integer[] gearIds = filter.getLevelId() != null
+            ? new Integer[]{filter.getLevelId()}
+            : filter.getLevelIds();
 
-    @Override
-    public Specification<TaxonGroup> toSpecification(ReferentialFilterVO filter) {
-
-        Integer[] gearIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} :
-            filter.getLevelIds();
-
-        return Specification.where(hasType(TaxonGroupTypeEnum.METIER_SPECIES.getId()))
-            .and(searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER))
-            .and(inStatusIds(filter.getStatusIds()))
+        return super.toSpecification(filter)
+            .and(hasType(TaxonGroupTypeEnum.METIER_SPECIES.getId()))
             .and(inGearIds(gearIds));
 
     }

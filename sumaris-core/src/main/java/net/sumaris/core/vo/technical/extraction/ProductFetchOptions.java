@@ -24,10 +24,11 @@ package net.sumaris.core.vo.technical.extraction;
 
 import lombok.Builder;
 import lombok.Data;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 @Data
 @Builder
-public class ProductFetchOptions {
+public class ProductFetchOptions implements IFetchOptions {
 
     public static ProductFetchOptions MINIMAL = builder()
             .withRecorderDepartment(false)

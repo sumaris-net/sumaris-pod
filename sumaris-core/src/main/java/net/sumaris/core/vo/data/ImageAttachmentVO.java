@@ -24,8 +24,6 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -36,8 +34,7 @@ import java.util.Date;
 
 @Data
 @FieldNameConstants
-public class ImageAttachmentVO implements IUpdateDateEntityBean<Integer, Date>,
-        IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
+public class ImageAttachmentVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
     private Integer id;
@@ -47,6 +44,8 @@ public class ImageAttachmentVO implements IUpdateDateEntityBean<Integer, Date>,
     private Date controlDate;
     private Date validationDate;
     private Integer qualityFlagId;
+    private Date qualificationDate;
+    private String qualificationComments;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 

@@ -96,7 +96,7 @@ public class Gear implements IItemReferentialEntity {
     @JoinColumn(name = "parent_gear_fk")
     private Gear parent;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Gear.class, mappedBy = Gear.Fields.PARENT)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Gear.class, mappedBy = Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Gear> children;
 

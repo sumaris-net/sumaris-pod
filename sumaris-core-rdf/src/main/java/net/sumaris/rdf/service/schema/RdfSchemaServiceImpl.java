@@ -313,7 +313,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         }
 
 
-        // get by type
+        // find by type
         if (options.getType() != null) {
             result = reflections.getSubTypesOf(options.getType()).stream();
         }

@@ -62,7 +62,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
 
         // Check observers
         Assert.assertNotNull(reloadedVO.getObservers());
-        Assert.assertTrue(reloadedVO.getObservers().size() == 2);
+        Assert.assertEquals(2, reloadedVO.getObservers().size());
     }
 
     @Test

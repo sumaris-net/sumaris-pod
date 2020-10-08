@@ -25,7 +25,6 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -36,20 +35,20 @@ import java.util.List;
  *    Service in charge of importing csv file into DB
  * 
  */
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional()
 public interface StrategyService {
 
 	@Transactional(readOnly = true)
 	List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByProgram(int programId, boolean enablePmfmInheritance);
+	List<PmfmStrategyVO> findPmfmStrategiesByProgram(int programId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, boolean enablePmfmInheritance);
+	List<PmfmStrategyVO> findPmfmStrategiesByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, boolean enablePmfmInheritance);
+	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getGears(int strategyId);

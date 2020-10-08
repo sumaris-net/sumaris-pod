@@ -28,7 +28,6 @@ import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Date;
 
 @Data
@@ -36,7 +35,7 @@ import java.util.Date;
 @Entity
 @Table(name = "location_classification")
 @Cacheable
-public class LocationClassification implements Serializable, IItemReferentialEntity {
+public class LocationClassification implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_CLASSIFICATION_SEQ")

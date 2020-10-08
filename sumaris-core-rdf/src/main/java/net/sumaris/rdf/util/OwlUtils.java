@@ -65,7 +65,7 @@ public abstract class OwlUtils {
 
     public static Method getterOfField(Class t, String field) {
         try {
-            Method res = t.getMethod("get" + field.substring(0, 1).toUpperCase() + field.substring(1));
+            Method res = t.getMethod("find" + field.substring(0, 1).toUpperCase() + field.substring(1));
             return res;
         } catch (NoSuchMethodException e) {
             log.error("error in the declaration of allowed ManyToOne " + e.getMessage());
@@ -359,7 +359,7 @@ public abstract class OwlUtils {
     }
 
     public static Date convertToDateViaInstant(LocalDateTime dateToConvert) {
-        return java.util.Date
+        return Date
                 .from(dateToConvert.atZone(ZONE_ID)
                         .toInstant());
     }

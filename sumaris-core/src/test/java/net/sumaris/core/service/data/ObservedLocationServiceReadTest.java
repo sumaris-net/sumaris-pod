@@ -22,25 +22,18 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 public class ObservedLocationServiceReadTest extends AbstractServiceTest{
 
@@ -57,37 +50,36 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
                 .build();
         List<ObservedLocationVO> vos = service.findByFilter(filter, 0, 100);
         Assert.assertNotNull(vos);
-        Assert.assertTrue(vos.size() > 0);
+        Assert.assertEquals(1, vos.size());
     }
 
     @Test
-    // FIXME: TODO implementer le filtrage par recorderDepartment
     public void findByFilterWithRecorderDepartment() {
-        int recorderDepId = dbResource.getFixtures().getDepartmentId(0);
+        int recorderDepId = dbResource.getFixtures().getDepartmentId(2);
         ObservedLocationFilterVO filter = ObservedLocationFilterVO.builder()
                 .recorderDepartmentId(recorderDepId)
                 .build();
         List<ObservedLocationVO> vos = service.findByFilter(filter, 0, 100);
         Assert.assertNotNull(vos);
-        Assert.assertTrue(vos.size() > 0);
+        Assert.assertEquals(1, vos.size());
         vos.stream()
                 .map(ObservedLocationVO::getRecorderDepartment)
                 .map(DepartmentVO::getId)
-                .forEach(depId -> Assert.assertTrue(depId != null && depId.intValue() == recorderDepId));
+                .forEach(depId -> Assert.assertTrue(depId != null && depId == recorderDepId));
     }
 
     @Test
-    // FIXME: TODO implementer le filtrage par recorderPerson
     public void findByFilterWithRecorderPerson() {
-        int recorderPersonId = -99;
+        int recorderPersonId = dbResource.getFixtures().getPersonId(1);
         ObservedLocationFilterVO filter = ObservedLocationFilterVO.builder()
                 .recorderPersonId(recorderPersonId)
                 .build();
         List<ObservedLocationVO> vos = service.findByFilter(filter, 0, 100);
         Assert.assertNotNull(vos);
+        Assert.assertEquals(2, vos.size());
         vos.stream()
                 .map(ObservedLocationVO::getRecorderPerson)
                 .map(PersonVO::getId)
-                .forEach(personId -> Assert.assertTrue(personId != null && personId.intValue() == recorderPersonId));
+                .forEach(personId -> Assert.assertTrue(personId != null && personId == recorderPersonId));
     }
 }

@@ -38,8 +38,8 @@ public class EntityDaoImpl extends HibernateDaoSupport implements EntityDao {
 
 
     @Override
-    public <T> T get(Class<? extends T> entityClass, Serializable id) {
-        return super.get(entityClass, id);
+    public <T> T find(Class<? extends T> entityClass, Serializable id) {
+        return super.find(entityClass, id);
     }
 
 }

@@ -155,7 +155,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * <p>getDatabaseProductName.</p>
      *
      * @return a {@link String} object.
-     * @throws liquibase.exception.DatabaseException if any.
+     * @throws DatabaseException if any.
      */
     public String getDatabaseProductName() throws DatabaseException {
         Connection connection = null;
@@ -257,7 +257,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
     /**
      * Execute liquibase update, using change log
      *
-     * @throws liquibase.exception.LiquibaseException if any.
+     * @throws LiquibaseException if any.
      */
     public void executeUpdate() throws LiquibaseException {
         executeUpdate(null);
@@ -267,7 +267,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * Execute liquibase update, using change log
      *
      * @param connectionProperties the properties for connection
-     * @throws liquibase.exception.LiquibaseException if any.
+     * @throws LiquibaseException if any.
      */
     public void executeUpdate(Properties connectionProperties) throws LiquibaseException {
 
@@ -312,7 +312,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * <p>performUpdate.</p>
      *
      * @param liquibase a {@link liquibase.Liquibase} object.
-     * @throws liquibase.exception.LiquibaseException if any.
+     * @throws LiquibaseException if any.
      */
     protected void performUpdate(liquibase.Liquibase liquibase) throws LiquibaseException {
         liquibase.update(getContexts());
@@ -321,7 +321,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
     /**
      * Execute liquibase status, using change log
      *
-     * @throws liquibase.exception.LiquibaseException if any.
+     * @throws LiquibaseException if any.
      * @param writer a {@link Writer} object.
      */
     public void reportStatus(Writer writer) throws LiquibaseException {
@@ -374,7 +374,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      *
      * @param liquibase a {@link liquibase.Liquibase} object.
      * @param writer a {@link Writer} object.
-     * @throws liquibase.exception.LiquibaseException if any.
+     * @throws LiquibaseException if any.
      */
     protected void performReportStatus(liquibase.Liquibase liquibase, Writer writer) throws LiquibaseException {
         liquibase.reportStatus(true, getContexts(), writer);
@@ -385,7 +385,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      *
      * @param c a {@link Connection} object.
      * @return a {@link liquibase.Liquibase} object.
-     * @throws liquibase.exception.LiquibaseException if any.
+     * @throws LiquibaseException if any.
      */
     protected liquibase.Liquibase createLiquibase(Connection c) throws LiquibaseException {
         String adjustedChangeLog = getChangeLog();
@@ -410,8 +410,8 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * default schema before returning the database object.
      *
      * @param c a {@link Connection} object.
-     * @return a Database implementation retrieved from the {@link liquibase.database.DatabaseFactory}.
-     * @throws liquibase.exception.DatabaseException if any.
+     * @return a Database implementation retrieved from the {@link DatabaseFactory}.
+     * @throws DatabaseException if any.
      */
     protected Database createDatabase(Connection c) throws DatabaseException {
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
@@ -426,8 +426,8 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * Create a database connection to hibernate model.
      * This is useful for diff report
      *
-     * @throws liquibase.exception.DatabaseException if any.
-     * @return a {@link liquibase.database.Database} object.
+     * @throws DatabaseException if any.
+     * @return a {@link Database} object.
      */
     protected Database createHibernateDatabase() throws DatabaseException {
 
@@ -461,7 +461,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
     /**
      * Create a new resourceAccessor.
      *
-     * @return a {@link liquibase.resource.ResourceAccessor} object.
+     * @return a {@link ResourceAccessor} object.
      */
     protected ResourceAccessor createResourceAccessor() {
         // If Spring started, resolve using Spring
@@ -506,7 +506,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
     /**
      * <p>Getter for the field <code>resourceLoader</code>.</p>
      *
-     * @return a {@link org.springframework.core.io.ResourceLoader} object.
+     * @return a {@link ResourceLoader} object.
      */
     public ResourceLoader getResourceLoader() {
         return resourceLoader;
@@ -584,7 +584,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
                 log.warn(String.format("No changelog files with version found. Please check master changelog file exists at [%s]", changeLogPath));
             }
         } catch (IOException e) {
-            throw new RuntimeException("Could not get changelog files", e);
+            throw new RuntimeException("Could not find changelog files", e);
         }
 
         if (maxVersion != null) {
@@ -609,7 +609,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * @param typesToControl
      *            a comma separated database object to check (i.e Table, View, Column...). If null, all types are
      *            checked
-     * @throws liquibase.exception.LiquibaseException if any.
+     * @throws LiquibaseException if any.
      */
     public void reportDiff(File outputFile, String typesToControl) throws LiquibaseException {
         Connection c = null;
@@ -659,7 +659,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * @param typesToControl
      *            a comma separated database object to check (i.e Table, View, Column...). If null, all types are
      *            checked
-     * @throws liquibase.exception.LiquibaseException if any.
+     * @throws LiquibaseException if any.
      */
     public void generateDiffChangelog(File changeLogFile, String typesToControl) throws LiquibaseException {
         Connection c = null;
@@ -719,7 +719,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      *            a comma separated database object to check (i.e Table, View, Column...). If null, all types are
      *            checked
      * @return the diff result
-     * @throws liquibase.exception.LiquibaseException if any.
+     * @throws LiquibaseException if any.
      */
     protected DiffResult performDiff(liquibase.Liquibase liquibase, String typesToControl) throws LiquibaseException {
         Database referenceDatabase = createHibernateDatabase();

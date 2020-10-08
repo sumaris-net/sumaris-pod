@@ -52,14 +52,14 @@ public class GeoJsonExtractions {
         if ("square".equalsIgnoreCase(spaceColumnName)) {
             mapper = (value) -> {
                 if (value == null) return null;
-                com.vividsolutions.jts.geom.Geometry geom = Locations.getGeometryFromMinuteSquareLabel(value, 10, false);
+                org.locationtech.jts.geom.Geometry geom = Locations.getGeometryFromMinuteSquareLabel(value, 10, false);
                 return GeoJsonGeometries.jtsGeometry(geom);
             };
         }
         else if ("statistical_rectangle".equals(spaceColumnName) || "rect".equalsIgnoreCase(spaceColumnName)){
             mapper = (value) -> {
                 if (value == null) return null;
-                com.vividsolutions.jts.geom.Geometry geom = Locations.getGeometryFromRectangleLabel(value, false);
+                org.locationtech.jts.geom.Geometry geom = Locations.getGeometryFromRectangleLabel(value, false);
                 return GeoJsonGeometries.jtsGeometry(geom);
             };
         }

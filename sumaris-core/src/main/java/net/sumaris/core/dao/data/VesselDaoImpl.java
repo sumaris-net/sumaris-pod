@@ -26,9 +26,9 @@ import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.QualityFlagEnum;
@@ -75,13 +75,13 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     private static final Logger log = LoggerFactory.getLogger(VesselDaoImpl.class);
 
     @Autowired
-    private LocationDao locationDao;
+    private LocationRepository locationRepository;
 
     @Autowired
     private ReferentialDao referentialDao;
 
     @Autowired
-    private ProgramDao programDao;
+    private ProgramRepository programRepository;
 
     @Override
     public VesselVO get(int id) {
@@ -210,7 +210,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         Vessel target = null;
         if (source.getId() != null) {
-            target = get(Vessel.class, source.getId());
+            target = find(Vessel.class, source.getId());
         }
         boolean isNew = target == null;
 
@@ -222,7 +222,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
             if (checkUpdateDate) {
                 // Check update date
-                checkUpdateDateForUpdate(source, target);
+                Daos.checkUpdateDateForUpdate(source, target);
             }
 
             // Lock entityName
@@ -268,7 +268,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 features.setId(featuresEntity.getId());
             } else {
                 // Update features
-                VesselFeatures featuresEntity = get(VesselFeatures.class, features.getId());
+                VesselFeatures featuresEntity = find(VesselFeatures.class, features.getId());
                 lockForUpdate(featuresEntity);
                 vesselFeaturesVOToEntity(features, featuresEntity, true);
                 featuresEntity.setUpdateDate(newUpdateDate);
@@ -294,7 +294,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 source.getRegistration().setId(periodEntity.getId());
             } else {
                 // Update period
-                VesselRegistrationPeriod registrationEntity = get(VesselRegistrationPeriod.class, registration.getId());
+                VesselRegistrationPeriod registrationEntity = find(VesselRegistrationPeriod.class, registration.getId());
                 lockForUpdate(registrationEntity);
                 vesselRegistrationPeriodVOToEntity(registration, registrationEntity, true);
                 // Update entity
@@ -314,7 +314,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     public void delete(int id) {
 
         // Get the entity
-        Vessel entity = get(Vessel.class, id);
+        Vessel entity = find(Vessel.class, id);
         if (entity == null) throw new DataRetrievalFailureException(String.format("Vessel with id %s not exists", id));
 
         delete(entity);
@@ -444,7 +444,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         target.setStatusId(source.getVessel().getStatus().getId());
 
         // Vessel type
-        ReferentialVO vesselType = referentialDao.toReferentialVO(source.getVessel().getVesselType());
+        ReferentialVO vesselType = referentialDao.toVO(source.getVessel().getVesselType());
         target.setVesselType(vesselType);
 
         // Recorder department
@@ -482,7 +482,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // base port location
-        LocationVO basePortLocation = locationDao.toLocationVO(source.getBasePortLocation());
+        LocationVO basePortLocation = locationRepository.toVO(source.getBasePortLocation());
         target.setBasePortLocation(basePortLocation);
 
         // Recorder department
@@ -501,7 +501,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         Beans.copyProperties(source, target);
 
         // Registration location
-        LocationVO registrationLocation = locationDao.toLocationVO(source.getRegistrationLocation());
+        LocationVO registrationLocation = locationRepository.toVO(source.getRegistrationLocation());
         target.setRegistrationLocation(registrationLocation);
 
         return target;
@@ -509,10 +509,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     private void vesselVOToEntity(VesselVO source, Vessel target, boolean copyIfNull) {
 
-        copyDataProperties(source, target, copyIfNull);
+        DataDaos.copyDataProperties(getEntityManager(), source, target, copyIfNull);
 
         // Recorder person
-        copyRecorderPerson(source, target, copyIfNull);
+        DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
 
         // Vessel type
         if (copyIfNull || source.getVesselType() != null) {
@@ -534,8 +534,8 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         // Default program
         if (copyIfNull && target.getProgram() == null) {
-            String defaultProgramLabel = config.getVesselDefaultProgramLabel();
-            ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programDao.getByLabel(defaultProgramLabel) : null;
+            String defaultProgramLabel = getConfig().getVesselDefaultProgramLabel();
+            ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programRepository.getByLabel(defaultProgramLabel) : null;
             if (defaultProgram  != null && defaultProgram.getId() != null) {
                 target.setProgram(load(Program.class, defaultProgram.getId()));
             }
@@ -544,10 +544,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     private void vesselFeaturesVOToEntity(VesselFeaturesVO source, VesselFeatures target, boolean copyIfNull) {
 
-        copyDataProperties(source, target, copyIfNull);
+        DataDaos.copyDataProperties(getEntityManager(), source, target, copyIfNull);
 
         // Recorder department and person
-        copyRecorderPerson(source, target, copyIfNull);
+        DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
 
         // Convert from meter to centimeter
         if (source.getLengthOverAll() != null) {
@@ -606,7 +606,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             if (source.getRegistrationLocation() == null || source.getRegistrationLocation().getId() == null) {
                 target.setRegistrationLocation(null);
             } else {
-                target.setRegistrationLocation(get(Location.class, source.getRegistrationLocation().getId()));
+                target.setRegistrationLocation(find(Location.class, source.getRegistrationLocation().getId()));
             }
         }
 

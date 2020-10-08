@@ -73,7 +73,6 @@ import org.springframework.util.ResourceUtils;
 import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
-import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -99,9 +98,6 @@ public class DatabaseSchemaDaoImpl
     @Autowired
     private Liquibase liquibase;
 
-    @Autowired
-    private DataSource dataSource;
-
 
     /**
      * Constructor used by Spring
@@ -120,8 +116,7 @@ public class DatabaseSchemaDaoImpl
      * @param config a {@link SumarisConfiguration} object.
      */
     public DatabaseSchemaDaoImpl(SumarisConfiguration config) {
-        super();
-        this.config = config;
+        super(config);
         this.liquibase = new Liquibase(config);
     }
 
@@ -132,8 +127,7 @@ public class DatabaseSchemaDaoImpl
      * @param liquibase a {@link Liquibase} object.
      */
     public DatabaseSchemaDaoImpl(SumarisConfiguration config, Liquibase liquibase) {
-        super();
-        this.config = config;
+        super(config);
         this.liquibase = liquibase;
     }
 
@@ -209,7 +203,7 @@ public class DatabaseSchemaDaoImpl
     /** {@inheritDoc} */
     @Override
     public void updateSchema() throws DatabaseSchemaUpdateException {
-        updateSchema(config.getConnectionProperties());
+        updateSchema(getConfig().getConnectionProperties());
     }
 
     /** {@inheritDoc} */
@@ -242,8 +236,8 @@ public class DatabaseSchemaDaoImpl
     @Override
     public void updateSchema(File dbDirectory) throws DatabaseSchemaUpdateException {
         // Preparing connection properties
-        Properties connectionProperties = config.getConnectionProperties();
-        connectionProperties.setProperty(Environment.URL, Daos.getJdbcUrl(dbDirectory, config.getDbName()));
+        Properties connectionProperties = getConfig().getConnectionProperties();
+        connectionProperties.setProperty(Environment.URL, Daos.getJdbcUrl(dbDirectory, getConfig().getDbName()));
 
         // Run update
         updateSchema(connectionProperties);
@@ -297,20 +291,20 @@ public class DatabaseSchemaDaoImpl
         try {
             EntityManager em = getEntityManager();
             if (em == null) {
-                throw new VersionNotFoundException("Could not get the schema version. No entityManager found");
+                throw new VersionNotFoundException("Could not find the schema version. No entityManager found");
             }
             systemVersion = getEntityManager().createNamedQuery("SystemVersion.last", String.class)
                     .getSingleResult();
             if (StringUtils.isBlank(systemVersion)) {
-                throw new VersionNotFoundException("Could not get the schema version. No version found in SYSTEM_VERSION table.");
+                throw new VersionNotFoundException("Could not find the schema version. No version found in SYSTEM_VERSION table.");
             }
         } catch (HibernateException he) {
-            throw new VersionNotFoundException(String.format("Could not get the schema version: %s", he.getMessage()));
+            throw new VersionNotFoundException(String.format("Could not find the schema version: %s", he.getMessage()));
         }
         try {
             return VersionBuilder.create(systemVersion).build();
         } catch (IllegalArgumentException iae) {
-            throw new VersionNotFoundException(String.format("Could not get the schema version. Bad schema version found table SYSTEM_VERSION: %s",
+            throw new VersionNotFoundException(String.format("Could not find the schema version. Bad schema version found table SYSTEM_VERSION: %s",
                                                              systemVersion));
         }
     }
@@ -339,34 +333,34 @@ public class DatabaseSchemaDaoImpl
         
         Connection connection;
         try {
-            connection = DataSourceUtils.getConnection(dataSource);
+            connection = DataSourceUtils.getConnection(getDataSource());
         }
         catch(CannotGetJdbcConnectionException ex) {
-            log.error("Unable to get JDBC connection from dataSource", ex);
+            log.error("Unable to find JDBC connection from dataSource", ex);
             return false;
         }
         
         // Retrieve a validation query, from configuration
-        String dbValidatioNQuery = config.getDbValidationQuery();
-        if (StringUtils.isBlank(dbValidatioNQuery)) {
-            DataSourceUtils.releaseConnection(connection, dataSource);
+        String dbValidationQuery = getConfig().getDbValidationQuery();
+        if (StringUtils.isBlank(dbValidationQuery)) {
+            DataSourceUtils.releaseConnection(connection, getDataSource());
             return true;
         }
         
-        log.debug(String.format("Check if the database is loaded, using validation query: %s", dbValidatioNQuery));
+        log.debug(String.format("Check if the database is loaded, using validation query: %s", dbValidationQuery));
         
         // try to execute the validation query
         Statement stmt = null;
         try {
             stmt = connection.createStatement();
-            stmt.execute(dbValidatioNQuery);                
+            stmt.execute(dbValidationQuery);
         } catch (SQLException ex) {
-            log.error(String.format("Error while executing validation query [%s]: %s", dbValidatioNQuery, ex.getMessage()));
+            log.error(String.format("Error while executing validation query [%s]: %s", dbValidationQuery, ex.getMessage()));
             return false;
         }
         finally {
             Daos.closeSilently(stmt);   
-            DataSourceUtils.releaseConnection(connection, dataSource);
+            DataSourceUtils.releaseConnection(connection, getDataSource());
         }  
 
         return true;
@@ -375,13 +369,13 @@ public class DatabaseSchemaDaoImpl
     /** {@inheritDoc} */
     @Override
     public boolean isDbExists() {       
-        String jdbcUrl = config.getJdbcURL();
+        String jdbcUrl = getConfig().getJdbcURL();
         
         if (!Daos.isFileDatabase(jdbcUrl)) {
             return true;
         }
         
-        File f = new File(config.getDbDirectory(), config.getDbName() + ".script");
+        File f = new File(getConfig().getDbDirectory(), getConfig().getDbName() + ".script");
         return f.exists();
     }
 
@@ -390,8 +384,8 @@ public class DatabaseSchemaDaoImpl
     public void generateNewDb(File dbDirectory, boolean replaceIfExists) {
         Preconditions.checkNotNull(dbDirectory);
         // Preparing connection properties
-        Properties connectionProperties = config.getConnectionProperties();
-        connectionProperties.setProperty(Environment.URL, Daos.getJdbcUrl(dbDirectory, config.getDbName()));
+        Properties connectionProperties = getConfig().getConnectionProperties();
+        connectionProperties.setProperty(Environment.URL, Daos.getJdbcUrl(dbDirectory, getConfig().getDbName()));
 
         // Run Db creation
         generateNewDb(dbDirectory, replaceIfExists, null, connectionProperties, false);
@@ -438,7 +432,7 @@ public class DatabaseSchemaDaoImpl
         }
 
         // Get connections properties :
-        Properties targetConnectionProperties = connectionProperties != null ? connectionProperties : config.getConnectionProperties();
+        Properties targetConnectionProperties = connectionProperties != null ? connectionProperties : getConfig().getConnectionProperties();
 
         // Check connections
         if (!checkConnection(targetConnectionProperties)) {
@@ -447,7 +441,7 @@ public class DatabaseSchemaDaoImpl
 
         try {
             // Create the database
-            createEmptyDb(config, targetConnectionProperties, scriptFile, isTemporaryDb);
+            createEmptyDb(getConfig(), targetConnectionProperties, scriptFile, isTemporaryDb);
         } catch (SQLException | IOException e) {
             e.printStackTrace();
             throw new SumarisTechnicalException(
@@ -578,10 +572,10 @@ public class DatabaseSchemaDaoImpl
 
         Predicate<String> predicate = new Predicate<String>() {
 
-            Set<String> includedStarts = Sets.newHashSet(
+            final Set<String> includedStarts = Sets.newHashSet(
                     "INSERT INTO DATABASECHANGELOG ");
 
-            Set<String> excludedStarts = Sets.newHashSet(
+            final Set<String> excludedStarts = Sets.newHashSet(
                     "SET ",
                     "CREATE USER ",
                     "ALTER USER ", // for HslDB 2.3+
@@ -629,7 +623,7 @@ public class DatabaseSchemaDaoImpl
 
                     // Reset sequence to zero
                     if (line.startsWith("CREATE SEQUENCE")) {
-                        line = line.replaceAll("START WITH [0-9]+", "START WITH " + config.getSequenceStartWithValue());
+                        line = line.replaceAll("START WITH [0-9]+", "START WITH " + getConfig().getSequenceStartWithValue());
                     }
 
                     // Use cached table
@@ -655,7 +649,7 @@ public class DatabaseSchemaDaoImpl
 
     protected Metadata getMetadata() {
 
-        Map<String, Object> sessionSettings = null;
+        Map<String, Object> sessionSettings;
         SessionFactory session = null;
         if (getEntityManager() != null) {
             session = getEntityManager().unwrap(Session.class).getSessionFactory();
@@ -663,17 +657,17 @@ public class DatabaseSchemaDaoImpl
         if (session  == null) {
             try {
                 // To be able to retrieve connection from datasource
-                Connection conn = Daos.createConnection(config.getConnectionProperties());
+                Connection conn = Daos.createConnection(getConfig().getConnectionProperties());
                 HibernateConnectionProvider.setConnection(conn);
             }
             catch(SQLException e) {
-                throw new SumarisTechnicalException("Could not open connection: " + config.getJdbcURL());
+                throw new SumarisTechnicalException("Could not open connection: " + getConfig().getJdbcURL());
             }
 
             sessionSettings = Maps.newHashMap();
-            sessionSettings.put(Environment.DIALECT, config.getHibernateDialect());
-            sessionSettings.put(Environment.DRIVER, config.getJdbcDriver());
-            sessionSettings.put(Environment.URL, config.getJdbcURL());
+            sessionSettings.put(Environment.DIALECT, getConfig().getHibernateDialect());
+            sessionSettings.put(Environment.DRIVER, getConfig().getJdbcDriver());
+            sessionSettings.put(Environment.URL, getConfig().getJdbcURL());
             sessionSettings.put(Environment.IMPLICIT_NAMING_STRATEGY, HibernateImplicitNamingStrategy.class.getName());
 
             sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, HibernatePhysicalNamingStrategy.class.getName());
@@ -681,7 +675,7 @@ public class DatabaseSchemaDaoImpl
         }
         else {
             // To be able to retrieve connection from datasource
-            HibernateConnectionProvider.setDataSource(dataSource);
+            HibernateConnectionProvider.setDataSource(getDataSource());
             sessionSettings = session.getProperties();
         }
 
@@ -693,7 +687,7 @@ public class DatabaseSchemaDaoImpl
                         .build());
 
         // Add annotations entities
-        Reflections reflections = (config.isProduction() ? Reflections.collect() : new Reflections(config.getHibernateEntitiesPackage()));
+        Reflections reflections = (getConfig().isProduction() ? Reflections.collect() : new Reflections(getConfig().getHibernateEntitiesPackage()));
         reflections.getTypesAnnotatedWith(Entity.class)
                 .forEach(metadata::addAnnotatedClass);
 
@@ -706,12 +700,12 @@ public class DatabaseSchemaDaoImpl
      */
     private void checkTimezoneConformity() throws SQLException {
 
-        // get server timezone
+        // find server timezone
         TimeZone serverTimeZone = TimeZone.getDefault();
         log.info(I18n.t("sumaris.persistence.serverTimeZone", new Timestamp(new Date().getTime()), serverTimeZone.getID()));
 
-        // get db timezone offset in time format ex: '1:00' for 1 hour offset
-        String dbOffsetAsString = (String) Daos.sqlUnique(dataSource, getTimezoneQuery(dataSource.getConnection()));
+        // find db timezone offset in time format ex: '1:00' for 1 hour offset
+        String dbOffsetAsString = (String) Daos.sqlUnique(getDataSource(), getTimezoneQuery(getDataSource().getConnection()));
         log.info(I18n.t("sumaris.persistence.dbTimeZone", getDatabaseCurrentTimestamp(), dbOffsetAsString));
 
         // convert db time zone offset in raw offset in milliseconds

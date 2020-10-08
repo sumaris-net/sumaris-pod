@@ -25,20 +25,20 @@ package net.sumaris.core.dao.referential.metier;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
-import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,8 +53,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MetierRepositoryImpl
-    extends ReferentialRepositoryImpl<Metier, MetierVO, ReferentialFilterVO>
-    implements MetierRepositoryExtend {
+    extends ReferentialRepositoryImpl<Metier, MetierVO, ReferentialFilterVO, ReferentialFetchOptions>
+    implements MetierSpecifications {
 
     private static final Logger log = LoggerFactory.getLogger(MetierRepositoryImpl.class);
 
@@ -65,7 +65,7 @@ public class MetierRepositoryImpl
     private TaxonGroupRepository taxonGroupRepository;
 
     public MetierRepositoryImpl(EntityManager entityManager) {
-        super(Metier.class, entityManager);
+        super(Metier.class, MetierVO.class, entityManager);
     }
 
     @Override
@@ -120,15 +120,12 @@ public class MetierRepositoryImpl
 
 
     @Override
-    public void toVO(Metier source, MetierVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(Metier source, MetierVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
-
-        // StatusId
-        target.setStatusId(source.getStatus().getId());
 
         // Gear
         if (source.getGear() != null) {
-            target.setGear(referentialDao.toReferentialVO(source.getGear()));
+            target.setGear(referentialDao.toVO(source.getGear()));
             target.setLevelId(source.getGear().getId());
         }
 
@@ -140,33 +137,11 @@ public class MetierRepositoryImpl
     }
 
     @Override
-    public Class<MetierVO> getVOClass() {
-        return MetierVO.class;
-    }
+    protected Specification<Metier> toSpecification(ReferentialFilterVO filter) {
 
-    @Override
-    public Specification<Metier> toSpecification(ReferentialFilterVO filter) {
-
-        Integer[] levelIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
-
-        String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
-        final boolean enableSearchOnJoin = (searchJoinProperty != null);
-        Specification<Metier> searchTextSpecification;
-        if (enableSearchOnJoin) {
-            searchTextSpecification = joinSearchText(
-                    searchJoinProperty,
-                    filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER);
-        } else {
-            searchTextSpecification = searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER);
-        }
-
-        Specification<Metier> result = Specification
-                .where(inGearIds(levelIds))
-                .and(inStatusIds(filter.getStatusIds()))
-                .and(searchTextSpecification)
-                .and(alreadyPracticedMetier(filter)); // Limit to already practiced metier
-
-        return result;
+        return super.toSpecification(filter)
+                .and(inLevelIds(Metier.Fields.GEAR, filter))
+                .and(alreadyPracticedMetier(filter));
     }
 
     /* -- protected method -- */
@@ -176,7 +151,7 @@ public class MetierRepositoryImpl
         if (!(filter instanceof MetierFilterVO)) return null;
         MetierFilterVO metierFilter = (MetierFilterVO) filter;
 
-        return alreadyPraticedMetier(metierFilter.getVesselId());
+        return alreadyPracticedMetier(metierFilter.getVesselId());
     }
 
     private TypedQuery<Metier> createQueryByFilter(ReferentialFilterVO filter, Pageable pageable) {
@@ -185,7 +160,7 @@ public class MetierRepositoryImpl
         TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, pageable);
 
         // Bind search text parameter
-        setParameterIfExists(query, SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(filter.getSearchText()));
+        BindableSpecification.setParameterIfExists(query, SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(filter.getSearchText()));
 
         // Bind metiers parameters
         if (filter instanceof MetierFilterVO){
@@ -193,12 +168,12 @@ public class MetierRepositoryImpl
 
             // Calculate dates
             final Date endDate = metierFilter.getDate() != null ? metierFilter.getDate() : new Date();
-            final Date startDate = Dates.removeMonth(endDate, 12); // TODO: get it from a config option
+            final Date startDate = Dates.removeMonth(endDate, 12); // TODO: find it from a config option
 
-            setParameterIfExists(query, START_DATE_PARAMETER, startDate);
-            setParameterIfExists(query, END_DATE_PARAMETER, endDate);
-            setParameterIfExists(query, PROGRAM_LABEL_PARAMETER, metierFilter.getProgramLabel());
-            setParameterIfExists(query, TRIP_ID_PARAMETER, metierFilter.getTripId());
+            BindableSpecification.setParameterIfExists(query, START_DATE_PARAMETER, startDate);
+            BindableSpecification.setParameterIfExists(query, END_DATE_PARAMETER, endDate);
+            BindableSpecification.setParameterIfExists(query, PROGRAM_LABEL_PARAMETER, metierFilter.getProgramLabel());
+            BindableSpecification.setParameterIfExists(query, TRIP_ID_PARAMETER, metierFilter.getTripId());
         }
 
         return query;

@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.metier.Metier;
 import org.hibernate.annotations.Cascade;
@@ -49,7 +50,7 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_group")
-public class TaxonGroup implements IItemReferentialEntity {
+public class TaxonGroup implements IItemReferentialEntity, IWithDescriptionAndCommentEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_SEQ")

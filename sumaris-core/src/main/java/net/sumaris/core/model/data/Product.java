@@ -50,7 +50,7 @@ public class Product
     @SequenceGenerator(name = "PRODUCT_SEQ", sequenceName="PRODUCT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
-    @Column(length = 40, nullable = false)
+    @Column(length = 40)
     private String label;
 
     @Column(name = "rank_order", nullable = false)
