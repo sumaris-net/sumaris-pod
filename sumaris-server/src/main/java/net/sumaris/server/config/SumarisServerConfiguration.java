@@ -72,7 +72,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>Getter for the field <code>instance</code>.</p>
      *
-     * @return a {@link net.sumaris.server.config.SumarisServerConfiguration} object.
+     * @return a {@link SumarisServerConfiguration} object.
      */
     public static SumarisServerConfiguration getInstance() {
         if (instance == null) {
@@ -84,7 +84,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>Constructor for SumarisServerConfiguration.</p>
      *
-     * @param applicationConfig a {@link org.nuiton.config.ApplicationConfig} object.
+     * @param applicationConfig a {@link ApplicationConfig} object.
      */
     public SumarisServerConfiguration(ApplicationConfig applicationConfig) {
         super(applicationConfig);
@@ -113,9 +113,8 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
             throw new SumarisTechnicalException("Directories initialization failed", e);
         }
 
-        // Init active MQ data directory
-        System.setProperty("org.apache.activemq.default.directory.prefix", getDataDirectory().getPath() + File.separator);
-
+        // Init active MQ
+        initActiveMQ();
     }
 
     /** {@inheritDoc} */
@@ -339,12 +338,16 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         // Upload directory
         FileUtils.forceMkdir(getUploadDirectory());
 
+        // Trash directory
+        FileUtils.forceMkdir(getTrashDirectory());
+
         // temp directory
         File tempDirectory = getTempDirectory();
         if (tempDirectory.exists()) {
             // clean temp files
             FileUtils.cleanDirectory(tempDirectory);
         }
+
     }
 
     /**
@@ -377,6 +380,11 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         } else {
             log.info(String.format("Using default timezone [%s] for database", System.getProperty("user.timezone")));
         }
+    }
+
+    protected void initActiveMQ() {
+        // Init active MQ data directory
+        System.setProperty("org.apache.activemq.default.directory.prefix", getDataDirectory().getPath() + File.separator);
     }
 
 }

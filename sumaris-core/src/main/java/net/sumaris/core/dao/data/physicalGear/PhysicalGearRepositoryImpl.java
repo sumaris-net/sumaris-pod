@@ -25,7 +25,7 @@ package net.sumaris.core.dao.data.physicalGear;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.PhysicalGearMeasurement;
@@ -55,16 +55,16 @@ public class PhysicalGearRepositoryImpl
     private static final Logger log =
         LoggerFactory.getLogger(PhysicalGearRepositoryImpl.class);
 
-    private final BaseRefRepository baseRefRepository;
+    private final ReferentialDao referentialDao;
     private final MeasurementDao measurementDao;
 
     @Autowired
     public PhysicalGearRepositoryImpl(EntityManager entityManager,
                                       MeasurementDao measurementDao,
-                                      BaseRefRepository baseRefRepository) {
+                                      ReferentialDao referentialDao) {
         super(PhysicalGear.class, PhysicalGearVO.class, entityManager);
         this.measurementDao = measurementDao;
-        this.baseRefRepository = baseRefRepository;
+        this.referentialDao = referentialDao;
     }
 
     @Override
@@ -85,7 +85,7 @@ public class PhysicalGearRepositoryImpl
             if (gear == null) {
                 target.setGear(null);
             } else {
-                target.setGear(baseRefRepository.toVO(gear));
+                target.setGear(referentialDao.toVO(gear));
             }
         }
 

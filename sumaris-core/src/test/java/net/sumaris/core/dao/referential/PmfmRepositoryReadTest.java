@@ -35,7 +35,7 @@ public class PmfmRepositoryReadTest extends AbstractDaoTest {
         Optional<PmfmVO> pmfm = pmfmRepository.findByLabel("ZZZZZ");
         Assert.assertFalse(pmfm.isPresent());
 
-        pmfm = pmfmRepository.findByLabel("FISHING_SPEED");
+        pmfm = pmfmRepository.findByLabel("GEAR_SPEED");
         Assert.assertTrue(pmfm.isPresent());
         Assert.assertEquals(9, pmfm.get().getId().intValue());
 

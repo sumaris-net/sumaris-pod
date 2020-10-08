@@ -25,7 +25,7 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -67,7 +67,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
     private LocationRepository locationRepository;
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Override
     public VesselSnapshotVO getByIdAndDate(int vesselId, Date date) {
@@ -239,7 +239,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
         target.setQualityFlagId(features.getQualityFlag().getId());
 
         // Vessel type
-        ReferentialVO vesselType = baseRefRepository.toVO(features.getVessel().getVesselType());
+        ReferentialVO vesselType = referentialDao.toVO(features.getVessel().getVesselType());
         target.setVesselType(vesselType);
 
         // base port location
@@ -247,7 +247,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
         target.setBasePortLocation(basePortLocation);
 
         // Recorder department
-        DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(features.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(features.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         // Registration period

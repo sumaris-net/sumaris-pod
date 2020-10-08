@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.QualityFlagEnum;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;

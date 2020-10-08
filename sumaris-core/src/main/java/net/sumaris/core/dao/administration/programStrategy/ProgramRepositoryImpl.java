@@ -5,13 +5,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
-import net.sumaris.core.dao.schema.DatabaseSchemaDao;
-import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
-import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
-import net.sumaris.core.model.administration.programStrategy.*;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
+import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -37,7 +37,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
 import java.util.*;
@@ -48,34 +47,21 @@ import java.util.stream.Collectors;
  */
 public class ProgramRepositoryImpl
     extends ReferentialRepositoryImpl<Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>
-    implements ProgramSpecifications, DatabaseSchemaListener {
+    implements ProgramSpecifications {
 
     private static final Logger log =
         LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
-
-    @Autowired
-    private DatabaseSchemaDao databaseSchemaDao;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private TaxonGroupRepository taxonGroupRepository;
 
-    @Override
-    public void onSchemaUpdated(SchemaUpdatedEvent event) {
-        initProgramEnumerations();
-    }
-
     public ProgramRepositoryImpl(EntityManager entityManager) {
         super(Program.class, ProgramVO.class, entityManager);
         setLockForUpdate(true);
-    }
-
-    @PostConstruct
-    protected void init() {
-        databaseSchemaDao.addListener(this);
     }
 
     @Override
@@ -134,7 +120,7 @@ public class ProgramRepositoryImpl
         if (fetchOptions != null && fetchOptions.isWithLocations()) {
             target.setLocationClassifications(
                 Beans.getStream(source.getLocationClassifications())
-                    .map(baseRefRepository::toVO)
+                    .map(referentialDao::toVO)
                     .collect(Collectors.toList()));
 
             target.setLocationClassificationIds(
@@ -144,7 +130,7 @@ public class ProgramRepositoryImpl
 
             target.setLocations(
                 Beans.getStream(source.getLocations())
-                    .map(baseRefRepository::toVO)
+                    .map(referentialDao::toVO)
                     .collect(Collectors.toList()));
         }
     }
@@ -306,25 +292,6 @@ public class ProgramRepositoryImpl
         super.deleteById(id);
     }
 
-    protected boolean initProgramEnumerations() {
-        log.debug("Initialize enumeration for all programs...");
-        for (ProgramEnum programEnum: ProgramEnum.values()) {
-            try {
-                ProgramVO program = getByLabel(programEnum.name());
-                if (program != null) {
-                    programEnum.setId(program.getId());
-                } else {
-                    // TODO query by id and show program code/name
-                    log.warn("Missing program with label=" + programEnum.name());
-                }
-            } catch(Throwable t) {
-                log.error(String.format("Could not initialized enumeration for program {%s}: %s", programEnum.name(), t.getMessage()), t);
-                return false;
-            }
-        }
-        return true;
-    }
-
     @Override
     public List<TaxonGroupVO> getTaxonGroups(int programId) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
@@ -383,7 +350,7 @@ public class ProgramRepositoryImpl
             .createQuery(query)
             .setParameter(programIdParam, programId)
             .getResultStream()
-            .map(baseRefRepository::toVO)
+            .map(referentialDao::toVO)
             .collect(Collectors.toList());
     }
 }

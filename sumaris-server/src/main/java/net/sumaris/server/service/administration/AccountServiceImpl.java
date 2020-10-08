@@ -360,9 +360,6 @@ public class AccountServiceImpl implements AccountService {
         return account;
     }
 
-
-    /* -- protected methods -- */
-
     @JmsListener(destination = "createTrip", containerFactory = "jmsListenerContainerFactory")
     public void onTripCreated(TripVO event) {
         log.info(String.format("New trip {%s}",  event.getId()));
@@ -374,6 +371,10 @@ public class AccountServiceImpl implements AccountService {
         log.info(String.format("Updated trip {%s}",  event.getId()));
         // TODO send event for supervisor
     }
+
+    /* -- protected methods -- */
+
+
 
     protected void checkValid(AccountVO account) {
         Preconditions.checkNotNull(account);

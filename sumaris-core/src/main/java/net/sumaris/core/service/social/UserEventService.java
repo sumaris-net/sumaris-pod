@@ -32,7 +32,11 @@ import java.util.List;
 @Transactional
 public interface UserEventService {
 
+    List<UserEventVO> findAll(UserEventFilterVO filter, Page page);
+
     UserEventVO save(UserEventVO event);
 
-    List<UserEventVO> findAll(UserEventFilterVO filter, Page page);
+    void delete(int id);
+
+    void delete(List<Integer> ids);
 }

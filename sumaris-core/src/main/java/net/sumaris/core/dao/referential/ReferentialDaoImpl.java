@@ -85,12 +85,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Repository("baseRefRepository")
-public class BaseRefRepositoryImpl
+@Repository("referentialDao")
+public class ReferentialDaoImpl
     extends HibernateDaoSupport
-    implements BaseRefRepository {
+    implements ReferentialDao {
 
-    private static final Logger log = LoggerFactory.getLogger(BaseRefRepositoryImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ReferentialDaoImpl.class);
 
     private static Map<String, Class<? extends IReferentialEntity>> entityClassMap = Maps.uniqueIndex(
         ImmutableList.of(
@@ -227,7 +227,9 @@ public class BaseRefRepositoryImpl
         return createFindQuery(entityClass, filter, sortAttribute, sortDirection)
             .setFirstResult(offset)
             .setMaxResults(size)
-            .getResultStream();
+            // FIXME BLA: replace with getResultStream()
+            // Now, it failed at startup (error "invalid cursor state: identified cursor is not open")
+            .getResultList().stream();
     }
 
     @Override
@@ -683,6 +685,14 @@ public class BaseRefRepositoryImpl
             }
         }
 
+        // Filter on id
+        Predicate idClause = null;
+        ParameterExpression<Integer> idParam = null;
+        if (filter.getId() != null) {
+            idParam = builder.parameter(Integer.class);
+            idClause = builder.equal(entityRoot.get(IItemReferentialEntity.Fields.ID), idParam);
+        }
+
         // Filter on label
         Predicate labelClause = null;
         ParameterExpression<String> labelParam = null;
@@ -736,6 +746,9 @@ public class BaseRefRepositoryImpl
         if (levelClause != null) {
             whereClause = levelClause;
         }
+        if (idClause != null) {
+            whereClause = (whereClause == null) ? idClause : builder.and(whereClause, idClause);
+        }
         if (labelClause != null) {
             whereClause = (whereClause == null) ? labelClause : builder.and(whereClause, labelClause);
         } else if (searchTextClause != null) {
@@ -753,6 +766,9 @@ public class BaseRefRepositoryImpl
         TypedQuery<R> typedQuery = getEntityManager().createQuery(query);
 
         // Bind parameters
+        if (idClause != null) {
+            typedQuery.setParameter(idParam, filter.getId());
+        }
         if (labelClause != null) {
             typedQuery.setParameter(labelParam, filter.getLabel());
         } else if (searchTextClause != null) {

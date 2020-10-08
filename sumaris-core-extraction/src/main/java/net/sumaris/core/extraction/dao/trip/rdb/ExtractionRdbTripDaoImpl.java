@@ -33,11 +33,11 @@ import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
+import net.sumaris.core.extraction.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
-import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripVersion;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -77,12 +77,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionRdbTripDaoImpl.class);
 
-    private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + TR_SHEET_NAME + "_%s";
-    private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HH_SHEET_NAME + "_%s";
-    private static final String SL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + SL_SHEET_NAME + "_%s";
-    private static final String SL_RAW_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "RAW_" + SL_SHEET_NAME + "_%s";
-    private static final String HL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HL_SHEET_NAME + "_%s";
-    private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + CA_SHEET_NAME + "_%s";
+    private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.TR_SHEET_NAME + "_%s";
+    private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.HH_SHEET_NAME + "_%s";
+    private static final String SL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.SL_SHEET_NAME + "_%s";
+    private static final String SL_RAW_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "RAW_" + RdbSpecification.SL_SHEET_NAME + "_%s";
+    private static final String HL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.HL_SHEET_NAME + "_%s";
+    private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.CA_SHEET_NAME + "_%s";
 
     protected static final String XML_QUERY_PATH = "xmlQuery";
 
@@ -109,34 +109,24 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         C context = createNewContext();
         context.setTripFilter(tripFilter);
         context.setFilter(filter);
-        context.setFormatName(RDB_FORMAT);
-        context.setFormatVersion(ExtractionRdbTripVersion.VERSION_1_3.getLabel());
+        context.setFormatName(RdbSpecification.FORMAT);
+        context.setFormatVersion(RdbSpecification.VERSION_1_3);
         context.setId(System.currentTimeMillis());
+
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
             if (filter != null) {
-                filterInfo.append("with filter:")
-                        .append("\n - Program (label): ").append(tripFilter.getProgramLabel())
-                        .append("\n - Location (id): ").append(tripFilter.getLocationId())
-                        .append("\n - Start date: ").append(tripFilter.getStartDate())
-                        .append("\n - End date: ").append(tripFilter.getEndDate())
-                        .append("\n - Vessel (id): ").append(tripFilter.getVesselId())
-                        .append("\n - Recorder department (id): ").append(tripFilter.getRecorderDepartmentId());
+                filterInfo.append("with filter:").append(tripFilter.toString("\n - "));
             }
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting extraction #%s (raw data / trips)... %s", context.getId(), filterInfo.toString()));
+            log.info(String.format("Starting extraction #%s (raw data / trips)... %s", context.getFormatName(), context.getId(), filterInfo.toString()));
         }
 
-        // Compute table names
-        context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
-        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
-        context.setRawSpeciesListTableName(String.format(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
+        // Fill context table names
+        fillContextTableNames(context);
 
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
@@ -231,6 +221,24 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         return ExtractionRdbTripContextVO.class;
     }
 
+    protected void fillContextTableNames(C context) {
+
+        // Set unique table names
+        context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
+        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
+        context.setRawSpeciesListTableName(String.format(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
+
+        // Set sheetname
+        context.setTripSheetName(RdbSpecification.TR_SHEET_NAME);
+        context.setStationSheetName(RdbSpecification.HH_SHEET_NAME);
+        context.setSpeciesListSheetName(RdbSpecification.SL_SHEET_NAME);
+        context.setSpeciesLengthSheetName(RdbSpecification.HL_SHEET_NAME);
+        context.setSampleSheetName(RdbSpecification.CA_SHEET_NAME);
+    }
+
     protected List<ExtractionPmfmInfoVO> getPmfmInfos(C context, MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId) {
 
         Map<String, String> acquisitionLevelAliases = buildAcquisitionLevelAliases(
@@ -298,13 +306,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
         // Clean row using generic tripFilter
         if (count > 0) {
-            count -= cleanRow(context.getTripTableName(), context.getFilter(), TR_SHEET_NAME);
+            count -= cleanRow(context.getTripTableName(), context.getFilter(), context.getTripSheetName());
         }
 
         // Add result table to context
         if (count > 0) {
             context.addTableName(context.getTripTableName(),
-                    TR_SHEET_NAME,
+                    context.getTripSheetName(),
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Trip table: %s rows inserted", count));
@@ -359,13 +367,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
         // Clean row using generic tripFilter
         if (count > 0) {
-            count -= cleanRow(context.getStationTableName(), context.getFilter(), HH_SHEET_NAME);
+            count -= cleanRow(context.getStationTableName(), context.getFilter(), context.getStationSheetName());
         }
 
         if (count > 0) {
             // Add result table to context
             context.addTableName(context.getStationTableName(),
-                    HH_SHEET_NAME,
+                    context.getStationSheetName(),
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Station table: %s rows inserted", count));
@@ -404,8 +412,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         context.addRawTableName(context.getRawSpeciesListTableName());
 
         // Clean row using generic filter
-        cleanRow(context.getRawSpeciesListTableName(), context.getFilter(), SL_SHEET_NAME);
-
+        cleanRow(context.getRawSpeciesListTableName(), context.getFilter(), context.getSpeciesListSheetName());
 
         // Create the final table (with distinct), without hidden columns
         String tableName = context.getSpeciesListTableName();
@@ -417,7 +424,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         // Add result table to context
         if (count > 0) {
             context.addTableName(tableName,
-                    SL_SHEET_NAME,
+                    context.getSpeciesListSheetName(),
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Species list table: %s rows inserted", count));
@@ -463,13 +470,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
         // Clean row using generic tripFilter
         if (count > 0) {
-            count -= cleanRow(context.getSpeciesLengthTableName(), context.getFilter(), HL_SHEET_NAME);
+            count -= cleanRow(context.getSpeciesLengthTableName(), context.getFilter(), context.getSpeciesLengthSheetName());
         }
 
         // Add result table to context
         if (count > 0) {
             context.addTableName(context.getSpeciesLengthTableName(),
-                    HL_SHEET_NAME,
+                    context.getSpeciesLengthSheetName(),
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Species length table: %s rows inserted", count));
@@ -513,7 +520,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         Preconditions.checkNotNull(context.getFormatVersion());
 
         return String.format("%s/v%s/%s",
-                context.getFormatName(),
+                context.getFormatName().toLowerCase(),
                 context.getFormatVersion().replaceAll("[.]", "_"),
                 queryName);
     }

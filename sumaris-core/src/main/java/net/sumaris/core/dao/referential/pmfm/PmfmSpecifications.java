@@ -9,4 +9,6 @@ public interface PmfmSpecifications {
 
     boolean hasLabelSuffix(int pmfmId, String... labelSuffixes);
 
+    boolean hasMatrixId(int pmfmId, int... matrixIds);
+
 }

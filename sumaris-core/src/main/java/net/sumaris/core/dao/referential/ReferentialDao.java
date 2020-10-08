@@ -15,7 +15,7 @@ import java.util.Optional;
 /**
  * @author peck7 on 24/08/2020.
  */
-public interface BaseRefRepository {
+public interface ReferentialDao {
 
     ReferentialVO get(String entityName, int id);
 

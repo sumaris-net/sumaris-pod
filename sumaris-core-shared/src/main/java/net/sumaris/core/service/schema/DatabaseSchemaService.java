@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * <p>DatabaseSchemaService interface.</p>
@@ -49,7 +50,7 @@ public interface DatabaseSchemaService {
 	 * @return a {@link Version} object.
 	 */
 	@Transactional(readOnly = true)
-	Version getDbVersion();
+	Optional<Version> getSchemaVersion();
 
 	/**
 	 * Return the version of the applciation. This version comes from database updates (e.g. liquibase patch)
@@ -125,9 +126,4 @@ public interface DatabaseSchemaService {
 	@Transactional(readOnly = true)
 	void updateSchemaToFile(File outputFile) throws IOException;
 
-	/**
-	 * Emit event to all listeners, into a NEW transaction
-	 */
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	void fireOnSchemaUpdatedEvent();
 }

@@ -30,11 +30,12 @@ import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.referential.*;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDaoWriteTest;
 import net.sumaris.core.dao.technical.schema.DatabaseSchemaDaoTest;
-import net.sumaris.core.service.FileImportServiceTest;
+import net.sumaris.core.service.technical.ConfigurationServiceTest;
+import net.sumaris.core.service.technical.FileImportServiceTest;
 import net.sumaris.core.service.administration.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.*;
-import net.sumaris.core.service.technical.configuration.SoftwareServiceTest;
+import net.sumaris.core.service.technical.SoftwareServiceTest;
 import net.sumaris.core.service.technical.schema.DatabaseSchemaServiceTest;
 import net.sumaris.core.util.crypto.CryptoUtilsTest;
 import net.sumaris.core.util.crypto.MD5UtilTest;
@@ -50,20 +51,20 @@ import org.junit.runners.Suite;
     // DAO: referential
     LocationRepositoryReadTest.class,
     LocationRepositoryWriteTest.class,
-    TaxonGroupRepositoryWriteTest.class,
-    TaxonNameRepositoryReadTest.class,
     MetierRepositoryReadTest.class,
     ParameterRepositoryWriteTest.class,
     PmfmRepositoryReadTest.class,
     PmfmRepositoryWriteTest.class,
+    TaxonGroupRepositoryWriteTest.class,
+    TaxonNameRepositoryReadTest.class,
     // DAO: administration
     UserTokenRepositoryWriteTest.class,
     UserSettingsRepositoryWriteTest.class,
     // DAO : data
     BatchDaoWriteTest.class,
+    LandingRepositoryReadTest.class,
     SampleDaoWriteTest.class,
     TripRepositoryWriteTest.class,
-    LandingRepositoryReadTest.class,
     VesselDaoImplReadTest.class,
     VesselSnapshotDaoImplReadTest.class,
     // DAO: technical
@@ -73,31 +74,32 @@ import org.junit.runners.Suite;
     // Service: referential
     LocationServiceReadTest.class,
     LocationServiceWriteTest.class,
+    PmfmServiceReadTest.class,
+    PmfmServiceWriteTest.class,
     ReferentialServiceReadTest.class,
     ReferentialServiceWriteTest.class,
     TaxonGroupServiceWriteTest.class,
-    PmfmServiceReadTest.class,
-    PmfmServiceWriteTest.class,
     // Service: administration
     DepartmentServiceTest.class,
     PersonServiceTest.class,
-    StrategyServiceReadTest.class,
     ProgramServiceReadTest.class,
     ProgramServiceWriteTest.class,
+    StrategyServiceReadTest.class,
     // Service: data
     ObservedLocationServiceReadTest.class,
     ObservedLocationServiceWriteTest.class,
-    OperationServiceWriteTest.class,
-    TripServiceQualityTest.class,
-    TripServiceWriteTest.class,
-    TripServiceReadTest.class,
-    VesselServiceWriteTest.class,
     LandingServiceReadTest.class,
     LandingServiceWriteTest.class,
     AggregatedLandingServiceReadTest.class,
+    TripServiceQualityTest.class,
+    TripServiceWriteTest.class,
+    TripServiceReadTest.class,
+    OperationServiceWriteTest.class,
     PacketServiceWriteTest.class,
+    VesselServiceWriteTest.class,
     // Service: technical
     DatabaseSchemaServiceTest.class,
+    ConfigurationServiceTest.class,
     SoftwareServiceTest.class,
     FileImportServiceTest.class,
 

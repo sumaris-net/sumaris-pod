@@ -26,12 +26,12 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.referential.BaseRefRepository;
-import net.sumaris.core.dao.schema.DatabaseSchemaDao;
-import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
-import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.model.data.BatchSortingMeasurement;
@@ -39,7 +39,6 @@ import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
-import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
@@ -50,9 +49,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,7 +59,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 09/04/2020.
  */
 @Service("packetService")
-public class PacketServiceImpl implements PacketService, DatabaseSchemaListener {
+public class PacketServiceImpl implements PacketService {
 
     private static final Logger logger = LoggerFactory.getLogger(PacketServiceImpl.class);
     private Integer calculatedWeightPmfmId;
@@ -73,35 +72,18 @@ public class PacketServiceImpl implements PacketService, DatabaseSchemaListener 
     private BatchDao batchDao;
 
     @Autowired
-    private PmfmService pmfmService;
-
-    @Autowired
     private MeasurementDao measurementDao;
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
-    @Autowired
-    private DatabaseSchemaDao databaseSchemaDao;
-
-    @PostConstruct
-    protected void init() {
-        initPmfms();
-        databaseSchemaDao.addListener(this);
-    }
-
-    @Override
-    public void onSchemaUpdated(SchemaUpdatedEvent event) {
-        // allow to start service, even some PMFM are missing
-        initPmfms();
-    }
-
-    private void initPmfms() {
-        // (e.g. use findByLabel())
-        this.calculatedWeightPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_CALCULATED_WEIGHT.getLabel()).getId();
-        this.measuredWeightPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_MEASURED_WEIGHT.getLabel()).getId();
-        this.estimatedRatioPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_ESTIMATED_RATIO.getLabel()).getId();
-        this.sortingPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_SORTING.getLabel()).getId();
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        // Init pmfm ids
+        this.calculatedWeightPmfmId = PmfmEnum.BATCH_CALCULATED_WEIGHT.getId();
+        this.measuredWeightPmfmId = PmfmEnum.BATCH_MEASURED_WEIGHT.getId();
+        this.estimatedRatioPmfmId = PmfmEnum.BATCH_ESTIMATED_RATIO.getId();
+        this.sortingPmfmId = PmfmEnum.BATCH_SORTING.getId();
     }
 
     @Override
@@ -290,7 +272,7 @@ public class PacketServiceImpl implements PacketService, DatabaseSchemaListener 
             if (sortingMeasurement == null) {
                 sortingMeasurement = createMeasurement(BatchSortingMeasurement.class, sortingPmfmId);
             }
-            ReferentialVO qv = baseRefRepository.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
+            ReferentialVO qv = referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
                 .orElseThrow(() -> new DataNotFoundException(String.format("The qualitative value with label %s was not found", QualitativeValueEnum.SORTING_BULK.getLabel())));
             sortingMeasurement.setQualitativeValue(qv);
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));
@@ -392,7 +374,7 @@ public class PacketServiceImpl implements PacketService, DatabaseSchemaListener 
             if (sortingMeasurement == null) {
                 sortingMeasurement = createMeasurement(BatchSortingMeasurement.class, sortingPmfmId);
             }
-            ReferentialVO qv = baseRefRepository.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
+            ReferentialVO qv = referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
                 .orElseThrow(() -> new DataNotFoundException(String.format("The qualitative value with label %s was not found", QualitativeValueEnum.SORTING_BULK.getLabel())));
             sortingMeasurement.setQualitativeValue(qv);
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));

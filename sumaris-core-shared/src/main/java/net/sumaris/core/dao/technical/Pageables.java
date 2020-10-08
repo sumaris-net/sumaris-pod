@@ -22,6 +22,7 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +42,9 @@ public class Pageables  {
     }
 
     public static Pageable create(int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        // Make sure offset is valid, for the page size
+        Preconditions.checkArgument(offset % size == 0, "Invalid offset. Must be a multiple of the given 'size'");
+
         if (sortAttribute != null) {
             return PageRequest.of(offset / size, size,
                     (sortDirection == null) ? Sort.Direction.ASC :
@@ -49,5 +53,6 @@ public class Pageables  {
         }
         return PageRequest.of(offset / size, size);
     }
+
 }
 

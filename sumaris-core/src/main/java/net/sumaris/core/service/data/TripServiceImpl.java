@@ -31,10 +31,15 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.event.DataEntityCreatedEvent;
-import net.sumaris.core.event.DataEntityUpdatedEvent;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.SaleType;
@@ -53,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -82,7 +88,7 @@ public class TripServiceImpl implements TripService {
     private MeasurementDao measurementDao;
 
     @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher publisher;
 
     @Autowired
     private PmfmService pmfmService;
@@ -98,6 +104,13 @@ public class TripServiceImpl implements TripService {
 
     @Autowired
     private FishingAreaService fishingAreaService;
+
+    private boolean enableTrash = false;
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        this.enableTrash = event.getConfig().enableEntityTrash();
+    }
 
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
@@ -133,6 +146,7 @@ public class TripServiceImpl implements TripService {
         Landing landing = landingRepository.getByTripId(target.getId());
         if (landing != null) {
             target.setLandingId(landing.getId());
+            target.setLandingRankOrder(landing.getRankOrderOnVessel());
             if (landing.getObservedLocation() != null) {
                 target.setObservedLocationId(landing.getObservedLocation().getId());
             }
@@ -154,6 +168,7 @@ public class TripServiceImpl implements TripService {
             LandingVO tripLanding = CollectionUtils.size(tripLandings) == 1 ? tripLandings.iterator().next() : null;
             if (tripLanding != null) {
                 target.setLandingId(tripLanding.getId());
+                target.setLandingRankOrder(tripLanding.getRankOrderOnVessel());
                 if (tripLanding.getObservedLocation() != null) {
                     target.setObservedLocationId(tripLanding.getObservedLocation().getId());
                 }
@@ -186,85 +201,85 @@ public class TripServiceImpl implements TripService {
         }
 
         // Save
-        TripVO savedTrip = tripRepository.save(source);
+        TripVO result = tripRepository.save(source);
 
         // Save or update parent entity
-        saveParent(savedTrip);
+        saveParent(result);
 
         // Save measurements
         if (source.getMeasurementValues() != null) {
             measurementDao.saveTripMeasurementsMap(source.getId(), source.getMeasurementValues());
         } else {
             List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-            measurements.forEach(m -> fillDefaultProperties(savedTrip, m));
-            measurements = measurementDao.saveTripVesselUseMeasurements(savedTrip.getId(), measurements);
-            savedTrip.setMeasurements(measurements);
+            measurements.forEach(m -> fillDefaultProperties(result, m));
+            measurements = measurementDao.saveTripVesselUseMeasurements(result.getId(), measurements);
+            result.setMeasurements(measurements);
         }
 
         // Save metier
         List<MetierVO> metiers = Beans.getList(source.getMetiers());
-        metiers = operationGroupService.saveMetiersByTripId(savedTrip.getId(), metiers);
-        savedTrip.setMetiers(metiers);
+        metiers = operationGroupService.saveMetiersByTripId(result.getId(), metiers);
+        result.setMetiers(metiers);
 
         // Save fishing area
-        FishingAreaVO savedFishingArea = fishingAreaService.saveByFishingTripId(savedTrip.getId(), source.getFishingArea());
-        savedTrip.setFishingArea(savedFishingArea);
+        FishingAreaVO savedFishingArea = fishingAreaService.saveByFishingTripId(result.getId(), source.getFishingArea());
+        result.setFishingArea(savedFishingArea);
 
         // Save physical gears
         List<PhysicalGearVO> physicalGears = Beans.getList(source.getGears());
         physicalGears.forEach(physicalGear -> {
-            fillDefaultProperties(savedTrip, physicalGear);
+            fillDefaultProperties(result, physicalGear);
             if (withOperationGroup) {
                 fillPhysicalGearMeasurementsFromOperationGroups(physicalGear, source.getOperationGroups());
             }
         });
-        physicalGears = physicalGearService.save(savedTrip.getId(), physicalGears);
-        savedTrip.setGears(physicalGears);
+        physicalGears = physicalGearService.save(result.getId(), physicalGears);
+        result.setGears(physicalGears);
 
         // Save operations (only if asked)
         if (withOperation) {
             List<OperationVO> operations = Beans.getList(source.getOperations());
             fillOperationPhysicalGears(operations, physicalGears);
-            operations = operationService.saveAllByTripId(savedTrip.getId(), operations);
-            savedTrip.setOperations(operations);
+            operations = operationService.saveAllByTripId(result.getId(), operations);
+            result.setOperations(operations);
         }
 
         // Save operation groups (only if asked)
         if (withOperationGroup) {
             List<OperationGroupVO> operationGroups = Beans.getList(source.getOperationGroups());
             fillOperationGroupPhysicalGears(operationGroups, physicalGears);
-            operationGroups = operationGroupService.saveAllByTripId(savedTrip.getId(), operationGroups);
-            savedTrip.setOperationGroups(operationGroups);
+            operationGroups = operationGroupService.saveAllByTripId(result.getId(), operationGroups);
+            result.setOperationGroups(operationGroups);
         }
 
         // Save sales
         if (CollectionUtils.isNotEmpty(source.getSales())) {
             List<SaleVO> sales = Beans.getList(source.getSales());
-            sales.forEach(sale -> fillDefaultProperties(savedTrip, sale));
+            sales.forEach(sale -> fillDefaultProperties(result, sale));
             // fill sale products but only if there is only one sale
             if (sales.size() == 1)
-                fillSaleProducts(savedTrip, sales.get(0));
-            sales = saleService.saveAllByTripId(savedTrip.getId(), sales);
-            savedTrip.setSales(sales);
+                fillSaleProducts(result, sales.get(0));
+            sales = saleService.saveAllByTripId(result.getId(), sales);
+            result.setSales(sales);
         } else if (source.getSale() != null) {
             SaleVO sale = source.getSale();
-            fillDefaultProperties(savedTrip, sale);
-            fillSaleProducts(savedTrip, sale);
-            List<SaleVO> sales = saleService.saveAllByTripId(savedTrip.getId(), ImmutableList.of(sale));
-            savedTrip.setSale(sales.get(0));
+            fillDefaultProperties(result, sale);
+            fillSaleProducts(result, sale);
+            List<SaleVO> sales = saleService.saveAllByTripId(result.getId(), ImmutableList.of(sale));
+            result.setSale(sales.get(0));
         } else {
             // Remove all
-            saleService.saveAllByTripId(savedTrip.getId(), ImmutableList.of());
+            saleService.saveAllByTripId(result.getId(), ImmutableList.of());
         }
 
-        // Emit event
+        // Publish event
         if (isNew) {
-            eventPublisher.publishEvent(new DataEntityCreatedEvent(Trip.class.getSimpleName(), savedTrip));
+            publisher.publishEvent(new EntityInsertEvent(result.getId(), Trip.class.getSimpleName(), result));
         } else {
-            eventPublisher.publishEvent(new DataEntityUpdatedEvent(Trip.class.getSimpleName(), savedTrip));
+            publisher.publishEvent(new EntityUpdateEvent(result.getId(), Trip.class.getSimpleName(), result));
         }
 
-        return savedTrip;
+        return result;
     }
 
     private void fillOperationPhysicalGears(List<OperationVO> sources, List<PhysicalGearVO> physicalGears) {
@@ -360,6 +375,7 @@ public class TripServiceImpl implements TripService {
                 landing.setProgram(observedLocation.getProgram());
                 landing.setLocation(observedLocation.getLocation());
                 landing.setVesselSnapshot(trip.getVesselSnapshot());
+                landing.setRankOrderOnVessel(trip.getLandingRankOrder());
                 landing.setDateTime(trip.getReturnDateTime());
                 landing.setObservers(Beans.getSet(trip.getObservers()));
                 landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
@@ -401,6 +417,7 @@ public class TripServiceImpl implements TripService {
         // Get gear physical measurement from operation group
         Map<Integer, String> gearPhysicalMeasurements = Maps.newLinkedHashMap();
         operationGroup.getMeasurementValues().forEach((pmfmId, value) -> {
+            // TODO: find a better way (not using PMFM label) to determine if a measurement is for physical gear
             if (pmfmService.isGearPhysicalPmfm(pmfmId))
                 gearPhysicalMeasurements.putIfAbsent(pmfmId, value);
         });
@@ -419,7 +436,29 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public void delete(int id) {
+
+        TripVO deletedTrip = null;
+        if (enableTrash) {
+            deletedTrip = get(id);
+            deletedTrip.setOperations(operationService.getAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC));
+            deletedTrip.setOperationGroups(operationGroupService.getAllByTripId(id));
+            deletedTrip.setMetiers(operationGroupService.getMetiersByTripId(id));
+
+            // TODO: Add all measurement maybe with get(id, fullFetchOption)
+        }
+
+        // Remove link LANDING->TRIP
+        Landing landing = landingRepository.getByTripId(id);
+        if (landing != null) {
+            landing.setTrip(null);
+            landingRepository.save(landing);
+        }
+
+        // Apply deletion
         tripRepository.deleteById(id);
+
+        // Publish events
+        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), deletedTrip));
     }
 
     @Override

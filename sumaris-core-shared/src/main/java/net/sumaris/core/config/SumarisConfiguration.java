@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.io.File;
 import java.io.IOException;
@@ -419,6 +420,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * <p>getDbTrashDirectory.</p>
+     *
+     * @return a {@link File} object.
+     */
+    public File getTrashDirectory() {
+        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.TRASH_DIRECTORY.getKey());
+    }
+
+    /**
      * <p>useLiquibaseAutoRun.</p>
      *
      * @return a boolean.
@@ -524,6 +534,14 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public boolean debugEntityLoad() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.DEBUG_ENTITY_LOAD.getKey());
+    }
+
+    /**
+     * Enable trash of delete entities (e.g. Trip, Operation, etc)
+     * @return
+     */
+    public boolean enableEntityTrash() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey());
     }
 
     /**
@@ -727,7 +745,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     /**
      * <p>getLaunchMode.</p>
      *
-     * @return a {@link java.lang.String} object.
+     * @return a {@link String} object.
      */
     public String getLaunchMode() {
         return applicationConfig.getOption(SumarisConfigurationOption.LAUNCH_MODE.getKey());
@@ -829,7 +847,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         Preconditions.checkArgument(StringUtils.isNotBlank(tableName));
         Preconditions.checkArgument(StringUtils.isNotBlank(columnName));
 
-        String defaultvalue = applicationConfig.getOption("sumaris." + tableName.toUpperCase() + "." + columnName.toUpperCase() + ".defaultValue");
-        return defaultvalue;
+        return applicationConfig.getOption("sumaris." + tableName.toUpperCase() + "." + columnName.toUpperCase() + ".defaultValue");
     }
 }

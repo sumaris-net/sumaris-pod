@@ -22,6 +22,9 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -29,6 +32,7 @@ import java.util.Arrays;
  * Validity Status
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
+@EntityEnum(entity = ValidityStatus.class, joinAttributes = {IEntity.Fields.ID})
 public enum ValidityStatusEnum implements Serializable {
 
     INVALID(0),
@@ -37,7 +41,7 @@ public enum ValidityStatusEnum implements Serializable {
 
     public static ValidityStatusEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown ValidityStatusEnum: " + id));
     }

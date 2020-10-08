@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.QualityFlagEnum;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;

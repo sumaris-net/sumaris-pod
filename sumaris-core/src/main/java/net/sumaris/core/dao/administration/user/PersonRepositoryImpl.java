@@ -2,7 +2,7 @@ package net.sumaris.core.dao.administration.user;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SoftwareDao;
@@ -58,7 +58,7 @@ public class PersonRepositoryImpl
     protected DepartmentRepository departmentRepository;
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private SoftwareDao softwareDao;
@@ -266,7 +266,7 @@ public class PersonRepositoryImpl
                         // translate the user profile label
                         String translatedLabel = getUserProfileLabelTranslationMap(false).getOrDefault(profile, profile);
                         if (StringUtils.isNotBlank(translatedLabel)) {
-                            Optional<ReferentialVO> userProfileVO = baseRefRepository.findByUniqueLabel(UserProfile.class.getSimpleName(), translatedLabel);
+                            Optional<ReferentialVO> userProfileVO = referentialDao.findByUniqueLabel(UserProfile.class.getSimpleName(), translatedLabel);
                             if (userProfileVO.isPresent()) {
                                 UserProfile up = load(
                                     UserProfile.class,

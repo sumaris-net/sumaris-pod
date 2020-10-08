@@ -349,7 +349,7 @@ public class Beans {
      * @param target
      */
     public static <S, T> void copyProperties(S source, T target) {
-        copyProperties(source, target, (String) null);
+        copyProperties(source, target, new String[0]);
     }
 
     /**

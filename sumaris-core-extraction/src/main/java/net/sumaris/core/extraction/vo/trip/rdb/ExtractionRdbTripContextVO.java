@@ -36,10 +36,18 @@ import net.sumaris.core.extraction.vo.trip.ExtractionTripContextVO;
 @EqualsAndHashCode(callSuper = true)
 public class ExtractionRdbTripContextVO extends ExtractionTripContextVO {
 
+    // Table names
     String tripTableName; // TR table
     String stationTableName; // HH table
     String rawSpeciesListTableName; // SL-raw (not distinct) table
     String speciesListTableName; // SL table
     String speciesLengthTableName; // HL table
     String sampleTableName; // CA table
+
+    // Sheet names
+    String tripSheetName; // TR
+    String stationSheetName; // HH
+    String speciesListSheetName; // SL
+    String speciesLengthSheetName; // HL
+    String sampleSheetName; // CA
 }

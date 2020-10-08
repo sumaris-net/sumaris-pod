@@ -29,7 +29,6 @@ import java.util.Arrays;
 
 public enum EventTypeEnum implements Serializable {
 
-
     DEBUG_DATA(1, "DEBUG_DATA"),
 
     INBOX_MESSAGE(1, "INBOX_MESSAGE")

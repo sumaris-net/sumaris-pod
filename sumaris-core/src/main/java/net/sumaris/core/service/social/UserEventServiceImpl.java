@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +50,12 @@ public class UserEventServiceImpl implements UserEventService {
     }
 
     @Override
+    public List<UserEventVO> findAll(UserEventFilterVO filter, Page page) {
+        return userEventRepository.findAllVO(userEventRepository.toSpecification(filter), page)
+                .stream().collect(Collectors.toList());
+    }
+
+    @Override
     public UserEventVO save(UserEventVO event) {
         Preconditions.checkNotNull(event);
         Preconditions.checkNotNull(event.getIssuer());
@@ -62,8 +69,15 @@ public class UserEventServiceImpl implements UserEventService {
     }
 
     @Override
-    public List<UserEventVO> findAll(UserEventFilterVO filter, Page page) {
-        return userEventRepository.findAllVO(userEventRepository.toSpecification(filter), page)
-                .stream().collect(Collectors.toList());
+    public void delete(int id) {
+        userEventRepository.deleteById(id);
+    }
+
+    @Override
+    public void delete(List<Integer> ids) {
+        Preconditions.checkNotNull(ids);
+        ids.stream()
+                .filter(Objects::nonNull)
+                .forEach(this::delete);
     }
 }

@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import net.sumaris.core.dao.data.product.ProductRepository;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
@@ -76,7 +76,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     private boolean enableSaveUsingHash;
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private TaxonNameRepository taxonNameRepository;
@@ -404,7 +404,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         // Taxon group
         if (source.getTaxonGroup() != null) {
-            ReferentialVO taxonGroup = baseRefRepository.toVO(source.getTaxonGroup());
+            ReferentialVO taxonGroup = referentialDao.toVO(source.getTaxonGroup());
             target.setTaxonGroup(taxonGroup);
         }
 
@@ -432,7 +432,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         // If full export
         if (allFields) {
             // Recorder department
-            DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
             target.setRecorderDepartment(recorderDepartment);
         }
 

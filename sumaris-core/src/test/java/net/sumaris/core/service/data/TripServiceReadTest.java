@@ -75,17 +75,17 @@ public class TripServiceReadTest extends AbstractServiceTest{
         assertFindResultCount(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-02-28", "yyyy-MM-dd"))
             .build(),
-            2);
+            3);
 
         assertFindResultCount(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-03-03", "yyyy-MM-dd"))
             .build(),
-            2);
+            3);
 
         assertFindResultCount(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-03-04", "yyyy-MM-dd"))
             .build(),
-            1);
+            2);
 
         assertFindResultCount(TripFilterVO.builder()
             .endDate(Dates.parseDate("2018-03-04", "yyyy-MM-dd"))
@@ -105,7 +105,7 @@ public class TripServiceReadTest extends AbstractServiceTest{
         assertFindResultCount(TripFilterVO.builder()
             .recorderPersonId(2)
             .build(),
-            1);
+            2);
     }
 
     private void assertFindResultCount(TripFilterVO filter, int expectedSize) {

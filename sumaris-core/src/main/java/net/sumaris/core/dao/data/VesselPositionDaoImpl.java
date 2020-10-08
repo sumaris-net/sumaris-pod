@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;
@@ -57,7 +57,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
             LoggerFactory.getLogger(VesselPositionDaoImpl.class);
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -188,7 +188,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // Recorder department
-        DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;

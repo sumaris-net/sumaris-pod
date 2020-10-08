@@ -23,7 +23,7 @@ package net.sumaris.core.dao.referential.metier;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.Daos;
@@ -59,7 +59,7 @@ public class MetierRepositoryImpl
     private static final Logger log = LoggerFactory.getLogger(MetierRepositoryImpl.class);
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private TaxonGroupRepository taxonGroupRepository;
@@ -125,7 +125,7 @@ public class MetierRepositoryImpl
 
         // Gear
         if (source.getGear() != null) {
-            target.setGear(baseRefRepository.toVO(source.getGear()));
+            target.setGear(referentialDao.toVO(source.getGear()));
             target.setLevelId(source.getGear().getId());
         }
 

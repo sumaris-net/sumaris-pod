@@ -27,11 +27,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.QualityFlagEnum;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
@@ -78,7 +78,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     private LocationRepository locationRepository;
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private ProgramRepository programRepository;
@@ -444,11 +444,11 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         target.setStatusId(source.getVessel().getStatus().getId());
 
         // Vessel type
-        ReferentialVO vesselType = baseRefRepository.toVO(source.getVessel().getVesselType());
+        ReferentialVO vesselType = referentialDao.toVO(source.getVessel().getVesselType());
         target.setVesselType(vesselType);
 
         // Recorder department
-        DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getVessel().getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getVessel().getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         // Vessel features
@@ -486,7 +486,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         target.setBasePortLocation(basePortLocation);
 
         // Recorder department
-        DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;

@@ -26,17 +26,12 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.vo.AggregationContextVO;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
-import net.sumaris.core.extraction.vo.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.MapUtils;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -53,17 +48,26 @@ public class ExtractionBeans extends net.sumaris.core.util.ExtractionBeans {
 
         // Retrieve the extraction type, from list
         final String label = type.getLabel();
+        final String version = type.getVersion();
+        final String extractionCategory = type.getCategory();
         if (type.getCategory() == null) {
             type = availableTypes.stream()
-                    .filter(aType -> label.equalsIgnoreCase(aType.getLabel()))
+                    .filter(aType -> label.equalsIgnoreCase(aType.getLabel()) // Same label
+                            // Same version
+                            && (version == null || version.equalsIgnoreCase(aType.getVersion())))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type label {%s}", label)));
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type {label: '%s', version: '%s'}", label, version)));
         } else {
-            final String extractionCategory = type.getCategory();
+
             type = availableTypes.stream()
-                    .filter(aType -> label.equalsIgnoreCase(aType.getLabel()) && aType.getCategory().equalsIgnoreCase(extractionCategory))
+                    .filter(aType -> label.equalsIgnoreCase(aType.getLabel()) // Same label
+                            // Same category
+                            && aType.getCategory().equalsIgnoreCase(extractionCategory)
+                            // Same version
+                            && (version == null || version.equalsIgnoreCase(aType.getVersion()))
+                    )
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type category/label {%s/%s}", extractionCategory, label)));
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type {category: '%s', label: '%s', version: '%s'}", extractionCategory, label, version)));
         }
         return type;
     }

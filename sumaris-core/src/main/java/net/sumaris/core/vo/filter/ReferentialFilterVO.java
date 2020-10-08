@@ -35,6 +35,7 @@ import lombok.experimental.FieldNameConstants;
 @AllArgsConstructor
 public class ReferentialFilterVO implements IReferentialFilter {
 
+    private Integer id;
     private String label;
     private String name;
 

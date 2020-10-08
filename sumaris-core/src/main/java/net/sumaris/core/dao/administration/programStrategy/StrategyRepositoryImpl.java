@@ -3,7 +3,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -50,7 +50,7 @@ public class StrategyRepositoryImpl
         LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
     @Autowired
-    private BaseRefRepository referentialRepository;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private PmfmStrategyRepository pmfmStrategyRepository;
@@ -145,7 +145,7 @@ public class StrategyRepositoryImpl
             .createQuery(query)
             .setParameter(strategyIdParam, strategyId)
             .getResultStream()
-            .map(referentialRepository::toVO)
+            .map(referentialDao::toVO)
             .collect(Collectors.toList());
 
     }
@@ -188,7 +188,7 @@ public class StrategyRepositoryImpl
         if (CollectionUtils.isNotEmpty(source.getGears())) {
             List<ReferentialVO> gears = source.getGears()
                 .stream()
-                .map(referentialRepository::toVO)
+                .map(referentialDao::toVO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
             target.setGears(gears);

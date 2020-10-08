@@ -1,7 +1,7 @@
 package net.sumaris.core.dao.referential.pmfm;
 
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.referential.pmfm.*;
@@ -18,7 +18,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,17 +30,10 @@ public class PmfmRepositoryImpl
     implements PmfmSpecifications {
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
-
-    public int unitIdNone;
+    private ReferentialDao referentialDao;
 
     public PmfmRepositoryImpl(EntityManager entityManager) {
         super(Pmfm.class, PmfmVO.class, entityManager);
-    }
-
-    @PostConstruct
-    protected void init() {
-        this.unitIdNone = getConfig().getUnitIdNone();
     }
 
     @Override
@@ -89,7 +81,7 @@ public class PmfmRepositoryImpl
         Unit unit = source.getUnit();
         if (unit != null && unit.getId() != null) {
             target.setUnitId(unit.getId());
-            if (unit.getId() != unitIdNone) {
+            if (UnitEnum.NONE.getId() != unit.getId()) {
                 target.setUnitLabel(unit.getLabel());
             }
         }
@@ -98,14 +90,14 @@ public class PmfmRepositoryImpl
         if (CollectionUtils.isNotEmpty(source.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = source.getQualitativeValues()
                 .stream()
-                .map(baseRefRepository::toVO)
+                .map(referentialDao::toVO)
                 .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
         } else if ((fetchOptions == null || fetchOptions.isWithInheritance()) // load parameter qv list is fetch option allows it
             && CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
                 .stream()
-                .map(baseRefRepository::toVO)
+                .map(referentialDao::toVO)
                 .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
         }
@@ -183,4 +175,14 @@ public class PmfmRepositoryImpl
             .map(StringUtils.endsWithFunction(labelSuffixes))
             .orElse(false);
     }
+
+    @Override
+    @Cacheable(cacheNames = CacheNames.PMFM_HAS_MATRIX)
+    public boolean hasMatrixId(int pmfmId, int... matrixIds) {
+        return Optional.of(getOne(pmfmId))
+            .map(Pmfm::getMatrix)
+            .map(matrix -> Arrays.binarySearch(matrixIds, matrix.getId()) != -1)
+            .orElse(false);
+    }
+
 }

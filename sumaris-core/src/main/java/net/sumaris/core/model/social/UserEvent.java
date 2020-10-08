@@ -24,6 +24,7 @@ package net.sumaris.core.model.social;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.ISignedEntityBean;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IDataEntity;
 
@@ -36,14 +37,7 @@ import java.util.Date;
 @Entity
 @Table(name = "user_event")
 @Cacheable
-/**
- * TODO: complete this entity class
- */
-public class UserEvent implements IUpdateDateEntityBean<Integer, Date> {
-
-    static final int CRYPTO_SIGNATURE_LENGTH = 100;
-    static final int CRYPTO_HASH_LENGTH = 100;
-    static final int CRYPTO_PUBKEY_LENGTH = 100;
+public class UserEvent implements ISignedEntityBean<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_EVENT_SEQ")
@@ -68,16 +62,16 @@ public class UserEvent implements IUpdateDateEntityBean<Integer, Date> {
     private String eventType;
 
     @Lob
-    @Column(length=20971520, nullable = true)
+    @Column(length=20971520)
     private String content;
 
-    @Column(name = "hash", nullable = true, length = CRYPTO_HASH_LENGTH)
+    @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
     private String hash;
 
-    @Column(name = "signature", nullable = true, length = CRYPTO_SIGNATURE_LENGTH)
+    @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String signature;
 
-    @Column(name = "read_signature", nullable = true, length = CRYPTO_SIGNATURE_LENGTH)
+    @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String readSignature;
 
     public String toString() {

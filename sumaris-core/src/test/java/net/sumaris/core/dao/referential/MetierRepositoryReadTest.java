@@ -52,7 +52,7 @@ public class MetierRepositoryReadTest extends AbstractDaoTest{
     protected MetierRepository metierRepository;
 
     @Autowired
-    protected BaseRefRepository baseRefRepository;
+    protected ReferentialDao referentialDao;
 
     @Before
     public void setUp() throws Exception {

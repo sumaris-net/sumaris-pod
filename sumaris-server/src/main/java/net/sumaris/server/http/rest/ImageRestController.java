@@ -25,6 +25,7 @@ package net.sumaris.server.http.rest;
 
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
+import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
@@ -67,6 +68,9 @@ public class ImageRestController implements ResourceLoaderAware {
 
     @Autowired
     private SoftwareService softwareService;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Autowired
     private SumarisServerConfiguration config;
@@ -131,7 +135,7 @@ public class ImageRestController implements ResourceLoaderAware {
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public Object getFavicon() {
 
-        SoftwareVO software = softwareService.getDefault();
+        SoftwareVO software = configurationService.getCurrentSoftware();
         if (software == null) return ResponseEntity.notFound().build();
 
         String favicon = MapUtils.getString(software.getProperties(), SumarisServerConfigurationOption.SITE_FAVICON.getKey());

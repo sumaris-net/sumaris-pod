@@ -24,9 +24,10 @@ package net.sumaris.core.service.referential.taxon;
 
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
-import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
-import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
@@ -35,14 +36,14 @@ import org.nuiton.version.VersionBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 
 @Service("taxonGroupService")
-public class TaxonGroupServiceImpl implements TaxonGroupService, DatabaseSchemaListener {
+public class TaxonGroupServiceImpl implements TaxonGroupService {
 
     private static final Logger log = LoggerFactory.getLogger(TaxonGroupServiceImpl.class);
 
@@ -55,14 +56,10 @@ public class TaxonGroupServiceImpl implements TaxonGroupService, DatabaseSchemaL
     @Autowired
     protected DatabaseSchemaDao databaseSchemaDao;
 
-    @PostConstruct
-    protected void init() {
-        databaseSchemaDao.addListener(this);
-    }
-
-    @Override
-    public void onSchemaUpdated(SchemaUpdatedEvent event) {
-        updateTaxonGroupHierarchies();
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        // Use self, to force transaction creation
+        self.updateTaxonGroupHierarchies();
     }
 
     @Override

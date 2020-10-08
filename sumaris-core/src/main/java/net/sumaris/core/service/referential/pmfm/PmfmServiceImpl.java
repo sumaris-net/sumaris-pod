@@ -27,6 +27,7 @@ import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ParameterVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
@@ -113,13 +114,9 @@ public class PmfmServiceImpl implements PmfmService {
     }
 
     @Override
-    public boolean isVesselUsePmfm(int pmfmId) {
-        return pmfmRepository.hasLabelPrefix(pmfmId, "VESSEL_USE");
-    }
-
-    @Override
-    public boolean isGearUsePmfm(int pmfmId) {
-        return pmfmRepository.hasLabelPrefix(pmfmId, "GEAR_USE");
+    public boolean isGearPmfm(int pmfmId) {
+        return pmfmRepository.hasLabelPrefix(pmfmId, "GEAR") // Required by SFA historical data
+            || pmfmRepository.hasMatrixId(pmfmId, MatrixEnum.GEAR.getId()); // Required by Ifremer historical data
     }
 
     @Override

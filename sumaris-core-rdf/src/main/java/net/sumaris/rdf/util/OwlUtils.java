@@ -359,7 +359,7 @@ public abstract class OwlUtils {
     }
 
     public static Date convertToDateViaInstant(LocalDateTime dateToConvert) {
-        return java.util.Date
+        return Date
                 .from(dateToConvert.atZone(ZONE_ID)
                         .toInstant());
     }

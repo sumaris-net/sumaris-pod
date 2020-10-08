@@ -171,7 +171,7 @@ public abstract class DatabaseResource implements TestRule {
     /**
      * <p>before.</p>
      *
-     * @param description a {@link org.junit.runner.Description} object.
+     * @param description a {@link Description} object.
      * @throws Throwable if any.
      */
     protected void before(Description description) throws Throwable {
@@ -364,7 +364,7 @@ public abstract class DatabaseResource implements TestRule {
     /**
      * <p>after.</p>
      *
-     * @param description a {@link org.junit.runner.Description} object.
+     * @param description a {@link Description} object.
      */
     protected void after(Description description) {
         if (log.isDebugEnabled()) {

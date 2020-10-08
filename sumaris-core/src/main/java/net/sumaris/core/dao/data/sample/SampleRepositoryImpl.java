@@ -3,13 +3,16 @@ package net.sumaris.core.dao.data.sample;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.Matrix;
 import net.sumaris.core.model.referential.pmfm.Unit;
+import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.util.Beans;
@@ -23,9 +26,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
 import java.util.List;
@@ -46,18 +49,15 @@ public class SampleRepositoryImpl
     private static final boolean trace = log.isTraceEnabled();
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private TaxonNameRepository taxonNameRepository;
 
-    private int unitIdNone;
-
     private boolean enableSaveUsingHash;
 
-    @PostConstruct
-    protected void init() {
-        this.unitIdNone = getConfig().getUnitIdNone();
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady() {
         this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
     }
 
@@ -80,17 +80,17 @@ public class SampleRepositoryImpl
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Matrix
-        ReferentialVO matrix = baseRefRepository.toVO(source.getMatrix());
+        ReferentialVO matrix = referentialDao.toVO(source.getMatrix());
         target.setMatrix(matrix);
 
         // Size Unit
-        if (source.getSizeUnit() != null && source.getSizeUnit().getId() != unitIdNone) {
+        if (source.getSizeUnit() != null && source.getSizeUnit().getId() != UnitEnum.NONE.getId()) {
             target.setSizeUnit(source.getSizeUnit().getLabel());
         }
 
         // Taxon group
         if (source.getTaxonGroup() != null) {
-            ReferentialVO taxonGroup = baseRefRepository.toVO(source.getTaxonGroup());
+            ReferentialVO taxonGroup = referentialDao.toVO(source.getTaxonGroup());
             target.setTaxonGroup(taxonGroup);
         }
 
@@ -228,7 +228,7 @@ public class SampleRepositoryImpl
                 target.setSizeUnit(null);
             }
             else {
-                ReferentialVO unit = baseRefRepository.findByUniqueLabel(Unit.class.getSimpleName(), source.getSizeUnit())
+                ReferentialVO unit = referentialDao.findByUniqueLabel(Unit.class.getSimpleName(), source.getSizeUnit())
                     .orElseThrow(() -> new SumarisTechnicalException(String.format("Invalid 'sample.sizeUnit': unit symbol '%s' not exists", source.getSizeUnit())));
                 target.setSizeUnit(load(Unit.class, unit.getId()));
             }

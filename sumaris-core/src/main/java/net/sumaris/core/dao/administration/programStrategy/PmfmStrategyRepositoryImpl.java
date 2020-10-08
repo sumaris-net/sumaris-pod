@@ -26,26 +26,27 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.BaseRefRepository;
-import net.sumaris.core.dao.schema.DatabaseSchemaDao;
-import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
-import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
-import net.sumaris.core.vo.filter.StrategyRelatedFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.filter.StrategyRelatedFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,12 +56,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,7 @@ import java.util.stream.Collectors;
 @Repository("pmfmStrategyRepository")
 public class PmfmStrategyRepositoryImpl
     extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, PmfmStrategyVO>
-    implements PmfmStrategySpecifications, DatabaseSchemaListener {
+        implements PmfmStrategyRepository {
 
     /**
      * Logger.
@@ -78,27 +79,22 @@ public class PmfmStrategyRepositoryImpl
     private static final Logger log =
         LoggerFactory.getLogger(PmfmStrategyRepositoryImpl.class);
 
-    private int unitIdNone;
-    private final Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
+
+    private Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private SumarisConfiguration config;
 
     @Autowired
-    PmfmStrategyRepositoryImpl(EntityManager entityManager, DatabaseSchemaDao schemaDao) {
+    PmfmStrategyRepositoryImpl(EntityManager entityManager) {
         super(PmfmStrategy.class, PmfmStrategyVO.class, entityManager);
-        schemaDao.addListener(this);
     }
 
-    @PostConstruct
-    protected void init() {
-        this.unitIdNone = config.getUnitIdNone();
-    }
-
-    public void onSchemaUpdated(SchemaUpdatedEvent event) {
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
         this.loadAcquisitionLevels();
     }
 
@@ -184,7 +180,7 @@ public class PmfmStrategyRepositoryImpl
         target.setType(type.name().toLowerCase());
 
         // Unit symbol
-        if (pmfm.getUnit() != null && pmfm.getUnit().getId() != unitIdNone) {
+        if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
             target.setUnitLabel(pmfm.getUnit().getLabel());
         }
 
@@ -197,7 +193,7 @@ public class PmfmStrategyRepositoryImpl
         if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
                 .stream()
-                .map(baseRefRepository::toVO)
+                .map(referentialDao::toVO)
                 .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
         }
@@ -310,7 +306,9 @@ public class PmfmStrategyRepositoryImpl
         if (acquisitionLevelId == null) {
 
             // Try to reload
-            loadAcquisitionLevels();
+            synchronized (this) {
+                loadAcquisitionLevels();
+            }
 
             // Retry to find it
             acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
@@ -322,11 +320,11 @@ public class PmfmStrategyRepositoryImpl
         return acquisitionLevelId;
     }
 
-    private synchronized void loadAcquisitionLevels() {
+    private void loadAcquisitionLevels() {
         acquisitionLevelIdByLabel.clear();
 
         // Fill acquisition levels map
-        List<ReferentialVO> items = baseRefRepository.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null);
+        List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null);
         items.forEach(item -> acquisitionLevelIdByLabel.put(item.getLabel(), item.getId()));
     }
 }

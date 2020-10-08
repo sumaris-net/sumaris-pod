@@ -29,9 +29,9 @@ import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.model.referential.taxon.TaxonomicLevelId;
+import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.*;
@@ -116,7 +116,7 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
     }
 
     private void assertAllByTaxonGroupLabel(String taxonGroupLabel, int expectedSize) {
-        TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId(taxonGroupLabel, TaxonGroupTypeId.FAO.getId());
+        TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId(taxonGroupLabel, TaxonGroupTypeEnum.FAO.getId());
         Assume.assumeNotNull(tg);
         List<TaxonNameVO> taxonNames = taxonNameRepository.getAllByTaxonGroupId(tg.getId());
 
@@ -145,7 +145,7 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
         assertFilterResult(TaxonNameFilterVO.builder().taxonGroupIds(new Integer[]{1160, 1161}).build(), 2);
         // with taxonomic level (species and subspecies)
         assertFilterResult(TaxonNameFilterVO.builder()
-            .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()}).build(), 23);
+            .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()}).build(), 23);
         // with label search
         assertFilterResult(TaxonNameFilterVO.builder().searchText("raja").build(), 13);
         // with exact label

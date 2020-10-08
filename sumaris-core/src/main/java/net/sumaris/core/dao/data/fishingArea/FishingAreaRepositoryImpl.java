@@ -23,7 +23,8 @@ package net.sumaris.core.dao.data.fishingArea;
  */
 
 
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.data.FishingArea;
@@ -31,6 +32,7 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.referential.DepthGradient;
 import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.NearbySpecificArea;
+import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.FishingAreaVO;
 import org.slf4j.Logger;
@@ -56,17 +58,22 @@ public class FishingAreaRepositoryImpl
         LoggerFactory.getLogger(FishingAreaRepositoryImpl.class);
 
     private final LocationRepository locationRepository;
-    private final BaseRefRepository baseRefRepository;
+    private final ReferentialDao referentialDao;
+    private final SumarisConfiguration config;
 
     @Autowired
     @Lazy
-    private FishingAreaRepository loopBack;
+    private FishingAreaRepository self;
 
     @Autowired
-    public FishingAreaRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, BaseRefRepository baseRefRepository) {
+    public FishingAreaRepositoryImpl(EntityManager entityManager,
+                                     SumarisConfiguration config,
+                                     LocationRepository locationRepository,
+                                     ReferentialDao referentialDao) {
         super(FishingArea.class, FishingAreaVO.class, entityManager);
+        this.config = config;
         this.locationRepository = locationRepository;
-        this.baseRefRepository = baseRefRepository;
+        this.referentialDao = referentialDao;
     }
 
     @Override
@@ -76,11 +83,11 @@ public class FishingAreaRepositoryImpl
         target.setLocation(locationRepository.toVO(source.getLocation()));
 
         if (source.getDistanceToCoastGradient() != null)
-            target.setDistanceToCoastGradient(baseRefRepository.toVO(source.getDistanceToCoastGradient()));
+            target.setDistanceToCoastGradient(referentialDao.toVO(source.getDistanceToCoastGradient()));
         if (source.getDepthGradient() != null)
-            target.setDepthGradient(baseRefRepository.toVO(source.getDepthGradient()));
+            target.setDepthGradient(referentialDao.toVO(source.getDepthGradient()));
         if (source.getNearbySpecificArea() != null)
-            target.setNearbySpecificArea(baseRefRepository.toVO(source.getNearbySpecificArea()));
+            target.setNearbySpecificArea(referentialDao.toVO(source.getNearbySpecificArea()));
 
         if (source.getOperation() != null)
             target.setOperationId(source.getOperation().getId());
@@ -122,6 +129,14 @@ public class FishingAreaRepositoryImpl
             }
         }
 
+        if (copyIfNull || source.getQualityFlagId() != null) {
+            if (source.getQualityFlagId() == null) {
+                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+            } else {
+                target.setLocation(load(Location.class, source.getLocation().getId()));
+            }
+        }
+
         // parent operation
         Integer operationId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
         source.setOperationId(operationId);
@@ -137,7 +152,7 @@ public class FishingAreaRepositoryImpl
 
     @Override
     public List<FishingAreaVO> getAllVOByOperationId(Integer operationId) {
-        return loopBack.getAllByOperationId(operationId).stream()
+        return self.getAllByOperationId(operationId).stream()
             .map(this::toVO).collect(Collectors.toList());
     }
 
@@ -151,7 +166,7 @@ public class FishingAreaRepositoryImpl
         fishingAreasToSave.forEach(fishingArea -> fishingArea.setOperationId(operationId));
 
         // Get existing fishing areas
-        Set<Integer> existingFishingAreaIds = loopBack.getAllByOperationId(operationId).stream().map(FishingArea::getId).collect(Collectors.toSet());
+        Set<Integer> existingFishingAreaIds = self.getAllByOperationId(operationId).stream().map(FishingArea::getId).collect(Collectors.toSet());
 
         // Save
         fishingAreasToSave.forEach(fishingArea -> {

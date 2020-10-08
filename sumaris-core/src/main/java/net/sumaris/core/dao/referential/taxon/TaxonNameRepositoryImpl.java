@@ -5,7 +5,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.model.referential.taxon.TaxonomicLevelId;
+import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.TaxonNameVO;
@@ -45,7 +45,7 @@ public class TaxonNameRepositoryImpl
         return findByFilter(
             TaxonNameFilterVO.builder()
                 .withSynonyms(withSynonyms)
-                .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()})
+                .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()})
                 .build(),
             Pageable.unpaged()
         );
@@ -74,7 +74,7 @@ public class TaxonNameRepositoryImpl
 
         return findByFilter(
             TaxonNameFilterVO.builder()
-                .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()})
+                .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()})
                 .taxonGroupId(taxonGroupId)
                 .build(),
             Pageable.unpaged()

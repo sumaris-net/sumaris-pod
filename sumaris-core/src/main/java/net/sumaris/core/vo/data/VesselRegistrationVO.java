@@ -25,13 +25,14 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.referential.LocationVO;
 
 import java.util.Date;
 
 @Data
 @FieldNameConstants
-public class VesselRegistrationVO implements IEntity<Integer> {
+public class VesselRegistrationVO implements IEntity<Integer>, IValueObject<Integer> {
 
     private Integer id;
     private String registrationCode;

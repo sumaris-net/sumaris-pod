@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Pageables;
@@ -35,7 +35,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupHistoricalRecord;
-import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
@@ -70,7 +70,7 @@ public class TaxonGroupRepositoryImpl
     private TaxonNameRepository taxonNameRepository;
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private PmfmRepository pmfmRepository;
@@ -258,7 +258,7 @@ public class TaxonGroupRepositoryImpl
             .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
             .setParameter("locationId", locationId)
             .getResultStream()
-            .map(p -> baseRefRepository.toVO(p))
+            .map(p -> referentialDao.toVO(p))
             .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(result)) {
@@ -286,7 +286,7 @@ public class TaxonGroupRepositoryImpl
             .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
             .setParameter("locationId", locationId)
             .getResultStream()
-            .map(p -> baseRefRepository.toVO(p))
+            .map(p -> referentialDao.toVO(p))
             .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(result)) {
@@ -322,7 +322,7 @@ public class TaxonGroupRepositoryImpl
             : filter.getLevelIds();
 
         return super.toSpecification(filter)
-            .and(hasType(TaxonGroupTypeId.METIER_SPECIES.getId()))
+            .and(hasType(TaxonGroupTypeEnum.METIER_SPECIES.getId()))
             .and(inGearIds(gearIds));
 
     }

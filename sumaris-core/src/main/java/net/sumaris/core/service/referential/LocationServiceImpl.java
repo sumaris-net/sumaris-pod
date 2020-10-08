@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.StatusRepository;
 import net.sumaris.core.dao.referential.ValidityStatusRepository;
 import net.sumaris.core.dao.referential.location.*;
@@ -76,7 +76,7 @@ public class LocationServiceImpl implements LocationService{
     protected LocationClassificationRepository locationClassificationRepository;
 
     @Autowired
-    protected BaseRefRepository baseRefRepository;
+    protected ReferentialDao referentialDao;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -85,7 +85,7 @@ public class LocationServiceImpl implements LocationService{
     public void insertOrUpdateRectangleLocations() {
 
         if (log.isInfoEnabled()) {
-            log.info("Checking all statistical rectangles exists...");
+            log.info("Checking statistical rectangles in table {LOCATION}...");
         }
 
         // Retrieve location levels
@@ -121,11 +121,11 @@ public class LocationServiceImpl implements LocationService{
                 .build();
 
         if (labels.size() == existingLocations.size()) {
-            log.info(String.format("No missing rectangle detected (%s found)", existingLocations.size()));
+            log.info(String.format("Statistical rectangle already loaded (%s exists)", existingLocations.size()));
             return;
         }
 
-        log.info(String.format("Inserting missing rectangle (%s existing - %s expected)", existingLocations.size(), labels.size()));
+        log.info(String.format("Inserting statistical rectangles... (%s found, %s expected)", existingLocations.size(), labels.size()));
 
         for (String label: labels) {
 
@@ -147,14 +147,14 @@ public class LocationServiceImpl implements LocationService{
             }
         }
         if (log.isInfoEnabled()) {
-            log.info(String.format("LOCATION: INSERT count: %s", locationInsertCount));
+            log.info(String.format("Statistical rectangles successfully inserted (%s inserts)", locationInsertCount));
         }
     }
 
     @Override
     public void insertOrUpdateSquares10() {
         if (log.isInfoEnabled()) {
-            log.info("Checking all squares 10'x10' exists...");
+            log.info("Checking squares 10'x10' in table {LOCATION}...");
         }
 
         // Retrieve location levels
@@ -182,11 +182,11 @@ public class LocationServiceImpl implements LocationService{
         Set<String> labels = Locations.getAllSquare10Labels(resourceLoader, false);
 
         if (labels.size() == existingLocations.size()) {
-            log.info(String.format("No missing square 10'x10' (%s found)", existingLocations.size()));
+            log.info(String.format("Square 10'x10' already loaded in {LOCATION} (%s found)", existingLocations.size()));
             return;
         }
 
-        log.info(String.format("Inserting missing square 10'x10' (%s existing - %s expected)", existingLocations.size(), labels.size()));
+        log.info(String.format("Inserting square 10'x10'... (%s found, %s expected)", existingLocations.size(), labels.size()));
 
         for (String label: labels) {
 
@@ -223,8 +223,9 @@ public class LocationServiceImpl implements LocationService{
         }
 
         if (log.isInfoEnabled()) {
-            log.info(String.format("LOCATION: INSERT count: %s", locationInsertCount));
-            log.info(String.format("LOCATION_ASSOCIATION: INSERT count: %s", locationAssociationInsertCount));
+            log.info(String.format("Square 10'x10' successfully inserted (%s inserts, %s location associations) ",
+                    locationInsertCount,
+                    locationAssociationInsertCount));
         }
     }
 
@@ -475,7 +476,7 @@ public class LocationServiceImpl implements LocationService{
     public Integer getLocationIdByLatLong(Number latitude, Number longitude) {
         String locationLabel = getLocationLabelByLatLong(latitude, longitude);
         if (locationLabel == null) return null;
-        Optional<ReferentialVO> location = baseRefRepository.findByUniqueLabel(Location.class.getSimpleName(), locationLabel);
+        Optional<ReferentialVO> location = referentialDao.findByUniqueLabel(Location.class.getSimpleName(), locationLabel);
         return location.map(ReferentialVO::getId).orElse(null);
     }
 

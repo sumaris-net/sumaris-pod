@@ -27,7 +27,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.referential.BaseRefRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
@@ -121,7 +121,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     private final Multimap<Class<? extends IMeasurementEntity>, PropertyDescriptor> parentPropertiesMap = initParentPropertiesMap();
 
     @Autowired
-    private BaseRefRepository baseRefRepository;
+    private ReferentialDao referentialDao;
 
     @Autowired
     private PmfmRepository pmfmRepository;
@@ -307,7 +307,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
         // Qualitative value
         if (source.getQualitativeValue() != null){
-            ReferentialVO qv = baseRefRepository.toVO(source.getQualitativeValue());
+            ReferentialVO qv = referentialDao.toVO(source.getQualitativeValue());
             target.setQualitativeValue(qv);
         }
 
@@ -315,7 +315,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // Recorder department
-        DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         // Entity Name
