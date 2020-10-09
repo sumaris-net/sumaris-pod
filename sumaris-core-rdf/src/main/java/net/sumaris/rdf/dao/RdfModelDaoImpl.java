@@ -24,7 +24,7 @@ package net.sumaris.rdf.dao;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
-import net.sumaris.core.dao.referential.ReferentialDaoImpl;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -65,7 +65,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     protected Multimap<String, String> dataClassNamesByRootClass = ArrayListMultimap.create();
 
     @Autowired
-    protected ReferentialDaoImpl referentialDao;
+    protected ReferentialDao referentialDao;
 
     @Value("${rdf.data.pageSize.default:1000}")
     protected int defaultPageSize;
@@ -83,7 +83,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         catch (NumberFormatException t) {/*continue*/}
 
 
-        TypedQuery<T> typedQuery = entityManager.createQuery(hql, aClass)
+        TypedQuery<T> typedQuery = getEntityManager().createQuery(hql, aClass)
                 .setParameter("id", id)
                 .setMaxResults(1);
 
@@ -104,7 +104,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         Preconditions.checkNotNull(page);
 
         String hql = getSelectHqlQuery(domain, className, page.getSortBy(), page.getSortDirection());
-        TypedQuery<T> typedQuery = entityManager.createQuery(hql, aClass)
+        TypedQuery<T> typedQuery = getEntityManager().createQuery(hql, aClass)
                 .setFirstResult((int)page.getOffset())
                 .setMaxResults(page.getSize());
 

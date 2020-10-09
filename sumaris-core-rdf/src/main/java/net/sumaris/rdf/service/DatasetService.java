@@ -23,9 +23,14 @@
 package net.sumaris.rdf.service;
 
 import com.github.jsonldjava.shaded.com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.service.crypto.CryptoService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.NamedRdfModelLoader;
@@ -36,6 +41,7 @@ import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.dboe.base.file.Location;
 import org.apache.jena.fuseki.servlets.SPARQLProtocol;
 import org.apache.jena.query.Dataset;
@@ -64,7 +70,9 @@ import javax.annotation.Resource;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
@@ -285,28 +293,40 @@ public class DatasetService {
             });
         }
 
-        // Store taxon entities into the dataset
-        // TODO: move this in TaxonDao + registerProducer() ?
-        try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
-            Txn.executeWrite(conn, () -> {
-
-                String graphName = config.getModelBaseUri() + "data/TaxonName";
-                log.info("Loading {{}} into RDF dataset...", graphName);
-                Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
-                        .maxDepth(1)
-                        .className("TaxonName")
-                        .build());
-
-                if (dataset.containsNamedModel(graphName)) {
-                    dataset.replaceNamedModel(graphName, instances);
-                } else {
-                    dataset.addNamedModel(graphName, instances);
-                }
-            });
+        // Load exported entities into dataset
+        String[] entityNames = config.getDataExportedEntities();
+        if (ArrayUtils.isNotEmpty(entityNames)) {
+            Arrays.asList(entityNames).forEach(entity -> loadDatabaseEntities(entity, dataset, true));
         }
 
         // Load other named models
         loadAllNamedModels(dataset, false);
+    }
+
+    protected void loadDatabaseEntities(String entityName, Dataset dataset, boolean replaceIfExists) {
+        // Store taxon entities into the dataset
+        try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
+            Txn.executeWrite(conn, () -> {
+
+                String graphName = config.getModelBaseUri() + "data/" + entityName;
+                log.info("Loading {{}} into RDF dataset...", graphName);
+                Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
+                        .maxDepth(1)
+                        .domain(ModelVocabulary.REFERENTIAL)
+                        .className(entityName)
+                        .build());
+
+                // Add if missing
+                if (!dataset.containsNamedModel(graphName)) {
+                    dataset.addNamedModel(graphName, instances);
+                }
+
+                // Or replace, if exists
+                else if (replaceIfExists) {
+                    dataset.replaceNamedModel(graphName, instances);
+                }
+            });
+        }
     }
 
     protected Model getFullSchemaOntology() {

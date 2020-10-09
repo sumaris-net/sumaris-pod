@@ -33,7 +33,6 @@ import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import sun.java2d.xr.MutableInteger;
 
 import java.util.List;
 

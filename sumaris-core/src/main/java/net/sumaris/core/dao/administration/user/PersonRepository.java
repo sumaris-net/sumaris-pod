@@ -22,12 +22,12 @@ package net.sumaris.core.dao.administration.user;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.administration.user.Person;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import net.sumaris.core.vo.administration.user.PersonVO;
 
-@Repository
-public interface PersonRepository extends CrudRepository<Person, Long> {
+public interface PersonRepository extends SumarisJpaRepository<Person, Integer, PersonVO>, PersonSpecifications {
 
-    //List<Person> findByLastName(String lastName);
+    boolean existsByEmailMD5(String emailMD5);
+
 }

@@ -48,6 +48,7 @@ import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -150,7 +151,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
                     .map(programService::getByLabel)
                     .map(ProgramVO::getId)
                     .forEach(programId -> {
-                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmStrategiesByProgram(programId, true);
+                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmStrategiesByProgram(
+                            programId,
+                            StrategyFetchOptions.builder().withPmfmStrategyInheritance(true).build()
+                        );
                         pmfmStrategiesByProgramId.putAll(programId, pmfms);
                     });
             List<ExtractionPmfmInfoVO> pmfmInfos = getPmfmInfos(context, pmfmStrategiesByProgramId);

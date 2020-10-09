@@ -10,12 +10,12 @@ package net.sumaris.core.extraction.service;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -25,7 +25,7 @@ package net.sumaris.core.extraction.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.extraction.ExtractionProductDao;
+import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
@@ -71,7 +71,7 @@ public class AggregationServiceImpl implements AggregationService {
     private AggregationRdbTripDao aggregationRdbTripDao;
 
     @Autowired
-    private ExtractionProductDao extractionProductDao;
+    private ExtractionProductRepository extractionProductRepository;
 
     @Autowired
     private ExtractionTableDao extractionTableDao;
@@ -82,15 +82,15 @@ public class AggregationServiceImpl implements AggregationService {
         final AggregationTypeFilterVO notNullFilter = filter != null ? filter : new AggregationTypeFilterVO();
 
         return ListUtils.emptyIfNull(getProductAggregationTypes(notNullFilter, fetchOptions))
-                .stream()
-                .filter(t -> notNullFilter.getIsSpatial() == null || Objects.equals(notNullFilter.getIsSpatial(), t.getIsSpatial()))
-                .collect(Collectors.toList());
+            .stream()
+            .filter(t -> notNullFilter.getIsSpatial() == null || Objects.equals(notNullFilter.getIsSpatial(), t.getIsSpatial()))
+            .collect(Collectors.toList());
     }
 
     @Override
     public AggregationTypeVO get(int id, ExtractionProductFetchOptions fetchOptions) {
-        ExtractionProductVO result = extractionProductDao.get(id, fetchOptions)
-                .orElseThrow(() -> new DataRetrievalFailureException(String.format("Unknown aggregation type {%s}", id)));
+        ExtractionProductVO result = extractionProductRepository.findById(id, fetchOptions)
+            .orElseThrow(() -> new DataRetrievalFailureException(String.format("Unknown aggregation type {%s}", id)));
         return toAggregationType(result);
     }
 
@@ -103,7 +103,7 @@ public class AggregationServiceImpl implements AggregationService {
         switch (category) {
             case PRODUCT:
                 // Get the product VO
-                source = extractionProductDao.getByLabel(checkedType.getFormat(), ExtractionProductFetchOptions.MINIMAL);
+                source = extractionProductRepository.getByLabel(checkedType.getFormat(), ExtractionProductFetchOptions.MINIMAL);
                 // Execute, from product
                 return executeProduct(source, filter);
 
@@ -134,7 +134,7 @@ public class AggregationServiceImpl implements AggregationService {
     public AggregationResultVO read(AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata, int offset, int size, String sort, SortDirection direction) {
         Preconditions.checkNotNull(type);
 
-        ExtractionProductVO product = extractionProductDao.getByLabel(type.getLabel(), ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
+        ExtractionProductVO product = extractionProductRepository.getByLabel(type.getLabel(), ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
         AggregationContextVO context = toContextVO(product);
 
         return read(context, filter, strata, offset, size, sort, direction);
@@ -202,8 +202,7 @@ public class AggregationServiceImpl implements AggregationService {
         // Load the product
         ExtractionProductVO target = null;
         if (type.getId() != null) {
-            target = extractionProductDao.get(type.getId(), ExtractionProductFetchOptions.FOR_UPDATE)
-                    .orElse(null);
+            target = extractionProductRepository.findById(type.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
         }
 
         boolean isNew = target == null;
@@ -250,7 +249,7 @@ public class AggregationServiceImpl implements AggregationService {
         }
 
         // Save the product
-        target = extractionProductDao.save(target);
+        target = extractionProductRepository.save(target);
 
         // Transform back to type
         return toAggregationType(target);
@@ -258,7 +257,7 @@ public class AggregationServiceImpl implements AggregationService {
 
     @Override
     public void delete(int id) {
-        extractionProductDao.delete(id);
+        extractionProductRepository.deleteById(id);
     }
 
     @Override
@@ -268,16 +267,16 @@ public class AggregationServiceImpl implements AggregationService {
 
         Integer productId = type.getId();
         if (productId == null) {
-            ExtractionProductVO product = extractionProductDao.getByLabel(type.getLabel(), ExtractionProductFetchOptions.MINIMAL);
+            ExtractionProductVO product = extractionProductRepository.getByLabel(type.getLabel(), ExtractionProductFetchOptions.MINIMAL);
             productId = product.getId();
         }
-        // Try to get columns from the DB
+        // Try to find columns from the DB
         List<ExtractionProductColumnVO> dataColumns = null;
         if (StringUtils.isNotBlank(sheetName)) {
-            dataColumns = extractionProductDao.getColumnsByIdAndTableLabel(productId, sheetName);
+            dataColumns = extractionProductRepository.getColumnsByIdAndTableLabel(productId, sheetName);
         }
 
-        // If nothing in the DB, get metadata from a fake extraction
+        // If nothing in the DB, find metadata from a fake extraction
         if (CollectionUtils.isEmpty(dataColumns)) {
             ExtractionTypeVO readType = new ExtractionTypeVO();
             readType.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
@@ -296,10 +295,11 @@ public class AggregationServiceImpl implements AggregationService {
 
     protected List<AggregationTypeVO> getAllAggregationTypes(ExtractionProductFetchOptions fetchOptions) {
         return ImmutableList.<AggregationTypeVO>builder()
-                .addAll(getProductAggregationTypes(fetchOptions))
-                .addAll(getLiveAggregationTypes())
-                .build();
+            .addAll(getProductAggregationTypes(fetchOptions))
+            .addAll(getLiveAggregationTypes())
+            .build();
     }
+
     protected List<AggregationTypeVO> getProductAggregationTypes(ExtractionProductFetchOptions fetchOptions) {
         return getProductAggregationTypes(null, fetchOptions);
     }
@@ -312,22 +312,22 @@ public class AggregationServiceImpl implements AggregationService {
             filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
         }
 
-        return ListUtils.emptyIfNull(extractionProductDao.findByFilter(filter, fetchOptions))
-                .stream()
-                .map(this::toAggregationType)
-                .collect(Collectors.toList());
+        return ListUtils.emptyIfNull(extractionProductRepository.findAll(filter, fetchOptions))
+            .stream()
+            .map(this::toAggregationType)
+            .collect(Collectors.toList());
     }
 
     protected List<AggregationTypeVO> getLiveAggregationTypes() {
         return Arrays.stream(ExtractionRawFormatEnum.values())
-                .map(format -> {
-                    AggregationTypeVO type = new AggregationTypeVO();
-                    type.setLabel(format.name().toLowerCase());
-                    type.setCategory(ExtractionCategoryEnum.LIVE.name().toLowerCase());
-                    type.setSheetNames(format.getSheetNames());
-                    return type;
-                })
-                .collect(Collectors.toList());
+            .map(format -> {
+                AggregationTypeVO type = new AggregationTypeVO();
+                type.setLabel(format.name().toLowerCase());
+                type.setCategory(ExtractionCategoryEnum.LIVE.name().toLowerCase());
+                type.setSheetNames(format.getSheetNames());
+                return type;
+            })
+            .collect(Collectors.toList());
     }
 
     protected AggregationResultVO createEmptyResult() {
@@ -383,7 +383,6 @@ public class AggregationServiceImpl implements AggregationService {
         return target;
     }
 
-
     protected void toProductVO(AggregationContextVO source, ExtractionProductVO target) {
 
         target.setLabel(source.getLabel().toUpperCase() + "-" + source.getId());
@@ -396,28 +395,28 @@ public class AggregationServiceImpl implements AggregationService {
     protected List<ExtractionProductTableVO> toProductTableVO(AggregationContextVO source) {
 
         return SetUtils.emptyIfNull(source.getTableNames())
-                .stream()
-                .map(tableName -> {
-                    ExtractionProductTableVO table = new ExtractionProductTableVO();
-                    table.setTableName(tableName);
+            .stream()
+            .map(tableName -> {
+                ExtractionProductTableVO table = new ExtractionProductTableVO();
+                table.setTableName(tableName);
 
-                    // Label (=the sheet name)
-                    String label = source.getSheetName(tableName);
-                    table.setLabel(label);
+                // Label (=the sheet name)
+                String label = source.getSheetName(tableName);
+                table.setLabel(label);
 
-                    // Name: generated using i18n
-                    String name = getI18nSheetName(source.getFormatName(), label);
-                    table.setName(name);
+                // Name: generated using i18n
+                String name = getI18nSheetName(source.getFormatName(), label);
+                table.setName(name);
 
-                    table.setIsSpatial(source.hasSpatialColumn(tableName));
+                table.setIsSpatial(source.hasSpatialColumn(tableName));
 
-                    // Columns
-                    List<ExtractionProductColumnVO> columns = toProductColumnVOs(source, tableName);
-                    table.setColumns(columns);
+                // Columns
+                List<ExtractionProductColumnVO> columns = toProductColumnVOs(source, tableName);
+                table.setColumns(columns);
 
-                    return table;
-                })
-                .collect(Collectors.toList());
+                return table;
+            })
+            .collect(Collectors.toList());
     }
 
     protected List<ExtractionProductColumnVO> toProductColumnVOs(AggregationContextVO context, String tableName) {
@@ -427,8 +426,8 @@ public class AggregationServiceImpl implements AggregationService {
 
         // Get columns (from table metadata), but exclude hidden columns
         List<ExtractionProductColumnVO> columns = Beans.getStream(extractionTableDao.getColumns(tableName))
-                .filter(column -> !hiddenColumns.contains(column.getColumnName()))
-                .collect(Collectors.toList());
+            .filter(column -> !hiddenColumns.contains(column.getColumnName()))
+            .collect(Collectors.toList());
 
         // Set values on each columns
         if (CollectionUtils.isNotEmpty(columns) && MapUtils.isNotEmpty(columnValues)) {
@@ -446,13 +445,12 @@ public class AggregationServiceImpl implements AggregationService {
         target.setLabel(source.getLabel());
 
         ListUtils.emptyIfNull(source.getTables())
-                .forEach(t -> target.addTableName(t.getTableName(), t.getLabel()));
+            .forEach(t -> target.addTableName(t.getTableName(), t.getLabel()));
         return target;
     }
 
     protected String getI18nSheetName(String format, String sheetName) {
         return I18n.t(String.format("sumaris.aggregation.%s.%s", format.toUpperCase(), sheetName.toUpperCase()));
     }
-
 
 }

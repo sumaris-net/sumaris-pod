@@ -275,7 +275,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
         }
 
 
-        // get by type
+        // find by type
         if (options.getType() != null) {
             result = reflections.getSubTypesOf(options.getType()).stream();
         }

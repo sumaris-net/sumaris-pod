@@ -26,7 +26,7 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.dao.technical.model.TreeNodeEntities;
@@ -70,7 +70,7 @@ public class DenormalizedBatchRepositoryImpl
         LoggerFactory.getLogger(DenormalizedBatchRepositoryImpl.class);
 
     private final SumarisConfiguration config;
-    private final PmfmDao pmfmDao;
+    private final PmfmRepository pmfmRepository;
 
     @Autowired
     @Lazy
@@ -79,10 +79,10 @@ public class DenormalizedBatchRepositoryImpl
     @Autowired
     public DenormalizedBatchRepositoryImpl(EntityManager entityManager,
                                            SumarisConfiguration config,
-                                           PmfmDao pmfmDao) {
+                                           PmfmRepository pmfmRepository) {
         super(DenormalizedBatch.class, entityManager);
         this.config = config;
-        this.pmfmDao = pmfmDao;
+        this.pmfmRepository = pmfmRepository;
     }
 
     @Override
@@ -372,11 +372,11 @@ public class DenormalizedBatchRepositoryImpl
     }
 
     protected boolean isWeightPmfm(int pmfmId) {
-        return pmfmDao.hasLabelPrefix(pmfmId, "WEIGHT");
+        return pmfmRepository.hasLabelPrefix(pmfmId, "WEIGHT");
     }
 
     protected Integer getPmfmMethodId(int pmfmId) {
-        PmfmVO pmfm = pmfmDao.get(pmfmId);
+        PmfmVO pmfm = pmfmRepository.get(pmfmId);
         return pmfm != null ? pmfm.getMethodId() : null;
     }
 

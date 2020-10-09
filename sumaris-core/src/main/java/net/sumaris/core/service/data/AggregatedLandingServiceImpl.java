@@ -27,8 +27,12 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.*;
+import net.sumaris.core.dao.data.landing.LandingRepository;
+import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
+import net.sumaris.core.dao.data.operation.OperationGroupRepository;
+import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
@@ -41,6 +45,7 @@ import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
 import net.sumaris.core.vo.filter.AggregatedLandingFilterVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
+import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -69,29 +74,29 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
     private final LandingRepository landingRepository;
     private final TripRepository tripRepository;
-    private final ObservedLocationDao observedLocationDao;
-    private final OperationGroupDao operationGroupDao;
+    private final ObservedLocationRepository observedLocationRepository;
+    private final OperationGroupRepository operationGroupRepository;
     private final MeasurementDao measurementDao;
     private final MetierRepository metierRepository;
     private final VesselService vesselService;
-    private final ProgramDao programDao;
+    private final ProgramRepository programRepository;
 
     public AggregatedLandingServiceImpl(LandingRepository landingRepository,
                                         TripRepository tripRepository,
-                                        ObservedLocationDao observedLocationDao,
-                                        OperationGroupDao operationGroupDao,
+                                        ObservedLocationRepository observedLocationRepository,
+                                        OperationGroupRepository operationGroupRepository,
                                         MeasurementDao measurementDao,
                                         MetierRepository metierRepository,
                                         VesselService vesselService,
-                                        ProgramDao programDao) {
+                                        ProgramRepository programRepository) {
         this.landingRepository = landingRepository;
         this.tripRepository = tripRepository;
-        this.observedLocationDao = observedLocationDao;
-        this.operationGroupDao = operationGroupDao;
+        this.observedLocationRepository = observedLocationRepository;
+        this.operationGroupRepository = operationGroupRepository;
         this.measurementDao = measurementDao;
         this.metierRepository = metierRepository;
         this.vesselService = vesselService;
-        this.programDao = programDao;
+        this.programRepository = programRepository;
     }
 
     @Override
@@ -111,7 +116,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         List<AggregatedLandingVO> result = new ArrayList<>();
 
         // Get observations
-        List<ObservedLocationVO> observedLocations = observedLocationDao.findByFilter(
+        List<ObservedLocationVO> observedLocations = observedLocationRepository.findAll(
             ObservedLocationFilterVO.builder()
                 .programLabel(filter.getProgramLabel())
                 .locationId(filter.getLocationId())
@@ -119,7 +124,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            defaultFetchOption);
+            defaultFetchOption).getContent();
 
         ConcurrentHashMap<VesselSnapshotVO, Map<Date, List<LandingVO>>> landingsByBateByVessel = new ConcurrentHashMap<>();
         observedLocations.parallelStream().forEach(observedLocation -> {
@@ -167,7 +172,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                     activity.setTripId(landing.getTripId());
 
                     // Get trip's metier
-                    List<MetierVO> metiers = operationGroupDao.getMetiersByTripId(landing.getTripId());
+                    List<MetierVO> metiers = operationGroupRepository.getMetiersByTripId(landing.getTripId());
                     metiers.forEach(metier -> activity.getMetiers().add(metier));
 
                     // Get operation metier
@@ -232,11 +237,11 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 }));
 
         // Get parent observed location
-        ObservedLocationVO parent = observedLocationDao.get(filter.getObservedLocationId());
+        ObservedLocationVO parent = observedLocationRepository.get(filter.getObservedLocationId());
         // Get existing observations
         final Date startDate = Dates.resetTime(filter.getStartDate());
         final Date endDate = Dates.lastSecondOfTheDay(filter.getEndDate());
-        List<ObservedLocationVO> observedLocations = observedLocationDao.findByFilter(
+        List<ObservedLocationVO> observedLocations = observedLocationRepository.findAll(
             ObservedLocationFilterVO.builder()
                 .programLabel(filter.getProgramLabel())
                 .locationId(filter.getLocationId())
@@ -244,7 +249,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            defaultFetchOption);
+            defaultFetchOption).getContent();
 
         // Create observed location if missing
         Set<Date> existingDates = observedLocations.stream().map(ObservedLocationVO::getStartDateTime).map(Dates::resetTime).collect(Collectors.toSet());
@@ -349,7 +354,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             if (CollectionUtils.isEmpty(landings)) {
 
                 // No landing, delete observation
-                observedLocationDao.delete(observationId);
+                observedLocationRepository.deleteById(observationId);
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Delete observation (id=%s) without landing", observationId));
                 }
@@ -362,8 +367,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             } else {
 
                 // Just Update
-                ObservedLocationVO observedLocation = observedLocationDao.get(observationId);
-                observedLocationDao.save(observedLocation);
+                ObservedLocationVO observedLocation = observedLocationRepository.get(observationId);
+                observedLocationRepository.save(observedLocation);
             }
         });
     }
@@ -378,7 +383,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         landingRepository.deleteByIdIn(Beans.collectIds(landings));
 
         // Delete observed location
-        observedLocationDao.delete(observedLocationId);
+        observedLocationRepository.deleteById(observedLocationId);
         if (log.isDebugEnabled()) {
             log.debug(String.format("Delete observation (id=%s) with empty landings", observedLocationId));
         }
@@ -389,7 +394,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         observedLocation.setStartDateTime(date);
         observedLocation.setEndDateTime(Dates.lastSecondOfTheDay(date));
         observedLocation.setLocation(parent.getLocation());
-        observedLocation.setProgram(programDao.getByLabel(programLabel));
+        observedLocation.setProgram(programRepository.getByLabel(programLabel));
         observedLocation.setObservers(Beans.getSet(parent.getObservers()));
         observedLocation.setRecorderDepartment(parent.getRecorderDepartment());
         observedLocation.setRecorderPerson(parent.getRecorderPerson());
@@ -397,7 +402,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             log.debug(String.format("Create observed location from %s to %s, program: %s, location: %s",
                 observedLocation.getStartDateTime(), observedLocation.getEndDateTime(), observedLocation.getProgram().getLabel(), observedLocation.getLocation().getLabel()));
         }
-        return observedLocationDao.save(observedLocation);
+        return observedLocationRepository.save(observedLocation);
     }
 
     private boolean createOrUpdateLandings(ObservedLocationVO observedLocation, List<LandingVO> landings, List<Integer> landingIdsToRemove, Integer vesselId, VesselActivityVO activity) {
@@ -612,7 +617,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         landingRepository.save(landing);
 
         // Save metiers
-        operationGroupDao.saveMetiersByTripId(savedTrip.getId(), trip.getMetiers());
+        operationGroupRepository.saveMetiersByTripId(savedTrip.getId(), trip.getMetiers());
 
         // TODO: save operation groups (if default needed)
 
@@ -635,10 +640,12 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         TripVO trip = tripRepository.get(Integer.valueOf(tripId));
         // Load metiers and operation groups
         if (CollectionUtils.isEmpty(trip.getMetiers())) {
-            trip.setMetiers(operationGroupDao.getMetiersByTripId(tripId));
+            trip.setMetiers(operationGroupRepository.getMetiersByTripId(tripId));
         }
         if (CollectionUtils.isEmpty(trip.getOperationGroups())) {
-            trip.setOperationGroups(operationGroupDao.getAllByTripId(tripId));
+            trip.setOperationGroups(operationGroupRepository.findAll(
+                OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build()
+            ));
         }
 
         return trip;

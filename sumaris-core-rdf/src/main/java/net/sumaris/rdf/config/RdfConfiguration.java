@@ -25,6 +25,7 @@ package net.sumaris.rdf.config;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.model.ModelURIs;
 import net.sumaris.server.http.rest.RdfFormat;
 import org.slf4j.Logger;
@@ -234,6 +235,11 @@ public class RdfConfiguration  {
 
     public int getMaxPageSize() {
         return config.getApplicationConfig().getOptionAsInt(RdfConfigurationOption.RDF_MAX_PAGE_SIZE.getKey());
+    }
+
+    public String[] getDataExportedEntities() {
+        String str = config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_EXPORTED_ENTITIES.getKey());
+        return str != null ? str.split(",") : null;
     }
 
 

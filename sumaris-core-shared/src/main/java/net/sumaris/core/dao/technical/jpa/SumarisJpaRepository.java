@@ -36,7 +36,6 @@ import java.io.Serializable;
 public interface SumarisJpaRepository<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
     extends JpaRepository<E, ID> {
 
-
     V toVO(E source);
 
     E toEntity(V source);
@@ -44,8 +43,6 @@ public interface SumarisJpaRepository<E extends IEntity<ID>, ID extends Serializ
     void toEntity(V source, E target, boolean copyIfNull);
 
     V createVO();
-
-    Class<V> getVOClass();
 
     E createEntity();
 

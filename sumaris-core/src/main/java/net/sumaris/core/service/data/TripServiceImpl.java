@@ -27,10 +27,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.data.LandingRepository;
+import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.ObservedLocationDao;
-import net.sumaris.core.dao.data.TripRepository;
+import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
+import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -98,7 +98,7 @@ public class TripServiceImpl implements TripService {
     private LandingRepository landingRepository;
 
     @Autowired
-    private ObservedLocationDao observedLocationDao;
+    private ObservedLocationRepository observedLocationRepository;
 
     @Autowired
     private ReferentialService referentialService;
@@ -126,8 +126,7 @@ public class TripServiceImpl implements TripService {
     @Override
     public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
                                      SortDirection sortDirection, DataFetchOptions fieldOptions) {
-        return tripRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fieldOptions)
-            .stream().collect(Collectors.toList());
+        return tripRepository.findAll(filter != null ? filter : TripFilterVO.builder().build(), offset, size, sortAttribute, sortDirection, fieldOptions).getContent();
     }
 
     @Override
@@ -148,6 +147,7 @@ public class TripServiceImpl implements TripService {
         Landing landing = landingRepository.getByTripId(target.getId());
         if (landing != null) {
             target.setLandingId(landing.getId());
+            target.setLandingRankOrder(landing.getRankOrderOnVessel());
             if (landing.getObservedLocation() != null) {
                 target.setObservedLocationId(landing.getObservedLocation().getId());
             }
@@ -169,6 +169,7 @@ public class TripServiceImpl implements TripService {
             LandingVO tripLanding = CollectionUtils.size(tripLandings) == 1 ? tripLandings.iterator().next() : null;
             if (tripLanding != null) {
                 target.setLandingId(tripLanding.getId());
+                target.setLandingRankOrder(tripLanding.getRankOrderOnVessel());
                 if (tripLanding.getObservedLocation() != null) {
                     target.setObservedLocationId(tripLanding.getObservedLocation().getId());
                 }
@@ -363,8 +364,8 @@ public class TripServiceImpl implements TripService {
         if (trip.getObservedLocationId() != null) {
 
             // update update_date on observed_location
-            ObservedLocationVO observedLocation = observedLocationDao.get(trip.getObservedLocationId());
-            observedLocationDao.save(observedLocation);
+            ObservedLocationVO observedLocation = observedLocationRepository.get(trip.getObservedLocationId());
+            observedLocationRepository.save(observedLocation);
 
             if (createLanding) {
 
@@ -375,6 +376,7 @@ public class TripServiceImpl implements TripService {
                 landing.setProgram(observedLocation.getProgram());
                 landing.setLocation(observedLocation.getLocation());
                 landing.setVesselSnapshot(trip.getVesselSnapshot());
+                landing.setRankOrderOnVessel(trip.getLandingRankOrder());
                 landing.setDateTime(trip.getReturnDateTime());
                 landing.setObservers(Beans.getSet(trip.getObservers()));
                 landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
@@ -436,13 +438,21 @@ public class TripServiceImpl implements TripService {
     @Override
     public void delete(int id) {
 
-        // Create events (before deletion, to be able to join VO)
         TripVO deletedTrip = null;
         if (enableTrash) {
             deletedTrip = get(id);
             deletedTrip.setOperations(operationService.getAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC));
+            deletedTrip.setOperationGroups(operationGroupService.getAllByTripId(id));
+            deletedTrip.setMetiers(operationGroupService.getMetiersByTripId(id));
 
-            // TODO BLA: add operation groups ? (ask LPT)
+            // TODO: Add all measurement maybe with get(id, fullFetchOption)
+        }
+
+        // Remove link LANDING->TRIP
+        Landing landing = landingRepository.getByTripId(id);
+        if (landing != null) {
+            landing.setTrip(null);
+            landingRepository.save(landing);
         }
 
         // Apply deletion

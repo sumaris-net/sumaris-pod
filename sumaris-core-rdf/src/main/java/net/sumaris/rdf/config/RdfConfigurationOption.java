@@ -129,6 +129,13 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.rdf.data.pageSize.max.description"),
             "1000",
             Integer.class,
+            false),
+
+    RDF_EXPORTED_ENTITIES(
+            "rdf.data.export.entities",
+            n("sumaris.config.option.rdf.data.entities.description"),
+            "TaxonName,Department,Gear",
+            String.class,
             false)
     ;
 

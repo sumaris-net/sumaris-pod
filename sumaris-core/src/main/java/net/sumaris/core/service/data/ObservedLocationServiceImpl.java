@@ -25,7 +25,7 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.ObservedLocationDao;
+import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.ObservedLocationMeasurement;
 import net.sumaris.core.util.Beans;
@@ -49,7 +49,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	private static final Logger log = LoggerFactory.getLogger(ObservedLocationServiceImpl.class);
 
 	@Autowired
-	protected ObservedLocationDao observedLocationDao;
+	protected ObservedLocationRepository observedLocationRepository;
 
 	@Autowired
 	protected MeasurementDao measurementDao;
@@ -69,20 +69,20 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	public List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
                                      SortDirection sortDirection, DataFetchOptions fetchOptions) {
 		if (filter == null) {
-			return observedLocationDao.getAll(offset, size, sortAttribute, sortDirection, fetchOptions);
+			return observedLocationRepository.findAll(offset, size, sortAttribute, sortDirection, fetchOptions).getContent();
 		}
 
-		return observedLocationDao.findByFilter(filter, offset, size, sortAttribute, sortDirection, fetchOptions);
+		return observedLocationRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fetchOptions).getContent();
 	}
 
 	@Override
 	public Long countByFilter(ObservedLocationFilterVO filter) {
-		return observedLocationDao.countByFilter(filter);
+		return observedLocationRepository.count(filter);
 	}
 
 	@Override
 	public ObservedLocationVO get(int observedLocationId) {
-		return observedLocationDao.get(observedLocationId);
+		return observedLocationRepository.get(observedLocationId);
 	}
 
 	@Override
@@ -100,7 +100,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		source.setControlDate(null);
 
 		// Save
-		ObservedLocationVO savedObservedLocation = observedLocationDao.save(source);
+		ObservedLocationVO savedObservedLocation = observedLocationRepository.save(source);
 
 		// Save measurements
 		if (savedObservedLocation.getMeasurementValues() != null) {
@@ -127,7 +127,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 	@Override
 	public void delete(int id) {
-		observedLocationDao.delete(id);
+		observedLocationRepository.deleteById(id);
 	}
 
 	@Override
@@ -144,7 +144,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkArgument(observedLocation.getControlDate() == null);
 
-		return observedLocationDao.control(observedLocation);
+		return observedLocationRepository.control(observedLocation);
 	}
 
 	@Override
@@ -154,7 +154,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
-		return observedLocationDao.validate(observedLocation);
+		return observedLocationRepository.validateNoSave(observedLocation); // todo no save !
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-		return observedLocationDao.unvalidate(observedLocation);
+		return observedLocationRepository.unvalidateNoSave(observedLocation); // todo no save
 	}
 
 	/* protected methods */

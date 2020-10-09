@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface ImageAttachmentService {
 
 	@Transactional(readOnly = true)
-	ImageAttachmentVO get(int id);
+	ImageAttachmentVO find(int id);
 
 	ImageAttachmentVO save(ImageAttachmentVO trip);
 

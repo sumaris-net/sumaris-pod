@@ -67,7 +67,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Override
 	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id) {
-		return referentialDao.get(entityClass.getSimpleName(), id);
+		return referentialDao.get(entityClass, id);
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 	public Long countByFilter(String entityName, ReferentialFilterVO filter) {
 		Preconditions.checkNotNull(entityName);
 		if (filter == null) {
-			return referentialDao.count(entityName);
+			return count(entityName);
 		}
 		return referentialDao.countByFilter(entityName, filter);
 	}
@@ -106,16 +106,8 @@ public class ReferentialServiceImpl implements ReferentialService {
 	public ReferentialVO findByUniqueLabel(String entityName, String label) {
 		Preconditions.checkNotNull(entityName);
 		Preconditions.checkNotNull(label);
-		return referentialDao.findByUniqueLabel(entityName, label);
-	}
-
-	@Override
-	public Integer getIdByUniqueLabel(Class<? extends IItemReferentialEntity> entityClass, String label) {
-		Preconditions.checkNotNull(entityClass);
-		Preconditions.checkNotNull(label);
-		ReferentialVO entity = referentialDao.findByUniqueLabel(entityClass.getSimpleName(), label);
-		if (entity == null) throw new DataNotFoundException(I18n.t("sumaris.error.entity.notfoundByLabel", entityClass.getSimpleName(), label));
-		return entity.getId();
+		return referentialDao.findByUniqueLabel(entityName, label)
+			.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.entity.notfoundByLabel", entityName, label)));
 	}
 
 	@Override

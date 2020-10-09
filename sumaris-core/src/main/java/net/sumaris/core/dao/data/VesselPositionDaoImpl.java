@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
@@ -102,7 +103,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
     public List<VesselPositionVO> saveByOperationId(int operationId, List<VesselPositionVO> sources) {
 
         // Load parent entity
-        Operation parent = get(Operation.class, operationId);
+        Operation parent = getOne(Operation.class, operationId);
 
         // Remember existing entities
         final Map<Integer, VesselPosition> sourcesToRemove = Beans.splitById(Beans.getList(parent.getPositions()));
@@ -140,7 +141,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
 
         if (!isNew) {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             lockForUpdate(entity);
@@ -230,7 +231,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+                target.setQualityFlag(load(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
             }
             else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));

@@ -225,7 +225,7 @@ public class RdfDataImportServiceImpl {
             TaxonomicLevel tl = (TaxonomicLevel) context.URI_2_OBJ_REF.get(ontResource.getURI());
 
             try {
-                // first try to get it from cache
+                // first try to find it from cache
                 Property propCode = ontResource.getModel().getProperty(classUri + "#code");
                 String label = ontResource.asIndividual().getPropertyValue(propCode).toString();
 
@@ -274,7 +274,7 @@ public class RdfDataImportServiceImpl {
 
             try {
 
-                // first try to get it from cache
+                // first try to find it from cache
                 Property propCode = ontResource.getModel().getProperty(clName + "#Code");
                 Integer id = Integer.parseInt(ontResource.asIndividual().getPropertyValue(propCode).toString());
 

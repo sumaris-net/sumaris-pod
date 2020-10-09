@@ -363,7 +363,7 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateTrip", description = "Subscribe to changes on a trip")
     @IsUser
     public Publisher<TripVO> updateTrip(@GraphQLArgument(name = "id") final int id,
-                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return changesPublisherService.getPublisher(Trip.class, TripVO.class, id, minIntervalInSecond, true);
@@ -548,7 +548,7 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateObservedLocation", description = "Subscribe to changes on an observed location")
     @IsUser
     public Publisher<ObservedLocationVO> updateObservedLocation(@GraphQLArgument(name = "id") final int id,
-                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return changesPublisherService.getPublisher(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true);
@@ -665,7 +665,7 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateOperation", description = "Subscribe to changes on an operation")
     @IsUser
     public Publisher<OperationVO> updateOperation(@GraphQLArgument(name = "id") final int id,
-                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return changesPublisherService.getPublisher(Operation.class, OperationVO.class, id, minIntervalInSecond, true);
@@ -698,7 +698,7 @@ public class DataGraphQLService {
 //    @Transactional(readOnly = true)
 //    @IsUser
 //    public OperationGroupVO getOperationGroup(@GraphQLArgument(name = "id") int id) {
-//        return operationGroupService.get(id);
+//        return operationGroupService.find(id);
 //    }
 //
 //    @GraphQLMutation(name = "saveOperationGroups", description = "Save operation groups")
@@ -728,7 +728,7 @@ public class DataGraphQLService {
 //    @GraphQLSubscription(name = "updateOperationGroup", description = "Subscribe to changes on an operation group")
 //    @IsUser
 //    public Publisher<OperationGroupVO> updateOperationGroup(@GraphQLArgument(name = "id") final int id,
-//                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+//                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 //
 //        Preconditions.checkArgument(id >= 0, "Invalid id");
 //        return changesPublisherService.getPublisher(Operation.class, OperationGroupVO.class, id, minIntervalInSecond, true);
@@ -925,7 +925,7 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateLanding", description = "Subscribe to changes on an landing")
     @IsUser
     public Publisher<LandingVO> updateLanding(@GraphQLArgument(name = "id") final int id,
-                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return changesPublisherService.getPublisher(Landing.class, LandingVO.class, id, minIntervalInSecond, true);

@@ -24,16 +24,17 @@ package net.sumaris.core.service.administration;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.user.DepartmentDao;
-import net.sumaris.core.dao.data.ImageAttachmentDao;
+import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.data.ImageAttachment;
+import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("departmentService")
@@ -49,30 +51,26 @@ public class DepartmentServiceImpl implements DepartmentService {
 	private static final Logger log = LoggerFactory.getLogger(DepartmentServiceImpl.class);
 
 	@Autowired
-	protected DepartmentDao departmentDao;
+	protected DepartmentRepository departmentRepository;
 
 	@Autowired
-	protected ImageAttachmentDao imageAttachmentDao;
+	protected ImageAttachmentService imageAttachmentService;
 
 	@Override
 	public List<DepartmentVO> findByFilter(DepartmentFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		return departmentDao.findByFilter(filter == null ? new DepartmentFilterVO() : filter,
-				offset,
-				size,
-				sortAttribute,
-				sortDirection);
+		return departmentRepository.findAll(filter == null ? new DepartmentFilterVO() : filter, offset, size, sortAttribute, sortDirection, null).getContent();
 	}
 
 
 	@Override
 	public DepartmentVO get(int departmentId) {
-		return departmentDao.get(departmentId);
+		return departmentRepository.get(departmentId);
 	}
 
 	@Override
 	public List<DepartmentVO> getByIds(int... ids) {
 		return Arrays.stream(ids)
-				.mapToObj(departmentDao::get)
+				.mapToObj(departmentRepository::get)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 	}
@@ -80,23 +78,26 @@ public class DepartmentServiceImpl implements DepartmentService {
 	@Override
 	public ImageAttachmentVO getLogoByLabel(final String label) {
 		Preconditions.checkNotNull(label);
-		Department department = departmentDao.getByLabelOrNull(label);
-		if (department == null || department.getLogo() == null) {
-			throw new DataRetrievalFailureException(I18n.t("sumaris.error.department.logo.notFound"));
-		}
-		return imageAttachmentDao.get(department.getLogo().getId());
+		Optional<Department> department = Optional.of(departmentRepository.getOne(departmentRepository.getByLabel(label).getId()));
+
+		int logoId = department
+			.map(Department::getLogo)
+			.map(ImageAttachment::getId)
+			.orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.department.logo.notFound")));
+
+		return imageAttachmentService.find(logoId);
 	}
 
 	@Override
 	public DepartmentVO save(DepartmentVO department) {
 		checkValid(department);
 
-		return departmentDao.save(department);
+		return departmentRepository.save(department);
 	}
 
 	@Override
 	public void delete(int id) {
-		departmentDao.delete(id);
+		departmentRepository.deleteById(id);
 	}
 
 	/* -- protected methods -- */

@@ -40,7 +40,6 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_name")
-//
 @NamedQueries({
         @NamedQuery(name = "TaxonName.referenceTaxonIdById",
                 query = "SELECT referenceTaxon.id " +

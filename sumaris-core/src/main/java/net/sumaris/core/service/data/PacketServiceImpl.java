@@ -28,6 +28,7 @@ import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -40,6 +41,7 @@ import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -272,7 +274,9 @@ public class PacketServiceImpl implements PacketService {
             if (sortingMeasurement == null) {
                 sortingMeasurement = createMeasurement(BatchSortingMeasurement.class, sortingPmfmId);
             }
-            sortingMeasurement.setQualitativeValue(referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel()));
+            ReferentialVO qv = referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
+                .orElseThrow(() -> new DataNotFoundException(String.format("The qualitative value with label %s was not found", QualitativeValueEnum.SORTING_BULK.getLabel())));
+            sortingMeasurement.setQualitativeValue(qv);
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));
         }
 
@@ -380,7 +384,9 @@ public class PacketServiceImpl implements PacketService {
             if (sortingMeasurement == null) {
                 sortingMeasurement = createMeasurement(BatchSortingMeasurement.class, sortingPmfmId);
             }
-            sortingMeasurement.setQualitativeValue(referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel()));
+            ReferentialVO qv = referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
+                .orElseThrow(() -> new DataNotFoundException(String.format("The qualitative value with label %s was not found", QualitativeValueEnum.SORTING_BULK.getLabel())));
+            sortingMeasurement.setQualitativeValue(qv);
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));
         }
 

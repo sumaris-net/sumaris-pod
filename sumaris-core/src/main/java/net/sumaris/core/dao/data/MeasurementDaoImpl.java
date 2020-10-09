@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -124,13 +124,13 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return result;
     }
 
-    private Multimap<Class<? extends IMeasurementEntity>, PropertyDescriptor> parentPropertiesMap = initParentPropertiesMap();
+    private final Multimap<Class<? extends IMeasurementEntity>, PropertyDescriptor> parentPropertiesMap = initParentPropertiesMap();
 
     @Autowired
     private ReferentialDao referentialDao;
 
     @Autowired
-    private PmfmDao pmfmDao;
+    private PmfmRepository pmfmRepository;
 
 
     @Override
@@ -304,8 +304,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         );
     }
 
-
-
     @Override
     public <T extends IMeasurementEntity, V extends MeasurementVO>  V toMeasurementVO(T source, Class<? extends V> voClass) {
         if (source == null) return null;
@@ -321,8 +319,8 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             }
 
             // Qualitative value
-            if (source.getQualitativeValue() != null) {
-                ReferentialVO qv = referentialDao.toReferentialVO(source.getQualitativeValue());
+            if (source.getQualitativeValue() != null){
+                ReferentialVO qv = referentialDao.toVO(source.getQualitativeValue());
                 target.setQualitativeValue(qv);
             }
 
@@ -344,97 +342,97 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
     @Override
     public List<MeasurementVO> saveTripVesselUseMeasurements(final int tripId, List<MeasurementVO> sources) {
-        Trip parent = get(Trip.class, tripId);
+        Trip parent = getOne(Trip.class, tripId);
         return saveMeasurements(VesselUseMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveTripMeasurementsMap(int tripId, Map<Integer, String> sources) {
-        Trip parent = get(Trip.class, tripId);
+        Trip parent = getOne(Trip.class, tripId);
         return saveMeasurementsMap(VesselUseMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> savePhysicalGearMeasurements(final int physicalGearId, List<MeasurementVO> sources) {
-        PhysicalGear parent = get(PhysicalGear.class, physicalGearId);
+        PhysicalGear parent = getOne(PhysicalGear.class, physicalGearId);
         return saveMeasurements(PhysicalGearMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> savePhysicalGearMeasurementsMap(int physicalGearId, Map<Integer, String> sources) {
-        PhysicalGear parent = get(PhysicalGear.class, physicalGearId);
+        PhysicalGear parent = getOne(PhysicalGear.class, physicalGearId);
         return saveMeasurementsMap(PhysicalGearMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> saveOperationGearUseMeasurements(final int operationId, List<MeasurementVO> sources) {
-        Operation parent = get(Operation.class, operationId);
+        Operation parent = getOne(Operation.class, operationId);
         return saveMeasurements(GearUseMeasurement.class, sources, parent.getGearUseMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> saveOperationVesselUseMeasurements(final int operationId, List<MeasurementVO> sources) {
-        Operation parent = get(Operation.class, operationId);
+        Operation parent = getOne(Operation.class, operationId);
         return saveMeasurements(VesselUseMeasurement.class, sources, parent.getVesselUseMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveOperationGearUseMeasurementsMap(int operationId, Map<Integer, String> sources) {
-        Operation parent = get(Operation.class, operationId);
+        Operation parent = getOne(Operation.class, operationId);
         return saveMeasurementsMap(GearUseMeasurement.class, sources, parent.getGearUseMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveOperationVesselUseMeasurementsMap(int operationId, Map<Integer, String> sources) {
-        Operation parent = get(Operation.class, operationId);
+        Operation parent = getOne(Operation.class, operationId);
         return saveMeasurementsMap(VesselUseMeasurement.class, sources, parent.getVesselUseMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> saveObservedLocationMeasurements(final int observedLocationId, List<MeasurementVO> sources) {
-        ObservedLocation parent = get(ObservedLocation.class, observedLocationId);
+        ObservedLocation parent = getOne(ObservedLocation.class, observedLocationId);
         return saveMeasurements(ObservedLocationMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveObservedLocationMeasurementsMap(final int observedLocationId, Map<Integer, String> sources) {
-        ObservedLocation parent = get(ObservedLocation.class, observedLocationId);
+        ObservedLocation parent = getOne(ObservedLocation.class, observedLocationId);
         return saveMeasurementsMap(ObservedLocationMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> saveSaleMeasurements(final int saleId, List<MeasurementVO> sources) {
-        Sale parent = get(Sale.class, saleId);
+        Sale parent = getOne(Sale.class, saleId);
         return saveMeasurements(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveSaleMeasurementsMap(final int saleId, Map<Integer, String> sources) {
-        Sale parent = get(Sale.class, saleId);
+        Sale parent = getOne(Sale.class, saleId);
         return saveMeasurementsMap(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> saveLandingMeasurements(final int landingId, List<MeasurementVO> sources) {
-        Landing parent = get(Landing.class, landingId);
+        Landing parent = getOne(Landing.class, landingId);
         return saveMeasurements(LandingMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveLandingMeasurementsMap(final int landingId, Map<Integer, String> sources) {
-        Landing parent = get(Landing.class, landingId);
+        Landing parent = getOne(Landing.class, landingId);
         return saveMeasurementsMap(LandingMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> saveSampleMeasurements(final int sampleId, List<MeasurementVO> sources) {
-        Sample parent = get(Sample.class, sampleId);
+        Sample parent = getOne(Sample.class, sampleId);
         return saveMeasurements(SampleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveSampleMeasurementsMap(final int sampleId, Map<Integer, String> sources) {
-        Sample parent = get(Sample.class, sampleId);
+        Sample parent = getOne(Sample.class, sampleId);
         return saveMeasurementsMap(SampleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
@@ -460,26 +458,26 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
     @Override
     public List<MeasurementVO> saveBatchSortingMeasurements(int batchId, List<MeasurementVO> sources) {
-        Batch parent = get(Batch.class, batchId);
+        Batch parent = getOne(Batch.class, batchId);
         return saveMeasurements(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
     }
 
     @Override
     public List<QuantificationMeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<QuantificationMeasurementVO> sources) {
-        Batch parent = get(Batch.class, batchId);
+        Batch parent = getOne(Batch.class, batchId);
         return saveMeasurements(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveBatchSortingMeasurementsMap(int batchId, Map<Integer, String> sources) {
-        Batch parent = get(Batch.class, batchId);
+        Batch parent = getOne(Batch.class, batchId);
         Preconditions.checkNotNull(parent, "Could not found batch with id=" + batchId);
         return saveMeasurementsMap(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveBatchQuantificationMeasurementsMap(int batchId, Map<Integer, String> sources) {
-        Batch parent = get(Batch.class, batchId);
+        Batch parent = getOne(Batch.class, batchId);
         return saveMeasurementsMap(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
 
@@ -503,41 +501,41 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
     @Override
     public List<MeasurementVO> saveProductSortingMeasurements(int productId, List<MeasurementVO> sources) {
-        Product parent = get(Product.class, productId);
+        Product parent = getOne(Product.class, productId);
         Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
         return saveMeasurements(ProductSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> saveProductQuantificationMeasurements(int productId, List<MeasurementVO> sources) {
-        Product parent = get(Product.class, productId);
+        Product parent = getOne(Product.class, productId);
         Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
         return saveMeasurements(ProductQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveProductSortingMeasurementsMap(int productId, Map<Integer, String> sources) {
-        Product parent = get(Product.class, productId);
+        Product parent = getOne(Product.class, productId);
         Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
         return saveMeasurementsMap(ProductSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveProductQuantificationMeasurementsMap(int productId, Map<Integer, String> sources) {
-        Product parent = get(Product.class, productId);
+        Product parent = getOne(Product.class, productId);
         Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
         return saveMeasurementsMap(ProductQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> saveVesselPhysicalMeasurements(int vesselFeaturesId, List<MeasurementVO> sources) {
-        VesselFeatures parent = get(VesselFeatures.class, vesselFeaturesId);
+        VesselFeatures parent = getOne(VesselFeatures.class, vesselFeaturesId);
         return saveMeasurements(VesselPhysicalMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveVesselPhysicalMeasurementsMap(int vesselFeaturesId, Map<Integer, String> sources) {
-        VesselFeatures parent = get(VesselFeatures.class, vesselFeaturesId);
+        VesselFeatures parent = getOne(VesselFeatures.class, vesselFeaturesId);
         return saveMeasurementsMap(VesselPhysicalMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
@@ -575,7 +573,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
         MutableShort rankOrder = new MutableShort(1);
         List<V> result = Lists.newArrayList();
-        sources.stream().forEach(source -> {
+        sources.forEach(source -> {
             if (isNotEmpty(source)) {
                 IMeasurementEntity entity = null;
 
@@ -753,7 +751,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     protected <T extends IMeasurementEntity, V extends MeasurementVO> List<V> getMeasurementsByParentId(Class<T> entityClass,
-                                                                                           Class<? extends V> voClass,
+                                                                                        Class<? extends V> voClass,
                                                                                         String parentPropertyName,
                                                                                         int parentId,
                                                                                         String sortByPropertyName) {
@@ -850,7 +848,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+                target.setQualityFlag(load(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
             }
             else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
@@ -865,7 +863,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to set value NULL value on a measurement");
         }
 
-        PmfmVO pmfm = pmfmDao.get(pmfmId);
+        PmfmVO pmfm = pmfmRepository.get(pmfmId);
         if (pmfm == null) {
             throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to find pmfm with id=" + pmfmId);
         }
@@ -880,7 +878,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 target.setNumericalValue(Boolean.parseBoolean(value) || "1".equals(value) ? 1d : 0d);
                 break;
             case QUALITATIVE_VALUE:
-                // If get a object structure (e.g. ReferentialVO), try to get the id
+                // If find a object structure (e.g. ReferentialVO), try to find the id
                 target.setQualitativeValue(load(QualitativeValue.class, Integer.parseInt(value)));
                 break;
             case STRING:
@@ -905,7 +903,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         Preconditions.checkNotNull(source.getPmfm());
         Preconditions.checkNotNull(source.getPmfm().getId());
 
-        PmfmVO pmfm = pmfmDao.get(source.getPmfm().getId());
+        PmfmVO pmfm = pmfmRepository.get(source.getPmfm().getId());
 
         Preconditions.checkNotNull(pmfm, "Unable to find Pmfm with id=" + source.getPmfm().getId());
 
@@ -914,7 +912,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             case BOOLEAN:
                 return (source.getNumericalValue() != null && source.getNumericalValue() == 1d ? Boolean.TRUE : Boolean.FALSE);
             case QUALITATIVE_VALUE:
-                // If get a object structure (e.g. ReferentialVO), try to get the id
+                // If find a object structure (e.g. ReferentialVO), try to find the id
                 return ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null) ? source.getQualitativeValue().getId() : null);
             case STRING:
             case DATE:
@@ -943,7 +941,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
         // Quality flag
         if (target.getQualityFlag() == null) {
-            target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+            target.setQualityFlag(load(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
         }
     }
 
