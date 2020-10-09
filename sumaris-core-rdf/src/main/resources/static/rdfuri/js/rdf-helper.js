@@ -23,15 +23,16 @@ function RdfHelper() {
 
     const constants = {
             prefixes: [
+                // Common schemas
                 {
                     name: 'Dublin Core',
                     prefix: 'dc',
                     namespace: 'http://purl.org/dc/elements/1.1/'
                 },
                 {
-                    name: 'Friend of a Firiend',
-                    prefix: 'foaf',
-                    namespace: 'http://xmlns.com/foaf/0.1/'
+                    name: 'Schema.org',
+                    prefix: 's',
+                    namespace: 'http://schema.org/'
                 },
                 {
                     name: 'OWL',
@@ -43,6 +44,29 @@ function RdfHelper() {
                     prefix: 'rdf',
                     namespace: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
                 },
+                {
+                    name: 'RDF Schema',
+                    prefix: 'rdfs',
+                    namespace: 'http://www.w3.org/2000/01/rdf-schema#'
+                },
+                {
+                    name: 'SKOS thesaurus',
+                    prefix: 'skos',
+                    namespace: 'http://www.w3.org/2004/02/skos/core#'
+                },
+
+                // Social
+                {
+                    name: 'Friend of a Friend',
+                    prefix: 'foaf',
+                    namespace: 'http://xmlns.com/foaf/0.1/'
+                },
+                {
+                    name: 'Good Relations',
+                    prefix: 'gr',
+                    namespace: 'http://purl.org/goodrelations/v1#'
+                },
+
                 // {
                 //     name: 'RDF Data',
                 //     prefix: 'rdfdata',
@@ -63,11 +87,9 @@ function RdfHelper() {
                 //     prefix: 'rdfp',
                 //     namespace: 'https://w3id.org/rdfp/'
                 // },
-                {
-                    name: 'RDF Schema',
-                    prefix: 'rdfs',
-                    namespace: 'http://www.w3.org/2000/01/rdf-schema#'
-                },
+
+
+                // Taxon
                 {
                     name: 'Darwin core terms (string literal objects)',
                     prefix: 'dwc',
@@ -83,11 +105,7 @@ function RdfHelper() {
                     prefix: 'dwctax',
                     namespace: 'http://rs.tdwg.org/ontology/voc/TaxonName#'
                 },
-                {
-                    name: 'SKOS thesaurus',
-                    prefix: 'skos',
-                    namespace: 'http://www.w3.org/2004/02/skos/core#'
-                },
+
                 // Spatial
                 {
                     name: 'Spatial',
@@ -105,7 +123,7 @@ function RdfHelper() {
                     namespace: 'http://www.geonames.org/ontology#'
                 },
 
-                // Custom (Taxon specific)
+                // Taxon (custom)
                 {
                     name: 'TaxRef linked data (MNHN)',
                     prefix: 'taxref',
@@ -136,6 +154,30 @@ function RdfHelper() {
                     prefix: 'aptdata',
                     namespace: 'http://id.eaufrance.fr/apt/'
                 },
+
+                // Organization
+                {
+                    name: 'Organization (W3C)',
+                    prefix: 'org',
+                    namespace: 'http://www.w3.org/ns/org#'
+                },
+
+                // Organization (custom)
+                {
+                    name: 'Interlocuteurs (Sandre)',
+                    prefix: 'inc',
+                    namespace: 'http://id.eaufrance.fr/ddd/INC/'
+                },
+                {
+                    name: 'Interlocuteurs (Sandre) 1.0',
+                    prefix: 'inc1',
+                    namespace: 'http://id.eaufrance.fr/ddd/INC/1.0/'
+                },
+                {
+                    name: 'Interlocuteurs (Sandre) data ',
+                    prefix: 'incdata',
+                    namespace: 'http://id.eaufrance.fr/inc/'
+                }
             ]
     };
 

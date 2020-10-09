@@ -128,6 +128,14 @@ public class RdfConfiguration  {
                     registry.addViewController(TAXON_PATH)
                             .setViewName("forward:/taxon/index.html");
                 }
+
+                // Use case > Department search
+                {
+                    final String SEARCH_DEPARTMENT_PATH = "/api/search/department";
+                    registry.addRedirectViewController(SEARCH_DEPARTMENT_PATH + "/", SEARCH_DEPARTMENT_PATH);
+                    registry.addViewController(SEARCH_DEPARTMENT_PATH)
+                            .setViewName("forward:/department/index.html");
+                }
             }
 
 

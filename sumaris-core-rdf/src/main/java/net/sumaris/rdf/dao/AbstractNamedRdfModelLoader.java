@@ -20,15 +20,13 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao.referential.taxon;
+package net.sumaris.rdf.dao;
 
 
 import com.google.common.base.Charsets;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.rdf.dao.NamedModelProducer;
-import net.sumaris.rdf.dao.SparqlQueries;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryFactory;
@@ -44,9 +42,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.stream.Stream;
 
-public abstract class BaseRdfTaxonDaoImpl implements NamedModelProducer {
+public abstract class AbstractNamedRdfModelLoader implements NamedRdfModelLoader {
 
-    private static final Logger log = LoggerFactory.getLogger(BaseRdfTaxonDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractNamedRdfModelLoader.class);
 
     @Override
     public Stream<Model> streamAllByPages(long maxStatements) {

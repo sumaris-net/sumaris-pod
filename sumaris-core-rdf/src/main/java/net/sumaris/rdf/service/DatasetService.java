@@ -28,7 +28,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.crypto.CryptoService;
 import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.dao.NamedModelProducer;
+import net.sumaris.rdf.dao.NamedRdfModelLoader;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
@@ -97,11 +97,14 @@ public class DatasetService {
 
     private Dataset dataset;
 
-    @Resource(name = "taxrefRdfTaxonDao")
-    private NamedModelProducer taxrefRdfTaxonDao;
+    @Resource(name = "taxrefRdfModelLoader")
+    private NamedRdfModelLoader taxrefRdfModelLoader;
 
-    @Resource(name = "sandreRdfTaxonDao")
-    private NamedModelProducer sandreRdfTaxonDao;
+    @Resource(name = "sandreTaxonRdfModelLoader")
+    private NamedRdfModelLoader sandreTaxonRdfModelLoader;
+
+    @Resource(name = "sandreIncRdfModelLoader")
+    private NamedRdfModelLoader sandreIncRdfModelLoader;
 
     @Autowired(required = false)
     protected TaskExecutor taskExecutor;
@@ -111,9 +114,12 @@ public class DatasetService {
 
     @PostConstruct
     public void start() {
-        // Register taxon daos
-        registerNameModel(taxrefRdfTaxonDao,10000L);
-        registerNameModel(sandreRdfTaxonDao, -1L);
+        // Taxon loaders
+        registerNameModel(taxrefRdfModelLoader,10000L);
+        registerNameModel(sandreTaxonRdfModelLoader, -1L);
+
+        // Department loaders
+        registerNameModel(sandreIncRdfModelLoader, -1L);
 
         // Init the query dataset
         this.dataset = createDataset();
@@ -139,7 +145,7 @@ public class DatasetService {
         this.dataset.close();
     }
 
-    public void registerNameModel(final NamedModelProducer producer, final long maxStatements) {
+    public void registerNameModel(final NamedRdfModelLoader producer, final long maxStatements) {
         registerNamedModel(producer.getName(), () -> unionModel(producer.getName(), producer.streamAllByPages(maxStatements)));
     }
 

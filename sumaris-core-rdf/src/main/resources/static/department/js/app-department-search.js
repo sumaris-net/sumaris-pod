@@ -21,7 +21,7 @@
  */
 
 
-function AppTaxonSearch(config) {
+function AppDepartmentSearch(config) {
     const defaultConfig = {
         ids: {
             yasqe: 'yasqe',
@@ -32,15 +32,14 @@ function AppTaxonSearch(config) {
         },
         onUriClick: undefined,
         onUriClickTarget: undefined,
-        exactMatch: undefined,
+        exactMatch: false,
         limit: 50,
         prefix: 'this'
     };
 
     const endpointsById = {
         THIS: 'this',
-        EAU_FRANCE: 'http://id.eaufrance.fr/sparql',
-        MNHN: 'http://taxref.mnhn.fr/sparql'
+        EAU_FRANCE: 'http://id.eaufrance.fr/sparql'
     };
 
     const NUMERICAL_CODE_REGEXP = new RegExp(/^[0-9]+$/);
@@ -62,13 +61,13 @@ function AppTaxonSearch(config) {
     const filtersMap = {
         // Schema filter
         rdfType: 'rdf:type {{rdfType}}',
-        rdfsLabel: '?sourceUriUri rdfs:label ?scientificName .',
+        rdfsLabel: '?sourceUriUri rdfs:label ?label .',
         dwcScientificName: '?sourceUriUri dwc:scientificName ?scientificName .',
 
         // Regex filter, on scientific name
-        exactMatch: '?scientificName="{{q}}"',
-        prefixMatch: 'regex( ?scientificName, "^{{q}}", "i" )',
-        anyMatch: 'regex( ?scientificName, "{{q}}", "i" )',
+        exactMatch: '?{{searchField}}="{{q}}"',
+        prefixMatch: 'regex( ?{{searchField}}, "^{{q}}", "i" )',
+        anyMatch: 'regex( ?{{searchField}}, "{{q}}", "i" )',
 
         // Regex filter, on uri (code)
         codeExactMatch: 'strEnds( str(?sourceUri), "/{{q}}" )',
@@ -79,315 +78,146 @@ function AppTaxonSearch(config) {
             id: 'local-name',
             name: 'Search by name',
             canHandleTerm: (term) => term && term.trim().match(/^[A-Za-z ]+$/),
-            yasrPlugin : 'taxon',
-            q: 'Lophius budegassa',
-            prefixes: ['dc', 'rdf', 'owl', 'skos', 'foaf', 'dwc', 'dwctax', 'rdfs',
-                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'this'],
-            query: 'SELECT DISTINCT \n' +
-                '  ?sourceUri ?scientificName ?parent ?author ?rank \n' +
-                '  ?created ?modified \n' +
-                '  ?exactMatch ?seeAlso \n' +
-                'WHERE {\n' +
-                '  ?sourceUri dwc:scientificName ?scientificName ;\n' +
-                '       rdf:type ?type .\n' +
-                '  FILTER (\n' +
-                '     ({{filter}})\n' +
-                '     && (?type = dwctax:TaxonName || ?type = {{defaultPrefix}}:TaxonName) \n' +
-                '  ) .\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
-                '  }\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
-                '  }\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri skos:broader ?parent .\n' +
-                '  }\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri dc:created ?created ;\n' +
-                '      dc:modified ?modified .\n' +
-                '  }\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri dc:author ?author .\n' +
-                '  }\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri taxrefprop:hasRank ?rank .\n' +
-                '  }' +
-                '} LIMIT {{limit}}',
-            filters: ['prefixMatch'],
-            binding: {}
-        },
-
-        {
-            id: 'local-code',
-            name: 'Search by code',
-            canHandleTerm: (term) => term && term.trim().match(/^[0-9]+$/),
-            yasrPlugin : 'taxon',
-            q: '847866',
-            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
-                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'this'],
-            query:  'SELECT DISTINCT \n' +
-                '  ?sourceUri ?scientificName ?parent ?author ?rank \n' +
-                '  ?created ?modified \n' +
-                '  ?exactMatch ?seeAlso ?created ?modified \n' +
-                'WHERE {\n' +
-                '  ?sourceUri dwc:scientificName ?scientificName ;\n' +
-                '       rdf:type ?type .\n' +
-                '  FILTER (\n' +
-                '     {{filter}}\n' +
-                '     && (?type = dwctax:TaxonName || ?type = {{defaultPrefix}}:TaxonName) \n' +
-                '  ) .\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
-                '  }\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
-                '  }\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri skos:broader ?parent .\n' +
-                '  }\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri dc:created ?created ;\n' +
-                '      dc:modified ?modified .\n' +
-                '  }\n' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri dc:author ?author .\n' +
-                '  }' +
-                '  OPTIONAL {\n' +
-                '    ?sourceUri taxrefprop:hasRank ?rank .\n' +
-                '  }' +
-                '} LIMIT {{limit}}',
-            filters: ['codePrefixMatch'],
+            yasrPlugin : 'department',
+            q: 'Environnement',
+            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'org', 'gr', 's', 'inc1', 'inc', 'incdata', 'this'],
+            query: "PREFIX siret: <https://api.insee.fr/entreprises/sirene/V3/siret/>\n" +
+                "SELECT DISTINCT \n" +
+                "  ?sourceUri ?label ?address ?parent \n" +
+                "  ?exactMatch ?seeAlso ?created ?modified \n" +
+                "WHERE {\n" +
+                "  ?sourceUri rdfs:label ?label ;\n" +
+                "       rdf:type ?type ;\n" +
+                "       org:hasprimarySite _:site .\n" +
+                "  _:site org:siteAddress ?address ." +
+                "  FILTER (\n" +
+                "     ({{filter}})\n" +
+                "     && (?type = org:Organization || ?type = {{defaultPrefix}}:Department) \n" +
+                "  ) .\n" +
+                "  OPTIONAL {\n" +
+                "    ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n" +
+                "  }\n" +
+                "  OPTIONAL {\n" +
+                "    ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n" +
+                "  }\n" +
+                "  OPTIONAL {\n" +
+                "    ?sourceUri skos:broader ?parent .\n" +
+                "  }\n" +
+                "  OPTIONAL {\n" +
+                "    ?sourceUri dc:created ?created ;\n" +
+                "      dc:modified ?modified .\n" +
+                "  }\n" +
+                "} LIMIT {{limit}}",
+            filters: ['anyMatch'],
             binding: {
+                searchField: 'label'
             }
         },
-
+        {
+            id: 'local-city',
+            name: 'Search by city',
+            canHandleTerm: (term) => term && term.trim().match(/^[A-Za-z ]+$/),
+            yasrPlugin : 'department',
+            q: 'Environnement',
+            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'org', 'gr', 's', 'inc1', 'inc', 'incdata', 'this'],
+            query: "PREFIX siret: <https://api.insee.fr/entreprises/sirene/V3/siret/>\n" +
+                "SELECT DISTINCT \n" +
+                "  ?sourceUri ?label ?address ?parent \n" +
+                "  ?exactMatch ?seeAlso ?created ?modified \n" +
+                "WHERE {\n" +
+                "  ?sourceUri rdfs:label ?label ;\n" +
+                "       rdf:type ?type ;\n" +
+                "       org:hasprimarySite _:site .\n" +
+                "  _:site org:siteAddress ?address ;\n" +
+                "         s:addressLocality ?city ." +
+                "  FILTER (\n" +
+                "     ({{filter}})\n" +
+                "     && (?type = org:Organization || ?type = {{defaultPrefix}}:Department) \n" +
+                "  ) .\n" +
+                "  OPTIONAL {\n" +
+                "    ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n" +
+                "  }\n" +
+                "  OPTIONAL {\n" +
+                "    ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n" +
+                "  }\n" +
+                "  OPTIONAL {\n" +
+                "    ?sourceUri skos:broader ?parent .\n" +
+                "  }\n" +
+                "  OPTIONAL {\n" +
+                "    ?sourceUri dc:created ?created ;\n" +
+                "      dc:modified ?modified .\n" +
+                "  }\n" +
+                "} LIMIT {{limit}}",
+            filters: ['prefixMatch'],
+            binding: {
+                searchField: 'city'
+            }
+        },
         {
             id: 'remote-name',
             name: 'Federated search by name',
             canHandleTerm: (term) => term && term.trim().match(/^[A-Za-z ]+$/),
-            yasrPlugin : 'taxon',
+            yasrPlugin : 'department',
             debug: false,
-            q: 'Lophius budegassa',
-            prefixes: ['dc', 'rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
-                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'eaufrance'],
-            query: 'SELECT DISTINCT \n' +
-                '  ?sourceUri ?scientificName ?author ?rank ?parent \n' +
+            q: 'Environnement',
+            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'org', 'gr', 's', 'inc1', 'inc', 'incdata', 'this'],
+            query: 'PREFIX siret: <https://api.insee.fr/entreprises/sirene/V3/siret/>\n' +
+                'SELECT DISTINCT \n' +
+                '  ?sourceUri ?label ?address ?parent \n' +
                 '  ?created ?modified \n' +
                 '  ?exactMatch ?seeAlso \n' +
                 'WHERE {\n' +
 
-                // -- MNHN endpoint part
-                ' { SERVICE <{{mnhnEndpoint}}> {\n' +
-                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
-                '      rdf:type dwctax:TaxonName ;\n' +
-                '      taxrefprop:hasAuthority ?author ;\n' +
-                '      taxrefprop:hasRank ?rank .\n' +
-                '    FILTER(\n' +
-                '       ( ?scientificName = "{{q}}" )\n' + // TODO: regexp not supported
-                '    )\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri skos:broader ?parent .\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri dc:create ?created ;\n' +
-                '        dc:modified ?modified .\n' +
-                '    }\n' +
-                '  } \n' +
-                ' }\n' +
-                ' UNION\n' +
-
                 // -- Sandre endpoint part
                 ' { SERVICE <{{eauFranceEndpoint}}> {\n' +
-                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
-                '      rdf:type ?type ;\n' +
-                '      apt2:AuteurAppelTaxon ?author ;\n' +
-                '      apt2:NiveauTaxonomique ?rank .\n' +
+                '    ?sourceUri rdfs:label ?label ;\n' +
+                '      rdf:type inc:Interlocuteur ;\n' +
                 '    FILTER(\n' +
-                '      ( ?scientificName = "{{q}}" )\n' +
-                '       && ( ?type = dwctax:TaxonName || URI(?type) = apt:AppelTaxon ) \n' +
+                '      ({{filter}})\n' +
                 '    )\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri apt2:AppelTaxonParent|skos:broader ?parent .\n' +
-                '      #FILTER ( isURI(?parent) )\n' +
-                '    }\n' +
                 '    OPTIONAL {\n' +
                 '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
                 '      #FILTER ( isURI(?exactMatch) )\n' +
                 '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
-                '      #FILTER ( isURI(?seeAlso) )\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri dc:created|apt2:DateCreationAppelTaxon ?created ;\n' +
-                '        dc:modified|apt2:DateMajAppelTaxon ?modified .\n' +
-                '    }\n' +
-                '  }\n' +
-                ' }\n' +
-                '} LIMIT {{limit}}',
-            filters: [],
-            binding: {
-                eauFranceEndpoint: endpointsById.EAU_FRANCE,
-                mnhnEndpoint: endpointsById.MNHN
-            }
-        },
-
-        {
-            id: 'remote-code',
-            name: 'Federated search by code',
-            canHandleTerm: (term) => term && term.trim().match(/^[0-9]+$/),
-            yasrPlugin : 'taxon',
-            debug: false,
-            q: '52492, 68604',
-            prefixes: ['dc', 'rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
-                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'eaufrance'],
-            query: 'SELECT DISTINCT \n' +
-                '  ?sourceUri ?scientificName ?author ?rank ?parent \n' +
-                '  ?created ?modified \n' +
-                '  ?exactMatch ?seeAlso \n' +
-                'WHERE {\n' +
-
-                // -- MNHN endpoint part
-                ' { SERVICE <{{mnhnEndpoint}}> {\n' +
-                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
-                '      rdf:type dwctax:TaxonName ;\n' +
-                '      taxrefprop:hasAuthority ?author ;\n' +
-                '      taxrefprop:hasRank ?rank .\n' +
-                '    FILTER (\n' +
-                '       ?sourceUri = <http://taxref.mnhn.fr/lod/name/{{q}}>\n' +
+                'OPTIONAL {\n' +
+                '    ?sourceUri inc1:AdresseInterlocuteur ?bnAddress .\n' +
+                '    OPTIONAL { ?bnAddress inc1:Compl2Adresse ?addressCompl2 . }\n' +
+                '    OPTIONAL { ?bnAddress inc1:Compl3Adresse ?addressCompl3 . }\n' +
+                '    OPTIONAL { ?bnAddress inc1:NumLbVoieAdresse ?addressRoad . }\n' +
+                '    OPTIONAL { ?bnAddress inc1:LgAcheAdresse ?postalCodeAndCity . }\n' +
+                '    BIND(\n' +
+                '      REPLACE(REPLACE(\n' +
+                '        CONCAT(?addressCompl2, \'|\', ?addressCompl3, \'|\', ?addressRoad),\n' +
+                '          \'^[|]+\', \'\', \'i\'),\n' +
+                '        \'[|]+\', \', \', \'i\')\n' +
+                '      as ?streetAddress\n' +
                 '    )\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri skos:broader ?parent .\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
-                '    }\n' +
-                // FIXME: not working
-                //'    OPTIONAL {\n' +
-                //'      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
-                //'    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri dc:create ?created ;\n' +
-                '        dc:modified ?modified .\n' +
-                '    }\n' +
-                '  } \n' +
-                ' }\n' +
-                ' UNION\n' +
-
-                // -- Sandre endpoint part
-                ' { SERVICE <{{eauFranceEndpoint}}> {\n' +
-                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
-                '      rdf:type ?type ;\n' +
-                '      apt2:AuteurAppelTaxon ?author ;\n' +
-                '      apt2:NiveauTaxonomique ?rank ;\n' +
-                '      apt2:CdAppelTaxon "{{q}}" . \n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri apt2:AppelTaxonParent|skos:broader ?parent .\n' +
-                '      #FILTER ( isURI(?parent) )\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
-                '      #FILTER ( isURI(?exactMatch) )\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
-                '      #FILTER ( isURI(?seeAlso) )\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri dc:created|apt2:DateCreationAppelTaxon ?created ;\n' +
-                '        dc:modified|apt2:DateMajAppelTaxon ?modified .\n' +
-                '    }\n' +
-                '  }\n' +
-                ' }\n' +
-                '} LIMIT {{limit}}',
-            filters: [],
-            binding: {
-                eauFranceEndpoint: endpointsById.EAU_FRANCE,
-                mnhnEndpoint: endpointsById.MNHN
-            }
-        },
-
-        {
-            id: 'remote-aphiaid',
-            name: 'Federated search by AphiaID',
-            canHandleTerm: (term) => term && term.trim().match(/^[0-9]{6,8}$/),
-            yasrPlugin : 'taxon',
-            debug: false,
-            q: '126554',
-            prefixes: ['dc', 'rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
-                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'eaufrance'],
-            query: 'SELECT DISTINCT \n' +
-                '  ?sourceUri ?scientificName ?author ?rank ?parent \n' +
-                '  ?created ?modified \n' +
-                '  ?exactMatch ?seeAlso \n' +
-                'WHERE {\n' +
-
-                // -- MNHN endpoint part
-                ' { SERVICE <{{mnhnEndpoint}}> {\n' +
-                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
-                '      rdf:type dwctax:TaxonName ;\n' +
-                '      taxrefprop:hasAuthority ?author ;\n' +
-                '      taxrefprop:hasRank ?rank ;\n' +
-                '      skos:exactMatch|owl:sameAs ?exactMatch ;\n' +
-                '      skos:exactMatch <urn:lsid:marinespecies.org:taxname:{{q}}> .\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri skos:broader ?parent .\n' +
-                '    }\n' +
-                // FIXME: failed if enable
-                //'    OPTIONAL {\n' +
-                //'      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
-                //'    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri dc:create ?created ;\n' +
-                '        dc:modified ?modified .\n' +
-                '    }\n' +
-                '  } \n' +
-                ' }\n' +
-
-                /* FIXME : Sandre has no AphiaID property
-                ' UNION\n' +
-
-                // -- Sandre endpoint part
-                ' { SERVICE <{{eauFranceEndpoint}}> {\n' +
-                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
-                '      rdf:type ?type ;\n' +
-                '      apt2:AuteurAppelTaxon ?author ;\n' +
-                '      apt2:NiveauTaxonomique ?rank ;\n' +
-                '      skos:exactMatch|owl:sameAs ?exactMatch .\n' +
-                '    FILTER(\n' +
-                '      URI(?exactMatch) = <urn:lsid:marinespecies.org:taxname:{{q}}>\n' +
+                '    BIND(\n' +
+                '      REPLACE(REPLACE(\n' +
+                '        CONCAT(?streetAddress, \'|\', ?postalCodeAndCity),\n' +
+                '          \'^[|]+\', \'\', \'i\'),\n' +
+                '        \'[|]+\', \', \', \'i\')\n' +
+                '      as ?address\n' +
                 '    )\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri apt2:AppelTaxonParent|skos:broader ?parent .\n' +
-                '      #FILTER ( isURI(?parent) )\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
-                '      #FILTER ( isURI(?exactMatch) )\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
-                '      #FILTER ( isURI(?seeAlso) )\n' +
-                '    }\n' +
-                '    OPTIONAL {\n' +
-                '      ?sourceUri dc:created|apt2:DateCreationAppelTaxon ?created ;\n' +
-                '        dc:modified|apt2:DateMajAppelTaxon ?modified .\n' +
-                '    }\n' +
                 '  }\n' +
-                ' }\n' +*/
-
+                '  OPTIONAL {\n' +
+                '    ?sourceUri inc1:PaysInterlocuteur _:country .\n' +
+                '    _:country inc1:CdPays ?addressCountry .\n' +
+                '  }\n' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                '    #FILTER ( isURI(?seeAlso) )\n' +
+                '  }\n' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri dc:created|inc1:DateCreInterlocuteur ?created ;\n' +
+                '      dc:modified|inc1:DateMAJInterlocuteur ?modified .\n' +
+                '  }\n' +
+                ' }}\n' +
                 '} LIMIT {{limit}}',
-            filters: [],
+            filters: ['anyMatch'],
             binding: {
                 eauFranceEndpoint: endpointsById.EAU_FRANCE,
-                mnhnEndpoint: endpointsById.MNHN
+                searchField: 'label'
             }
         }
      ];
@@ -439,7 +269,7 @@ function AppTaxonSearch(config) {
     /* -- Init functions -- */
 
     function init() {
-        console.debug("Init taxon search app...");
+        console.debug("Init department search app...");
 
         config = {
             ...defaultConfig,
@@ -454,7 +284,7 @@ function AppTaxonSearch(config) {
             endpointsById.THIS = defaultEndpoint;
 
             // Update the default prefix
-            defaultPrefixUri = window.location.origin + '/ontology/data/TaxonName/';
+            defaultPrefixUri = window.location.origin + '/ontology/data/Department/';
             helper.loadDefaultPrefix((prefixDef) => {
                 prefixDefs[0] = {
                     ...prefixDefs[0],
@@ -599,13 +429,13 @@ function AppTaxonSearch(config) {
             if (!element) throw new Error('Cannot find div with id=' + config.ids.yasr);
 
 
-            Yasr.registerPlugin("taxon", YasrTaxonPlugin);
+            Yasr.registerPlugin("department", YasrDepartmentPlugin);
 
-            YasrTaxonPlugin.prototype.defaults.onUriClick = config.onUriClick;
-            YasrTaxonPlugin.prototype.defaults.uriClickTarget = config.uriClickTarget;
+            YasrDepartmentPlugin.prototype.defaults.onUriClick = config.onUriClick;
+            YasrDepartmentPlugin.prototype.defaults.uriClickTarget = config.uriClickTarget;
 
             yasr = new Yasr(element, {
-                pluginOrder: ["taxon", "table", "response"],
+                pluginOrder: ["department", "table", "response"],
                 prefixes
             });
 
@@ -832,6 +662,7 @@ function AppTaxonSearch(config) {
                             // If exactMatch, replace 'prefixMatch' with 'exactMatch'
                             if (opts.exactMatch) {
                                 if (key === 'prefixMatch' || key === 'anyMatch') return 'exactMatch';
+                                if (key === 'cityPrefixMatch' || key === 'cityAnyMatch') return 'cityExactMatch';
                                 if (key === 'codePrefixMatch') return 'codeExactMatch';
                             }
                             return key

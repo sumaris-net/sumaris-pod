@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelURIs;
+import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
 import net.sumaris.rdf.service.schema.RdfSchemaOptions;
@@ -74,6 +75,7 @@ public class RdfRestController {
     public static final String DATA_BY_CLASS_PATH = DATA_SLASH_PATH + "{class:[a-zA-Z]+}";
     public static final String DATA_BY_CLASS_SLASH_PATH = DATA_BY_CLASS_PATH + "/";
     public static final String DATA_BY_OBJECT_PATH = DATA_BY_CLASS_SLASH_PATH + "{id:[0-9a-zA-Z]+}";
+
 
     public static final String CONVERT = ONTOLOGY_PATH + "/convert";
 
@@ -175,6 +177,7 @@ public class RdfRestController {
     public ResponseEntity<byte[]> getIndividuals(@PathVariable(name = "class") String className,
                                                  @PathVariable(name = "id", required = false) String objectId,
                                                  @PathVariable(name = "extension", required = false) String extension,
+                                                 @RequestParam(name = "schema", required = false) String schema,
                                                  @RequestParam(name = "format", required = false) String userFormat,
                                                  @RequestParam(name = "from", required = false, defaultValue = "0") int offset,
                                                  @RequestParam(name = "size", required = false, defaultValue = "100") int size,
@@ -190,8 +193,17 @@ public class RdfRestController {
                         .build())
                 .build();
 
+        boolean withSchema = "".equalsIgnoreCase(schema) || "true".equalsIgnoreCase(schema);
+        if (!withSchema) options.setReasoningLevel(ReasoningLevel.NONE);
+
         // Find the output format
-        RdfFormat outputFormat = findRdfFormat(request, userFormat, RdfFormat.RDF);
+        RdfFormat outputFormat = null;
+        if (StringUtils.isNotBlank(extension)) {
+            outputFormat = RdfFormat.fromExtension(extension).orElse(null);
+        }
+        if (outputFormat == null) {
+            outputFormat = findRdfFormat(request, userFormat, RdfFormat.RDF);
+        }
 
         // Get individuals
         Model individuals = dataExportService.getIndividuals(options);

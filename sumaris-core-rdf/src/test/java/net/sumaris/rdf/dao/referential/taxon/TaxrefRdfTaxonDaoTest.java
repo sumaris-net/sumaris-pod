@@ -24,7 +24,7 @@ package net.sumaris.rdf.dao.referential.taxon;
 
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.rdf.dao.DatabaseResource;
-import net.sumaris.rdf.dao.NamedModelProducer;
+import net.sumaris.rdf.dao.NamedRdfModelLoader;
 import net.sumaris.rdf.service.ServiceTestConfiguration;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;
@@ -52,8 +52,8 @@ public class TaxrefRdfTaxonDaoTest {
 
     private static final Logger log = LoggerFactory.getLogger(TaxrefRdfTaxonDaoTest.class);
 
-    @Resource(name = "taxrefRdfTaxonDao")
-    protected NamedModelProducer sandreRdfTaxonDao;
+    @Resource(name = "taxrefRdfModelLoader")
+    protected NamedRdfModelLoader modelLoader;
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -68,7 +68,7 @@ public class TaxrefRdfTaxonDaoTest {
         ttlFile = new File("/home/blavenie/git/sumaris/sumaris-pod/sumaris-core-rdf/src/test/resources", "taxon-taxref.ttl");
 
 
-        Model model = sandreRdfTaxonDao.loadOnePage(Page.builder().size(1000).build());
+        Model model = modelLoader.loadOnePage(Page.builder().size(1000).build());
         ModelUtils.modelToFile(ttlFile, model, RdfFormat.TURTLE);
 
         Assume.assumeTrue(false);// Fore failed
@@ -77,7 +77,7 @@ public class TaxrefRdfTaxonDaoTest {
     @Test
     public void loadAllByPage() {
 
-        Model model = sandreRdfTaxonDao.loadOnePage(Page.builder().size(100).build());
+        Model model = modelLoader.loadOnePage(Page.builder().size(100).build());
         byte[] contentBytes = ModelUtils.modelToBytes(model, RdfFormat.TURTLE);
 
         String content = new String(contentBytes);
