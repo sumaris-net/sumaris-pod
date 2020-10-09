@@ -32,7 +32,7 @@
       </ng-template>
 
       <!-- link -->
-      <ionR-item *ngIf="item.path"
+      <ion-item *ngIf="item.path"
                 class="{{item.cssClass}} {{item.color}} text-1x"
                 tappable
                 [routerLink]="item.path"
@@ -42,7 +42,7 @@
         <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
         <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
         <ng-container *ngTemplateOutlet="itemContent"></ng-container>
-      </ionR-item>
+      </ion-item>
 
       <!-- action -->
       <ion-item *ngIf="item.action"
