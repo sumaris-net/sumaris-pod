@@ -79,7 +79,8 @@
     </mat-cell>
   </ng-container> -->
 
-  <!-- Fields -->
+  <!-- Fields-->
+  <!-- INFO CLT-IMAGINE11 : définition des colonnes des paramètres collectés  -->
   <ng-container *ngFor="let definition of fieldDefinitions" [matColumnDef]="definition.key">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{definition.label | translate}}</ion-label>

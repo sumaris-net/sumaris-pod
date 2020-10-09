@@ -227,7 +227,6 @@ export class PmfmService extends BaseEntityService implements EntityService<Pmfm
                   toEntity?: boolean;
                   debug?: boolean;
                 }): Promise<LoadResult<Pmfm>> {
-
     opts = opts || {};
     const variables: any = {
       offset: offset || 0,
@@ -262,6 +261,232 @@ export class PmfmService extends BaseEntityService implements EntityService<Pmfm
     };
 
   }
+
+    /**
+   * Load pmfms
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
+   */
+  async loadAllPmfmsUnits(offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: PmfmFilter,
+    opts?: {
+      query?: any,
+      fetchPolicy?: FetchPolicy;
+      withTotal?: boolean;
+      withDetails?: boolean;
+      toEntity?: boolean;
+      debug?: boolean;
+    }): Promise<LoadResult<Pmfm>> {
+console.warn("pmfmservice loadAllPmfmsUnits");
+opts = opts || {};
+const variables: any = {
+offset: offset || 0,
+size: size || 100,
+sortBy: sortBy || 'label',
+sortDirection: sortDirection || 'asc',
+filter: PmfmFilter.asPodObject(filter)
+};
+const debug = this._debug && (opts.debug !== false);
+const now = debug && Date.now();
+if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+// INFO CLT: Modifier pour faire un distinct
+const query = opts.query ? opts.query : (
+opts.withDetails ? LoadAllWithDetailsQuery : (
+opts.withTotal ? LoadAllWithTotalQuery : LoadAllQuery
+)
+);
+const res = await this.graphql.query<{ pmfms: any[], referentialsCount?: number }>({
+query,
+variables,
+error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+fetchPolicy: opts && opts.fetchPolicy || undefined
+});
+
+const data = (!opts || opts.toEntity !== false) ?
+(res && res.pmfms || []).map(Pmfm.fromObject) :
+(res && res.pmfms || []) as Pmfm[];
+if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+return {
+data: data,
+total: res.referentialsCount
+};
+
+}
+
+  /**
+   * Load pmfms
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
+   */
+  async loadAllPmfmsMatrix(offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: PmfmFilter,
+    opts?: {
+      query?: any,
+      fetchPolicy?: FetchPolicy;
+      withTotal?: boolean;
+      withDetails?: boolean;
+      toEntity?: boolean;
+      debug?: boolean;
+    }): Promise<LoadResult<Pmfm>> {
+opts = opts || {};
+const variables: any = {
+offset: offset || 0,
+size: size || 100,
+sortBy: sortBy || 'label',
+sortDirection: sortDirection || 'asc',
+filter: PmfmFilter.asPodObject(filter)
+};
+const debug = this._debug && (opts.debug !== false);
+const now = debug && Date.now();
+if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+// INFO CLT: Modifier pour faire un distinct
+const query = opts.query ? opts.query : (
+opts.withDetails ? LoadAllWithDetailsQuery : (
+opts.withTotal ? LoadAllWithTotalQuery : LoadAllQuery
+)
+);
+const res = await this.graphql.query<{ pmfms: any[], referentialsCount?: number }>({
+query,
+variables,
+error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+fetchPolicy: opts && opts.fetchPolicy || undefined
+});
+
+const data = (!opts || opts.toEntity !== false) ?
+(res && res.pmfms || []).map(Pmfm.fromObject) :
+(res && res.pmfms || []) as Pmfm[];
+if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+return {
+data: data,
+total: res.referentialsCount
+};
+
+}
+
+  /**
+   * Load pmfms
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
+   */
+  async loadAllPmfmsFractions(offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: PmfmFilter,
+    opts?: {
+      query?: any,
+      fetchPolicy?: FetchPolicy;
+      withTotal?: boolean;
+      withDetails?: boolean;
+      toEntity?: boolean;
+      debug?: boolean;
+    }): Promise<LoadResult<Pmfm>> {
+opts = opts || {};
+const variables: any = {
+offset: offset || 0,
+size: size || 100,
+sortBy: sortBy || 'label',
+sortDirection: sortDirection || 'asc',
+filter: PmfmFilter.asPodObject(filter)
+};
+const debug = this._debug && (opts.debug !== false);
+const now = debug && Date.now();
+if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+// INFO CLT: Modifier pour faire un distinct
+const query = opts.query ? opts.query : (
+opts.withDetails ? LoadAllWithDetailsQuery : (
+opts.withTotal ? LoadAllWithTotalQuery : LoadAllQuery
+)
+);
+const res = await this.graphql.query<{ pmfms: any[], referentialsCount?: number }>({
+query,
+variables,
+error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+fetchPolicy: opts && opts.fetchPolicy || undefined
+});
+
+const data = (!opts || opts.toEntity !== false) ?
+(res && res.pmfms || []).map(Pmfm.fromObject) :
+(res && res.pmfms || []) as Pmfm[];
+if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+return {
+data: data,
+total: res.referentialsCount
+};
+
+}
+
+  /**
+   * Load pmfms
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
+   */
+  async loadAllPmfmsMethods(offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: PmfmFilter,
+    opts?: {
+      query?: any,
+      fetchPolicy?: FetchPolicy;
+      withTotal?: boolean;
+      withDetails?: boolean;
+      toEntity?: boolean;
+      debug?: boolean;
+    }): Promise<LoadResult<Pmfm>> {
+opts = opts || {};
+const variables: any = {
+offset: offset || 0,
+size: size || 100,
+sortBy: sortBy || 'label',
+sortDirection: sortDirection || 'asc',
+filter: PmfmFilter.asPodObject(filter)
+};
+const debug = this._debug && (opts.debug !== false);
+const now = debug && Date.now();
+if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+
+// INFO CLT: Modifier pour faire un distinct sur les méthodes
+const query = opts.query ? opts.query : (
+opts.withDetails ? LoadAllWithDetailsQuery : (
+opts.withTotal ? LoadAllWithTotalQuery : LoadAllQuery
+)
+);
+const res = await this.graphql.query<{ pmfms: any[], referentialsCount?: number }>({
+query,
+variables,
+error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+fetchPolicy: opts && opts.fetchPolicy || undefined
+});
+
+const data = (!opts || opts.toEntity !== false) ?
+(res && res.pmfms || []).map(Pmfm.fromObject) :
+(res && res.pmfms || []) as Pmfm[];
+if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+return {
+data: data,
+total: res.referentialsCount
+};
+
+}
 
   async saveAll(data: Pmfm[], options?: any): Promise<Pmfm[]> {
     if (!data) return data;
