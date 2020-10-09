@@ -217,6 +217,14 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Integer getReferenceTaxonIdById(int id) {
+        return getEntityManager()
+                .createNamedQuery("TaxonName.referenceTaxonIdById", Integer.class)
+                .setParameter("id", id)
+                .getSingleResult();
+    }
+
     /* -- protected methods -- */
 
     protected List<TaxonNameVO> toTaxonNameVOs(List<TaxonName> source) {

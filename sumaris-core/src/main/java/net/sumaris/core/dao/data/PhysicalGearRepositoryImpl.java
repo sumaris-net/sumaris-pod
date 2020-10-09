@@ -186,7 +186,7 @@ public class PhysicalGearRepositoryImpl
             }
             else {
                 List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-                int rankOrder = 1;
+                short rankOrder = 1;
                 for (MeasurementVO m : measurements) {
                     fillDefaultProperties(source, m);
                     m.setRankOrder(rankOrder++);

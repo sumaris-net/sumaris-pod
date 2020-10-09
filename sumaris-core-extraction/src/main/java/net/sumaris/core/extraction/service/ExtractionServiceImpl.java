@@ -62,7 +62,7 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -185,7 +185,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         switch (category) {
             case PRODUCT:
                 ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel(),
-                        ProductFetchOptions.MINIMAL_WITH_TABLES);
+                        ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
                 return readProductRows(product, filter, offset, size, sort, direction);
             case LIVE:
                 return extractRawDataAndRead(checkedType, filter, offset, size, sort, direction);
@@ -244,7 +244,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         switch (category) {
             case PRODUCT:
                 ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel(),
-                        ProductFetchOptions.builder()
+                        ExtractionProductFetchOptions.builder()
                                 .withRecorderDepartment(false)
                                 .withRecorderPerson(false)
                                 .withColumns(false)
@@ -354,7 +354,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Load the product
         ExtractionProductVO target = null;
         try {
-            target = extractionProductDao.getByLabel(type.getLabel(), ProductFetchOptions.builder()
+            target = extractionProductDao.getByLabel(type.getLabel(), ExtractionProductFetchOptions.builder()
                     .withTables(false)
                     .build());
         } catch (Throwable t) {
@@ -402,7 +402,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
 
         return ListUtils.emptyIfNull(
-                extractionProductDao.findByFilter(filter, ProductFetchOptions.builder()
+                extractionProductDao.findByFilter(filter, ExtractionProductFetchOptions.builder()
                         .withRecorderDepartment(true)
                         .withTables(true)
                         .build()))

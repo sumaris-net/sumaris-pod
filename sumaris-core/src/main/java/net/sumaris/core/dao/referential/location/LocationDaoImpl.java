@@ -171,12 +171,19 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
 
         // If running on HSQLDB: skip (no stored procedure define)
         if (Daos.isHsqlDatabase(config.getJdbcURL())) {
-            log.warn("Skipping location hierarchy (Stored procedure P_FILL_LOCATION_HIERARCHY not exists)");
+            log.warn("Skipping location hierarchy (Stored procedure P_FILL_LOCATION_HIERARCHY not exists). TODO: add Java implementation ?");
+
+            // TODO: add Java implementation
+
             return;
         }
 
-        Query q = getEntityManager().createNamedQuery("fillLocationHierarchy");
-        q.getResultList();
+        // If Oacle, call PL/SQL procédure
+        if (Daos.isOracleDatabase(config.getJdbcURL())) {
+            Query q = getEntityManager().createNamedQuery("fillLocationHierarchy");
+            q.getResultList();
+            return;
+        }
     }
 
     @Override

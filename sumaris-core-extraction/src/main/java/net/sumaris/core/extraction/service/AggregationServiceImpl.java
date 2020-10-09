@@ -77,7 +77,7 @@ public class AggregationServiceImpl implements AggregationService {
     private ExtractionTableDao extractionTableDao;
 
     @Override
-    public List<AggregationTypeVO> findByFilter(AggregationTypeFilterVO filter, ProductFetchOptions fetchOptions) {
+    public List<AggregationTypeVO> findByFilter(AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
 
         final AggregationTypeFilterVO notNullFilter = filter != null ? filter : new AggregationTypeFilterVO();
 
@@ -88,7 +88,7 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public AggregationTypeVO get(int id, ProductFetchOptions fetchOptions) {
+    public AggregationTypeVO get(int id, ExtractionProductFetchOptions fetchOptions) {
         ExtractionProductVO result = extractionProductDao.get(id, fetchOptions)
                 .orElseThrow(() -> new DataRetrievalFailureException(String.format("Unknown aggregation type {%s}", id)));
         return toAggregationType(result);
@@ -103,7 +103,7 @@ public class AggregationServiceImpl implements AggregationService {
         switch (category) {
             case PRODUCT:
                 // Get the product VO
-                source = extractionProductDao.getByLabel(checkedType.getFormat(), ProductFetchOptions.MINIMAL);
+                source = extractionProductDao.getByLabel(checkedType.getFormat(), ExtractionProductFetchOptions.MINIMAL);
                 // Execute, from product
                 return executeProduct(source, filter);
 
@@ -134,7 +134,7 @@ public class AggregationServiceImpl implements AggregationService {
     public AggregationResultVO read(AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata, int offset, int size, String sort, SortDirection direction) {
         Preconditions.checkNotNull(type);
 
-        ExtractionProductVO product = extractionProductDao.getByLabel(type.getLabel(), ProductFetchOptions.MINIMAL_WITH_TABLES);
+        ExtractionProductVO product = extractionProductDao.getByLabel(type.getLabel(), ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
         AggregationContextVO context = toContextVO(product);
 
         return read(context, filter, strata, offset, size, sort, direction);
@@ -202,7 +202,7 @@ public class AggregationServiceImpl implements AggregationService {
         // Load the product
         ExtractionProductVO target = null;
         if (type.getId() != null) {
-            target = extractionProductDao.get(type.getId(), ProductFetchOptions.FOR_UPDATE)
+            target = extractionProductDao.get(type.getId(), ExtractionProductFetchOptions.FOR_UPDATE)
                     .orElse(null);
         }
 
@@ -268,7 +268,7 @@ public class AggregationServiceImpl implements AggregationService {
 
         Integer productId = type.getId();
         if (productId == null) {
-            ExtractionProductVO product = extractionProductDao.getByLabel(type.getLabel(), ProductFetchOptions.MINIMAL);
+            ExtractionProductVO product = extractionProductDao.getByLabel(type.getLabel(), ExtractionProductFetchOptions.MINIMAL);
             productId = product.getId();
         }
         // Try to get columns from the DB
@@ -294,17 +294,17 @@ public class AggregationServiceImpl implements AggregationService {
 
     /* -- protected -- */
 
-    protected List<AggregationTypeVO> getAllAggregationTypes(ProductFetchOptions fetchOptions) {
+    protected List<AggregationTypeVO> getAllAggregationTypes(ExtractionProductFetchOptions fetchOptions) {
         return ImmutableList.<AggregationTypeVO>builder()
                 .addAll(getProductAggregationTypes(fetchOptions))
                 .addAll(getLiveAggregationTypes())
                 .build();
     }
-    protected List<AggregationTypeVO> getProductAggregationTypes(ProductFetchOptions fetchOptions) {
+    protected List<AggregationTypeVO> getProductAggregationTypes(ExtractionProductFetchOptions fetchOptions) {
         return getProductAggregationTypes(null, fetchOptions);
     }
 
-    protected List<AggregationTypeVO> getProductAggregationTypes(@Nullable AggregationTypeFilterVO filter, ProductFetchOptions fetchOptions) {
+    protected List<AggregationTypeVO> getProductAggregationTypes(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         filter = filter != null ? filter : new AggregationTypeFilterVO();
 
         // Exclude types with a DISABLE status, by default

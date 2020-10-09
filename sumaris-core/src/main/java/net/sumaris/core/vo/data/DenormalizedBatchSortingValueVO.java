@@ -20,32 +20,34 @@
  * #L%
  */
 
-package net.sumaris.core.event.entity;
+package net.sumaris.core.vo.data;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IValueObject;
-
-import java.io.Serializable;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 @Data
-@AllArgsConstructor
-public class EntityEvent {
+@FieldNameConstants
+@EqualsAndHashCode
+public class DenormalizedBatchSortingValueVO {
+    @EqualsAndHashCode.Exclude
+    private Integer id;
 
-    public enum EntityEventOperation {
-        INSERT,
-        UPDATE,
-        DELETE
-    }
+    private Integer rankOrder;
+    private Boolean isInherited;
+    private Double numericalValue;
+    private String alphanumericalValue;
 
-    private EntityEventOperation operation;
+    private Integer pmfmId;
 
-    private Serializable id;
+    private ReferentialVO qualitativeValue;
 
-    private String entityName;
+    private ReferentialVO parameter;
+    private ReferentialVO unit;
 
-    private IValueObject data;
-
-
+    @EqualsAndHashCode.Exclude
+    private DenormalizedBatchVO batch;
 
 }

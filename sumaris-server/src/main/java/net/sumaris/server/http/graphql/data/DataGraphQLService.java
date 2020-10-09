@@ -1113,7 +1113,7 @@ public class DataGraphQLService {
     }
 
     @GraphQLQuery(name = "quantificationMeasurements", description = "Get batch quantification measurements")
-    public List<MeasurementVO> getBatchQuantificationMeasurements(@GraphQLContext BatchVO batch) {
+    public List<QuantificationMeasurementVO> getBatchQuantificationMeasurements(@GraphQLContext BatchVO batch) {
         if (batch.getQuantificationMeasurements() != null) {
             return batch.getQuantificationMeasurements();
         }

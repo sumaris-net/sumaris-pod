@@ -20,13 +20,10 @@
  * #L%
  */
 
-package net.sumaris.core.jms;
+package net.sumaris.core.event.jms;
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.event.entity.EntityEvent;
-import net.sumaris.core.event.entity.EntityInsertEvent;
-import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.event.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -56,14 +53,14 @@ public class EntityJmsNotifier {
     @TransactionalEventListener(
             value = {EntityInsertEvent.class, EntityUpdateEvent.class, EntityDeleteEvent.class},
             phase = TransactionPhase.AFTER_COMMIT)
-    public void onEntityEvent(EntityEvent event) {
+    public void onEntityEvent(IEntityEvent event) {
         Preconditions.checkNotNull(event);
         Preconditions.checkNotNull(event.getOperation());
         Preconditions.checkNotNull(event.getEntityName());
         Preconditions.checkNotNull(event.getId());
 
         // Compute a destination name
-        String destinationName = event.getOperation().name().toLowerCase() + event.getEntityName();
+        String destinationName = event.getJmsDestinationName();
 
         if (log.isDebugEnabled()) log.debug(String.format("Sending JMS message... {destination: '%s', id: %s}",
                 destinationName, event.getId()));

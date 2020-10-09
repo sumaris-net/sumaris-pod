@@ -1,10 +1,10 @@
-package net.sumaris.core.dao.referential;
+package net.sumaris.core.service.data;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,40 +22,40 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
-import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.referential.location.LocationAreaDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
-import net.sumaris.core.model.referential.location.LocationArea;
-import net.sumaris.core.util.Geometries;
+import net.sumaris.core.dao.technical.model.TreeNodeEntities;
+import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.vo.data.*;
+import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author peck7 on 15/10/2019.
- */
-public class LocationWriteTest extends AbstractDaoTest {
+import java.util.List;
+
+public class DenormalizedBatchServiceWriteTest extends AbstractServiceTest{
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
-//    public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle");
 
     @Autowired
-    private LocationDao locationDao;
+    private BatchService batchService;
 
     @Autowired
-    private LocationAreaDao locationAreaDao;
+    private DenormalizedBatchService service;
 
     @Test
-    @Ignore
-    public void testGeometry() {
+    public void saveAllByOperationId() {
 
-        LocationArea area = new LocationArea();
-        area.setId(1);
-        area.setLocation(locationDao.get(1)); // France
-        area.setPosition(Geometries.createPoint(-55,20));
-        locationAreaDao.saveAndFlush(area);
+        int operationId = dbResource.getFixtures().getOperationId(1);
+        List<BatchVO> batches = batchService.getAllByOperationId(operationId);
+        BatchVO catchBatch = TreeNodeEntities.listAsTree(batches, BatchVO::getParentId);
+        Assume.assumeNotNull(catchBatch);
+
+        List<DenormalizedBatchVO> result = service.saveAllByOperationId(operationId, catchBatch);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(batches.size(), result.size());
+
     }
 }

@@ -40,33 +40,9 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date>,
-        IValueObject<Integer>,
-        IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
-        IWithRecorderPersonEntity<Integer, PersonVO> {
+public class QuantificationMeasurementVO extends MeasurementVO {
 
-    @EqualsAndHashCode.Exclude
-    private Integer id;
-    private int pmfmId;
-    private Double numericalValue;
-    private String alphanumericalValue;
-    private Integer digitCount;
-    private Short rankOrder;
-    private Double precisionValue;
-    private ReferentialVO qualitativeValue;
-
-    private Date creationDate;
-    private Date updateDate;
-    private Date controlDate;
-    private Date validationDate;
-    private Integer qualityFlagId;
-    private DepartmentVO recorderDepartment;
-    private PersonVO recorderPerson;
-
-    private String entityName;
-
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-    }
+    private Short subgroupNumber;
+    private Boolean isReferenceQuantification;
 
 }

@@ -24,8 +24,10 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import org.hibernate.annotations.Cascade;
@@ -39,7 +41,8 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "batch")
-public class Batch implements IDataEntity<Integer> {
+public class Batch implements IDataEntity<Integer>,
+        ITreeNodeEntityBean<Integer, Batch> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BATCH_SEQ")
@@ -132,6 +135,11 @@ public class Batch implements IDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Sale.class)
     @JoinColumn(name = "sale_fk")
     private Sale sale;
+
+    // TODO: add location (for fishing area - need for sale)
+    //@ManyToOne(fetch = FetchType.LAZY, targetEntity = Location.class)
+    //@JoinColumn(name = "location_fk")
+    //private Location location;
 
     public String toString() {
         return String.format("Batch{id=%s,label=%s}", id, label);

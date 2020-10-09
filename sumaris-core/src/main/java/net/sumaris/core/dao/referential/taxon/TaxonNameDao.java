@@ -47,4 +47,6 @@ public interface TaxonNameDao {
     @Cacheable(cacheNames = CacheNames.TAXON_NAMES_BY_TAXON_GROUP_ID, unless = "#result == null")
     List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId);
 
+    @Cacheable(cacheNames = CacheNames.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, unless = "#result == null")
+    Integer getReferenceTaxonIdById(int id);
 }

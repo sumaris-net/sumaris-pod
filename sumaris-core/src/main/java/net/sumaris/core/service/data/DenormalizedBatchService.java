@@ -1,8 +1,8 @@
-package net.sumaris.core.dao.technical.model;
+package net.sumaris.core.service.data;
 
 /*-
  * #%L
- * SUMARiS:: Core shared
+ * SUMARiS:: Core
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,16 +22,24 @@ package net.sumaris.core.dao.technical.model;
  * #L%
  */
 
-import java.io.Serializable;
+
+import net.sumaris.core.vo.data.BatchVO;
+import net.sumaris.core.vo.data.DenormalizedBatchVO;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
-public interface ITreeNodeEntityBean<ID extends Serializable, E extends IEntity<ID>> extends IEntity<ID> {
+/**
+ * @author BLA
+ * 
+ */
+@Transactional
+public interface DenormalizedBatchService {
 
-    E getParent();
+	List<DenormalizedBatchVO> denormalize(BatchVO catchBatch);
 
-    void setParent(E parent);
+	List<DenormalizedBatchVO> saveAllByOperationId(int operationId, BatchVO catchBatch);
 
-    List<E> getChildren();
-
-    void setChildren(List<E> children);
+	List<DenormalizedBatchVO> saveAllBySaleId(int saleId, BatchVO catchBatch);
 }

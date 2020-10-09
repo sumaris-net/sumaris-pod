@@ -25,7 +25,7 @@ package net.sumaris.core.extraction.service;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
-import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,10 +41,10 @@ import java.util.List;
 public interface AggregationService {
 
     @Transactional(readOnly = true)
-    List<AggregationTypeVO> findByFilter(@Nullable AggregationTypeFilterVO filter, ProductFetchOptions fetchOptions);
+    List<AggregationTypeVO> findByFilter(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    AggregationTypeVO get(int id, ProductFetchOptions fetchOptions);
+    AggregationTypeVO get(int id, ExtractionProductFetchOptions fetchOptions);
 
     /**
      * Do an aggregate

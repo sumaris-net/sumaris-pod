@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 
+import net.sumaris.core.vo.data.BatchFetchOptions;
 import net.sumaris.core.vo.data.BatchVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,9 @@ public interface BatchService {
 
 	@Transactional(readOnly = true)
 	List<BatchVO> getAllByOperationId(int operationId);
+
+	@Transactional(readOnly = true)
+	List<BatchVO> getAllByOperationId(int operationId, BatchFetchOptions fetchOptions);
 
 	List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources);
 

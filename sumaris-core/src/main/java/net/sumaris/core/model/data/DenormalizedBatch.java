@@ -99,9 +99,6 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     @Column(name = "exhaustive_inventory")
     private Boolean exhaustiveInventory;
 
-    @Column(name = "child_batchs_replication")
-    private Boolean childBatchsReplication;
-
     @Column(length = IDataEntity.LENGTH_COMMENTS)
     private String comments;
 

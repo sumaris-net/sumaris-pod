@@ -75,7 +75,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
     private PersonDao personDao;
 
     @Override
-    public List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ProductFetchOptions fetchOptions) {
+    public List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         Preconditions.checkNotNull(filter);
         Preconditions.checkArgument(ArrayUtils.isNotEmpty(filter.getStatusIds()));
 
@@ -100,7 +100,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
     }
 
     @Override
-    public ExtractionProductVO getByLabel(String label, ProductFetchOptions fetchOptions) {
+    public ExtractionProductVO getByLabel(String label, ExtractionProductFetchOptions fetchOptions) {
         Preconditions.checkNotNull(label);
 
         return toProductVO(getEntityManager().createQuery("from ExtractionProduct p where upper(p.label) =:label", ExtractionProduct.class)
@@ -110,7 +110,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
     }
 
     @Override
-    public Optional<ExtractionProductVO> get(int id, ProductFetchOptions fetchOptions) {
+    public Optional<ExtractionProductVO> get(int id, ExtractionProductFetchOptions fetchOptions) {
         try {
             return Optional.ofNullable(toProductVO(get(ExtractionProduct.class, id), fetchOptions));
         } catch (Exception e) {
@@ -515,7 +515,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         }
     }
 
-    protected ExtractionProductVO toProductVO(ExtractionProduct source, ProductFetchOptions fetchOptions) {
+    protected ExtractionProductVO toProductVO(ExtractionProduct source, ExtractionProductFetchOptions fetchOptions) {
         ExtractionProductVO target = new ExtractionProductVO();
         Beans.copyProperties(source, target);
 
@@ -555,7 +555,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         return target;
     }
 
-    protected ExtractionProductTableVO toProductTableVO(ExtractionProductTable source, ProductFetchOptions fetchOptions) {
+    protected ExtractionProductTableVO toProductTableVO(ExtractionProductTable source, ExtractionProductFetchOptions fetchOptions) {
         ExtractionProductTableVO target = new ExtractionProductTableVO();
         Beans.copyProperties(source, target);
 
@@ -626,7 +626,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                 .collect(Collectors.toList());
     }
 
-    protected ExtractionProductColumnVO toColumnVO(ExtractionProductColumn source, ProductFetchOptions fetchOptions) {
+    protected ExtractionProductColumnVO toColumnVO(ExtractionProductColumn source, ExtractionProductFetchOptions fetchOptions) {
         ExtractionProductColumnVO target = new ExtractionProductColumnVO();
         Beans.copyProperties(source, target);
 

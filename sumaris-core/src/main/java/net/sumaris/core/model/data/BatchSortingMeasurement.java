@@ -86,7 +86,7 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
     private QualitativeValue qualitativeValue;
 
     @Column(name = "rank_order", nullable = false)
-    private Integer rankOrder;
+    private Short rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pmfm_fk", nullable = false)

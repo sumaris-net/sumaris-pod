@@ -156,6 +156,11 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean referenceTaxonIdByTaxonNameId() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, 600);
+    }
+
+    @Bean
     public EhCacheFactoryBean referentialTypesCache() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.REFERENTIAL_TYPES, 600);
     }

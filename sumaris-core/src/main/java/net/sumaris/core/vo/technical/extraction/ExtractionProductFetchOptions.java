@@ -27,9 +27,9 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ProductFetchOptions {
+public class ExtractionProductFetchOptions {
 
-    public static ProductFetchOptions MINIMAL = builder()
+    public static ExtractionProductFetchOptions MINIMAL = builder()
             .withRecorderDepartment(false)
             .withRecorderPerson(false)
             .withTables(true)
@@ -37,7 +37,7 @@ public class ProductFetchOptions {
             .withColumns(false)
             .withColumnValues(false)
             .build();
-    public static ProductFetchOptions FOR_UPDATE = builder()
+    public static ExtractionProductFetchOptions FOR_UPDATE = builder()
             .withRecorderDepartment(true)
             .withRecorderPerson(true)
             .withTables(true)
@@ -45,7 +45,7 @@ public class ProductFetchOptions {
             .withColumns(false)
             .withColumnValues(false)
             .build();
-    public static ProductFetchOptions MINIMAL_WITH_TABLES = builder()
+    public static ExtractionProductFetchOptions MINIMAL_WITH_TABLES = builder()
             .withRecorderDepartment(false)
             .withRecorderPerson(false)
             .withTables(true)
@@ -53,7 +53,7 @@ public class ProductFetchOptions {
             .withColumns(false)
             .withColumnValues(false)
             .build();
-    public static ProductFetchOptions NO_COLUMNS = builder()
+    public static ExtractionProductFetchOptions NO_COLUMNS = builder()
             .withColumns(false)
             .withColumnValues(false)
             .build();

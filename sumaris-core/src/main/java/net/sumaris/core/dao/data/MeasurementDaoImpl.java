@@ -45,11 +45,13 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.mutable.MutableShort;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +59,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -133,6 +136,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> getTripVesselUseMeasurements(int tripId) {
         return getMeasurementsByParentId(VesselUseMeasurement.class,
+                MeasurementVO.class,
                 VesselUseMeasurement.Fields.TRIP,
                 tripId,
                 VesselUseMeasurement.Fields.RANK_ORDER
@@ -144,13 +148,14 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(VesselUseMeasurement.class,
                 VesselUseMeasurement.Fields.TRIP,
                 tripId,
-                VesselUseMeasurement.Fields.ID
+                null
         );
     }
 
     @Override
     public List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId) {
         return getMeasurementsByParentId(PhysicalGearMeasurement.class,
+                MeasurementVO.class,
                 PhysicalGearMeasurement.Fields.PHYSICAL_GEAR,
                 physicalGearId,
                 PhysicalGearMeasurement.Fields.RANK_ORDER
@@ -162,13 +167,14 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(PhysicalGearMeasurement.class,
                 PhysicalGearMeasurement.Fields.PHYSICAL_GEAR,
                 physicalGearId,
-                PhysicalGearMeasurement.Fields.ID
+                null
         );
     }
 
     @Override
     public List<MeasurementVO> getOperationVesselUseMeasurements(int operationId) {
         return getMeasurementsByParentId(VesselUseMeasurement.class,
+                MeasurementVO.class,
                 VesselUseMeasurement.Fields.OPERATION,
                 operationId,
                 VesselUseMeasurement.Fields.RANK_ORDER
@@ -180,7 +186,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(VesselUseMeasurement.class,
                 VesselUseMeasurement.Fields.OPERATION,
                 operationId,
-                VesselUseMeasurement.Fields.ID
+                null
         );
     }
 
@@ -189,13 +195,14 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(GearUseMeasurement.class,
                 GearUseMeasurement.Fields.OPERATION,
                 operationId,
-                GearUseMeasurement.Fields.ID
+                null
         );
     }
 
     @Override
     public List<MeasurementVO> getOperationGearUseMeasurements(int operationId) {
         return getMeasurementsByParentId(GearUseMeasurement.class,
+                MeasurementVO.class,
                 GearUseMeasurement.Fields.OPERATION,
                 operationId,
                 GearUseMeasurement.Fields.RANK_ORDER
@@ -205,6 +212,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> getSampleMeasurements(int sampleId) {
         return getMeasurementsByParentId(SampleMeasurement.class,
+                MeasurementVO.class,
                 SampleMeasurement.Fields.SAMPLE,
                 sampleId,
                 SampleMeasurement.Fields.RANK_ORDER
@@ -214,6 +222,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> getObservedLocationMeasurements(int observedLocationId) {
         return getMeasurementsByParentId(ObservedLocationMeasurement.class,
+                MeasurementVO.class,
                 ObservedLocationMeasurement.Fields.OBSERVED_LOCATION,
                 observedLocationId,
                 ObservedLocationMeasurement.Fields.RANK_ORDER
@@ -225,7 +234,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(SampleMeasurement.class,
                 SampleMeasurement.Fields.SAMPLE,
                 sampleId,
-                SampleMeasurement.Fields.RANK_ORDER
+                null
         );
     }
 
@@ -234,7 +243,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(BatchSortingMeasurement.class,
                 BatchSortingMeasurement.Fields.BATCH,
                 batchId,
-                BatchSortingMeasurement.Fields.RANK_ORDER
+                null
         );
     }
 
@@ -243,7 +252,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(BatchQuantificationMeasurement.class,
                 BatchQuantificationMeasurement.Fields.BATCH,
                 batchId,
-                BatchQuantificationMeasurement.Fields.ID
+                null
         );
     }
 
@@ -252,7 +261,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(ObservedLocationMeasurement.class,
                 ObservedLocationMeasurement.Fields.OBSERVED_LOCATION,
                 observedLocationId,
-                ObservedLocationMeasurement.Fields.ID
+                null
         );
     }
 
@@ -262,13 +271,14 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(LandingMeasurement.class,
                 LandingMeasurement.Fields.LANDING,
                 landingId,
-                LandingMeasurement.Fields.ID
+                null
         );
     }
 
     @Override
     public List<MeasurementVO> getLandingMeasurements(int landingId) {
         return getMeasurementsByParentId(LandingMeasurement.class,
+                MeasurementVO.class,
                 LandingMeasurement.Fields.LANDING,
                 landingId,
                 LandingMeasurement.Fields.ID
@@ -278,6 +288,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> getSaleMeasurements(int saleId) {
         return getMeasurementsByParentId(SaleMeasurement.class,
+                MeasurementVO.class,
             SaleMeasurement.Fields.SALE,
             saleId,
             SaleMeasurement.Fields.ID
@@ -289,42 +300,46 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(SaleMeasurement.class,
             SaleMeasurement.Fields.SALE,
             saleId,
-            SaleMeasurement.Fields.ID
+            null
         );
     }
 
 
 
     @Override
-    public <T extends IMeasurementEntity>  MeasurementVO toMeasurementVO(T source) {
+    public <T extends IMeasurementEntity, V extends MeasurementVO>  V toMeasurementVO(T source, Class<? extends V> voClass) {
         if (source == null) return null;
 
-        MeasurementVO target = new MeasurementVO();
+        try {
+            V target = voClass.newInstance();
 
-        Beans.copyProperties(source, target);
+            Beans.copyProperties(source, target);
 
-        // Pmfm Id
-        if (source.getPmfm() != null) {
-            target.setPmfmId(source.getPmfm().getId());
+            // Pmfm Id
+            if (source.getPmfm() != null) {
+                target.setPmfmId(source.getPmfm().getId());
+            }
+
+            // Qualitative value
+            if (source.getQualitativeValue() != null) {
+                ReferentialVO qv = referentialDao.toReferentialVO(source.getQualitativeValue());
+                target.setQualitativeValue(qv);
+            }
+
+            // Quality flag
+            target.setQualityFlagId(source.getQualityFlag().getId());
+
+            // Recorder department
+            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+            target.setRecorderDepartment(recorderDepartment);
+
+            // Entity Name
+            target.setEntityName(getEntityName(source));
+
+            return target;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new SumarisTechnicalException(e);
         }
-
-        // Qualitative value
-        if (source.getQualitativeValue() != null){
-            ReferentialVO qv = referentialDao.toReferentialVO(source.getQualitativeValue());
-            target.setQualitativeValue(qv);
-        }
-
-        // Quality flag
-        target.setQualityFlagId(source.getQualityFlag().getId());
-
-        // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
-        target.setRecorderDepartment(recorderDepartment);
-
-        // Entity Name
-        target.setEntityName(getEntityName(source));
-
-        return target;
     }
 
     @Override
@@ -426,19 +441,21 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> getBatchSortingMeasurements(int batchId) {
         return getMeasurementsByParentId(BatchSortingMeasurement.class,
-            BatchSortingMeasurement.Fields.BATCH,
-            batchId,
-            BatchSortingMeasurement.Fields.RANK_ORDER
+                MeasurementVO.class,
+                BatchSortingMeasurement.Fields.BATCH,
+                batchId,
+                BatchSortingMeasurement.Fields.RANK_ORDER
             );
     }
 
     @Override
-    public List<MeasurementVO> getBatchQuantificationMeasurements(int batchId) {
+    public List<QuantificationMeasurementVO> getBatchQuantificationMeasurements(int batchId) {
         return getMeasurementsByParentId(BatchQuantificationMeasurement.class,
-            BatchQuantificationMeasurement.Fields.BATCH,
-            batchId,
-            BatchQuantificationMeasurement.Fields.ID
-        );
+                QuantificationMeasurementVO.class,
+                BatchQuantificationMeasurement.Fields.BATCH,
+                batchId,
+                BatchQuantificationMeasurement.Fields.ID
+            );
     }
 
     @Override
@@ -448,7 +465,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    public List<MeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<MeasurementVO> sources) {
+    public List<QuantificationMeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<QuantificationMeasurementVO> sources) {
         Batch parent = get(Batch.class, batchId);
         return saveMeasurements(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
@@ -471,7 +488,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(ProductSortingMeasurement.class,
             ProductSortingMeasurement.Fields.PRODUCT,
             productId,
-            ProductSortingMeasurement.Fields.RANK_ORDER
+            null
         );
     }
 
@@ -480,7 +497,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(ProductQuantificationMeasurement.class,
             ProductQuantificationMeasurement.Fields.PRODUCT,
             productId,
-            ProductQuantificationMeasurement.Fields.ID
+            null
         );
     }
 
@@ -527,6 +544,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId) {
         return getMeasurementsByParentId(VesselPhysicalMeasurement.class,
+                MeasurementVO.class,
                 VesselPhysicalMeasurement.Fields.VESSEL_FEATURES,
                 vesselFeaturesId,
                 VesselPhysicalMeasurement.Fields.ID
@@ -538,14 +556,14 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return getMeasurementsMapByParentId(VesselPhysicalMeasurement.class,
                 VesselPhysicalMeasurement.Fields.VESSEL_FEATURES,
                 vesselFeaturesId,
-                VesselPhysicalMeasurement.Fields.ID
+                null
         );
     }
 
     @Override
-    public <T extends IMeasurementEntity> List<MeasurementVO> saveMeasurements(
+    public <T extends IMeasurementEntity, V extends MeasurementVO> List<V> saveMeasurements(
             final Class<? extends IMeasurementEntity> entityClass,
-            List<MeasurementVO> sources,
+            List<V> sources,
             List<T> target,
             final IDataEntity<?> parent) {
 
@@ -555,9 +573,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         // note: Need Beans.getList() to avoid NullPointerException if target=null
         final Map<Integer, T> sourceToRemove = Beans.splitById(Beans.getList(target));
 
-        int rankOrder = 1;
-        List<MeasurementVO> result = Lists.newArrayList();
-        for (MeasurementVO source: sources) {
+        MutableShort rankOrder = new MutableShort(1);
+        List<V> result = Lists.newArrayList();
+        sources.stream().forEach(source -> {
             if (isNotEmpty(source)) {
                 IMeasurementEntity entity = null;
 
@@ -580,16 +598,16 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
                 // Update rankOrder
                 if (entity instanceof ISortedMeasurementEntity) {
-                    ((ISortedMeasurementEntity)entity).setRankOrder(rankOrder);
-                    source.setRankOrder(rankOrder);
-                    rankOrder++;
+                    ((ISortedMeasurementEntity)entity).setRankOrder(rankOrder.getValue());
+                    source.setRankOrder(rankOrder.getValue());
+                    rankOrder.increment();
                 }
 
                 // Is reference ?
                 if (entity instanceof IQuantifiedMeasurementEntity) {
-                    ((IQuantifiedMeasurementEntity) entity).setIsReferenceQuantification(rankOrder == 1);
-                    ((IQuantifiedMeasurementEntity) entity).setSubgroupNumber(rankOrder == 1 ? null : rankOrder - 1);
-                    rankOrder++;
+                    ((IQuantifiedMeasurementEntity) entity).setIsReferenceQuantification(rankOrder.getValue() == 1);
+                    ((IQuantifiedMeasurementEntity) entity).setSubgroupNumber(rankOrder.getValue() == 1 ? null : (short)(rankOrder.getValue() - 1));
+                    rankOrder.increment();
                 }
 
                 // Set parent
@@ -610,9 +628,8 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 source.setUpdateDate(newUpdateDate);
                 source.setEntityName(getEntityName(entity));
 
-                result.add(source);
             }
-        }
+        });
 
         // Remove unused measurements
         if (MapUtils.isNotEmpty(sourceToRemove)) {
@@ -667,7 +684,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target),
             StringUtils.doting(IMeasurementEntity.Fields.PMFM, IMeasurementEntity.Fields.ID));
 
-        int rankOrder = 1;
+        short rankOrder = 1;
         for (Map.Entry<Integer, String> source: sources.entrySet()) {
             Integer pmfmId = source.getKey();
             String value = source.getValue();
@@ -735,12 +752,13 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return sources;
     }
 
-    protected <T extends IMeasurementEntity> List<MeasurementVO> getMeasurementsByParentId(Class<T> entityClass,
+    protected <T extends IMeasurementEntity, V extends MeasurementVO> List<V> getMeasurementsByParentId(Class<T> entityClass,
+                                                                                           Class<? extends V> voClass,
                                                                                         String parentPropertyName,
                                                                                         int parentId,
                                                                                         String sortByPropertyName) {
         TypedQuery<T> query = getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName);
-        return toMeasurementVOs(query.getResultList());
+        return toMeasurementVOs(query.getResultList(), voClass);
     }
 
     protected <T extends IMeasurementEntity> Map<Integer, String> getMeasurementsMapByParentId(Class<T> entityClass,
@@ -754,11 +772,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
 
     protected <T extends IMeasurementEntity> TypedQuery<T> getMeasurementsByParentIdQuery(Class<T> entityClass,
-                                                                                           String parentPropertyName,
-                                                                                           int parentId,
-                                                                                           String sortByPropertyName) {
-        Preconditions.checkNotNull(sortByPropertyName);
-
+                                                                                          String parentPropertyName,
+                                                                                          int parentId,
+                                                                                          @Nullable String sortByPropertyName) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
         Root<T> root = query.from(entityClass);
@@ -766,17 +782,20 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         ParameterExpression<Integer> idParam = builder.parameter(Integer.class);
 
         query.select(root)
-                .where(builder.equal(root.get(parentPropertyName).get(IEntity.Fields.ID), idParam))
-                // Order byldev
-                .orderBy(builder.asc(root.get(sortByPropertyName)));
+                .where(builder.equal(root.get(parentPropertyName).get(IEntity.Fields.ID), idParam));
+
+        // Order by
+        if (sortByPropertyName != null) {
+            query.orderBy(builder.asc(root.get(sortByPropertyName)));
+        }
 
         return getEntityManager().createQuery(query)
                 .setParameter(idParam, parentId);
     }
 
-    protected <T extends IMeasurementEntity> List<MeasurementVO> toMeasurementVOs(List<T> source) {
-        return source.stream()
-                .map(this::toMeasurementVO)
+    protected <T extends IMeasurementEntity, V extends MeasurementVO> List<V> toMeasurementVOs(List<T> sources, Class<? extends V> voClass) {
+        return sources.stream()
+                .map(source -> toMeasurementVO(source, voClass))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }

@@ -54,7 +54,6 @@
       <column name="id" type="INT">
         <constraints primaryKey="true" primaryKeyName="denormalized_batch_pk"/>
       </column>
-      <column name="child_batchs_replication" type="BOOLEAN"/>
       <column name="comments" type="VARCHAR(2000)"/>
       <column name="elevate_context_weight" type="DOUBLE"/>
       <column name="elevate_individual_count" type="INT"/>
@@ -339,7 +338,7 @@
   <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-152" failOnError="false">
     <addUniqueConstraint columnNames="label" constraintName="PMFM_LABEL_UNIQUE_C" tableName="pmfm"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-153">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-153" failOnError="false">
     <addUniqueConstraint columnNames="parameter_fk, matrix_fk, fraction_fk, method_fk, unit_fk" constraintName="pmfm_unique_c" tableName="pmfm"/>
   </changeSet>
 

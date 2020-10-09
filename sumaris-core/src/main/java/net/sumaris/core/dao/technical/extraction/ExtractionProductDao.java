@@ -26,7 +26,7 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -42,21 +42,21 @@ public interface ExtractionProductDao {
 
 
     @Cacheable(cacheNames = CacheNames.PRODUCTS_BY_FILTER)
-    List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ProductFetchOptions fetchOptions);
+    List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions);
 
     default List<ExtractionProductVO> findByFilter() {
         return findByFilter(null, null);
     }
 
     @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
-    ExtractionProductVO getByLabel(String label, ProductFetchOptions fetchOptions);
+    ExtractionProductVO getByLabel(String label, ExtractionProductFetchOptions fetchOptions);
 
     default ExtractionProductVO getByLabel(String label) {
         return getByLabel(label, null);
     }
 
     //@Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
-    Optional<ExtractionProductVO> get(int id, ProductFetchOptions fetchOptions);
+    Optional<ExtractionProductVO> get(int id, ExtractionProductFetchOptions fetchOptions);
 
     default Optional<ExtractionProductVO> get(int id) {
         return get(id, null);

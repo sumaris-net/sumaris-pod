@@ -46,7 +46,8 @@ public interface PmfmDao {
             evict = {
                     @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#source.id", condition = "#source != null && #source.id != null"),
                     @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
-                    @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true)
+                    @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true),
+                    @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true)
             }
     )
     PmfmVO save(PmfmVO source);

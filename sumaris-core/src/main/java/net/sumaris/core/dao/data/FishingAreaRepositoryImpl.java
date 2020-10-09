@@ -138,7 +138,7 @@ public class FishingAreaRepositoryImpl
             if (source.getQualityFlagId() == null) {
                 target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
             } else {
-                target.setLocation(load(Location.class, source.getLocation().getId()));
+                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
         }
 
@@ -162,26 +162,26 @@ public class FishingAreaRepositoryImpl
     }
 
     @Override
-    public List<FishingAreaVO> saveAllByOperationId(int operationId, @Nonnull List<FishingAreaVO> fishingAreas) {
+    public List<FishingAreaVO> saveAllByOperationId(int operationId, @Nonnull List<FishingAreaVO> sources) {
 
-        // Save only non null objects
-        List<FishingAreaVO> fishingAreasToSave = fishingAreas.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        // Filter on non null objects
+        sources = sources.stream().filter(Objects::nonNull).collect(Collectors.toList());
 
         // Set parent link
-        fishingAreasToSave.forEach(fishingArea -> fishingArea.setOperationId(operationId));
+        sources.forEach(fa -> fa.setOperationId(operationId));
 
         // Get existing fishing areas
-        Set<Integer> existingFishingAreaIds = self.getAllByOperationId(operationId).stream().map(FishingArea::getId).collect(Collectors.toSet());
+        Set<Integer> existingIds = self.getAllIdsByOperationId(operationId);
 
         // Save
-        fishingAreasToSave.forEach(fishingArea -> {
+        sources.forEach(fishingArea -> {
             save(fishingArea);
-            existingFishingAreaIds.remove(fishingArea.getId());
+            existingIds.remove(fishingArea.getId());
         });
 
         // Delete remaining objects
-        existingFishingAreaIds.forEach(this::deleteById);
+        existingIds.forEach(this::deleteById);
 
-        return fishingAreasToSave;
+        return sources;
     }
 }

@@ -28,12 +28,20 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.pmfm.Method;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import org.hibernate.annotations.Cascade;
 
+import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -41,63 +49,65 @@ import java.util.Map;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class BatchVO implements IDataVO<Integer>,
-        IWithRecorderPersonEntity<Integer, PersonVO>,
-        ITreeNodeEntityBean<Integer, BatchVO> {
-
-    // TODO LP 03/05/2020 : why not implements IDataVO<Integer> and add qualification properties ?
+public class DenormalizedBatchVO implements IValueObject<Integer>,
+        IUpdateDateEntityBean<Integer, Date>,
+        ITreeNodeEntityBean<Integer, DenormalizedBatchVO> {
 
     @EqualsAndHashCode.Exclude
     private Integer id;
     @EqualsAndHashCode.Exclude
     private Date updateDate;
-    private Date controlDate;
-
-    /**
-     * @deprecated Not in the Batch entity. (We add it just for compatibility with IDataVO interface)
-     */
-    @Deprecated
-    private Date validationDate;
-
-    private Date qualificationDate;
-    private String qualificationComments;
-    private Integer qualityFlagId;
-    private DepartmentVO recorderDepartment;
-    private PersonVO recorderPerson;
 
     private String label;
     private Integer rankOrder;
-    private Boolean exhaustiveInventory;
+    private Short flatRankOrder;
+    private Double weight;
+    private Double indirectWeight;
+    private Double elevateContextWeight;
+    private Double indirectContextWeight;
+    private Double elevateWeight;
+    private Integer individualCount;
+    private Integer indirectIndividualCount;
+    private Integer  elevateIndividualCount;
     private Double samplingRatio;
     private String samplingRatioText;
-    private Integer individualCount;
-    private ReferentialVO taxonGroup;
-    private TaxonNameVO taxonName;
-    private String comments;
-
-    // TODO: add it to entity
+    private Boolean exhaustiveInventory;
+    private Short treeLevel;
+    private String treeIndent;
+    private String sortingValuesText;
+    private Boolean isLanding;
+    private Boolean isDiscard;
+    private Integer weightMethodId;
+    private Integer qualityFlagId;
     private Integer locationId;
 
+    private ReferentialVO inheritedTaxonGroup;
+    private ReferentialVO calculatedTaxonGroup;
+    private ReferentialVO taxonGroup;
+
+    private TaxonNameVO inheritedTaxonName;
+    private TaxonNameVO taxonName;
+
+    private String comments;
+
+    private List<DenormalizedBatchVO> children = new ArrayList<>();
+
     @EqualsAndHashCode.Exclude
-    private OperationVO operation;
+    private DenormalizedBatchVO parent;
+    private Integer parentId;
+
+    @EqualsAndHashCode.Exclude
+    private Operation operation;
     private Integer operationId;
 
     @EqualsAndHashCode.Exclude
-    private SaleVO sale;
+    private Sale sale;
     private Integer saleId;
 
-    @EqualsAndHashCode.Exclude
-    private BatchVO parent;
-    private Integer parentId;
-
-    private List<BatchVO> children;
-
-    private Map<Integer, String> measurementValues; // = sorting_measurement_b or quantification_measurement_b
-    private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_b (from a list)
-    private List<QuantificationMeasurementVO> quantificationMeasurements; // = quantification_measurement_b (from a list)
+    private List<DenormalizedBatchSortingValue> sortingValues = new ArrayList<>();
 
     public String toString() {
-        return new StringBuilder().append("BatchVO(")
+        return new StringBuilder().append("DenormalizedBatchVO(")
                 .append("id=").append(id)
                 .append(",label=").append(label)
                 .append(")").toString();

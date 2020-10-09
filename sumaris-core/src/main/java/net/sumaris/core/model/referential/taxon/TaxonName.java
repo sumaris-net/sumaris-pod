@@ -40,6 +40,13 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_name")
+//
+@NamedQueries({
+        @NamedQuery(name = "TaxonName.referenceTaxonIdById",
+                query = "SELECT referenceTaxon.id " +
+                        "FROM TaxonName " +
+                        "WHERE id=:id")
+})
 public class TaxonName implements IItemReferentialEntity, IWithDescriptionAndCommentEntity {
 
     @Id

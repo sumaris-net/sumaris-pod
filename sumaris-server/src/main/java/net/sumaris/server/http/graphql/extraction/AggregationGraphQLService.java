@@ -39,7 +39,7 @@ import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
-import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -147,8 +147,8 @@ public class AggregationGraphQLService {
 //        return aggregationService.executeAndRead(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
 //    }
 
-    protected ProductFetchOptions getFetchOptions(Set<String> fields) {
-        return ProductFetchOptions.builder()
+    protected ExtractionProductFetchOptions getFetchOptions(Set<String> fields) {
+        return ExtractionProductFetchOptions.builder()
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 // Tables (=sheets)

@@ -86,7 +86,7 @@ public class PhysicalGearMeasurement implements ISortedMeasurementEntity {
     private QualitativeValue qualitativeValue;
 
     @Column(name = "rank_order")
-    private Integer rankOrder;
+    private Short rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)
     @JoinColumn(name = "pmfm_fk", nullable = false)

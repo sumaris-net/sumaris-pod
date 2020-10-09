@@ -89,7 +89,7 @@ public class BatchQuantificationMeasurement implements IQuantifiedMeasurementEnt
     private Integer rankOrder; // fixme should be removed
 
     @Column(name = "subgroup_number")
-    private Integer subgroupNumber;
+    private Short subgroupNumber;
 
     @Column(name = "is_reference_quantification", nullable = false)
     private Boolean isReferenceQuantification;

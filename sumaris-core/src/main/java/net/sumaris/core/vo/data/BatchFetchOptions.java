@@ -1,8 +1,8 @@
-package net.sumaris.core.dao.technical.model;
+package net.sumaris.core.vo.data;
 
 /*-
  * #%L
- * SUMARiS:: Core shared
+ * SUMARiS:: Core
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,16 +22,20 @@ package net.sumaris.core.dao.technical.model;
  * #L%
  */
 
-import java.io.Serializable;
-import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-public interface ITreeNodeEntityBean<ID extends Serializable, E extends IEntity<ID>> extends IEntity<ID> {
+@Data
+@Builder
+public class BatchFetchOptions {
 
-    E getParent();
+    @Builder.Default
+    private boolean withRecorderDepartment = true;
 
-    void setParent(E parent);
+    @Builder.Default
+    private boolean withChildren = false;
 
-    List<E> getChildren();
+    @Builder.Default
+    private boolean withMeasurementValues = false;
 
-    void setChildren(List<E> children);
 }
