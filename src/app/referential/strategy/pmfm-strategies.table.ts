@@ -20,13 +20,11 @@ import {
   ReferentialUtils
 } from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
-import {debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
+import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-
+import {Program} from "../services/model/program.model";
 import {SelectionChange} from "@angular/cdk/collections";
-import { Program } from '../services/model/program.model';
-import { EntityUtils } from 'src/app/core/core.module';
 
 export class PmfmStrategyFilter {
 
@@ -142,16 +140,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         .concat([
           'acquisitionLevel',
           'rankOrder',
-          'pmfm',
           'unit',
           'matrix',
           'fraction',
           'method',
-          'isMandatory',
-          'acquisitionNumber',
-          'minValue',
-          'maxValue',
-          'defaultValue'
         ])
         .concat(RESERVED_END_COLUMNS),
       PmfmStrategy,
@@ -336,13 +328,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
 
     // Listen PmfmsUnits, to change pmfm lists
-    this.registerSubscription(
-      this.editedRow.validator.get('pmfmsUnits').value.valueChanges
-        /*.pipe(
-          distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id'))
-        )*/
-        .subscribe((pmfmsUnits) => this.onPmfmsUnitsChanged(pmfmsUnits))
-    );
+    //this.registerSubscription(
+    //  this.editedRow.validator.get('pmfmsUnits').value.valueChanges
+    //    /*.pipe(
+    //      distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id'))
+    //    )*/
+    //    .subscribe((pmfmsUnits) => this.onPmfmsUnitsChanged(pmfmsUnits))
+    //);
 
   }
 
