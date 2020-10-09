@@ -45,9 +45,11 @@ function AppYasgui(yasGuiDivId) {
         {
             name: "Simple",
             prefixes: ['rdf', 'dwc', 'dwctax', 'this'],
-            query: "SELECT * WHERE {\n" +
+            query: "SELECT DISTINCT *\n" +
+                "WHERE {\n" +
                 "  ?sub rdf:type ?type ; \n" +
                 "       dwc:scientificName ?label .  \n" +
+                "  # Filter by name\n" +
                 "  FILTER( \n" +
                 "    ( ?type=sar:TaxonName || ?type=dwctax:TaxonName ) \n" +
                 "     && regex( ?label, \"^Lophius\" ) \n" +
@@ -55,14 +57,15 @@ function AppYasgui(yasGuiDivId) {
                 "} LIMIT 10"
         },
         {
-            name: "Search by name (Sandre APT)",
+            name: "Taxon by name (Sandre)",
             endpoint: endpointsById.EAU_FRANCE,
             prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'apt', 'apt2', 'aptdata', 'taxref'],
-            query: "SELECT ?tax ?label ?exactMatch \n" +
+            query: "SELECT DISTINCT ?tax ?label ?exactMatch \n" +
                 "WHERE {\n" +
                 "  ?tax rdf:type ?type ;\n" +
                 "    rdfs:label ?label ;\n" +
                 "    owl:sameAs ?exactMatch .\n" +
+                "  # Filter by name\n" +
                 "  FILTER( " +
                 "    regex( ?label, \"^lophius.*\", \"i\") \n" +
                 "    && URI(?type) = <http://rs.tdwg.org/dwc/terms/Taxon> \n" +
@@ -71,7 +74,7 @@ function AppYasgui(yasGuiDivId) {
                 "LIMIT 100"
         },
         {
-            name: "Search by code (Sandre APT)",
+            name: "Taxon by code (Sandre)",
             endpoint: endpointsById.EAU_FRANCE,
             prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'apt', 'apt2', 'aptdata'],
             query: "SELECT *\n" +
@@ -80,7 +83,7 @@ function AppYasgui(yasGuiDivId) {
                 "}"
         },
         {
-            name: "Search by code (TaxRef)",
+            name: "Taxon by code (TaxRef)",
             endpoint: endpointsById.MNHN,
             prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'foaf', 'skos', 'dwc', 'dwciri', 'dwctax', 'taxref'],
             query: "SELECT *\n" +
@@ -89,17 +92,37 @@ function AppYasgui(yasGuiDivId) {
                 "} LIMIT 100"
         },
         {
-            name: "Search by name (TaxRef)",
+            name: "Taxon by name (TaxRef)",
             endpoint: endpointsById.MNHN,
             prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'foaf', 'skos', 'dwc', 'dwciri', 'dwctax', 'taxref'],
-            query: "SELECT DISTINCT\n" +
-                "  *\n" +
+            query: "SELECT DISTINCT *\n" +
                 "WHERE {\n" +
                 "  ?tax dwc:scientificName ?label ;\n" +
                 "    rdf:type dwctax:TaxonName ;\n" +
                 "    ?pred ?obj .\n" +
-                "  filter( regex( ?label, \"^lophius.*\", \"i\") )\n" +
+                "  # Filter by name\n" +
+                "  FILTER(\n" +
+                "    regex( ?label, \"^lophius.*\", \"i\")\n" +
+                "  )\n" +
                 "} LIMIT 100"
+        },
+        {
+            name: "Organization by name (Sandre)",
+            endpoint: endpointsById.EAU_FRANCE,
+            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'foaf', 'inc1', 'inc', 'incdata'],
+            query: "SELECT DISTINCT\n" +
+                "  *\n" +
+                "WHERE {\n" +
+                "  ?sub rdf:type inc:Interlocuteur ;\n" +
+                "    rdfs:label ?label ;\n" +
+                "    ?pred ?obj .\n" +
+                "  # Filter by name\n" +
+                "  FILTER(\n" +
+                "    regex( ?label, \"^.*environnement.*\", \"i\")\n" +
+                "  )\n" +
+                "}\n" +
+                "ORDER BY ?sub\n" +
+                "LIMIT 100"
         }
     ];
 

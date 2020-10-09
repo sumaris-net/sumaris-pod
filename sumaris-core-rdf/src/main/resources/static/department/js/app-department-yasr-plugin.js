@@ -22,13 +22,13 @@
 
 
 
-function YasrTaxonPlugin(yasr) {
+function YasrDepartmentPlugin(yasr) {
     // A priority value. If multiple plugin support rendering of a result, this value is used
     // to select the correct plugin
     this.priority = 10;
 
     // Name
-    this.label = "Taxon";
+    this.label = "Department";
 
     // Whether to show a select-button for this plugin
     this.hideFromSelection = false;
@@ -37,7 +37,7 @@ function YasrTaxonPlugin(yasr) {
     this.uriMaxLength = undefined;
 
     // Default options
-    //defaults = YasrTaxonPlugin.defaults;
+    //defaults = YasrDepartmentPlugin.defaults;
 
     this.yasr = yasr;
 
@@ -55,9 +55,8 @@ function YasrTaxonPlugin(yasr) {
                 if (!itemByUri[uniqueKey]) {
                     itemByUri[uniqueKey] = {
                         uri: binding.sourceUri && binding.sourceUri.value,
-                        scientificName: binding.scientificName && binding.scientificName.value,
-                        author: binding.author && binding.author.value,
-                        rank: binding.rank && binding.rank.value,
+                        label: binding.label && binding.label.value,
+                        address: binding.address && binding.address.value,
                         created: binding.created && binding.created.value,
                         modified: binding.modified && binding.modified.value,
                         exactMatch : [],
@@ -86,13 +85,13 @@ function YasrTaxonPlugin(yasr) {
                 }
             }
         });
-        return Object.keys(itemByUri).map(key => itemByUri[key]).sort((t1, t2) => t1.scientificName === t2.scientificName ? 0 : (t1.scientificName > t2.scientificName ? 1 : -1));
+        return Object.keys(itemByUri).map(key => itemByUri[key]).sort((t1, t2) => t1.label === t2.label ? 0 : (t1.label > t2.label ? 1 : -1));
     }
 
     // Draw the resultset. This plugin simply draws the string 'True' or 'False'
     this.draw = function () {
         const el = document.createElement("div");
-        el.classList.add('taxon-plugin');
+        el.classList.add('department-plugin');
 
         const hasResults = this.yasr.results && this.yasr.results.json && true;
 
@@ -101,25 +100,18 @@ function YasrTaxonPlugin(yasr) {
         // Get items
         const items = hasResults && this.getItemsFromBindings(this.yasr.results.json.results.bindings);
 
-        const scientificNameFirst = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "scientificName") === 0;
-        const hasAuthor = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "author") !== -1;
-        const hasRank = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "rank") !== -1;
+        const labelFirst = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "label") === 0;
 
         const headerCols = ["  <th scope='col'>#</th>",
-            "  <th scope='col'>Scientific name</th>",
+            "  <th scope='col'>Name</th>",
             "  <th scope='col'>Id / Date</th>",
-            "  <th scope='col'>Author</th>",
-            "  <th scope='col'>Rank</th>",
+            "  <th scope='col'>Address</th>",
             "  <th scope='col'>Parent</th>",
             "  <th scope='col'>Exact match / see also</th>"
         ];
 
         // Inverse
-        if (!scientificNameFirst) this.inverseArrayValue(headerCols, 1, 2);
-
-        // Mask unused columns
-        if (!hasAuthor) headerCols[3] = "";
-        if (!hasRank) headerCols[4] = "";
+        if (!labelFirst) this.inverseArrayValue(headerCols, 1, 2);
 
         let rows = (hasResults && items || []).map((item, index) => {
             let rowCols = [
@@ -127,8 +119,8 @@ function YasrTaxonPlugin(yasr) {
                 // Index
                 "<th scope=\"row\">" + (index + 1) + "</th>",
 
-                // Scientific name
-                "<td class='col'>" + (item.scientificName || '') + "</td>",
+                // Name
+                "<td class='col'>" + (item.label || '') + "</td>",
 
                 // Source URI
                 "<td>" +
@@ -139,12 +131,9 @@ function YasrTaxonPlugin(yasr) {
                 (item.modified ? ("<br/><small class='gray' title='Last modification date'><i class='icon ion-pencil'></i> "+ item.modified + "</small>") : "") +
                 "</td>",
 
-                // Author
-                "<td class='col'>" + (item.author || '') + "</td>",
-
-                // Rank
+                // Address
                 "<td class='col'>" +
-                this.displayUri(item.rank, prefixes, this.uriMaxLength) +
+                (item.address ? ("<small> "+ item.address.replace(',', '<br/>') + "</small>") : "") +
                 "</td>",
 
                 // Parent
@@ -165,9 +154,7 @@ function YasrTaxonPlugin(yasr) {
                 "</td>"
 
             ];
-            if (!scientificNameFirst) this.inverseArrayValue(rowCols, 1, 2);
-            if (!hasAuthor) rowCols[3] = "";
-            if (!hasRank) rowCols[4] = "";
+            if (!labelFirst) this.inverseArrayValue(rowCols, 1, 2);
 
             return "<tr>" + rowCols.join('\n') + "</tr>";
         });
@@ -197,7 +184,7 @@ function YasrTaxonPlugin(yasr) {
     this.canHandleResults = function() {
         return (
             this.yasr.results.type === 'json' && this.yasr.results.json.head
-            && this.yasr.results.json.head.vars.includes('scientificName')
+            && this.yasr.results.json.head.vars.includes('label')
             && this.yasr.results.json.head.vars.includes('sourceUri')
         );
     }
@@ -217,7 +204,7 @@ function YasrTaxonPlugin(yasr) {
             getData: () => this.yasr.results.asCsv(),
             contentType:"text/csv",
             title:"Download result",
-            filename:"taxons.csv"
+            filename:"organization.csv"
         };
     }
 
@@ -232,16 +219,7 @@ function YasrTaxonPlugin(yasr) {
     this.urnToUrl = function(uri) {
         if (!uri || !uri.startsWith('urn:')) return uri;
 
-        // WoRMS
-        if (uri.startsWith("urn:lsid:marinespecies.org:taxname:")) {
-            const parts = uri.split(':');
-            return "http://www.marinespecies.org/aphia.php?p=taxdetails&id=" + parts[parts.length - 1];
-        }
-
-        // Resolve Life science ID
-        if (uri.startsWith("urn:lsid:")) {
-            return "http://www.lsid.info/resolver/?lsid=" + uri;
-        }
+        // TODO add urn:  mapping to URL
 
         return uri;
     }
@@ -319,7 +297,7 @@ function YasrTaxonPlugin(yasr) {
     }
 }
 
-YasrTaxonPlugin.prototype.defaults = {
+YasrDepartmentPlugin.prototype.defaults = {
     uriClickTarget : undefined,
     onUriClick : undefined
 };

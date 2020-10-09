@@ -23,15 +23,16 @@
 package net.sumaris.rdf.dao.referential.taxon;
 
 
+import net.sumaris.rdf.dao.AbstractNamedRdfModelLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component("sandreRdfTaxonDao")
-public class SandreRdfTaxonDaoImpl extends BaseRdfTaxonDaoImpl {
+@Component("sandreTaxonRdfModelLoader")
+public class SandreTaxonRdfModelLoader extends AbstractNamedRdfModelLoader {
 
-    private static final Logger log = LoggerFactory.getLogger(SandreRdfTaxonDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(SandreTaxonRdfModelLoader.class);
 
     @Value("${rdf.sandre.sparql.endpoint:http://id.eaufrance.fr/sparql}")
     private String endpointUrl;

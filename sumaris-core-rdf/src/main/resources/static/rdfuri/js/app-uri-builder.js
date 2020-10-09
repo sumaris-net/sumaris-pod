@@ -37,8 +37,8 @@ function AppRdfTest() {
         outputTextarea;
 
     const classesByModelType = {
-        'data': ['TaxonName', 'Location', 'Gear', 'Trip'],
-        'schema': ['Taxon', 'Location', 'Gear', 'Trip']
+        'data': ['TaxonName', 'Location', 'Gear', 'Department'],
+        'schema': ['Taxon', 'Location', 'Gear', 'Department', 'Trip']
     };
 
     function init() {
@@ -114,14 +114,14 @@ function AppRdfTest() {
 
         const params = [];
         let needFormat = false;
-        var modelType = inputModelType.value;
+        const modelType = inputModelType.value;
 
         if (inputFormat.value !== "rdf") {
             params.push('format=' + inputFormat.value) // True by default
             needFormat = true;
         }
-        if (modelType === 'data' && !inputWithSchema.checked) {
-            params.push('schema=false') // True by default
+        if (modelType === 'data' && inputWithSchema.checked) {
+            params.push('schema=true') // True by default
         }
         if (!inputDisjoints.checked) {
             params.push('disjoints=false') // True by default
@@ -141,12 +141,17 @@ function AppRdfTest() {
         const modelType = inputModelType.value;
         console.info("Model type changed to: " + modelType);
 
+        // Add classes
+        fillClassNames(classesByModelType[modelType]);
+
         if (modelType === "schema") {
             inputObjectId.classList.add('d-none');
-            withSchemaDiv.classList.add('d-none');
+            withSchemaDiv.classList.add('d-none');// Disable schema export
+            inputWithSchema.checked = false;
         }
         // Model type == data
         else if (modelType === "data") {
+            inputWithSchema.checked = false; // Disable by default
             withSchemaDiv.classList.remove('d-none');
 
             if (!inputClassName.value || !inputClassName.value.trim().length) {
@@ -155,7 +160,6 @@ function AppRdfTest() {
             else {
                 inputObjectId.classList.remove('d-none');
             }
-
         }
 
         computeParams();
@@ -184,8 +188,20 @@ function AppRdfTest() {
         return path;
     }
 
-    function fillClassNames() {
-
+    function fillClassNames(classes) {
+        inputClassName.innerHTML = "";
+        if (classes && classes.length) {
+            inputClassName.classList.remove('d-none');
+            for (let i = 0; i < classes.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = classes[i];
+                opt.innerHTML = classes[i];
+                inputClassName.appendChild(opt);
+            }
+        }
+        else {
+            inputClassName.classList.add('d-none');
+        }
     }
 
     function executeRequest(requestUri) {

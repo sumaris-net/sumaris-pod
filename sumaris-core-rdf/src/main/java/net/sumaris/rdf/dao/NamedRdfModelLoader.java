@@ -27,7 +27,7 @@ import org.apache.jena.rdf.model.Model;
 
 import java.util.stream.Stream;
 
-public interface NamedModelProducer {
+public interface NamedRdfModelLoader {
 
     Stream<Model> streamAllByPages(long maxStatements);
 

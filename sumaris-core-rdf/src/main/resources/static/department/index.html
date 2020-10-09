@@ -27,11 +27,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="keywords" content="taxon, taxonomic, sparql, web ontology language, owl, rdf, ontology queries, ontologies, semantic web" />
-    <meta name="description" content="Taxon Search, using ontologies" />
+    <meta name="keywords" content="organization, department, sparql, web ontology language, owl, rdf, ontology queries, ontologies, semantic web" />
+    <meta name="description" content="Organization Search, using ontologies" />
     <meta name="robots" content="noindex,nofollow" />
 
-    <title>Pod Api - Taxon search</title>
+    <title>Pod Api - Organization search</title>
     <link rel="icon" href="/api/favicon" type="image/x-icon" />
 
     <link rel="stylesheet" href="/core/css/bootstrap.min.css" />
@@ -40,8 +40,8 @@
     <link href="/yasgui/css/yasgui.min.css" rel="stylesheet" type="text/css" />
     <link href="/taxon/css/icons.css" rel="stylesheet" type="text/css" />
     <link href="/taxon/css/dropzone.css" rel="stylesheet" type="text/css" />
-    <link href="/taxon/css/app-taxon-yasr-plugin.css" rel="stylesheet" type="text/css" />
-    <link href="/taxon/css/app-taxon-search.css" rel="stylesheet" type="text/css" />
+    <link href="/department/css/app-department-yasr-plugin.css" rel="stylesheet" type="text/css" />
+    <link href="/department/css/app-department-search.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 
@@ -64,12 +64,12 @@
             </div>
         </div>
 
-        <h1 class="d-flex justify-content-center">Taxon search</h1>
+        <h1 class="d-flex justify-content-center">Organization search</h1>
 
         <form class="form-group" style="padding-top: 15px;" onsubmit="return app.doSubmit(event)" href="#">
             <div class="form-inline d-flex justify-content-center">
                 <input type="text" name="q" id="q" class="form-control w-75"
-                       placeholder="Lophius, Dipturus, ..."
+                       placeholder="An organization name..."
                        aria-label="Search">
 
                 &nbsp;
@@ -195,9 +195,9 @@
 
     <script type="text/javascript" src="/rdfuri/js/rdf-helper.js"></script>
     <script type="text/javascript" src="/yasgui/js/yasgui.min.js"></script>
-    <script type="text/javascript" src="/taxon/js/app-taxon-yasr-plugin.js"></script>
+    <script type="text/javascript" src="/department/js/app-department-yasr-plugin.js"></script>
     <script type="text/javascript" src="/taxon/js/dropzone.js"></script>
-    <script type="text/javascript" src="/taxon/js/app-taxon-search.js"></script>
+    <script type="text/javascript" src="/department/js/app-department-search.js"></script>
 
     <script language="JavaScript" type="text/javascript">
         const menu = new AppMenu('#menu', {active: '#nav-item-tools'});
