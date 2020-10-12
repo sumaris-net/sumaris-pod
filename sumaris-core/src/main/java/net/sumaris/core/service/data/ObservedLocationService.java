@@ -46,14 +46,14 @@ public interface ObservedLocationService {
 	List<ObservedLocationVO> getAll(int offset, int size);
 
 	@Transactional(readOnly = true)
-	List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size);
+	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size);
 
 	@Transactional(readOnly = true)
-	List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
-										  SortDirection sortDirection, DataFetchOptions fetchOptions);
+	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
+									 SortDirection sortDirection, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	Long countByFilter(ObservedLocationFilterVO filter);
+	Long count(ObservedLocationFilterVO filter);
 
 	@Transactional(readOnly = true)
 	ObservedLocationVO get(int id);

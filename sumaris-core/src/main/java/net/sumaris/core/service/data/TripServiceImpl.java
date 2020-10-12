@@ -24,7 +24,6 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.data.landing.LandingRepository;
@@ -419,6 +418,7 @@ public class TripServiceImpl implements TripService {
         Map<Integer, String> gearPhysicalMeasurements = Maps.newLinkedHashMap();
         operationGroup.getMeasurementValues().forEach((pmfmId, value) -> {
             // TODO: find a better way (not using PMFM label) to determine if a measurement is for physical gear
+            // Maybe using matrix=GEAR ?
             if (pmfmService.isGearPhysicalPmfm(pmfmId))
                 gearPhysicalMeasurements.putIfAbsent(pmfmId, value);
         });
@@ -441,7 +441,7 @@ public class TripServiceImpl implements TripService {
         TripVO deletedTrip = null;
         if (enableTrash) {
             deletedTrip = get(id);
-            deletedTrip.setOperations(operationService.getAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC));
+            deletedTrip.setOperations(operationService.findAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC));
             deletedTrip.setOperationGroups(operationGroupService.getAllByTripId(id));
             deletedTrip.setMetiers(operationGroupService.getMetiersByTripId(id));
 

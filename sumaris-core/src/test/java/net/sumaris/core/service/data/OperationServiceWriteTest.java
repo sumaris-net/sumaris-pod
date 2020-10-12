@@ -81,7 +81,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @Test
     public void b_find() {
-        List<OperationVO> operations = service.getAllByTripId(parent.getId(), 0, 10, IEntity.Fields.ID, SortDirection.ASC);
+        List<OperationVO> operations = service.findAllByTripId(parent.getId(), 0, 10, IEntity.Fields.ID, SortDirection.ASC);
         Assert.assertNotNull(operations);
         Assert.assertEquals(3, operations.size());
 

@@ -57,17 +57,17 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 	@Override
 	public List<ObservedLocationVO> getAll(int offset, int size) {
-		return findByFilter(null, offset, size, null, null, null);
+		return findAll(null, offset, size, null, null, null);
 	}
 
 	@Override
-	public List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size) {
-		return findByFilter(filter, offset, size, null, null, null);
+	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size) {
+		return findAll(filter, offset, size, null, null, null);
 	}
 
 	@Override
-	public List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
-                                     SortDirection sortDirection, DataFetchOptions fetchOptions) {
+	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
+											SortDirection sortDirection, DataFetchOptions fetchOptions) {
 		if (filter == null) {
 			return observedLocationRepository.findAll(offset, size, sortAttribute, sortDirection, fetchOptions).getContent();
 		}
@@ -76,7 +76,8 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public Long countByFilter(ObservedLocationFilterVO filter) {
+	public Long count(ObservedLocationFilterVO filter) {
+		filter = ObservedLocationFilterVO.nullToEmpty(filter);
 		return observedLocationRepository.count(filter);
 	}
 
