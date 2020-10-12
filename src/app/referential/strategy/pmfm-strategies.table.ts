@@ -145,6 +145,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           'matrix',
           'fraction',
           'method',
+          'isMandatory',
+          'acquisitionNumber',
+          'minValue',
+          'maxValue',
+          'defaultValue'
         ])
         .concat(RESERVED_END_COLUMNS),
       PmfmStrategy,
