@@ -270,7 +270,7 @@ export class PmfmService extends BaseEntityService implements EntityService<Pmfm
    * @param sortDirection
    * @param filter
    */
-  async loadAllPmfmsUnits(offset: number,
+  async loadAllPmfmsParameters(offset: number,
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
@@ -283,7 +283,7 @@ export class PmfmService extends BaseEntityService implements EntityService<Pmfm
       toEntity?: boolean;
       debug?: boolean;
     }): Promise<LoadResult<Pmfm>> {
-console.warn("pmfmservice loadAllPmfmsUnits");
+console.warn("pmfmservice loadAllPmfmsParameters");
 opts = opts || {};
 const variables: any = {
 offset: offset || 0,

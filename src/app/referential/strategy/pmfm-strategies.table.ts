@@ -102,7 +102,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   $selectedPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   $acquisitionLevels = new BehaviorSubject<IReferentialRef[]>(undefined);
   $pmfms = new BehaviorSubject<Pmfm[]>(undefined);
-  $pmfmsUnits = new BehaviorSubject<Pmfm[]>(undefined);
+  $pmfmsParameters = new BehaviorSubject<Pmfm[]>(undefined);
   $pmfmsMatrix = new BehaviorSubject<Pmfm[]>(undefined);
   $pmfmsFractions = new BehaviorSubject<Pmfm[]>(undefined);
   $pmfmsMethods = new BehaviorSubject<Pmfm[]>(undefined);
@@ -140,7 +140,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         .concat([
           'acquisitionLevel',
           'rankOrder',
-          'unit',
+          'pmfm',
+          'parameter',
           'matrix',
           'fraction',
           'method',
@@ -225,13 +226,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       })
     });
 
-    // PMFM.UNIT
-    this.registerFormField('unit', {
+    // PMFM.PARAMETER
+    this.registerFormField('parameter', {
       type: 'entity',
       required: true,
-      autocomplete: this.registerAutocompleteField('unit', {
-        items: this.$pmfmsUnits,
-        attributes: ['unit.label'],
+      autocomplete: this.registerAutocompleteField('parameter', {
+        items: this.$pmfmsParameters,
+        attributes: ['parameter.code'],
         showAllOnFocus: true,
         class: 'mat-autocomplete-panel-large-size'
       })
@@ -327,7 +328,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     }, true);
 
 
-    // Listen PmfmsUnits, to change pmfm lists
+    // Listen PmfmsParameterZs, to change pmfm lists
     //this.registerSubscription(
     //  this.editedRow.validator.get('pmfmsUnits').value.valueChanges
     //    /*.pipe(
@@ -341,8 +342,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   /* -- protected methods -- */
 
-    protected async onPmfmsUnitsChanged(pmfmsUnits) {
-    console.debug("onPmfmsUnitsChanged(pmfmsUnits");
+    protected async onPmfmsParametersChanged(pmfmsUnits) {
+    console.debug("onPmfmsParametersChanged(pmfmsUnits");
 /**      const metierControl = this.form.get('metier');
       const physicalGearControl = this.form.get('physicalGear');
 
@@ -495,7 +496,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       await Promise.all([
         this.loadAcquisitionLevels(),
         this.loadPmfms(),
-        this.loadPmfmsUnits(),
+        this.loadPmfmsParameters(),
         this.loadPmfmsMatrix(),
         this.loadPmfmsFractions(),
         this.loadPmfmsMethods(),
@@ -528,13 +529,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$pmfms.next(res && res.data || [])
   }
 
-  protected async loadPmfmsUnits() {
-      const res = await this.pmfmService.loadAllPmfmsUnits(0, 1000, null, null, null,
+  protected async loadPmfmsParameters() {
+      const res = await this.pmfmService.loadAllPmfmsParameters(0, 1000, null, null, null,
         {
           withTotal: false,
           withDetails: true
         });
-      this.$pmfmsUnits.next(res && res.data || [])
+      this.$pmfmsParameters.next(res && res.data || [])
     }
 
     protected async loadPmfmsMatrix() {
