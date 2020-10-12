@@ -2,8 +2,8 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component,
-  OnInit,
+  Component, EventEmitter, Input,
+  OnInit, Output,
   QueryList,
   ViewChild,
   ViewChildren
@@ -26,6 +26,7 @@ import {ExpenseValidatorService} from "../services/validator/expense.validator";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {getMaxRankOrder} from "../../data/services/model/model.utils";
 import {TypedExpenseForm} from "./typed-expense.form";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -55,15 +56,31 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   totalPmfms: PmfmStrategy[];
   calculating = false;
 
-  @ViewChild('iceExpenseForm') iceFrom: TypedExpenseForm;
 
-  @ViewChildren('baitExpenseForm') baitForms: QueryList<TypedExpenseForm>;
   baitMeasurements: Measurement[];
   applyingBaitMeasurements = false;
   addingNewBait = false;
   removingBait = false;
   baitsHelper: FormArrayHelper<number>;
   baitsFocusIndex = -1;
+
+  /** The index of the active tab. */
+  private _selectedTabIndex = 0;
+  get selectedTabIndex(): number | null {
+    return this._selectedTabIndex;
+  }
+  @Input() set selectedTabIndex(value: number | null) {
+    if (value !== this._selectedTabIndex) {
+      this._selectedTabIndex = value;
+      this.markForCheck();
+    }
+  }
+
+  @Output() onTabChange = new EventEmitter<MatTabChangeEvent>();
+
+  @ViewChild('iceExpenseForm') iceFrom: TypedExpenseForm;
+  @ViewChildren('baitExpenseForm') baitForms: QueryList<TypedExpenseForm>;
+  @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
   get baitsFormArray(): FormArray {
     // 'baits' FormArray is just a array of number of fake rankOrder
@@ -99,6 +116,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     super(dateAdapter, validatorService, formBuilder, programService, settings, cd);
     this.mobile = platform.mobile;
     this.keepRankOrder = true;
+    this.tabindex = 0;
   }
 
   ngOnInit() {
@@ -177,6 +195,12 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
     // add totalValueChange subscription on iceForm
     this.registerSubscription(this.iceFrom.totalValueChanges.subscribe(() => this.calculateTotal()));
+
+
+  }
+
+  realignInkBar() {
+    if(this.tabGroup) this.tabGroup.realignInkBar();
   }
 
   initBaitHelper() {
