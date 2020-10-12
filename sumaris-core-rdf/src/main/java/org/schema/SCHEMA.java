@@ -20,35 +20,29 @@
  * #L%
  */
 
-package org.w3;
+package org.schema;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
-public class GEO {
-
-    public static final String NS = "http://www.w3.org/2003/01/geo/";
-    public static final String PREFIX = "geo";
+public class SCHEMA {
+    public static final String NS = "http://schema.org/";
+    public static final String PREFIX = "s";
     public static String getURI() {
         return NS;
     }
 
-    public static class WGS84Pos {
-        public static final String NS = GEO.NS + "wgs84_pos/";
-        public static String getURI() {
-            return NS;
-        }
-
-        protected static Resource resource(String local) {
-            return ResourceFactory.createResource(NS + local);
-        }
-
-        protected static Property property(String local) {
-            return ResourceFactory.createProperty(NS + local);
-        }
-
-        public static final Resource SpatialThing = resource("#SpatialThing");
-
+    protected static Resource resource(String local) {
+        return ResourceFactory.createResource(NS + local);
     }
+
+    protected static Property property(String local) {
+        return ResourceFactory.createProperty(NS + local);
+    }
+
+    public static final Resource streetAddress = resource("streetAddress");
+    public static final Resource postalCode = resource("postalCode");
+    public static final Resource addressLocality = resource("addressLocality");
+    public static final Resource addressCountry = resource("addressCountry");
 }

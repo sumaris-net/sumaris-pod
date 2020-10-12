@@ -26,7 +26,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <title>Pod Api - Ontology URL builder</title>
+        <title>Pod Api - Ontology export</title>
         <link rel="icon" href="/api/favicon" type="image/x-icon" />
 
         <link rel="stylesheet" href="/core/css/bootstrap.min.css" />
@@ -39,7 +39,7 @@
 
         <div class="container">
 
-            <h1>Ontology URL builder</h1>
+            <h1>Ontology export</h1>
 
             <div class="form-group">
                 <label for="baseUri">Server API URL</label>
@@ -150,11 +150,11 @@
         <script type="text/javascript" src="/core/js/bootstrap.min.js" crossorigin="anonymous"></script>
         <script type="text/javascript" src="/core/js/app-menu.js" crossorigin="anonymous"></script>
 
-        <script type="text/javascript" src="/rdfuri/js/app-uri-builder.js"></script>
+        <script type="text/javascript" src="/rdfuri/js/app-rdf-exporter.js"></script>
 
         <script language="JavaScript" type="text/javascript">
             const menu = new AppMenu('#menu', {active: '#nav-item-tools'});
-            const app = new AppRdfTest();
+            const app = new AppRdfExporter();
         </script>
     </body>
 </html>

@@ -285,8 +285,8 @@ function YasrTaxonPlugin(yasr) {
         if (!uri) return '';
 
         let getStartTag;
-        if (this.defaults && this.defaults.uriClickTarget) {
-            const target = this.defaults.uriClickTarget;
+        if (this.defaults && this.defaults.onUriClickTarget) {
+            const target = this.defaults.onUriClickTarget;
             getStartTag = function(url) {
                 return "<a href='" + url + "' target='"+ target +"' >";
             }
@@ -320,6 +320,6 @@ function YasrTaxonPlugin(yasr) {
 }
 
 YasrTaxonPlugin.prototype.defaults = {
-    uriClickTarget : undefined,
+    onUriClickTarget : undefined,
     onUriClick : undefined
 };

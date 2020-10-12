@@ -80,7 +80,7 @@ function AppDepartmentSearch(config) {
             canHandleTerm: (term) => term && term.trim().match(/^[A-Za-z ]+$/),
             yasrPlugin : 'department',
             q: 'Environnement',
-            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'org', 'gr', 's', 'inc1', 'inc', 'incdata', 'this'],
+            prefixes: ['dc', 'dcterms', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'org', 'gr', 's', 'inc1', 'inc', 'incdata', 'this'],
             query: "PREFIX siret: <https://api.insee.fr/entreprises/sirene/V3/siret/>\n" +
                 "SELECT DISTINCT \n" +
                 "  ?sourceUri ?label ?address ?parent \n" +
@@ -88,8 +88,10 @@ function AppDepartmentSearch(config) {
                 "WHERE {\n" +
                 "  ?sourceUri rdfs:label ?label ;\n" +
                 "       rdf:type ?type ;\n" +
-                "       org:hasprimarySite _:site .\n" +
-                "  _:site org:siteAddress ?address ." +
+                "  OPTIONAL {\n" +
+                "    ?sourceUri org:hasprimarySite _:site .\n" +
+                "    _:site org:siteAddress ?address .\n" +
+                "  }\n" +
                 "  FILTER (\n" +
                 "     ({{filter}})\n" +
                 "     && (?type = org:Organization || ?type = {{defaultPrefix}}:Department) \n" +
@@ -104,8 +106,8 @@ function AppDepartmentSearch(config) {
                 "    ?sourceUri skos:broader ?parent .\n" +
                 "  }\n" +
                 "  OPTIONAL {\n" +
-                "    ?sourceUri dc:created ?created ;\n" +
-                "      dc:modified ?modified .\n" +
+                "    ?sourceUri dc:created|dcterms:created ?created ;\n" +
+                "      dc:modified|dcterms:modified ?modified .\n" +
                 "  }\n" +
                 "} LIMIT {{limit}}",
             filters: ['anyMatch'],
@@ -160,7 +162,7 @@ function AppDepartmentSearch(config) {
             yasrPlugin : 'department',
             debug: false,
             q: 'Environnement',
-            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'org', 'gr', 's', 'inc1', 'inc', 'incdata', 'this'],
+            prefixes: ['dc', 'dcterms', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'org', 'gr', 's', 'inc1', 'inc', 'incdata', 'this'],
             query: 'PREFIX siret: <https://api.insee.fr/entreprises/sirene/V3/siret/>\n' +
                 'SELECT DISTINCT \n' +
                 '  ?sourceUri ?label ?address ?parent \n' +
@@ -430,9 +432,10 @@ function AppDepartmentSearch(config) {
 
 
             Yasr.registerPlugin("department", YasrDepartmentPlugin);
+            Yasr.registerPlugin("taxon", YasrDepartmentPlugin);
 
             YasrDepartmentPlugin.prototype.defaults.onUriClick = config.onUriClick;
-            YasrDepartmentPlugin.prototype.defaults.uriClickTarget = config.uriClickTarget;
+            YasrDepartmentPlugin.prototype.defaults.onUriClickTarget = config.onUriClickTarget;
 
             yasr = new Yasr(element, {
                 pluginOrder: ["department", "table", "response"],
@@ -455,7 +458,7 @@ function AppDepartmentSearch(config) {
 
         const myDropzone = new Dropzone('.container', // Make the whole body a dropzone
             {
-                url: "/api/taxon/search",
+                url: "/api/department/search",
                 parallelUploads: 20,
                 previewTemplate: previewTemplate,
                 autoQueue: false, // Make sure the files aren't queued until manually added
@@ -492,18 +495,18 @@ function AppDepartmentSearch(config) {
         });
 
         myDropzone.on("success", function(file) {
-            console.log("[taxon-search] TODO: success upload ! ", file)
+            console.log("[department-search] TODO: success upload ! ", file)
         });
 
 
         // Hide the total progress bar when nothing's uploading anymore
         myDropzone.on("queuecomplete", function(progress) {
-            console.log("[taxon-search] TODO queuecomplete!", progress)
+            console.log("[department-search] TODO queuecomplete!", progress)
         });
 
         // Hide the total progress bar when nothing's uploading anymore
         myDropzone.on("removedfile", function(file) {
-            console.debug("[taxon-search] Removing file '{0}'".format(file.name));
+            console.debug("[department-search] Removing file '{0}'".format(file.name));
             file.status = 'cancelled';
         });
 
@@ -574,7 +577,7 @@ function AppDepartmentSearch(config) {
                         reject("Response content type '{}' not implemented yet".format(res.type));
                     }
 
-                    console.debug("[taxon-search] Search on '{0}' give {1} results:".format(searchText, res.body && res.body.results && res.body.results.bindings.length || 0));
+                    console.debug("[department-search] Search on '{0}' give {1} results:".format(searchText, res.body && res.body.results && res.body.results.bindings.length || 0));
                     resolve(res);
                 }
             })
@@ -845,7 +848,7 @@ function AppDepartmentSearch(config) {
         }
 
         const now = Date.now();
-        console.info("[taxon-search] Importing file '{0}'...".format(file.name));
+        console.info("[department-search] Importing file '{0}'...".format(file.name));
 
         const setProgression = getFileProgressionFn(file);
 
@@ -861,7 +864,7 @@ function AppDepartmentSearch(config) {
         progression += 10;
         setProgression(progression);
 
-        console.info("[taxon-search] Found {0} valid {1}s".format(validValues.length, opts.valueType))
+        console.info("[department-search] Found {0} valid {1}s".format(validValues.length, opts.valueType))
         if (!values.length) {
             setProgression(100);
             return; // Nothing to search
@@ -954,7 +957,7 @@ function AppDepartmentSearch(config) {
         // All search has been executed
         setProgression(100);
         const duration = Date.now() - now;
-        console.debug("[taxon-search] All {0} imported in {1} ms".format(valueType, duration));
+        console.debug("[department-search] All {0} imported in {1} ms".format(valueType, duration));
 
         if (res) {
             file.response = res;
@@ -1062,7 +1065,7 @@ function AppDepartmentSearch(config) {
                 $('#create-missing-toast').toast({autohide: true, delay: 2500});
                 createMissingButton.classList.remove('d-none');
                 createMissingButton.onclick = () => {
-                    console.debug('[taxon-search] Asking creation of missing references...');
+                    console.debug('[department-search] Asking creation of missing references...');
                     $('#create-missing-toast').toast('show');
                 }
             }

@@ -27,6 +27,11 @@ import java.util.List;
 
 public interface ITreeNodeEntityBean<ID extends Serializable, E extends IEntity<ID>> extends IEntity<ID> {
 
+    interface Fields {
+        String PARENT = "parent";
+        String CHILDREN = "children";
+    }
+
     E getParent();
 
     void setParent(E parent);

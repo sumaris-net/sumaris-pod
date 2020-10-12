@@ -24,12 +24,17 @@ package net.sumaris.core.model.referential.taxon;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.Status;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Classe regroupant les taxons. Il s'agit en fait d'une combinaison entre un rang taxinomique, un nom de taxon, un code et éventuellement un auteur et une date.
@@ -46,7 +51,9 @@ import java.util.Date;
                         "FROM TaxonName " +
                         "WHERE id=:id")
 })
-public class TaxonName implements IItemReferentialEntity, IWithDescriptionAndCommentEntity {
+public class TaxonName implements IItemReferentialEntity,
+        IWithDescriptionAndCommentEntity,
+        ITreeNodeEntityBean<Integer, TaxonName> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")
@@ -107,9 +114,15 @@ public class TaxonName implements IItemReferentialEntity, IWithDescriptionAndCom
     @JoinColumn(name = "taxonomic_level_fk", nullable = false)
     private TaxonomicLevel taxonomicLevel;
 
+    /* -- Tree link -- */
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonName.class, mappedBy = TaxonName.Fields.PARENT)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<TaxonName> children = new ArrayList<>();
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonName.class)
     @JoinColumn(name = "parent_taxon_name_fk")
-    private TaxonName parentTaxonName;
+    private TaxonName parent;
 
     public String toString() {
         return String.format("TaxonName{id=%s,referenceTaxonId=%s}", id, referenceTaxon != null ? referenceTaxon.getId() : "null");

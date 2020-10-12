@@ -206,7 +206,7 @@ public class TaxonGroupRepositoryImpl
 
                     TaxonNameVO parent = taxonNameRepository.findTaxonNameReferent(childId)
                             .orElseThrow(() -> new SumarisTechnicalException("Cannot find taxon name for referenceTaxonId=" + childId));
-                    List<TaxonName> children = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(parent.getId()));
+                    List<TaxonName> children = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(parent.getId()));
                     while (CollectionUtils.isNotEmpty(children)) {
                         children.forEach(child -> {
                             Integer inheritedChildId = child.getReferenceTaxon().getId();
@@ -221,7 +221,7 @@ public class TaxonGroupRepositoryImpl
                                 insertCounter.increment();
                             }
                         });
-                        children = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(
+                        children = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(
                             children.stream()
                                 .map(TaxonName::getId)
                                 .collect(Collectors.toList()));

@@ -81,7 +81,7 @@ function AppTaxonSearch(config) {
             canHandleTerm: (term) => term && term.trim().match(/^[A-Za-z ]+$/),
             yasrPlugin : 'taxon',
             q: 'Lophius budegassa',
-            prefixes: ['dc', 'rdf', 'owl', 'skos', 'foaf', 'dwc', 'dwctax', 'rdfs',
+            prefixes: ['dc', 'dcterms', 'rdf', 'owl', 'skos', 'foaf', 'dwc', 'dwctax', 'rdfs',
                 'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'this'],
             query: 'SELECT DISTINCT \n' +
                 '  ?sourceUri ?scientificName ?parent ?author ?rank \n' +
@@ -104,8 +104,8 @@ function AppTaxonSearch(config) {
                 '    ?sourceUri skos:broader ?parent .\n' +
                 '  }\n' +
                 '  OPTIONAL {\n' +
-                '    ?sourceUri dc:created ?created ;\n' +
-                '      dc:modified ?modified .\n' +
+                '    ?sourceUri dc:created|dcterms:created ?created ;\n' +
+                '      dc:modified|dcterms:modified ?modified .\n' +
                 '  }\n' +
                 '  OPTIONAL {\n' +
                 '    ?sourceUri dc:author ?author .\n' +
@@ -124,7 +124,7 @@ function AppTaxonSearch(config) {
             canHandleTerm: (term) => term && term.trim().match(/^[0-9]+$/),
             yasrPlugin : 'taxon',
             q: '847866',
-            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
+            prefixes: ['dc', 'dcterms', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
                 'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'this'],
             query:  'SELECT DISTINCT \n' +
                 '  ?sourceUri ?scientificName ?parent ?author ?rank \n' +
@@ -147,8 +147,8 @@ function AppTaxonSearch(config) {
                 '    ?sourceUri skos:broader ?parent .\n' +
                 '  }\n' +
                 '  OPTIONAL {\n' +
-                '    ?sourceUri dc:created ?created ;\n' +
-                '      dc:modified ?modified .\n' +
+                '    ?sourceUri dc:created|dcterms:created ?created ;\n' +
+                '      dc:modified|dcterms:modified ?modified .\n' +
                 '  }\n' +
                 '  OPTIONAL {\n' +
                 '    ?sourceUri dc:author ?author .\n' +
@@ -600,9 +600,10 @@ function AppTaxonSearch(config) {
 
 
             Yasr.registerPlugin("taxon", YasrTaxonPlugin);
+            Yasr.registerPlugin("department", YasrDepartmentPlugin);
 
             YasrTaxonPlugin.prototype.defaults.onUriClick = config.onUriClick;
-            YasrTaxonPlugin.prototype.defaults.uriClickTarget = config.uriClickTarget;
+            YasrTaxonPlugin.prototype.defaults.onUriClickTarget = config.onUriClickTarget;
 
             yasr = new Yasr(element, {
                 pluginOrder: ["taxon", "table", "response"],

@@ -43,7 +43,7 @@ public class SandreIncRdfModelLoader extends AbstractNamedRdfModelLoader {
     @Value("${rdf.sandre.dataset.name:http://id.eaufrance.fr/inc/}")
     private String name;
 
-    @Value("${rdf.taxref.query.name:classpath:sparql/sandre-inc.sparql}")
+    @Value("${rdf.taxref.query.name:classpath:sparql/org-sandre.sparql}")
     private String queryFile;
 
     @Override

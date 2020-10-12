@@ -195,8 +195,9 @@
 
     <script type="text/javascript" src="/rdfuri/js/rdf-helper.js"></script>
     <script type="text/javascript" src="/yasgui/js/yasgui.min.js"></script>
-    <script type="text/javascript" src="/department/js/app-department-yasr-plugin.js"></script>
     <script type="text/javascript" src="/taxon/js/dropzone.js"></script>
+    <script type="text/javascript" src="/taxon/js/app-taxon-yasr-plugin.js"></script>
+    <script type="text/javascript" src="/department/js/app-department-yasr-plugin.js"></script>
     <script type="text/javascript" src="/department/js/app-department-search.js"></script>
 
     <script language="JavaScript" type="text/javascript">
@@ -209,7 +210,7 @@
                 options: 'options',
                 details: 'details'
             },
-            onUriClick: 'app.showDetails({{url}})'
+            onUriClickTarget: '_blank'
         });
 
     </script>

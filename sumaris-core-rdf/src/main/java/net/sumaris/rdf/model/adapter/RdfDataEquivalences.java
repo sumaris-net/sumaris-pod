@@ -41,15 +41,15 @@ import javax.annotation.PostConstruct;
 import java.util.Objects;
 
 
-@Component("baseDataEquivalences")
+@Component("rdfDataEquivalences")
 @ConditionalOnBean({RdfConfiguration.class})
 @ConditionalOnProperty(
         prefix = "rdf.equivalences",
         name = {"enabled"},
         matchIfMissing = true)
-public class BaseDataEquivalences implements IModelVisitor<Model, RdfDataExportOptions> {
+public class RdfDataEquivalences implements IModelVisitor<Model, RdfDataExportOptions> {
 
-    private static final Logger log = LoggerFactory.getLogger(BaseDataEquivalences.class);
+    private static final Logger log = LoggerFactory.getLogger(RdfDataEquivalences.class);
 
     private boolean debug;
 
@@ -77,7 +77,8 @@ public class BaseDataEquivalences implements IModelVisitor<Model, RdfDataExportO
         String individualUri = instance.getURI();
 
         // ID
-        instance.addProperty(DC_11.identifier, individualUri);
+        instance.addProperty(DC.identifier, individualUri)
+                .addProperty(DCTerms.identifier, individualUri);
     }
 
     /* -- protected methods -- */

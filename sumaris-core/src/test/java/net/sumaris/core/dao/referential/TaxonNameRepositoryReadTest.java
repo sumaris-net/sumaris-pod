@@ -91,13 +91,13 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
 
     @Test
     public void getAllTaxonNameByParentIds() {
-        List<TaxonName> taxonNames = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(1004));
+        List<TaxonName> taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1004));
         Assert.assertNotNull(taxonNames);
         Assert.assertEquals(15, taxonNames.size());
-        taxonNames = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(1030,1031,1032));
+        taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1030,1031,1032));
         Assert.assertNotNull(taxonNames);
         Assert.assertEquals(4, taxonNames.size());
-        taxonNames = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(1014));
+        taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1014));
         Assert.assertNotNull(taxonNames);
         Assert.assertEquals(2, taxonNames.size());
     }

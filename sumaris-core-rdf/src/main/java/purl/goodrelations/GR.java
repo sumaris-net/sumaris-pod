@@ -20,35 +20,32 @@
  * #L%
  */
 
-package org.w3;
+package purl.goodrelations;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
-public class GEO {
+/**
+ * Good Relaltion Model
+ */
+public class GR {
 
-    public static final String NS = "http://www.w3.org/2003/01/geo/";
-    public static final String PREFIX = "geo";
+    public static final String NS = "http://purl.org/goodrelations/v1#";
+    public static final String PREFIX = "gr";
     public static String getURI() {
         return NS;
     }
 
-    public static class WGS84Pos {
-        public static final String NS = GEO.NS + "wgs84_pos/";
-        public static String getURI() {
-            return NS;
-        }
-
-        protected static Resource resource(String local) {
-            return ResourceFactory.createResource(NS + local);
-        }
-
-        protected static Property property(String local) {
-            return ResourceFactory.createProperty(NS + local);
-        }
-
-        public static final Resource SpatialThing = resource("#SpatialThing");
-
+    protected static Resource resource(String local) {
+        return ResourceFactory.createResource(NS + local);
     }
+
+    protected static Property property(String local) {
+        return ResourceFactory.createProperty(NS + local);
+    }
+
+    public static final Resource name = resource("name");
+    public static final Resource description = resource("description");
+    public static final Resource Location = resource("Location");
 }

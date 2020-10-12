@@ -26,16 +26,17 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
-public class GEO {
+public class W3NS {
 
-    public static final String NS = "http://www.w3.org/2003/01/geo/";
-    public static final String PREFIX = "geo";
+    public static final String NS = "http://www.w3.org/ns/";
+    public static final String PREFIX = "ns";
     public static String getURI() {
         return NS;
     }
 
-    public static class WGS84Pos {
-        public static final String NS = GEO.NS + "wgs84_pos/";
+    public static class Org {
+        public static final String NS = W3NS.NS + "org#";
+        public static final String PREFIX = "org";
         public static String getURI() {
             return NS;
         }
@@ -48,7 +49,11 @@ public class GEO {
             return ResourceFactory.createProperty(NS + local);
         }
 
-        public static final Resource SpatialThing = resource("#SpatialThing");
+        public static final Resource Organization = resource("Organization");
+
+        public static final Resource Site = resource("Site");
+        public static final Resource hasprimarySite = resource("hasprimarySite");
+        public static final Resource siteAddress = resource("siteAddress");
 
     }
 }

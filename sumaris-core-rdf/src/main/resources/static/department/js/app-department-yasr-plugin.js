@@ -263,13 +263,13 @@ function YasrDepartmentPlugin(yasr) {
         if (!uri) return '';
 
         let getStartTag;
-        if (this.defaults && this.defaults.uriClickTarget) {
-            const target = this.defaults.uriClickTarget;
+        if (this.defaults && this.defaults.onUriClickTarget) {
+            const target = this.defaults.onUriClickTarget;
             getStartTag = function(url) {
                 return "<a href='" + url + "' target='"+ target +"' >";
             }
         }
-        if (this.defaults && this.defaults.onUriClick) {
+        else if (this.defaults && this.defaults.onUriClick) {
             const onUriClick = this.defaults.onUriClick;
             getStartTag = function(url) {
                 return "<a href='#' onclick='"+ onUriClick.replace('{{url}}', "\"" + url + "\"") +"' >";
@@ -298,6 +298,6 @@ function YasrDepartmentPlugin(yasr) {
 }
 
 YasrDepartmentPlugin.prototype.defaults = {
-    uriClickTarget : undefined,
+    onUriClickTarget : undefined,
     onUriClick : undefined
 };

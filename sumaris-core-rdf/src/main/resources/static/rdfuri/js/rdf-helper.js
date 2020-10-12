@@ -30,6 +30,11 @@ function RdfHelper() {
                     namespace: 'http://purl.org/dc/elements/1.1/'
                 },
                 {
+                    name: 'Dublin Core Terms',
+                    prefix: 'dcterms',
+                    namespace: 'http://purl.org/dc/terms/'
+                },
+                {
                     name: 'Schema.org',
                     prefix: 's',
                     namespace: 'http://schema.org/'
