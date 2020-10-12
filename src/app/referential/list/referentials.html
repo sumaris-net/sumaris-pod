@@ -204,7 +204,7 @@
 
     <!-- Level column -->
     <ng-container matColumnDef="level">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!showLevelColumn">
+      <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showLevelColumn">
         <span translate>REFERENTIAL.LEVEL</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing" [class.cdk-visually-hidden]="!showLevelColumn">
