@@ -248,7 +248,7 @@ public class DatasetService {
         return DatasetFactory.wrap(this.dataset.getUnionModel());
     }
 
-    protected Set<String> getModelNames() {
+    public Set<String> getModelNames() {
         Set<String> result;
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
             conn.begin(ReadWrite.READ);

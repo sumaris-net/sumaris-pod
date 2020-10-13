@@ -31,7 +31,6 @@ import org.nuiton.config.ApplicationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -61,7 +60,7 @@ public class RdfConfiguration  {
     protected static final Logger log =
             LoggerFactory.getLogger(RdfConfiguration.class);
 
-    private SumarisConfiguration delegate;
+    private final SumarisConfiguration delegate;
 
     private String cachedModelBaseUri;
 
