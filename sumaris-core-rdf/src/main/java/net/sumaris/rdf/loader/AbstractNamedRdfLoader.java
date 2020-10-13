@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao;
+package net.sumaris.rdf.loader;
 
 
 import com.google.common.base.Charsets;
@@ -42,9 +42,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.stream.Stream;
 
-public abstract class AbstractNamedRdfModelLoader implements NamedRdfModelLoader {
+public abstract class AbstractNamedRdfLoader implements NamedRdfLoader {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractNamedRdfModelLoader.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractNamedRdfLoader.class);
 
     @Override
     public Stream<Model> streamAllByPages(long maxStatements) {

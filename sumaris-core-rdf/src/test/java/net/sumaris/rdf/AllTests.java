@@ -25,8 +25,8 @@ package net.sumaris.rdf;
  */
 
 
-import net.sumaris.rdf.service.schema.ExportServiceTest;
-import net.sumaris.rdf.service.schema.RdfSchemaServiceTest;
+import net.sumaris.rdf.service.ExportServicesTest;
+import net.sumaris.rdf.service.schema.SchemaServiceTest;
 import net.sumaris.rdf.service.DatasetServiceTest;
 import net.sumaris.server.http.vowl.WebvowlRestControllerTest;
 import org.junit.ClassRule;
@@ -38,9 +38,9 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-    ExportServiceTest.class,
+    ExportServicesTest.class,
     // Service
-    RdfSchemaServiceTest.class,
+    SchemaServiceTest.class,
     // Controller
     DatasetServiceTest.class,
     WebvowlRestControllerTest.class

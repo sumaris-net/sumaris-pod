@@ -50,11 +50,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-@Repository("rdfModelDao")
+@Repository("entitiesDao")
 @Lazy
-public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao {
+public class EntitiesDaoImpl extends HibernateDaoSupport implements EntitiesDao {
 
-    private static final Logger log = LoggerFactory.getLogger(RdfModelDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(EntitiesDaoImpl.class);
 
     public static final String ORDER_BY_CLAUSE = " ORDER BY t.%s %s";
 

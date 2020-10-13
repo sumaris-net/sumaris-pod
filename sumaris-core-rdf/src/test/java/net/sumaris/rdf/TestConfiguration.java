@@ -24,14 +24,34 @@ package net.sumaris.rdf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.dao.DatabaseFixtures;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author peck7 on 05/12/2018.
  */
 
+@SpringBootApplication(
+        exclude = {
+                LiquibaseAutoConfiguration.class,
+                FreeMarkerAutoConfiguration.class
+        },
+        scanBasePackages = {
+                "net.sumaris.core",
+                "net.sumaris.rdf"
+        }
+)
+@EntityScan("net.sumaris.core.model")
+@EnableTransactionManagement
+@EnableJpaRepositories(basePackages = {
+        "net.sumaris.core.dao",
+        "net.sumaris.rdf.dao"
+}, considerNestedRepositories = true)
 @org.springframework.boot.test.context.TestConfiguration
 public abstract class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
@@ -42,8 +62,7 @@ public abstract class TestConfiguration extends net.sumaris.core.test.TestConfig
 
     @Bean
     public static SumarisConfiguration sumarisConfiguration() {
-        SumarisConfiguration config = initConfiguration("sumaris-core-rdf-test.properties");
-        return config;
+        return initConfiguration("sumaris-core-rdf-test.properties");
     }
 
     @Bean

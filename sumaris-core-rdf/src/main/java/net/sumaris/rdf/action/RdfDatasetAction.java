@@ -26,17 +26,13 @@ package net.sumaris.rdf.action;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.action.ActionUtils;
-import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.config.RdfConfigurationOption;
-import net.sumaris.rdf.service.DatasetService;
+import net.sumaris.rdf.service.store.DatasetService;
 import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.system.Txn;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

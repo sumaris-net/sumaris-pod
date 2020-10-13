@@ -22,10 +22,10 @@
 
 package net.sumaris.rdf.service.schema;
 
-import net.sumaris.rdf.dao.DatabaseResource;
+import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
-import net.sumaris.rdf.service.AbstractServiceTest;
+import net.sumaris.rdf.AbstractTest;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
@@ -36,7 +36,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
-public class RdfSchemaServiceTest extends AbstractServiceTest {
+public class SchemaServiceTest extends AbstractTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

@@ -32,8 +32,8 @@ import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
-import net.sumaris.rdf.dao.RdfModelDao;
-import net.sumaris.rdf.dao.cache.RdfCacheConfiguration;
+import net.sumaris.rdf.dao.EntitiesDao;
+import net.sumaris.rdf.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelType;
 import net.sumaris.rdf.model.ModelVocabulary;
@@ -80,7 +80,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     protected RdfConfiguration config;
 
     @Autowired
-    protected RdfModelDao modelDao;
+    protected EntitiesDao modelDao;
 
     @Autowired
     protected RdfCacheConfiguration cacheConfiguration;

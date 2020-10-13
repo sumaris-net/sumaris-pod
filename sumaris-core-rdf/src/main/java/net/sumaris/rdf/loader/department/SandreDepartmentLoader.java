@@ -20,19 +20,19 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao.referential.taxon;
+package net.sumaris.rdf.loader.department;
 
 
-import net.sumaris.rdf.dao.AbstractNamedRdfModelLoader;
+import net.sumaris.rdf.loader.AbstractNamedRdfLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component("sandreTaxonRdfModelLoader")
-public class SandreTaxonRdfModelLoader extends AbstractNamedRdfModelLoader {
+@Component("sandreDepartmentLoader")
+public class SandreDepartmentLoader extends AbstractNamedRdfLoader {
 
-    private static final Logger log = LoggerFactory.getLogger(SandreTaxonRdfModelLoader.class);
+    private static final Logger log = LoggerFactory.getLogger(SandreDepartmentLoader.class);
 
     @Value("${rdf.sandre.sparql.endpoint:http://id.eaufrance.fr/sparql}")
     private String endpointUrl;
@@ -40,10 +40,10 @@ public class SandreTaxonRdfModelLoader extends AbstractNamedRdfModelLoader {
     @Value("${rdf.sandre.sparql.limit:10000}")
     private int fetchSize = 10000;
 
-    @Value("${rdf.sandre.dataset.name:http://id.eaufrance.fr/apt/}")
+    @Value("${rdf.sandre.dataset.name:http://id.eaufrance.fr/inc/}")
     private String name;
 
-    @Value("${rdf.taxref.query.name:classpath:sparql/taxon.sparql}")
+    @Value("${rdf.taxref.query.name:classpath:sparql/org-sandre.sparql}")
     private String queryFile;
 
     @Override

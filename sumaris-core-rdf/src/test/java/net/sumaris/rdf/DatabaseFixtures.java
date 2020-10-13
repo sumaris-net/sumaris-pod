@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao;
+package net.sumaris.rdf;
 
 /**
  * Fixtures for RDF tests

@@ -20,15 +20,17 @@
  * #L%
  */
 
-package net.sumaris.rdf.service.schema;
+package net.sumaris.rdf.service;
 
 import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.rdf.dao.DatabaseResource;
+import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
-import net.sumaris.rdf.service.AbstractServiceTest;
+import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
+import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.jena.query.*;
@@ -50,9 +52,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class ExportServiceTest extends AbstractServiceTest {
+public class ExportServicesTest extends AbstractTest {
 
-    private static final Logger log = LoggerFactory.getLogger(ExportServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(ExportServicesTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

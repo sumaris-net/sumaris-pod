@@ -22,7 +22,7 @@
 
 package net.sumaris.rdf.service.schema;
 
-import net.sumaris.rdf.dao.cache.RdfCacheNames;
+import net.sumaris.rdf.cache.RdfCacheNames;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelVocabulary;
 import org.apache.jena.rdf.model.Model;

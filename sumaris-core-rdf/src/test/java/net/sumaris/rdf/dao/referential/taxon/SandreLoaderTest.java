@@ -23,9 +23,9 @@
 package net.sumaris.rdf.dao.referential.taxon;
 
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.rdf.dao.DatabaseResource;
-import net.sumaris.rdf.dao.NamedRdfModelLoader;
-import net.sumaris.rdf.service.ServiceTestConfiguration;
+import net.sumaris.rdf.AbstractTest;
+import net.sumaris.rdf.DatabaseResource;
+import net.sumaris.rdf.loader.NamedRdfLoader;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.commons.io.FileUtils;
@@ -34,26 +34,19 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ServiceTestConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-rdf-test.properties")
-public class SandreRdfTaxonDaoTest {
+public class SandreLoaderTest extends AbstractTest {
 
-    private static final Logger log = LoggerFactory.getLogger(SandreRdfTaxonDaoTest.class);
+    private static final Logger log = LoggerFactory.getLogger(SandreLoaderTest.class);
 
-    @Resource(name = "sandreTaxonRdfModelLoader")
-    protected NamedRdfModelLoader sandreTaxonRdfModelLoader;
+    @Resource(name = "sandreTaxonLoader")
+    protected NamedRdfLoader loader;
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -68,7 +61,7 @@ public class SandreRdfTaxonDaoTest {
         ttlFile = new File("/home/blavenie/git/sumaris/sumaris-pod/sumaris-core-rdf/src/test/resources", "taxon-sandre.ttl");
 
 
-        Model model = sandreTaxonRdfModelLoader.loadOnePage(Page.builder().size(1000).build());
+        Model model = loader.loadOnePage(Page.builder().size(1000).build());
         ModelUtils.modelToFile(ttlFile, model, RdfFormat.TURTLE);
 
         Assume.assumeTrue(false);// Fore failed
@@ -77,7 +70,7 @@ public class SandreRdfTaxonDaoTest {
     @Test
     public void loadAllByPage() {
 
-        Model model = sandreTaxonRdfModelLoader.loadOnePage(Page.builder().size(100).build());
+        Model model = loader.loadOnePage(Page.builder().size(100).build());
         byte[] contentBytes = ModelUtils.modelToBytes(model, RdfFormat.TURTLE);
 
         String content = new String(contentBytes);

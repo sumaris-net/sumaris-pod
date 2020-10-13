@@ -27,7 +27,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.model.ModelVocabulary;
-import net.sumaris.rdf.service.DatasetService;
+import net.sumaris.rdf.service.store.DatasetService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;

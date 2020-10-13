@@ -20,11 +20,11 @@
  * #L%
  */
 
-package net.sumaris.rdf.service;
+package net.sumaris.rdf.service.data;
 
-import net.sumaris.rdf.dao.DatabaseResource;
+import net.sumaris.rdf.AbstractTest;
+import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
-import net.sumaris.rdf.service.data.RdfDataImportServiceImpl;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.junit.Assert;
@@ -35,9 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class SynchroServiceTest extends AbstractServiceTest{
+public class RdfDataImportServiceTest extends AbstractTest {
 
-    private static final Logger log = LoggerFactory.getLogger(SynchroServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(RdfDataImportServiceTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

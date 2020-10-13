@@ -30,7 +30,7 @@ import java.io.Serializable;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public interface RdfModelDao {
+public interface EntitiesDao {
 
     <T> T getById(ModelVocabulary domain, String className, Class<T> aClass, Serializable id);
 

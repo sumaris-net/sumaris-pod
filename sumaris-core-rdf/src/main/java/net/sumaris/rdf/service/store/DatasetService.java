@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.service;
+package net.sumaris.rdf.service.store;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -30,7 +30,7 @@ import net.sumaris.core.service.crypto.CryptoService;
 import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
-import net.sumaris.rdf.dao.NamedRdfModelLoader;
+import net.sumaris.rdf.loader.NamedRdfLoader;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
@@ -100,19 +100,18 @@ public class DatasetService {
     @Value("${rdf.sparql.maxLimit:10000}")
     private long maxLimit;
 
-
     private Model defaultModel;
 
     private Dataset dataset;
 
-    @Resource(name = "taxrefRdfModelLoader")
-    private NamedRdfModelLoader taxrefRdfModelLoader;
+    @Resource(name = "mnhnTaxonLoader")
+    private NamedRdfLoader mnhnTaxonLoader;
 
-    @Resource(name = "sandreTaxonRdfModelLoader")
-    private NamedRdfModelLoader sandreTaxonRdfModelLoader;
+    @Resource(name = "sandreTaxonLoader")
+    private NamedRdfLoader sandreTaxonLoader;
 
-    @Resource(name = "sandreIncRdfModelLoader")
-    private NamedRdfModelLoader sandreIncRdfModelLoader;
+    @Resource(name = "sandreDepartmentLoader")
+    private NamedRdfLoader sandreDepartmentLoader;
 
     @Autowired(required = false)
     protected TaskExecutor taskExecutor;
@@ -122,12 +121,10 @@ public class DatasetService {
 
     @PostConstruct
     public void init() {
-        // Taxon loaders
-        registerNameModel(taxrefRdfModelLoader,10000L);
-        registerNameModel(sandreTaxonRdfModelLoader, -1L);
-
-        // Department loaders
-        registerNameModel(sandreIncRdfModelLoader, -1L);
+        // Register external loaders
+        registerNameModel(mnhnTaxonLoader,10000L); // FIXME MNHN endpoint has problem when offset >= 10000
+        registerNameModel(sandreTaxonLoader, -1L);
+        registerNameModel(sandreDepartmentLoader, -1L);
 
         // Init the query dataset
         this.dataset = createDataset();
@@ -147,7 +144,7 @@ public class DatasetService {
         this.dataset.close();
     }
 
-    public void registerNameModel(final NamedRdfModelLoader producer, final long maxStatements) {
+    public void registerNameModel(final NamedRdfLoader producer, final long maxStatements) {
         if (producer == null) return; // Skip if empty
         registerNamedModel(producer.getName(), () -> unionModel(producer.getName(), producer.streamAllByPages(maxStatements)));
     }

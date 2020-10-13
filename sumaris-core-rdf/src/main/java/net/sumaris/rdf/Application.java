@@ -50,8 +50,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = {
-        "net.sumaris.core.dao",
-        "net.sumaris.rdf.dao"
+        "net.sumaris.core.dao"
 })
 @EnableAsync
 @Component("rdf-application")

@@ -20,18 +20,19 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao;
+package net.sumaris.rdf.loader;
 
 import net.sumaris.core.dao.technical.Page;
-import org.apache.jena.rdf.model.Model;
 
-import java.util.stream.Stream;
+/**
+ * Helper class for SparQL queries
+ */
+public class SparqlQueries {
 
-public interface NamedRdfModelLoader {
+    public static final String LIMIT_CLAUSE = "LIMIT %s OFFSET %s";
 
-    Stream<Model> streamAllByPages(long maxStatements);
-
-    Model loadOnePage(Page page);
-
-    String getName();
+    public static String getConstructQuery(String baseQuery, Page page) {
+        if (page == null || page.getSize() < 0 || page.getOffset() < 0) return baseQuery;
+        return baseQuery + "\n" + String.format(LIMIT_CLAUSE, page.getSize(), page.getOffset());
+    }
 }

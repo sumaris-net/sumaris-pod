@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao;
+package net.sumaris.rdf;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;

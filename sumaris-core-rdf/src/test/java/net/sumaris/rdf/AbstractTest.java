@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.service;
+package net.sumaris.rdf;
 
 import net.sumaris.rdf.config.RdfConfiguration;
 import org.junit.runner.RunWith;
@@ -36,14 +36,14 @@ import org.springframework.test.context.junit4.SpringRunner;
  * Abstract class for unit test on services.
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ServiceTestConfiguration.class})
+@SpringBootTest(classes = {TestConfiguration.class})
 @TestPropertySource(locations="classpath:sumaris-core-rdf-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class AbstractServiceTest {
+public class AbstractTest {
 
 	/** Logger. */
 	private static final Logger log =
-			LoggerFactory.getLogger(AbstractServiceTest.class);
+			LoggerFactory.getLogger(AbstractTest.class);
 
 	@Autowired
 	protected RdfConfiguration config;

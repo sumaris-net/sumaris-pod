@@ -23,7 +23,9 @@
 package net.sumaris.rdf.service;
 
 import graphql.Assert;
-import net.sumaris.rdf.dao.DatabaseResource;
+import net.sumaris.rdf.AbstractTest;
+import net.sumaris.rdf.DatabaseResource;
+import net.sumaris.rdf.service.store.DatasetService;
 import org.apache.jena.query.*;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -34,12 +36,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DatasetServiceTest extends AbstractServiceTest {
+public class DatasetServiceTest extends AbstractTest {
 
     private static final Logger log = LoggerFactory.getLogger(DatasetServiceTest.class);
 

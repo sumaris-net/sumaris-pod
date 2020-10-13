@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao.cache;
+package net.sumaris.rdf.cache;
 
 import net.sumaris.core.dao.cache.CacheNames;
 

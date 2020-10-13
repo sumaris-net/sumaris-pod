@@ -22,25 +22,17 @@
 
 package net.sumaris.server.http.vowl;
 
+import net.sumaris.rdf.AbstractTest;
+import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.dao.DatabaseResource;
-import net.sumaris.rdf.service.AbstractServiceTest;
-import net.sumaris.rdf.service.ServiceTestConfiguration;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ServiceTestConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-rdf-test.properties")
-public class WebvowlRestControllerTest extends AbstractServiceTest {
+public class WebvowlRestControllerTest extends AbstractTest {
 
     private static final Logger log = LoggerFactory.getLogger(WebvowlRestControllerTest.class);
     @Autowired

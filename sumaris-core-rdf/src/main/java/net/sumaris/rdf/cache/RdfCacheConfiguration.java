@@ -19,10 +19,9 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package net.sumaris.rdf.dao.cache;
+package net.sumaris.rdf.cache;
 
 import net.sf.ehcache.CacheManager;
-import net.sumaris.core.dao.cache.CacheConfiguration;
 import net.sumaris.core.dao.technical.ehcache.Caches;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
