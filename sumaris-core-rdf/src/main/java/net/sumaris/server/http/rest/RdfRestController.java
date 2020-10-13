@@ -232,7 +232,7 @@ public class RdfRestController {
                     RdfMediaType.TEXT_TRIX_VALUE,
                     RdfMediaType.TEXT_TURTLE_VALUE
                 })
-    public ResponseEntity<byte[]> convertFromUri(@RequestParam(name = "uri", required = false) String uri,
+    public ResponseEntity<String> convertFromUri(@RequestParam(name = "uri", required = false) String uri,
                                                  @RequestParam(name = "prefix", required = false) String prefix,
                                                  @RequestParam(name = "sourceFormat", required = false) String sourceFormat,
                                                  @RequestParam(name = "format", defaultValue = "RDF") String userFormat,
@@ -282,7 +282,7 @@ public class RdfRestController {
 
         return ResponseEntity.ok()
                 .contentType(outputFormat.mineType())
-                .body(ModelUtils.modelToBytes(model, outputFormat));
+                .body(ModelUtils.modelToString(model, outputFormat));
     }
 
     /* -- Conversion service -- */

@@ -26,6 +26,7 @@ package net.sumaris.rdf;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.util.Files;
 import net.sumaris.rdf.action.RdfDatasetAction;
 import net.sumaris.rdf.config.RdfConfigurationOption;
@@ -100,6 +101,9 @@ public class InitTests extends net.sumaris.core.test.InitTests {
     protected void loadRdfDataset() {
 
         Long now = System.currentTimeMillis();
+        String jdbcUrl = config.getJdbcURL();
+        boolean isFileDatabase = Daos.isFileDatabase(jdbcUrl);
+        if (isFileDatabase) setDatabaseReadonly(false);
 
         // Delete old data
         File rdfDirectory = new File(getRdfDirectory());
@@ -112,13 +116,20 @@ public class InitTests extends net.sumaris.core.test.InitTests {
         System.setProperty("logging.level.root", "error");
         System.setProperty("logging.level.net.sumaris", "warn");
         System.setProperty("logging.level." + DatasetService.class.getName(), "info");
+        System.setProperty("logging.level.net.sumaris.core", "error");
+        System.setProperty("logging.level.org.hibernate", "error");
 
-        String[] args = ImmutableList.<String>builder()
-                .add(RdfDatasetAction.LOAD_ALIAS)
-                .addAll(Arrays.asList(getConfigArgs()))
-                .build().toArray(new String[0]);
-        Application.run(args, getModuleName() + "-test.properties");
+        try {
+            String[] args = ImmutableList.<String>builder()
+                    .add(RdfDatasetAction.LOAD_ALIAS)
+                    .addAll(Arrays.asList(getConfigArgs()))
+                    .build().toArray(new String[0]);
+            Application.run(args, getModuleName() + "-test.properties");
 
-        log.info(String.format("Test {TDB2} triple store has been loaded, in %sms", (System.currentTimeMillis() - now)));
+            log.info(String.format("Test {TDB2} triple store has been loaded, in %sms", (System.currentTimeMillis() - now)));
+        } finally {
+            if (isFileDatabase) setDatabaseReadonly(true);
+        }
+
     }
 }

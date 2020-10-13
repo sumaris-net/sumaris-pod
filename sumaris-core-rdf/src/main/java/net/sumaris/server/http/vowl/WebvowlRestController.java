@@ -92,7 +92,7 @@ public class WebvowlRestController {
                     RdfMediaType.APPLICATION_X_JAVASCRIPT_VALUE,
                     RdfMediaType.APPLICATION_WEBVOWL_VALUE
             })
-    public ResponseEntity<byte[]> convertRdfIriToVowl(@RequestParam(name = "iri", required = false) String iri,
+    public ResponseEntity<String> convertRdfIriToVowl(@RequestParam(name = "iri", required = false) String iri,
                                                       @RequestParam(name = "prefix", required = false) String prefix,
                                                       @RequestParam(name = "format", required = false) String format,
                                                       @RequestParam(name = "sessionId", required = false) String optionalSessionId,
@@ -144,7 +144,7 @@ public class WebvowlRestController {
 
             return ResponseEntity.ok()
                     .contentType(targetFormat.mineType())
-                    .body(ModelUtils.modelToBytes(model, targetFormat));
+                    .body(ModelUtils.modelToString(model, targetFormat));
         }
         catch(Exception e) {
             Throwable cause = JenaExceptions.findJenaRootCause(e).orElse(e);

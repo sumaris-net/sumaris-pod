@@ -126,7 +126,7 @@ public class RdfConfiguration  {
                     registry.addViewController("/webvowl/data/gear.json").setViewName("forward:/ontology/schema/Gear/?format=vowl");
                     ModelURIs.RDF_URL_BY_PREFIX.keySet()
                             .forEach(ns -> registry.addViewController(String.format("/webvowl/data/%s.json", ns))
-                                    .setViewName(String.format("forward:/ontology/convert?prefix=%s&format=vowl", ns)));
+                                    .setViewName(String.format("forward:/webvowl/convert?prefix=%s&format=vowl", ns)));
                 }
 
                 // YasGUI
