@@ -24,7 +24,8 @@ package net.sumaris.rdf.service;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.rdf.TestConfiguration;
-import net.sumaris.rdf.config.RdfConfiguration;
+import net.sumaris.server.http.rest.RdfRestController;
+import net.sumaris.server.http.vowl.WebvowlRestController;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
@@ -39,7 +40,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
                 FreeMarkerAutoConfiguration.class
         },
         scanBasePackages = {
-            "fr.eaufrance",
             "net.sumaris.core",
             "net.sumaris.rdf"
     }
@@ -51,9 +51,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         "net.sumaris.rdf.dao"
 }, considerNestedRepositories = true)
 public class ServiceTestConfiguration extends TestConfiguration {
+
     @Bean
     public static SumarisConfiguration sumarisConfiguration() {
         return initConfiguration("sumaris-core-rdf-test.properties");
     }
-
 }

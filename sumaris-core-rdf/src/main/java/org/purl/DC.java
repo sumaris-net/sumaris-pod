@@ -20,19 +20,24 @@
  * #L%
  */
 
-package purl.goodrelations;
+package org.purl;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.DC_11;
 
 /**
- * Good Relaltion Model
+ * Darwin Core (v1.1).
+ * We redeclare this class, because we need 'dc:modified' and 'dc:created', used by some partners
+ *
+ * @deprecated used DCTerms instead, when possible
  */
-public class GR {
+@Deprecated
+public class DC {
 
-    public static final String NS = "http://purl.org/goodrelations/v1#";
-    public static final String PREFIX = "gr";
+    public static final String NS = DC_11.NS;
+    public static final String PREFIX = "dc";
     public static String getURI() {
         return NS;
     }
@@ -45,7 +50,15 @@ public class GR {
         return ResourceFactory.createProperty(NS + local);
     }
 
-    public static final Resource name = resource("name");
-    public static final Resource description = resource("description");
-    public static final Resource Location = resource("Location");
+    /**
+     * @deprecated used DCTerms.modified instead, when possible
+     */
+    @Deprecated
+    public static final Resource modified = resource(NS + "modified");
+
+    /**
+     * @deprecated used DCTerms.created instead, when possible
+     */
+    @Deprecated
+    public static final Resource created = resource(NS + "created");
 }

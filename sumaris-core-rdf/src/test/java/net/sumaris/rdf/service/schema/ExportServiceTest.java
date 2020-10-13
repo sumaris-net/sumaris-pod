@@ -20,21 +20,26 @@
  * #L%
  */
 
-package net.sumaris.rdf.service;
+package net.sumaris.rdf.service.schema;
 
+import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.rdf.dao.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
+import net.sumaris.rdf.model.reasoner.ReasoningLevel;
+import net.sumaris.rdf.service.AbstractServiceTest;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
-import net.sumaris.rdf.service.schema.RdfSchemaOptions;
-import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +50,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class RdfSchemaFactoryTest extends AbstractServiceTest {
+public class ExportServiceTest extends AbstractServiceTest {
 
+    private static final Logger log = LoggerFactory.getLogger(ExportServiceTest.class);
 
-
-    private static final Logger log = LoggerFactory.getLogger(RdfSchemaFactoryTest.class);
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Resource
     private RdfSchemaService schemaExportService;
@@ -61,17 +67,20 @@ public class RdfSchemaFactoryTest extends AbstractServiceTest {
     private File dataModelFile;
 
 
-    final String QUERY_ALL = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-            "PREFIX this: <http://192.168.0.20:8080/ontology/schema/>\n" +
+    final String SELECT_ALL_QUERY = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+            "PREFIX this: <%s/schema/>\n" +
             "SELECT * WHERE {\n" +
             "  ?sub ?pred ?obj .\n" +
             "} LIMIT 10";
 
-    final String QUERY2 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-            "PREFIX this: <http://192.168.0.20:8080/ontology/schema/>\n" +
-            "SELECT * WHERE {\n" +
-            "  ?sub rdf:type this:TaxonName .\n" +
-            "\tfilter( regex( ?label, \"^Lophius.*\" ) ) \n" +
+    final String SELECT_BY_LABEL_QUERY = "PREFIX rdf: <" + RDF.getURI() + ">\n" +
+            "PREFIX rdfs: <"+ RDFS.getURI() +">\n" +
+            "PREFIX this: <%sschema/>\n" +
+            "SELECT DISTINCT ?sub\n" +
+            "WHERE {\n" +
+            "  ?sub rdf:type this:"+ TaxonName.class.getSimpleName() +" ;\n" +
+            "    rdfs:label ?label .\n" +
+            "  FILTER( regex( ?label, \"^Lophius.*\" ) )\n" +
             "} LIMIT 10";
 
     @Before
@@ -95,8 +104,9 @@ public class RdfSchemaFactoryTest extends AbstractServiceTest {
         Dataset dataset = DatasetFactory.create(schema)
             .setDefaultModel(instances) ;
 
+        String queryString = String.format(SELECT_ALL_QUERY, config.getModelBaseUri());
 
-        try (QueryExecution qExec = QueryExecutionFactory.create(QUERY_ALL, dataset)) {
+        try (QueryExecution qExec = QueryExecutionFactory.create(queryString, dataset)) {
             ResultSet rs = qExec.execSelect() ;
             Assert.assertTrue(rs.hasNext());
 
@@ -120,11 +130,14 @@ public class RdfSchemaFactoryTest extends AbstractServiceTest {
         Dataset dataset = DatasetFactory.create() ;
         dataset.setDefaultModel(instances);
 
+        String queryString = String.format(SELECT_BY_LABEL_QUERY, config.getModelBaseUri());
+
+
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
-            conn.load(schemaModelFile.getPath());
+            conn.load(dataModelFile.getPath());
             conn.load(schema);
 
-            QueryExecution qExec = conn.query(QUERY2);
+            QueryExecution qExec = conn.query(queryString);
 
             ResultSet rs = qExec.execSelect();
             Assert.assertTrue(rs.hasNext());
@@ -137,6 +150,7 @@ public class RdfSchemaFactoryTest extends AbstractServiceTest {
     protected File createSchemaModelFile(boolean forceIfExists)  throws IOException {
         Model model = schemaExportService.getOntology(RdfSchemaOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
+                .reasoningLevel(ReasoningLevel.NONE)
                 .className("TaxonName")
                 .build());
         return createModelFile("schema", model, forceIfExists);
@@ -145,6 +159,7 @@ public class RdfSchemaFactoryTest extends AbstractServiceTest {
     protected File createDataModelFile(boolean forceIfExists)  throws IOException {
         Model model = dataExportService.getIndividuals(RdfDataExportOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
+                .reasoningLevel(ReasoningLevel.NONE)
                 .className("TaxonName")
                 .build());
         return createModelFile("data", model, forceIfExists);
@@ -168,7 +183,7 @@ public class RdfSchemaFactoryTest extends AbstractServiceTest {
     protected void printResult(ResultSet rs) {
         while(rs.hasNext()) {
             QuerySolution qs = rs.next();
-            log.info(qs.toString());
+            log.debug(qs.toString());
         }
 
     }

@@ -22,17 +22,14 @@
 
 package net.sumaris.rdf.service;
 
-import com.github.jsonldjava.shaded.com.google.common.collect.Lists;
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import net.sumaris.core.dao.technical.model.IEntity;
+import com.google.common.collect.Sets;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.service.crypto.CryptoService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
+import net.sumaris.rdf.config.RdfConfigurationOption;
 import net.sumaris.rdf.dao.NamedRdfModelLoader;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
@@ -42,12 +39,10 @@ import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.mutable.MutableLong;
 import org.apache.jena.dboe.base.file.Location;
 import org.apache.jena.fuseki.servlets.SPARQLProtocol;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
@@ -56,6 +51,7 @@ import org.apache.jena.sparql.core.DatasetDescription;
 import org.apache.jena.system.Txn;
 import org.apache.jena.tdb2.TDB2Factory;
 import org.apache.jena.util.FileManager;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +59,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
+import org.tdwg.rs.DWC;
+import org.w3.W3NS;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -71,10 +70,10 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component("datasetService")
@@ -101,6 +100,7 @@ public class DatasetService {
     @Value("${rdf.sparql.maxLimit:10000}")
     private long maxLimit;
 
+
     private Model defaultModel;
 
     private Dataset dataset;
@@ -121,7 +121,7 @@ public class DatasetService {
 
 
     @PostConstruct
-    public void start() {
+    public void init() {
         // Taxon loaders
         registerNameModel(taxrefRdfModelLoader,10000L);
         registerNameModel(sandreTaxonRdfModelLoader, -1L);
@@ -132,19 +132,13 @@ public class DatasetService {
         // Init the query dataset
         this.dataset = createDataset();
 
-        // Fill dataset (async if possible)
-        if (taskExecutor != null) {
-            taskExecutor.execute(() -> {
-                try {
-                    Thread.sleep(10 * 1000); // Wait server starts
-
-                    loadDataset(this.dataset);
-
-                } catch (InterruptedException e) { }
-            });
+        // If auto import, load dataset
+        if (config.isRdfImportEnable()) {
+            boolean isDatasetEmpty = containsTypes(this.dataset, W3NS.Org.Organization, DWC.Voc.TaxonName);
+            if (isDatasetEmpty) this.scheduleLoadDataset();
         }
         else {
-            loadDataset(this.dataset);
+            log.debug("Triple store will not be loaded, because configuration option '{}' set to false.", RdfConfigurationOption.RDF_DATA_IMPORT_ENABLED.getKey());
         }
     }
 
@@ -154,6 +148,7 @@ public class DatasetService {
     }
 
     public void registerNameModel(final NamedRdfModelLoader producer, final long maxStatements) {
+        if (producer == null) return; // Skip if empty
         registerNamedModel(producer.getName(), () -> unionModel(producer.getName(), producer.streamAllByPages(maxStatements)));
     }
 
@@ -162,10 +157,10 @@ public class DatasetService {
     }
 
     public void loadAllNamedModels(Dataset dataset, boolean replaceIfExists) {
-        Collection<String> existingNames = listNames();
+        Set<String> modelNames = getModelNames();
         namedGraphFactories.forEach((name, producer) -> {
 
-            boolean exists = existingNames.contains(name);
+            boolean exists = modelNames.contains(name);
 
             if (!exists || replaceIfExists) {
                 try {
@@ -240,17 +235,33 @@ public class DatasetService {
         return dataset;
     }
 
-    /* -- protected methods -- */
+    /**
+     * Fill dataset
+     * @return
+     */
+    public void loadDataset() {
+        loadDataset(null);
+    }
 
-    protected Collection<String> listNames() {
-        Collection<String> result;
+    /**
+     * Fill dataset
+     * @return
+     */
+    public Dataset getDataset() {
+        return DatasetFactory.wrap(this.dataset.getUnionModel());
+    }
+
+    protected Set<String> getModelNames() {
+        Set<String> result;
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
             conn.begin(ReadWrite.READ);
-            result = Lists.newArrayList(dataset.listNames());
+            result = Sets.newHashSet(dataset.listNames());
             conn.end();
         }
         return result;
     }
+
+    /* -- protected methods -- */
 
 
     protected Dataset createDataset() {
@@ -273,10 +284,14 @@ public class DatasetService {
 
     /**
      * Fill dataset
-     * @param dataset
+     * @param ds can be null
      * @return
      */
-    protected void loadDataset(Dataset dataset) {
+    protected void loadDataset(@Nullable Dataset ds) {
+
+        log.info("Load data into triple store...");
+
+        final Dataset dataset = ds != null ? ds : this.dataset;
 
         // Generate schema, and store it into the dataset
         this.defaultModel = getFullSchemaOntology();
@@ -294,13 +309,15 @@ public class DatasetService {
         }
 
         // Load exported entities into dataset
-        String[] entityNames = config.getDataExportedEntities();
+        String[] entityNames = config.getDataImportDbEntities();
         if (ArrayUtils.isNotEmpty(entityNames)) {
             Arrays.asList(entityNames).forEach(entity -> loadDatabaseEntities(entity, dataset, true));
         }
 
         // Load other named models
-        loadAllNamedModels(dataset, false);
+        if (config.enableDataImportFromExternal()) {
+            loadAllNamedModels(dataset, false);
+        }
     }
 
     protected void loadDatabaseEntities(String entityName, Dataset dataset, boolean replaceIfExists) {
@@ -420,4 +437,59 @@ public class DatasetService {
         }
     }
 
+    protected void scheduleLoadDataset(){
+        // Fill dataset (async if possible)
+        if (taskExecutor != null) {
+            taskExecutor.execute(() -> {
+                try {
+                    Thread.sleep(10 * 1000); // Wait server starts
+
+                    loadDataset();
+
+                } catch (InterruptedException e) {
+                }
+            });
+        } else {
+            loadDataset();
+        }
+    }
+
+    protected boolean containsTypes(Dataset dataset, org.apache.jena.rdf.model.Resource... types) {
+        String queryString = "PREFIX rdf: <" + RDF.getURI() + ">\n" +
+                "SELECT (COUNT(?s) as ?count)\n" +
+                "WHERE\n" +
+                "{\n" +
+                "  ?s rdf:type ?type .\n";
+
+        if (ArrayUtils.isNotEmpty(types)) {
+            queryString += "  FILTER(\n" +
+              " ?type = <" + Stream.of(types)
+                    .map(org.apache.jena.rdf.model.Resource::getURI)
+                    .collect(Collectors.joining("> || ?type = <")) + ">\n" +
+              ")\n";
+        }
+
+        queryString += "}\n" +
+                "GROUP BY ?s";
+        return countQuery(dataset, queryString) == 0;
+    }
+
+    protected long countQuery(Dataset dataset, String queryString) {
+
+        log.debug("Executing SparQL count query: \n" + queryString);
+
+        Query query = QueryFactory.create(queryString);
+        dataset = (dataset != null && dataset != this.dataset) ? dataset : prepareDatasetForQuery(query);
+        MutableLong result = new MutableLong(0);
+        try (RDFConnection conn = RDFConnectionFactory.connect(dataset); QueryExecution qExec = conn.query(query)) {
+            Txn.executeRead(conn, () -> {
+                ResultSet rs = qExec.execSelect();
+                if (rs.hasNext()) {
+                    result.setValue(rs.next().get("count").asLiteral().getLong());
+                }
+            });
+        }
+        Preconditions.checkNotNull(result);
+        return result.longValue();
+    }
 }

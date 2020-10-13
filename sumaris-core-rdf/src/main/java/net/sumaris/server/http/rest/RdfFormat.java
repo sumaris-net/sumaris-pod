@@ -49,7 +49,7 @@ public class RdfFormat extends Lang {
     public static RdfFormat TRIG = new RdfFormat(Lang.TRIG, RdfMediaType.TEXT_TRIG);
     public static RdfFormat TRIX = new RdfFormat(Lang.TRIX, RdfMediaType.TEXT_TRIX);
     public static RdfFormat JSONLD = new RdfFormat(Lang.JSONLD, RdfMediaType.APPLICATION_JSON_LD);
-    public static RdfFormat TURTLE = new RdfFormat( Lang.TURTLE, RdfMediaType.TEXT_TURTLE);
+    public static RdfFormat TURTLE = new RdfFormat(Lang.TURTLE, RdfMediaType.TEXT_TURTLE);
 
     // RDF binary - see https://jena.apache.org/documentation/io/rdf-binary.html
     public static RdfFormat RDFTHRIFT = new RdfFormat( Lang.RDFTHRIFT, RdfMediaType.TEXT_TURTLE);
@@ -60,14 +60,17 @@ public class RdfFormat extends Lang {
     public static Collection<RdfFormat> allValues = ImmutableList.of(RDF, JSON, N3, NTRIPLES, NQUADS, TRIG, TRIX, JSONLD, TURTLE, RDFTHRIFT, VOWL);
 
     private MediaType contentType;
+    private Lang jenaLang;
 
     protected RdfFormat(String langlabel, String mainContentType, List<String> fileExt) {
         super(langlabel, mainContentType, null, null, fileExt);
+        this.jenaLang = (Lang)this;
     }
 
     protected RdfFormat(Lang jenaLang, MediaType contentType) {
         super(jenaLang.getLabel(), contentType.getType(), jenaLang.getAltContentTypes(), jenaLang.getAltContentTypes(), jenaLang.getFileExtensions());
         this.contentType = contentType;
+        this.jenaLang = jenaLang;
     }
 
     protected RdfFormat(String langlabel, MediaType contentType, List<String> fileExt) {
@@ -79,7 +82,7 @@ public class RdfFormat extends Lang {
     }
 
     public Lang toJenaLang() {
-        return (Lang)this;
+        return this.jenaLang;
     }
 
     public MediaType mineType() {

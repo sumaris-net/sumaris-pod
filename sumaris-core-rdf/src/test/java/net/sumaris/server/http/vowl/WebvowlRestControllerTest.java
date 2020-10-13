@@ -20,39 +20,42 @@
  * #L%
  */
 
-package net.sumaris.rdf.service;
+package net.sumaris.server.http.vowl;
 
 import net.sumaris.rdf.config.RdfConfiguration;
+import net.sumaris.rdf.dao.DatabaseResource;
+import net.sumaris.rdf.service.AbstractServiceTest;
+import net.sumaris.rdf.service.ServiceTestConfiguration;
+import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/**
- * Abstract class for unit test on services.
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
 @TestPropertySource(locations="classpath:sumaris-core-rdf-test.properties")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class AbstractServiceTest {
+public class WebvowlRestControllerTest extends AbstractServiceTest {
 
-	/** Logger. */
-	private static final Logger log =
-			LoggerFactory.getLogger(AbstractServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(WebvowlRestControllerTest.class);
+    @Autowired
+    protected RdfConfiguration config;
 
-	@Autowired
-	protected RdfConfiguration config;
+    @Autowired
+    protected WebvowlRestController controller;
 
-	/* -- Internal method -- */
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
-	protected RdfConfiguration getConfig() {
-		return config;
-	}
 
+    @Test
+    public void convertRdfIriToVowl() {
+        Assert.assertNotNull(controller);
+    }
 
 }

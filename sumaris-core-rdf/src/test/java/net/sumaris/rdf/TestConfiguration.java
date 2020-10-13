@@ -22,7 +22,9 @@
 
 package net.sumaris.rdf;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.DatabaseFixtures;
 import org.springframework.context.annotation.Bean;
 
@@ -40,7 +42,14 @@ public abstract class TestConfiguration extends net.sumaris.core.test.TestConfig
 
     @Bean
     public static SumarisConfiguration sumarisConfiguration() {
-        return initConfiguration("sumaris-core-rdf-test.properties");
+        SumarisConfiguration config = initConfiguration("sumaris-core-rdf-test.properties");
+        return config;
     }
+
+    @Bean
+    public static ObjectMapper jacksonObjectMapper() {
+        return new ObjectMapper(); // JacksonUtils;
+    }
+
 
 }

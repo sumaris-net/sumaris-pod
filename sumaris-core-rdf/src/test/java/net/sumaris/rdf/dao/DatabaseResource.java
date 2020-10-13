@@ -22,6 +22,14 @@
 
 package net.sumaris.rdf.dao;
 
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.rdf.config.RdfConfigurationOption;
+import org.apache.commons.io.FileUtils;
+import org.junit.Assume;
+import org.junit.runner.Description;
+
+import java.io.File;
+
 /**
  * To be able to manage database connection for unit test.
  * 
@@ -79,4 +87,32 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 		return MODULE_NAME + "-i18n";
 	}
 
+	@Override
+	protected void before(Description description) throws Throwable {
+		super.before(description);
+
+		// Init the TDB2 Triple store
+		initTripleStore();
+	}
+
+	protected void initTripleStore() throws Throwable {
+		// Source dir, init by InitTests.main
+		File sourceDirectory = new File("target/rdf");
+		Assume.assumeTrue(String.format("No RDF dataset found at '%s'. Please run InitTests and retry", sourceDirectory.getPath()), sourceDirectory.exists() && sourceDirectory.isDirectory());
+
+		SumarisConfiguration config = SumarisConfiguration.getInstance();
+		if (isWriteDb()) {
+			File targetDirectory = getResourceDirectory("data/rdf");
+			config.getApplicationConfig().setOption(RdfConfigurationOption.RDF_DIRECTORY.getKey(), targetDirectory.getCanonicalPath());
+
+			if (!targetDirectory.getParentFile().exists()) {
+				FileUtils.forceMkdir(targetDirectory.getParentFile());
+			}
+			FileUtils.copyDirectory(sourceDirectory, targetDirectory);
+		}
+		// Readonly: use existing source dir
+		else {
+			config.getApplicationConfig().setOption(RdfConfigurationOption.RDF_DIRECTORY.getKey(), sourceDirectory.getCanonicalPath());
+		}
+	}
 }

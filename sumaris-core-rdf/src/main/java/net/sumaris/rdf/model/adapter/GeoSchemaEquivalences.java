@@ -51,7 +51,7 @@ public class GeoSchemaEquivalences extends AbstractSchemaEquivalences {
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {
-        log.info("Adding {{}} equivalences to {{}}...", org.w3.GEO.PREFIX, schemaUri);
+        if (log.isDebugEnabled()) log.debug("Adding {{}} equivalences to {{}}...", org.w3.GEO.PREFIX, schemaUri);
     }
 
     @Override

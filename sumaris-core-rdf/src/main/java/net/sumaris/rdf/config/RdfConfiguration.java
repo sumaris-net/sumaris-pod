@@ -25,29 +25,35 @@ package net.sumaris.rdf.config;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.model.ModelURIs;
 import net.sumaris.server.http.rest.RdfFormat;
+import org.nuiton.config.ApplicationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.annotation.Resource;
+import javax.servlet.Servlet;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 @Configuration
 @ConditionalOnProperty(
-        prefix = "rdf",
-        name = {"enabled"})
+    prefix = "rdf",
+    name = {"enabled"}
+)
 public class RdfConfiguration  {
     /**
      * Logger.
@@ -55,12 +61,23 @@ public class RdfConfiguration  {
     protected static final Logger log =
             LoggerFactory.getLogger(RdfConfiguration.class);
 
-    @Resource(name = "sumarisConfiguration")
-    private SumarisConfiguration config;
+    private SumarisConfiguration delegate;
 
-    private String modelBaseUri;
+    private String cachedModelBaseUri;
+
+    @Autowired
+    public RdfConfiguration(SumarisConfiguration sumarisConfiguration){
+        this.delegate = sumarisConfiguration;
+    }
 
     @Bean
+    @ConditionalOnClass({Servlet.class, DispatcherServlet.class})
+    @ConditionalOnProperty(
+            prefix = "spring.main",
+            name = {"web-application-type"},
+            havingValue = "servlet",
+            matchIfMissing = true
+    )
     public WebMvcConfigurer configureRdfStatics() {
         return new WebMvcConfigurer() {
             @Override
@@ -159,88 +176,110 @@ public class RdfConfiguration  {
     }
 
     public boolean isRdfEnable() {
-        return config.getApplicationConfig().getOptionAsBoolean(RdfConfigurationOption.RDF_ENABLED.getKey());
+        return getApplicationConfig().getOptionAsBoolean(RdfConfigurationOption.RDF_ENABLED.getKey());
+    }
+
+    public boolean isTdb2DatasetEnable() {
+        return getApplicationConfig().getOptionAsBoolean(RdfConfigurationOption.RDF_TDB2_ENABLED.getKey());
+    }
+
+    public boolean isRdfImportEnable() {
+        return getApplicationConfig().getOptionAsBoolean(RdfConfigurationOption.RDF_DATA_IMPORT_ENABLED.getKey());
     }
 
     public File getRdfDirectory() {
-        return config.getApplicationConfig().getOptionAsFile(RdfConfigurationOption.RDF_DIRECTORY.getKey());
+        return getApplicationConfig().getOptionAsFile(RdfConfigurationOption.RDF_DIRECTORY.getKey());
     }
 
     public File getTempDirectory() {
-        return config.getApplicationConfig().getOptionAsFile(SumarisConfigurationOption.TMP_DIRECTORY.getKey());
+        return getApplicationConfig().getOptionAsFile(SumarisConfigurationOption.TMP_DIRECTORY.getKey());
     }
 
     public String getModelBaseUri() {
-        if (this.modelBaseUri != null) return this.modelBaseUri;
+        if (this.cachedModelBaseUri != null) return this.cachedModelBaseUri;
 
         // Init property, if not init yet
-        String modelPrefix = config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey());
+        String modelPrefix = getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey());
         Preconditions.checkNotNull(modelPrefix, String.format("Missing configuration option {%s}", RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey()));
         if (modelPrefix.lastIndexOf('/') != modelPrefix.length() - 1) {
             modelPrefix += "/";
         }
 
-        this.modelBaseUri = modelPrefix;
+        this.cachedModelBaseUri = modelPrefix;
         return modelPrefix;
     }
 
     public String getModelPrefix() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_PREFIX.getKey()).toLowerCase();
+        return getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_PREFIX.getKey()).toLowerCase();
     }
 
     public String getModelVersion() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_VERSION.getKey());
+        return getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_VERSION.getKey());
     }
 
     public String getModelTitle() {
-        return config.getAppName();
+        return delegate.getAppName();
     }
 
     public String getModelDefaultLanguage() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_LANGUAGE.getKey());
+        return getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_LANGUAGE.getKey());
     }
 
     public String getModelLabel() {
-        return config.getAppName();
+        return delegate.getAppName();
     }
 
 
     public String getModelDescription() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_DESCRIPTION.getKey());
+        return getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_DESCRIPTION.getKey());
     }
 
     public String getModelComment() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_COMMENT.getKey());
+        return getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_COMMENT.getKey());
     }
 
     public String getModelDate() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_DATE.getKey());
+        return getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_DATE.getKey());
     }
 
     public String getModelLicense() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_LICENSE.getKey());
+        return getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_LICENSE.getKey());
     }
 
     public String getModelAuthors() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_AUTHORS.getKey());
+        return getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_AUTHORS.getKey());
     }
 
     public String getModelPublisher() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_PUBLISHER.getKey());
+        return getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_PUBLISHER.getKey());
     }
 
     public int getDefaultPageSize() {
-        return config.getApplicationConfig().getOptionAsInt(RdfConfigurationOption.RDF_DEFAULT_PAGE_SIZE.getKey());
+        return getApplicationConfig().getOptionAsInt(RdfConfigurationOption.RDF_DEFAULT_PAGE_SIZE.getKey());
     }
 
     public int getMaxPageSize() {
-        return config.getApplicationConfig().getOptionAsInt(RdfConfigurationOption.RDF_MAX_PAGE_SIZE.getKey());
+        return getApplicationConfig().getOptionAsInt(RdfConfigurationOption.RDF_MAX_PAGE_SIZE.getKey());
     }
 
-    public String[] getDataExportedEntities() {
-        String str = config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_EXPORTED_ENTITIES.getKey());
+    public String[] getDataImportDbEntities() {
+        String str = getApplicationConfig().getOption(RdfConfigurationOption.RDF_DATA_IMPORT_DB_ENTITIES.getKey());
         return str != null ? str.split(",") : null;
     }
 
+    public boolean enableDataImportFromExternal() {
+        return  getApplicationConfig().getOptionAsBoolean(RdfConfigurationOption.RDF_DATA_IMPORT_EXTERNAL.getKey());
+    }
+
+    public Optional<RdfFormat> getRdfOutputFormat() {
+        String userFormat = getApplicationConfig().getOption(RdfConfigurationOption.RDF_OUTPUT_FORMAT.getKey());
+        return RdfFormat.fromUserString(userFormat);
+    }
+
+    public ApplicationConfig getApplicationConfig() {
+        return delegate.getApplicationConfig();
+    }
+
+    /* -- protected functions -- */
 
 }

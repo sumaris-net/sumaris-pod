@@ -65,7 +65,7 @@ public class RdfSchemaEquivalences extends AbstractSchemaEquivalences {
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {
-        log.info("Adding {{}} equivalences to {{}}...", basePrefix, schemaUri);
+        if (debug) log.debug("Adding {{}} equivalences to {{}}...", basePrefix, schemaUri);
 
         if (model instanceof OntModel) {
             // Add Geometry -> SpatialObject
@@ -99,7 +99,7 @@ public class RdfSchemaEquivalences extends AbstractSchemaEquivalences {
 
                 // Update date
                 model.getResource(classUri + "#" + IUpdateDateEntityBean.Fields.UPDATE_DATE)
-                        .addProperty(equivalentProperty, DC.NS + "modified")
+                        .addProperty(equivalentProperty, org.purl.DC.modified)
                         .addProperty(equivalentProperty, DCTerms.modified);
 
                 // Referential entity
@@ -107,7 +107,7 @@ public class RdfSchemaEquivalences extends AbstractSchemaEquivalences {
 
                     // Creation date
                     model.getResource(classUri + "#" + IItemReferentialEntity.Fields.CREATION_DATE)
-                            .addProperty(equivalentProperty, DC.NS + "created")
+                            .addProperty(equivalentProperty, org.purl.DC.created)
                             .addProperty(equivalentProperty, DCTerms.created);
 
                     // Item referential
@@ -151,10 +151,8 @@ public class RdfSchemaEquivalences extends AbstractSchemaEquivalences {
     @Override
     public void visitIndividual(Model model, Resource instance, Class clazz) {
 
-        String individualUri = instance.getURI();
 
         // ID
-        instance
-                .addProperty(DC.identifier, individualUri);
+        instance.addProperty(DC.identifier, instance.getURI());
     }
 }

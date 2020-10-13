@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf.config;
 
+import net.sumaris.server.http.rest.RdfFormat;
 import org.nuiton.config.ConfigOptionDef;
 
 import java.io.File;
@@ -45,7 +46,6 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             "${sumaris.data.directory}/rdf",
             File.class,
             false),
-
 
     RDF_MODEL_DATE(
             "rdf.model.version",
@@ -131,10 +131,38 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             Integer.class,
             false),
 
-    RDF_EXPORTED_ENTITIES(
-            "rdf.data.export.entities",
-            n("sumaris.config.option.rdf.data.entities.description"),
+    RDF_TDB2_ENABLED(
+            "rdf.tdb2.enabled",
+            n("sumaris.config.option.rdf.tdb2.enabled.description"),
+            Boolean.TRUE.toString(),
+            String.class,
+            false),
+
+    RDF_DATA_IMPORT_ENABLED(
+            "rdf.data.import.enabled",
+            n("sumaris.config.option.rdf.data.import.enabled.description"),
+            Boolean.TRUE.toString(),
+            Boolean.class,
+            false),
+
+    RDF_DATA_IMPORT_DB_ENTITIES(
+            "rdf.data.import.entities",
+            n("sumaris.config.option.rdf.data.import.entities.description"),
             "TaxonName,Department,Gear",
+            String.class,
+            false),
+
+    RDF_DATA_IMPORT_EXTERNAL(
+            "rdf.data.import.external.enabled",
+            n("sumaris.config.option.rdf.data.import.external.enabled.description"),
+            Boolean.TRUE.toString(),
+            String.class,
+            false),
+
+    RDF_OUTPUT_FORMAT(
+            "rdf.cli.output.format",
+            n("sumaris.config.option.rdf.cli.output.format.description"),
+            RdfFormat.TRIG.getName(),
             String.class,
             false)
     ;

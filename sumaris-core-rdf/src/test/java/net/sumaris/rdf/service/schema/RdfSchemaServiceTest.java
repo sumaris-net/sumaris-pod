@@ -22,12 +22,10 @@
 
 package net.sumaris.rdf.service.schema;
 
-import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.service.AbstractServiceTest;
-import net.sumaris.rdf.service.ServiceTestConfiguration;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
@@ -35,28 +33,17 @@ import org.apache.jena.util.FileManager;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ServiceTestConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-rdf-test.properties")
+
 public class RdfSchemaServiceTest extends AbstractServiceTest {
 
-
-    @Autowired
-    protected RdfConfiguration config;
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
     protected RdfSchemaService schemaService;
 
-    @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Test
     public void getOntologyWithRdfsReasoner() {

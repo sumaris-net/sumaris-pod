@@ -22,11 +22,11 @@
 
 package net.sumaris.rdf.service.schema;
 
+import net.sumaris.rdf.dao.cache.RdfCacheNames;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelVocabulary;
-import net.sumaris.rdf.model.reasoner.ReasoningLevel;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
@@ -47,7 +47,7 @@ public interface RdfSchemaService {
      * @param options export options
      * @return a schema representation as an ontology
      */
-    //@Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
+    @Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
     Model getOntology(RdfSchemaOptions options);
 
     Model getOntology(ModelVocabulary voc);

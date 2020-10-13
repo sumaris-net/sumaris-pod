@@ -51,7 +51,7 @@ public class FoafSchemaEquivalences extends AbstractSchemaEquivalences {
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {
-        log.info("Adding {{}} equivalences to {{}}...", "foaf", schemaUri);
+        if (log.isDebugEnabled()) log.debug("Adding {{}} equivalences to {{}}...", "foaf", schemaUri);
     }
 
     @Override
@@ -60,12 +60,15 @@ public class FoafSchemaEquivalences extends AbstractSchemaEquivalences {
 
         // Program
         if (clazz == Program.class) {
+            if (log.isDebugEnabled()) log.debug("Adding {{}} equivalence on Class {{}}...", "foaf", clazz.getSimpleName());
+
             // = Project
             ontClass.addProperty(equivalentClass, FOAF.Project);
         }
 
         // Person
         else if (clazz == Person.class) {
+            if (log.isDebugEnabled()) log.debug("Adding {{}} equivalence on Class {{}}...", "foaf", clazz.getSimpleName());
 
             // = FOAF.Person, FOAF.OnlineAccount
             ontClass.addProperty(equivalentClass, FOAF.Person)
@@ -103,6 +106,8 @@ public class FoafSchemaEquivalences extends AbstractSchemaEquivalences {
 
         // Department
         else if (clazz == Department.class) {
+            if (log.isDebugEnabled()) log.debug("Adding {{}} equivalence on Class {{}}...", "foaf", clazz.getSimpleName());
+
             // = Organization
             ontClass.addProperty(equivalentClass, FOAF.Organization);
 

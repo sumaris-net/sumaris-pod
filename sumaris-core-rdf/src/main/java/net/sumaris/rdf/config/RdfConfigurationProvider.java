@@ -59,6 +59,6 @@ public class RdfConfigurationProvider implements ApplicationConfigProvider {
 	/** {@inheritDoc} */
 	@Override
 	public ConfigActionDef[] getActions() {
-		return new ConfigActionDef[0];
+		return RdfConfigurationAction.values();
 	}
 }

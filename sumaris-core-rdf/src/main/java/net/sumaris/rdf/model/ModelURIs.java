@@ -35,7 +35,7 @@ import org.schema.SCHEMA;
 import org.tdwg.rs.DWC;
 import org.w3.GEO;
 import org.w3.W3NS;
-import purl.goodrelations.GR;
+import org.purl.GR;
 
 import java.util.Map;
 

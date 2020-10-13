@@ -25,6 +25,7 @@ package net.sumaris.core.action;
  */
 
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
@@ -71,7 +72,8 @@ public class DatabaseGenerateChangeLogAction {
             log.error("Error while getting versions.", e);
         }
 
-        File outputFile = ActionUtils.checkAndGetOutputFile(false, this.getClass());
+        File outputFile = ActionUtils.checkAndGetOutputFile(false,
+                this.getClass());
         
         try {
             log.info("Launching changelog file generation...");

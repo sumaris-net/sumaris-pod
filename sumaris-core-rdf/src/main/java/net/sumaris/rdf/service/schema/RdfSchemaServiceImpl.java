@@ -28,8 +28,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
 import net.sumaris.rdf.dao.RdfModelDao;
@@ -242,7 +242,9 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         String prefix = getPrefix();
         String namespace = getNamespace();
 
-        log.info("Generating {} ontology {{}}...", options.getDomain().name().toLowerCase(), namespace);
+        if (log.isDebugEnabled() && StringUtils.isBlank(options.getClassName())) {
+            log.info("Generating {} ontology {{}}...", options.getDomain().name().toLowerCase(), namespace);
+        }
         OntModel model = ModelUtils.createOntologyModel(prefix, namespace, options.getReasoningLevel());
         createSchemaResource(model, namespace);
 
@@ -342,7 +344,8 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     protected void withDisjoints(Multimap<OntClass, OntClass> mutuallyDisjoint) {
 
         if (mutuallyDisjoint != null && !mutuallyDisjoint.isEmpty()) {
-            log.info("Adding {} disjoints...", mutuallyDisjoint.size());
+            if (debug) log.debug("Adding {} disjoints to model...", mutuallyDisjoint.size());
+
             // add mutually disjoint classes
             mutuallyDisjoint.keys().stream()
                     .forEach(clazz -> {
