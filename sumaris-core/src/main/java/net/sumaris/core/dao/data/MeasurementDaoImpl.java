@@ -29,6 +29,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
+import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -76,7 +77,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("measurementDao")
-public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDao {
+public class MeasurementDaoImpl extends HibernateDaoSupport implements MeasurementDao {
 
     /** Logger. */
     private static final Logger log =

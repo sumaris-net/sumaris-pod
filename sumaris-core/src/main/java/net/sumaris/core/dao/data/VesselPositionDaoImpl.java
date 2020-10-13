@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.VesselPosition;
@@ -50,7 +51,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("vesselPositionDao")
-public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPositionDao {
+public class VesselPositionDaoImpl extends HibernateDaoSupport implements VesselPositionDao {
 
     /** Logger. */
     private static final Logger log =

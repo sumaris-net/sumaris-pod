@@ -31,6 +31,7 @@ import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Batch;
@@ -66,7 +67,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository("batchDao")
-public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
+public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
 
     /**
      * Logger.
