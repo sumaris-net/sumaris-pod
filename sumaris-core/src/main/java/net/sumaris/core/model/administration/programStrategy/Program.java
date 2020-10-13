@@ -87,14 +87,14 @@ public class Program implements IItemReferentialEntity {
     @JoinColumn(name = "gear_classification_fk", nullable = false)
     private GearClassification gearClassification;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinTable(name = "program2location_classif", joinColumns = {
             @JoinColumn(name = "program_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {
                     @JoinColumn(name = "location_classification_fk", nullable = false, updatable = false) })
     private Set<LocationClassification> locationClassifications = Sets.newHashSet();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinTable(name = "program2location", joinColumns = {
             @JoinColumn(name = "program_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {

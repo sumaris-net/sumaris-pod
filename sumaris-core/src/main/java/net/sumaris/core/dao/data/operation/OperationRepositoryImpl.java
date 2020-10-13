@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -72,9 +71,7 @@ public class OperationRepositoryImpl
     public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations) {
 
         // Load parent entity
-        Trip parent = find(Trip.class, tripId);
-        if (parent == null)
-            throw new DataRetrievalFailureException(String.format("Parent trip (id=%s) not found", tripId));
+        Trip parent = getOne(Trip.class, tripId);
 
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getOperations()));
@@ -111,7 +108,8 @@ public class OperationRepositoryImpl
             if (tripId == null) {
                 target.setTrip(null);
             } else {
-                target.setTrip(find(Trip.class, tripId)); // Use a GET, because trip will be used later, for physicalGears
+                // Use get() and NOT load(), because trip object will be used later (for physicalGears)
+                target.setTrip(getOne(Trip.class, tripId));
             }
         }
 

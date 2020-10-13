@@ -76,7 +76,7 @@ public class Location implements IItemReferentialEntity, IWithValidityStatusEnti
     private String comments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = LocationLevel.class)
-    @JoinColumn(name = "location_level_fk")
+    @JoinColumn(name = "location_level_fk", nullable = false)
     private LocationLevel locationLevel;
 
     @ManyToOne(fetch = FetchType.LAZY)

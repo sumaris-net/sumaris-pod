@@ -60,9 +60,9 @@ import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -185,7 +185,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         switch (category) {
             case PRODUCT:
                 ExtractionProductVO product = extractionProductRepository.getByLabel(checkedType.getLabel(),
-                    ProductFetchOptions.MINIMAL_WITH_TABLES);
+                        ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
                 return readProductRows(product, filter, offset, size, sort, direction);
             case LIVE:
                 return extractRawDataAndRead(checkedType, filter, offset, size, sort, direction);
@@ -244,11 +244,11 @@ public class ExtractionServiceImpl implements ExtractionService {
         switch (category) {
             case PRODUCT:
                 ExtractionProductVO product = extractionProductRepository.getByLabel(checkedType.getLabel(),
-                    ProductFetchOptions.builder()
-                        .withRecorderDepartment(false)
-                        .withRecorderPerson(false)
-                        .withColumns(false)
-                        .build());
+                        ExtractionProductFetchOptions.builder()
+                                .withRecorderDepartment(false)
+                                .withRecorderPerson(false)
+                                .withColumns(false)
+                                .build());
                 return dumpProductToFile(product, filter);
             case LIVE:
                 ExtractionRawFormatEnum format = ExtractionRawFormatEnum.valueOf(checkedType.getLabel().toUpperCase());
@@ -351,7 +351,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Load the product
         ExtractionProductVO target = extractionProductRepository.findByLabel(
-            type.getLabel(), ProductFetchOptions.builder().withTables(false).build()
+            type.getLabel(), ExtractionProductFetchOptions.builder().withTables(false).build()
         ).orElse(null);
 
         if (target == null) {
@@ -395,7 +395,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
 
         return ListUtils.emptyIfNull(
-            extractionProductRepository.findAll(filter, ProductFetchOptions.builder()
+            extractionProductRepository.findAll(filter, ExtractionProductFetchOptions.builder()
                 .withRecorderDepartment(true)
                 .withTables(true)
                 .build()))
@@ -414,8 +414,8 @@ public class ExtractionServiceImpl implements ExtractionService {
                 type.setCategory(ExtractionCategoryEnum.LIVE.name().toLowerCase());
                 type.setSheetNames(format.getSheetNames());
                 type.setStatusId(StatusEnum.TEMPORARY.getId()); // = not public
-                    type.setVersion(format.getVersion());
-                    type.setRawFormat(format);
+                type.setVersion(format.getVersion());
+                type.setRawFormat(format);
                 id.decrement();
                 return type;
             })
@@ -481,7 +481,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         return extractionTableDao.getTableRows(tableName, filter, offset, size, sort, direction);
     }
 
-    protected File dumpProductToFile(ExtractionProductVO product, ExtractionFilterVO filter) throws IOException {
+    protected File dumpProductToFile(ExtractionProductVO product, ExtractionFilterVO filter) {
         Preconditions.checkNotNull(product);
         Preconditions.checkNotNull(filter);
 
@@ -656,7 +656,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         try {
             // Insert missing rectangles
             long statisticalRectanglesCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_ICES.getId())
-                + referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_CGPM_GFCM.getId());
+                + referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_GFCM.getId());
             if (statisticalRectanglesCount == 0) {
                 locationService.insertOrUpdateRectangleLocations();
             }

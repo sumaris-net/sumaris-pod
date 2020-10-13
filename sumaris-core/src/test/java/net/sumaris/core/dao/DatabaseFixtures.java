@@ -93,6 +93,18 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getOperationId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+			case 1:
+				return 2;
+
+			default:
+				return 1;
+		}
+	}
 
 	public Integer getObservedLocationId(int index) {
 		Preconditions.checkArgument(index >= 0);

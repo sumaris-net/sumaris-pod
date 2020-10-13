@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -43,7 +44,8 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "sample")
-public class Sample implements IRootDataEntity<Integer> {
+public class Sample implements IRootDataEntity<Integer>,
+        ITreeNodeEntityBean<Integer, Sample> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLE_SEQ")

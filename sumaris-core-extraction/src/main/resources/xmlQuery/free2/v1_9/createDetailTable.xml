@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<queries name="extractionCreateDetailTable">
+
+  <query type="create" temp="false" table="&amp;detailTableName" option="DISTINCT">
+
+    <!-- PK -->
+    <select alias="TYPE" type="text">'Detail'</select>
+    <select alias="ID_VRAC" type="number">SL.ID_VRAC</select>
+    <select alias="ID_DETAIL" type="number">SL.ID_VRAC</select>
+    <select alias="DETAIL" type="text">'Détaillé'</select>
+    <select alias="EXHAUSTIF" type="text">'Oui'</select>
+    <select alias="TAUX_ECH" type="number">null</select>
+    <select alias="POIDS_REF_VRAC" type="number">null</select>
+
+    <from alias="SL">&amp;rawSpeciesListTableName</from>
+
+    <!-- Must be an empty table, in ADAP data -->
+    <where>1!=1</where>
+
+  </query>
+
+</queries>

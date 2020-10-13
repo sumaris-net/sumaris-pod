@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.VesselPosition;
@@ -50,7 +51,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("vesselPositionDao")
-public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPositionDao {
+public class VesselPositionDaoImpl extends HibernateDaoSupport implements VesselPositionDao {
 
     /** Logger. */
     private static final Logger log =
@@ -103,7 +104,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
     public List<VesselPositionVO> saveByOperationId(int operationId, List<VesselPositionVO> sources) {
 
         // Load parent entity
-        Operation parent = find(Operation.class, operationId);
+        Operation parent = getOne(Operation.class, operationId);
 
         // Remember existing entities
         final Map<Integer, VesselPosition> sourcesToRemove = Beans.splitById(Beans.getList(parent.getPositions()));

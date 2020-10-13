@@ -232,7 +232,7 @@ public class PmfmStrategyRepositoryImpl
     public List<PmfmStrategyVO> saveByStrategyId(int strategyId, List<PmfmStrategyVO> sources) {
         Preconditions.checkNotNull(sources);
 
-        Strategy parent = find(Strategy.class, strategyId);
+        Strategy parent = getOne(Strategy.class, strategyId);
 
         sources.forEach(source -> {
             source.setStrategyId(strategyId);

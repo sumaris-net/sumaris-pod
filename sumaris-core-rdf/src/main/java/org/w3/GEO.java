@@ -40,11 +40,11 @@ public class GEO {
             return NS;
         }
 
-        protected final static Resource resource(String local) {
+        protected static Resource resource(String local) {
             return ResourceFactory.createResource(NS + local);
         }
 
-        protected final static Property property(String local) {
+        protected static Property property(String local) {
             return ResourceFactory.createProperty(NS + local);
         }
 

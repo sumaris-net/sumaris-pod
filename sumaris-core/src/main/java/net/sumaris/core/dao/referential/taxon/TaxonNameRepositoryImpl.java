@@ -1,6 +1,7 @@
 package net.sumaris.core.dao.referential.taxon;
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -12,12 +13,14 @@ import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -53,7 +56,7 @@ public class TaxonNameRepositoryImpl
     }
 
     @Override
-    public TaxonNameVO getTaxonNameReferent(Integer referenceTaxonId) {
+    public Optional<TaxonNameVO> findTaxonNameReferent(Integer referenceTaxonId) {
 
         List<TaxonNameVO> taxonNames = findByFilter(
             TaxonNameFilterVO.builder()
@@ -62,11 +65,11 @@ public class TaxonNameRepositoryImpl
                 .build(),
             Pageable.unpaged()
         );
-        if (CollectionUtils.isEmpty(taxonNames)) return null;
+        if (CollectionUtils.isEmpty(taxonNames)) return Optional.empty();
         if (taxonNames.size() > 1) {
             log.warn(String.format("ReferenceTaxon {id=%s} has more than one TaxonNames, with IS_REFERENT=1. Will use the first found.", referenceTaxonId));
         }
-        return taxonNames.get(0);
+        return Optional.ofNullable(taxonNames.get(0));
     }
 
     @Override
@@ -102,5 +105,13 @@ public class TaxonNameRepositoryImpl
         return query.getResultStream()
             .map(this::toVO)
             .collect(Collectors.toList());
+    }
+
+     @Override
+    public Integer getReferenceTaxonIdById(int id) {
+        return getEntityManager()
+                .createNamedQuery("TaxonName.referenceTaxonIdById", Integer.class)
+                .setParameter("id", id)
+                .getSingleResult();
     }
 }

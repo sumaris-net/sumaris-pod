@@ -51,7 +51,7 @@ public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date>,
     private Double numericalValue;
     private String alphanumericalValue;
     private Integer digitCount;
-    private Integer rankOrder;
+    private Short rankOrder;
     private Double precisionValue;
     private ReferentialVO qualitativeValue;
 

@@ -37,6 +37,10 @@ import java.util.Date;
 @FieldNameConstants
 public class ObservedLocationFilterVO implements IRootDataFilter {
 
+    public static ObservedLocationFilterVO nullToEmpty(ObservedLocationFilterVO f) {
+        return f != null ? f : new ObservedLocationFilterVO();
+    }
+
     private String programLabel;
 
     private Date startDate;

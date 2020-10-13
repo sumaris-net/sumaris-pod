@@ -27,7 +27,7 @@ public class ParameterRepositoryWriteTest extends AbstractDaoTest {
     public void saveParameter() {
 
         ParameterVO vo = new ParameterVO();
-        vo.setLabel("PARAM_TEST");
+        vo.setLabel("PARAM_TEST_1");
         vo.setName("parameter for test");
         vo.setType("string");
         vo.setStatusId(1);
@@ -39,7 +39,7 @@ public class ParameterRepositoryWriteTest extends AbstractDaoTest {
     public void saveParameterWithQualitativeValues() {
 
         ParameterVO vo = new ParameterVO();
-        vo.setLabel("PARAM_TEST");
+        vo.setLabel("PARAM_TEST_QV");
         vo.setName("parameter for test");
         vo.setType("QUALITATIVE_VALUE");
         vo.setStatusId(1);

@@ -20,7 +20,6 @@ import net.sumaris.core.vo.filter.SaleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -80,9 +79,7 @@ public class SaleRepositoryImpl
     @Override
     public List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sales) {
         // Load parent entity
-        Trip parent = find(Trip.class, tripId);
-        if (parent == null)
-            throw new DataRetrievalFailureException(String.format("Parent trip (id=%s) not found", tripId));
+        Trip parent = getOne(Trip.class, tripId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 

@@ -90,7 +90,7 @@ public class LandingServiceImpl implements LandingService {
     @Override
     public List<LandingVO> findAll(LandingFilterVO filter, Page page, DataFetchOptions fetchOptions) {
 
-        if (filter == null) filter = LandingFilterVO.builder().build();
+        filter = LandingFilterVO.nullToEmpty(filter);
 
         if (page != null) {
 

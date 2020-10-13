@@ -29,22 +29,25 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelURIs;
+import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
 import net.sumaris.rdf.service.schema.RdfSchemaOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.reasoner.ReasonerRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -56,7 +59,7 @@ import java.util.stream.Collectors;
 
 
 @RestController
-@ConditionalOnBean({RdfConfiguration.class})
+@ConditionalOnBean({WebMvcConfigurer.class})
 public class RdfRestController {
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
@@ -74,6 +77,7 @@ public class RdfRestController {
     public static final String DATA_BY_CLASS_PATH = DATA_SLASH_PATH + "{class:[a-zA-Z]+}";
     public static final String DATA_BY_CLASS_SLASH_PATH = DATA_BY_CLASS_PATH + "/";
     public static final String DATA_BY_OBJECT_PATH = DATA_BY_CLASS_SLASH_PATH + "{id:[0-9a-zA-Z]+}";
+
 
     public static final String CONVERT = ONTOLOGY_PATH + "/convert";
 
@@ -175,6 +179,7 @@ public class RdfRestController {
     public ResponseEntity<byte[]> getIndividuals(@PathVariable(name = "class") String className,
                                                  @PathVariable(name = "id", required = false) String objectId,
                                                  @PathVariable(name = "extension", required = false) String extension,
+                                                 @RequestParam(name = "schema", required = false) String schema,
                                                  @RequestParam(name = "format", required = false) String userFormat,
                                                  @RequestParam(name = "from", required = false, defaultValue = "0") int offset,
                                                  @RequestParam(name = "size", required = false, defaultValue = "100") int size,
@@ -190,8 +195,17 @@ public class RdfRestController {
                         .build())
                 .build();
 
+        boolean withSchema = "".equalsIgnoreCase(schema) || "true".equalsIgnoreCase(schema);
+        if (!withSchema) options.setReasoningLevel(ReasoningLevel.NONE);
+
         // Find the output format
-        RdfFormat outputFormat = findRdfFormat(request, userFormat, RdfFormat.RDF);
+        RdfFormat outputFormat = null;
+        if (StringUtils.isNotBlank(extension)) {
+            outputFormat = RdfFormat.fromExtension(extension).orElse(null);
+        }
+        if (outputFormat == null) {
+            outputFormat = findRdfFormat(request, userFormat, RdfFormat.RDF);
+        }
 
         // Get individuals
         Model individuals = dataExportService.getIndividuals(options);

@@ -31,6 +31,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.assertj.core.util.Lists;
 import org.junit.*;
@@ -89,9 +90,10 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
         batch.setRecorderDepartment(recorderDepartment);
 
         // Measurement: weight
-        MeasurementVO weightMeasurement = new MeasurementVO();
+        QuantificationMeasurementVO weightMeasurement = new QuantificationMeasurementVO();
         weightMeasurement.setPmfmId(dbResource.getFixtures().getPmfmBatchWeight()); // landing weight
         weightMeasurement.setEntityName(BatchQuantificationMeasurement.class.getSimpleName());
+        weightMeasurement.setIsReferenceQuantification(true);
 
         batch.setQuantificationMeasurements(ImmutableList.of(weightMeasurement));
 
@@ -147,9 +149,10 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
                 child.setTaxonGroup(taxonGroup);
 
                 // Measurement: weight
-                MeasurementVO weightMeasurement = new MeasurementVO();
+                QuantificationMeasurementVO weightMeasurement = new QuantificationMeasurementVO();
                 weightMeasurement.setPmfmId(dbResource.getFixtures().getPmfmBatchWeight()); // landing weight
                 weightMeasurement.setEntityName(BatchQuantificationMeasurement.class.getSimpleName());
+                weightMeasurement.setIsReferenceQuantification(true);
 
                 child.setQuantificationMeasurements(ImmutableList.of(weightMeasurement));
 

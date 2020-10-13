@@ -22,7 +22,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -110,9 +109,7 @@ public class OperationGroupRepositoryImpl
 
         // Trip
         Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
-        Trip trip = find(Trip.class, tripId);
-        if (trip == null)
-            throw new DataRetrievalFailureException(String.format("Parent Trip (id=%s) not found", tripId));
+        Trip trip = getOne(Trip.class, tripId);
         target.setTrip(trip);
 
         // Recorder department (copy from parent if missing)

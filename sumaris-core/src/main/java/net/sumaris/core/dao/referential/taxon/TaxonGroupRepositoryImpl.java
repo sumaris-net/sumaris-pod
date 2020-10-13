@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
@@ -203,8 +204,9 @@ public class TaxonGroupRepositoryImpl
                         insertCounter.increment();
                     }
 
-                    TaxonNameVO parent = taxonNameRepository.getTaxonNameReferent(childId);
-                    List<TaxonName> children = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(parent.getId()));
+                    TaxonNameVO parent = taxonNameRepository.findTaxonNameReferent(childId)
+                            .orElseThrow(() -> new SumarisTechnicalException("Cannot find taxon name for referenceTaxonId=" + childId));
+                    List<TaxonName> children = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(parent.getId()));
                     while (CollectionUtils.isNotEmpty(children)) {
                         children.forEach(child -> {
                             Integer inheritedChildId = child.getReferenceTaxon().getId();
@@ -219,7 +221,7 @@ public class TaxonGroupRepositoryImpl
                                 insertCounter.increment();
                             }
                         });
-                        children = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(
+                        children = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(
                             children.stream()
                                 .map(TaxonName::getId)
                                 .collect(Collectors.toList()));

@@ -60,7 +60,7 @@ public class Parameter implements IItemReferentialEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(nullable = false, length = LENGTH_LABEL)
+    @Column(nullable = false, length = LENGTH_LABEL, unique = true)
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

@@ -24,6 +24,7 @@ package net.sumaris.core.service.referential;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.service.AbstractServiceTest;
@@ -74,6 +75,7 @@ public class ReferentialServiceWriteTest extends AbstractServiceTest{
         ref.setEntityName(Location.class.getSimpleName());
         ref.setLabel("TEST-LABEL");
         ref.setName("name test");
+        ref.setLevelId(LocationLevelEnum.HARBOUR.getId());
         ref.setStatusId(config.getStatusIdValid());
 
         service.save(ref);

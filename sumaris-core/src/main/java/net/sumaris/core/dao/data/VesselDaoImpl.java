@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Vessel;
@@ -67,7 +68,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("vesselDao")
-public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
+public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
     /**
      * Logger.
@@ -268,7 +269,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 features.setId(featuresEntity.getId());
             } else {
                 // Update features
-                VesselFeatures featuresEntity = find(VesselFeatures.class, features.getId());
+                VesselFeatures featuresEntity = getOne(VesselFeatures.class, features.getId());
                 lockForUpdate(featuresEntity);
                 vesselFeaturesVOToEntity(features, featuresEntity, true);
                 featuresEntity.setUpdateDate(newUpdateDate);
@@ -294,7 +295,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 source.getRegistration().setId(periodEntity.getId());
             } else {
                 // Update period
-                VesselRegistrationPeriod registrationEntity = find(VesselRegistrationPeriod.class, registration.getId());
+                VesselRegistrationPeriod registrationEntity = getOne(VesselRegistrationPeriod.class, registration.getId());
                 lockForUpdate(registrationEntity);
                 vesselRegistrationPeriodVOToEntity(registration, registrationEntity, true);
                 // Update entity
@@ -606,7 +607,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             if (source.getRegistrationLocation() == null || source.getRegistrationLocation().getId() == null) {
                 target.setRegistrationLocation(null);
             } else {
-                target.setRegistrationLocation(find(Location.class, source.getRegistrationLocation().getId()));
+                target.setRegistrationLocation(load(Location.class, source.getRegistrationLocation().getId()));
             }
         }
 

@@ -41,6 +41,7 @@ import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
@@ -163,6 +164,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
             rowCount = createStationTable(context);
             if (rowCount == 0) return context;
             if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+            // Species Raw table
+            rowCount = createRawSpeciesListTable(context, true /*exclude invalid station*/);
+            if (rowCount == 0) return context;
 
             // Species List
             rowCount = createSpeciesListTable(context);
@@ -402,20 +407,50 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         return xmlQuery;
     }
 
-    protected long createSpeciesListTable(C context) {
+    /**
+     * Create raw table (with hidden columns used by sub table - e.g. SAMPLE_ID)
+     * @param context
+     * @param excludeInvalidStation
+     * @return
+     */
+    protected long createRawSpeciesListTable(C context, boolean excludeInvalidStation) {
+        String tableName = context.getRawSpeciesListTableName();
 
-        // Create raw table (with hidden columns used by sub table - e.g. SAMPLE_ID)
-        XMLQuery rawXmlQuery = createRawSpeciesListQuery(context, true/*exclude invalid station*/);
+        XMLQuery rawXmlQuery = createRawSpeciesListQuery(context, excludeInvalidStation);
         execute(rawXmlQuery);
 
-        // Add the raw table
-        context.addRawTableName(context.getRawSpeciesListTableName());
-
         // Clean row using generic filter
-        cleanRow(context.getRawSpeciesListTableName(), context.getFilter(), context.getSpeciesListSheetName());
+        long count = countFrom(tableName);
+        if (count > 0) {
+            cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
+        }
 
-        // Create the final table (with distinct), without hidden columns
+        // Add as a raw table (to be able to clean it later)
+        context.addRawTableName(tableName);
+
+        return count;
+    }
+
+
+    protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createRawSpeciesListTable");
+        xmlQuery.bind("stationTableName", context.getStationTableName());
+        xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
+
+        // Bind some ids
+        xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
+        xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
+        xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
+
+        // Exclude not valid station
+        xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
+
+        return xmlQuery;
+    }
+
+    protected long createSpeciesListTable(C context) {
         String tableName = context.getSpeciesListTableName();
+
         XMLQuery xmlQuery = createSpeciesListQuery(context);
         execute(xmlQuery);
 
@@ -438,19 +473,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         return count;
     }
 
-    protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
-        XMLQuery xmlQuery = createXMLQuery(context, "createRawSpeciesListTable");
-        xmlQuery.bind("stationTableName", context.getStationTableName());
-        xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
-
-        // Bind some ids
-        xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
-
-        // Exclude not valid station
-        xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
-
-        return xmlQuery;
-    }
 
     protected XMLQuery createSpeciesListQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");

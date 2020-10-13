@@ -116,7 +116,8 @@ public class PmfmRepositoryImpl
         evict = {
             @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
             @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true)
+            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true)
         }
     )
     public PmfmVO save(PmfmVO vo) {

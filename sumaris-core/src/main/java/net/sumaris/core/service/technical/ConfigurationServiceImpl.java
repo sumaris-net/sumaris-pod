@@ -30,7 +30,7 @@ import net.sumaris.core.dao.technical.model.annotation.EntityEnums;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.event.entity.EntityEvent;
+import net.sumaris.core.event.entity.AbstractEntityEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.schema.SchemaEvent;
@@ -131,7 +131,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             phase = TransactionPhase.AFTER_COMMIT,
             condition = "#event.entityName=='Software'")
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    protected void onSoftwareChanged(EntityEvent event) {
+    protected void onSoftwareChanged(AbstractEntityEvent event) {
         SoftwareVO software = (SoftwareVO)event.getData();
 
         // Test if same as the current software
@@ -331,6 +331,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                             entityClassName,
                             enumContentBuilder.substring(2),
                             configKeysBuilder.substring(2)));
+                    Beans.setProperty(enumValue, IEntity.Fields.ID, -1);
                 }
             });
         });

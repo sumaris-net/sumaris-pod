@@ -40,13 +40,9 @@ public class ExtractionFree2ContextVO extends ExtractionRdbTripContextVO {
     String gearTableName;
     String strategyTableName;
     String detailTableName;
-    String catchTableName;
-    String measureTableName;
 
     // Sheet names
     String gearSheetName;
     String strategySheetName;
     String detailSheetName;
-    String catchSheetName;
-    String measureSheetName;
 }

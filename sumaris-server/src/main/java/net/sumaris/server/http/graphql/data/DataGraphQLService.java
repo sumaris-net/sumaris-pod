@@ -145,7 +145,9 @@ public class DataGraphQLService {
                                                               @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
                                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
-        return vesselService.findSnapshotByFilter(filter, offset, size, sort,
+        return vesselService.findSnapshotByFilter(
+                filter,
+                offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
@@ -153,12 +155,14 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public List<VesselVO> findVesselByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
-                                                              @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                              @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                              @GraphQLArgument(name = "sortBy") String sort,
-                                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
+                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                             @GraphQLArgument(name = "sortBy") String sort,
+                                             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
-        return vesselService.findVesselsByFilter(filter, offset, size, sort,
+        return vesselService.findVesselsByFilter(
+                filter,
+                offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
@@ -481,7 +485,9 @@ public class DataGraphQLService {
                                                                 @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                                                 @GraphQLEnvironment() Set<String> fields
     ) {
-        final List<ObservedLocationVO> result = observedLocationService.findByFilter(filter, offset, size, sort,
+        final List<ObservedLocationVO> result = observedLocationService.findAll(
+                filter,
+                offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
                 getFetchOptions(fields));
 
@@ -495,7 +501,7 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public long getObservedLocationsCount(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter) {
-        return observedLocationService.countByFilter(filter);
+        return observedLocationService.count(filter);
     }
 
     @GraphQLQuery(name = "observedLocation", description = "Get an observed location, by id")
@@ -611,9 +617,9 @@ public class DataGraphQLService {
                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                    @GraphQLArgument(name = "sortBy", defaultValue = OperationVO.Fields.START_DATE_TIME) String sort,
                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
-        Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
-        return operationService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
+        Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
+        return operationService.findAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -621,13 +627,15 @@ public class DataGraphQLService {
         if (CollectionUtils.isNotEmpty(trip.getOperations())) {
             return trip.getOperations();
         }
-        return operationService.getAllByTripId(trip.getId(), 0, 1000, OperationVO.Fields.START_DATE_TIME, SortDirection.ASC);
+        return operationService.findAllByTripId(trip.getId(), 0, 1000, OperationVO.Fields.START_DATE_TIME, SortDirection.ASC);
     }
 
     @GraphQLQuery(name = "operationsCount", description = "Get operations count")
     @Transactional(readOnly = true)
     @IsUser
     public long getOperationsCount(@GraphQLArgument(name = "filter") OperationFilterVO filter) {
+        Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
+        Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
         return operationService.countByTripId(filter.getTripId());
     }
 
@@ -858,7 +866,9 @@ public class DataGraphQLService {
                 .sortBy(sort)
                 .sortDirection(direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null)
                 .build();
-        final List<LandingVO> result = landingService.findAll(filter, page,
+        final List<LandingVO> result = landingService.findAll(
+                filter,
+                page,
                 getFetchOptions(fields));
 
         // Add additional properties if needed
@@ -1113,7 +1123,7 @@ public class DataGraphQLService {
     }
 
     @GraphQLQuery(name = "quantificationMeasurements", description = "Get batch quantification measurements")
-    public List<MeasurementVO> getBatchQuantificationMeasurements(@GraphQLContext BatchVO batch) {
+    public List<QuantificationMeasurementVO> getBatchQuantificationMeasurements(@GraphQLContext BatchVO batch) {
         if (batch.getQuantificationMeasurements() != null) {
             return batch.getQuantificationMeasurements();
         }

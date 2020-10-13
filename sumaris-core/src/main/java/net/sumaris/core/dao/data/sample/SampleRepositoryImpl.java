@@ -10,18 +10,18 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.referential.pmfm.Matrix;
 import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.filter.SampleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,14 +90,12 @@ public class SampleRepositoryImpl
 
         // Taxon group
         if (source.getTaxonGroup() != null) {
-            ReferentialVO taxonGroup = referentialDao.toVO(source.getTaxonGroup());
-            target.setTaxonGroup(taxonGroup);
+            target.setTaxonGroup(referentialDao.toVO(source.getTaxonGroup()));
         }
 
         // Taxon name (from reference)
-        if (source.getReferenceTaxon() != null) {
-            TaxonNameVO taxonName = taxonNameRepository.getTaxonNameReferent(source.getReferenceTaxon().getId());
-            target.setTaxonName(taxonName);
+        if (source.getReferenceTaxon() != null && source.getReferenceTaxon().getId() != null) {
+            target.setTaxonName(taxonNameRepository.findTaxonNameReferent(source.getReferenceTaxon().getId()).orElse(null));
         }
 
         // Parent sample
@@ -251,8 +249,8 @@ public class SampleRepositoryImpl
             }
             else {
                 // Get the taxon name, then set reference taxon
-                TaxonName taxonname = find(TaxonName.class, source.getTaxonName().getId());
-                target.setReferenceTaxon(taxonname.getReferenceTaxon());
+                Integer referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(source.getTaxonName().getId());
+                target.setReferenceTaxon(load(ReferenceTaxon.class, referenceTaxonId));
             }
         }
 
@@ -294,7 +292,7 @@ public class SampleRepositoryImpl
         if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} samples... {hash_optimization:%s}", operationId, enableSaveUsingHash));
 
         // Load parent entity
-        Operation parent = find(Operation.class, operationId);
+        Operation parent = getOne(Operation.class, operationId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getTrip().getProgram().getId());
 
@@ -323,7 +321,7 @@ public class SampleRepositoryImpl
         if (debugTime != 0L) log.debug(String.format("Saving landing {id:%s} samples... {hash_optimization:%s}", landingId, enableSaveUsingHash));
 
         // Load parent entity
-        Landing parent = find(Landing.class, landingId);
+        Landing parent = getOne(Landing.class, landingId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 

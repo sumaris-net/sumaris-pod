@@ -26,7 +26,7 @@ import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.io.Serializable;
 
-public class EntityUpdateEvent extends EntityEvent {
+public class EntityUpdateEvent extends AbstractEntityEvent {
 
     public EntityUpdateEvent(Serializable id, String entityName, IValueObject data){
         super(EntityEventOperation.UPDATE, id, entityName, data);

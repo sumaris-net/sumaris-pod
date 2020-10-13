@@ -27,11 +27,15 @@ package net.sumaris.rdf.model;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import fr.eaufrance.sandre.schema.apt.APT;
+import fr.eaufrance.sandre.schema.inc.INC;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
+import org.schema.SCHEMA;
 import org.tdwg.rs.DWC;
 import org.w3.GEO;
+import org.w3.W3NS;
+import org.purl.GR;
 
 import java.util.Map;
 
@@ -47,13 +51,17 @@ public class ModelURIs {
             .put("dcterms", DCTerms.NS) // DCMI Terms
             .put("dctypes", DCTypes.NS) // DCMI Types
 
+            .put("foaf", FOAF.NS)
+            .put("skos", SKOS.getURI())
+            .put(GR.PREFIX, GR.NS) // Good relation
+            .put(W3NS.Org.PREFIX, W3NS.Org.NS)
+            .put(SCHEMA.PREFIX, SCHEMA.NS)
+
             // Spatial
             .put("spatial",org.eclipse.rdf4j.model.vocabulary.GEO.NAMESPACE) // GeoSparql
             .put("geo", "http://www.w3.org/2003/01/geo/wgs84_pos#")
             .put("gn", "http://www.geonames.org/ontology#") // Geo names
 
-            .put("foaf", FOAF.NS)
-            .put("skos", SKOS.getURI())
 
             // Darwin core
             .put("dwc", DWC.Terms.NS)
@@ -63,9 +71,12 @@ public class ModelURIs {
             // TaxonConcept
             .put("txn", "http://lod.taxonconcept.org/ontology/txn.owl")
 
-            // Appellation Taxon (Sandre)
+            // Sandre
             .put("apt", APT.NS)
             .put("apt2", APT.NS + "2.1/")
+            .put("inc", INC.NS)
+            .put("inc1", INC.NS + "1.0/")
+
             // TaxRef (MNHN)
             .put("taxref", "http://taxref.mnhn.fr/lod/")
             .put("taxrefprop", "http://taxref.mnhn.fr/lod/property/")
@@ -103,6 +114,7 @@ public class ModelURIs {
 
             // Sandre
             .put("apt", "http://owl.sandre.eaufrance.fr/apt/2.1/sandre_fmt_owl_apt.owl")
+            .put("inc", "http://owl.sandre.eaufrance.fr/inc/1/sandre_fmt_owl_inc.owl")
 
             // Data Catalog
             .put("dcat", "http://www.w3.org/ns/dcat")

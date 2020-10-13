@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 21/08/2020.
  */
 public class ExtractionProductRepositoryImpl
-    extends ReferentialRepositoryImpl<ExtractionProduct, ExtractionProductVO, ExtractionProductFilterVO, ProductFetchOptions>
+    extends ReferentialRepositoryImpl<ExtractionProduct, ExtractionProductVO, ExtractionProductFilterVO, ExtractionProductFetchOptions>
     implements ExtractionProductSpecifications {
 
     @Autowired
@@ -53,13 +53,13 @@ public class ExtractionProductRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheNames.PRODUCTS_BY_FILTER)
-    public List<ExtractionProductVO> findAll(ExtractionProductFilterVO filter, ProductFetchOptions fetchOptions) {
+    public List<ExtractionProductVO> findAll(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         return super.findAll(filter, fetchOptions);
     }
 
     @Override
     @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
-    public ExtractionProductVO getByLabel(String label, ProductFetchOptions fetchOption) {
+    public ExtractionProductVO getByLabel(String label, ExtractionProductFetchOptions fetchOption) {
         return super.getByLabel(label, fetchOption);
     }
 
@@ -70,7 +70,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    protected void toVO(ExtractionProduct source, ExtractionProductVO target, ProductFetchOptions fetchOptions, boolean copyIfNull) {
+    protected void toVO(ExtractionProduct source, ExtractionProductVO target, ExtractionProductFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Tables
@@ -102,7 +102,7 @@ public class ExtractionProductRepositoryImpl
         }
     }
 
-    protected ExtractionProductTableVO toProductTableVO(ExtractionProductTable source, ProductFetchOptions fetchOptions) {
+    protected ExtractionProductTableVO toProductTableVO(ExtractionProductTable source, ExtractionProductFetchOptions fetchOptions) {
         ExtractionProductTableVO target = new ExtractionProductTableVO();
         Beans.copyProperties(source, target);
 
@@ -305,7 +305,7 @@ public class ExtractionProductRepositoryImpl
         final EntityManager em = getEntityManager();
 
         // Load parent
-        ExtractionProductTable parent = find(ExtractionProductTable.class, tableId);
+        ExtractionProductTable parent = getOne(ExtractionProductTable.class, tableId);
 
         if (CollectionUtils.isEmpty(sources)) {
             if (parent.getColumns() != null) {
@@ -364,7 +364,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     private void saveProductTableValues(List<String> sources, int columnId) {
-        ExtractionProductColumn parent = find(ExtractionProductColumn.class, columnId);
+        ExtractionProductColumn parent = getOne(ExtractionProductColumn.class, columnId);
 
         final EntityManager em = getEntityManager();
         if (CollectionUtils.isEmpty(sources)) {
@@ -539,7 +539,7 @@ public class ExtractionProductRepositoryImpl
             .collect(Collectors.toList());
     }
 
-    protected ExtractionProductColumnVO toColumnVO(ExtractionProductColumn source, ProductFetchOptions fetchOptions) {
+    protected ExtractionProductColumnVO toColumnVO(ExtractionProductColumn source, ExtractionProductFetchOptions fetchOptions) {
         ExtractionProductColumnVO target = new ExtractionProductColumnVO();
         Beans.copyProperties(source, target);
 

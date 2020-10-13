@@ -81,7 +81,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @Test
     public void b_find() {
-        List<OperationVO> operations = service.getAllByTripId(parent.getId(), 0, 10, IEntity.Fields.ID, SortDirection.ASC);
+        List<OperationVO> operations = service.findAllByTripId(parent.getId(), 0, 10, IEntity.Fields.ID, SortDirection.ASC);
         Assert.assertNotNull(operations);
         Assert.assertEquals(3, operations.size());
 
@@ -94,6 +94,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         OperationVO vo = createOperation();
         int batchCount = countBatches(vo);
         int sampleCount = countSamples(vo);
+        int measurementCount = CollectionUtils.size(vo.getMeasurements());
 
         // Save
         OperationVO savedVo = service.save(vo);
@@ -111,8 +112,10 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         {
             // Should NOT be loaded in VO
             Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getMeasurements()));
+
+            // After reload, must have same count
             List<MeasurementVO> reloadMeasurements = measurementService.getOperationVesselUseMeasurements(savedVo.getId());
-            Assert.assertEquals(CollectionUtils.size(savedVo.getMeasurements()), CollectionUtils.size(reloadMeasurements));
+            Assert.assertEquals(measurementCount, CollectionUtils.size(reloadMeasurements));
         }
 
         // Check samples

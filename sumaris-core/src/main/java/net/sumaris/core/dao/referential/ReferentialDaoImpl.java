@@ -74,6 +74,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
@@ -92,60 +93,7 @@ public class ReferentialDaoImpl
 
     private static final Logger log = LoggerFactory.getLogger(ReferentialDaoImpl.class);
 
-    private static Map<String, Class<? extends IReferentialEntity>> entityClassMap = Maps.uniqueIndex(
-        ImmutableList.of(
-            Status.class,
-            Department.class,
-            Location.class,
-            LocationLevel.class,
-            LocationClassification.class,
-            Gear.class,
-            GearClassification.class,
-            UserProfile.class,
-            SaleType.class,
-            VesselType.class,
-            // Taxon group
-            TaxonGroupType.class,
-            TaxonGroup.class,
-            // Taxon
-            TaxonomicLevel.class,
-            TaxonName.class,
-            // Métier
-            Metier.class,
-            // Pmfm
-            Parameter.class,
-            Pmfm.class,
-            Matrix.class,
-            Fraction.class,
-            Method.class,
-            QualitativeValue.class,
-            Unit.class,
-            // Quality
-            QualityFlag.class,
-            // Program/strategy
-            Program.class,
-            Strategy.class,
-            AcquisitionLevel.class,
-            // Transcribing
-            TranscribingItem.class,
-            // Grouping
-            GroupingClassification.class,
-            GroupingLevel.class,
-            Grouping.class,
-            // Fishing Area
-            DistanceToCoastGradient.class,
-            DepthGradient.class,
-            NearbySpecificArea.class,
-            // Product
-            ExtractionProduct.class,
-            ExtractionProductTable.class,
-            // Software
-            Software.class,
-            // Program
-            ProgramPrivilege.class,
-            // Technical
-            SystemVersion.class
-        ), Class::getSimpleName);
+
 
     private final Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
 
@@ -182,13 +130,14 @@ public class ReferentialDaoImpl
         I18n.n("sumaris.persistence.table.extractionProduct");
         I18n.n("sumaris.persistence.table.extractionProductTable");
         I18n.n("sumaris.persistence.table.systemVersion");
+        I18n.n("sumaris.persistence.table.originItemType");
     }
 
     protected static Map<String, PropertyDescriptor> initLevelPropertyNameMap() {
         Map<String, PropertyDescriptor> result = new HashMap<>();
 
         // Detect level properties, by name
-        entityClassMap.values().forEach((clazz) -> {
+        REFERENTIAL_CLASSES.values().forEach((clazz) -> {
             PropertyDescriptor[] pds = BeanUtils.getPropertyDescriptors(clazz);
             Arrays.stream(pds)
                 .filter(propertyDescriptor -> propertyDescriptor.getName().matches("^.*[Ll]evel([A−Z].*)?$"))
@@ -281,7 +230,7 @@ public class ReferentialDaoImpl
 
     @Override
     public Date getLastUpdateDate() {
-        return getLastUpdateDate(entityClassMap.keySet());
+        return getLastUpdateDate(REFERENTIAL_CLASSES.keySet());
     }
 
     @Override
@@ -303,7 +252,7 @@ public class ReferentialDaoImpl
     @Override
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
     public List<ReferentialTypeVO> getAllTypes() {
-        return entityClassMap.keySet().stream()
+        return REFERENTIAL_CLASSES.keySet().stream()
             .map(this::getTypeByEntityName)
             .collect(Collectors.toList());
     }
@@ -316,7 +265,7 @@ public class ReferentialDaoImpl
 
     @Override
     public ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id) {
-        return toVO(find(entityClass, id));
+        return toVO(getOne(entityClass, id));
     }
 
     @Override
@@ -346,7 +295,7 @@ public class ReferentialDaoImpl
             throw new DataRetrievalFailureException("Unable to convert class=" + levelClass.getName() + " to a referential bean");
         }
 
-        return toVO(levelClass.getSimpleName(), (IReferentialEntity) find(levelClass, levelId));
+        return toVO(levelClass.getSimpleName(), (IReferentialEntity) getOne(levelClass, levelId));
     }
 
     @Override
@@ -450,10 +399,13 @@ public class ReferentialDaoImpl
             @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
-            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#source.id", condition = "#source.entityName == 'Program'"),
-            @CacheEvict(cacheNames = CacheNames.LOCATION_LEVEL_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),
+            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
+            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'Program'"),
-            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'")
+            @CacheEvict(cacheNames = CacheNames.LOCATION_LEVEL_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),
+            @CacheEvict(cacheNames = CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#source.entityName == 'TaxonName'"),
+            @CacheEvict(cacheNames = CacheNames.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, allEntries = true, condition = "#source.entityName == 'TaxonName'"),
+            @CacheEvict(cacheNames = CacheNames.TAXON_NAMES_BY_TAXON_GROUP_ID, allEntries = true, condition = "#source.entityName == 'TaxonName' || #source.entityName == 'TaxonGroup'")
         }
     )
     public ReferentialVO save(final ReferentialVO source) {
@@ -461,6 +413,8 @@ public class ReferentialDaoImpl
 
         // Get the entity class
         Class<? extends IReferentialEntity> entityClass = getEntityClass(source.getEntityName());
+
+        EntityManager entityManager = getEntityManager();
 
         IReferentialEntity entity = null;
         if (source.getId() != null) {
@@ -496,16 +450,16 @@ public class ReferentialDaoImpl
             entity.setCreationDate(newUpdateDate);
             source.setCreationDate(newUpdateDate);
 
-            getEntityManager().persist(entity);
+            entityManager.persist(entity);
             source.setId(entity.getId());
         } else {
-            getEntityManager().merge(entity);
+            entityManager.merge(entity);
         }
 
         source.setUpdateDate(newUpdateDate);
 
-        getEntityManager().flush();
-        getEntityManager().clear();
+        entityManager.flush();
+        entityManager.clear();
 
         return source;
     }
@@ -523,9 +477,15 @@ public class ReferentialDaoImpl
         criteriaQuery.select(root.get(IReferentialEntity.Fields.UPDATE_DATE));
         criteriaQuery.orderBy(builder.desc(root.get(IReferentialEntity.Fields.UPDATE_DATE)));
 
-        return getEntityManager().createQuery(criteriaQuery)
-            .setMaxResults(1)
-            .getSingleResult();
+        try {
+            return getEntityManager().createQuery(criteriaQuery)
+                    .setMaxResults(1)
+                    .getSingleResult();
+        }
+        catch (NoResultException e) {
+            // Table is empty: return null
+            return null;
+        }
     }
 
     /* -- protected methods -- */
@@ -647,8 +607,9 @@ public class ReferentialDaoImpl
                                                        Class<T> entityClass,
                                                        CriteriaQuery<R> query,
                                                        Root<T> entityRoot,
-                                                       ReferentialFilterVO filter) {
-
+                                                       ReferentialFilterVO filter
+                                                       //QueryVisitor<R, T> queryVisitor
+    ) {
         Integer levelId = filter.getLevelId();
         Integer[] levelIds = filter.getLevelIds();
         String searchText = StringUtils.trimToNull(filter.getSearchText());
@@ -759,6 +720,14 @@ public class ReferentialDaoImpl
             whereClause = (whereClause == null) ? statusIdsClause : builder.and(whereClause, statusIdsClause);
         }
 
+        // Delegate to visitor
+        /*if (queryVisitor != null) {
+            Expression<Boolean> additionalWhere = queryVisitor.apply(query, entityRoot);
+            if (additionalWhere != null) {
+                whereClause = (whereClause == null) ? additionalWhere : builder.and(whereClause, additionalWhere);
+            }
+        }*/
+
         if (whereClause != null) {
             query.where(whereClause);
         }
@@ -809,7 +778,7 @@ public class ReferentialDaoImpl
         Preconditions.checkNotNull(entityName);
 
         // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = entityClassMap.get(entityName);
+        Class<? extends IReferentialEntity> entityClass = REFERENTIAL_CLASSES.get(entityName);
         if (entityClass == null)
             throw new IllegalArgumentException(String.format("Referential entity [%s] not exists", entityName));
 

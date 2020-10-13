@@ -27,11 +27,14 @@ import net.sumaris.core.model.data.FishingArea;
 import net.sumaris.core.vo.data.FishingAreaVO;
 
 import java.util.List;
+import java.util.Set;
 
 public interface FishingAreaRepository
     extends SumarisJpaRepository<FishingArea, Integer, FishingAreaVO>, FishingAreaSpecifications
 {
     List<FishingArea> getAllByOperationId(int operationId);
+
+    Set<Integer> getAllIdsByOperationId(int operationId);
 
     void deleteAllByOperationId(int operationId);
 }

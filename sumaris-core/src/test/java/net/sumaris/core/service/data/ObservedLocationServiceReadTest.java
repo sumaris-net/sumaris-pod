@@ -48,7 +48,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
         ObservedLocationFilterVO filter = ObservedLocationFilterVO.builder()
                 .programLabel("ADAP-CONTROLE")
                 .build();
-        List<ObservedLocationVO> vos = service.findByFilter(filter, 0, 100);
+        List<ObservedLocationVO> vos = service.findAll(filter, 0, 100);
         Assert.assertNotNull(vos);
         Assert.assertEquals(1, vos.size());
     }
@@ -59,7 +59,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
         ObservedLocationFilterVO filter = ObservedLocationFilterVO.builder()
                 .recorderDepartmentId(recorderDepId)
                 .build();
-        List<ObservedLocationVO> vos = service.findByFilter(filter, 0, 100);
+        List<ObservedLocationVO> vos = service.findAll(filter, 0, 100);
         Assert.assertNotNull(vos);
         Assert.assertEquals(1, vos.size());
         vos.stream()
@@ -74,7 +74,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
         ObservedLocationFilterVO filter = ObservedLocationFilterVO.builder()
                 .recorderPersonId(recorderPersonId)
                 .build();
-        List<ObservedLocationVO> vos = service.findByFilter(filter, 0, 100);
+        List<ObservedLocationVO> vos = service.findAll(filter, 0, 100);
         Assert.assertNotNull(vos);
         Assert.assertEquals(2, vos.size());
         vos.stream()

@@ -134,7 +134,7 @@ public class PhysicalGearRepositoryImpl
     public List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources) {
 
         // Load parent entity
-        Trip parent = find(Trip.class, tripId);
+        Trip parent = getOne(Trip.class, tripId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 
@@ -172,7 +172,7 @@ public class PhysicalGearRepositoryImpl
                 measurementDao.savePhysicalGearMeasurementsMap(source.getId(), source.getMeasurementValues());
             } else {
                 List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-                int rankOrder = 1;
+                short rankOrder = 1;
                 for (MeasurementVO m : measurements) {
                     fillDefaultProperties(source, m);
                     m.setRankOrder(rankOrder++);

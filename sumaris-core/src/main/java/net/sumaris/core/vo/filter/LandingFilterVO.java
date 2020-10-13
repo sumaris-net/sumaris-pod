@@ -41,6 +41,10 @@ import java.util.List;
 @FieldNameConstants
 public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
 
+    public static LandingFilterVO nullToEmpty(LandingFilterVO f) {
+        return f != null ? f : new LandingFilterVO();
+    }
+
     private Date startDate;
 
     private Date endDate;

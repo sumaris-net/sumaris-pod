@@ -23,6 +23,7 @@
 package net.sumaris.rdf.util;
 
 import com.google.common.collect.ImmutableMap;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.rdf.model.ModelURIs;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
@@ -64,13 +65,18 @@ public abstract class OwlUtils {
     public static SimpleDateFormat DATE_ISO_FORMAT = new SimpleDateFormat(DATE_ISO_TIMESTAMP);
 
     public static Method getterOfField(Class t, String field) {
+        return findGetterOfField(t, field)
+                .orElseThrow(() -> new SumarisTechnicalException(String.format("Class %s has no getter for %s", t.getSimpleName(), field)));
+    }
+
+    public static Optional<Method> findGetterOfField(Class t, String field) {
         try {
-            Method res = t.getMethod("find" + field.substring(0, 1).toUpperCase() + field.substring(1));
-            return res;
+            Method res = t.getMethod("get" + field.substring(0, 1).toUpperCase() + field.substring(1));
+            return Optional.of(res);
         } catch (NoSuchMethodException e) {
-            log.error("error in the declaration of allowed ManyToOne " + e.getMessage());
+            return Optional.empty();
         }
-        return null;
+
     }
 
     public static Optional<Method> setterOfField(Resource schema, Class t, String field, RdfImportContext context) {

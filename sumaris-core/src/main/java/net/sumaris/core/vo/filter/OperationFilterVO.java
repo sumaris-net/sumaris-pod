@@ -22,14 +22,22 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldNameConstants
 public class OperationFilterVO implements IDataFilter {
+
+    public static OperationFilterVO nullToEmpty(OperationFilterVO f) {
+        return f != null ? f : OperationFilterVO.builder().build();
+    }
 
     private Integer tripId;
     private Integer recorderDepartmentId;

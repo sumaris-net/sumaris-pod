@@ -97,7 +97,7 @@ public class StrategyRepositoryImpl
     )
     public List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources) {
         // Load parent entity
-        Program parent = find(Program.class, programId);
+        Program parent = getOne(Program.class, programId);
 
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getStrategies()));
@@ -275,9 +275,10 @@ public class StrategyRepositoryImpl
                 target.setPriorityLevel(item.getPriorityLevel());
 
                 // Taxon name
-                target.setTaxonName(taxonNameRepository.getTaxonNameReferent(item.getReferenceTaxon().getId()));
+                target.setTaxonName(taxonNameRepository.findTaxonNameReferent(item.getReferenceTaxon().getId()).orElse(null));
                 return target;
             })
+                .filter(target -> target.getTaxonName() != null)
             .collect(Collectors.toList());
     }
 

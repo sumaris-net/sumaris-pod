@@ -31,6 +31,7 @@ import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.util.Geometries;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,6 +62,7 @@ public class LocationRepositoryWriteTest extends AbstractDaoTest {
     private LocationLevelRepository locationLevelRepository;
 
     @Test
+    @Ignore
     public void testGeometry() {
 
         LocationArea area = new LocationArea();

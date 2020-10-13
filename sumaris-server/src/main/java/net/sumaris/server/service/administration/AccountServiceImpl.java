@@ -361,14 +361,14 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @JmsListener(destination = "createTrip", containerFactory = "jmsListenerContainerFactory")
-    public void onTripCreated(TripVO event) {
-        log.info(String.format("New trip {%s}",  event.getId()));
+    public void onTripCreated(TripVO entity) {
+        log.info(String.format("New trip {%s}",  entity.getId()));
         // TODO send event for supervisor
     }
 
     @JmsListener(destination = "updateTrip", containerFactory = "jmsListenerContainerFactory")
-    public void onTripUpdated(TripVO event) {
-        log.info(String.format("Updated trip {%s}",  event.getId()));
+    public void onTripUpdated(TripVO entity) {
+        log.info(String.format("Updated trip {%s}",  entity.getId()));
         // TODO send event for supervisor
     }
 

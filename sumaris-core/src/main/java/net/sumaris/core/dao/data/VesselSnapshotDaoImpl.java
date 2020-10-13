@@ -29,6 +29,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -58,7 +59,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 19/11/2019.
  */
 @Repository("vesselSnapshotDao")
-public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnapshotDao {
+public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements VesselSnapshotDao {
 
     /** Logger. */
     private static final Logger log = LoggerFactory.getLogger(VesselSnapshotDaoImpl.class);

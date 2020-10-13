@@ -31,6 +31,8 @@ import java.util.Arrays;
 @EntityEnum(entity = TaxonomicLevel.class, joinAttributes = {IEntity.Fields.ID})
 public enum TaxonomicLevelEnum implements Serializable {
 
+    FAMILY(17, "FAMILY"),
+    GENUS(26, "GENUS"),
     SPECIES(28, "SPECIES"),
     SUBSPECIES(29, "SUBSPECIES");
 
@@ -42,22 +44,34 @@ public enum TaxonomicLevelEnum implements Serializable {
         this.label = label;
     }
 
-    /**
-     * Returns the database row id
-     *
-     * @return int the id
-     */
-    public int getId() {
-        return this.id;
-    }
-
-    public String getLabel() {
-        return label;
-    }
 
     public static TaxonomicLevelEnum valueOf(final int id) {
         return Arrays.stream(values())
                 .filter(enumValue -> enumValue.id == id)
                 .findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown TaxonomicLevelId: " + id));
     }
+
+    /**
+     * Returns the database row id
+     *
+     * @return int the id
+     */
+    public int getId()
+    {
+        return this.id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getLabel()
+    {
+        return this.label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
 }

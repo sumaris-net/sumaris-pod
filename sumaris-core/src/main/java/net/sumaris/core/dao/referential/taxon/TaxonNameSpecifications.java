@@ -16,6 +16,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.JoinType;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author peck7 on 31/07/2020.
@@ -60,8 +61,11 @@ public interface TaxonNameSpecifications extends ReferentialSpecifications<Taxon
     List<TaxonNameVO> getAll(boolean withSynonyms);
 
     @Cacheable(cacheNames = CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, unless = "#result == null")
-    TaxonNameVO getTaxonNameReferent(Integer referenceTaxonId);
+    Optional<TaxonNameVO> findTaxonNameReferent(Integer referenceTaxonId);
 
     @Cacheable(cacheNames = CacheNames.TAXON_NAMES_BY_TAXON_GROUP_ID, unless = "#result == null")
     List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId);
+
+    @Cacheable(cacheNames = CacheNames.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, unless = "#result == null")
+    Integer getReferenceTaxonIdById(int id);
 }

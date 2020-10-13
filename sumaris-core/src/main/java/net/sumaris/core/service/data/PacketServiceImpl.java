@@ -40,10 +40,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.data.BatchVO;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.PacketCompositionVO;
-import net.sumaris.core.vo.data.PacketVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -89,7 +86,9 @@ public class PacketServiceImpl implements PacketService {
     @Override
     public List<PacketVO> getAllByOperationId(int operationId) {
 
-        BatchVO catchBatch = batchDao.getRootByOperationId(operationId, true);
+        BatchVO catchBatch = batchDao.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
+                .withChildren(true)
+                .build());
         if (catchBatch == null)
             return null;
 
@@ -105,9 +104,12 @@ public class PacketServiceImpl implements PacketService {
         List<BatchVO> batches = new ArrayList<>();
 
         // Get catch batch
-        BatchVO rootBatch = batchDao.getRootByOperationId(operationId, false);
+        BatchVO catchBatch = batchDao.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
+                .withChildren(false)
+                .withMeasurementValues(false)
+                .build());
 
-        if (rootBatch == null) {
+        if (catchBatch == null) {
 
             if (sources.isEmpty()) {
 
@@ -117,10 +119,10 @@ public class PacketServiceImpl implements PacketService {
             } else {
 
                 // Create new root batch
-                rootBatch = new BatchVO();
-                rootBatch.setRankOrder(0);
-                rootBatch.setLabel(BatchDao.DEFAULT_ROOT_BATCH_LABEL);
-                rootBatch.setOperationId(operationId);
+                catchBatch = new BatchVO();
+                catchBatch.setRankOrder(0);
+                catchBatch.setLabel(BatchDao.DEFAULT_ROOT_BATCH_LABEL);
+                catchBatch.setOperationId(operationId);
             }
 
         } else {
@@ -134,10 +136,10 @@ public class PacketServiceImpl implements PacketService {
             }
         }
 
-        batches.add(rootBatch);
+        batches.add(catchBatch);
 
         // Convert Packets to Batches
-        batches.addAll(toBatchVOs(sources, rootBatch));
+        batches.addAll(toBatchVOs(sources, catchBatch));
 
         // Save Batches
         List<BatchVO> savedBatches = batchDao.saveByOperationId(operationId, batches);
@@ -155,7 +157,7 @@ public class PacketServiceImpl implements PacketService {
 
             // Quantification measurement
             {
-                List<MeasurementVO> measurements = Beans.getList(savedBatch.getQuantificationMeasurements());
+                List<QuantificationMeasurementVO> measurements = Beans.getList(savedBatch.getQuantificationMeasurements());
                 measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchQuantificationMeasurement.class));
                 measurements = measurementDao.saveBatchQuantificationMeasurements(savedBatch.getId(), measurements);
                 savedBatch.setQuantificationMeasurements(measurements);
@@ -237,8 +239,8 @@ public class PacketServiceImpl implements PacketService {
 
         // Prepare measurements
         MeasurementVO sortingMeasurement = null;
-        MeasurementVO refWeightMeasurement = null;
-        List<MeasurementVO> packetWeightMeasurements = new ArrayList<>();
+        QuantificationMeasurementVO refWeightMeasurement = null;
+        List<QuantificationMeasurementVO> packetWeightMeasurements = new ArrayList<>();
         if (target.getId() != null) {
 
             // Sorting Measurement
@@ -257,12 +259,12 @@ public class PacketServiceImpl implements PacketService {
             refWeightMeasurement = qms.stream()
                 .filter(m -> m.getIsReferenceQuantification() && m.getPmfm().getId().equals(measuredWeightPmfmId))
                 .findFirst()
-                .map(m -> measurementDao.toMeasurementVO(m))
+                .map(m -> measurementDao.toMeasurementVO(m, QuantificationMeasurementVO.class))
                 .orElse(null);
             packetWeightMeasurements = qms.stream()
                 .filter(m -> !m.getIsReferenceQuantification() && m.getPmfm().getId().equals(measuredWeightPmfmId) && m.getSubgroupNumber() != null)
                 .sorted(Comparator.comparingInt(BatchQuantificationMeasurement::getSubgroupNumber))
-                .map(m -> measurementDao.toMeasurementVO(m))
+                .map(m -> measurementDao.toMeasurementVO(m, QuantificationMeasurementVO.class))
                 .collect(Collectors.toList());
 
         }
@@ -278,29 +280,37 @@ public class PacketServiceImpl implements PacketService {
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));
         }
 
-        // Create or update Quantification measurements
+        // Create or update Quantification (ordered) measurements
         {
-            if (refWeightMeasurement == null) {
-                refWeightMeasurement = createMeasurement(BatchQuantificationMeasurement.class, measuredWeightPmfmId);
-            }
-            refWeightMeasurement.setNumericalValue(refWeight);
+            List<QuantificationMeasurementVO> quantificationMeasurements = new ArrayList<>();
 
-            List<MeasurementVO> newPacketWeightMeasurements = new ArrayList<>();
-            for (int i = 0; i < sampledWeights.size(); i++) {
-                MeasurementVO measurement = Beans.safeGet(packetWeightMeasurements, i);
-                if (measurement == null) {
-                    measurement = createMeasurement(BatchQuantificationMeasurement.class, measuredWeightPmfmId);
+            // Ref weight
+            {
+                if (refWeightMeasurement == null) {
+                    refWeightMeasurement = createQuantificationMeasurement(BatchQuantificationMeasurement.class, measuredWeightPmfmId);
                 }
-                measurement.setNumericalValue(sampledWeights.get(i));
-                newPacketWeightMeasurements.add(measurement);
+                refWeightMeasurement.setNumericalValue(refWeight);
+                refWeightMeasurement.setIsReferenceQuantification(true);
+
+                quantificationMeasurements.add(refWeightMeasurement); // will be reference
             }
 
-            // Ordered measurements
-            List<MeasurementVO> quantificationMeasurements = new ArrayList<>();
-            quantificationMeasurements.add(refWeightMeasurement); // will be reference
-            quantificationMeasurements.addAll(newPacketWeightMeasurements);
-            target.setQuantificationMeasurements(quantificationMeasurements);
+            // New packet weight
+            {
+                List<QuantificationMeasurementVO> newPacketWeightMeasurements = new ArrayList<>();
+                for (int i = 0; i < sampledWeights.size(); i++) {
+                    QuantificationMeasurementVO measurement = Beans.safeGet(packetWeightMeasurements, i);
+                    if (measurement == null) {
+                        measurement = createQuantificationMeasurement(BatchQuantificationMeasurement.class, measuredWeightPmfmId);
+                    }
+                    measurement.setNumericalValue(sampledWeights.get(i));
+                    newPacketWeightMeasurements.add(measurement);
+                }
 
+                quantificationMeasurements.addAll(newPacketWeightMeasurements);
+            }
+
+            target.setQuantificationMeasurements(quantificationMeasurements);
         }
 
         // Add this sorting batch
@@ -346,8 +356,8 @@ public class PacketServiceImpl implements PacketService {
 
         // Measurements
         MeasurementVO sortingMeasurement = null;
-        MeasurementVO weightMeasurement = null;
-        MeasurementVO ratioMeasurement = null;
+        QuantificationMeasurementVO weightMeasurement = null;
+        QuantificationMeasurementVO ratioMeasurement = null;
 
         if (target.getId() != null) {
 
@@ -357,7 +367,7 @@ public class PacketServiceImpl implements PacketService {
                 .findFirst()
                 .orElse(null);
 
-            List<MeasurementVO> qms = measurementDao.getBatchQuantificationMeasurements(target.getId());
+            List<QuantificationMeasurementVO> qms = measurementDao.getBatchQuantificationMeasurements(target.getId());
             weightMeasurement = qms.stream()
                 .filter(measurementVO -> measurementVO.getPmfmId() == calculatedWeightPmfmId)
                 .findFirst()
@@ -380,28 +390,35 @@ public class PacketServiceImpl implements PacketService {
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));
         }
 
-        // Create or update Quantification measurements
+        // Create or update Quantification measurements (ordered)
         {
-            if (weightMeasurement == null) {
-                weightMeasurement = createMeasurement(BatchQuantificationMeasurement.class, calculatedWeightPmfmId);
-            }
-            double averageRatio = source.getRatios().stream().filter(Objects::nonNull).mapToDouble(Number::doubleValue).average().orElse(0);
-            Double calculatedWeight = averageRatio / 100 * averagePacketWeight;
-            weightMeasurement.setNumericalValue(calculatedWeight);
+            List<QuantificationMeasurementVO> quantificationMeasurements = new ArrayList<>();
 
-            if (ratioMeasurement == null) {
-                ratioMeasurement = createMeasurement(BatchQuantificationMeasurement.class, estimatedRatioPmfmId);
+            // Weight
+            {
+                if (weightMeasurement == null) {
+                    weightMeasurement = createQuantificationMeasurement(BatchQuantificationMeasurement.class, calculatedWeightPmfmId);
+                }
+                double averageRatio = source.getRatios().stream().filter(Objects::nonNull).mapToDouble(Number::doubleValue).average().orElse(0);
+                Double calculatedWeight = averageRatio / 100 * averagePacketWeight;
+                weightMeasurement.setNumericalValue(calculatedWeight);
+                weightMeasurement.setIsReferenceQuantification(true);
+                quantificationMeasurements.add(weightMeasurement);
             }
-            ratioMeasurement.setAlphanumericalValue(
-                source.getRatios().stream().filter(Objects::nonNull).map(Object::toString).collect(Collectors.joining(RATIO_SEPARATOR))
-            );
 
-            // Ordered measurements
-            List<MeasurementVO> quantificationMeasurements = new ArrayList<>();
-            quantificationMeasurements.add(weightMeasurement); // will be reference
-            quantificationMeasurements.add(ratioMeasurement);
+            // Ratio
+            {
+                if (ratioMeasurement == null) {
+                    ratioMeasurement = createQuantificationMeasurement(BatchQuantificationMeasurement.class, estimatedRatioPmfmId);
+                }
+                ratioMeasurement.setAlphanumericalValue(
+                        source.getRatios().stream().filter(Objects::nonNull).map(Object::toString).collect(Collectors.joining(RATIO_SEPARATOR))
+                );
+                ratioMeasurement.setIsReferenceQuantification(false);
+                quantificationMeasurements.add(ratioMeasurement);
+            }
+
             target.setQuantificationMeasurements(quantificationMeasurements);
-
         }
 
         return target;
@@ -409,6 +426,13 @@ public class PacketServiceImpl implements PacketService {
 
     private MeasurementVO createMeasurement(Class<?> entityClass, int pmfmId) {
         MeasurementVO measurement = new MeasurementVO();
+        measurement.setEntityName(entityClass.getSimpleName());
+        measurement.setPmfmId(pmfmId);
+        return measurement;
+    }
+
+    private QuantificationMeasurementVO createQuantificationMeasurement(Class<?> entityClass, int pmfmId) {
+        QuantificationMeasurementVO measurement = new QuantificationMeasurementVO();
         measurement.setEntityName(entityClass.getSimpleName());
         measurement.setPmfmId(pmfmId);
         return measurement;
@@ -484,7 +508,7 @@ public class PacketServiceImpl implements PacketService {
         target.setRankOrder(source.getRankOrder());
         target.setTaxonGroup(source.getTaxonGroup());
 
-        List<MeasurementVO> measurements = measurementDao.getBatchQuantificationMeasurements(source.getId());
+        List<QuantificationMeasurementVO> measurements = measurementDao.getBatchQuantificationMeasurements(source.getId());
 
         target.setRatios(measurements.stream()
             .filter(measurementVO -> measurementVO.getPmfmId() == estimatedRatioPmfmId)

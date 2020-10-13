@@ -31,6 +31,7 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.exception.DataLockedException;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
 import org.apache.commons.lang3.NotImplementedException;
@@ -327,7 +328,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     /**
-     * <p>find.</p>
+     * <p>get and lock an entity. Throw a DataNotFoundException if not found</p>
      *
      * @param clazz        a {@link Class} object.
      * @param id           a {@link Serializable} object.
@@ -336,9 +337,23 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @return a C object.
      */
     @SuppressWarnings("unchecked")
-    protected <C> C find(Class<C> clazz, Serializable id, LockModeType lockModeType) {
-        C entity = entityManager.find(clazz, id);
+    protected <C> C getOne(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) throws DataNotFoundException  {
+        C entity = getOne(clazz, id);
         entityManager.lock(entity, lockModeType);
+        return entity;
+    }
+
+    /**
+     * <p>get an entity. Throw a DataNotFoundException if not found</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param id    a {@link Serializable} object.
+     * @param <T>   a T object.
+     * @return a T object.
+     */
+    protected <C> C getOne(Class<? extends C> clazz, Serializable id) throws DataNotFoundException {
+        C entity = this.entityManager.find(clazz, id); // Can be null
+        if (entity == null) throw new DataNotFoundException(I18n.t("sumaris.persistence.error.entityNotFound", clazz.getSimpleName(), id));
         return entity;
     }
 

@@ -59,15 +59,15 @@
   </modules>
 
   <scm>
-    <url>https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod.git</url>
-    <connection>scm:git:https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod.git</connection>
+    <url>https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-pod.git</url>
+    <connection>scm:git:https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-pod.git</connection>
     <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
     <system>gitlab</system>
     <url>
-      https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod/issues
+      https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-pod/issues
     </url>
   </issueManagement>
 
@@ -428,6 +428,11 @@
         <version>${spring-boot.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-json</artifactId>
+        <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-jms</artifactId>
         <version>${spring.version}</version>
@@ -499,7 +504,7 @@
         <version>${spqr.version}</version>
       </dependency>
 
-        <!-- Nuiton-* -->
+      <!-- Nuiton-* -->
       <dependency>
         <groupId>org.nuiton</groupId>
         <artifactId>nuiton-config</artifactId>
@@ -521,7 +526,7 @@
         <version>${nuitonVersionVersion}</version>
       </dependency>
 
-      <!-- elastic search -->
+      <!-- Elastic Search -->
       <dependency>
         <groupId>org.elasticsearch</groupId>
         <artifactId>elasticsearch</artifactId>
@@ -799,7 +804,6 @@
         <classifier>jar</classifier>
       </dependency>
 
-
       <!-- LiquiBase -->
       <dependency>
         <groupId>org.liquibase</groupId>
@@ -833,6 +837,77 @@
         <groupId>com.mattbertolini</groupId>
         <artifactId>liquibase-slf4j</artifactId>
         <version>2.0.0</version>
+      </dependency>
+
+      <!-- Ontologies (RDF, OWL) -->
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-core</artifactId>
+        <version>${jena.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-shacl</artifactId>
+        <version>${jena.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-arq</artifactId>
+        <version>${jena.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-tdb2</artifactId>
+        <version>${jena.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-fuseki-main</artifactId>
+        <version>${jena.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-cmds</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.github.owlcs</groupId>
+        <artifactId>ontapi</artifactId>
+        <version>${ontapi.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-arq</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.github.VisualDataWeb</groupId>
+        <artifactId>OWL2VOWL</artifactId>
+        <version>${owl2vowl.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.servicemix.bundles</groupId>
+            <artifactId>org.apache.servicemix.bundles.collections-generic</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- Reflections -->
@@ -1381,17 +1456,50 @@
         </dependencies>
       </plugin>
 
-			<plugin>
-				<groupId>com.amashchenko.maven.plugin</groupId>
-				<artifactId>gitflow-maven-plugin</artifactId>
-				<version>${gitflowPluginVersion}</version>
-				<configuration>
-					<!-- optional configuration -->
-					<verbose>true</verbose>
-					<keepBranch>true</keepBranch>
-					<skipTestProject>true</skipTestProject>
-				</configuration>
-			</plugin>
+      <plugin>
+        <groupId>org.nuiton.i18n</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+
+        <executions>
+          <execution>
+            <id>scan-sources</id>
+            <configuration>
+              <entries>
+                <entry>
+                  <specificGoal>parserValidation</specificGoal>
+                  <basedir>${maven.src.dir}/main/java/</basedir>
+                  <includes>
+                    <param>**/**-validation.xml</param>
+                  </includes>
+                </entry>
+              </entries>
+            </configuration>
+            <goals>
+              <goal>parserJava</goal>
+              <goal>parserValidation</goal>
+              <goal>gen</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>make-bundle</id>
+            <goals>
+              <goal>bundle</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+          <groupId>com.amashchenko.maven.plugin</groupId>
+          <artifactId>gitflow-maven-plugin</artifactId>
+          <version>${gitflowPluginVersion}</version>
+          <configuration>
+              <!-- optional configuration -->
+              <verbose>true</verbose>
+              <keepBranch>true</keepBranch>
+              <skipTestProject>true</skipTestProject>
+          </configuration>
+      </plugin>
 
     </plugins>
 
@@ -1740,7 +1848,7 @@
               <escapeHTML>false</escapeHTML>
               <feedType>rss_2.0</feedType>
               <issueLinkTemplatePerSystem>
-                <default>https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod/-/issues/%ISSUE%</default>
+                <default>https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-pod/-/issues/%ISSUE%</default>
               </issueLinkTemplatePerSystem>
             </configuration>
           </plugin>

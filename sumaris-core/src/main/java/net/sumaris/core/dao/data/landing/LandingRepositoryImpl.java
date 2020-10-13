@@ -79,7 +79,7 @@ public class LandingRepositoryImpl
     @Override
     public List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> sources) {
         // Load parent entity
-        ObservedLocation parent = find(ObservedLocation.class, observedLocationId);
+        ObservedLocation parent = getOne(ObservedLocation.class, observedLocationId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 

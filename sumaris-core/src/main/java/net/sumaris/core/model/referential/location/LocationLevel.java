@@ -66,8 +66,11 @@ public class LocationLevel implements IItemReferentialEntity {
     @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
     private String comments;
 
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = LocationLevel.class)
+    @JoinColumn(name = "parent_location_level_fk")
+    private LocationLevel parent;
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = LocationClassification.class)
     @JoinColumn(name = "location_classification_fk") // TODO should be not nullable
     private LocationClassification locationClassification;
-
 }

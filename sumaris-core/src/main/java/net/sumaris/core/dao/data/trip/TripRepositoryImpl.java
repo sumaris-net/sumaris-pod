@@ -36,7 +36,6 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -109,10 +108,7 @@ public class TripRepositoryImpl
     public TripVO qualify(TripVO vo) {
         Preconditions.checkNotNull(vo);
 
-        Trip entity = find(Trip.class, vo.getId());
-        if (entity == null) {
-            throw new DataRetrievalFailureException(String.format("Trip {%s} not found", vo.getId()));
-        }
+        Trip entity = getOne(Trip.class, vo.getId());
 
         // Check update date
         Daos.checkUpdateDateForUpdate(vo, entity);

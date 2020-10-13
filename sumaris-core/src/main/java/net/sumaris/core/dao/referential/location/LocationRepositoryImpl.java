@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
@@ -78,15 +79,21 @@ public class LocationRepositoryImpl
 
     @Override
     public void updateLocationHierarchy() {
+        String jdbcUrl = getConfig().getJdbcURL();
         // If running on HSQLDB: skip (no stored procedure define)
-        if (Daos.isHsqlDatabase(getConfig().getJdbcURL())) {
-            log.warn("Skipping location hierarchy (Stored procedure P_FILL_LOCATION_HIERARCHY not exists)");
+        if (Daos.isHsqlDatabase(jdbcUrl)) {
+            log.warn("Skipping location hierarchy (Stored procedure P_FILL_LOCATION_HIERARCHY not exists). TODO: add Java implementation ?");
+
+            // TODO: add Java implementation
+
             return;
         }
 
-        //noinspection JpaQueryApiInspection (only in Oracle env)
-        Query q = getEntityManager().createNamedQuery("fillLocationHierarchy");
-        q.getResultList();
-
+        // If Oracle, call PL/SQL procédure
+        if (Daos.isOracleDatabase(jdbcUrl)) {
+            getEntityManager().createStoredProcedureQuery("P_FILL_LOCATION_HIERARCHY")
+                    .execute();
+            return;
+        }
     }
 }

@@ -33,6 +33,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.pmfm.MethodEnum;
@@ -236,7 +237,7 @@ public class ProductRepositoryImpl
     public List<ProductVO> saveByOperationId(int operationId, @Nonnull List<ProductVO> products) {
 
         // Load parent entity
-        Operation parent = find(Operation.class, operationId);
+        Operation parent = getOne(Operation.class, operationId);
 
         products.forEach(source -> {
             source.setOperationId(operationId);
@@ -256,7 +257,7 @@ public class ProductRepositoryImpl
     public List<ProductVO> saveByLandingId(int landingId, @Nonnull List<ProductVO> products) {
 
         // Load parent entity
-        Landing parent = find(Landing.class, landingId);
+        Landing parent = getOne(Landing.class, landingId);
 
         products.forEach(source -> {
             source.setLandingId(landingId);
@@ -274,7 +275,7 @@ public class ProductRepositoryImpl
     public List<ProductVO> saveBySaleId(int saleId, @Nonnull List<ProductVO> products) {
 
         // Load parent entity
-        Sale parent = find(Sale.class, saleId);
+        Sale parent = getOne(Sale.class, saleId);
 
         // Get landing Id (to optimize linked data for SIH)
         Integer landingId = Optional.ofNullable(parent.getTrip())

@@ -31,6 +31,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.DataLockedException;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
@@ -207,13 +208,12 @@ public abstract class HibernateDaoSupport {
      * @return a list of T object.
      */
     protected <T> Set<T> loadAllAsSet(Class<? extends T> clazz, Collection<? extends Serializable> ids, boolean failedIfMissing) {
-
         List<T> result = loadAll(clazz, ids, failedIfMissing);
         return Sets.newHashSet(result);
     }
 
     /**
-     * <p>find.</p>
+     * <p>find an entity (can be null, if not found).</p>
      *
      * @param clazz a {@link Class} object.
      * @param id    a {@link Serializable} object.
@@ -221,11 +221,11 @@ public abstract class HibernateDaoSupport {
      * @return a T object.
      */
     protected <T> T find(Class<? extends T> clazz, Serializable id) {
-        return getEntityManager().find(clazz, id);
+        return entityManager.find(clazz, id);
     }
 
     /**
-     * <p>find.</p>
+     * <p>get and lock an entity. Throw a DataNotFoundException if not found</p>
      *
      * @param clazz        a {@link Class} object.
      * @param id           a {@link Serializable} object.
@@ -233,11 +233,26 @@ public abstract class HibernateDaoSupport {
      * @param <T>          a T object.
      * @return a T object.
      */
-    protected <T extends Serializable> T find(Class<? extends T> clazz, Serializable id, LockModeType lockModeType) {
-        T entity = getEntityManager().find(clazz, id);
-        getEntityManager().lock(entity, lockModeType);
+    protected <T extends Serializable> T getOne(Class<? extends T> clazz, Serializable id, LockModeType lockModeType) {
+        T entity = getOne(clazz, id);
+        entityManager.lock(entity, lockModeType);
         return entity;
     }
+
+    /**
+     * <p>get an entity. Throw a DataNotFoundException if not found</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param id    a {@link Serializable} object.
+     * @param <T>   a T object.
+     * @return a T object.
+     */
+    protected <T> T getOne(Class<? extends T> clazz, Serializable id) {
+        T entity = entityManager.find(clazz, id); // Can be null
+        if (entity == null) throw new DataNotFoundException(I18n.t("sumaris.persistence.error.entityNotFound", clazz.getSimpleName(), id));
+        return entity;
+    }
+
 
     /**
      * <p>getDatabaseCurrentTimestamp.</p>

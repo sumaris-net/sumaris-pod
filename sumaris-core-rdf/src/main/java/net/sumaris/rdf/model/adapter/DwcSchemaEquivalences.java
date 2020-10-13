@@ -47,7 +47,7 @@ public class DwcSchemaEquivalences extends AbstractSchemaEquivalences {
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {
-        log.info("Adding {{}} equivalences to {{}}...", DWC.Terms.PREFIX, schemaUri);
+        if (log.isDebugEnabled()) log.debug("Adding {{}} equivalences to {{}}...", DWC.Terms.PREFIX, schemaUri);
     }
 
     @Override

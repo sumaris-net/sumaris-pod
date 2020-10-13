@@ -78,26 +78,26 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
     }
 
     @Test
-    public void getTaxonNameReferent() {
-        TaxonNameVO referent = taxonNameRepository.getTaxonNameReferent(1030);
+    public void findTaxonNameReferent() {
+        TaxonNameVO referent = taxonNameRepository.findTaxonNameReferent(1030).orElse(null);
         Assert.assertNotNull(referent);
         Assert.assertEquals(Integer.valueOf(1030), referent.getId());
-        referent = taxonNameRepository.getTaxonNameReferent(1023);
+        referent = taxonNameRepository.findTaxonNameReferent(1023).orElse(null);
         Assert.assertNotNull(referent);
         Assert.assertEquals(Integer.valueOf(1023), referent.getId());
-        referent = taxonNameRepository.getTaxonNameReferent(9999);
+        referent = taxonNameRepository.findTaxonNameReferent(9999).orElse(null);
         Assert.assertNull(referent);
     }
 
     @Test
     public void getAllTaxonNameByParentIds() {
-        List<TaxonName> taxonNames = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(1004));
+        List<TaxonName> taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1004));
         Assert.assertNotNull(taxonNames);
         Assert.assertEquals(15, taxonNames.size());
-        taxonNames = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(1030,1031,1032));
+        taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1030,1031,1032));
         Assert.assertNotNull(taxonNames);
         Assert.assertEquals(4, taxonNames.size());
-        taxonNames = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(1014));
+        taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1014));
         Assert.assertNotNull(taxonNames);
         Assert.assertEquals(2, taxonNames.size());
     }
