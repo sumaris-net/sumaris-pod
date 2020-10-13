@@ -276,6 +276,10 @@ public class RdfConfiguration  {
         return RdfFormat.fromUserString(userFormat);
     }
 
+    public File getCliOutputFile() {
+        return delegate.getCliOutputFile();
+    }
+
     public ApplicationConfig getApplicationConfig() {
         return delegate.getApplicationConfig();
     }

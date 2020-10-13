@@ -79,19 +79,31 @@ public class RdfDatasetAction {
 	public void dump() throws Throwable {
 		init();
 
-		File outputFile = ActionUtils.checkAndGetOutputFile(false,
-				this.getClass());
-
+		// Get output format
 		RdfFormat format = config.getRdfOutputFormat()
 				// Dataset dump can be done only on TRIG or NQUADS
 				.filter(f -> f == RdfFormat.TRIG || f == RdfFormat.NQUADS)
 				.orElse(RdfFormat.TRIG);
 
+		File outputFile = config.getCliOutputFile();
 		Dataset ds = service.getDataset();
 
-		try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(outputFile))) {
-			Txn.executeRead(ds, () -> RDFDataMgr.write(fos, ds, format.toJenaLang()));
+		// Dump to file
+		if (outputFile != null) {
+			outputFile = ActionUtils.checkAndGetOutputFile(false,
+					this.getClass());
+
+			try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+				Txn.executeRead(ds, () -> RDFDataMgr.write(fos, ds, format.toJenaLang()));
+			}
 		}
+
+		// Dump to system out
+		else {
+			Txn.executeRead(ds, () -> RDFDataMgr.write(System.out, ds, format.toJenaLang()));
+		}
+
+
 	}
 
 	/* -- protected functions -- */
