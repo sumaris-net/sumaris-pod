@@ -273,7 +273,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     // PMFM.PARAMETER
     const pmfmParameterAttributes = ['label', 'name'];
-    const pmfmParameterColumnNames = pmfmParameterAttributes.map(attr => 'REFERENTIAL.PARAMETER.' + attr.toUpperCase())
     this.registerFormField('parameter', {
       type: 'entity',
       required: true,
@@ -291,7 +290,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             default: return undefined;
           }
         }),
-        columnNames: pmfmParameterColumnNames,
+        columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
@@ -617,15 +616,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       });
     this.$pmfms.next(res && res.data || [])
   }
-
-  protected async loadPmfmsParametersFirstVersion() {
-      const res = await this.pmfmService.loadAllPmfmsParameters(0, 1000, null, null, null,
-        {
-          withTotal: false,
-          withDetails: true
-        });
-      this.$pmfmsParameters.next(res && res.data || [])
-    }
 
     protected async loadPmfmsMatrix() {
         const res = await this.pmfmService.loadAllPmfmsMatrix(0, 1000, null, null, null,
