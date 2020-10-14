@@ -116,7 +116,23 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
-  //@Input() showPMFMDetailsButton = false;
+  @Input() 
+  set showPMFMDetailsColumns(value: boolean) {
+    // Display PMFM details or other columns
+    this.setShowColumn('parameter', value);
+    this.setShowColumn('matrix', value);
+    this.setShowColumn('fraction', value);
+    this.setShowColumn('method', value);
+
+    this.setShowColumn('acquisitionLevel', !value);
+    this.setShowColumn('rankOrder', !value);
+    this.setShowColumn('isMandatory', !value);
+    this.setShowColumn('acquisitionNumber', !value);
+    this.setShowColumn('minValue', !value);
+    this.setShowColumn('maxValue', !value);
+    this.setShowColumn('defaultValue', !value);
+  }
+
 
   @Input() title: string;
 
@@ -175,6 +191,29 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     // Loading referential items
     this.loadReferential();
+  }
+
+
+  protected getDisplayColumns(): string[] {
+    let userColumns = this.getUserColumns();
+
+    // No user override: use defaults
+    if (!userColumns) return this.columns;
+
+    // Get fixed start columns
+    const fixedStartColumns = this.columns.filter(c => RESERVED_START_COLUMNS.includes(c));
+
+    // Remove end columns
+    const fixedEndColumns = this.columns.filter(c => RESERVED_END_COLUMNS.includes(c));
+
+    // Remove fixed columns from user columns
+    userColumns = userColumns.filter(c => (!fixedStartColumns.includes(c) && !fixedEndColumns.includes(c) && this.columns.includes(c)));
+
+    return fixedStartColumns
+      .concat(userColumns)
+      .concat(fixedEndColumns)
+      // Remove columns to hide
+      .filter(column => !this.excludesColumns.includes(column));
   }
 
   ngOnInit() {
