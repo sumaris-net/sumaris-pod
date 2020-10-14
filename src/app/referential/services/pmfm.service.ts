@@ -283,7 +283,7 @@ export class PmfmService extends BaseEntityService implements EntityService<Pmfm
       toEntity?: boolean;
       debug?: boolean;
     }): Promise<LoadResult<Pmfm>> {
-console.warn("pmfmservice loadAllPmfmsParameters");
+console.debug("pmfmservice loadAllPmfmsParameters");
 opts = opts || {};
 const variables: any = {
 offset: offset || 0,
@@ -294,7 +294,7 @@ filter: PmfmFilter.asPodObject(filter)
 };
 const debug = this._debug && (opts.debug !== false);
 const now = debug && Date.now();
-if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+if (debug) console.debug("[pmfm-service] Loading pmfms parameters... using options:", variables);
 // INFO CLT: Modifier pour faire un distinct
 const query = opts.query ? opts.query : (
 opts.withDetails ? LoadAllWithDetailsQuery : (
@@ -311,7 +311,7 @@ fetchPolicy: opts && opts.fetchPolicy || undefined
 const data = (!opts || opts.toEntity !== false) ?
 (res && res.pmfms || []).map(Pmfm.fromObject) :
 (res && res.pmfms || []) as Pmfm[];
-if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+if (debug) console.debug(`[pmfm-service] Pmfms parameters loaded in ${Date.now() - now}ms`);
 return {
 data: data,
 total: res.referentialsCount
@@ -340,6 +340,7 @@ total: res.referentialsCount
       toEntity?: boolean;
       debug?: boolean;
     }): Promise<LoadResult<Pmfm>> {
+      console.debug("loadAllPmfmsMatrix");
 opts = opts || {};
 const variables: any = {
 offset: offset || 0,
@@ -350,7 +351,7 @@ filter: PmfmFilter.asPodObject(filter)
 };
 const debug = this._debug && (opts.debug !== false);
 const now = debug && Date.now();
-if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+if (debug) console.debug("[pmfm-service] Loading pmfms matrix ... using options:", variables);
 // INFO CLT: Modifier pour faire un distinct
 const query = opts.query ? opts.query : (
 opts.withDetails ? LoadAllWithDetailsQuery : (
@@ -367,7 +368,7 @@ fetchPolicy: opts && opts.fetchPolicy || undefined
 const data = (!opts || opts.toEntity !== false) ?
 (res && res.pmfms || []).map(Pmfm.fromObject) :
 (res && res.pmfms || []) as Pmfm[];
-if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+if (debug) console.debug(`[pmfm-service] Pmfms matrix loaded in ${Date.now() - now}ms`);
 return {
 data: data,
 total: res.referentialsCount
@@ -406,7 +407,7 @@ filter: PmfmFilter.asPodObject(filter)
 };
 const debug = this._debug && (opts.debug !== false);
 const now = debug && Date.now();
-if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+if (debug) console.debug("[pmfm-service] Loading pmfms fractions... using options:", variables);
 // INFO CLT: Modifier pour faire un distinct
 const query = opts.query ? opts.query : (
 opts.withDetails ? LoadAllWithDetailsQuery : (
@@ -423,7 +424,7 @@ fetchPolicy: opts && opts.fetchPolicy || undefined
 const data = (!opts || opts.toEntity !== false) ?
 (res && res.pmfms || []).map(Pmfm.fromObject) :
 (res && res.pmfms || []) as Pmfm[];
-if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+if (debug) console.debug(`[pmfm-service] Pmfms fractions loaded in ${Date.now() - now}ms`);
 return {
 data: data,
 total: res.referentialsCount
@@ -462,7 +463,7 @@ filter: PmfmFilter.asPodObject(filter)
 };
 const debug = this._debug && (opts.debug !== false);
 const now = debug && Date.now();
-if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+if (debug) console.debug("[pmfm-service] Loading pmfms methods... using options:", variables);
 
 // INFO CLT: Modifier pour faire un distinct sur les méthodes
 const query = opts.query ? opts.query : (
@@ -480,7 +481,7 @@ fetchPolicy: opts && opts.fetchPolicy || undefined
 const data = (!opts || opts.toEntity !== false) ?
 (res && res.pmfms || []).map(Pmfm.fromObject) :
 (res && res.pmfms || []) as Pmfm[];
-if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+if (debug) console.debug(`[pmfm-service] Pmfms methods loaded in ${Date.now() - now}ms`);
 return {
 data: data,
 total: res.referentialsCount

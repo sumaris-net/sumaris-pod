@@ -961,6 +961,8 @@
       "TAB_GENERAL": "Détails",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type de valeur",
+      "CODE": "code paramètre",
+      "NAME": "nom",
       "NEW": {
         "TITLE": "Nouveau Paramètre"
       },
@@ -998,6 +1000,18 @@
       "EDIT": {
         "TITLE": "PSFM {{label}} - {{name}}"
       }
+    },
+    "MATRIX": {
+      "NAME": "Support",
+      "DESCRIPTION": "description"
+    },
+    "FRACTION": {
+      "NAME": "Fraction",
+      "DESCRIPTION": "description"
+    },
+    "METHOD": {
+      "NAME": "Méthode de collecte",
+      "DESCRIPTION": "description"
     },
     "LIST": {
       "TITLE": "Listes",

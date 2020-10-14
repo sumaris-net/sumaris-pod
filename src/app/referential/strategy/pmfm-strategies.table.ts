@@ -116,6 +116,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
+  //@Input() showPMFMDetailsButton = false;
 
   @Input() title: string;
 
@@ -232,48 +233,52 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // PMFM.PARAMETER
+    const pmfmParameterAttributes = ['parameter.name'];
     this.registerFormField('parameter', {
       type: 'entity',
       required: true,
       autocomplete: this.registerAutocompleteField('parameter', {
         items: this.$pmfmsParameters,
-        attributes: ['parameter.code'],
+        attributes: pmfmParameterAttributes,
         showAllOnFocus: true,
         class: 'mat-autocomplete-panel-large-size'
       })
     });
 
     // PMFM.MATRIX
+    const pmfmMatrixAttributes = ['matrix.name', 'matrix.description'];
     this.registerFormField('matrix', {
       type: 'entity',
       required: true,
       autocomplete: this.registerAutocompleteField('matrix', {
         items: this.$pmfmsMatrix,
-        attributes: ['matrix.name'],
+        attributes: pmfmMatrixAttributes,
         showAllOnFocus: true,
         class: 'mat-autocomplete-panel-large-size'
       })
     });
 
     // PMFM.FRACTION
+    const pmfmFractionAttributes = ['fraction.name', 'fraction.description'];
     this.registerFormField('fraction', {
       type: 'entity',
       required: true,
       autocomplete: this.registerAutocompleteField('fraction', {
         items: this.$pmfmsFractions,
-        attributes: ['fraction.name'],
+        attributes: pmfmFractionAttributes,
         showAllOnFocus: true,
         class: 'mat-autocomplete-panel-large-size'
       })
     });
 
     // PMFM.METHOD
+    const pmfmMethodAttributes = ['method.name', 'method.description'];
     this.registerFormField('method', {
       type: 'entity',
       required: true,
       autocomplete: this.registerAutocompleteField('method', {
         items: this.$pmfmsMethods,
-        attributes: ['method.name'],
+        attributes: pmfmMethodAttributes,
         showAllOnFocus: true,
         class: 'mat-autocomplete-panel-large-size'
       })

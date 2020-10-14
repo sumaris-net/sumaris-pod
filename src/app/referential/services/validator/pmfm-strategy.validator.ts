@@ -24,7 +24,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
       acquisitionLevel: [data && data.acquisitionLevel || null, Validators.required],
       rankOrder: [data && data.rankOrder || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
       pmfm: [data && data.pmfm || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      unit: [data && data.pmfm.unit || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      parameter: [data && data.pmfm.parameter || null, Validators.compose([Validators.required, SharedValidators.entity])],
       matrix: [data && data.pmfm.matrix || null, Validators.compose([Validators.required, SharedValidators.entity])],
       fraction: [data && data.pmfm.fraction || null, Validators.compose([Validators.required, SharedValidators.entity])],
       method: [data && data.pmfm.method || null, Validators.compose([Validators.required, SharedValidators.entity])],
