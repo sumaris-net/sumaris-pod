@@ -233,15 +233,24 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // PMFM.PARAMETER
-    const pmfmParameterAttributes = ['parameter.name'];
+    const pmfmParameterAttributes = ['label', 'parameter.name'];
     this.registerFormField('parameter', {
       type: 'entity',
       required: true,
       autocomplete: this.registerAutocompleteField('parameter', {
         items: this.$pmfmsParameters,
         attributes: pmfmParameterAttributes,
-        showAllOnFocus: true,
-        class: 'mat-autocomplete-panel-large-size'
+        columnSizes: pmfmParameterAttributes.map(attr => {
+          switch(attr) {
+            case 'label':
+              return 3;
+            case 'parameter.name':
+              return 4;
+            default: return undefined;
+          }
+        }),
+        showAllOnFocus: false,
+        class: 'mat-autocomplete-panel-full-size'
       })
     });
 
@@ -253,8 +262,17 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       autocomplete: this.registerAutocompleteField('matrix', {
         items: this.$pmfmsMatrix,
         attributes: pmfmMatrixAttributes,
-        showAllOnFocus: true,
-        class: 'mat-autocomplete-panel-large-size'
+        columnSizes: pmfmMatrixAttributes.map(attr => {
+          switch(attr) {
+            case 'matrix.name':
+              return 3;
+            case 'matrix.description':
+              return 4;
+            default: return undefined;
+          }
+        }),
+        showAllOnFocus: false,
+        class: 'mat-autocomplete-panel-full-size'
       })
     });
 
@@ -266,8 +284,17 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       autocomplete: this.registerAutocompleteField('fraction', {
         items: this.$pmfmsFractions,
         attributes: pmfmFractionAttributes,
-        showAllOnFocus: true,
-        class: 'mat-autocomplete-panel-large-size'
+        columnSizes: pmfmFractionAttributes.map(attr => {
+          switch(attr) {
+            case 'fraction.name':
+              return 3;
+            case 'fraction.description':
+              return 4;
+            default: return undefined;
+          }
+        }),
+        showAllOnFocus: false,
+        class: 'mat-autocomplete-panel-full-size'
       })
     });
 
@@ -279,8 +306,17 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       autocomplete: this.registerAutocompleteField('method', {
         items: this.$pmfmsMethods,
         attributes: pmfmMethodAttributes,
-        showAllOnFocus: true,
-        class: 'mat-autocomplete-panel-large-size'
+        columnSizes: pmfmMethodAttributes.map(attr => {
+          switch(attr) {
+            case 'method.name':
+              return 3;
+            case 'method.description':
+              return 4;
+            default: return undefined;
+          }
+        }),
+        showAllOnFocus: false,
+        class: 'mat-autocomplete-panel-full-size'
       })
     });
 
