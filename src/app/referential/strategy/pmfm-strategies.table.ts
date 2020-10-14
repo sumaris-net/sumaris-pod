@@ -102,7 +102,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   $selectedPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   $acquisitionLevels = new BehaviorSubject<IReferentialRef[]>(undefined);
   $pmfms = new BehaviorSubject<Pmfm[]>(undefined);
-  $pmfmsParameters = new BehaviorSubject<Pmfm[]>(undefined);
+  $pmfmsParameters = new BehaviorSubject<IReferentialRef[]>(undefined);
   $pmfmsMatrix = new BehaviorSubject<Pmfm[]>(undefined);
   $pmfmsFractions = new BehaviorSubject<Pmfm[]>(undefined);
   $pmfmsMethods = new BehaviorSubject<Pmfm[]>(undefined);
@@ -116,7 +116,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
-  @Input() 
+  @Input()
   set showPMFMDetailsColumns(value: boolean) {
     // Display PMFM details or other columns
     this.setShowColumn('parameter', value);
@@ -272,7 +272,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // PMFM.PARAMETER
-    const pmfmParameterAttributes = ['label', 'parameter.name'];
+    const pmfmParameterAttributes = ['label', 'name'];
+    const pmfmParameterColumnNames = pmfmParameterAttributes.map(attr => 'REFERENTIAL.PARMETER.' + attr.toUpperCase())
     this.registerFormField('parameter', {
       type: 'entity',
       required: true,
@@ -281,13 +282,16 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         attributes: pmfmParameterAttributes,
         columnSizes: pmfmParameterAttributes.map(attr => {
           switch(attr) {
+            case 'code':
+              return 3;
             case 'label':
               return 3;
-            case 'parameter.name':
+            case 'name':
               return 4;
             default: return undefined;
           }
         }),
+        columnNames: pmfmParameterColumnNames,
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
@@ -614,7 +618,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$pmfms.next(res && res.data || [])
   }
 
-  protected async loadPmfmsParameters() {
+  protected async loadPmfmsParametersFirstVersion() {
       const res = await this.pmfmService.loadAllPmfmsParameters(0, 1000, null, null, null,
         {
           withTotal: false,
@@ -649,6 +653,16 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
               });
             this.$pmfmsMethods.next(res && res.data || [])
           }
+
+  protected async loadPmfmsParameters() {
+      const res = await this.referentialRefService.loadAll(0, 1000, null, null, {
+          entityName: 'Parameter'
+        },
+        {
+          withTotal: false
+        });
+      this.$pmfmsParameters.next(res && res.data || []);
+    }
 
   protected async loadGears() {
     const res = await this.referentialRefService.loadAll(0, 1000, null, null, {
