@@ -273,7 +273,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     // PMFM.PARAMETER
     const pmfmParameterAttributes = ['label', 'name'];
-    const pmfmParameterColumnNames = pmfmParameterAttributes.map(attr => 'REFERENTIAL.PARMETER.' + attr.toUpperCase())
+    const pmfmParameterColumnNames = pmfmParameterAttributes.map(attr => 'REFERENTIAL.PARAMETER.' + attr.toUpperCase())
     this.registerFormField('parameter', {
       type: 'entity',
       required: true,
