@@ -22,24 +22,26 @@ package net.sumaris.core.service.administration;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PersonServiceTest extends AbstractServiceTest{
 
     @ClassRule
@@ -51,17 +53,18 @@ public class PersonServiceTest extends AbstractServiceTest{
     @Autowired
     private ReferentialService referentialService;
 
+    private static final String ADMIN_PUBKEY = "Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB";
+    private static final String OBSERVER_PUBKEY = "5rojwz7mTRFE9LCJXSGB2w48kcZtg7vM4SDQkN2s9GFe";
+
     @Test
-    public void findPersons() {
+    public void a_findPersons() {
 
         Integer observerProfileId =  dbResource.getFixtures().getUserProfileObserver();
 
         // Find by one profile
         PersonFilterVO filter = new PersonFilterVO();
         filter.setUserProfileId(observerProfileId);
-        List<PersonVO> results = service.findByFilter(filter, 0, 100, null, null);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(results.size() > 0);
+        List<PersonVO> results = assertFindResult(filter, 2);
         PersonVO person = results.get(0);
         Assert.assertTrue(person.getProfiles().size() > 0);
         UserProfileEnum profile = UserProfileEnum.valueOf(person.getProfiles().get(0)) ;
@@ -70,30 +73,34 @@ public class PersonServiceTest extends AbstractServiceTest{
         // Find by many profile
         filter = new PersonFilterVO();
         filter.setUserProfileIds(new Integer[]{observerProfileId, dbResource.getFixtures().getUserProfileSupervisor()});
-        results = service.findByFilter(filter, 0, 100, null, null);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(results.size() > 0);
+        assertFindResult(filter, 3);
 
         // Find by status (inactive person)
         filter = new PersonFilterVO();
         filter.setStatusIds(new Integer[]{getConfig().getStatusIdTemporary(), getConfig().getStatusIdValid()});
-        results = service.findByFilter(filter, 0, 100, null, null);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(results.size() > 0);
+        assertFindResult(filter, 5);
 
         // Find by email
         filter = new PersonFilterVO();
         filter.setEmail(dbResource.getFixtures().getPersonEmail(0));
-        results = service.findByFilter(filter, 0, 100, null, null);
-        Assert.assertNotNull(results);
-        Assert.assertEquals(1, results.size());
+        assertFindResult(filter, 1);
 
         // Find by last name (case insensitive)
         filter = new PersonFilterVO();
         filter.setLastName("LaVEniER");
-        results = service.findByFilter(filter, 0, 100, null, null);
+        assertFindResult(filter, 1);
+
+    }
+
+    private List<PersonVO> assertFindResult(PersonFilterVO filter, int expectedResult) {
+        // Do findByFilter
+        List<PersonVO> results = service.findByFilter(filter, 0, 100, null, null);
         Assert.assertNotNull(results);
-        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(expectedResult, results.size());
+        // Do also countByFilter
+        long count = service.countByFilter(filter);
+        Assert.assertEquals(expectedResult, count);
+        return results;
     }
 
     @Test
@@ -108,20 +115,60 @@ public class PersonServiceTest extends AbstractServiceTest{
     }
 
     @Test
-    @Ignore
     public void save() {
         PersonVO vo = new PersonVO();
         vo.setFirstName("first name");
         vo.setLastName("last name");
+        vo.setEmail("test@sumaris.net");
+        vo.setStatusId(getConfig().getStatusIdValid());
 
         DepartmentVO department = new DepartmentVO();
         department.setId(dbResource.getFixtures().getDepartmentId(0));
 
+        vo.setDepartment(department);
+
         service.save(vo);
+
+        // keep updateDate
+        Date updateDate1 = vo.getUpdateDate();
+        Assert.assertNotNull(updateDate1);
+
+        // save again and check update date has changed
+        service.save(vo);
+        Date updateDate2 = vo.getUpdateDate();
+        Assert.assertNotNull(updateDate2);
+        Assert.assertNotEquals(updateDate1, updateDate2);
+
     }
 
     @Test
-    public void delete() {
+    public void saveWithProfile() {
+        PersonVO vo = new PersonVO();
+        vo.setFirstName("first name with profiles");
+        vo.setLastName("last name");
+        vo.setEmail("test2@sumaris.net");
+        vo.setStatusId(getConfig().getStatusIdValid());
+
+        DepartmentVO department = new DepartmentVO();
+        department.setId(dbResource.getFixtures().getDepartmentId(0));
+
+        vo.setDepartment(department);
+
+        vo.setProfiles(Arrays.asList("ADMIN", "USER"));
+
+        service.save(vo);
+        Assert.assertNotNull(vo.getId());
+
+        // reload and check
+        vo = service.get(vo.getId());
+        Assert.assertNotNull(vo);
+        Assert.assertEquals("first name with profiles", vo.getFirstName());
+        Assert.assertNotNull(vo.getProfiles());
+        Assert.assertEquals(2, vo.getProfiles().size());
+    }
+
+    @Test
+    public void z_delete() {
 
         long userProfileCountBefore = CollectionUtils.size(referentialService.findByFilter(UserProfile.class.getSimpleName(), null, 0, 1000));
 
@@ -137,5 +184,34 @@ public class PersonServiceTest extends AbstractServiceTest{
         List<String> emails = service.getEmailsByProfiles(UserProfileEnum.ADMIN);
         Assert.assertNotNull(emails);
         Assert.assertTrue(emails.size() > 0);
+    }
+
+    @Test
+    public void getByPubkey() {
+
+        PersonVO person = service.getByPubkey(ADMIN_PUBKEY);
+        Assert.assertNotNull(person);
+        Assert.assertEquals(5, person.getId().intValue());
+
+        try {
+            service.getByPubkey("____");
+            Assert.fail("should throw exception");
+        } catch (Exception e) {
+            Assert.assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void getAvatarByPubkey() {
+
+        ImageAttachmentVO avatar = service.getAvatarByPubkey(OBSERVER_PUBKEY);
+        Assert.assertNotNull(avatar);
+
+        try {
+            service.getAvatarByPubkey(ADMIN_PUBKEY);
+            Assert.fail("should throw exception");
+        } catch (Exception e) {
+            Assert.assertNotNull(e);
+        }
     }
 }

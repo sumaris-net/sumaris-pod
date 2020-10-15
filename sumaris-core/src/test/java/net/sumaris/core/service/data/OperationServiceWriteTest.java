@@ -10,12 +10,12 @@ package net.sumaris.core.service.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -24,15 +24,19 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.data.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @ClassRule
@@ -56,7 +60,6 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     @Autowired
     private PmfmService pmfmService;
 
-
     private TripVO parent;
 
     private DatabaseFixtures fixtures;
@@ -69,12 +72,21 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     }
 
     @Test
-    @Ignore
-    // Ignore because delete() is call before get()
-    public void get() {
+    // the prefix a_ and the sort option above ensure this test is run before 'delete'
+    public void a_get() {
         OperationVO vo = service.get(1);
         Assert.assertNotNull(vo);
         Assert.assertNotNull(vo.getId());
+    }
+
+    @Test
+    public void b_find() {
+        List<OperationVO> operations = service.findAllByTripId(parent.getId(), 0, 10, IEntity.Fields.ID, SortDirection.ASC);
+        Assert.assertNotNull(operations);
+        Assert.assertEquals(3, operations.size());
+
+        long count = service.countByTripId(parent.getId());
+        Assert.assertEquals(3, count);
     }
 
     @Test
@@ -82,6 +94,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         OperationVO vo = createOperation();
         int batchCount = countBatches(vo);
         int sampleCount = countSamples(vo);
+        int measurementCount = CollectionUtils.size(vo.getMeasurements());
 
         // Save
         OperationVO savedVo = service.save(vo);
@@ -99,8 +112,10 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         {
             // Should NOT be loaded in VO
             Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getMeasurements()));
+
+            // After reload, must have same count
             List<MeasurementVO> reloadMeasurements = measurementService.getOperationVesselUseMeasurements(savedVo.getId());
-            Assert.assertEquals(CollectionUtils.size(savedVo.getMeasurements()), CollectionUtils.size(reloadMeasurements));
+            Assert.assertEquals(measurementCount, CollectionUtils.size(reloadMeasurements));
         }
 
         // Check samples
@@ -125,7 +140,6 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         service.delete(fixtures.getTripId(0));
     }
 
-
     @Test
     public void deleteAfterCreate() {
         OperationVO savedVO = null;
@@ -133,8 +147,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
             savedVO = service.save(createOperation());
             Assume.assumeNotNull(savedVO);
             Assume.assumeNotNull(savedVO.getId());
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             Assume.assumeNoException(e);
         }
 
@@ -147,7 +160,6 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     protected OperationVO createOperation() {
         return DataTestUtils.createOperation(fixtures, pmfmService, parent);
     }
-
 
     protected int countBatches(OperationVO vo) {
         if (vo.getCatchBatch() == null) return 0;

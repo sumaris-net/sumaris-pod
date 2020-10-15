@@ -24,17 +24,15 @@ package net.sumaris.core.dao.referential.location;
  * #L%
  */
 
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Geometries;
 import org.apache.commons.lang3.StringUtils;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -44,8 +42,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -305,9 +301,7 @@ public class Locations {
         try {
             return readLines(resourceLoader.getResource("classpath:referential/ices_rectangles.txt"));
         } catch (SumarisTechnicalException e) {
-            if (failSafe) {
-                // continue
-            } else {
+            if (!failSafe) {
                 throw e;
             }
         }
@@ -335,9 +329,7 @@ public class Locations {
         try {
             return readLines(resourceLoader.getResource("classpath:referential/cgpm_rectangles.txt"));
         } catch (SumarisTechnicalException e) {
-            if (failSafe) {
-                // continue
-            } else {
+            if (!failSafe) {
                 throw e;
             }
         }

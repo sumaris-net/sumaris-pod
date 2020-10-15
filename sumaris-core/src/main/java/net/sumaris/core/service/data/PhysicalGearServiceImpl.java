@@ -22,8 +22,7 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-
-import net.sumaris.core.dao.data.PhysicalGearRepository;
+import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
@@ -31,7 +30,6 @@ import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,12 +44,12 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 
 	@Override
 	public List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions options) {
-		return physicalGearRepository.findAll(filter, page, options);
+		return physicalGearRepository.findAll(filter != null ? filter : new PhysicalGearFilterVO(), page, options);
 	}
 
 	@Override
 	public List<PhysicalGearVO> getAllByTripId(int tripId) {
-		return physicalGearRepository.findAllVO(Specification.where(physicalGearRepository.hasTripId(tripId)));
+		return physicalGearRepository.findAllVO(physicalGearRepository.hasTripId(tripId));
 	}
 
 	@Override

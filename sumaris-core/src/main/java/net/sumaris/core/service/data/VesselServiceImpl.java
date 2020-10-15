@@ -62,6 +62,7 @@ public class VesselServiceImpl implements VesselService {
 
 	@Override
 	public List<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		filter = VesselFilterVO.nullToEmpty(filter);
 		return vesselSnapshotDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
 	}
 
@@ -82,11 +83,13 @@ public class VesselServiceImpl implements VesselService {
 
 	@Override
 	public List<VesselVO> findVesselsByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		filter = VesselFilterVO.nullToEmpty(filter);
 		return vesselDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override
 	public Long countVesselsByFilter(VesselFilterVO filter) {
+		filter = VesselFilterVO.nullToEmpty(filter);
 		return vesselDao.countByFilter(filter);
 	}
 

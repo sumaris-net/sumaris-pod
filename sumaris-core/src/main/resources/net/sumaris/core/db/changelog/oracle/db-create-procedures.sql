@@ -162,17 +162,17 @@ BEGIN
     ------------------------------------------------------------------------------
     DELETE FROM TAXON_GROUP_HIERARCHY;
 
-    -- get all couples (child/father) with the calculated ratio
+    -- find all couples (child/father) with the calculated ratio
     FOR i IN c LOOP
 
-        -- get cursor data
+        -- find cursor data
         PATH_FATHER := i.PATH_FATHER;
     NB_FATHERS  := i.NB_FATHERS;
 
         -- For each parent
     FOR j IN REVERSE 1..NB_FATHERS LOOP
 
-          -- get the current father_id and the current ratio
+          -- find the current father_id and the current ratio
           CURRENT_FATHER := INSTR(PATH_FATHER, '-', 1, j);
     IF (j = NB_FATHERS) THEN
             FATHER_ID := TO_NUMBER(SUBSTR(PATH_FATHER,CURRENT_FATHER + 1));
@@ -195,10 +195,10 @@ BEGIN
     ------------------------------------------------------------------------------
     DELETE FROM TAXON_GROUP2TAXON_HIERARCHY;
 
-    -- get all couples (child/father) with the calculated ratio
+    -- find all couples (child/father) with the calculated ratio
     FOR i IN c2 LOOP
 
-        -- get cursor data
+        -- find cursor data
         PATH_FATHER := i.PATH_FATHER;
     NB_FATHERS  := i.NB_FATHERS;
 
@@ -218,7 +218,7 @@ BEGIN
     -- For each parent
     FOR j IN REVERSE 1..NB_FATHERS LOOP
 
-            -- get the current father_id and the current ratio
+            -- find the current father_id and the current ratio
             CURRENT_FATHER := INSTR(PATH_FATHER, '-', 1, j);
     IF (j = NB_FATHERS) THEN
               FATHER_ID := TO_NUMBER(SUBSTR(PATH_FATHER,CURRENT_FATHER + 1));

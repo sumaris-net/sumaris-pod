@@ -28,12 +28,12 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
-import net.sumaris.rdf.dao.RdfModelDao;
-import net.sumaris.rdf.dao.cache.RdfCacheConfiguration;
+import net.sumaris.rdf.dao.EntitiesDao;
+import net.sumaris.rdf.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelType;
 import net.sumaris.rdf.model.ModelVocabulary;
@@ -80,7 +80,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     protected RdfConfiguration config;
 
     @Autowired
-    protected RdfModelDao modelDao;
+    protected EntitiesDao modelDao;
 
     @Autowired
     protected RdfCacheConfiguration cacheConfiguration;
@@ -242,7 +242,9 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         String prefix = getPrefix();
         String namespace = getNamespace();
 
-        log.info("Generating {} ontology {{}}...", options.getDomain().name().toLowerCase(), namespace);
+        if (log.isDebugEnabled() && StringUtils.isBlank(options.getClassName())) {
+            log.info("Generating {} ontology {{}}...", options.getDomain().name().toLowerCase(), namespace);
+        }
         OntModel model = ModelUtils.createOntologyModel(prefix, namespace, options.getReasoningLevel());
         createSchemaResource(model, namespace);
 
@@ -313,7 +315,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         }
 
 
-        // get by type
+        // find by type
         if (options.getType() != null) {
             result = reflections.getSubTypesOf(options.getType()).stream();
         }
@@ -342,7 +344,8 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     protected void withDisjoints(Multimap<OntClass, OntClass> mutuallyDisjoint) {
 
         if (mutuallyDisjoint != null && !mutuallyDisjoint.isEmpty()) {
-            log.info("Adding {} disjoints...", mutuallyDisjoint.size());
+            if (debug) log.debug("Adding {} disjoints to model...", mutuallyDisjoint.size());
+
             // add mutually disjoint classes
             mutuallyDisjoint.keys().stream()
                     .forEach(clazz -> {

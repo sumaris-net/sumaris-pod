@@ -25,15 +25,14 @@ package net.sumaris.server.http.vowl;
 import com.google.common.collect.Maps;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.exception.JenaExceptions;
 import net.sumaris.rdf.model.ModelURIs;
+import net.sumaris.rdf.service.RdfModelService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;
 import net.sumaris.server.http.rest.RdfMediaType;
-import net.sumaris.server.http.rest.RdfRestController;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -41,6 +40,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -51,11 +51,12 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
 @RestController
-@ConditionalOnBean({RdfConfiguration.class})
+@ConditionalOnBean({WebMvcConfigurer.class})
 public class WebvowlRestController {
 
     public static final String BASE_PATH = "/webvowl";
@@ -68,10 +69,10 @@ public class WebvowlRestController {
     private static final Logger log = LoggerFactory.getLogger(WebvowlRestController.class);
 
     @Resource
-    private RdfRestController rdfRestController;
+    private RdfModelService modelService;
 
     @PostConstruct
-    public void afterPropertySet() {
+    public void start() {
         log.info("Starting WebVOWL endpoint {{}}...", BASE_PATH);
     }
 
@@ -91,46 +92,37 @@ public class WebvowlRestController {
                     RdfMediaType.APPLICATION_X_JAVASCRIPT_VALUE,
                     RdfMediaType.APPLICATION_WEBVOWL_VALUE
             })
-    public ResponseEntity<String> convertRdfIriToVowl(@RequestParam(name = "iri", required = false) String iri,
-                                                      @RequestParam(name = "prefix", required = false) String prefix,
-                                                      @RequestParam(name = "format", required = false) String format,
-                                                      @RequestParam(name = "sessionId", required = false) String optionalSessionId,
-                                                      final HttpServletRequest request) {
+    public ResponseEntity<byte[]> convertIriOrPrefixToVowl(@RequestParam(name = "iri", required = false) String iri,
+                                                           @RequestParam(name = "prefix", required = false) String prefix,
+                                                           @RequestParam(name = "format", required = false) String format,
+                                                           @RequestParam(name = "sessionId", required = false) String optionalSessionId,
+                                                           final HttpServletRequest request) {
 
         final String sessionId = optionalSessionId != null ? optionalSessionId : generateSessionId();
-        if (StringUtils.isBlank(iri)) {
-            if (StringUtils.isBlank(prefix)) {
-                throw new IllegalArgumentException("Required query parameters 'iri' or 'prefix'.");
-            }
-            iri = Arrays.stream(prefix.split("[,|+]"))
-                    .map(p -> ModelURIs.RDF_URL_BY_PREFIX.get(p))
-                    .filter(Objects::nonNull).collect(Collectors.joining("+"));
-            if (StringUtils.isBlank(iri))
-                throw new IllegalArgumentException(String.format("Unknown prefix '%s'. Try using the 'iri' param.", prefix));
+
+        String[] iris;
+        if (StringUtils.isNotBlank(iri)) {
+            // Split, to allow iri=<uri1>+<uri2>
+            iris = iri.split("[,|+]");
+        }
+        else {
+            if (StringUtils.isBlank(prefix)) throw new IllegalArgumentException("Required query parameters 'iri' or 'prefix'.");
+
+            // Split prefix (allow prefix=<prefix1>+<prefix2>)
+            String[] prefixes = prefix.split("[,|+]");
+            iris = ModelURIs.getModelUrlByPrefix(prefixes).toArray(new String[0]);
+
+            if (ArrayUtils.isEmpty(iris)) throw new IllegalArgumentException(String.format("Invalid prefix '%s'", prefix));
         }
 
+
+        RdfFormat targetFormat = RdfFormat.fromUserString(format).orElse(RdfFormat.VOWL);
+        log.info("Converting model {{}} to {}...", iri, targetFormat.toJenaFormat());
+        webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Converting model into %s...", targetFormat.toJenaFormat()));
+
         try {
-            String[] parts = iri.split("[,|+]");
-            Model model = Arrays.stream(parts)
-                .map(aUri -> {
-                    if (StringUtils.isBlank(aUri)) throw new IllegalArgumentException("Invalid 'iri': " + aUri);
 
-                    // Retrieve the source format
-                    RdfFormat sourceFormat = RdfFormat.fromUrlExtension(aUri.trim()).orElse(RdfFormat.RDF);
-
-                    // Read from IRI
-                    log.info("Reading {} model {{}}..", sourceFormat.getName(), aUri);
-                    webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Reading {%s} %s model...", aUri, sourceFormat.toJenaFormat()));
-                    return rdfRestController.loadModelByUri(aUri.trim(), sourceFormat);
-                })
-                // Union on all models
-                .reduce(ModelFactory::createUnion).orElse(null);
-
-            // Convert to WebVOWL
-            RdfFormat targetFormat = RdfFormat.fromUserString(format).orElse(RdfFormat.VOWL);
-            log.info(String.format("Converting model {%s} to %s...", iri, targetFormat.toJenaFormat()));
-            webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Converting model to %s...", targetFormat.toJenaFormat()));
-            String content = ModelUtils.modelToString(model, targetFormat);
+            byte[] content = modelService.unionThenConvert(iris, null, targetFormat);
 
             return ResponseEntity.ok()
                     .contentType(targetFormat.mineType())
@@ -149,28 +141,30 @@ public class WebvowlRestController {
                 RdfMediaType.APPLICATION_X_JAVASCRIPT_VALUE,
                 RdfMediaType.APPLICATION_WEBVOWL_VALUE
         })
-    public ResponseEntity<byte[]> convertToVowl(@RequestParam(name = "ontology") MultipartFile file,
-                                                @RequestParam(name = "sessionId") String sessionId) {
+    public ResponseEntity<byte[]> convertFileToVowl(@RequestParam(name = "ontology") MultipartFile file,
+                                                    @RequestParam(name = "sessionId") String sessionId) {
 
-        String contentType = file.getContentType() != null ? file.getContentType() : RdfFormat.RDF.mineType().toString();
-        RdfFormat sourceFormat = RdfFormat.fromContentType(contentType).orElse(RdfFormat.RDF);
+        RdfFormat sourceFormat = Optional.ofNullable(file.getContentType())
+                .map(RdfFormat::fromContentType)
+                .orElse(RdfFormat.fromExtension(file.getName()))
+                .orElse(RdfFormat.RDFXML);
 
         log.info(String.format("Reading %s model from uploaded file {%s} ...", file.getOriginalFilename(), sourceFormat.toJenaFormat()));
         webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Analyzing %s model...", sourceFormat.toJenaFormat()));
 
         try (InputStream is = new ByteArrayInputStream(file.getBytes());) {
 
-            Model model = ModelUtils.readModel(is, sourceFormat);
+            Model model = ModelUtils.read(is, sourceFormat);
             is.close();
 
             // Convert to WebVOWL
             RdfFormat targetFormat = RdfFormat.VOWL;
-            log.info(String.format("Converting model into {%s}...", targetFormat.toJenaFormat()));
-            webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Converting model to %s...", targetFormat.toJenaFormat()));
+            log.info("Converting model into {}...", targetFormat.toJenaFormat());
+            webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Converting model into %s...", targetFormat.toJenaFormat()));
 
             return ResponseEntity.ok()
                     .contentType(targetFormat.mineType())
-                    .body(ModelUtils.modelToBytes(model, targetFormat));
+                    .body(ModelUtils.toBytes(model, targetFormat));
         }
         catch(IOException e) {
             Throwable cause = JenaExceptions.findJenaRootCause(e).orElse(e);

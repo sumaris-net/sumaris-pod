@@ -45,13 +45,13 @@ public class AptSchemaEquivalences extends AbstractSchemaEquivalences {
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {
-        log.info("Adding {{}} equivalences to {{}}...", APT.PREFIX, schemaUri);
+        if (log.isDebugEnabled()) log.debug("Adding {{}} equivalences to {{}}...", APT.PREFIX, schemaUri);
     }
 
     @Override
     public void visitClass(Model model, Resource ontClass, Class clazz) {
         if (TaxonName.class == clazz) {
-            log.info("Adding {{}} equivalence on Class {{}}...", APT.PREFIX, clazz.getSimpleName());
+            log.debug("Adding {{}} equivalence on Class {{}}...", APT.PREFIX, clazz.getSimpleName());
 
             ontClass.addProperty(equivalentClass, APT.AppelTaxon.asResource());
         }

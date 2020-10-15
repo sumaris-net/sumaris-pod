@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-1.4.2.xml">
+
+  <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+  <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+  <!-- Add missing quality flags  -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-301">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM QUALITY_FLAG where ID NOT IN (0,1)</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="QUALITY_FLAG">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITY_FLAG_SEQ"/>
+      <column name="LABEL">OUT_STATS</column>
+      <column name="NAME">Out stats</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="QUALITY_FLAG">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITY_FLAG_SEQ"/>
+      <column name="LABEL">DOUBTFUL</column>
+      <column name="NAME">Doubtful</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+
+    <insert tableName="QUALITY_FLAG">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITY_FLAG_SEQ"/>
+      <column name="LABEL">BAD</column>
+      <column name="NAME">Bad</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+
+    <insert tableName="QUALITY_FLAG">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITY_FLAG_SEQ"/>
+      <column name="LABEL">FIXED</column>
+      <column name="NAME">Fixed</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+
+    <insert tableName="QUALITY_FLAG">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITY_FLAG_SEQ"/>
+      <column name="LABEL">NOT_COMPLETED</column>
+      <column name="NAME">Not completed</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+
+    <insert tableName="QUALITY_FLAG">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITY_FLAG_SEQ"/>
+      <column name="LABEL">MISSING</column>
+      <column name="NAME">Missing</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <!-- Force ID to predefined values -->
+    <sql endDelimiter=";">
+      update QUALITY_FLAG set ID=2 where LABEL='OUT_STATS';
+      update QUALITY_FLAG set ID=3 where LABEL='DOUBTFUL';
+      update QUALITY_FLAG set ID=4 where LABEL='BAD';
+      update QUALITY_FLAG set ID=5 where LABEL='FIXED';
+      update QUALITY_FLAG set ID=8 where LABEL='NOT_COMPLETED';
+      update QUALITY_FLAG set ID=9 where LABEL='MISSING';
+      commit;
+    </sql>
+  </changeSet>
+
+  <!-- Add missing quality flags  -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-302">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="2">SELECT count(*) FROM QUALITY_FLAG where ID IN (0,1)</sqlCheck>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      update QUALITY_FLAG set LABEL='NOT_QUALIFIED' where ID=0;
+      update QUALITY_FLAG set LABEL='GOOD' where ID=1;
+      commit;
+    </sql>
+  </changeSet>
+
+
+</databaseChangeLog>

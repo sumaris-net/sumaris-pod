@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.4.2.xml">
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-99">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="DENORMALIZED_BATCH_SORT_VA_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="DENORMALIZED_BATCH_SORT_VA_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-100">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="ORIGIN_ITEM_TYPE_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="1" sequenceName="ORIGIN_ITEM_TYPE_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-101">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="WEIGHT_LENGTH_CONVERSION_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="1" sequenceName="WEIGHT_LENGTH_CONVERSION_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-102">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="denormalized_batch"/></not>
+    </preConditions>
+    <createTable tableName="denormalized_batch">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="denormalized_batch_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="elevate_context_weight" type="DOUBLE"/>
+      <column name="elevate_individual_count" type="INT"/>
+      <column name="elevate_weight" type="DOUBLE"/>
+      <column name="exhaustive_inventory" type="BOOLEAN"/>
+      <column name="flat_rank_order" type="SMALLINT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="indirect_context_weight" type="DOUBLE"/>
+      <column name="indirect_individual_count" type="INT"/>
+      <column name="indirect_weight" type="DOUBLE"/>
+      <column name="individual_count" type="INT"/>
+      <column name="is_discard" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="is_landing" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="label" type="VARCHAR(40)"/>
+      <column name="rank_order" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="sampling_ratio" type="DOUBLE"/>
+      <column name="sampling_ratio_text" type="VARCHAR(50)"/>
+      <column name="sorting_values_text" type="VARCHAR(255)"/>
+      <column name="tree_indent" type="VARCHAR(256)"/>
+      <column name="tree_level" type="SMALLINT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="weight" type="DOUBLE"/>
+      <column name="calculated_taxon_group_fk" type="INT"/>
+      <column name="inherited_reference_taxon_fk" type="INT"/>
+      <column name="inherited_taxon_group_fk" type="INT"/>
+      <column name="operation_fk" type="INT"/>
+      <column name="parent_batch_fk" type="INT"/>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="reference_taxon_fk" type="INT"/>
+      <column name="sale_fk" type="INT"/>
+      <column name="taxon_group_fk" type="INT"/>
+      <column name="weight_method_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-103">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="denormalized_batch_sort_val"/></not>
+    </preConditions>
+    <createTable tableName="denormalized_batch_sort_val">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="denormalized_batch_sort_val_pk"/>
+      </column>
+      <column name="alphanumerical_value" type="VARCHAR(40)"/>
+      <column name="is_inherited" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="numerical_value" type="DOUBLE"/>
+      <column name="rank_order" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="batch_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="parameter_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="pmfm_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qualitative_value_fk" type="INT"/>
+      <column name="unit_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-104">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="origin_item_type"/></not>
+    </preConditions>
+    <createTable tableName="origin_item_type">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="origin_item_typePK"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-105">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="weight_length_conversion"/></not>
+    </preConditions>
+    <createTable tableName="weight_length_conversion">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="weight_length_conversion_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="conversion_coefficient_a" type="DOUBLE">
+        <constraints nullable="false"/>
+      </column>
+      <column name="conversion_coefficient_b" type="DOUBLE">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="end_month" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="start_month" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="year" type="INT"/>
+      <column name="length_parameter_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="length_unit_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="location_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="origin_item_type_fk" type="INT"/>
+      <column name="reference_taxon_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="sex_qualitative_value_fk" type="INT"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-106">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="batch" columnName="sale_fk"/></not>
+    </preConditions>
+    <addColumn tableName="batch">
+      <column name="sale_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-107" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="parameter_fk" baseTableName="denormalized_batch_sorting_value" constraintName="FK3o7h6miy5ayada7r9pe17qbr1" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="parameter" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-108" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="inherited_taxon_group_fk" baseTableName="denormalized_batch" constraintName="FK44ia0etr5g9ylqyu09xtgam98" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-109" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="inherited_reference_taxon_fk" baseTableName="denormalized_batch" constraintName="FK4b51gsudfkiir9jlb4rooovfx" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-110" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="weight_length_conversion" constraintName="FK57krse7r7wacybe2ixsg8lp4j" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-111" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="sale_fk" baseTableName="batch" constraintName="FK6l1tghirxjeoi1i7lt2sakbbg" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sale" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-112" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="origin_item_type" constraintName="FK7uj9r037o6qvlgvx68h8ni090" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-113" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="origin_item_type_fk" baseTableName="weight_length_conversion" constraintName="FK8a3s8xd6co8fpbw0almeq934o" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="origin_item_type" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-114" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="parent_batch_fk" baseTableName="denormalized_batch" constraintName="FK8g4n0kknvtfqv6uvv92ekdb7o" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="denormalized_batch" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-115" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="batch_fk" baseTableName="denormalized_batch_sorting_value" constraintName="FK8we7mttgymoe25nhxis94nbnh" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="denormalized_batch" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-116" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="length_unit_fk" baseTableName="weight_length_conversion" constraintName="FK9cmi28jhqqq9ocqd00104ux2y" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="unit" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-117" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="unit_fk" baseTableName="denormalized_batch_sorting_value" constraintName="FKc8o3ky8mnx5964wp8ft43mac6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="unit" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-118" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="sex_fk" baseTableName="weight_length_conversion" constraintName="FKcou194b3npfakxqyn699y6ove" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-119" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="operation_fk" baseTableName="denormalized_batch" constraintName="FKdb8quet4lg1cq0p6mohicmd4t" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="operation" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-120" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="denormalized_batch_sorting_value" constraintName="FKe6takgk7rhkyr3bdll13d8hc8" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-121" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="sale_fk" baseTableName="denormalized_batch" constraintName="FKf4n6nradobijn92pt5kc4e2eg" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sale" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-122" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="calculated_taxon_group_fk" baseTableName="denormalized_batch" constraintName="FKjmb5yxcrend064brmrku7gyob" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-123" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="denormalized_batch_sorting_value" constraintName="FKmd9wgcuwy1ki1opid5y3n2mig" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-124" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="weight_length_conversion" constraintName="FKnqpqx6a986qjs22b9v2r501cu" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-125" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="weight_length_conversion" constraintName="FKo1m9c33ysu2l3e7tpr9gq0c1u" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-126" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="weight_method_fk" baseTableName="denormalized_batch" constraintName="FKpdbols6wopugh6wowmdw5bmt1" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="method" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-127" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="length_parameter_fk" baseTableName="weight_length_conversion" constraintName="FKpxo72dcre6t0whvo2bwm9gu4c" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="parameter" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-128" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="denormalized_batch" constraintName="FKqavx0ie81ccun2ec7xgqxgv0e" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-129" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="denormalized_batch" constraintName="FKrvwlq1kh943fberkdg8ufhol4" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-130" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="denormalized_batch" constraintName="FKs6hnmnbwld97c8g04r2osn2i7" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-131" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="operation_fk" tableName="batch"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-141" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="round_weight_conversion" columnName="origin_item_type_fk"/></not>
+    </preConditions>
+    <addColumn tableName="round_weight_conversion">
+      <column name="origin_item_type_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1601907262809-142" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="origin_item_type_fk" baseTableName="round_weight_conversion" constraintName="FKdsrkhbewh1cqob8agwpmx0xy8" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="origin_item_type" validate="true"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-142" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="location_level" columnName="parent_location_level_fk"/></not>
+    </preConditions>
+    <addColumn tableName="location_level">
+      <column name="parent_location_level_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-143" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="parent_location_level_fk" baseTableName="location_level" constraintName="FK10157extdxp6575bqe3p541ij" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location_level" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-144"  failOnError="false">
+    <addNotNullConstraint columnDataType="int" columnName="location_level_fk" tableName="location"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-145" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="unit_fk" baseTableName="denormalized_batch_sort_val" constraintName="FK7604yv5db8ny6fu1fcc4h55mf" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="unit" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-146" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="batch_fk" baseTableName="denormalized_batch_sort_val" constraintName="FK7b85ijj7pf194pwkm7wvha55d" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="denormalized_batch" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-147" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="denormalized_batch_sort_val" constraintName="FKkop6s85o2tafrc7eanqfqykn9" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-148" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="parameter_fk" baseTableName="denormalized_batch_sort_val" constraintName="FKthx7nqnee0y2ahok4f0l8kw6g" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="parameter" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-149" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="denormalized_batch_sort_val" constraintName="FK2cjuvlee3bud6b25uxe0wgchc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-151" failOnError="false">
+    <addUniqueConstraint columnNames="label" constraintName="PARAMETER_LABEL_UNIQUE_C" tableName="parameter"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-152" failOnError="false">
+    <addUniqueConstraint columnNames="label" constraintName="PMFM_LABEL_UNIQUE_C" tableName="pmfm"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-153" failOnError="false">
+    <addUniqueConstraint columnNames="parameter_fk, matrix_fk, fraction_fk, method_fk, unit_fk" constraintName="pmfm_unique_c" tableName="pmfm"/>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='1.4.2'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">1.4.2</column>
+      <column name="DESCRIPTION">
+        - Add tables DENORMALIZED_BATCH, DENORMALIZED_BATCH_SORT_VAL, WEIGHT_LENGTH_CONVERSION and ORIGIN_ITEM_TYPE;
+        - Add missing QUALITY_FLAG rows
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+        - Add tables DENORMALIZED_BATCH and DENORMALIZED_BATCH_SORT_VAL
+        - Add tables WEIGHT_LENGTH_CONVERSION and ORIGIN_ITEM_TYPE
+        - Add missing QUALITY_FLAG rows
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

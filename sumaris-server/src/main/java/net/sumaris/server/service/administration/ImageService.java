@@ -33,7 +33,7 @@ public interface ImageService {
 
     String URI_IMAGE_SUFFIX = "image:";
 
-    ImageAttachmentVO get(int id);
+    ImageAttachmentVO find(int id);
 
     void fillAvatar(PersonVO person);
 

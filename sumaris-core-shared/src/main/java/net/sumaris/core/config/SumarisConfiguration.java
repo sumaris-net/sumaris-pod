@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.io.File;
 import java.io.IOException;
@@ -130,7 +129,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
 
-        // get all config providers
+        // find all config providers
         Set<ApplicationConfigProvider> providers =
                 ApplicationConfigHelper.getProviders(null,
                         null,
@@ -209,8 +208,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         applicationConfig.addAlias("-db", "--option", SumarisConfigurationOption.JDBC_URL.getKey());
         applicationConfig.addAlias("--database", "--option", SumarisConfigurationOption.JDBC_URL.getKey());
 
-        applicationConfig.addAlias("--output", "--option", SumarisConfigurationOption.LIQUIBASE_OUTPUT_FILE.getKey());
-        applicationConfig.addAlias("-f", "--option", SumarisConfigurationOption.LIQUIBASE_FORCE_OUTPUT_FILE.getKey(), "true");
+        applicationConfig.addAlias("--output", "--option", SumarisConfigurationOption.CLI_OUTPUT_FILE.getKey());
+        applicationConfig.addAlias("-f", "--option", SumarisConfigurationOption.CLI_FORCE_OUTPUT.getKey(), "true");
 
     }
 
@@ -545,15 +544,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * Should add the data, inside a delete event?<br/>
-     * Always true when trash is enable
-     * @return
-     */
-    public boolean enableDataInsideDeleteEvents(){
-        return enableEntityTrash();
-    }
-
-    /**
      * <p>getDbName.</p>
      *
      * @return a {@link String} object.
@@ -733,28 +723,30 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * <p>getLiquibaseOutputFile.</p>
+     * <p>Get the output file, for action (e.g. a file to create, when executing a dump action).</p>
+     * <p>Used by CLI (Command Line Interface) actions</p>
      *
      * @return a {@link File} object.
      */
-    public File getLiquibaseOutputFile() {
-        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.LIQUIBASE_OUTPUT_FILE.getKey());
+    public File getCliOutputFile() {
+        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.CLI_OUTPUT_FILE.getKey());
     }
 
     /**
-     * <p>isForceLiquibaseOutputFile.</p>
+     * <p>Should overwrite output file, if exists?</p>
+     * <p>Used by CLI (Command Line Interface) actions</p>
      *
      * @return a boolean.
      */
-    public boolean isForceLiquibaseOutputFile() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.LIQUIBASE_FORCE_OUTPUT_FILE.getKey());
+    public boolean isCliForceOutput() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.CLI_FORCE_OUTPUT.getKey());
     }
 
 
     /**
      * <p>getLaunchMode.</p>
      *
-     * @return a {@link java.lang.String} object.
+     * @return a {@link String} object.
      */
     public String getLaunchMode() {
         return applicationConfig.getOption(SumarisConfigurationOption.LAUNCH_MODE.getKey());

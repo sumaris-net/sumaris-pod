@@ -250,7 +250,7 @@ public class Bean2Owl {
             Method getIdMethod = findIdGetter(clazz);
             individualUri = beanToURI(schemaUri,  clazz) + "/" + getIdMethod.invoke(obj);
         } catch (Exception e) {
-            if (debug) log.error(String.format("Cannot get ID on class {%s}", clazz.getSimpleName()));
+            if (debug) log.error(String.format("Cannot find ID on class {%s}", clazz.getSimpleName()));
             return null;
         }
 

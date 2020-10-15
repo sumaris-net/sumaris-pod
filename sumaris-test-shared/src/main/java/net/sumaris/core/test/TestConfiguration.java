@@ -61,8 +61,10 @@ public abstract class TestConfiguration {
         Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcURL()), "Missing jdbc driver in configuration");
         Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcUsername()), "Missing jdbc username in configuration");
 
-        log.info(String.format("Database URL: %s", config.getJdbcURL()));
-        log.info(String.format("Database username: %s", config.getJdbcUsername()));
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Database URL: %s", config.getJdbcURL()));
+            log.debug(String.format("Database username: %s", config.getJdbcUsername()));
+        }
 
         // Driver datasource
         DriverManagerDataSource dataSource = new DriverManagerDataSource();

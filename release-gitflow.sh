@@ -66,7 +66,7 @@ cd $dirname
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
-./github-gitflow.sh "$task" "$version"
+./github-gitflow.sh "$task" "$version" ''"$release_description"''
 [[ $? -ne 0 ]] && exit 1
 echo "Upload artifacts to github [OK]"
 
@@ -79,6 +79,9 @@ git status
 mvn gitflow:release-finish -DfetchRemote=false
 [[ $? -ne 0 ]] && exit 1
 
+# Remove release branch
+# TODO BLA
+# git branch -d
 # Pause (if propagation is need between hosted git server and github)
 #sleep 10s
 #echo "Push changes to upstream [OK]"

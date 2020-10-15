@@ -22,17 +22,28 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
-
-import java.io.Serializable;
-import java.util.List;
 
 @Data
 @FieldNameConstants
-public class DepartmentFilterVO implements Serializable {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DepartmentFilterVO implements IReferentialFilter {
+
+    private String label;
+    private String name;
+
+    private Integer[] statusIds;
+
+    private Integer levelId;
+    private Integer[] levelIds;
+
+    private String searchJoin;
+    private String searchText;
+    private String searchAttribute;
 
     private Boolean withLogo;
 
-    private List<Integer> statusIds;
 }

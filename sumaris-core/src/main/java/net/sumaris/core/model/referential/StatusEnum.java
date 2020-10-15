@@ -43,20 +43,18 @@ public enum StatusEnum implements Serializable {
         this.id = id;
     }
 
-    /**
-     * Returns the database row id
-     *
-     * @return int the id
-     */
+    public static StatusEnum valueOf(final int id) {
+        return Arrays.stream(values())
+                .filter(enumValue -> enumValue.id == id)
+                .findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown StatusEnum: " + id));
+    }
+
     public int getId()
     {
         return this.id;
     }
 
-
-    public static StatusEnum valueOf(final int id) {
-        return Arrays.stream(values())
-                .filter(enumValue -> enumValue.id == id)
-                .findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown StatusEnum: " + id));
+    public void setId(int id) {
+        this.id = id;
     }
 }

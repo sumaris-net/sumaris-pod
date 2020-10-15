@@ -41,14 +41,19 @@ function YasrTaxonPlugin(yasr) {
 
     this.yasr = yasr;
 
-    this.getTaxonsFromBindings = function(bindings) {
-        const taxonsByUri = {};
+    /**
+     * Group bindings, using URI as unique key
+     * @param bindings
+     * @returns {*[]}
+     */
+    this.getItemsFromBindings = function(bindings) {
+        const itemByUri = {};
         bindings.forEach(binding => {
             const missing = binding.lookup && binding.lookup.found === false;
             const uniqueKey = (binding.sourceUri && binding.sourceUri.value) || (missing && binding.lookup.value);
             if (uniqueKey) {
-                if (!taxonsByUri[uniqueKey]) {
-                    taxonsByUri[uniqueKey] = {
+                if (!itemByUri[uniqueKey]) {
+                    itemByUri[uniqueKey] = {
                         uri: binding.sourceUri && binding.sourceUri.value,
                         scientificName: binding.scientificName && binding.scientificName.value,
                         author: binding.author && binding.author.value,
@@ -61,27 +66,27 @@ function YasrTaxonPlugin(yasr) {
                         missing
                     };
                     // Remove modified date, if same as created
-                    if (taxonsByUri[uniqueKey].modified && taxonsByUri[uniqueKey].modified === taxonsByUri[uniqueKey].created) {
-                        taxonsByUri[uniqueKey].modified = undefined;
+                    if (itemByUri[uniqueKey].modified && itemByUri[uniqueKey].modified === itemByUri[uniqueKey].created) {
+                        itemByUri[uniqueKey].modified = undefined;
                     }
                 }
                 if (binding.exactMatch && binding.exactMatch.value
                     // Exclude if already present
-                    && !taxonsByUri[uniqueKey].exactMatch.includes(binding.exactMatch.value)
+                    && !itemByUri[uniqueKey].exactMatch.includes(binding.exactMatch.value)
                     // Exclude is same as source
                     && binding.exactMatch.value.trim() !== uniqueKey) {
-                    taxonsByUri[uniqueKey].exactMatch.push(binding.exactMatch.value.trim())
+                    itemByUri[uniqueKey].exactMatch.push(binding.exactMatch.value.trim())
                 }
                 if (binding.seeAlso && binding.seeAlso.value
                     // Exclude if already present
-                    && !taxonsByUri[uniqueKey].seeAlso.includes(binding.seeAlso.value)
+                    && !itemByUri[uniqueKey].seeAlso.includes(binding.seeAlso.value)
                     // Exclude is same as source
                     && binding.seeAlso.value.trim() !== uniqueKey) {
-                    taxonsByUri[uniqueKey].seeAlso.push(binding.seeAlso.value.trim())
+                    itemByUri[uniqueKey].seeAlso.push(binding.seeAlso.value.trim())
                 }
             }
         });
-        return Object.keys(taxonsByUri).map(key => taxonsByUri[key]).sort((t1, t2) => t1.scientificName === t2.scientificName ? 0 : (t1.scientificName > t2.scientificName ? 1 : -1));
+        return Object.keys(itemByUri).map(key => itemByUri[key]).sort((t1, t2) => t1.scientificName === t2.scientificName ? 0 : (t1.scientificName > t2.scientificName ? 1 : -1));
     }
 
     // Draw the resultset. This plugin simply draws the string 'True' or 'False'
@@ -93,9 +98,8 @@ function YasrTaxonPlugin(yasr) {
 
         const prefixes  = this.yasr.getPrefixes();
 
-        // Get taxon list
-        const taxons = hasResults && this.getTaxonsFromBindings(this.yasr.results.json.results.bindings);
-
+        // Get items
+        const items = hasResults && this.getItemsFromBindings(this.yasr.results.json.results.bindings);
 
         const scientificNameFirst = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "scientificName") === 0;
         const hasAuthor = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "author") !== -1;
@@ -117,45 +121,45 @@ function YasrTaxonPlugin(yasr) {
         if (!hasAuthor) headerCols[3] = "";
         if (!hasRank) headerCols[4] = "";
 
-        let rows = (hasResults && taxons || []).map((taxon, index) => {
+        let rows = (hasResults && items || []).map((item, index) => {
             let rowCols = [
 
                 // Index
                 "<th scope=\"row\">" + (index + 1) + "</th>",
 
                 // Scientific name
-                "<td class='col'>" + (taxon.scientificName || '') + "</td>",
+                "<td class='col'>" + (item.scientificName || '') + "</td>",
 
                 // Source URI
                 "<td>" +
-                ((taxon.missing) ?
-                    '<span style="color: red;"><i class="icon ion-close"></i>' + (taxon.uri|| '') + ' <i>(missing)</i></span>' :
-                    this.displayUri(taxon.uri, prefixes, this.uriMaxLength)) +
-                (taxon.created ? ("<br/><small class='gray' title='Creation date'><i class='icon ion-calendar'></i> "+ taxon.created + "</small>") : "") +
-                (taxon.modified ? ("<br/><small class='gray' title='Last modification date'><i class='icon ion-pencil'></i> "+ taxon.modified + "</small>") : "") +
+                ((item.missing) ?
+                    '<span style="color: red;"><i class="icon ion-close"></i>' + (item.uri|| '') + ' <i>(missing)</i></span>' :
+                    this.displayUri(item.uri, prefixes, this.uriMaxLength)) +
+                (item.created ? ("<br/><small class='gray' title='Creation date'><i class='icon ion-calendar'></i> "+ item.created + "</small>") : "") +
+                (item.modified ? ("<br/><small class='gray' title='Last modification date'><i class='icon ion-pencil'></i> "+ item.modified + "</small>") : "") +
                 "</td>",
 
                 // Author
-                "<td class='col'>" + (taxon.author || '') + "</td>",
+                "<td class='col'>" + (item.author || '') + "</td>",
 
                 // Rank
                 "<td class='col'>" +
-                this.displayUri(taxon.rank, prefixes, this.uriMaxLength) +
+                this.displayUri(item.rank, prefixes, this.uriMaxLength) +
                 "</td>",
 
                 // Parent
                 "<td>" +
-                this.displayUri(taxon.parentUri, prefixes, this.uriMaxLength) +
+                this.displayUri(item.parentUri, prefixes, this.uriMaxLength) +
                 "</td>",
 
                 "<td class='exact-match'>" +
                 // Exact match
-                (taxon.exactMatch || []).map(uri => this.displayUri(uri, prefixes, this.uriMaxLength)).join("<br/>\n") +
+                (item.exactMatch || []).map(uri => this.displayUri(uri, prefixes, this.uriMaxLength)).join("<br/>\n") +
 
                 // seeAlso (with a separator)
-                (taxon.exactMatch.length && taxon.seeAlso.length ?
+                (item.exactMatch.length && item.seeAlso.length ?
                     ("<br/><small><i>See also:</i></small>\n<ul>" +
-                    (taxon.seeAlso || []).map(uri => "<li>" + this.displayUri(uri, prefixes, this.uriMaxLength)).join("\n") +
+                    (item.seeAlso || []).map(uri => "<li>" + this.displayUri(uri, prefixes, this.uriMaxLength)).join("\n") +
                     "</ul>")
                 : '') +
                 "</td>"
@@ -213,7 +217,7 @@ function YasrTaxonPlugin(yasr) {
             getData: () => this.yasr.results.asCsv(),
             contentType:"text/csv",
             title:"Download result",
-            filename:"taxonSearch.csv"
+            filename:"taxons.csv"
         };
     }
 
@@ -281,8 +285,8 @@ function YasrTaxonPlugin(yasr) {
         if (!uri) return '';
 
         let getStartTag;
-        if (this.defaults && this.defaults.uriClickTarget) {
-            const target = this.defaults.uriClickTarget;
+        if (this.defaults && this.defaults.onUriClickTarget) {
+            const target = this.defaults.onUriClickTarget;
             getStartTag = function(url) {
                 return "<a href='" + url + "' target='"+ target +"' >";
             }
@@ -316,6 +320,6 @@ function YasrTaxonPlugin(yasr) {
 }
 
 YasrTaxonPlugin.prototype.defaults = {
-    uriClickTarget : undefined,
+    onUriClickTarget : undefined,
     onUriClick : undefined
 };

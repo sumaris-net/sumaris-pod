@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.3-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -338,12 +338,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <!--<plugin>-->
-        <!--<groupId>org.apache.maven.plugins</groupId>-->
-        <!--<artifactId>maven-surefire-plugin</artifactId>-->
-      <!--</plugin>-->
-
     </plugins>
   </build>
 
@@ -367,7 +361,7 @@
         <jdbc.password />
         <jdbc.driver>org.hsqldb.jdbcDriver</jdbc.driver>
         <jdbc.schema>PUBLIC</jdbc.schema>
-        <hibernate.dialect>org.hibernate.dialect.HSQLDialect</hibernate.dialect>
+        <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
 
@@ -382,7 +376,6 @@
     <profile>
       <id>h2</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
         <property>
           <name>env</name>
           <value>h2</value>
@@ -463,9 +456,6 @@
           <groupId>org.postgresql</groupId>
           <artifactId>postgresql</artifactId>
         </dependency>
-
-
-
       </dependencies>
     </profile>
 

@@ -22,11 +22,20 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
+import org.springframework.data.domain.Sort;
+
+import java.util.Optional;
+
 public enum SortDirection {
     ASC,
     DESC;
 
     public static SortDirection fromString(String direction) {
         return direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null;
+    }
+
+    public static Optional<SortDirection> fromSort(Sort sort) {
+        return sort == null ? Optional.empty() : sort.stream().findFirst()
+                .map(o -> o.isAscending() ? ASC : DESC);
     }
 }

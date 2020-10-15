@@ -175,7 +175,7 @@ public class SumarisTableMetadata {
 	/**
 	 * <p>Getter for the field <code>sequenceName</code>.</p>
 	 *
-	 * @return a {@link java.lang.String} object.
+	 * @return a {@link String} object.
 	 */
 	public String getSequenceName() {
 		return sequenceName;
@@ -184,7 +184,7 @@ public class SumarisTableMetadata {
 	/**
 	 * <p>Getter for the field <code>selectAllQuery</code>.</p>
 	 *
-	 * @return a {@link java.lang.String} object.
+	 * @return a {@link String} object.
 	 */
 	public String getSelectAllQuery() {
 		return selectAllQuery;
@@ -226,7 +226,7 @@ public class SumarisTableMetadata {
 	/**
 	 * <p>Getter for the field <code>insertQuery</code>.</p>
 	 *
-	 * @return a {@link java.lang.String} object.
+	 * @return a {@link String} object.
 	 */
 	public String getInsertQuery() {
 		return insertQuery;
@@ -405,7 +405,7 @@ public class SumarisTableMetadata {
 	/**
 	 * <p>createAllCountQuery.</p>
 	 *
-	 * @return a {@link java.lang.String} object.
+	 * @return a {@link String} object.
 	 */
 	protected String createAllCountQuery() {
 		return String.format(QUERY_SELECT_COUNT_ALL, getName(), tableAlias);
@@ -414,7 +414,7 @@ public class SumarisTableMetadata {
 	/**
 	 * <p>createSelectAllQuery.</p>
 	 *
-	 * @return a {@link java.lang.String} object.
+	 * @return a {@link String} object.
 	 */
 	protected String createSelectAllQuery() {
 		return String.format(QUERY_SELECT_ALL,
@@ -470,8 +470,8 @@ public class SumarisTableMetadata {
 	/**
 	 * <p>createSelectParams.</p>
 	 *
-	 * @param tableAlias a {@link java.lang.String} object.
-	 * @return a {@link java.lang.String} object.
+	 * @param tableAlias a {@link String} object.
+	 * @return a {@link String} object.
 	 */
 	protected String createSelectParams(String tableAlias) {
 		return createSelectParams(getColumnNames(), tableAlias);
@@ -481,8 +481,8 @@ public class SumarisTableMetadata {
 	 * <p>createSelectParams.</p>
 	 *
 	 * @param columnNames a {@link java.util.List} object.
-	 * @param tableAlias a {@link java.lang.String} object.
-	 * @return a {@link java.lang.String} object.
+	 * @param tableAlias a {@link String} object.
+	 * @return a {@link String} object.
 	 */
 	protected String createSelectParams(Collection<String> columnNames,
 										String tableAlias) {
@@ -508,7 +508,7 @@ public class SumarisTableMetadata {
 	 * <p>initSequenceName.</p>
 	 *
 	 * @param dbMeta a {@link SumarisDatabaseMetadata} object.
-	 * @return a {@link java.lang.String} object.
+	 * @return a {@link String} object.
 	 */
 	protected String initSequenceName(SumarisDatabaseMetadata dbMeta) {
 		final Set<String> availableSequences = dbMeta.getSequences();
@@ -541,8 +541,8 @@ public class SumarisTableMetadata {
 	/**
 	 * <p>createSequenceNextValQuery.</p>
 	 *
-	 * @param dialect a {@link org.hibernate.dialect.Dialect} object.
-	 * @return a {@link java.lang.String} object.
+	 * @param dialect a {@link Dialect} object.
+	 * @return a {@link String} object.
 	 */
 	protected String createSequenceNextValQuery(Dialect dialect) {
 		if (StringUtils.isBlank(sequenceName)) {

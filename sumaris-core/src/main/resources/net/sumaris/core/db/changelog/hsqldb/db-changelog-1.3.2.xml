@@ -31,8 +31,48 @@
    move vessel_use_measurement into gear_use_measurement, using PMFM.MATRIX_FK=:gearMatrixId
    -->
 
+  <!-- Add table LOCATION_POINT if not exists -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1596101525881-1" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="LOCATION_POINT"/></not>
+    </preConditions>
+    <createTable tableName="LOCATION_POINT">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="LOCATION_POINT_PK"/>
+      </column>
+      <column name="position" type="LONGVARCHAR">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+    </createTable>
+  </changeSet>
+
+  <!-- modify LOCATION_POINT table if exists -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1596101525881-1b">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="LOCATION_POINT"/>
+    </preConditions>
+    <modifyDataType tableName="LOCATION_POINT" columnName="POSITION" newDataType="LONGVARCHAR"/>
+  </changeSet>
+
+  <!-- modify LOCATION_LINE table -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1596101525881-2">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="LOCATION_LINE"/>
+    </preConditions>
+    <modifyDataType tableName="LOCATION_LINE" columnName="POSITION" newDataType="LONGVARCHAR"/>
+  </changeSet>
+
+  <!-- modify LOCATION_AREA table -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1596101525881-3">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="LOCATION_AREA"/>
+    </preConditions>
+    <modifyDataType tableName="LOCATION_AREA" columnName="POSITION" newDataType="LONGVARCHAR"/>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1583765898116-200" runOnChange="true">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1596101525881-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
       <where>LABEL='1.3.2'</where>
     </delete>
@@ -41,11 +81,14 @@
       <column name="LABEL">1.3.2</column>
       <column name="DESCRIPTION">
         - Rename PMFM label 'FISHING_SPEED' into 'GEAR_SPEED'
+        - Add missing LOCATION_POINT
+        - Update table LOCATION_LINE and LOCATION_AREA
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
       <column name="COMMENTS">
         - Rename PMFM label 'FISHING_SPEED' into 'GEAR_SPEED'
+        - Grow Geometry column on LOCATION_LINE and LOCATION_AREA
       </column>
     </insert>
   </changeSet>

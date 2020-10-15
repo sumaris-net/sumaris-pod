@@ -335,7 +335,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     ENABLE_ENTITY_TRASH(
             "sumaris.persistence.trash.enable",
             n("sumaris.config.option.persistence.trash.enable.description"),
-            Boolean.FALSE.toString(),
+            Boolean.TRUE.toString(),
             boolean.class,
             false),
 
@@ -402,16 +402,16 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
-    LIQUIBASE_OUTPUT_FILE(
-            "sumaris.persistence.liquibase.output.file",
-            n("sumaris.config.option.liquibase.output.file.description"),
+    CLI_OUTPUT_FILE(
+            "sumaris.cli.output.file",
+            n("sumaris.config.option.cli.output.file.description"),
             null,
             File.class,
             false),
 
-    LIQUIBASE_FORCE_OUTPUT_FILE(
-            "sumaris.persistence.liquibase.output.force",
-            n("sumaris.config.option.liquibase.output.force.description"),
+    CLI_FORCE_OUTPUT(
+            "sumaris.cli.output.force",
+            n("sumaris.config.option.cli.output.force.description"),
             Boolean.FALSE.toString(),
             Boolean.class,
             false),

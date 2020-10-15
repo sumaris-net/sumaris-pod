@@ -20,11 +20,10 @@
  * #L%
  */
 
-package net.sumaris.core.service.referential.parameter;
+package net.sumaris.core.service.referential.pmfm;
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.referential.pmfm.ParameterDao;
-import net.sumaris.core.service.referential.pmfm.ParameterService;
+import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
 import net.sumaris.core.vo.referential.ParameterVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,22 +36,22 @@ public class ParameterServiceImpl implements ParameterService {
 	private static final Logger log = LoggerFactory.getLogger(ParameterServiceImpl.class);
 
 	@Autowired
-	protected ParameterDao parameterDao;
+	protected ParameterRepository parameterRepository;
 
 	@Override
 	public ParameterVO getByLabel(final String label) {
 		Preconditions.checkNotNull(label);
 		Preconditions.checkArgument(label.trim().length() > 0);
-		return parameterDao.getByLabel(label.trim());
+		return parameterRepository.getByLabel(label.trim());
 	}
 
 	@Override
 	public ParameterVO get(int parameterId) {
-		return parameterDao.get(parameterId);
+		return parameterRepository.get(parameterId);
 	}
 
 	@Override
 	public ParameterVO save(ParameterVO parameter) {
-		return parameterDao.save(parameter);
+		return parameterRepository.save(parameter);
 	}
 }

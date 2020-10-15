@@ -1,0 +1,2283 @@
+<Ontology xmlns="http://www.w3.org/2002/07/owl#" xmlns:xsd="http://www.w3.org/2001/XMLSchema#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:dwc="https://dwc.tdwg.org/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xml:base="http://id.eaufrance.fr/ddd/apt/2.1" ontologyIRI="http://id.eaufrance.fr/ddd/apt/2.1" versionIRI="http://id.eaufrance.fr/ddd/apt/2.1">
+	<Prefix name="dcterms" IRI="http://purl.org/dc/terms/"/>
+	<Prefix name="dwc" IRI="https://dwc.tdwg.org/terms/"/>
+	<Prefix name="dc" IRI="http://purl.org/dc/terms/"/>
+	<Prefix name="skos" IRI="http://www.w3.org/2004/02/skos/core#"/>
+	<Prefix name="vann" IRI="http://purl.org/vocab/vann/"/>
+    <Prefix name="owl" IRI="http://www.w3.org/2002/07/owl#"/>
+    <Prefix name="xsd" IRI="http://www.w3.org/2001/XMLSchema#"/>
+    <Prefix name="xsi" IRI="http://www.w3.org/2001/XMLSchema-instance"/>
+    <Prefix name="rdf" IRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>
+    <Prefix name="rdfs" IRI="http://www.w3.org/2000/01/rdf-schema#"/>
+
+
+<!-- Définition des métadonnées de l'ontologie -->
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="rdfs:label"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Référentiel des appellations taxonomiques (Ontologie dont la syntaxe est provisoire)</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="vann:preferredNamespacePrefix"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">apt</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:title"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Référentiel des appellations taxonomiques (Ontologie dont la syntaxe est provisoire)</Literal>
+	</Annotation>
+
+
+   <Annotation>
+   <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <Literal xml:lang="en" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Référentiel des appellations taxonomiques (Ontologie dont la syntaxe est provisoire)</Literal>
+   </Annotation>
+
+
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="owl:versionInfo"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">2.1Beta1</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="owl:versionInfo"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Evolution référentiel 2.0 -&gt; 2.1 :
+		                                                                                                          - Création de la classe GROUPE D'APPELLATION TAXONOMIQUE
+		                                                                                                          - Ajout d'un attribut "Numéro hiérarchique du niveau taxonomique" dans la classe NIVEAU TAXONOMIQUE
+		                                                                                                          - Héritage entre TAXON et APPELLATION TAXONOMIQUE remplacé par une association 1,n - 1,1
+		                                                                                                          - Ajout de l'attribut "Type d'appellation de taxon" dans la classe APPELLATION DE TAXON
+
+		                                                                                                          Evolution 2.1--&gt;2.2
+		                                                                                                          TODO : modification de la définition de Libellé du nom commun de l'appellation du taxon car elle doit être en adéquation avec le fait qu'une appellation de taxon peut avoir avoir plusieurs libellés courants.
+		                                                                                                          YM Modifier les cardinalités entre CODE ALTERNATIF et APPELLATION DE TAXON
+		                                                                                                          et sur la relation réflexive "Est synonyme"
+
+
+
+		                                                                                                          </Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Ce dictionnaire de données a trait aux données caractéristiques des appellations taxonomiques. Un taxon est une unité générique qui fait référence à la systématique. Un taxon peut disposer de plusieurs appellations taxonomiques dont une est dite de référence. En raison de l'instabilité des systèmes internationaux de classification des êtres vivants, depuis la version 2.0 du dictionnaire, le Sandre est chargé d'administrer un référentiel d'appellation taxonomique et non plus de taxons, si bien que les appellations de type synonyme sont codifiées.</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:creator"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">http://id.eaufrance.fr/int/1470</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:subject"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Référentiel</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:description"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Ce dictionnaire de données a trait aux données caractéristiques des appellations taxonomiques. Un taxon est une unité générique qui fait référence à la systématique. Un taxon peut disposer de plusieurs appellations taxonomiques dont une est dite de référence. En raison de l'instabilité des systèmes internationaux de classification des êtres vivants, depuis la version 2.0 du dictionnaire, le Sandre est chargé d'administrer un référentiel d'appellation taxonomique et non plus de taxons, si bien que les appellations de type synonyme sont codifiées.</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:publisher"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Ministère chargé de l'environnement</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:contributor"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:created"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">2013-06-05</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:modified"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">2013-09-05</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:license"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">http://creativecommons.org/licenses/by-nd/3.0/fr</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:coverage"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">France</Literal>
+	</Annotation>
+	<Annotation>
+		<AnnotationProperty abbreviatedIRI="dcterms:format"/>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">owl/xml</Literal>
+	</Annotation>
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // DECLARATION DES CLASSES
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+<!-- http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon -->
+<Declaration>
+<Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+</Declaration>
+
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">APPELLATION DU TAXON</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Désignation d'un taxon qui est une unité générique qui fait référence à la systématique - forme de classification dérivant du même ancêtre. Selon qu'on remonte plus ou moins haut dans l'origine du taxon, on aura des taxons supérieurs (embranchements, classes) ou des taxon inférieurs (genres, espèces, races). Il arrive que la découverte d'un taxon attribuée à un chercheur soit remise en cause par un autre, ce qui conduit à une appellation d'un taxon à être vue comme :
+- "référente" vis à vis d'autres appellations synonymes,
+- "synonyme" d'une autre appellation référente.
+
+
+La liste des appellations des taxons est administrée par le SANDRE.</Literal>    </AnnotationAssertion>
+ <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:prefLabel"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classe</Literal>
+    </AnnotationAssertion>
+        <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:definition"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Désignation d'un taxon qui est une unité générique qui fait référence à la systématique - forme de classification dérivant du même ancêtre. Selon qu'on remonte plus ou moins haut dans l'origine du taxon, on aura des taxons supérieurs (embranchements, classes) ou des taxon inférieurs (genres, espèces, races). Il arrive que la découverte d'un taxon attribuée à un chercheur soit remise en cause par un autre, ce qui conduit à une appellation d'un taxon à être vue comme :
+- "référente" vis à vis d'autres appellations synonymes,
+- "synonyme" d'une autre appellation référente.
+
+
+La liste des appellations des taxons est administrée par le SANDRE.</Literal>    </AnnotationAssertion>
+
+<!-- http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif -->
+<Declaration>
+<Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif"/>
+</Declaration>
+
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">CODE ALTERNATIF</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Code associé à l'appellation du taxon, différent de celui de l'entité "APPELLATION DE TAXON" et par lequel un utilisateur peut accéder à une occurrence de cette dernière entité. Il ne s'agit pas de prendre en compte toutes les codifications qui existent  mais de concilier des approches différentes.
+
+A titre d'exemple, il existe une codification des poissons et des diatomées qui est rentrée dans les moeurs; elle ne peut être ignorée par le SANDRE. Afin de rapprocher le référentiel national des taxons à celui des banques de données, il est nécessaire de pouvoir établir des correspondances.</Literal>    </AnnotationAssertion>
+ <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:prefLabel"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classe</Literal>
+    </AnnotationAssertion>
+        <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:definition"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Code associé à l'appellation du taxon, différent de celui de l'entité "APPELLATION DE TAXON" et par lequel un utilisateur peut accéder à une occurrence de cette dernière entité. Il ne s'agit pas de prendre en compte toutes les codifications qui existent  mais de concilier des approches différentes.
+
+A titre d'exemple, il existe une codification des poissons et des diatomées qui est rentrée dans les moeurs; elle ne peut être ignorée par le SANDRE. Afin de rapprocher le référentiel national des taxons à celui des banques de données, il est nécessaire de pouvoir établir des correspondances.</Literal>    </AnnotationAssertion>
+
+<!-- http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon -->
+<Declaration>
+<Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon"/>
+</Declaration>
+
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">THEME DES TAXONS</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classification des appellations des taxons suivant leur nature et les utilisations qui en sont faites.
+
+La liste des thèmes des appellations taxons relève de la responsabilité du SANDRE. Les thèmes sont décrits dans la nomenclature n°121.</Literal>    </AnnotationAssertion>
+
+ <!-- https://dwc.tdwg.org/terms/taxon -->
+<Declaration>
+	<Class IRI="https://dwc.tdwg.org/terms/taxon"/>
+</Declaration>
+
+	<AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>https://dwc.tdwg.org/terms/taxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Taxon DWC</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>https://dwc.tdwg.org/terms/taxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Un groupe d'organismes (au sens http://purl.obolibrary.org/obo/OBI_0100026) considérés par les taxonomistes comme formant une unité homogène par le DarwinCore.</Literal>
+	</AnnotationAssertion>
+
+
+ <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:prefLabel"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classe</Literal>
+    </AnnotationAssertion>
+        <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:definition"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classification des appellations des taxons suivant leur nature et les utilisations qui en sont faites.
+
+La liste des thèmes des appellations taxons relève de la responsabilité du SANDRE. Les thèmes sont décrits dans la nomenclature n°121.</Literal>    </AnnotationAssertion>
+
+<!-- http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique -->
+<Declaration>
+<Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique"/>
+</Declaration>
+
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">NIVEAU TAXONOMIQUE</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classification hiérarchique des appellations des taxons, chaque niveau systématique est défini dans la nomenclature n°222. La liste des niveaux taxonomiques est sous la responsabilité du SANDRE.
+</Literal>    </AnnotationAssertion>
+ <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:prefLabel"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classe</Literal>
+    </AnnotationAssertion>
+        <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:definition"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classification hiérarchique des appellations des taxons, chaque niveau systématique est défini dans la nomenclature n°222. La liste des niveaux taxonomiques est sous la responsabilité du SANDRE.
+</Literal>    </AnnotationAssertion>
+
+<!-- http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon -->
+<Declaration>
+<Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+</Declaration>
+
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">GROUPE D'APPELLATION TAXONOMIQUE</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Un groupe d'appellation de taxon est un ensemble d'appellation de taxons présentant des caractéristiques communes. Les critères permettant de définir des groupes d'appellation de taxon peuvent être complexes et multiples. Ces critères sont en rapport avec la finalité pour laquelle un regroupement de taxons est défini.
+Un groupe d'appellation de taxon peut contenir plusieurs sous-groupes, selon un ordre hiérarchique pouvant aller jusqu'à plusieurs niveaux inférieurs. Un groupe d'appellation de taxon peut être rattaché à plusieurs groupes d'appellation de taxon parents.
+Les différents groupes d'appellation de taxon sont administrés par le Sandre. </Literal>    </AnnotationAssertion>
+ <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:prefLabel"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classe</Literal>
+    </AnnotationAssertion>
+        <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:definition"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Un groupe d'appellation de taxon est un ensemble d'appellation de taxons présentant des caractéristiques communes. Les critères permettant de définir des groupes d'appellation de taxon peuvent être complexes et multiples. Ces critères sont en rapport avec la finalité pour laquelle un regroupement de taxons est défini.
+Un groupe d'appellation de taxon peut contenir plusieurs sous-groupes, selon un ordre hiérarchique pouvant aller jusqu'à plusieurs niveaux inférieurs. Un groupe d'appellation de taxon peut être rattaché à plusieurs groupes d'appellation de taxon parents.
+Les différents groupes d'appellation de taxon sont administrés par le Sandre. </Literal>    </AnnotationAssertion>
+
+<!-- http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon -->
+<Declaration>
+<Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+</Declaration>
+
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">NOM COMMUN DE l'APPELLATION DE TAXON</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Appellation la  plus couramment utilisée pour désigner le taxon.
+
+Le renseignement de cette donnée est facultatif  car un taxon ne possède pas systématiquement de nom commun.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'un nouveau taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive du taxon.</Literal>    </AnnotationAssertion>
+ <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:prefLabel"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classe</Literal>
+    </AnnotationAssertion>
+        <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:definition"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Appellation la  plus couramment utilisée pour désigner le taxon.
+
+Le renseignement de cette donnée est facultatif  car un taxon ne possède pas systématiquement de nom commun.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'un nouveau taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive du taxon.</Literal>    </AnnotationAssertion>
+
+<!-- http://id.eaufrance.fr/ddd/apt/2.1/Taxon -->
+<Declaration>
+<Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+</Declaration>
+
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/Taxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">TAXON</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/Taxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Le taxon est une unité générique qui fait référence à la systématique. Cette science établit une classification des êtres vivants à partir de critères de ressemblance suivant une structure arborescente et hiérarchique à plusieurs niveaux (règne, embranchement, ordre, famille, genre, espèce...) dont chaque élément ou composante est qualifié de taxon.
+
+La liste des taxons est administrée par le SANDRE.</Literal>    </AnnotationAssertion>
+ <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:prefLabel"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/Taxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Classe</Literal>
+    </AnnotationAssertion>
+        <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="skos:definition"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/Taxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Le taxon est une unité générique qui fait référence à la systématique. Cette science établit une classification des êtres vivants à partir de critères de ressemblance suivant une structure arborescente et hiérarchique à plusieurs niveaux (règne, embranchement, ordre, famille, genre, espèce...) dont chaque élément ou composante est qualifié de taxon.
+
+La liste des taxons est administrée par le SANDRE.</Literal>    </AnnotationAssertion>
+
+
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // DECLARATION DES DATA PROPERTIES
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+<!-- CdAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/CdAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Code de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Identifiant non signifiant de l'appellation du taxon attribué par le SANDRE.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">6</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>    </DataPropertyRange>
+        <HasKey>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdAppelTaxon"/>
+    </HasKey>
+
+	<!-- http://rs.tdwg.org/dwc/terms/taxonID -->
+	<FunctionalDataProperty>
+        <DataProperty IRI="http://rs.tdwg.org/dwc/terms/taxonID"/>
+    </FunctionalDataProperty>
+
+	<AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://rs.tdwg.org/dwc/terms/taxonID</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Identification du taxon DWC</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://rs.tdwg.org/dwc/terms/taxonID</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Un identifiant pour l'ensemble des informations sur le taxon (données associées à la classe Taxon). Peut être un identifiant unique global ou un identifiant spécifique à l'ensemble de données selon le DarwinCore.</Literal>
+	</AnnotationAssertion>
+
+
+
+<!-- NomLatinAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/NomLatinAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomLatinAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Nom latin de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomLatinAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Designation latine également qualifiée de nom scientifique de l'appellation du taxon. Pour éviter toute confusion à propos des espèces, celles-ci auront comme nom latin la composition du nom latin de l'espèce et du nom latin du genre.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'un nouveau taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive de l'appellation du taxon.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomLatinAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomLatinAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomLatinAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">255</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- StAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/StAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/StAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Statut de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/StAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Degré de validité d'une appellation du taxon affecté par le SANDRE. La liste des valeurs autorisées est définie par le Sandre dans la nomenclature n°390.</Literal>    </AnnotationAssertion>
+
+
+             <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/StAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/StAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+       <DataPropertyRange>
+
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/StAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:integer"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">20</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+
+    </DataPropertyRange>
+
+  	<AnnotationAssertion>
+		<AnnotationProperty abbreviatedIRI="rdfs:seeAlso"/>
+		<IRI>#StParametre</IRI>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">http://id.eaufrance.fr/nsa/390</Literal>
+	</AnnotationAssertion>
+
+
+
+
+
+
+<!-- DateCreationAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/DateCreationAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateCreationAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Date de création de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateCreationAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Indication du jour, du mois et de l'année, à laquelle l'appellation du taxon a été créé dans la liste nationale des appellation de taxons. L'affectation d'une date de création relève de la responsabilité du SANDRE.
+</Literal>    </AnnotationAssertion>
+
+
+    <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateCreationAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateCreationAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateCreationAppelTaxon"/>
+        <Datatype abbreviatedIRI="xsd:dateTime"/>
+    </DataPropertyRange>
+
+
+
+
+<!-- DateMajAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/DateMajAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateMajAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Date de la dernière mise-à-jour de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateMajAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Indication du jour, du mois et de l'année, de la dernière mise-à-jour validée des informations portées sur la fiche de description de l'appellation du taxon. L'affectation de la date de la dernière mise-à-jour relève de la responsabilité du SANDRE.</Literal>    </AnnotationAssertion>
+
+
+    <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateMajAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateMajAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateMajAppelTaxon"/>
+        <Datatype abbreviatedIRI="xsd:dateTime"/>
+    </DataPropertyRange>
+
+
+
+
+<!-- RedacteurFicheAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/RedacteurFicheAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Rédacteur de la fiche de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Premier organisme à avoir demandé au SANDRE l'enregistrement de l'appellation du taxon. Le renseignement de cette donnée est obligatoire. Cet attribut ne sera pas actualisé à la suite des actualisations éventuelles de la fiche de description de l'appellation du taxon.
+
+L'attribution d'un auteur à un taxon relève de la responsabilité du SANDRE.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheAppelTaxon"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- RefBiblioAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/RefBiblioAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Références bibliographiques de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Sources documentaires ou autres qui contiennent toutes les informations nécessaires quant à l'identification et la détermination de l'appellation du taxon.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'une nouvelle appellation du taxon auprès du SANDRE qui en a la responsabilité. Cette information peut être complétée par les mises-à-jour successives de la fiche de description de l'appellation du taxon. .</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioAppelTaxon"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- ComAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/ComAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/ComAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Commentaires sur l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/ComAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Ensemble des informations complémentaires relatif à l'appellation du taxon qu'il peut être intéressant de porter à la connaissance du lecteur et qui ne sont pas formalisées dans la fiche de l'appellation du taxon.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'une nouvelle apellation de taxon auprès du SANDRE qui en a la responsabilité. Cette information peut être complétée par les mises-à-jour successives de la fiche de description de l'appellation du taxon. .</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ComAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ComAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ComAppelTaxon"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- AuteurAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/AuteurAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AuteurAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Auteur de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AuteurAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Nom de la personne qui décrit le première fois de l'appellation du taxon suivi de l'année de la description.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'une nouvelle appellation du taxon auprès du SANDRE qui a en la responsabilité. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive de l'appellation du taxon.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AuteurAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AuteurAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AuteurAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">100</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- TypeAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/TypeAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/TypeAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Type d'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/TypeAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Cet attribut indique si l'appellation taxonomique est référente ou synonyme au regard de la systématique.
+
+La liste des valeurs est définie dans la nomenclature n°748.</Literal>    </AnnotationAssertion>
+
+
+             <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/TypeAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/TypeAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </DataPropertyDomain>
+       <DataPropertyRange>
+
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/TypeAppelTaxon"/>
+            <Datatype abbreviatedIRI="xsd:integer"/>
+
+
+    </DataPropertyRange>
+
+  	<AnnotationAssertion>
+		<AnnotationProperty abbreviatedIRI="rdfs:seeAlso"/>
+		<IRI>#StParametre</IRI>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">http://id.eaufrance.fr/nsa/748</Literal>
+	</AnnotationAssertion>
+
+
+
+
+
+
+
+
+<!-- IdCdAlternatif -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/IdCdAlternatif"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/IdCdAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Identifiant du code alternatif</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/IdCdAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Indication qui identifie de façon unique le code alternatif ; il est artificiel et non signifiant.
+
+Il est justifié par le fait qu'un code alternatif ne peut être identifiant de cette entité. En effet, un code alternatif n'est pas obligatoirement unique puisqu'il peut identifier une ou plusieurs occurrences différentes de l'entité APPELLATION DE TAXON dans au moins deux contextes différents.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/IdCdAlternatif"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/IdCdAlternatif"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/IdCdAlternatif"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">6</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>    </DataPropertyRange>
+        <HasKey>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif"/>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/IdCdAlternatif"/>
+    </HasKey>
+
+
+
+
+<!-- CdAlternatif -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/CdAlternatif"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Code alternatif</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Valeur du code associé à une appellation de taxon dans un contexte particulier (Banque Hydrobiologique et Piscicole, Code Poisson, ...).
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'une nouvelle appellation de taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises à jour successives de la fiche descriptive de l'appellation du taxon.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdAlternatif"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdAlternatif"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdAlternatif"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">20</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- OrgCdAlternatif -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/OrgCdAlternatif"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/OrgCdAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Origine du code alternatif</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/OrgCdAlternatif</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Contexte dans lequel le code alternatif est couramment employé.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'une nouvelle appellation de taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises à jour successives de la fiche descriptive de l'appellation du taxon.
+
+La liste des valeurs possibles est définie dans la nomenclature n°621.</Literal>    </AnnotationAssertion>
+
+
+             <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/OrgCdAlternatif"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/OrgCdAlternatif"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif"/>
+    </DataPropertyDomain>
+       <DataPropertyRange>
+
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/OrgCdAlternatif"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:integer"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">50</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+
+    </DataPropertyRange>
+
+  	<AnnotationAssertion>
+		<AnnotationProperty abbreviatedIRI="rdfs:seeAlso"/>
+		<IRI>#StParametre</IRI>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">http://id.eaufrance.fr/nsa/621</Literal>
+	</AnnotationAssertion>
+
+
+
+
+
+
+
+
+<!-- CdThemeTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/CdThemeTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdThemeTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Code du thème des taxons</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdThemeTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Identifiant attribué à chaque thème tel que défini dans la nomenclature n°121.
+
+La liste des thèmes des appellations des taxons relève de la responsabilité du SANDRE.</Literal>    </AnnotationAssertion>
+
+
+             <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdThemeTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdThemeTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon"/>
+    </DataPropertyDomain>
+       <DataPropertyRange>
+
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdThemeTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:integer"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">2</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+
+    </DataPropertyRange>
+
+  	<AnnotationAssertion>
+		<AnnotationProperty abbreviatedIRI="rdfs:seeAlso"/>
+		<IRI>#StParametre</IRI>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">http://id.eaufrance.fr/nsa/121</Literal>
+	</AnnotationAssertion>
+
+
+
+
+
+
+<!-- LbThemeTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/LbThemeTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbThemeTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Libellé du thème des taxons</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbThemeTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Nom attribué à chaque thème.
+
+
+La liste des thèmes des appellations des taxons relève de la responsabilité du SANDRE.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbThemeTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbThemeTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbThemeTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">30</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+
+
+<!-- AbTax -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/AbTax"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AbTax</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Abréviation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AbTax</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Code attribué à chaque niveau systématique tel que défini dans la nomenclature n°222.
+
+La liste des niveaux taxonomiques est sous la responsabilité du SANDRE.</Literal>    </AnnotationAssertion>
+
+
+             <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AbTax"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AbTax"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique"/>
+    </DataPropertyDomain>
+       <DataPropertyRange>
+
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AbTax"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:integer"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">3</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+
+    </DataPropertyRange>
+
+  	<AnnotationAssertion>
+		<AnnotationProperty abbreviatedIRI="rdfs:seeAlso"/>
+		<IRI>#StParametre</IRI>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">http://id.eaufrance.fr/nsa/222</Literal>
+	</AnnotationAssertion>
+
+
+
+
+
+
+<!-- LbNiveauTaxonomique -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/LbNiveauTaxonomique"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbNiveauTaxonomique</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Niveau taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbNiveauTaxonomique</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Libellé de chaque niveau systématique tel que défini dans la nomenclature n°222.
+
+La liste des niveaux taxonomiques est sous la responsabilité du SANDRE.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbNiveauTaxonomique"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbNiveauTaxonomique"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbNiveauTaxonomique"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">20</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- HierNiveauTaxonomique -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/HierNiveauTaxonomique"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/HierNiveauTaxonomique</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Numéro hiérarchique du niveau taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/HierNiveauTaxonomique</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Numéro indiquant l'ordre hiérarchique des niveaux taxonomiques,  commençant par 1 pour le niveau Règne.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/HierNiveauTaxonomique"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/HierNiveauTaxonomique"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/HierNiveauTaxonomique"/>
+            <Datatype abbreviatedIRI="xsd:integer"/>
+
+    </DataPropertyRange>
+
+
+
+
+
+
+<!-- CdGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/CdGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Code du groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Identifiant unique non signifiant du  groupe d'appellation taxonomique. Il est administré par le Sandre.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdGrpAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">5</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>    </DataPropertyRange>
+        <HasKey>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdGrpAppelTaxon"/>
+    </HasKey>
+
+
+
+
+<!-- NomGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/NomGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Nom du groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Appellation commune du  groupe d'appellation taxonomique. Cet attribut peut comporter des abréviations explicites. </Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomGrpAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">255</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- LbCourtGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/LbCourtGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbCourtGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Libellé court du groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbCourtGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Diminutif, de préférence unique, du  groupe d'appellation taxonomique. Cet attribut créé à des fins d'exploitation informatique peut contenir des sigles ou des abréviations explicités dans le nom du  groupe d'appellation taxonomique.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbCourtGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbCourtGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbCourtGrpAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">10</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- LbLongGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/LbLongGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbLongGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Libellé long du groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbLongGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Nom long du  groupe d'appellation taxonomique. Cet attribut créé à des fins d'exploitation informatique peut contenir des sigles ou des abréviations explicités dans le nom du  groupe d'appellation taxonomique.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbLongGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbLongGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbLongGrpAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">25</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- StGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/StGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/StGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Statut du groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/StGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Degré de validité d'un  groupe d'appellation taxonomique affecté par le SANDRE. La liste des valeurs autorisées est définie par le Sandre dans la nomenclature n°390.</Literal>    </AnnotationAssertion>
+
+
+             <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/StGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/StGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+       <DataPropertyRange>
+
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/StGrpAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:integer"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">20</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+
+    </DataPropertyRange>
+
+  	<AnnotationAssertion>
+		<AnnotationProperty abbreviatedIRI="rdfs:seeAlso"/>
+		<IRI>#StParametre</IRI>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">http://id.eaufrance.fr/nsa/390</Literal>
+	</AnnotationAssertion>
+
+
+
+
+
+
+<!-- DfGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/DfGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DfGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Définition du groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DfGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Enoncé qui permet une bonne compréhension du contenu du  groupe d'appellation taxonomique.
+</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DfGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DfGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DfGrpAppelTaxon"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- DateCreGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/DateCreGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateCreGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Date de création du groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateCreGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Indication du jour, du mois, de l'année, à laquelle un  groupe d'appellation taxonomique a été créé. L'affectation d'une date de création  relève de la responsabilité du Sandre.</Literal>    </AnnotationAssertion>
+
+
+    <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateCreGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateCreGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateCreGrpAppelTaxon"/>
+        <Datatype abbreviatedIRI="xsd:dateTime"/>
+    </DataPropertyRange>
+
+
+
+
+<!-- AuteurGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/AuteurGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AuteurGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Auteur de la demande de création du  groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AuteurGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Premier organisme à avoir demandé au Sandre l'enregistrement du  groupe d'appellation taxonomique
+
+L'attribution d'un auteur à un  groupe d'appellation taxonomique relève de la responsabilité du Sandre.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AuteurGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AuteurGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AuteurGrpAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">50</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- DateMajGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/DateMajGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateMajGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Date de dernière mise à jour du  groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateMajGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Indication du jour, du mois et de l'année , de la dernière mise à jour validée des informations portées sur la fiche de description ou sur le contenu du  groupe d'appellation taxonomique en question.
+
+L'affectation de la date de la dernière mise-à-jour à un  groupe d'appellation taxonomique relève de la responsabilité du Sandre.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateMajGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateMajGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateMajGrpAppelTaxon"/>
+        <Datatype abbreviatedIRI="xsd:dateTime"/>
+    </DataPropertyRange>
+
+
+
+
+<!-- ComGrpAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/ComGrpAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/ComGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Commentaires sur le groupe d'appellation taxonomique</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/ComGrpAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Informations supplémentaires relatives au  groupe d'appellation taxonomique et qu'il peut être intéressant de porter à la connaissance du lecteur.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ComGrpAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ComGrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ComGrpAppelTaxon"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+
+    </DataPropertyRange>
+
+
+
+
+
+
+<!-- IdNomCommunAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/IdNomCommunAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/IdNomCommunAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Identifiant du nom commun de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/IdNomCommunAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Code permettant d'identifier de manière unique chaque nom commun d'appellation de taxon</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/IdNomCommunAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/IdNomCommunAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/IdNomCommunAppelTaxon"/>
+            <Datatype abbreviatedIRI="xsd:string"/>    </DataPropertyRange>
+        <HasKey>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/IdNomCommunAppelTaxon"/>
+    </HasKey>
+
+
+
+
+<!-- LbNomCommunAppelTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/LbNomCommunAppelTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbNomCommunAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Libellé du nom commun de l'appellation du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/LbNomCommunAppelTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Appellation la  plus couramment utilisée pour désigner le taxon.
+
+Le renseignement de cette donnée est facultatif  car un taxon ne possède pas systématiquement de nom commun.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'un nouveau taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive du taxon.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbNomCommunAppelTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbNomCommunAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/LbNomCommunAppelTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">255</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+
+
+<!-- CdTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/CdTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Code du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CdTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Identifiant non signifiant attribué par le SANDRE.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">6</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>    </DataPropertyRange>
+        <HasKey>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CdTaxon"/>
+    </HasKey>
+
+
+
+
+<!-- NomLatinTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/NomLatinTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomLatinTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Nom latin du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomLatinTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Appellation latine également qualifiée de nom scientifique. Pour éviter toute confusion à propos des espèces, celles-ci auront comme nom latin la composition du nom latin de l'espèce et du nom latin du genre.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'un nouveau taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive du taxon.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomLatinTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomLatinTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomLatinTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">255</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- StTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/StTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/StTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Statut du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/StTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Degré de validité d'un taxon affecté par le SANDRE. La liste des valeurs autorisées est définie par le Sandre dans la nomenclature n°390.</Literal>    </AnnotationAssertion>
+
+
+             <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/StTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/StTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+       <DataPropertyRange>
+
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/StTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:integer"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">20</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+
+    </DataPropertyRange>
+
+  	<AnnotationAssertion>
+		<AnnotationProperty abbreviatedIRI="rdfs:seeAlso"/>
+		<IRI>#StParametre</IRI>
+		<Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">http://id.eaufrance.fr/nsa/390</Literal>
+	</AnnotationAssertion>
+
+
+
+
+
+
+<!-- DateCreationTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/DateCreationTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateCreationTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Date de création du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateCreationTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Date exprimée au jour près, à laquelle un taxon a été créé dans la liste nationale des taxons.
+
+L'affectation d'une date de création à un taxon relève de la responsabilité du SANDRE.
+</Literal>    </AnnotationAssertion>
+
+
+    <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateCreationTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateCreationTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateCreationTaxon"/>
+        <Datatype abbreviatedIRI="xsd:dateTime"/>
+    </DataPropertyRange>
+
+
+
+
+<!-- DateMajTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/DateMajTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateMajTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Date de la dernière mise-à-jour du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/DateMajTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Date exprimée au jour près, de la dernière mise-à-jour validée des informations portées sur la fiche de description du taxon.
+
+L'affectation de la date de la dernière mise-à-jour à un taxon relève de la responsabilité du SANDRE.</Literal>    </AnnotationAssertion>
+
+
+    <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateMajTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateMajTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/DateMajTaxon"/>
+        <Datatype abbreviatedIRI="xsd:dateTime"/>
+    </DataPropertyRange>
+
+
+
+
+<!-- RedacteurFicheTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/RedacteurFicheTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Rédacteur de la fiche sur le taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Premier organisme à avoir demandé au SANDRE l'enregistrement du taxon.
+
+Le renseignement de cette donnée est obligatoire.
+
+Cet attribut ne sera pas actualisé à la suite des actualisations éventuelles de la fiche.
+
+L'attribution d'un auteur à un taxon relève de la responsabilité du SANDRE.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RedacteurFicheTaxon"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- NomCommunTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/NomCommunTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomCommunTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Nom commun du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/NomCommunTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Nom le plus couramment utilisé pour désigner le taxon.
+
+Le renseignement de cette donnée est facultatif  car un taxon ne possède pas systématiquement de nom commun.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'un nouveau taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive du taxon.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">30</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- RefBiblioTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/RefBiblioTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Références bibliographiques sur le taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Sources documentaires ou autres qui contiennent toutes les informations nécessaires quant à l'identification et la détermination du taxon.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'un nouveau taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive du taxon.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/RefBiblioTaxon"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- CommentairesTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/CommentairesTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CommentairesTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Commentaires sur le taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/CommentairesTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Ensemble des informations complémentaires relatif au taxon qu'il peut être intéressant de porter à la connaissance du lecteur et qui ne sont pas formalisées dans la fiche taxon.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'un nouveau taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive du taxon.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CommentairesTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CommentairesTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CommentairesTaxon"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+
+    </DataPropertyRange>
+
+
+
+
+<!-- AuteurTaxon -->
+    <FunctionalDataProperty>
+        <DataProperty IRI="/AuteurTaxon"/>
+    </FunctionalDataProperty>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AuteurTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Auteur du taxon</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>http://id.eaufrance.fr/ddd/apt/2.1/AuteurTaxon</IRI>
+        <Literal xml:lang="fr" datatypeIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">Nom de la personne qui décrit le première fois le taxon suivi de l'année de la description.
+
+Cette information est fournie par le ou les organismes qui déposent une demande d'enregistrement d'un nouveau taxon auprès du SANDRE qui a la responsabilité de la liste des taxons. Cette information peut être complétée par les mises-à-jour successives de la fiche descriptive du taxon.</Literal>    </AnnotationAssertion>
+
+
+            <Declaration>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AuteurTaxon"/>
+    </Declaration>
+    <DataPropertyDomain>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AuteurTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AuteurTaxon"/>
+                <DatatypeRestriction>
+            <Datatype abbreviatedIRI="xsd:string"/>
+            <FacetRestriction facet="http://www.w3.org/2001/XMLSchema#maxLength">
+                <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">100</Literal>
+            </FacetRestriction>
+            </DatatypeRestriction>
+
+    </DataPropertyRange>
+
+
+
+
+
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // DECLARATION DES OBJECT PROPERTIES
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+
+
+
+
+     <!-- CodeAlternatifAp -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatifAp"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatifAp"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatifAp"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatifAp"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+
+<!-- AppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+            <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/CodeAlternatif"/>
+        <ObjectMaxCardinality cardinality="1">
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectMaxCardinality>
+    </SubClassOf>
+    <!-- AppelTaxonElt -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxonElt"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxonElt"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxonElt"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxonElt"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+
+<!-- EltAppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/EltAppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/EltAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/EltAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+            <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectMaxCardinality cardinality="1">
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/EltAppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectMaxCardinality>
+    </SubClassOf>
+    <!-- AppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+
+	<SubClassOf>
+        <Class IRI="/AppelTaxon"/>
+        <Class IRI="https://dwc.tdwg.org/terms/taxon"/>
+    </SubClassOf>
+
+<!-- ThemeTaxonAppel -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxonAppel"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxonAppel"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxonAppel"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon"/>
+    </ObjectPropertyRange>
+
+            <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectExactCardinality cardinality="1">
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxonAppel"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/ThemeTaxon"/>
+        </ObjectExactCardinality>
+    </SubClassOf>
+    <!-- AppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+
+<!-- NiveauTaxonomiqueAppel -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomiqueAppel"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomiqueAppel"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomiqueAppel"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique"/>
+    </ObjectPropertyRange>
+
+            <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectExactCardinality cardinality="1">
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomiqueAppel"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NiveauTaxonomique"/>
+        </ObjectExactCardinality>
+    </SubClassOf>
+    <!-- GrpAppelTaxonParent -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxonParent"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxonParent"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxonParent"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxonParent"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+
+<!-- GrpAppelTaxonEnfant -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxonEnfant"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxonEnfant"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxonEnfant"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxonEnfant"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+    <!-- AppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+
+<!-- GrpAppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/GrpAppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+    <!-- AppelTaxonSyno -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxonSyno"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxonSyno"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxonSyno"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxonSyno"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+
+<!-- SynoAppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/SynoAppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/SynoAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/SynoAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+            <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectMaxCardinality cardinality="1">
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/SynoAppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectMaxCardinality>
+    </SubClassOf>
+    <!-- AppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+
+<!-- NomCommunAppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+    </ObjectPropertyRange>
+
+                <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectSomeValuesFrom>
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/NomCommunAppelTaxon"/>
+        </ObjectSomeValuesFrom>
+    </SubClassOf>
+    <!-- AppelTaxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyRange>
+
+                    <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+        <ObjectMinCardinality cardinality="1">
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        </ObjectMinCardinality>
+    </SubClassOf>
+
+<!-- Taxon -->
+    <Declaration>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </Declaration>
+
+
+        <ObjectPropertyDomain>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+    </ObjectPropertyRange>
+
+            <SubClassOf>
+        <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/AppelTaxon"/>
+        <ObjectExactCardinality cardinality="1">
+            <ObjectProperty IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+            <Class IRI="http://id.eaufrance.fr/ddd/apt/2.1/Taxon"/>
+        </ObjectExactCardinality>
+    </SubClassOf>
+</Ontology>

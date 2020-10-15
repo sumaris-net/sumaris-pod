@@ -252,7 +252,7 @@ public class CSVFileReader implements FileReader {
             ErrorType errorType,
             String errorCode, String description) {
 
-		DataLoadError error = DataLoadError.Builder.create(tableMetadata, colMeta, lineCounter.getCurrentValue(), description)
+		DataLoadError error = Builder.create(tableMetadata, colMeta, lineCounter.getCurrentValue(), description)
 				.setColumnNumber(columnNumber != -1 ? columnNumber : null)
 				.setErrorCode(errorCode)
 				.setErrorType(errorType)

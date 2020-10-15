@@ -10,95 +10,151 @@ package net.sumaris.core.dao.referential;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.jpa.SpecificationWithParameters;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.Nullable;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
-public interface ReferentialSpecifications {
+public interface ReferentialSpecifications<E extends IReferentialWithStatusEntity> {
 
+    String STATUS_PARAMETER = "status";
+    String STATUS_SET_PARAMETER = "statusSet";
+    String LABEL_PARAMETER = "label";
+    String LEVEL_PARAMETER = "level";
+    String LEVEL_SET_PARAMETER = "levelSet";
     String SEARCH_TEXT_PARAMETER = "searchText";
 
-    default <T extends IReferentialWithStatusEntity> Specification<T> inLevelIds(String levelProperty, Integer[] gearIds) {
-        if (ArrayUtils.isEmpty(gearIds)) return null;
-        return (root, query, cb) -> cb.in(
-                root.join(levelProperty, JoinType.INNER).get(Gear.Fields.ID))
-                .value(ImmutableList.copyOf(gearIds));
+    default Specification<E> inStatusIds(IReferentialFilter filter) {
+        Integer[] statusIds = filter.getStatusIds();
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
+            ParameterExpression<Collection> statusParam = criteriaBuilder.parameter(Collection.class, STATUS_PARAMETER);
+            ParameterExpression<Boolean> statusSetParam = criteriaBuilder.parameter(Boolean.class, STATUS_SET_PARAMETER);
+            return criteriaBuilder.or(
+                criteriaBuilder.isFalse(statusSetParam),
+                criteriaBuilder.in(root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID)).value(statusParam)
+            );
+        });
+        specification.addBind(STATUS_SET_PARAMETER, !ArrayUtils.isEmpty(statusIds));
+        specification.addBind(STATUS_PARAMETER, ArrayUtils.isEmpty(statusIds) ? null : Arrays.asList(statusIds));
+        return specification;
     }
 
-    default <T extends IReferentialWithStatusEntity> Specification<T> inStatusIds(@Nullable Integer[] statusIds) {
-        if (ArrayUtils.isEmpty(statusIds)) return null;
-        return (root, query, cb) -> cb.in(
-                root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID))
-                .value(ImmutableList.copyOf(statusIds));
+    default Specification<E> hasLabel(String label) {
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<String> labelParam = criteriaBuilder.parameter(String.class, LABEL_PARAMETER);
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(labelParam),
+                criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(labelParam))
+            );
+        });
+        specification.addBind(LABEL_PARAMETER, label);
+        return specification;
     }
 
-    default <T extends IItemReferentialEntity> Specification<T> searchText(String searchAttribute, String paramName) {
+    default Specification<E> inLevelIds(String levelProperty, IReferentialFilter filter) {
+        Integer[] levelIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
+        return inLevelIds(levelProperty, levelIds);
+    }
 
-        return new SpecificationWithParameters<T>() {
+    default Specification<E> inLevelIds(String levelProperty, Integer[] levelIds) {
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_PARAMETER);
+            ParameterExpression<Boolean> levelSetParam = criteriaBuilder.parameter(Boolean.class, LEVEL_SET_PARAMETER);
+            return criteriaBuilder.or(
+                criteriaBuilder.isFalse(levelSetParam),
+                criteriaBuilder.in(root.join(levelProperty, JoinType.INNER).get(IEntity.Fields.ID)).value(levelParam)
+            );
+        });
+        specification.addBind(LEVEL_SET_PARAMETER, !ArrayUtils.isEmpty(levelIds));
+        specification.addBind(LEVEL_PARAMETER, ArrayUtils.isEmpty(levelIds) ? null : Arrays.asList(levelIds));
+        return specification;
+    }
 
-            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
-                                         CriteriaBuilder cb) {
-                ParameterExpression<String> searchTextParam = add(cb.parameter(String.class, paramName));
+    default Specification<E> searchOrJoinSearchText(IReferentialFilter filter) {
+        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
+        String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
+        if (searchJoinProperty != null) {
+            return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), searchText);
+        } else {
+            return searchText(
+                StringUtils.isNotBlank(filter.getSearchAttribute()) ? ArrayUtils.toArray(filter.getSearchAttribute()) : null,
+                searchText);
+        }
+    }
 
-                if (StringUtils.isNotBlank(searchAttribute)) {
-                    return cb.or(
-                            cb.isNull(searchTextParam),
-                            cb.like(cb.upper(Daos.composePath(root, searchAttribute)), cb.upper(searchTextParam)));
-                }
-                // Search on label+name
-                return cb.or(
-                        cb.isNull(searchTextParam),
-                        cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.LABEL)), cb.upper(searchTextParam)),
-                        cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.NAME)), cb.upper(cb.concat("%", searchTextParam)))
+    default Specification<E> searchText(String[] searchAttributes, String searchText) {
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
+            if (ArrayUtils.isNotEmpty(searchAttributes)) {
+                // search on all attributes
+                List<Predicate> predicates = new ArrayList<>();
+                predicates.add(
+                    criteriaBuilder.isNull(searchTextParam)
+                );
+                Arrays.stream(searchAttributes).forEach(searchAttribute ->
+                    predicates.add(
+                        criteriaBuilder.like(criteriaBuilder.upper(Daos.composePath(root, searchAttribute)), criteriaBuilder.upper(searchTextParam))
+                    ));
+                return criteriaBuilder.or(
+                    // all predicates
+                    predicates.toArray(new Predicate[0])
                 );
             }
-        };
+            // Search on label+name only
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(searchTextParam),
+                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
+                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
+            );
+        });
+        specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
+        return specification;
     }
 
-    default <T extends IItemReferentialEntity> Specification<T> joinSearchText(String joinProperty, String searchAttribute, String paramName) {
+    default Specification<E> joinSearchText(String joinProperty, String searchAttribute, String searchText) {
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
 
-        return new SpecificationWithParameters<T>() {
-
-            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
-                                         CriteriaBuilder cb) {
-                ParameterExpression<String> searchTextParam = add(cb.parameter(String.class, paramName));
-
-                if (StringUtils.isNotBlank(searchAttribute)) {
-                    return cb.or(
-                            cb.isNull(searchTextParam),
-                            cb.like(cb.upper(root.join(joinProperty).get(searchAttribute)), cb.upper(searchTextParam)));
-                }
-                // Search on label+name
-                return cb.or(
-                        cb.isNull(searchTextParam),
-                        cb.like(cb.upper(root.join(joinProperty)
-                                .get(IItemReferentialEntity.Fields.LABEL)), cb.upper(searchTextParam)),
-                        cb.like(cb.upper(root.join(joinProperty)
-                                .get(IItemReferentialEntity.Fields.NAME)), cb.upper(cb.concat("%", searchTextParam)))
-                );
+            if (StringUtils.isNotBlank(searchAttribute)) {
+                return criteriaBuilder.or(
+                    criteriaBuilder.isNull(searchTextParam),
+                    criteriaBuilder.like(criteriaBuilder.upper(root.join(joinProperty).get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
             }
-        };
+            // Search on label+name
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(searchTextParam),
+                criteriaBuilder.like(criteriaBuilder.upper(root.join(joinProperty).get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
+                criteriaBuilder.like(criteriaBuilder.upper(root.join(joinProperty).get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
+            );
+        });
+        specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
+        return specification;
     }
 }

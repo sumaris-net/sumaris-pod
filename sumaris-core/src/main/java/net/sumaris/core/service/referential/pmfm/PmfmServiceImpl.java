@@ -22,24 +22,25 @@
 
 package net.sumaris.core.service.referential.pmfm;
 
-import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
+import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
-import net.sumaris.core.model.referential.pmfm.PmfmEnum;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ParameterVO;
+import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service("pmfmService")
 public class PmfmServiceImpl implements PmfmService {
@@ -47,68 +48,80 @@ public class PmfmServiceImpl implements PmfmService {
     private static final Logger log = LoggerFactory.getLogger(PmfmServiceImpl.class);
 
     @Autowired
-    protected PmfmDao pmfmDao;
+    protected PmfmRepository pmfmRepository;
 
     @Autowired
-    protected ReferentialDao referentialDao;
+    protected ParameterRepository parameterRepository;
 
     @Override
     public List<PmfmVO> findByFilter(ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return referentialDao.streamByFilter(Pmfm.class, filter, offset, size, sortAttribute, sortDirection)
-                .map(pmfmDao::toVO)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return pmfmRepository.findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
     }
 
     @Override
     public Optional<PmfmVO> findByLabel(final String label) {
-        return pmfmDao.findByLabel(label);
+        return pmfmRepository.findByLabel(label);
     }
 
     @Override
     public PmfmVO getByLabel(final String label) {
-        return pmfmDao.getByLabel(label);
+        return pmfmRepository.getByLabel(label);
     }
 
     @Override
     public PmfmVO get(int pmfmId) {
-        return pmfmDao.get(pmfmId);
+        return pmfmRepository.get(pmfmId);
     }
 
 	@Override
 	public PmfmVO save(PmfmVO pmfm) {
-		return pmfmDao.save(pmfm);
+        Preconditions.checkNotNull(pmfm);
+        Preconditions.checkNotNull(pmfm.getParameterId());
+
+        // Check Qualitative values coherence
+        ParameterVO parameter = parameterRepository.get(pmfm.getParameterId());
+        boolean isParameterQualitative = ParameterValueType.fromParameter(parameter).equals(ParameterValueType.QUALITATIVE_VALUE);
+        if (isParameterQualitative) {
+            // pmfm qualitative values must be present in parameter qualitative values
+            if (!ListUtils.emptyIfNull(parameter.getQualitativeValues()).containsAll(ListUtils.emptyIfNull(pmfm.getQualitativeValues())))
+                throw new SumarisTechnicalException("The qualitative value list of this pmfm is incoherent with its parameter");
+        } else if (CollectionUtils.isNotEmpty(pmfm.getQualitativeValues())) {
+            // reset pmfm qualitative values
+            pmfm.setQualitativeValues(null);
+        }
+
+		return pmfmRepository.save(pmfm);
 	}
 
     @Override
     public boolean isWeightPmfm(int pmfmId) {
-        return pmfmDao.hasLabelSuffix(pmfmId, "WEIGHT");
+        return pmfmRepository.hasLabelSuffix(pmfmId, "WEIGHT");
     }
 
     @Override
     public boolean isSortingPmfm(int pmfmId) {
-        return pmfmDao.hasLabelSuffix(pmfmId, "SORTING");
+        return pmfmRepository.hasLabelSuffix(pmfmId, "SORTING");
     }
 
     @Override
     public boolean isQuantificationPmfm(int pmfmId) {
-        return pmfmDao.hasLabelSuffix(pmfmId, "QUANTIFICATION");
+        return pmfmRepository.hasLabelSuffix(pmfmId, "QUANTIFICATION");
     }
 
     @Override
     public boolean isCalculatedPmfm(int pmfmId) {
-        return pmfmDao.hasLabelPrefix(pmfmId, "CALCULATED");
+        return pmfmRepository.hasLabelPrefix(pmfmId, "CALCULATED");
     }
 
     @Override
     public boolean isGearPmfm(int pmfmId) {
-        return pmfmDao.hasLabelPrefix(pmfmId, "GEAR") // Required by SFA historical data
-            || pmfmDao.hasMatrixId(pmfmId, MatrixEnum.GEAR.getId()); // Required by Ifremer historical data
+        return pmfmRepository.hasLabelPrefix(pmfmId, "GEAR") // Required by SFA historical data
+            || pmfmRepository.hasMatrixId(pmfmId, MatrixEnum.GEAR.getId()); // Required by Ifremer historical data
     }
 
     @Override
     public boolean isGearPhysicalPmfm(int pmfmId) {
-        return pmfmDao.hasLabelPrefix(pmfmId, "GEAR_PHYSICAL");
+        return pmfmRepository.hasLabelPrefix(pmfmId, "GEAR_PHYSICAL");
     }
 
 

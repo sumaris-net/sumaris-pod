@@ -86,7 +86,7 @@ public class SampleMeasurement implements ISortedMeasurementEntity {
     private QualitativeValue qualitativeValue;
 
     @Column(name = "rank_order")
-    private Integer rankOrder;
+    private Short rankOrder;
 
     @Column(name = "individual_number")
     private Integer individualNumber;

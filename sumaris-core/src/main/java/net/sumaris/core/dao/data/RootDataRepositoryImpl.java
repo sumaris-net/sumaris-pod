@@ -23,8 +23,8 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.data.IRootDataEntity;
@@ -37,21 +37,22 @@ import net.sumaris.core.vo.filter.IRootDataFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
 public abstract class RootDataRepositoryImpl<
-    E extends IRootDataEntity<ID>,
-    ID extends Integer,
-    V extends IRootDataVO<ID>,
-    F extends IRootDataFilter
+    E extends IRootDataEntity<Integer>,
+    V extends IRootDataVO<Integer>,
+    F extends IRootDataFilter,
+    O extends DataFetchOptions
     >
-    extends DataRepositoryImpl<E, ID, V, F>
-    implements RootDataRepository<E, ID, V, F> {
+    extends DataRepositoryImpl<E, V, F, O>
+    implements RootDataRepository<E, V, F, O> {
 
     /**
      * Logger.
@@ -60,28 +61,18 @@ public abstract class RootDataRepositoryImpl<
         LoggerFactory.getLogger(RootDataRepositoryImpl.class);
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     @Autowired
-    private ProgramDao programDao;
+    private ProgramRepository programRepository;
 
-    protected RootDataRepositoryImpl(Class<E> domainClass,
-                                  EntityManager entityManager) {
-        super(domainClass, entityManager);
+    protected RootDataRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
+        super(domainClass, voClass, entityManager);
         setCopyExcludeProperties(
-                IRootDataEntity.Fields.UPDATE_DATE,
-                IRootDataEntity.Fields.CREATION_DATE);
+            IRootDataEntity.Fields.UPDATE_DATE,
+            IRootDataEntity.Fields.CREATION_DATE);
 
-        this.setEnableForUpdate(true);
-    }
-
-    @Override
-    public <S extends E> S save(S entity) {
-        // When new entity: set the creation date
-        if (entity.getId() == null || entity.getCreationDate() == null) {
-            entity.setCreationDate(entity.getUpdateDate());
-        }
-        return super.save(entity);
+        this.setLockForUpdate(true);
     }
 
     @Override
@@ -90,38 +81,62 @@ public abstract class RootDataRepositoryImpl<
     }
 
     @Override
-    public void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    protected void onBeforeSaveEntity(V vo, E entity, boolean isNew) {
+        super.onBeforeSaveEntity(vo, entity, isNew);
+
+        // When new entity: set the creation date
+        if (isNew || entity.getCreationDate() == null) {
+            entity.setCreationDate(entity.getUpdateDate());
+        }
+    }
+
+    @Override
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        if (isNew) {
+            vo.setCreationDate(savedEntity.getCreationDate());
+        }
+    }
+
+    @Override
+    public void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
 
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Program
         if (source.getProgram() != null) {
-            target.setProgram(programDao.toProgramVO(source.getProgram(),
+            target.setProgram(programRepository.toVO(source.getProgram(),
                 ProgramFetchOptions.builder().withProperties(false).build()));
         }
 
         // Recorder person
         if ((fetchOptions == null || fetchOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
-            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
+            PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson());
             target.setRecorderPerson(recorderPerson);
         }
 
     }
 
     @Override
-    public V validate(V source) {
-        Preconditions.checkNotNull(source);
+    public V validate(V vo) {
+        return validate(vo, true);
+    }
 
-        E entity = getOne(source.getId());
-        if (entity == null) {
-            throw new DataRetrievalFailureException(String.format("Entity {%s} not found", source.getId()));
-        }
+    @Override
+    public V validateNoSave(V vo) {
+        return validate(vo, false);
+    }
+
+    private V validate(V vo, boolean save) {
+        Preconditions.checkNotNull(vo);
+        E entity = getOne(vo.getId());
 
         // Check update date
-        if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(source, entity);
+        if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        if (isLockForUpdateEnable()) lockForUpdate(entity);
+        if (save && isLockForUpdate()) lockForUpdate(entity);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -131,29 +146,35 @@ public abstract class RootDataRepositoryImpl<
         entity.setValidationDate(newUpdateDate);
 
         // Save entityName
-        getEntityManager().merge(entity);
+        if (save)
+            getEntityManager().merge(entity);
 
         // Update source
-        source.setValidationDate(newUpdateDate);
-        source.setUpdateDate(newUpdateDate);
+        vo.setValidationDate(newUpdateDate);
+        vo.setUpdateDate(newUpdateDate);
 
-        return source;
+        return vo;
     }
 
     @Override
     public V unvalidate(V vo) {
-        Preconditions.checkNotNull(vo);
+        return unvalidate(vo, true);
+    }
 
+    @Override
+    public V unvalidateNoSave(V vo) {
+        return unvalidate(vo, false);
+    }
+
+    private V unvalidate(V vo, boolean save) {
+        Preconditions.checkNotNull(vo);
         E entity = getOne(vo.getId());
-        if (entity == null) {
-            throw new DataRetrievalFailureException(String.format("Entity{%s} not found", vo.getId()));
-        }
 
         // Check update date
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        if (isLockForUpdateEnable()) lockForUpdate(entity);
+        if (save && isLockForUpdate()) lockForUpdate(entity);
 
         // TODO UNVALIDATION PROCESS HERE
         entity.setValidationDate(null);
@@ -165,7 +186,8 @@ public abstract class RootDataRepositoryImpl<
         entity.setUpdateDate(newUpdateDate);
 
         // Save entityName
-        getEntityManager().merge(entity);
+        if (save)
+            getEntityManager().merge(entity);
 
         // Update source
         vo.setValidationDate(null);
@@ -179,12 +201,9 @@ public abstract class RootDataRepositoryImpl<
     /* -- protected method -- */
 
     @Override
-    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
-
-        if (isNew) {
-            vo.setCreationDate(savedEntity.getCreationDate());
-        }
+    protected Specification<E> toSpecification(F filter) {
+        return super.toSpecification(filter)
+            .and(hasRecorderPersonId(filter.getRecorderPersonId()))
+            .and(hasProgramLabel(filter.getProgramLabel()));
     }
-
 }

@@ -22,7 +22,7 @@ package net.sumaris.core.service.referential.taxon;
  * #L%
  */
 
-import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
+import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
@@ -39,20 +39,20 @@ public class TaxonNameServiceImpl implements TaxonNameService {
     private static final Logger log = LoggerFactory.getLogger(TaxonNameServiceImpl.class);
 
     @Autowired
-    protected TaxonNameDao taxonNameDao;
+    protected TaxonNameRepository taxonNameRepository;
 
     @Override
     public List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return taxonNameDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+        return taxonNameRepository.findByFilter(filter, offset, size, sortAttribute, sortDirection);
     }
 
     @Override
     public List<TaxonNameVO> getAll(boolean withSynonyms) {
-        return taxonNameDao.getAll(withSynonyms);
+        return taxonNameRepository.getAll(withSynonyms);
     }
 
     @Override
     public List<TaxonNameVO> getAllByTaxonGroup(Integer taxonGroupId) {
-        return taxonNameDao.getAllByTaxonGroupId(taxonGroupId);
+        return taxonNameRepository.getAllByTaxonGroupId(taxonGroupId);
     }
 }

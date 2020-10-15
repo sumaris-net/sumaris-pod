@@ -24,10 +24,11 @@ package net.sumaris.core.vo.administration.programStrategy;
 
 import lombok.Builder;
 import lombok.Data;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 @Data
 @Builder
-public class ProgramFetchOptions {
+public class ProgramFetchOptions implements IFetchOptions {
 
     private boolean withProperties;
 

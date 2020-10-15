@@ -32,6 +32,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DecimalFormat;
@@ -49,6 +50,7 @@ public class Files {
 
 	private static final Logger log = LoggerFactory.getLogger(Files.class);
 
+	public static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 	public static final String TEMPORARY_FILE_DEFAULT_EXTENSION =".tmp";
 
 	protected static NumberFormat numberFormat = NumberFormat.getInstance();
@@ -356,6 +358,21 @@ public class Files {
 
 		reader.close();
 		return result;
+	}
+
+	public static String readContent(File sourceFile, Charset charset) throws IOException {
+		checkExists(sourceFile);
+
+		try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			InputStream is = new BufferedInputStream(new FileInputStream(sourceFile));) {
+			byte[] buf = new byte[1024*4];
+			int len = 0;
+			while((len = is.read(buf)) != -1) {
+				bos.write(buf, 0, len);
+			}
+			bos.flush();
+			return new String(bos.toByteArray(), charset);
+		}
 	}
 
 	public static boolean isEmpty(File file) {

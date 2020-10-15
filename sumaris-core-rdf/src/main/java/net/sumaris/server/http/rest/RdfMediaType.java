@@ -49,6 +49,7 @@ public class RdfMediaType extends MediaType {
     public static final String APPLICATION_RDF_JSON_VALUE = "application/rdf+json";
     public static final RdfMediaType APPLICATION_RDF_JSON = fromString(APPLICATION_RDF_JSON_VALUE);
 
+
     public static final String APPLICATION_JSON_LD_VALUE = "application/ld+json";
     public static final RdfMediaType APPLICATION_JSON_LD = fromString(APPLICATION_JSON_LD_VALUE);
 
@@ -69,6 +70,9 @@ public class RdfMediaType extends MediaType {
 
     public static final String APPLICATION_THRIFT_VALUE = "application/x-thrift";
     public static final RdfMediaType APPLICATION_THRIFT = fromString(APPLICATION_THRIFT_VALUE);
+
+    public static final String APPLICATION_RDF_THRIFT_VALUE = "application/rdf+thrift";
+    public static final RdfMediaType APPLICATION_RDF_THRIFT = fromString(APPLICATION_RDF_THRIFT_VALUE);
 
     public static final String APPLICATION_WEBVOWL_VALUE = "application/webvowl+json";
     public static final RdfMediaType APPLICATION_WEBVOWL = fromString(APPLICATION_WEBVOWL_VALUE);

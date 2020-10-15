@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<queries name="extractionCreateStrategyTable">
+
+  <query type="create" temp="false" table="&amp;strategyTableName" option="DISTINCT">
+
+    <!-- PK -->
+    <select alias="TYPE" type="text">'Strategie'</select>
+    <select alias="ID_OP" type="number">SL.ID_OP</select>
+    <select alias="ID_VRAC" type="number">SL.ID_VRAC</select>
+    <select alias="NUM_VRAC" type="number">SL.NUM_VRAC</select>
+    <select alias="VRAC_HV" type="text">'Vrac'</select>
+    <select alias="PR_PNR" type="text">DECODE(SL.CATCH_CATEGORY, 'DIS', 'PNR', 'LAN', 'PR', null)</select>
+    <select alias="EXHAUSTIF" type="text">'Oui'</select>
+    <select alias="TAUX_ECH" type="number">null</select>
+    <select alias="POIDS_REF_VRAC" type="number">null</select>
+
+    <from alias="SL">&amp;rawSpeciesListTableName</from>
+  </query>
+
+</queries>

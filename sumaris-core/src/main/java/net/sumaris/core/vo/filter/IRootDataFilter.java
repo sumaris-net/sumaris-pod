@@ -22,13 +22,16 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public interface IRootDataFilter extends Serializable {
+public interface IRootDataFilter extends IDataFilter {
+
+    Integer getRecorderPersonId();
+
+    void setRecorderPersonId(Integer recorderPersonId);
 
     Date getStartDate();
 
@@ -41,10 +44,6 @@ public interface IRootDataFilter extends Serializable {
     String getProgramLabel();
 
     void setProgramLabel(String programLabel);
-
-    Integer getRecorderDepartmentId();
-
-    void setRecorderDepartmentId(Integer recorderDepartmentId);
 
     Integer getLocationId();
 

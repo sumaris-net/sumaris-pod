@@ -26,9 +26,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.service.DatasetService;
 import net.sumaris.rdf.model.ModelVocabulary;
+import net.sumaris.rdf.service.store.DatasetService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;
@@ -38,7 +37,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
-import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.resultset.ResultsFormat;
 import org.slf4j.Logger;
@@ -51,6 +49,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -62,7 +61,7 @@ import java.util.Optional;
 
 
 @RestController
-@ConditionalOnBean({RdfConfiguration.class})
+@ConditionalOnBean({WebMvcConfigurer.class})
 public class SparqlRestController {
 
     public static final String SPARQL_ENDPOINT = "/sparql";
@@ -72,7 +71,7 @@ public class SparqlRestController {
     @Resource
     private RdfSchemaService schemaService;
 
-    @Value("${server.url}/" + SPARQL_ENDPOINT)
+    @Value("${server.url}" + SPARQL_ENDPOINT)
     private String sparqlEndpointUrl;
 
     @Value("${rdf.sparql.maxLimit:10000}")
@@ -82,7 +81,7 @@ public class SparqlRestController {
     private DatasetService datasetService;
 
     @PostConstruct
-    public void start() {
+    public void init() {
         log.info("Starting SparQL endpoint {{}}...", sparqlEndpointUrl);
     }
 
@@ -251,7 +250,7 @@ public class SparqlRestController {
         return firstValidFormat(acceptedContentTypes, RdfFormat::fromContentType)
                 .map(format -> {
                     // Convert model to bytes
-                    byte[] content = ModelUtils.modelToBytes(model, format);
+                    byte[] content = ModelUtils.toBytes(model, format);
                     // Return response
                     return ResponseEntity.ok()
                             .contentType(format.mineType())
@@ -266,7 +265,7 @@ public class SparqlRestController {
         return firstValidFormat(acceptedContentTypes, RdfFormat::fromContentType)
                 .map(format -> {
                     // Convert model to bytes
-                    byte[] content = ModelUtils.datasetToBytes(dataset, format);
+                    byte[] content = ModelUtils.toBytes(dataset, format);
                     // Return response
                     return ResponseEntity.ok()
                             .contentType(format.mineType())

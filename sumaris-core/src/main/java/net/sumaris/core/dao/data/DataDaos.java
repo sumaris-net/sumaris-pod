@@ -39,7 +39,6 @@ import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.hibernate.Session;
 
 import javax.persistence.EntityManager;
@@ -73,12 +72,12 @@ public class DataDaos extends Daos {
 
         // Vessel (optional on a root - e.g. ObservedLocation)
         if (source instanceof IWithVesselSnapshotEntity && target instanceof IWithVesselEntity) {
-            copyVessel(entityManager, (IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>)source, (IWithVesselEntity<Integer, Vessel>)target, copyIfNull);
+            copyVessel(entityManager, (IWithVesselSnapshotEntity<T, VesselSnapshotVO>)source, (IWithVesselEntity<T, Vessel>)target, copyIfNull);
         }
 
         // Observers (optional on a root)
         if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            copyObservers(entityManager, (IWithObserversEntity<Integer, PersonVO>)source, (IWithObserversEntity<Integer, Person>)target, copyIfNull);
+            copyObservers(entityManager, (IWithObserversEntity<T, PersonVO>)source, (IWithObserversEntity<T, Person>)target, copyIfNull);
         }
     }
 
@@ -149,10 +148,10 @@ public class DataDaos extends Daos {
                             }
                         });
 
-                // Remove deleted tableNames
-                if (MapUtils.isNotEmpty(observersToRemove)) {
-                    observers.removeAll(observersToRemove.values());
-                }
+                // Remove remaining observers
+                observers.removeAll(observersToRemove.values());
+
+                // affect observers
                 target.setObservers(observers);
             }
         }
@@ -179,7 +178,9 @@ public class DataDaos extends Daos {
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(entityManager, QualityFlag.class, SumarisConfiguration.getInstance().getDefaultQualityFlagId()));
+                int defaultQualityFlagId = SumarisConfiguration.getInstance().getDefaultQualityFlagId();
+                source.setQualityFlagId(defaultQualityFlagId);
+                target.setQualityFlag(load(entityManager, QualityFlag.class, defaultQualityFlagId));
             } else {
                 target.setQualityFlag(load(entityManager, QualityFlag.class, source.getQualityFlagId()));
             }

@@ -23,7 +23,6 @@ package net.sumaris.core.dao.social;
  */
 
 
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.vo.social.UserEventVO;
@@ -36,7 +35,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
-import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -44,7 +42,7 @@ import java.util.Date;
  */
 public class UserEventRepositoryImpl
     extends SumarisJpaRepositoryImpl<UserEvent, Integer, UserEventVO>
-    implements UserEventRepositoryExtend {
+    implements UserEventSpecifications {
 
     private static final Logger log =
         LoggerFactory.getLogger(UserEventRepositoryImpl.class);

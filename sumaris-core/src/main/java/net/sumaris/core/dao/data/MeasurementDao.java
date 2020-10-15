@@ -26,6 +26,7 @@ package net.sumaris.core.dao.data;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 
 import java.util.List;
 import java.util.Map;
@@ -33,11 +34,11 @@ import java.util.Map;
 public interface MeasurementDao {
 
 
-    <T extends IMeasurementEntity> MeasurementVO toMeasurementVO(T measurement);
+    <T extends IMeasurementEntity, V extends MeasurementVO> V toMeasurementVO(T measurement, Class<? extends V> voClass);
 
-    <T extends IMeasurementEntity> List<MeasurementVO> saveMeasurements(
+    <T extends IMeasurementEntity, V extends MeasurementVO> List<V> saveMeasurements(
             Class<? extends IMeasurementEntity> entityClass,
-            List<MeasurementVO> sources,
+            List<V> sources,
             List<T> target,
             IDataEntity<?> parent);
 
@@ -94,11 +95,11 @@ public interface MeasurementDao {
 
     // Batch
     List<MeasurementVO> getBatchSortingMeasurements(int batchId);
-    List<MeasurementVO> getBatchQuantificationMeasurements(int batchId);
+    List<QuantificationMeasurementVO> getBatchQuantificationMeasurements(int batchId);
     Map<Integer, String> getBatchSortingMeasurementsMap(int batchId);
     Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId);
     List<MeasurementVO> saveBatchSortingMeasurements(int batchId, List<MeasurementVO> sources);
-    List<MeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<MeasurementVO> sources);
+    List<QuantificationMeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<QuantificationMeasurementVO> sources);
     Map<Integer, String> saveBatchSortingMeasurementsMap(final int batchId, Map<Integer, String> sources);
     Map<Integer, String> saveBatchQuantificationMeasurementsMap(final int batchId, Map<Integer, String> sources);
 
