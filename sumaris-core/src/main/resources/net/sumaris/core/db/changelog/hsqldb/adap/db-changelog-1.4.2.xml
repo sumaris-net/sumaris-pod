@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.4.2.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Fix wrong taxonomic level to FAMILY (Gadidae) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-400">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM taxon_name where name = 'Gadidae' and  TAXONOMIC_LEVEL_FK=26</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update TAXON_NAME set TAXONOMIC_LEVEL_FK=17 where name='Gadidae' and TAXONOMIC_LEVEL_FK=26;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Insert taxon_name SCE - Pecten Maximus -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-401">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where label = 'SCE'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">SCX</column>
+            <column name="NAME">Peignes nca</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="17"/><!-- FAMILY -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Pectinidae</column>
+            <column name="UPPER_RANK" valueNumeric="84000000"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="NAME">Pecten</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="26"/><!-- GENUS-->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Pecten</column>
+            <column name="UPPER_RANK" valueNumeric="84656000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Pectinidae' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=17)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">SCE</column>
+            <column name="NAME">Coquille St-Jacques atlantique</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/> <!-- SPECIES -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Pecten maximus</column>
+            <column name="UPPER_RANK" valueNumeric="84656100"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Pecten' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=26)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+
+        <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='SCE' AND IS_REFERENT = true)"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert taxon_name ANE - Engraulis encrasicolus (Anchois) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-402">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where label = 'ANE'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">ANX</column>
+            <column name="NAME">Anchois, etc. nca</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="17"/><!-- FAMILY -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Engraulidae</column>
+            <column name="UPPER_RANK" valueNumeric="266300000"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">ENR</column>
+            <column name="NAME">Anchois nca</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="26"/><!-- GENUS-->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Engraulis</column>
+            <column name="UPPER_RANK" valueNumeric="266400000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Engraulidae' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=17)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">ANE</column>
+            <column name="NAME">Anchois</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/> <!-- SPECIES -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Engraulis encrasicolus</column>
+            <column name="UPPER_RANK" valueNumeric="266500000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Engraulis' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=26)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+
+        <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='ANE' AND IS_REFERENT = true)"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert taxon_name PIL - Sardina pilchardus -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-403">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where label = 'PIL'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">CLP</column>
+            <column name="NAME">Harengs, sardines nca</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="17"/><!-- FAMILY -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Clupeidae</column>
+            <column name="UPPER_RANK" valueNumeric="260700000"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="NAME">Sardines nca</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="26"/><!-- GENUS-->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Sardina</column>
+            <column name="UPPER_RANK" valueNumeric="262300000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Clupeidae' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=17)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">PIL</column>
+            <column name="NAME">Sardine commune</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/> <!-- SPECIES -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Sardina pilchardus</column>
+            <column name="UPPER_RANK" valueNumeric="262400000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Sardina' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=26)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='PIL' AND IS_REFERENT = true)"/>
+        </insert>
+    </changeSet>
+
+
+    <!-- Insert taxon_name SCR - Maja squinado -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-404">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where label = 'SCR'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="NAME">Majinae</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="17"/><!-- FAMILY -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Majinae</column>
+            <column name="UPPER_RANK" valueNumeric="199110000"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="NAME">Maja</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="26"/><!-- GENUS-->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Maja</column>
+            <column name="UPPER_RANK" valueNumeric="199113000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Majinae' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=17)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="NAME">Araignée de Méditerranée</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/> <!-- SPECIES -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Maja squinado</column>
+            <column name="UPPER_RANK" valueNumeric="199113400"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Maja' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=26)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert taxon_name ? - Maja brachydactyla -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-405">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where comments = 'Maja brachydactyla'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">SCR</column>
+            <column name="NAME">Araignée de l'Atlantique</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/> <!-- SPECIES -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Maja brachydactyla</column>
+            <column name="UPPER_RANK" valueNumeric="199113100"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Maja' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=26)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+
+        <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE COMMENTS='Maja brachydactyla' AND IS_REFERENT = true)"/>
+        </insert>
+    </changeSet>
+
+
+
+    <!-- Add missing origin item type -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-406">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM ORIGIN_ITEM_TYPE</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            INSERT INTO ORIGIN_ITEM_TYPE (ID, LABEL, NAME, DESCRIPTION, CREATION_DATE, UPDATE_DATE, STATUS_FK, COMMENTS) VALUES (4, 'FAO', 'FAO', null, sysdate, now, 1, null);
+            INSERT INTO ORIGIN_ITEM_TYPE (ID, LABEL, NAME, DESCRIPTION, CREATION_DATE, UPDATE_DATE, STATUS_FK, COMMENTS) VALUES (5, 'HARMONIE', 'SIH-HARMONIE Ifremer', null, sysdate, now, 1, null);
+            ALTER SEQUENCE ORIGIN_ITEM_TYPE_SEQ RESTART WITH 5;
+            select NEXT VALUE FOR ORIGIN_ITEM_TYPE_SEQ from STATUS where ID=1;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Insert LOCATION_LEVEL used by WEIGHT_LENGTH_CONVERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-407" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM LOCATION_LEVEL where ID IN (101, 110, 111, 140, 141)</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (101, 'FAO_AREA', 'Zone FAO', sysdate, now, null, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (110, 'ICES_SUB_AREA', 'Sous-zone CIEM/ICES', sysdate, now, 101, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (111, 'ICES_DIVISION', 'Division CIEM/ICES', sysdate, now, 110, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (112, 'ICES_SUB_DIVISION', 'Sous-Division CIEM/ICES', sysdate, now, 111, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (140, 'GFCM_SUB_AREA', 'Sous-zone CGPM/GFCM', sysdate, now, 101, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (141, 'GFCM_DIVISION', 'Division CGPM/GFCM', sysdate, now, 140, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (142, 'GFCM_SUB_DIVISION', 'Sous-Division CGPM/GFCM', sysdate, now, 141, 2, null, null, 1);
+            ALTER SEQUENCE LOCATION_LEVEL_SEQ RESTART WITH 300;
+            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from STATUS where ID=1;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Insert LOCATION used by WEIGHT_LENGTH_CONVERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-408">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM LOCATION where LOCATION_LEVEL_FK in (111,145)</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_location-1.4.2.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+
+    <!-- Insert PARAMETER used by WEIGHT_LENGTH_CONVERSION
+         Query used on SIH-Adagio: SELECT distinct P.* from WEIGHT_LENGTH_CONVERSION WLC inner join PARAMETER P on WLC.LENGTH_PARAMETER_FK = P.CODE;
+     -->
+    <changeSet id="benoit.lavenier@e-is.pro" author="1600856443393-409">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER where LABEL IN ('WIDTH_CARAPACE', 'LENGTH_CARAPACE', 'LENGTH_MANTLE')</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'WIDTH_CARAPACE', 'Largeur céphalothoracique (LAC)', 'Largeur céphalothoracique de l''individu', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_LM_FORK', 'Longueur maxillaire inférieur-fourche caudale (LMF) (ex. marlin et espadon)', 'Longueur maxillaire inférieur fourche caudale de l''individu (Espadon, Marlin)', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'HEIGHT', 'Hauteur de l''individu (H)', 'Hauteur de l''individu (crustacé, coquillage ou poisson)', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_CARAPACE', 'Longueur céphalothoracique (LC)', 'Longueur céphalothoracique de l''individu', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_FORK', 'Longueur à la fourche (LF)', 'Longueur maxillaire supérieur fourche caudale de l''individu (Thonidés, etc.)', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_MANTLE', 'Longueur du manteau (LM)', 'Longueur du manteau de l''individu (pour les Céphalopodes seulement : seiches, calmars, encornets, poulpes).', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'LENGTH_PREANAL', 'Longueur préanale (LPA)', 'Longueur préanale (LPA)', 0, sysdate, now, 1, 0, null);
+            INSERT INTO PARAMETER (ID, LABEL, NAME, DESCRIPTION, IS_QUALITATIVE, CREATION_DATE, UPDATE_DATE, STATUS_FK, IS_ALPHANUMERIC, COMMENTS) VALUES (NEXT VALUE FOR PARAMETER_SEQ, 'SEGMENT_LENGTH', 'Longueur du deuxième segment (langoustine) au centième de mm', 'Longueur du deuxième segment (langoustine) au centième de mm', 0, sysdate, now, 1, 0, null);
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Insert WEIGHT_LENGTH_CONVERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-410">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM WEIGHT_LENGTH_CONVERSION</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_weight_length_conversion-1.4.2.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+</databaseChangeLog>

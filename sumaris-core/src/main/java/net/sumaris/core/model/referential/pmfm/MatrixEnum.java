@@ -28,11 +28,9 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 @EntityEnum(entity = Matrix.class)
-public enum MatrixEnum implements Serializable  {
+public enum MatrixEnum implements Serializable {
 
-    GEAR(3, "GEAR")
-
-    ;
+    GEAR(3, "GEAR");
 
     public static MatrixEnum valueOf(final int id) {
         return Arrays.stream(values())
@@ -54,13 +52,19 @@ public enum MatrixEnum implements Serializable  {
      *
      * @return int the id
      */
-    public int getId()
-    {
+    public int getId() {
         return this.id;
     }
 
-    public String getLabel()
-    {
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getLabel() {
         return this.label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 }

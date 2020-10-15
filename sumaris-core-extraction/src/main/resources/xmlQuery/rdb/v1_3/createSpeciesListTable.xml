@@ -56,7 +56,6 @@
       SEX, LENGTH_CODE
     </groupby>
 
-<!--    <orderby direction="ASC">S.SAMPLE_ID, LENGTH_CODE</orderby>-->
   </query>
 
 </queries>

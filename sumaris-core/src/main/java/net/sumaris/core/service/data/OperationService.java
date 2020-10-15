@@ -41,7 +41,7 @@ public interface OperationService {
 
 
 	@Transactional(readOnly = true)
-	List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+	List<OperationVO> findAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
 	Long countByTripId(int tripId);

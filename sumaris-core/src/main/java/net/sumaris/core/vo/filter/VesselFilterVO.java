@@ -32,6 +32,10 @@ import java.util.List;
 @FieldNameConstants
 public class VesselFilterVO {
 
+    public static VesselFilterVO nullToEmpty(VesselFilterVO f) {
+        return f != null ? f : new VesselFilterVO();
+    }
+
     private Date date;
 
     private Integer vesselId;

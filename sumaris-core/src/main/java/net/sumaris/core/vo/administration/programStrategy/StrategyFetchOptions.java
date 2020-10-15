@@ -25,11 +25,12 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 @Data
 @Builder
 @EqualsAndHashCode
-public class StrategyFetchOptions {
+public class StrategyFetchOptions implements IFetchOptions {
 
     @Builder.Default
     private boolean withPmfmStrategyInheritance = false;

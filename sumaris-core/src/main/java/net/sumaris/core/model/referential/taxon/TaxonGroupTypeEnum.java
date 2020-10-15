@@ -47,11 +47,21 @@ public enum TaxonGroupTypeEnum implements Serializable {
                 .findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown TaxonGroupTypeId: " + id));
     }
 
-    public int getId() {
-        return id;
+    public int getId()
+    {
+        return this.id;
     }
 
-    public String getLabel() {
-        return label;
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getLabel()
+    {
+        return this.label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 }

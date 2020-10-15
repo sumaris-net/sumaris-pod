@@ -25,7 +25,6 @@ package net.sumaris.server.http.vowl;
 import com.google.common.collect.Maps;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.exception.JenaExceptions;
 import net.sumaris.rdf.model.ModelURIs;
 import net.sumaris.rdf.util.ModelUtils;
@@ -41,6 +40,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -49,13 +49,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 
 @RestController
-@ConditionalOnBean({RdfConfiguration.class})
+@ConditionalOnBean({WebMvcConfigurer.class})
 public class WebvowlRestController {
 
     public static final String BASE_PATH = "/webvowl";
@@ -71,7 +72,7 @@ public class WebvowlRestController {
     private RdfRestController rdfRestController;
 
     @PostConstruct
-    public void afterPropertySet() {
+    public void start() {
         log.info("Starting WebVOWL endpoint {{}}...", BASE_PATH);
     }
 
@@ -111,7 +112,7 @@ public class WebvowlRestController {
 
         try {
             String[] parts = iri.split("[,|+]");
-            Model model = Arrays.stream(parts)
+            List<Model> models = Arrays.stream(parts)
                 .map(aUri -> {
                     if (StringUtils.isBlank(aUri)) throw new IllegalArgumentException("Invalid 'iri': " + aUri);
 
@@ -123,18 +124,27 @@ public class WebvowlRestController {
                     webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Reading {%s} %s model...", aUri, sourceFormat.toJenaFormat()));
                     return rdfRestController.loadModelByUri(aUri.trim(), sourceFormat);
                 })
+                    .collect(Collectors.toList());
+            Model model;
+            if (models.size() == 1) {
+                model = models.get(0);
+            }
+            else {
                 // Union on all models
-                .reduce(ModelFactory::createUnion).orElse(null);
+                model = models.stream()
+                        .reduce(ModelFactory::createUnion)
+                        .orElse(null);
+            }
+
 
             // Convert to WebVOWL
             RdfFormat targetFormat = RdfFormat.fromUserString(format).orElse(RdfFormat.VOWL);
             log.info(String.format("Converting model {%s} to %s...", iri, targetFormat.toJenaFormat()));
             webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Converting model to %s...", targetFormat.toJenaFormat()));
-            String content = ModelUtils.modelToString(model, targetFormat);
 
             return ResponseEntity.ok()
                     .contentType(targetFormat.mineType())
-                    .body(content);
+                    .body(ModelUtils.modelToString(model, targetFormat));
         }
         catch(Exception e) {
             Throwable cause = JenaExceptions.findJenaRootCause(e).orElse(e);

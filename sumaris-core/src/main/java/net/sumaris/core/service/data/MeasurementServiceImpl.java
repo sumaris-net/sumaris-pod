@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,7 +108,7 @@ public class MeasurementServiceImpl implements MeasurementService {
 	}
 
 	@Override
-	public List<MeasurementVO> getBatchQuantificationMeasurements(int batchId) {
+	public List<QuantificationMeasurementVO> getBatchQuantificationMeasurements(int batchId) {
 		return measurementDao.getBatchQuantificationMeasurements(batchId);
 	}
 

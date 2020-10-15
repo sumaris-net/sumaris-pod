@@ -26,7 +26,6 @@ package net.sumaris.core.service.administration.programStrategy;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -37,7 +36,7 @@ import java.util.List;
  *    Service in charge of importing csv file into DB
  * 
  */
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional()
 public interface ProgramService {
 
 	@Transactional(readOnly = true)

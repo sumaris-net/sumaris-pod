@@ -28,7 +28,7 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.util.Dates;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.dao.RdfModelDao;
+import net.sumaris.rdf.dao.EntitiesDao;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelEntities;
 import net.sumaris.rdf.service.schema.RdfSchemaOptions;
@@ -82,7 +82,7 @@ public class RdfDataImportServiceImpl {
     protected RdfConfiguration config;
 
     @Autowired
-    protected RdfModelDao modelDao;
+    protected EntitiesDao modelDao;
 
     @Autowired
     private RdfSchemaService exportService;
@@ -225,7 +225,7 @@ public class RdfDataImportServiceImpl {
             TaxonomicLevel tl = (TaxonomicLevel) context.URI_2_OBJ_REF.get(ontResource.getURI());
 
             try {
-                // first try to get it from cache
+                // first try to find it from cache
                 Property propCode = ontResource.getModel().getProperty(classUri + "#code");
                 String label = ontResource.asIndividual().getPropertyValue(propCode).toString();
 
@@ -274,7 +274,7 @@ public class RdfDataImportServiceImpl {
 
             try {
 
-                // first try to get it from cache
+                // first try to find it from cache
                 Property propCode = ontResource.getModel().getProperty(clName + "#Code");
                 Integer id = Integer.parseInt(ontResource.asIndividual().getPropertyValue(propCode).toString());
 

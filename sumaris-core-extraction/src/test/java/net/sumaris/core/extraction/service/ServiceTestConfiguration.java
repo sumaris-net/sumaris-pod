@@ -50,8 +50,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories("net.sumaris.core.dao")
 public class ServiceTestConfiguration extends TestConfiguration {
 
-        @Bean
-        public static SumarisConfiguration sumarisConfiguration() {
-                return initConfiguration("sumaris-core-extraction-test.properties");
-        }
+    @Bean
+    public static SumarisConfiguration sumarisConfiguration() {
+        return initConfiguration("sumaris-core-extraction-test.properties");
+    }
 }

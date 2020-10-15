@@ -24,21 +24,17 @@ package net.sumaris.core;
  * #L%
  */
 
+import net.sumaris.core.dao.administration.UserSettingsRepositoryWriteTest;
+import net.sumaris.core.dao.administration.UserTokenRepositoryWriteTest;
 import net.sumaris.core.dao.data.*;
-import net.sumaris.core.dao.referential.LocationWriteTest;
-import net.sumaris.core.dao.referential.TaxonGroupRepositoryWriteTest;
-import net.sumaris.core.dao.referential.TaxonNameDaoReadTest;
+import net.sumaris.core.dao.referential.*;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDaoWriteTest;
 import net.sumaris.core.dao.technical.schema.DatabaseSchemaDaoTest;
-import net.sumaris.core.service.FileImportServiceTest;
-import net.sumaris.core.service.administration.DepartmentServiceTest;
-import net.sumaris.core.service.administration.PersonServiceTest;
-import net.sumaris.core.service.administration.StrategyServiceTest;
+import net.sumaris.core.service.technical.ConfigurationServiceTest;
+import net.sumaris.core.service.technical.FileImportServiceTest;
+import net.sumaris.core.service.administration.*;
 import net.sumaris.core.service.data.*;
-import net.sumaris.core.service.referential.LocationServiceReadTest;
-import net.sumaris.core.service.referential.LocationServiceWriteTest;
-import net.sumaris.core.service.referential.ReferentialServiceReadTest;
-import net.sumaris.core.service.referential.TaxonGroupServiceWriteTest;
+import net.sumaris.core.service.referential.*;
 import net.sumaris.core.service.technical.SoftwareServiceTest;
 import net.sumaris.core.service.technical.schema.DatabaseSchemaServiceTest;
 import net.sumaris.core.util.crypto.CryptoUtilsTest;
@@ -52,50 +48,65 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+    // DAO: referential
+    LocationRepositoryReadTest.class,
+    LocationRepositoryWriteTest.class,
+    MetierRepositoryReadTest.class,
+    ParameterRepositoryWriteTest.class,
+    PmfmRepositoryReadTest.class,
+    PmfmRepositoryWriteTest.class,
+    TaxonGroupRepositoryWriteTest.class,
+    TaxonNameRepositoryReadTest.class,
+    // DAO: administration
+    UserTokenRepositoryWriteTest.class,
+    UserSettingsRepositoryWriteTest.class,
     // DAO : data
     BatchDaoWriteTest.class,
+    LandingRepositoryReadTest.class,
     SampleDaoWriteTest.class,
     TripRepositoryWriteTest.class,
-    LandingRepositoryReadTest.class,
     VesselDaoImplReadTest.class,
     VesselSnapshotDaoImplReadTest.class,
-    // DAO: referential
-    LocationWriteTest.class,
-    TaxonGroupRepositoryWriteTest.class,
-    TaxonNameDaoReadTest.class,
     // DAO: technical
     DatabaseSchemaDaoTest.class,
     ExtractionProductDaoWriteTest.class,
 
-    // Service: administration
-    DepartmentServiceTest.class,
-    PersonServiceTest.class,
-    StrategyServiceTest.class,
-
-    // Service: data
-    ObservedLocationServiceWriteTest.class,
-    OperationServiceWriteTest.class,
-    TripServiceQualityTest.class,
-    TripServiceWriteTest.class,
-    TripServiceReadTest.class,
-    VesselServiceWriteTest.class,
-    LandingServiceReadTest.class,
-    LandingServiceWriteTest.class,
-
     // Service: referential
     LocationServiceReadTest.class,
     LocationServiceWriteTest.class,
+    PmfmServiceReadTest.class,
+    PmfmServiceWriteTest.class,
     ReferentialServiceReadTest.class,
+    ReferentialServiceWriteTest.class,
     TaxonGroupServiceWriteTest.class,
-
+    // Service: administration
+    DepartmentServiceTest.class,
+    PersonServiceTest.class,
+    ProgramServiceReadTest.class,
+    ProgramServiceWriteTest.class,
+    StrategyServiceReadTest.class,
+    // Service: data
+    ObservedLocationServiceReadTest.class,
+    ObservedLocationServiceWriteTest.class,
+    LandingServiceReadTest.class,
+    LandingServiceWriteTest.class,
+    AggregatedLandingServiceReadTest.class,
+    TripServiceQualityTest.class,
+    TripServiceWriteTest.class,
+    TripServiceReadTest.class,
+    OperationServiceWriteTest.class,
+    PacketServiceWriteTest.class,
+    VesselServiceWriteTest.class,
     // Service: technical
     DatabaseSchemaServiceTest.class,
+    ConfigurationServiceTest.class,
     SoftwareServiceTest.class,
     FileImportServiceTest.class,
 
     // Util
     CryptoUtilsTest.class,
-    MD5UtilTest.class
+    MD5UtilTest.class,
+    MiscTest.class
 })
 public class AllTests {
 

@@ -10,25 +10,24 @@ package net.sumaris.core.service.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.OperationDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
+import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -37,6 +36,7 @@ import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -54,28 +54,28 @@ import java.util.stream.Collectors;
 @Service("operationService")
 public class OperationServiceImpl implements OperationService {
 
-	private static final Logger log = LoggerFactory.getLogger(OperationServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(OperationServiceImpl.class);
 
-	@Autowired
-	protected SumarisConfiguration config;
+    @Autowired
+    protected SumarisConfiguration config;
 
-	@Autowired
-	protected OperationDao operationDao;
+    @Autowired
+    protected OperationRepository operationRepository;
 
-	@Autowired
-	protected VesselPositionDao vesselPositionDao;
+    @Autowired
+    protected VesselPositionDao vesselPositionDao;
 
-	@Autowired
-	protected MeasurementDao measurementDao;
+    @Autowired
+    protected MeasurementDao measurementDao;
 
-	@Autowired
-	protected SampleService sampleService;
+    @Autowired
+    protected SampleService sampleService;
 
-	@Autowired
-	protected BatchService batchService;
+    @Autowired
+    protected BatchService batchService;
 
-	@Autowired
-	protected FishingAreaService fishingAreaService;
+    @Autowired
+    protected FishingAreaService fishingAreaService;
 
 	@Autowired
 	private ApplicationEventPublisher publisher;
@@ -87,302 +87,298 @@ public class OperationServiceImpl implements OperationService {
 		this.enableTrash = event.getConfig().enableEntityTrash();
 	}
 
-	@Override
-	public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		return operationDao.getAllByTripId(tripId, offset, size, sortAttribute, sortDirection);
-	}
+    @Override
+    public List<OperationVO> findAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        return operationRepository.findAll(OperationFilterVO.builder().tripId(tripId).build(), offset, size, sortAttribute, sortDirection, null).getContent();
+    }
 
-	@Override
-	public Long countByTripId(int tripId) {
-		return operationDao.countByTripId(tripId);
-	}
+    @Override
+    public Long countByTripId(int tripId) {
+        return operationRepository.count(OperationFilterVO.builder().tripId(tripId).build());
+    }
 
-	@Override
-	public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> sources) {
-		// Check operation validity
-		sources.forEach(this::checkOperation);
+    @Override
+    public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> sources) {
+        // Check operation validity
+        sources.forEach(this::checkOperation);
 
-		// Save entities
-		List<OperationVO> savedOperations =
-				operationDao.saveAllByTripId(tripId, sources);
+        // Save entities
+        List<OperationVO> savedOperations = operationRepository.saveAllByTripId(tripId, sources);
 
-		// Save children entities
-		savedOperations.forEach(this::saveChildrenEntities);
+        // Save children entities
+        savedOperations.forEach(this::saveChildrenEntities);
 
-		return savedOperations;
-	}
+        return savedOperations;
+    }
 
-	@Override
-	public OperationVO get(int operationId) {
-		return operationDao.get(operationId);
-	}
+    @Override
+    public OperationVO get(int operationId) {
+        return operationRepository.get(operationId);
+    }
 
-	@Override
-	public OperationVO save(final OperationVO source) {
-		// Check operation validity
-		checkOperation(source);
+    @Override
+    public OperationVO save(final OperationVO source) {
+        // Check operation validity
+        checkOperation(source);
 
-		// Save the entity
-		operationDao.save(source);
+        // Save the entity
+        operationRepository.save(source);
 
-		// Save linked entities
-		saveChildrenEntities(source);
+        // Save linked entities
+        saveChildrenEntities(source);
 
-		return source;
-	}
+        return source;
+    }
 
-	@Override
-	public List<OperationVO> save(List<OperationVO> operations) {
-		Preconditions.checkNotNull(operations);
+    @Override
+    public List<OperationVO> save(List<OperationVO> operations) {
+        Preconditions.checkNotNull(operations);
 
-		return operations.stream()
-				.map(this::save)
-				.collect(Collectors.toList());
-	}
+        return operations.stream()
+            .map(this::save)
+            .collect(Collectors.toList());
+    }
 
-	@Override
-	public void delete(int id) {
+    @Override
+    public void delete(int id) {
 		// Construct the delete event
 		// (should be done before deletion, to be able to get the VO)
 		EntityDeleteEvent event = new EntityDeleteEvent(id, Operation.class.getSimpleName(), enableTrash ? get(id) : null);
 
 		// Apply deletion
-		operationDao.delete(id);
+		operationRepository.deleteById(id);
 
 		// Emit the event
 		publisher.publishEvent(event);
 
-	}
-	@Override
-	public void delete(List<Integer> ids) {
-		Preconditions.checkNotNull(ids);
-		ids.stream()
-				.filter(Objects::nonNull)
-				.forEach(this::delete);
-	}
+    }
 
-	/* -- protected methods -- */
+    @Override
+    public void delete(List<Integer> ids) {
+        Preconditions.checkNotNull(ids);
+        ids.stream()
+            .filter(Objects::nonNull)
+            .forEach(this::delete);
+    }
 
-	protected void checkOperation(final OperationVO source) {
-		Preconditions.checkNotNull(source);
-		Preconditions.checkNotNull(source.getStartDateTime(), "Missing startDateTime");
-		Preconditions.checkNotNull(source.getEndDateTime(), "Missing endDateTime");
-		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
-		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+    /* -- protected methods -- */
 
-	}
+    protected void checkOperation(final OperationVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getStartDateTime(), "Missing startDateTime");
+        Preconditions.checkNotNull(source.getEndDateTime(), "Missing endDateTime");
+        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
 
-	protected void saveChildrenEntities(final OperationVO source) {
+    }
 
-		// Save positions
-		{
-			List<VesselPositionVO> positions = Beans.getList(source.getPositions());
-			positions.forEach(m -> fillDefaultProperties(source, m));
-			positions = vesselPositionDao.saveByOperationId(source.getId(), positions);
-			source.setPositions(positions);
-		}
+    protected void saveChildrenEntities(final OperationVO source) {
 
-		// Save measurements (vessel use measurement)
-		{
-			if (source.getMeasurementValues() != null) {
-				measurementDao.saveOperationVesselUseMeasurementsMap(source.getId(), source.getMeasurementValues());
-			}
-			else {
-				List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(source, m, VesselUseMeasurement.class));
+        // Save positions
+        {
+            List<VesselPositionVO> positions = Beans.getList(source.getPositions());
+            positions.forEach(m -> fillDefaultProperties(source, m));
+            positions = vesselPositionDao.saveByOperationId(source.getId(), positions);
+            source.setPositions(positions);
+        }
+
+        // Save measurements (vessel use measurement)
+        {
+            if (source.getMeasurementValues() != null) {
+                measurementDao.saveOperationVesselUseMeasurementsMap(source.getId(), source.getMeasurementValues());
+            } else {
+                List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+                measurements.forEach(m -> fillDefaultProperties(source, m, VesselUseMeasurement.class));
 
 				// TODO: dispatch measurement by GEAR/NOT GEAR
-				measurements = measurementDao.saveOperationVesselUseMeasurements(source.getId(), measurements);
-				source.setMeasurements(measurements);
-			}
-		}
+                measurements = measurementDao.saveOperationVesselUseMeasurements(source.getId(), measurements);
+                source.setMeasurements(measurements);
+            }
+        }
 
-		// Save gear measurements (gear use measurement)
-		{
-			if (source.getGearMeasurementValues() != null) {
-				measurementDao.saveOperationGearUseMeasurementsMap(source.getId(), source.getGearMeasurementValues());
-			}
-			else {
-				List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(source, m, GearUseMeasurement.class));
-				measurements = measurementDao.saveOperationGearUseMeasurements(source.getId(), measurements);
-				source.setGearMeasurements(measurements);
-			}
-		}
+        // Save gear measurements (gear use measurement)
+        {
+            if (source.getGearMeasurementValues() != null) {
+                measurementDao.saveOperationGearUseMeasurementsMap(source.getId(), source.getGearMeasurementValues());
+            } else {
+                List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
+                measurements.forEach(m -> fillDefaultProperties(source, m, GearUseMeasurement.class));
+                measurements = measurementDao.saveOperationGearUseMeasurements(source.getId(), measurements);
+                source.setGearMeasurements(measurements);
+            }
+        }
 
-		// Save samples
-		{
-			List<SampleVO> samples = getSamplesAsList(source);
-			samples.forEach(s -> fillDefaultProperties(source, s));
-			samples = sampleService.saveByOperationId(source.getId(), samples);
+        // Save samples
+        {
+            List<SampleVO> samples = getSamplesAsList(source);
+            samples.forEach(s -> fillDefaultProperties(source, s));
+            samples = sampleService.saveByOperationId(source.getId(), samples);
 
-			// Prepare saved samples (e.g. to be used as graphQL query response)
-			samples.forEach(sample -> {
-				// Set parentId (instead of parent object)
-				if (sample.getParentId() == null && sample.getParent() != null) {
-					sample.setParentId(sample.getParent().getId());
-				}
-				// Remove link parent/children
-				sample.setParent(null);
-				sample.setChildren(null);
-			});
+            // Prepare saved samples (e.g. to be used as graphQL query response)
+            samples.forEach(sample -> {
+                // Set parentId (instead of parent object)
+                if (sample.getParentId() == null && sample.getParent() != null) {
+                    sample.setParentId(sample.getParent().getId());
+                }
+                // Remove link parent/children
+                sample.setParent(null);
+                sample.setChildren(null);
+            });
 
-			source.setSamples(samples);
-		}
+            source.setSamples(samples);
+        }
 
-		// Save batches
-		{
+        // Save batches
+        {
 
-			List<BatchVO> batches = getAllBatches(source);
-			batches.forEach(b -> fillDefaultProperties(source, b));
-			batches = batchService.saveByOperationId(source.getId(), batches);
+            List<BatchVO> batches = getAllBatches(source);
+            batches.forEach(b -> fillDefaultProperties(source, b));
+            batches = batchService.saveByOperationId(source.getId(), batches);
 
-			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
-			batches.forEach(batch -> {
-				// Set parentId (instead of parent object)
-				if (batch.getParentId() == null && batch.getParent() != null) {
-					batch.setParentId(batch.getParent().getId());
-				}
-				// Remove link parent/children
-				batch.setParent(null);
-				batch.setChildren(null);
-			});
+            // Transform saved batches into flat list (e.g. to be used as graphQL query response)
+            batches.forEach(batch -> {
+                // Set parentId (instead of parent object)
+                if (batch.getParentId() == null && batch.getParent() != null) {
+                    batch.setParentId(batch.getParent().getId());
+                }
+                // Remove link parent/children
+                batch.setParent(null);
+                batch.setChildren(null);
+            });
 
-			source.setCatchBatch(null);
-			source.setBatches(batches);
-		}
+            source.setCatchBatch(null);
+            source.setBatches(batches);
+        }
 
-		// Save Fishing areas
-		{
-			if (source.getFishingAreas() != null) {
+        // Save Fishing areas
+        {
+            if (source.getFishingAreas() != null) {
 
-				source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
-				fishingAreaService.saveAllByOperationId(source.getId(), source.getFishingAreas());
-			}
-		}
+                source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
+                fishingAreaService.saveAllByOperationId(source.getId(), source.getFishingAreas());
+            }
+        }
 
-	}
+    }
 
-	protected void fillDefaultProperties(OperationVO parent, VesselPositionVO position) {
-		if (position == null) return;
+    protected void fillDefaultProperties(OperationVO parent, VesselPositionVO position) {
+        if (position == null) return;
 
-		// Copy recorder department from the parent
-		if (position.getRecorderDepartment() == null || position.getRecorderDepartment().getId() == null) {
-			position.setRecorderDepartment(parent.getRecorderDepartment());
-		}
+        // Copy recorder department from the parent
+        if (position.getRecorderDepartment() == null || position.getRecorderDepartment().getId() == null) {
+            position.setRecorderDepartment(parent.getRecorderDepartment());
+        }
 
-		position.setOperationId(parent.getId());
-	}
+        position.setOperationId(parent.getId());
+    }
 
-	protected void fillDefaultProperties(OperationVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
-		if (measurement == null) return;
+    protected void fillDefaultProperties(OperationVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
+        if (measurement == null) return;
 
-		// Copy recorder department from the parent
-		if (measurement.getRecorderDepartment() == null || measurement.getRecorderDepartment().getId() == null) {
-			measurement.setRecorderDepartment(parent.getRecorderDepartment());
-		}
+        // Copy recorder department from the parent
+        if (measurement.getRecorderDepartment() == null || measurement.getRecorderDepartment().getId() == null) {
+            measurement.setRecorderDepartment(parent.getRecorderDepartment());
+        }
 
-		measurement.setEntityName(entityClass.getSimpleName());
-	}
+        measurement.setEntityName(entityClass.getSimpleName());
+    }
 
-	protected void fillDefaultProperties(OperationVO parent, BatchVO batch) {
-		if (batch == null) return;
+    protected void fillDefaultProperties(OperationVO parent, BatchVO batch) {
+        if (batch == null) return;
 
-		// Copy recorder department from the parent
-		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
-			batch.setRecorderDepartment(parent.getRecorderDepartment());
-		}
+        // Copy recorder department from the parent
+        if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+            batch.setRecorderDepartment(parent.getRecorderDepartment());
+        }
 
-		batch.setOperationId(parent.getId());
-	}
+        batch.setOperationId(parent.getId());
+    }
 
-	protected void fillDefaultProperties(BatchVO parent, BatchVO batch) {
-		if (batch == null) return;
+    protected void fillDefaultProperties(BatchVO parent, BatchVO batch) {
+        if (batch == null) return;
 
-		// Copy recorder department from the parent
-		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
-			batch.setRecorderDepartment(parent.getRecorderDepartment());
-		}
+        // Copy recorder department from the parent
+        if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+            batch.setRecorderDepartment(parent.getRecorderDepartment());
+        }
 
-		if (parent.getId() == null) {
-			// Need to be the parent object, when parent has not id yet (see issue #2)
-			batch.setParent(parent);
-		}
-		else {
-			batch.setParentId(parent.getId());
-		}
-		batch.setOperationId(parent.getOperationId());
-	}
+        if (parent.getId() == null) {
+            // Need to be the parent object, when parent has not id yet (see issue #2)
+            batch.setParent(parent);
+        } else {
+            batch.setParentId(parent.getId());
+        }
+        batch.setOperationId(parent.getOperationId());
+    }
 
-	protected void fillDefaultProperties(OperationVO parent, SampleVO sample) {
-		if (sample == null) return;
+    protected void fillDefaultProperties(OperationVO parent, SampleVO sample) {
+        if (sample == null) return;
 
-		// Copy recorder department from the parent
-		if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
-			sample.setRecorderDepartment(parent.getRecorderDepartment());
-		}
+        // Copy recorder department from the parent
+        if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
+            sample.setRecorderDepartment(parent.getRecorderDepartment());
+        }
 
-		// Fill matrix
-		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
-			ReferentialVO matrix = new ReferentialVO();
-			matrix.setId(config.getMatrixIdIndividual());
-			sample.setMatrix(matrix);
-		}
+        // Fill matrix
+        if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
+            ReferentialVO matrix = new ReferentialVO();
+            matrix.setId(config.getMatrixIdIndividual());
+            sample.setMatrix(matrix);
+        }
 
-		// Fill sample (use operation end date time)
-		if (sample.getSampleDate() == null) {
-			Date sampleDate = parent.getEndDateTime() != null ? parent.getEndDateTime() : parent.getFishingEndDateTime();
-			sample.setSampleDate(sampleDate);
-		}
+        // Fill sample (use operation end date time)
+        if (sample.getSampleDate() == null) {
+            Date sampleDate = parent.getEndDateTime() != null ? parent.getEndDateTime() : parent.getFishingEndDateTime();
+            sample.setSampleDate(sampleDate);
+        }
 
-		sample.setOperationId(parent.getId());
-	}
+        sample.setOperationId(parent.getId());
+    }
 
-	protected void fillDefaultProperties(OperationVO parent, FishingAreaVO fishingArea) {
+    protected void fillDefaultProperties(OperationVO parent, FishingAreaVO fishingArea) {
 
-		fishingArea.setOperationId(parent.getId());
-	}
+        fishingArea.setOperationId(parent.getId());
+    }
 
+    protected List<BatchVO> getAllBatches(OperationVO operation) {
+        BatchVO catchBatch = operation.getCatchBatch();
+        fillDefaultProperties(operation, catchBatch);
+        List<BatchVO> result = Lists.newArrayList();
+        addAllBatchesToList(catchBatch, result);
+        return result;
+    }
 
-	protected List<BatchVO> getAllBatches(OperationVO operation) {
-		BatchVO catchBatch = operation.getCatchBatch();
-		fillDefaultProperties(operation, catchBatch);
-		List<BatchVO> result = Lists.newArrayList();
-		addAllBatchesToList(catchBatch, result);
-		return result;
-	}
+    protected void addAllBatchesToList(final BatchVO batch, final List<BatchVO> result) {
+        if (batch == null) return;
 
-	protected void addAllBatchesToList(final BatchVO batch, final List<BatchVO> result) {
-		if (batch == null) return;
+        // Add the batch itself
+        if (!result.contains(batch)) result.add(batch);
 
-		// Add the batch itself
-		if (!result.contains(batch)) result.add(batch);
+        // Process children
+        if (CollectionUtils.isNotEmpty(batch.getChildren())) {
+            // Recursive call
+            batch.getChildren().forEach(child -> {
+                fillDefaultProperties(batch, child);
+                addAllBatchesToList(child, result);
+            });
+        }
+    }
 
-		// Process children
-		if (CollectionUtils.isNotEmpty(batch.getChildren())) {
-			// Recursive call
-			batch.getChildren().forEach(child -> {
-				fillDefaultProperties(batch, child);
-				addAllBatchesToList(child, result);
-			});
-		}
-	}
-
-	/**
-	 * Get all samples, in the sample tree parent/children
-	 * @param parent
-	 * @return
-	 */
-	protected List<SampleVO> getSamplesAsList(final OperationVO parent) {
-		final List<SampleVO> result = Lists.newArrayList();
-		if (CollectionUtils.isNotEmpty(parent.getSamples())) {
-			parent.getSamples().forEach(sample -> {
-				fillDefaultProperties(parent, sample);
-				sampleService.treeToList(sample, result);
-			});
-		}
-		return result;
-	}
-
+    /**
+     * Get all samples, in the sample tree parent/children
+     *
+     * @param parent
+     * @return
+     */
+    protected List<SampleVO> getSamplesAsList(final OperationVO parent) {
+        final List<SampleVO> result = Lists.newArrayList();
+        if (CollectionUtils.isNotEmpty(parent.getSamples())) {
+            parent.getSamples().forEach(sample -> {
+                fillDefaultProperties(parent, sample);
+                sampleService.treeToList(sample, result);
+            });
+        }
+        return result;
+    }
 
 }

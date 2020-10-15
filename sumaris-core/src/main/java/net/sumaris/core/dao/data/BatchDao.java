@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.model.data.Batch;
+import net.sumaris.core.vo.data.BatchFetchOptions;
 import net.sumaris.core.vo.data.BatchVO;
 
 import java.util.List;
@@ -31,9 +32,9 @@ public interface BatchDao {
 
     String DEFAULT_ROOT_BATCH_LABEL = "CATCH_BATCH";
 
-    List<BatchVO> getAllByOperationId(int operationId);
+    List<BatchVO> getAllByOperationId(int operationId, BatchFetchOptions fetchOptions);
 
-    BatchVO getRootByOperationId(int operationId, boolean withChildren);
+    BatchVO getCatchBatchByOperationId(int operationId, BatchFetchOptions fetchOptions);
 
     BatchVO get(int id);
 
@@ -45,8 +46,6 @@ public interface BatchDao {
      * @return
      */
     BatchVO save(BatchVO Batch);
-
-    BatchVO toBatchVO(Batch source);
 
     List<BatchVO> toFlatList(BatchVO source);
 

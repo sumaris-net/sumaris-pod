@@ -22,7 +22,7 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -30,16 +30,26 @@ import lombok.experimental.FieldNameConstants;
  */
 @Data
 @FieldNameConstants
-public class TaxonNameFilterVO {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TaxonNameFilterVO implements IReferentialFilter {
 
+    private String label;
+    private String name;
+
+    private Integer[] statusIds;
+
+    private Integer levelId;
+    private Integer[] levelIds;
+
+    private String searchJoin;
     private String searchText;
     private String searchAttribute;
 
     private Integer taxonGroupId;
     private Integer[] taxonGroupIds;
-
-    private Integer[] levelIds;
-    private Integer[] statusIds;
-
     private Boolean withSynonyms;
+    private Integer referenceTaxonId;
+
 }

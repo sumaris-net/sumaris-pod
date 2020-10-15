@@ -57,6 +57,9 @@ public class LocationAssociation implements Serializable {
     @Column(name = "child_surface_ratio", nullable = false)
     private Double childSurfaceRatio = 1d;
 
+    @Column(name = "is_main_association")
+    private Boolean isMainAssociation;
+
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;

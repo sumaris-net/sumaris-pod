@@ -31,8 +31,8 @@ import java.util.Map;
 
 public interface AggRdbSpecification {
 
-    String FORMAT = "RDB";
-    String VERSION_1_4 = "1.4";
+    String FORMAT = RdbSpecification.FORMAT;
+    String VERSION_1_3 = RdbSpecification.VERSION_1_3;
 
     String TR_SHEET_NAME = "HH";
     String HH_SHEET_NAME = "HH";

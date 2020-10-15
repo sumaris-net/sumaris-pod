@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>sumaris-server</artifactId>
-  <packaging>jar</packaging>
+  <packaging>war</packaging>
   <name>SUMARiS:: Server</name>
   <description>SUMARiS server</description>
 
@@ -76,8 +76,17 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-json</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
+   <!-- <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+      <scope>provided</scope>
+    </dependency>-->
 <!--    <dependency>-->
 <!--      <groupId>org.springframework.boot</groupId>-->
 <!--      <artifactId>spring-boot-starter-actuator</artifactId>-->

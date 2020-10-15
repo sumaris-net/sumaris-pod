@@ -96,4 +96,8 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
     public static Function<String, Boolean> endsWithFunction(String... suffixes) {
         return string -> Arrays.stream(suffixes).anyMatch(string::endsWith);
     }
+
+    public static String nullToEmpty(String str) {
+        return str == null ? "" : str;
+    }
 }

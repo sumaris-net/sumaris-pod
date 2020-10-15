@@ -24,11 +24,12 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.data.FishingAreaRepository;
-import net.sumaris.core.dao.data.OperationGroupDao;
+import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
+import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.vo.data.FishingAreaVO;
 import net.sumaris.core.vo.data.OperationGroupVO;
+import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,12 +45,12 @@ import java.util.Optional;
 public class FishingAreaServiceImpl implements FishingAreaService {
 
     private final FishingAreaRepository fishingAreaRepository;
-    private final OperationGroupDao operationGroupDao;
+    private final OperationGroupRepository operationGroupRepository;
 
     @Autowired
-    public FishingAreaServiceImpl(FishingAreaRepository fishingAreaRepository, OperationGroupDao operationGroupDao) {
+    public FishingAreaServiceImpl(FishingAreaRepository fishingAreaRepository, OperationGroupRepository operationGroupRepository) {
         this.fishingAreaRepository = fishingAreaRepository;
-        this.operationGroupDao = operationGroupDao;
+        this.operationGroupRepository = operationGroupRepository;
     }
 
     @Override
@@ -91,7 +92,9 @@ public class FishingAreaServiceImpl implements FishingAreaService {
     }
 
     private OperationGroupVO getMainUndefinedOperationGroup(int tripId) {
-        List<OperationGroupVO> operationGroups = operationGroupDao.getOperationGroupsByTripId(tripId, OperationGroupDao.OperationGroupFilter.UNDEFINED);
+        List<OperationGroupVO> operationGroups = operationGroupRepository.findAll(
+            OperationGroupFilterVO.builder().tripId(tripId).onlyUndefined(true).build()
+        );
         // Get the first (main ?) undefined operation group
         // todo maybe add is_main_operation and manage metier order in app
         if (CollectionUtils.size(operationGroups) > 0) {

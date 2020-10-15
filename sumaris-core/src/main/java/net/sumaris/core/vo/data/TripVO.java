@@ -93,6 +93,7 @@ public class TripVO implements IRootDataVO<Integer>,
 
     // Parent
     private Integer landingId;
+    private Integer landingRankOrder;
     private Integer observedLocationId;
 
     public String toString() {

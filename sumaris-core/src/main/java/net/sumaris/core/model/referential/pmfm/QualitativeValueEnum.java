@@ -43,6 +43,9 @@ public enum QualitativeValueEnum implements Serializable  {
     HUNDRED(321, "HUN"),
     PIECES(423, "PCS"),
 
+    // LANDING_OR_DISCARD
+    LANDING(190, "LAN"),
+    DISCARD(191, "DIS"),
     ;
 
     public static QualitativeValueEnum valueOf(final int id) {
@@ -70,8 +73,16 @@ public enum QualitativeValueEnum implements Serializable  {
         return this.id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getLabel()
     {
         return this.label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 }

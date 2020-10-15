@@ -25,6 +25,7 @@ package net.sumaris.core.action;
  */
 
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import org.apache.commons.io.FileUtils;
@@ -86,10 +87,12 @@ public class ActionUtils {
      * @param actionClass a {@link Class} object.
      * @return a {@link File} object.
      */
-    public static File checkAndGetOutputFile(boolean isDirectory, Class<?> actionClass) {
+    public static File checkAndGetOutputFile(boolean isDirectory,
+                                             Class<?> actionClass) {
+
         SumarisConfiguration config = SumarisConfiguration.getInstance();
         
-        File output = config.getLiquibaseOutputFile();
+        File output = config.getCliOutputFile();
         if (output == null) {
             log.error(I18n.t("sumaris.action.noOutput.error", "--output [...]", getActionAlias(actionClass)));
             System.exit(-1);
@@ -103,7 +106,7 @@ public class ActionUtils {
                 }
                 else if (ArrayUtils.isNotEmpty(output.listFiles())) {
                     // Could be force, so delete the directory
-                    if (config.isForceLiquibaseOutputFile() || !config.isProduction()) {
+                    if (config.isCliForceOutput() || !config.isProduction()) {
                         log.info(I18n.t("sumaris.action.deleteOutputDirectory", output.getPath()));
                         try {
                             FileUtils.deleteDirectory(output);
@@ -120,7 +123,7 @@ public class ActionUtils {
             }
             else {
                 // Could be force, so delete the directory
-                if (config.isForceLiquibaseOutputFile() || !config.isProduction()) {
+                if (config.isCliForceOutput() || !config.isProduction()) {
                     log.info(I18n.t("sumaris.action.deleteOutputFile", output.getPath()));
                     try {
                         FileUtils.forceDelete(output);

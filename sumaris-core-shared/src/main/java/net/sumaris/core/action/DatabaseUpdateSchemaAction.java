@@ -59,7 +59,7 @@ public class DatabaseUpdateSchemaAction {
 			Version actualDbVersion = service.getSchemaVersion().orElse(null);
 			// result could be null, is DB is empty (mantis #21013)
 			if (actualDbVersion == null) {
-				log.warn("Could not get database schema version");
+				log.warn("Could not find database schema version");
 			}
 			else {
 				log.info(String.format("Database schema version is [%s]", actualDbVersion));
@@ -73,7 +73,7 @@ public class DatabaseUpdateSchemaAction {
 		try {
 			Version expectedDbVersion = service.getApplicationVersion();
 			if (expectedDbVersion == null) {
-				log.warn("Unable to get the database schema version AFTER the update. Nothing to update !");
+				log.warn("Unable to find the database schema version AFTER the update. Nothing to update !");
 				return;
 			}
 			log.info(String.format("Database schema version AFTER the update should be [%s]", expectedDbVersion));

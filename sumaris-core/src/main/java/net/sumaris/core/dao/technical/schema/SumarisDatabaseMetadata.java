@@ -182,10 +182,10 @@ public class SumarisDatabaseMetadata {
 	/**
 	 * <p>initSequences.</p>
 	 *
-	 * @param connection a {@link java.sql.Connection} object.
-	 * @param dialect a {@link org.hibernate.dialect.Dialect} object.
-	 * @return a {@link java.util.Set} object.
-	 * @throws java.sql.SQLException if any.
+	 * @param connection a {@link Connection} object.
+	 * @param dialect a {@link Dialect} object.
+	 * @return a {@link Set} object.
+	 * @throws SQLException if any.
 	 */
 	protected Set<String> initSequences(Connection connection, Dialect dialect)
 			throws SQLException {

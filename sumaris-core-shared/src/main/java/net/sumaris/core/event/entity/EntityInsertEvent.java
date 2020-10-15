@@ -26,7 +26,7 @@ import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.io.Serializable;
 
-public class EntityInsertEvent extends EntityEvent {
+public class EntityInsertEvent extends AbstractEntityEvent {
 
     public EntityInsertEvent(Serializable id, String entityName, IValueObject data){
         super(EntityEventOperation.INSERT, id, entityName, data);

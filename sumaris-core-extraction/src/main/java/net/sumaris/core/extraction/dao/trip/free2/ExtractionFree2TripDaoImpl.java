@@ -32,6 +32,7 @@ import net.sumaris.core.extraction.specification.Free2Specification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.free2.ExtractionFree2ContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
@@ -88,6 +89,17 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
         if (rowCount == 0) return context;
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
+        // Strategy table
+        rowCount = createStrategyTable(context);
+        if (rowCount == 0) return context;
+        if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+        // Strategy table
+        rowCount = createDetailTable(context);
+        if (rowCount == 0) return context;
+        if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+
         return context;
     }
 
@@ -107,10 +119,11 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
         context.setTripTableName(TABLE_NAME_PREFIX + TRIP_SHEET_NAME + "_" + context.getId());
         context.setStationTableName(TABLE_NAME_PREFIX + STATION_SHEET_NAME + "_" + context.getId());
         context.setGearTableName(TABLE_NAME_PREFIX + GEAR_SHEET_NAME + "_" + context.getId());
+        context.setRawSpeciesListTableName(TABLE_NAME_PREFIX + "RAW_SL" + "_" + context.getId());
         context.setStrategyTableName(TABLE_NAME_PREFIX + STRATEGY_SHEET_NAME + "_" + context.getId());
         context.setDetailTableName(TABLE_NAME_PREFIX + DETAIL_SHEET_NAME + "_" + context.getId());
-        context.setCatchTableName(TABLE_NAME_PREFIX + CATCH_SHEET_NAME + "_" + context.getId());
-        context.setMeasureTableName(TABLE_NAME_PREFIX + MEASURE_SHEET_NAME + "_" + context.getId());
+        context.setSpeciesListTableName(TABLE_NAME_PREFIX + SPECIES_LIST_SHEET_NAME + "_" + context.getId());
+        context.setSpeciesLengthTableName(TABLE_NAME_PREFIX + SPECIES_LENGTH_SHEET_NAME + "_" + context.getId());
 
         // Set sheet names
         context.setTripSheetName(TRIP_SHEET_NAME);
@@ -118,8 +131,8 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
         context.setGearSheetName(GEAR_SHEET_NAME);
         context.setStrategySheetName(STRATEGY_SHEET_NAME);
         context.setDetailSheetName(DETAIL_SHEET_NAME);
-        context.setCatchSheetName(CATCH_SHEET_NAME);
-        context.setMeasureSheetName(MEASURE_SHEET_NAME);
+        context.setSpeciesListSheetName(SPECIES_LIST_SHEET_NAME);
+        context.setSpeciesLengthSheetName(SPECIES_LENGTH_SHEET_NAME);
 
     }
 
@@ -191,11 +204,6 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
         return xmlQuery;
     }
 
-    @Override
-    protected long createSpeciesListTable(C context) {
-        // TODO
-        return 0;
-    }
 
     /* -- protected methods -- */
 
@@ -233,6 +241,127 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
         return count;
     }
 
+    /**
+     * Create raw table (with hidden columns used by sub table - e.g. SAMPLE_ID)
+     * @param context
+     * @param excludeInvalidStation
+     * @return
+     */
+    protected long createRawSpeciesListTable(C context, boolean excludeInvalidStation) {
+        String tableName = context.getRawSpeciesListTableName();
+
+        XMLQuery rawXmlQuery = createRawSpeciesListQuery(context, excludeInvalidStation);
+        execute(rawXmlQuery);
+
+        // Clean row using generic filter
+        long count = countFrom(tableName);
+        if (count > 0) {
+            cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
+        }
+
+        // Add as a raw table (to be able to clean it later)
+        context.addRawTableName(tableName);
+
+        return count;
+    }
+
+    protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createRawSpeciesListTable");
+        xmlQuery.bind("stationTableName", context.getStationTableName());
+        xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
+
+        // Bind some ids
+        xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
+        xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
+        xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
+
+        // Exclude not valid station
+        xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
+
+        return xmlQuery;
+    }
+
+    protected long createStrategyTable(C context) {
+        String tableName = context.getStrategyTableName();
+
+        log.debug(String.format("Extraction #%s > Creating strategy table", context.getId()));
+        XMLQuery xmlQuery = createXMLQuery(context, "createStrategyTable");
+        xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
+        xmlQuery.bind("strategyTableName", tableName);
+
+        // Bind some PMFMs
+        //xmlQuery.bind("noneUnitId", String.valueOf(UnitEnum.NONE.getId()));
+
+        // execute
+        execute(xmlQuery);
+
+        long count = countFrom(tableName);
+
+        // Clean row using generic tripFilter
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), STRATEGY_SHEET_NAME);
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(tableName,
+                    STRATEGY_SHEET_NAME,
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug(String.format("Extraction #%s > strategy table: %s rows inserted", context.getId(), count));
+        }
+        else {
+            context.addRawTableName(tableName);
+        }
+        return count;
+    }
+
+    protected long createDetailTable(C context) {
+        String tableName = context.getDetailTableName();
+
+        log.debug(String.format("Extraction #%s > Creating detail table...", context.getId()));
+        XMLQuery xmlQuery = createXMLQuery(context, "createDetailTable");
+        xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
+        xmlQuery.bind("detailTableName", tableName);
+
+        // Bind some PMFMs
+        //xmlQuery.bind("noneUnitId", String.valueOf(UnitEnum.NONE.getId()));
+
+        // execute
+        execute(xmlQuery);
+
+        long count = countFrom(tableName);
+
+        // Clean row using filter
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), DETAIL_SHEET_NAME);
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(tableName,
+                    DETAIL_SHEET_NAME,
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug(String.format("Extraction #%s > detail table: %s rows inserted", context.getId(), count));
+        }
+        else {
+            context.addRawTableName(tableName);
+        }
+        return count;
+    }
+
+    @Override
+    protected XMLQuery createSpeciesListQuery(C context) {
+        return super.createSpeciesListQuery(context);
+    }
+
+    protected long createSpeciesLengthTable(C context) {
+
+        // TODO
+       return 0;
+    }
+
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getFormatVersion());
@@ -241,6 +370,11 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
         switch (queryName) {
             case "createTripTable":
             case "createStationTable":
+            case "createRawSpeciesListTable":
+            case "createSpeciesListTable":
+            case "createStrategyTable":
+            case "createDetailTable":
+            case "createGearTable":
                 return String.format(XML_QUERY_FREE_PATH, versionStr, queryName);
             default:
                 return super.getQueryFullName(context, queryName);

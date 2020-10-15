@@ -157,6 +157,7 @@ public class InitTests extends ExternalResource {
                 getConfigArgs()
         );
         SumarisConfiguration.setInstance(config);
+        config.getApplicationConfig().setOption(SumarisConfigurationOption.SEQUENCE_START_WITH.getKey(), String.valueOf(1000));
         return config;
 
     }
@@ -310,14 +311,7 @@ public class InitTests extends ExternalResource {
 
         // Set database to readonly=true
         if (isFileDatabase) {
-            File dbDirectory = new File(getTargetDbDirectory());
-            File dbConfigFile = new File(dbDirectory, DatabaseResource.HSQLDB_SRC_DATABASE_PROPERTIES_FILE);
-
-            try {
-                setProperty(dbConfigFile, "readonly", "true");
-            } catch (IOException e) {
-                Assume.assumeNoException(e);
-            }
+            setDatabaseReadonly(true);
         }
 
         log.info("Test database has been loaded");
@@ -451,6 +445,17 @@ public class InitTests extends ExternalResource {
         // Enable integrity constraints
         log.debug("Enabling database constraints...");
         Daos.setIntegrityConstraints(connection, true);
+    }
+
+    protected void setDatabaseReadonly(boolean readonly) {
+        File dbDirectory = new File(getTargetDbDirectory());
+        File dbConfigFile = new File(dbDirectory, DatabaseResource.HSQLDB_SRC_DATABASE_PROPERTIES_FILE);
+
+        try {
+            setProperty(dbConfigFile, "readonly", Boolean.toString(readonly));
+        } catch (IOException e) {
+            Assume.assumeNoException(e);
+        }
     }
 
 }

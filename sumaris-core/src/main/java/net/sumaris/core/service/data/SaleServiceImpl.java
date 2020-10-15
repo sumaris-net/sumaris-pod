@@ -25,13 +25,14 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.SaleDao;
+import net.sumaris.core.dao.data.sale.SaleRepository;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SaleMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.data.SaleVO;
+import net.sumaris.core.vo.filter.SaleFilterVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,7 @@ public class SaleServiceImpl implements SaleService {
 	private static final Logger log = LoggerFactory.getLogger(SaleServiceImpl.class);
 
 	@Autowired
-	protected SaleDao saleDao;
+	protected SaleRepository saleRepository;
 
 	@Autowired
 	protected MeasurementDao measurementDao;
@@ -57,12 +58,12 @@ public class SaleServiceImpl implements SaleService {
 
 	@Override
 	public List<SaleVO> getAllByTripId(int tripId) {
-		return saleDao.getAllByTripId(tripId);
+		return saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build());
 	}
 
 	@Override
 	public SaleVO get(int saleId) {
-		return saleDao.get(saleId);
+		return saleRepository.get(saleId);
 	}
 
 	@Override
@@ -70,7 +71,7 @@ public class SaleServiceImpl implements SaleService {
 		Preconditions.checkNotNull(sources);
 		sources.forEach(this::checkSale);
 
-		List<SaleVO> saved = saleDao.saveAllByTripId(tripId, sources);
+		List<SaleVO> saved = saleRepository.saveAllByTripId(tripId, sources);
 
 		saved.forEach(this::saveChildrenEntities);
 
@@ -81,7 +82,7 @@ public class SaleServiceImpl implements SaleService {
 	public SaleVO save(SaleVO sale) {
 		checkSale(sale);
 
-		SaleVO savedSale = saleDao.save(sale);
+		SaleVO savedSale = saleRepository.save(sale);
 
 		saveChildrenEntities(savedSale);
 
@@ -99,7 +100,7 @@ public class SaleServiceImpl implements SaleService {
 
 	@Override
 	public void delete(int id) {
-		saleDao.delete(id);
+		saleRepository.deleteById(id);
 	}
 
 	@Override

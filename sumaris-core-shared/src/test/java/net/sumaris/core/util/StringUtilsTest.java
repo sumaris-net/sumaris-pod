@@ -22,7 +22,7 @@ package net.sumaris.core.util;
  * #L%
  */
 
-import com.vividsolutions.jts.util.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -32,12 +32,12 @@ public class StringUtilsTest {
 
     @Test
     public void underscoreToChangeCase() {
-        //Assert.equals("expectedColumnName", StringUtils.underscoreToChangeCase("EXPECTED_COLUMN_NAME"));
+        //Assert.assertEquals("expectedColumnName", StringUtils.underscoreToChangeCase("EXPECTED_COLUMN_NAME"));
 
-        Assert.equals("aBC", StringUtils.underscoreToChangeCase("A_B_C"));
+        Assert.assertEquals("aBC", StringUtils.underscoreToChangeCase("A_B_C"));
 
-        Assert.equals("aB", StringUtils.underscoreToChangeCase("A_B_"));
+        Assert.assertEquals("aB", StringUtils.underscoreToChangeCase("A_B_"));
 
-        Assert.equals("abCd", StringUtils.underscoreToChangeCase("_AB_CD"));
+        Assert.assertEquals("abCd", StringUtils.underscoreToChangeCase("_AB_CD"));
     }
 }

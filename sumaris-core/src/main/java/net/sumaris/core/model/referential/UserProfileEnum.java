@@ -48,24 +48,14 @@ public enum UserProfileEnum {
         return enumValue.map(Enum::toString);
     }
 
-    public final int id;
-    public final String label;
+    public int id;
+    public String label;
 
     UserProfileEnum(int id, String label) {
       this.id = id;
       this.label = label;
     }
 
-
-    /**
-    * Returns the database row id
-    *
-    * @return int the id
-    */
-    public String getLabel()
-    {
-        return this.label;
-    }
 
     /**
      * Returns the database row id
@@ -75,5 +65,24 @@ public enum UserProfileEnum {
     public int getId()
     {
         return this.id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+
+    /**
+     * Returns the database row id
+     *
+     * @return int the id
+     */
+    public String getLabel()
+    {
+        return this.label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 }

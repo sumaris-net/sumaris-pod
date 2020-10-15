@@ -25,11 +25,13 @@ package net.sumaris.core.dao.data;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.assertj.core.util.Lists;
 import org.junit.*;
@@ -49,7 +51,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private OperationDao operationDao;
+    private OperationRepository operationRepository;
 
     @Autowired
     private BatchDao dao;
@@ -61,7 +63,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
         super.setUp();
         setCommitOnTearDown(false); // this is need because of delete test
 
-        parentOperation = operationDao.get(1);
+        parentOperation = operationRepository.get(1);
         Assume.assumeNotNull(parentOperation);
     }
 
@@ -88,9 +90,10 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
         batch.setRecorderDepartment(recorderDepartment);
 
         // Measurement: weight
-        MeasurementVO weightMeasurement = new MeasurementVO();
+        QuantificationMeasurementVO weightMeasurement = new QuantificationMeasurementVO();
         weightMeasurement.setPmfmId(dbResource.getFixtures().getPmfmBatchWeight()); // landing weight
         weightMeasurement.setEntityName(BatchQuantificationMeasurement.class.getSimpleName());
+        weightMeasurement.setIsReferenceQuantification(true);
 
         batch.setQuantificationMeasurements(ImmutableList.of(weightMeasurement));
 
@@ -146,9 +149,10 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
                 child.setTaxonGroup(taxonGroup);
 
                 // Measurement: weight
-                MeasurementVO weightMeasurement = new MeasurementVO();
+                QuantificationMeasurementVO weightMeasurement = new QuantificationMeasurementVO();
                 weightMeasurement.setPmfmId(dbResource.getFixtures().getPmfmBatchWeight()); // landing weight
                 weightMeasurement.setEntityName(BatchQuantificationMeasurement.class.getSimpleName());
+                weightMeasurement.setIsReferenceQuantification(true);
 
                 child.setQuantificationMeasurements(ImmutableList.of(weightMeasurement));
 

@@ -24,7 +24,7 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
@@ -42,36 +42,37 @@ public class ProgramServiceImpl implements ProgramService {
 	private static final Logger log = LoggerFactory.getLogger(ProgramServiceImpl.class);
 
 	@Autowired
-	protected ProgramDao  programDao;
+	protected ProgramRepository programRepository;
 
 	@Autowired
 	protected StrategyService strategyService;
 
 	@Override
 	public List<ProgramVO> getAll() {
-		return programDao.getAll();
+		return programRepository.findAll(ProgramFilterVO.builder().build());
 	}
 
 	@Override
 	public List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		return programDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+		if (filter == null) filter = ProgramFilterVO.builder().build();
+		return programRepository.findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
 	}
 
 	@Override
 	public ProgramVO get(int id) {
-		return programDao.get(id);
+		return programRepository.get(id);
 	}
 
 	@Override
 	public ProgramVO getByLabel(String label) {
 		Preconditions.checkNotNull(label);
-		return programDao.getByLabel(label);
+		return programRepository.getByLabel(label);
 	}
 
 	@Override
 	public ProgramVO save(ProgramVO source) {
 		Preconditions.checkNotNull(source);
-		ProgramVO result = programDao.save(source);
+		ProgramVO result = programRepository.save(source);
 
 		// Save strategies
 		if (source.getStrategies() != null) {
@@ -84,7 +85,7 @@ public class ProgramServiceImpl implements ProgramService {
 
 	@Override
 	public void delete(int id) {
-		programDao.delete(id);
+		programRepository.deleteById(id);
 	}
 }
 
