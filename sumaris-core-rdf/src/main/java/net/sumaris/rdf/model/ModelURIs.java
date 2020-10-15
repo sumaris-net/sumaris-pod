@@ -174,9 +174,10 @@ public class ModelURIs {
         Preconditions.checkNotNull(ns);
         return NAMESPACE_BY_PREFIX.entrySet().stream()
                 .filter(entry -> ns.startsWith(entry.getValue()))
-                .map(entry -> entry.getKey())
-                .map(prefix -> ModelURIs.RDF_URL_BY_PREFIX.get(prefix))
+                .map(Map.Entry::getKey)
+                .map(RDF_URL_BY_PREFIX::get)
                 .filter(Objects::nonNull)
+                // Keep longest IRI
                 .sorted(Comparator.comparingInt(String::length))
                 .sorted(Comparator.reverseOrder())
                 .findFirst();
