@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.4.3.xml">
+
+  <!-- Modify PMFM_STRATEGY table -->
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-10">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="pmfm_strategy" columnName="pmfm_fk"/>
+    </preConditions>
+    <dropNotNullConstraint columnName="pmfm_fk" tableName="pmfm_strategy"/>
+  </changeSet>
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-11">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="pmfm_strategy" columnName="parameter_fk"/></not>
+    </preConditions>
+    <addColumn tableName="pmfm_strategy">
+      <column name="parameter_fk" type="integer"/>
+    </addColumn>
+    <addForeignKeyConstraint baseColumnNames="parameter_fk" baseTableName="pmfm_strategy" constraintName="pmfm_strategy_parameter_fkc" referencedColumnNames="id" referencedTableName="parameter"/>
+  </changeSet>
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-12">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="pmfm_strategy" columnName="matrix_fk"/></not>
+    </preConditions>
+    <addColumn tableName="pmfm_strategy">
+      <column name="matrix_fk" type="integer"/>
+    </addColumn>
+    <addForeignKeyConstraint baseColumnNames="matrix_fk" baseTableName="pmfm_strategy" constraintName="pmfm_strategy_matrix_fkc" referencedColumnNames="id" referencedTableName="matrix"/>
+  </changeSet>
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-13">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="pmfm_strategy" columnName="fraction_fk"/></not>
+    </preConditions>
+    <addColumn tableName="pmfm_strategy">
+      <column name="fraction_fk" type="integer"/>
+    </addColumn>
+    <addForeignKeyConstraint baseColumnNames="fraction_fk" baseTableName="pmfm_strategy" constraintName="pmfm_strategy_fraction_fkc" referencedColumnNames="id" referencedTableName="fraction"/>
+  </changeSet>
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-14">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="pmfm_strategy" columnName="method_fk"/></not>
+    </preConditions>
+    <addColumn tableName="pmfm_strategy">
+      <column name="method_fk" type="integer"/>
+    </addColumn>
+    <addForeignKeyConstraint baseColumnNames="method_fk" baseTableName="pmfm_strategy" constraintName="pmfm_strategy_method_fkc" referencedColumnNames="id" referencedTableName="method"/>
+  </changeSet>
+
+  <!-- Modify STRATEGY table -->
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-21">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="strategy" columnName="analytic_reference"/></not>
+    </preConditions>
+    <addColumn tableName="strategy">
+      <column name="analytic_reference" type="VARCHAR(255)"/>
+    </addColumn>
+  </changeSet>
+
+  <!-- Modify APPLIED_PERIOD table -->
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-22">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="applied_period" columnName="acquisition_number"/></not>
+    </preConditions>
+    <addColumn tableName="applied_period">
+      <column name="acquisition_number" type="INT"/>
+    </addColumn>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='1.4.3'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">1.4.3</column>
+      <column name="DESCRIPTION">
+        - Add columns PMFM_STRATEGY.PARAMETER_FK, MATRIX_FK, FRACTION_FK, METHOD_FK and STRATEGY.ANALYTIC_REFERENCE, APPLIED_PERIOD.ACQUISITION_NUMBER
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+        - Set PMFM_STRATEGY.PMFM_FK nullable
+        - Add nullable columns PMFM_STRATEGY.PARAMETER_FK, MATRIX_FK, FRACTION_FK, METHOD_FK
+        - Add columns STRATEGY.ANALYTIC_REFERENCE and APPLIED_PERIOD.ACQUISITION_NUMBER
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>
