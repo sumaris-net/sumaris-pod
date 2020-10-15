@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>sumaris-server</artifactId>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
   <name>SUMARiS:: Server</name>
   <description>SUMARiS server</description>
 
