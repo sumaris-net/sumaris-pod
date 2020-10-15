@@ -60,13 +60,30 @@ public class RdfConfiguration  {
     protected static final Logger log =
             LoggerFactory.getLogger(RdfConfiguration.class);
 
+    private static RdfConfiguration INSTANCE;
+
+    public static RdfConfiguration instance() {
+        if (INSTANCE == null) {
+            SumarisConfiguration delegate = SumarisConfiguration.getInstance();
+            Preconditions.checkNotNull(delegate, "SUmarisConfiguration not initialized!");
+            INSTANCE = new RdfConfiguration(delegate);
+        }
+        return INSTANCE;
+    }
+
+    public static void setInstance(RdfConfiguration instance) {
+        INSTANCE = instance;
+    }
+
     private final SumarisConfiguration delegate;
+
 
     private String cachedModelBaseUri;
 
     @Autowired
     public RdfConfiguration(SumarisConfiguration sumarisConfiguration){
         this.delegate = sumarisConfiguration;
+        setInstance(this);
     }
 
     @Bean
@@ -122,8 +139,9 @@ public class RdfConfiguration  {
                     registry.addViewController(WEBVOWL_PATH).setViewName("forward:/webvowl/index.html");
 
                     // WebVOWL data files
-                    registry.addViewController("/webvowl/data/taxon.json").setViewName("forward:/ontology/schema/TaxonName/?format=vowl");
-                    registry.addViewController("/webvowl/data/gear.json").setViewName("forward:/ontology/schema/Gear/?format=vowl");
+                    registry.addViewController("/webvowl/data/taxon.json").setViewName("forward:/ontology/schema/TaxonName?format=vowl");
+                    registry.addViewController("/webvowl/data/department.json").setViewName("forward:/ontology/schema/Department?format=vowl");
+                    registry.addViewController("/webvowl/data/gear.json").setViewName("forward:/ontology/schema/Gear?format=vowl");
                     ModelURIs.RDF_URL_BY_PREFIX.keySet()
                             .forEach(ns -> registry.addViewController(String.format("/webvowl/data/%s.json", ns))
                                     .setViewName(String.format("forward:/webvowl/convert?prefix=%s&format=vowl", ns)));

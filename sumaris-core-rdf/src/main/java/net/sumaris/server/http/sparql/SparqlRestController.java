@@ -250,7 +250,7 @@ public class SparqlRestController {
         return firstValidFormat(acceptedContentTypes, RdfFormat::fromContentType)
                 .map(format -> {
                     // Convert model to bytes
-                    byte[] content = ModelUtils.modelToBytes(model, format);
+                    byte[] content = ModelUtils.toBytes(model, format);
                     // Return response
                     return ResponseEntity.ok()
                             .contentType(format.mineType())
@@ -265,7 +265,7 @@ public class SparqlRestController {
         return firstValidFormat(acceptedContentTypes, RdfFormat::fromContentType)
                 .map(format -> {
                     // Convert model to bytes
-                    byte[] content = ModelUtils.datasetToBytes(dataset, format);
+                    byte[] content = ModelUtils.toBytes(dataset, format);
                     // Return response
                     return ResponseEntity.ok()
                             .contentType(format.mineType())

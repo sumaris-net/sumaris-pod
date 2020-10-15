@@ -34,6 +34,7 @@ import org.nuiton.i18n.init.DefaultI18nInitializer;
 import org.nuiton.i18n.init.UserI18nInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -41,9 +42,11 @@ import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfigura
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
@@ -127,9 +130,9 @@ public class Application {
 			ServiceLocator.init(appContext);
 
 			// Execute all action
-			SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
+			doAllAction(appContext);
 		} catch (Exception e) {
-			log.error("Error in action", e);
+			log.error("Error while executing action", e);
 		}
 	}
 
@@ -215,5 +218,32 @@ public class Application {
 	}
 
 
+	protected static void doAllAction(ApplicationContext appContext) {
+		TaskExecutor taskExecutor = null;
+		try {
+			// Execute all action
+			taskExecutor = appContext.getBean(TaskExecutor.class);
+		} catch (NoSuchBeanDefinitionException e) {
+			taskExecutor = null;
+		}
+
+		// Execute all action
+		if (taskExecutor != null) {
+			taskExecutor.execute(() -> {
+				try {
+					SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
+				} catch(Exception e) {
+					log.error("Error while executing action", e);
+				}
+			});
+		}
+		else {
+			try {
+				SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
+			} catch (Exception e) {
+				log.error("Error while executing action", e);
+			}
+		}
+	}
 
 }

@@ -152,8 +152,9 @@
 
     <!-- rdf -->
     <jena.version>3.14.0</jena.version>
+    <!-- 0.3.7 failed, because of deps slf4j -->
     <owl2vowl.version>0.3.5</owl2vowl.version>
-    <ontapi.version>2.0.0</ontapi.version>
+    <owl-api.version>5.1.16</owl-api.version>
 
     <!-- unit test -->
     <jmock.version>2.9.0</jmock.version>
@@ -876,15 +877,9 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.github.owlcs</groupId>
-        <artifactId>ontapi</artifactId>
-        <version>${ontapi.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-arq</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>net.sourceforge.owlapi</groupId>
+        <artifactId>owlapi-distribution</artifactId>
+        <version>${owl-api.version}</version>
       </dependency>
       <dependency>
         <groupId>com.github.VisualDataWeb</groupId>
@@ -893,7 +888,11 @@
         <exclusions>
           <exclusion>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.apache.logging.log4j</groupId>
@@ -1278,7 +1277,7 @@
             <dependency>
               <groupId>com.pyx4j</groupId>
               <artifactId>maven-plugin-log4j</artifactId>
-              <version>1.0.2-SNAPSHOT</version>
+              <version>1.0.1</version>
               <exclusions>
                 <exclusion>
                   <groupId>org.apache.maven</groupId>

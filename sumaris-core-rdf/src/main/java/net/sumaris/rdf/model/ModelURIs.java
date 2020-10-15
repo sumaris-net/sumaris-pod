@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import fr.eaufrance.sandre.schema.apt.APT;
 import fr.eaufrance.sandre.schema.inc.INC;
+import net.sumaris.core.util.StringUtils;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
@@ -37,7 +38,8 @@ import org.w3.GEO;
 import org.w3.W3NS;
 import org.purl.GR;
 
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ModelURIs {
 
@@ -166,5 +168,24 @@ public class ModelURIs {
             throw new IllegalArgumentException("Unable to parse class uri: " + classUri);
         }
         return  classUri.substring(separatorIndex+1);
+    }
+
+    public static Optional<String> getModelUrlByNamespace(String ns) {
+        Preconditions.checkNotNull(ns);
+        return NAMESPACE_BY_PREFIX.entrySet().stream()
+                .filter(entry -> ns.startsWith(entry.getValue()))
+                .map(entry -> entry.getKey())
+                .map(prefix -> ModelURIs.RDF_URL_BY_PREFIX.get(prefix))
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(String::length))
+                .sorted(Comparator.reverseOrder())
+                .findFirst();
+    }
+
+    public static List<String> getModelUrlByPrefix(String... prefixes) {
+        return Arrays.stream(prefixes)
+                .map(RDF_URL_BY_PREFIX::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

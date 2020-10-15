@@ -34,8 +34,11 @@ import net.sumaris.rdf.service.store.DatasetService;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.event.ContextClosedEvent;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 public class InitTests extends net.sumaris.core.test.InitTests {
@@ -119,17 +122,20 @@ public class InitTests extends net.sumaris.core.test.InitTests {
         System.setProperty("logging.level.net.sumaris.core", "error");
         System.setProperty("logging.level.org.hibernate", "error");
 
-        try {
-            String[] args = ImmutableList.<String>builder()
-                    .add(RdfDatasetAction.LOAD_ALIAS)
-                    .addAll(Arrays.asList(getConfigArgs()))
-                    .build().toArray(new String[0]);
-            Application.run(args, getModuleName() + "-test.properties");
+        String[] args = ImmutableList.<String>builder()
+                .add(RdfDatasetAction.LOAD_ALIAS)
+                .addAll(Arrays.asList(getConfigArgs()))
+                .build().toArray(new String[0]);
+        Application.run(args, getModuleName() + "-test.properties");
 
-            log.info(String.format("Test {TDB2} triple store has been loaded, in %sms", (System.currentTimeMillis() - now)));
-        } finally {
-            if (isFileDatabase) setDatabaseReadonly(true);
+        log.info(String.format("Test {TDB2} triple store has been loaded, in %sms", (System.currentTimeMillis() - now)));
+        if (isFileDatabase) {
+            try {
+                Daos.shutdownDatabase(config.getConnectionProperties());
+            } catch (SQLException e) {
+                // Already shutdown ?
+            }
+            setDatabaseReadonly(true);
         }
-
     }
 }

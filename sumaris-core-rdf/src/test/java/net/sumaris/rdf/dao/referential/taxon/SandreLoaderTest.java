@@ -23,6 +23,7 @@
 package net.sumaris.rdf.dao.referential.taxon;
 
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.util.Files;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.loader.NamedRdfLoader;
@@ -56,22 +57,21 @@ public class SandreLoaderTest extends AbstractTest {
 
         File directory = dbResource.getResourceDirectory("rdf");
         FileUtils.forceMkdir(directory);
-        File ttlFile = new File(directory, "taxon-sandre.ttl");
-
-        ttlFile = new File("/home/blavenie/git/sumaris/sumaris-pod/sumaris-core-rdf/src/test/resources", "taxon-sandre.ttl");
-
+        File file = new File(directory, "taxon-sandre.ttl");
+        Files.deleteQuietly(file);
 
         Model model = loader.loadOnePage(Page.builder().size(1000).build());
-        ModelUtils.modelToFile(ttlFile, model, RdfFormat.TURTLE);
 
-        Assume.assumeTrue(false);// Fore failed
+        ModelUtils.write(model, RdfFormat.TURTLE, file);
+
+        Assume.assumeTrue(file.exists());
     }
 
     @Test
     public void loadAllByPage() {
 
         Model model = loader.loadOnePage(Page.builder().size(100).build());
-        byte[] contentBytes = ModelUtils.modelToBytes(model, RdfFormat.TURTLE);
+        byte[] contentBytes = ModelUtils.toBytes(model, RdfFormat.TURTLE);
 
         String content = new String(contentBytes);
         log.debug(content);

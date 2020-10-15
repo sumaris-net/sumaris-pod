@@ -58,7 +58,7 @@ public class TaxrefLoaderTest extends AbstractTest {
         File ttlFile = new File(directory, "taxon-sandre.ttl");
 
         Model model = loader.loadOnePage(Page.builder().size(1000).build());
-        ModelUtils.modelToFile(ttlFile, model, RdfFormat.TURTLE);
+        ModelUtils.write(model, RdfFormat.TURTLE, ttlFile);
 
         Assert.assertTrue(ttlFile.exists());
     }
@@ -67,7 +67,7 @@ public class TaxrefLoaderTest extends AbstractTest {
     public void loadAllByPage() {
 
         Model model = loader.loadOnePage(Page.builder().size(100).build());
-        byte[] contentBytes = ModelUtils.modelToBytes(model, RdfFormat.TURTLE);
+        byte[] contentBytes = ModelUtils.toBytes(model, RdfFormat.TURTLE);
 
         String content = new String(contentBytes);
         log.debug(content);
