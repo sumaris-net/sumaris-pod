@@ -347,6 +347,29 @@
       }
     }
   },
+  
+  "PLANIFICATION": {
+    "CREATE_SAMPLING_PLAN" : "Creating a sampling plan line",
+    "FISHING_AREA" :"Fishing area (s)",
+    "EOTP":"EOTP",
+    "LABORATORY" :"Laboratory",
+    "TARGET_SPECIE" :"Target specie",
+    "LANDING_PORT" :"Landing port",
+    "SEX": "Sexe",
+    "AGE": "Age",
+    "YEAR": "Year",
+    "WEIGHT": "Weight",
+    "SIZE": "Size",
+    "MATURITY": "Maturity",
+    "CALCIFIED_TYPE": "Type of calcified part" ,
+    "SIZE_INCREMENT": "Size increment",
+    "EFFORT"    : "Effort :",
+    "QUARTER_1" : "Quarter 1" ,
+    "QUARTER_2" : "Quarter 2",
+    "QUARTER_3" : "Quarter 3",
+    "QUARTER_4" : "Quarter 4"
+  },
+
   "TRIP": {
     "TITLE": "Fishing trip",
     "PROGRAM": "Data collection programme",

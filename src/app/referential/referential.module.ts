@@ -31,6 +31,8 @@ import {ParameterService} from "./services/parameter.service";
 import {PmfmValidatorService} from "./services/validator/pmfm.validator";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {ParameterPage} from "./pmfm/parameter.page";
+import {StrategieImaginePage} from "./strategieImagine/strategieImagine.page";
+import {StrategieImagineForm} from "./strategieImagine/form/strategieImagine.form";
 import {ParameterValidatorService} from "./services/validator/parameter.validator";
 import {ReferentialTable} from "./list/referential.table";
 import {ReferentialRoutingModule} from "./referential-routing.module";
@@ -51,12 +53,14 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
   declarations: [
     ReferentialsPage,
     ReferentialForm,
+    StrategieImagineForm,
     VesselsTable,
     VesselPage,
     VesselsPage,
     VesselForm,
     VesselModal,
     ProgramPage,
+    StrategieImaginePage,
     StrategyForm,
     StrategiesTable,
     PmfmStrategiesTable,
@@ -74,10 +78,12 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
   exports: [
     ReferentialsPage,
     ReferentialForm,
+    StrategieImagineForm,
     VesselsTable,
     VesselPage,
     VesselForm,
     ProgramPage,
+    StrategieImaginePage,
     StrategyForm,
     SoftwarePage,
     VesselsPage,
