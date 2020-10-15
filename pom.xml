@@ -168,7 +168,7 @@
     <topiaVersion>3.3.1</topiaVersion>
 
     <!-- Unit test -->
-    <junit.version>4.13</junit.version>
+    <junit.version>4.13.1</junit.version>
     <jetty.version>9.0.4.v20130625</jetty.version>
 
     <!--license-maven-plugin config -->
