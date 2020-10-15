@@ -70,14 +70,12 @@ public class SandreLoaderTest extends AbstractTest {
     @Test
     public void loadAllByPage() {
 
-        Model model = loader.loadOnePage(Page.builder().size(100).build());
-        byte[] contentBytes = ModelUtils.toBytes(model, RdfFormat.TURTLE);
-
-        String content = new String(contentBytes);
+        Model model = loader.loadOnePage(Page.builder().size(10).build());
+        String content = ModelUtils.toString(model, RdfFormat.TURTLE);
         log.debug(content);
 
         Assert.assertTrue(content.contains("<http://id.eaufrance.fr/apt/"));
-        Assert.assertTrue(content.contains("ns4:scientificName  \""));
+        Assert.assertTrue(content.contains(":scientificName "));
 
     }
 

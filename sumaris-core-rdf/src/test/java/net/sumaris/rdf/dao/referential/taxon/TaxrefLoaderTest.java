@@ -64,13 +64,11 @@ public class TaxrefLoaderTest extends AbstractTest {
     }
 
     @Test
-    public void loadAllByPage() {
+    public void loadOnePage() {
 
         Model model = loader.loadOnePage(Page.builder().size(100).build());
-        byte[] contentBytes = ModelUtils.toBytes(model, RdfFormat.TURTLE);
-
-        String content = new String(contentBytes);
-        log.debug(content);
+        String content = ModelUtils.toString(model, RdfFormat.TURTLE);
+        //log.debug(content);
 
         Assert.assertTrue(content.contains("<http://taxref.mnhn.fr/lod/name/"));
         Assert.assertTrue(content.contains("scientificName  \""));
