@@ -4,12 +4,21 @@
   <property scope="context" name="sumaris.log.file" value="${sumaris.log.file}" />
   <property resource="application.properties" />
 
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <File>${sumaris.log.file}</File>
-    <layout class="ch.qos.logback.classic.PatternLayout">
+    <encoder>
       <Pattern>%d{ISO8601} %-5level [%-15(%thread)] %-42(%logger{42}) - %msg%n</Pattern>
-    </layout>
+    </encoder>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>sumaris-pod-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxFileSize>10MB</maxFileSize>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>100MB</totalSizeCap>
+      <cleanHistoryOnStart>false</cleanHistoryOnStart>
+    </rollingPolicy>
   </appender>
+
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <withJansi>true</withJansi>
     <encoder>
