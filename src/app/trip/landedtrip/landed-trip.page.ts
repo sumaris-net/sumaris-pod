@@ -33,7 +33,7 @@ import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {fillRankOrder, isRankOrderValid} from "../../data/services/model/model.utils";
 import {SaleProductUtils} from "../services/model/sale-product.model";
-import {debounceTime, filter} from "rxjs/operators";
+import {debounceTime, filter, first} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
 import {FishingAreaForm} from "../fishing-area/fishing-area.form";
@@ -51,8 +51,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   observedLocationId: number;
-
-  selectedCatchTabIndex = 0;
 
   showOperationGroupTab = false;
   showCatchTab = false;
@@ -170,17 +168,37 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       })
     );
 
-    // Update catch tab index
-    if (this.catchTabGroup) {
-      if (this.selectedTabIndex === 2) {
-        const queryParams = this.route.snapshot.queryParams;
-        this.selectedCatchTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
-      } else {
-        this.selectedCatchTabIndex = 0;
-      }
-      this.catchTabGroup.realignInkBar();
-    }
+  // Read the selected tab index, from path query params
+  this.registerSubscription(this.route.queryParams
+    .pipe(first())
+    .subscribe(queryParams => {
 
+      const tabIndex = queryParams["tab"] && parseInt(queryParams["tab"]) || 0;
+      const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
+
+      // Update catch tab index
+      if (this.catchTabGroup && tabIndex === 2) {
+        this.catchTabGroup.selectedIndex = subTabIndex;
+        this.catchTabGroup.realignInkBar();
+      }
+
+      // Update expenses tab group index
+      if (this.expenseForm && tabIndex === 3) {
+        this.expenseForm.selectedTabIndex = subTabIndex;
+        this.expenseForm.realignInkBar();
+      }
+    }));
+  }
+
+  onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
+    const changed = super.onTabChange(event, queryParamName);
+    // Force sub-tabgroup realign
+    if (changed) {
+      if (this.catchTabGroup && this.selectedTabIndex === 2) this.catchTabGroup.realignInkBar();
+      if (this.expenseForm && this.selectedTabIndex === 3) this.expenseForm.realignInkBar();
+      this.markForCheck();
+    }
+    return changed;
   }
 
   protected registerForms() {
@@ -545,7 +563,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       this.operationGroupTable.addRow(event);
     }
     else if (this.showCatchTab && this.selectedTabIndex === 2) {
-      switch (this.selectedCatchTabIndex) {
+      switch (this.catchTabGroup.selectedIndex) {
         case 0:
           this.productsTable.addRow(event);
           break;
@@ -596,16 +614,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   filter($event: Event) {
     console.debug('[landed-trip.page] filter : ', $event);
 
-  }
-
-  // todo à suppr
-  onCatchTabChange($event: MatTabChangeEvent) {
-    super.onSubTabChange($event);
-    if (!this.loading) {
-      // todo On each tables, confirm editing row
-      // this.productTABLE.confirmEditCreate();
-      // this.batchTABLE.confirmEditCreate();
-    }
   }
 
 }

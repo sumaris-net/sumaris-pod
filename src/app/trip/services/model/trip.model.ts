@@ -594,15 +594,14 @@ export class OperationGroup extends DataEntity<OperationGroup>
     // Measurements
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.gearMeasurements = source.gearMeasurements && source.gearMeasurements.map(Measurement.fromObject) || [];
-    this.measurementValues = Object.assign(
-      {},
-      MeasurementUtils.toMeasurementValues(this.measurements),
-      MeasurementUtils.toMeasurementValues(this.gearMeasurements),
-      this.physicalGear.measurementValues,
-      source.measurementValues // important: keep at last assignment
-    );
+    this.measurementValues = {
+      ...MeasurementUtils.toMeasurementValues(this.measurements),
+      ...MeasurementUtils.toMeasurementValues(this.gearMeasurements),
+      ...(this.physicalGear && this.physicalGear.measurementValues),
+      ...source.measurementValues // important: keep at last assignment
+    };
     if (Object.keys(this.measurementValues).length === 0) {
-      console.warn("Source as no measurement. Should never occur ! ", source);
+      console.warn("Source as no measurement. Should never occur! ", source);
     }
 
     // Products
