@@ -2,7 +2,7 @@
 
 task=$1
 version=$2
-
+release_description=$3
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
 if [[ ! "$branch" = "release/$version" ]];
@@ -56,7 +56,7 @@ case "$task" in
       prerelease="false"
     fi
 
-    description=`echo $3`
+    description=`echo $release_description`
     if [[ "_$description" = "_" ]]; then
         description="Release $current"
     fi
