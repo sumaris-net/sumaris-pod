@@ -26,7 +26,7 @@ import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.io.Serializable;
 
-public class EntityDeleteEvent extends EntityEvent {
+public class EntityDeleteEvent extends AbstractEntityEvent {
 
     public EntityDeleteEvent(Serializable id, String entityName){
         super(EntityEventOperation.DELETE, id, entityName, null);

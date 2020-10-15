@@ -63,7 +63,7 @@ public class Springs {
 	 * <p>getResourcesFromPaths.</p>
 	 *
 	 * @param paths an array of {@link String} objects.
-	 * @param appContext a {@link org.springframework.context.ApplicationContext} object.
+	 * @param appContext a {@link ApplicationContext} object.
 	 * @param checkIfResourceExists a boolean.
 	 * @return a {@link List} object.
 	 * @throws IOException if any.
@@ -100,7 +100,7 @@ public class Springs {
      * <p>getResource.</p>
      *
      * @param location a {@link String} object.
-     * @return a {@link org.springframework.core.io.Resource} object.
+     * @return a {@link Resource} object.
      */
     public static Resource getResource(String location) {
         Assert.notNull(location, "Location must not be null");
@@ -124,7 +124,7 @@ public class Springs {
      * <p>getResourceByPath.</p>
      *
      * @param path a {@link String} object.
-     * @return a {@link org.springframework.core.io.Resource} object.
+     * @return a {@link Resource} object.
      */
     protected static Resource getResourceByPath(String path) {
         return new ClassPathContextResource(path, getClassLoader());

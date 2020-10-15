@@ -24,12 +24,11 @@ package net.sumaris.core.vo.data;
 
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.Date;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 @Data
 @Builder
-public class DataFetchOptions {
+public class DataFetchOptions implements IFetchOptions {
 
     @Builder.Default
     private boolean withRecorderDepartment = true;

@@ -25,14 +25,19 @@ package net.sumaris.core.service.referential;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import org.junit.ClassRule;
-import org.junit.Ignore;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LocationServiceWriteTest extends AbstractServiceTest{
 
     @Autowired
@@ -42,7 +47,7 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Test
-    public void insertOrUpdateRectangleLocations() {
+    public void a_insertOrUpdateRectangleLocations() {
         // Create rectangles
         service.insertOrUpdateRectangleLocations();
 
@@ -53,7 +58,6 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
-    @Ignore
     public void updateLocationHierarchy() throws FileNotFoundException {
         service.updateLocationHierarchy();
 
@@ -61,4 +65,21 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
         service.printLocationPorts(ps, " - ");
         ps.close();
     }
+
+    /**
+     * must be run in LocationServiceWriteTest because insertOrUpdateRectangleLocations must be run first
+     */
+    @Test
+    public void getLocationIdByLatLong() {
+        // Check label with a position inside the Atlantic sea
+        Integer locationId = service.getLocationIdByLatLong(47.6f, -5.05f);
+        assertNotNull("Location Id could not found in Allegro DB, in the Atlantic Sea. Bad enumeration value for RECTANGLE_STATISTIQUE ?", locationId);
+        assertEquals(new Integer(1837), locationId); // =id of location '24E4'
+
+        // Check label with a position inside the Mediterranean sea
+        locationId = service.getLocationIdByLatLong(42.27f, 5.4f);
+        assertNotNull("Location Id could not found in Allegro DB, in the Mediterranean Sea. Bad enumeration value for RECTANGLE_STATISTIQUE_MED ?", locationId);
+        assertEquals(new Integer(8550), locationId); // =id of location 'M24C2'
+    }
+
 }

@@ -28,8 +28,8 @@ public interface IQuantifiedMeasurementEntity extends IMeasurementEntity {
 
     void setIsReferenceQuantification(Boolean isReferenceQuantification);
 
-    Integer getSubgroupNumber();
+    Short getSubgroupNumber();
 
-    void setSubgroupNumber(Integer subgroupNumber);
+    void setSubgroupNumber(Short subgroupNumber);
 
 }

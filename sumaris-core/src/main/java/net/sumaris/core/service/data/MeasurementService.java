@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -78,7 +79,7 @@ public interface MeasurementService {
     Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId);
 
     @Transactional(readOnly = true)
-    List<MeasurementVO> getBatchQuantificationMeasurements(int batchId);
+    List<QuantificationMeasurementVO> getBatchQuantificationMeasurements(int batchId);
 
     @Transactional(readOnly = true)
     Map<Integer, String> getProductSortingMeasurementsMap(int productId);

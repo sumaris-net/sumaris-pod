@@ -23,8 +23,6 @@ package net.sumaris.core.service.referential;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
@@ -33,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Transactional
 public interface ReferentialService {
@@ -61,9 +58,6 @@ public interface ReferentialService {
 
     @Transactional(readOnly = true)
     ReferentialVO findByUniqueLabel(String entityName, String label);
-
-    @Transactional(readOnly = true)
-    Integer getIdByUniqueLabel(Class<? extends IItemReferentialEntity> entityClass, String label);
 
     @Transactional(readOnly = true)
     List<ReferentialVO> getAllLevels(String entityName);

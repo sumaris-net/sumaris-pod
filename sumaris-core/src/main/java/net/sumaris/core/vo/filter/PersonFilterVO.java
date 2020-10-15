@@ -22,30 +22,41 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 @Data
 @FieldNameConstants
-public class PersonFilterVO {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PersonFilterVO implements IReferentialFilter {
+
+    private String label;
+    private String name;
+
+    private Integer[] statusIds;
+
+    private Integer levelId;
+    private Integer[] levelIds;
+
+    private String searchJoin;
+    private String searchText;
+    private String searchAttribute;
 
     private Integer userProfileId;
     private Integer[] userProfileIds;
     private String[] userProfiles;
 
     private String email;
-
     private String pubkey;
-
     private String firstName;
-
     private String lastName;
-
-    private Integer[] statusIds;
-
-    private String searchText;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

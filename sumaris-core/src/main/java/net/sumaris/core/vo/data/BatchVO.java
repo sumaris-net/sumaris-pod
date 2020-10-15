@@ -25,8 +25,10 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -39,17 +41,26 @@ import java.util.Map;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class BatchVO implements IValueObject<Integer>, IUpdateDateEntityBean<Integer, Date> {
+public class BatchVO implements IDataVO<Integer>,
+        IWithRecorderPersonEntity<Integer, PersonVO>,
+        ITreeNodeEntityBean<Integer, BatchVO> {
 
-    // todo? LP 03/05/2020 : why not implements IDataVO<Integer>, IWithRecorderPersonEntity<Integer, PersonVO> and add qualification properties ?
+    // TODO LP 03/05/2020 : why not implements IDataVO<Integer> and add qualification properties ?
 
     @EqualsAndHashCode.Exclude
     private Integer id;
-    private String comments;
     @EqualsAndHashCode.Exclude
     private Date updateDate;
     private Date controlDate;
+
+    /**
+     * @deprecated Not in the Batch entity. (We add it just for compatibility with IDataVO interface)
+     */
+    @Deprecated
     private Date validationDate;
+
+    private Date qualificationDate;
+    private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
@@ -62,10 +73,18 @@ public class BatchVO implements IValueObject<Integer>, IUpdateDateEntityBean<Int
     private Integer individualCount;
     private ReferentialVO taxonGroup;
     private TaxonNameVO taxonName;
+    private String comments;
+
+    // TODO: add it to entity
+    private Integer locationId;
 
     @EqualsAndHashCode.Exclude
     private OperationVO operation;
     private Integer operationId;
+
+    @EqualsAndHashCode.Exclude
+    private SaleVO sale;
+    private Integer saleId;
 
     @EqualsAndHashCode.Exclude
     private BatchVO parent;
@@ -75,7 +94,7 @@ public class BatchVO implements IValueObject<Integer>, IUpdateDateEntityBean<Int
 
     private Map<Integer, String> measurementValues; // = sorting_measurement_b or quantification_measurement_b
     private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_b (from a list)
-    private List<MeasurementVO> quantificationMeasurements; // = quantification_measurement_b (from a list)
+    private List<QuantificationMeasurementVO> quantificationMeasurements; // = quantification_measurement_b (from a list)
 
     public String toString() {
         return new StringBuilder().append("BatchVO(")

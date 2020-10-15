@@ -26,13 +26,12 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.file.FileImportService;
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Ignore
+//@Ignore
 public class FileImportServiceTest extends AbstractServiceTest {
 
     /** Logger. */

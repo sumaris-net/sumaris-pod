@@ -1,10 +1,13 @@
 #!/bin/bash
 
+task=$1
+version=$2
+
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "release/$2" ]];
+if [[ ! "$branch" = "release/$version" ]];
 then
-  echo ">> This script must be run under a release branch (release/$2)"
+  echo ">> This script must be run under a release branch (release/$version)"
   exit 1
 fi
 
@@ -20,7 +23,7 @@ echo "Current version: $current"
 ### Get repo URL
 PROJECT_NAME=sumaris-pod
 REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
-REPO=`echo $REMOTE_URL | sed "s/https:\/\/github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
+REPO="sumaris-net/sumaris-pod"
 REPO_API_URL=https://api.github.com/repos/$REPO
 REPO_PUBLIC_URL=https://github.com/$REPO
 
@@ -35,13 +38,13 @@ else
     exit 1
 fi
 
-case "$1" in
+case "$task" in
   del)
     result=`curl -i "$REPO_API_URL/releases/tags/$current"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+"`
     if [[ $release_url != "" ]]; then
         echo "Deleting existing release..."
-        curl -H  ''"$GITHUT_AUTH"'' -XDELETE $release_url
+        curl -H ''"$GITHUT_AUTH"'' -XDELETE $release_url
     fi
   ;;
 
@@ -85,12 +88,12 @@ case "$1" in
       exit 1
     fi
 
-    ###  Sending artifacts
+    ###  Sending files
     echo "Uploading files to $upload_url ..."
-    dirname=`pwd`
+    DIRNAME=$(pwd)
 
-    JAR_FILE="$dirname/sumaris-server/target/sumaris-server-$current.jar"
-    if [[ ! -f ${JAR_FILE} ]]; then
+    JAR_FILE="${DIRNAME}/sumaris-server/target/sumaris-server-$current.jar"
+    if [[ ! -f "${JAR_FILE}" ]]; then
       echo "ERROR: Missing JAR artifact: ${JAR_FILE}. Skipping uppload"
       missing_file=true
     else
@@ -104,7 +107,7 @@ case "$1" in
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${JAR_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
     fi
 
-    DB_FILE="$dirname/sumaris-core/target/sumaris-db-$current.zip"
+    DB_FILE="${DIRNAME}/sumaris-core/target/sumaris-db-$current.zip"
     if [[ ! -f "${DB_FILE}" ]]; then
       echo "ERROR: Missing DB ZIP artifact: ${DB_FILE}. Skipping uppload"
       missing_file=true
@@ -122,20 +125,20 @@ case "$1" in
     if [[ ${missing_file} == true ]]; then
       echo "-----------------------------------------"
       echo "ERROR: missing some artifacts (see logs)"
-      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/$current"
+      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${current}"
       exit 1
     else
       echo "-----------------------------------------"
       echo "Successfully uploading files !"
-      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/$current"
+      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${current}"
       exit 0
     fi
 
     ;;
   *)
-    echo "Missing arguments"
+    echo "Wrong arguments"
     echo "Usage:"
-    echo " > ./github.sh del|pre|rel <release_description>"
+    echo " > ./github-gitflow.sh del|pre|rel <release_description>"
     echo "With:"
     echo " - del: delete existing release"
     echo " - pre: use for pre-release"

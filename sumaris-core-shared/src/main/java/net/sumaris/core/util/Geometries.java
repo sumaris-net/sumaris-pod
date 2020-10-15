@@ -23,12 +23,11 @@ package net.sumaris.core.util;
  */
 
 import com.google.common.base.Preconditions;
-import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import com.vividsolutions.jts.io.WKTWriter;
-import net.sumaris.core.dao.referential.location.Locations;
 import org.apache.commons.lang3.StringUtils;
+import org.locationtech.jts.geom.*;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 
 import java.text.NumberFormat;
 import java.util.regex.Matcher;

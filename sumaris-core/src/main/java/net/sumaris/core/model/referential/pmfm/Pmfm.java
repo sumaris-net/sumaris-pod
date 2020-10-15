@@ -28,6 +28,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -37,9 +38,13 @@ import java.util.Set;
 @Data
 @FieldNameConstants
 @Entity
-@Table(name = "pmfm")
+@Table(name = "pmfm",
+        uniqueConstraints = {
+            @UniqueConstraint(name="pmfm_unique_c", columnNames = {"parameter_fk", "matrix_fk", "fraction_fk", "method_fk", "unit_fk"})
+        }
+)
 @Cacheable
-public class Pmfm implements IReferentialWithStatusEntity {
+public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")
@@ -58,8 +63,11 @@ public class Pmfm implements IReferentialWithStatusEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(length = IItemReferentialEntity.LENGTH_LABEL)
+    @Column(length = IItemReferentialEntity.LENGTH_LABEL, unique = true)
     private String label;
+
+    @Formula("(select p.name from parameter p where p.id = parameter_fk)")
+    private String name;
 
     /**
      * Valeur mimimale autorisée par défaut (peut etre redéfini dans les stratégies).

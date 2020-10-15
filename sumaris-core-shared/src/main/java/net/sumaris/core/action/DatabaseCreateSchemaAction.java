@@ -26,6 +26,7 @@ package net.sumaris.core.action;
 
 
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.schema.DatabaseSchemaDaoImpl;
 import net.sumaris.core.dao.technical.Daos;
@@ -50,7 +51,8 @@ public class DatabaseCreateSchemaAction {
 		SumarisConfiguration config = SumarisConfiguration.getInstance();
 
 		// Check output directory validity
-		File outputDirectory = ActionUtils.checkAndGetOutputFile(true, this.getClass());
+		File outputDirectory = ActionUtils.checkAndGetOutputFile(true,
+				this.getClass());
 
 		DatabaseSchemaDao databaseSchemaDao = new DatabaseSchemaDaoImpl(config);
 

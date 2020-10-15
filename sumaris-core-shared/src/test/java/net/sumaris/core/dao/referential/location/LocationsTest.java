@@ -22,11 +22,11 @@ package net.sumaris.core.dao.referential.location;
  * #L%
  */
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.junit4.SpringRunner;

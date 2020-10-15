@@ -27,22 +27,29 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.ApplicationUtils;
+import net.sumaris.core.util.StringUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
 import org.nuiton.i18n.init.DefaultI18nInitializer;
 import org.nuiton.i18n.init.UserI18nInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.persistence.EntityManager;
@@ -59,7 +66,9 @@ import java.util.Locale;
 @SpringBootApplication(
 		exclude = {
 				LiquibaseAutoConfiguration.class,
-                FreeMarkerAutoConfiguration.class
+                FreeMarkerAutoConfiguration.class,
+				JmsAutoConfiguration.class,
+				ActiveMQAutoConfiguration.class
 		},
 		scanBasePackages = {
 				"net.sumaris.core"
@@ -67,72 +76,84 @@ import java.util.Locale;
 )
 @EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
-@EnableJpaRepositories("net.sumaris.core.dao")
+@EnableJpaRepositories(basePackages = {
+		"net.sumaris.core.dao"
+})
 @EnableAsync
+@Component("core-application")
 public class Application {
 
 	/* Logger */
 	private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-	private static String configFile;
+	private static String CONFIG_FILE;
 
-	private static String[] args;
+	private static String[] ARGS;
+
+	public static void run(String[] args, String configFile) {
+		run(Application.class, args, configFile);
+	}
+
+	public static void run(Class<? extends Application> clazz, String[] args, String configFile) {
+		// By default, display help
+		if (args == null || args.length == 0) {
+			ARGS = new String[] { "-h" };
+		}
+		else {
+			ARGS = args;
+		}
+
+		// Could override config file id (useful for dev)
+		configFile = StringUtils.isNotBlank(configFile) ? configFile : "application.properties";
+		if (System.getProperty(configFile) != null) {
+			configFile = System.getProperty(CONFIG_FILE);
+			CONFIG_FILE = configFile.replaceAll("\\\\", "/");
+			// Override spring location file
+			System.setProperty("spring.config.location", CONFIG_FILE);
+		}
+		else {
+			CONFIG_FILE = configFile;
+		}
+
+		SumarisConfiguration.setInstance(null); // Reset existing config
+		SumarisConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(ARGS));
+
+		try {
+			// Start Spring boot
+			ConfigurableApplicationContext appContext = SpringApplication.run(clazz, ARGS);
+			appContext.addApplicationListener(applicationEvent -> {
+				// Log when application closed
+				if (applicationEvent instanceof ContextClosedEvent) log.info("Application closed");
+			});
+
+			// Init service locator
+			ServiceLocator.init(appContext);
+
+			// Execute all action
+			doAllAction(appContext);
+		} catch (Exception e) {
+			log.error("Error while executing action", e);
+		}
+	}
 
 	/**
 	 * <p>
 	 * main.
 	 * </p>
 	 *
-	 * @param cmdArgs
+	 * @param args
 	 *            an array of {@link String} objects.
 	 */
-	public static void main(String[] cmdArgs) {
-		// By default, display help
-		if (cmdArgs == null || cmdArgs.length == 0) {
-			args = new String[] { "-h" };
-		}
-		else {
-			args = cmdArgs;
-		}
-
-		// Could override config file id (useful for dev)
-		configFile = "application.properties";
-		if (System.getProperty(configFile) != null) {
-			configFile = System.getProperty(configFile);
-			configFile = configFile.replaceAll("\\\\", "/");
-			// Override spring location file
-			System.setProperty("spring.config.location", configFile);
-		}
-
-		SumarisConfiguration.setArgs(ApplicationUtils.adaptArgsForConfig(args));
-
-		try {
-            // Start Spring boot
-            ConfigurableApplicationContext appContext = SpringApplication.run(Application.class, args);
-            appContext.addApplicationListener(applicationEvent -> {
-                if (applicationEvent instanceof ContextClosedEvent) {
-					log.info("Application closed");
-                }
-            });
-
-            // Init service locator
-            ServiceLocator.init(appContext);
-
-            // Execute all action
-			SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
-        } catch (Exception e) {
-            log.error("Error in action", e);
-        }
-
+	public static void main(String[] args) {
+		run(args, null);
     }
 
 	@Bean
-	public static SumarisConfiguration sumarisConfiguration() {
-
+	public SumarisConfiguration sumarisConfiguration() {
 
 		SumarisConfiguration config = SumarisConfiguration.getInstance();
 		if (config == null) {
-			SumarisConfiguration.initDefault(configFile);
+			SumarisConfiguration.initDefault(CONFIG_FILE);
 			config = SumarisConfiguration.getInstance();
 		}
 
@@ -159,7 +180,7 @@ public class Application {
 	 * @throws IOException
 	 *             if any.
 	 */
-	protected static void initI18n() throws IOException {
+	protected void initI18n() throws IOException {
 
 		SumarisConfiguration config = SumarisConfiguration.getInstance();
 
@@ -192,10 +213,37 @@ public class Application {
 	 *
 	 * @return a {@link String} object.
 	 */
-	protected static String getI18nBundleName() {
+	protected String getI18nBundleName() {
 		return "sumaris-core-i18n";
 	}
 
 
+	protected static void doAllAction(ApplicationContext appContext) {
+		TaskExecutor taskExecutor = null;
+		try {
+			// Execute all action
+			taskExecutor = appContext.getBean(TaskExecutor.class);
+		} catch (NoSuchBeanDefinitionException e) {
+			taskExecutor = null;
+		}
+
+		// Execute all action
+		if (taskExecutor != null) {
+			taskExecutor.execute(() -> {
+				try {
+					SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
+				} catch(Exception e) {
+					log.error("Error while executing action", e);
+				}
+			});
+		}
+		else {
+			try {
+				SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
+			} catch (Exception e) {
+				log.error("Error while executing action", e);
+			}
+		}
+	}
 
 }

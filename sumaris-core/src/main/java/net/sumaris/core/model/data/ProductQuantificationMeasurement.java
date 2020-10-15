@@ -89,7 +89,7 @@ public class ProductQuantificationMeasurement implements IQuantifiedMeasurementE
     private Integer rankOrder;
 
     @Column(name = "subgroup_number")
-    private Integer subgroupNumber;
+    private Short subgroupNumber;
 
     @Column(name = "is_reference_quantification", nullable = false)
     private Boolean isReferenceQuantification;

@@ -35,6 +35,7 @@ import org.junit.Assume;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -53,6 +54,7 @@ import java.util.Properties;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
 @TestPropertySource(locations="classpath:sumaris-core-test.properties")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AbstractServiceTest {
 
 	/** Logger. */

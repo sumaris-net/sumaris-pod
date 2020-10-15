@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -40,6 +41,7 @@ import java.util.Date;
 @FieldNameConstants
 @EqualsAndHashCode
 public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date>,
+        IValueObject<Integer>,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
@@ -49,7 +51,7 @@ public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date>,
     private Double numericalValue;
     private String alphanumericalValue;
     private Integer digitCount;
-    private Integer rankOrder;
+    private Short rankOrder;
     private Double precisionValue;
     private ReferentialVO qualitativeValue;
 

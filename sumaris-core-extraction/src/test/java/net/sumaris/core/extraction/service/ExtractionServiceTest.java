@@ -77,15 +77,15 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
         File root = unpack(outputFile, ExtractionRawFormatEnum.FREE2);
 
-        // TR
+        // MAREES.csv
         File tripFile = new File(root, Free2Specification.TRIP_SHEET_NAME + ".csv");
         Assert.assertTrue(countLine(tripFile) > 1);
 
-        // HH
+        // OPERATION_PECHE.csv
         File stationFile = new File(root, Free2Specification.STATION_SHEET_NAME + ".csv");
         Assert.assertTrue(countLine(stationFile) > 1);
 
-        // ENGIN
+        // ENGINS.csv
         File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME+".csv");
         Assert.assertTrue(countLine(gearFile) > 1);
     }
@@ -143,22 +143,22 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    protected File unpack(File outputFile, ExtractionRawFormatEnum format) {
+    protected File unpack(File sourceFile, ExtractionRawFormatEnum format) {
 
-        File debugFile = new File("target/result.zip");
-        File debugDirectory = new File("target/result/" + format.getLabel() + '_' + format.getVersion());
+        File tempFile = new File("target/result.zip");
+        File outputDirectory = new File("target/result/" + format.getLabel() + '_' + format.getVersion());
         try {
-            Files.deleteQuietly(debugFile);
-            Files.copyFile(outputFile, debugFile);
+            Files.deleteQuietly(tempFile);
+            Files.copyFile(sourceFile, tempFile);
 
-            Files.deleteQuietly(debugDirectory);
-            FileUtils.forceMkdir(debugDirectory);
+            Files.deleteQuietly(outputDirectory);
+            FileUtils.forceMkdir(outputDirectory);
 
-            ZipUtils.uncompressFileToPath(debugFile, debugDirectory.getPath(), true);
+            ZipUtils.uncompressFileToPath(tempFile, outputDirectory.getPath(), true);
 
         } catch (IOException e) {
             Assert.fail(e.getMessage());
         }
-        return debugDirectory;
+        return outputDirectory;
     }
 }

@@ -44,6 +44,7 @@ public class ProductFilterVO implements IRootDataFilter {
     private Date endDate;
     private String programLabel;
     private Integer recorderDepartmentId;
+    private Integer recorderPersonId;
     private Integer locationId;
 
     // Parent

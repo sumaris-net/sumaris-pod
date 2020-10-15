@@ -41,6 +41,7 @@ import static org.junit.Assert.*;
  * @author peck7 on 09/04/2020.
  */
 @TestPropertySource(locations = "classpath:sumaris-core-test-oracle.properties")
+@Ignore("Use only SFA Oracle database")
 public class PacketServiceWriteTest extends AbstractServiceTest {
 
     @ClassRule
@@ -50,10 +51,8 @@ public class PacketServiceWriteTest extends AbstractServiceTest {
     private PacketService packetService;
 
     /**
-     * Test only for SFA Oracle database
      * TODO write a test with test data
      */
-    @Ignore
     @Test
     public void getAllByOperationId() {
 

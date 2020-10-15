@@ -30,8 +30,8 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.dao.RdfModelDao;
-import net.sumaris.rdf.dao.cache.RdfCacheConfiguration;
+import net.sumaris.rdf.dao.EntitiesDao;
+import net.sumaris.rdf.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelEntities;
@@ -42,19 +42,9 @@ import net.sumaris.rdf.util.Bean2Owl;
 import net.sumaris.rdf.util.ModelUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.OntResource;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.reasoner.Derivation;
-import org.apache.jena.reasoner.Reasoner;
-import org.apache.jena.reasoner.ReasonerRegistry;
-import org.apache.jena.vocabulary.DC;
-import org.apache.jena.vocabulary.DCTerms;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -84,7 +74,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
     protected RdfConfiguration config;
 
     @Autowired
-    protected RdfModelDao modelDao;
+    protected EntitiesDao modelDao;
 
     @Autowired
     protected RdfCacheConfiguration cacheConfiguration;
@@ -275,7 +265,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
         }
 
 
-        // get by type
+        // find by type
         if (options.getType() != null) {
             result = reflections.getSubTypesOf(options.getType()).stream();
         }

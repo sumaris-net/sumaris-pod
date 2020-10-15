@@ -10,20 +10,20 @@ package net.sumaris.server.http.security;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import net.sumaris.core.dao.administration.user.PersonDao;
-import net.sumaris.core.dao.administration.user.UserTokenDao;
+import net.sumaris.core.dao.administration.user.PersonRepository;
+import net.sumaris.core.dao.administration.user.PersonSpecifications;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
@@ -57,9 +57,11 @@ import java.util.stream.Collectors;
 @Service("authService")
 public class AuthServiceImpl implements AuthService {
 
-    /** Logger. */
+    /**
+     * Logger.
+     */
     private static final Logger log =
-            LoggerFactory.getLogger(AuthServiceImpl.class);
+        LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final ValidationExpiredCache challenges;
     private final ValidationExpiredCacheMap<AuthUser> checkedTokens;
@@ -72,10 +74,7 @@ public class AuthServiceImpl implements AuthService {
     private AccountService accountService;
 
     @Autowired
-    private PersonDao personDao;
-
-    @Autowired
-    private UserTokenDao userTokenDao;
+    private PersonRepository personRepository;
 
     private Attributes2GrantedAuthoritiesMapper authoritiesMapper;
 
@@ -96,11 +95,11 @@ public class AuthServiceImpl implements AuthService {
     @PostConstruct
     public void registerListeners() {
         // Listen person update, to update the cache
-        personDao.addListener(new PersonDao.Listener() {
+        personRepository.addListener(new PersonSpecifications.Listener() {
             @Override
             public void onSave(PersonVO person) {
                 if (!StringUtils.isNotBlank(person.getPubkey())) return;
-                List<String> tokens = userTokenDao.getAllByPubkey(person.getPubkey());
+                List<String> tokens = accountService.getAllTokensByPubkey(person.getPubkey());
                 if (CollectionUtils.isEmpty(tokens)) return;
                 tokens.forEach(checkedTokens::remove);
             }
@@ -125,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
         AuthDataVO authData;
         try {
             authData = AuthDataVO.parse(token);
-        } catch(ParseException e) {
+        } catch (ParseException e) {
             log.warn("Authentication failed. Invalid token: " + token);
             return Optional.empty();
         }
@@ -148,7 +147,7 @@ public class AuthServiceImpl implements AuthService {
                 if (debug) log.debug("Authentication failed. User is not allowed to authenticate: " + authData.getPubkey());
                 return null;
             }
-        } catch(DataNotFoundException | DataRetrievalFailureException e) {
+        } catch (DataNotFoundException | DataRetrievalFailureException e) {
             log.debug("Authentication failed. User not found: " + authData.getPubkey());
             return null;
         }
@@ -187,7 +186,7 @@ public class AuthServiceImpl implements AuthService {
         String token = authData.toString();
         checkedTokens.add(token, authUser);
 
-        if(!isStoredToken) {
+        if (!isStoredToken) {
             // Save this new token to database
             try {
                 accountService.addToken(token, authData.getPubkey());
@@ -204,7 +203,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Optional<PersonVO> getAuthenticatedUser() {
-        return getAuthPrincipal().map(user -> personDao.getByPubkeyOrNull(user.getPubkey()));
+        return getAuthPrincipal().map(user -> personRepository.findByPubkey(user.getPubkey()));
     }
 
     @Override
@@ -217,18 +216,18 @@ public class AuthServiceImpl implements AuthService {
     public Optional<AuthUser> getAuthPrincipal() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         if (securityContext != null && securityContext.getAuthentication() != null) {
-            return Optional.ofNullable((AuthUser)securityContext.getAuthentication().getPrincipal());
+            return Optional.ofNullable((AuthUser) securityContext.getAuthentication().getPrincipal());
         }
         return Optional.empty(); // Not auth
     }
 
     protected String getMainAuthority(Collection<? extends GrantedAuthority> authorities) {
-        if (CollectionUtils.isEmpty(authorities)) return PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size()-1); // Last role
+        if (CollectionUtils.isEmpty(authorities)) return PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size() - 1); // Last role
         return PRIORITIZED_AUTHORITIES.stream()
-                .map(role -> Beans.getList(authorities).stream().map(GrantedAuthority::getAuthority).filter(authority -> role.equals(authority)).findFirst().orElse(null))
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size()-1)); // Last role
+            .map(role -> Beans.getList(authorities).stream().map(GrantedAuthority::getAuthority).filter(authority -> role.equals(authority)).findFirst().orElse(null))
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size() - 1)); // Last role
     }
 
     protected boolean hasUpperOrEqualsAuthority(Collection<? extends GrantedAuthority> authorities,
@@ -238,8 +237,7 @@ public class AuthServiceImpl implements AuthService {
         return expectedRoleIndex != -1 && actualRoleIndex <= expectedRoleIndex;
     }
 
-
-    protected Collection<? extends GrantedAuthority> getAuthorities(){
+    protected Collection<? extends GrantedAuthority> getAuthorities() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         if (securityContext != null && securityContext.getAuthentication() != null) {
             return securityContext.getAuthentication().getAuthorities();
@@ -251,14 +249,14 @@ public class AuthServiceImpl implements AuthService {
         List<Integer> profileIds = accountService.getProfileIdsByPubkey(pubkey);
 
         return new ArrayList<>(authoritiesMapper.getGrantedAuthorities(profileIds.stream()
-                .map(id -> UserProfileEnum.getLabelById(id).orElse(null))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet())));
+            .map(id -> UserProfileEnum.getLabelById(id).orElse(null))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet())));
 
     }
 
     private boolean canAuth(final String pubkey) throws DataNotFoundException {
-        PersonVO person = personDao.getByPubkeyOrNull(pubkey);
+        PersonVO person = personRepository.findByPubkey(pubkey);
         if (person == null) {
             throw new DataRetrievalFailureException(I18n.t("sumaris.error.account.notFound"));
         }

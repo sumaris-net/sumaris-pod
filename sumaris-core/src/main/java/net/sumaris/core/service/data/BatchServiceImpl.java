@@ -25,18 +25,23 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.BatchDao;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.model.data.BatchSortingMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.data.BatchFetchOptions;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -58,9 +63,17 @@ public class BatchServiceImpl implements BatchService {
 	@Autowired
 	protected PmfmService pmfmService;
 
+	@Autowired
+	private ApplicationEventPublisher publisher;
+
 	@Override
 	public List<BatchVO> getAllByOperationId(int operationId) {
-		return batchDao.getAllByOperationId(operationId);
+		return batchDao.getAllByOperationId(operationId, BatchFetchOptions.builder().build());
+	}
+
+	@Override
+	public List<BatchVO> getAllByOperationId(int operationId, BatchFetchOptions fetchOptions) {
+		return batchDao.getAllByOperationId(operationId, fetchOptions);
 	}
 
 	@Override
@@ -107,13 +120,23 @@ public class BatchServiceImpl implements BatchService {
 
 				// Quantification measurement
 				{
-					List<MeasurementVO> measurements = Beans.getList(savedBatch.getQuantificationMeasurements());
+					List<QuantificationMeasurementVO> measurements = Beans.getList(savedBatch.getQuantificationMeasurements());
 					measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchQuantificationMeasurement.class));
 					measurements = measurementDao.saveBatchQuantificationMeasurements(savedBatch.getId(), measurements);
 					savedBatch.setQuantificationMeasurements(measurements);
 				}
 			}
 		});
+
+		// Emit update event, on the catch batch
+		result.stream()
+				// Find the catch batch
+				.filter(b -> b.getParent() == null && b.getParentId() == null)
+				.findFirst()
+				// Transform to event
+				.map(catchBatch -> new EntityUpdateEvent(catchBatch.getId(), Batch.class.getSimpleName(), catchBatch))
+				// Publishf
+				.ifPresent(publisher::publishEvent);
 
 		return result;
 	}
@@ -129,10 +152,10 @@ public class BatchServiceImpl implements BatchService {
 	}
 
 	@Override
-	public List<BatchVO> save(List<BatchVO> sales) {
-		Preconditions.checkNotNull(sales);
+	public List<BatchVO> save(List<BatchVO> sources) {
+		Preconditions.checkNotNull(sources);
 
-		return sales.stream()
+		return sources.stream()
 				.map(this::save)
 				.collect(Collectors.toList());
 	}
@@ -154,6 +177,7 @@ public class BatchServiceImpl implements BatchService {
 	public List<BatchVO> toFlatList(final BatchVO catchBatch) {
 		return batchDao.toFlatList(catchBatch);
 	}
+
 
 	/* -- protected methods -- */
 

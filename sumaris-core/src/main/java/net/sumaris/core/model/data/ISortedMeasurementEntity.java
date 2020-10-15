@@ -24,8 +24,8 @@ package net.sumaris.core.model.data;
 
 public interface ISortedMeasurementEntity extends IMeasurementEntity {
 
-    Integer getRankOrder();
+    Short getRankOrder();
 
-    void setRankOrder(Integer rankOrder);
+    void setRankOrder(Short rankOrder);
 
 }

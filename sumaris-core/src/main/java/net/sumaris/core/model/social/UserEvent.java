@@ -24,6 +24,7 @@ package net.sumaris.core.model.social;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.ISignedEntityBean;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IDataEntity;
 
@@ -36,11 +37,7 @@ import java.util.Date;
 @Entity
 @Table(name = "user_event")
 @Cacheable
-public class UserEvent implements IUpdateDateEntityBean<Integer, Date> {
-
-    static final int CRYPTO_SIGNATURE_LENGTH = 100;
-    static final int CRYPTO_HASH_LENGTH = 100;
-    static final int CRYPTO_PUBKEY_LENGTH = 100;
+public class UserEvent implements ISignedEntityBean<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_EVENT_SEQ")

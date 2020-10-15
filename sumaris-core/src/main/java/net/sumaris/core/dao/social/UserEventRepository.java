@@ -23,14 +23,10 @@ package net.sumaris.core.dao.social;
  */
 
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
-import net.sumaris.core.model.data.FishingArea;
 import net.sumaris.core.model.social.UserEvent;
-import net.sumaris.core.vo.data.FishingAreaVO;
 import net.sumaris.core.vo.social.UserEventVO;
 
-import java.util.List;
-
 public interface UserEventRepository
-    extends SumarisJpaRepository<UserEvent, Integer, UserEventVO>, UserEventRepositoryExtend
+    extends SumarisJpaRepository<UserEvent, Integer, UserEventVO>, UserEventSpecifications
 {
 }

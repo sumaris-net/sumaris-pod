@@ -41,16 +41,16 @@ public class GeoJsonGeometries {
         // helper class
     }
 
-    public static Geometry jtsGeometry(com.vividsolutions.jts.geom.Geometry geom) {
+    public static Geometry jtsGeometry(org.locationtech.jts.geom.Geometry geom) {
 
-        if (geom instanceof com.vividsolutions.jts.geom.Polygon) {
+        if (geom instanceof org.locationtech.jts.geom.Polygon) {
             return new Polygon(
                     Stream.of(geom.getCoordinates()).map(coordinate ->
                             new LngLatAlt(coordinate.x, coordinate.y, coordinate.z)).collect(Collectors.toList())
             );
         }
-        if (geom instanceof com.vividsolutions.jts.geom.MultiPolygon) {
-            com.vividsolutions.jts.geom.Geometry firstPolygon = geom.getGeometryN(0);
+        if (geom instanceof org.locationtech.jts.geom.MultiPolygon) {
+            org.locationtech.jts.geom.Geometry firstPolygon = geom.getGeometryN(0);
             return new MultiPolygon(new Polygon(
                     Stream.of(firstPolygon.getCoordinates()).map(coordinate ->
                             new LngLatAlt(coordinate.x, coordinate.y, coordinate.z)).collect(Collectors.toList())
@@ -60,7 +60,7 @@ public class GeoJsonGeometries {
         throw new SumarisTechnicalException(String.format("GeoJson conversion from %s not implement yet !", geom.getGeometryType()));
     }
 
-    public static LngLatAlt jtsCoordinate(com.vividsolutions.jts.geom.Coordinate coordinate) {
+    public static LngLatAlt jtsCoordinate(org.locationtech.jts.geom.Coordinate coordinate) {
         return new LngLatAlt(coordinate.x, coordinate.y, coordinate.z);
     }
 }

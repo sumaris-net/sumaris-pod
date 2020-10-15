@@ -66,7 +66,7 @@ cd $dirname
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
-./github-gitflow.sh "$task" "$version"
+./github-gitflow.sh "$task" "$version" ''"$release_description"''
 [[ $? -ne 0 ]] && exit 1
 echo "Upload artifacts to github [OK]"
 

@@ -110,7 +110,7 @@ public class AggregationRdbTripDaoImpl<
         context.setTripFilter(extractionRdbTripDao.toTripFilterVO(filter));
         context.setFilter(filter);
         context.setFormatName(AggRdbSpecification.FORMAT);
-        context.setFormatVersion(AggRdbSpecification.VERSION_1_4);
+        context.setFormatVersion(AggRdbSpecification.VERSION_1_3);
         context.setId(System.currentTimeMillis());
 
         // Compute table names
@@ -360,7 +360,7 @@ public class AggregationRdbTripDaoImpl<
         Preconditions.checkNotNull(context.getFormatVersion());
 
         return String.format("%s/v%s/aggregation/%s",
-                context.getFormatName(),
+                context.getFormatName().toLowerCase(),
                 context.getFormatVersion().replaceAll("[.]", "_"),
                 queryName);
     }

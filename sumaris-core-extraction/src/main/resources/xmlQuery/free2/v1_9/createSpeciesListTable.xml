@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<queries name="extractionCreateSpeciesListTable">
+
+  <query type="create" temp="false" table="&amp;speciesListTableName" option="DISTINCT">
+
+    <with alias="TEMP_SPECIES_LIST">
+      <subquery>
+        <!-- PK -->
+        <subselect alias="ID_VRAC" type="number">SL.ID_VRAC</subselect>
+        <subselect alias="ID_CAPTURE" type="number">SL.SAMPLE_ID</subselect>
+
+        <!-- TODO gérer les noms vernaculaires dans TRANSCRIBING (pour utiliser NAME plutot que COMMENTS)
+             ET afficher les nom vernaculaires dans les UI (nécessaire pour ADAP)  -->
+        <subselect alias="ESPECE" type="text">TN.COMMENTS</subselect>
+        <subselect alias="ESPECE_COM" type="text">TG.NAME</subselect>
+        <subselect alias="PRESENTATION" type="text">DECODE(SL.CATCH_CATEGORY, 'DIS', 'GUT - Eviscéré', 'LAN', 'WHL - Entier', null)</subselect>
+        <subselect alias="TAUX_ECH" type="number">
+          CASE
+          WHEN SL.SAMPLING_RATIO is not null THEN SL.SAMPLING_RATIO
+          WHEN SL.WEIGHT is not null AND SL.WEIGHT != 0 AND SL.SUBSAMPLE_WEIGHT is not null THEN SL.SUBSAMPLE_WEIGHT/SL.WEIGHT
+          ELSE 1
+          END CASE
+        </subselect>
+        <subselect alias="POIDS_REF" type="number">SL.SUBSAMPLE_WEIGHT</subselect>
+        <subselect alias="METHODE_POIDS_REF" type="text">METHOD.NAME</subselect>
+        <subselect alias="NOMBRE" type="number">SAMPLE_BATCH.INDIVIDUAL_COUNT</subselect>
+
+        <from alias="SL">&amp;rawSpeciesListTableName</from>
+        <from join="true">INNER JOIN BATCH SAMPLE_BATCH ON SAMPLE_BATCH.ID = SL.SAMPLE_ID</from>
+        <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SL.TAXON_GROUP_ID</from>
+        <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = SL.REFERENCE_TAXON_ID AND TN.IS_REFERENT=1</from>
+        <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SL.SUBSAMPLE_WEIGHT_PMFM_ID</from>
+        <from join="true">LEFT OUTER JOIN METHOD ON METHOD.ID = PMFM.METHOD_FK</from>
+      </subquery>
+    </with>
+
+    <!-- PK -->
+    <select alias="TYPE" type="text">'Captures'</select>
+    <select alias="ID_VRAC" type="number">T.ID_VRAC</select>
+    <select alias="ID_DETAIL" type="number">null</select>
+    <select alias="ID_LOT" type="number">T.ID_VRAC</select>
+    <select alias="ID_CAPTURE" type="number">T.ID_CAPTURE</select>
+
+    <select alias="SPECIES" type="text">T.ESPECE</select><!-- TODO mettre l'espèce scientique -->
+    <select alias="ESPECE_COM" type="text">T.ESPECE_COM</select>
+    <select alias="CAT" type="text">null</select>
+    <select alias="SEXE" type="text">null</select>
+    <select alias="PRESENTATION" type="text">T.PRESENTATION</select>
+
+    <select alias="TAUX_ECH" type="number">T.TAUX_ECH</select>
+    <select alias="POIDS_REF" type="number">T.POIDS_REF</select>
+    <select alias="METHODE_POIDS_REF" type="text">T.METHODE_POIDS_REF</select>
+
+    <select alias="WEIGHT_RTP" type="number">null</select><!-- TODO manage RTP -->
+    <select alias="NOMBRE" type="number">T.NOMBRE</select>
+    <select alias="PRODUCT_DESTINATION" type="text">null</select>
+
+    <select alias="CONVERSION_COEFFICIENT" type="number">null</select> <!-- TODO manage RTP -->
+    <select alias="ALL_TAUX_ECH" type="text">'1#1#' ||  T.TAUX_ECH</select>
+
+    <!--
+<select alias="" type="text">''</select>
+<select alias="" type="number">null</select>
+-->
+
+    <from alias="T">TEMP_SPECIES_LIST</from>
+
+  </query>
+
+</queries>

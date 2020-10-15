@@ -25,7 +25,6 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -39,9 +38,7 @@ import java.util.Map;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class SampleVO implements
-        IRootDataVO<Integer>,
-        IWithRecorderPersonEntity<Integer, PersonVO> {
+public class SampleVO implements IRootDataVO<Integer>{
     @EqualsAndHashCode.Exclude
     private Integer id;
     private String comments;

@@ -28,10 +28,7 @@ import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.core.vo.technical.extraction.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -52,7 +49,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private ExtractionProductDao dao;
+    private ExtractionProductRepository repository;
 
     @Before
     public void setUp() throws Exception {
@@ -62,15 +59,17 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
 
     @Test
     public void getAll() {
-        List<ExtractionProductVO> products = dao.findByFilter();
+        ExtractionProductFilterVO filter = new ExtractionProductFilterVO();
+        filter.setStatusIds(new Integer[]{getConfig().getStatusIdTemporary(), getConfig().getStatusIdValid()});
+        List<ExtractionProductVO> products = repository.findAll(filter);
         Assert.assertNotNull(products);
-        Assert.assertTrue(products.size() > 0);
+        Assert.assertEquals(1, products.size());
     }
 
     @Test
     public void delete() {
         Integer id = dbResource.getFixtures().getProductId(0);
-        dao.delete(id);
+        repository.deleteById(id);
 
     }
 
@@ -141,12 +140,12 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
         source.setStratum(stratum);
 
         // Save
-        ExtractionProductVO target = dao.save(source);
+        ExtractionProductVO target = repository.save(source);
         Assert.assertNotNull(target);
         Assert.assertNotNull(target.getId());
 
         // Reload
-        ExtractionProductVO reloadTarget = dao.getByLabel(source.getLabel());
+        ExtractionProductVO reloadTarget = repository.getByLabel(source.getLabel());
         Assert.assertNotNull(reloadTarget);
         Assert.assertNotNull(reloadTarget.getId());
 

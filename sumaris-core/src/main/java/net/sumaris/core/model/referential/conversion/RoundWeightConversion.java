@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
+import net.sumaris.core.model.referential.OriginItemType;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -100,6 +101,10 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity {
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "origin_item_type_fk")
+    private OriginItemType originItemType;
 
     @Column(name = "conversion_coefficient", nullable = false)
     private Double conversionCoefficient;
