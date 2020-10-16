@@ -48,7 +48,7 @@ public interface StrategyService {
 	List<PmfmStrategyVO> findPmfmStrategiesByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getGears(int strategyId);
@@ -58,6 +58,9 @@ public interface StrategyService {
 
 	@Transactional(readOnly = true)
 	List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
+
+	@Transactional(readOnly = true)
+	List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
 
 	StrategyVO save(StrategyVO source);
 

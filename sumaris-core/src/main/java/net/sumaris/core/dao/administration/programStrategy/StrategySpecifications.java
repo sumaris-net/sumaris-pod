@@ -25,6 +25,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.vo.administration.programStrategy.AppliedStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.TaxonGroupStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.TaxonNameStrategyVO;
@@ -60,5 +61,7 @@ public interface StrategySpecifications {
     List<TaxonGroupStrategyVO> getTaxonGroupStrategies(int strategyId);
 
     List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
+
+    List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
 
 }

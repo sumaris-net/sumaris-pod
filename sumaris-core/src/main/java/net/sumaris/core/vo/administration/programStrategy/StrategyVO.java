@@ -24,6 +24,7 @@ package net.sumaris.core.vo.administration.programStrategy;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.administration.programStrategy.PmfmAppliedStrategy;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
@@ -39,12 +40,14 @@ public class StrategyVO implements IReferentialVO {
     private String name;
     private String description;
     private String comments;
+    private String analyticReference;
     private Date updateDate;
     private Date creationDate;
 
     private Integer statusId;
     private Integer programId;
 
+    private List<AppliedStrategyVO> appliedStrategies;
     private List<PmfmStrategyVO> pmfmStrategies;
 
     private List<Integer> gearIds;

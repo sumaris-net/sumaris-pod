@@ -56,8 +56,8 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, StrategyFetchOptions fetchOptions) {
-		return pmfmStrategyRepository.findByStrategyId(strategy, fetchOptions);
+	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategyId, StrategyFetchOptions fetchOptions) {
+		return pmfmStrategyRepository.findByStrategyId(strategyId, fetchOptions);
 	}
 
 	@Override
@@ -94,6 +94,11 @@ public class StrategyServiceImpl implements StrategyService {
 	@Override
 	public List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId) {
 		return strategyRepository.getTaxonNameStrategies(strategyId);
+	}
+
+	@Override
+	public List<AppliedStrategyVO> getAppliedStrategies(int strategyId) {
+		return strategyRepository.getAppliedStrategies(strategyId);
 	}
 
 	@Override

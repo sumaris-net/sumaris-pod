@@ -70,6 +70,8 @@ public class Strategy implements IItemReferentialEntity {
     @Column(length = 2000)
     private String comments;
 
+    private String analyticReference;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;

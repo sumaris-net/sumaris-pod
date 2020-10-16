@@ -28,7 +28,8 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.*;
+import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
@@ -62,8 +63,24 @@ public class PmfmStrategy implements IEntity<Integer> {
     private Double defaultValue;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pmfm_fk", nullable = false)
+    @JoinColumn(name = "pmfm_fk")
     private Pmfm pmfm;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parameter_fk")
+    private Parameter parameter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "matrix_fk")
+    private Matrix matrix;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fraction_fk")
+    private Fraction fraction;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "method_fk")
+    private Method method;
 
     @Column(name = "rank_order", nullable = false)
     private Integer rankOrder;

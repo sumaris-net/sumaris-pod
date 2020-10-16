@@ -24,17 +24,16 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
+import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
@@ -55,10 +54,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -183,6 +179,11 @@ public class StrategyRepositoryImpl
     }
 
     @Override
+    public List<AppliedStrategyVO> getAppliedStrategies(int strategyId) {
+        return getAppliedStrategies(load(Strategy.class, strategyId));
+    }
+
+    @Override
     @Caching(
         evict = {
             @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
@@ -221,6 +222,9 @@ public class StrategyRepositoryImpl
 
         // Taxon names
         target.setTaxonNames(getTaxonNameStrategies(source));
+
+        // Applied strategies
+        target.setAppliedStrategies(getAppliedStrategies(source));
 
         // Pmfm strategies
         if (CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
@@ -271,6 +275,11 @@ public class StrategyRepositoryImpl
         // Reference Names strategy
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonNames())) {
             saveReferenceTaxonStrategiesByStrategy(source.getTaxonNames(), target);
+        }
+
+        // Applied strategies
+        if (copyIfNull || CollectionUtils.isNotEmpty(source.getAppliedStrategies())) {
+            saveAppliedStrategiesByStrategy(source.getAppliedStrategies(), target);
         }
 
         // Pmfm Strategies
@@ -405,5 +414,78 @@ public class StrategyRepositoryImpl
         }
     }
 
+    protected List<AppliedStrategyVO> getAppliedStrategies(Strategy source) {
+        if (CollectionUtils.isEmpty(source.getAppliedStrategies())) return null;
+        return source.getAppliedStrategies()
+                .stream()
+                // Sort by id
+                .sorted(Comparator.comparingInt((item) -> item.getId()))
+                .map(item -> {
+                    AppliedStrategyVO target = new AppliedStrategyVO();
+                    target.setId(item.getId());
+                    target.setStrategyId(source.getId());
+                    target.setLocationId(item.getLocation().getId());
+
+                    // AppliedPeriod
+                    List<AppliedPeriodVO> targetPeriods = Lists.newArrayList();
+                    for (AppliedPeriod itemPeriod : item.getAppliedPeriods()) {
+                        AppliedPeriodVO targetPeriod = new AppliedPeriodVO();
+                        Beans.copyProperties(itemPeriod, targetPeriod);
+                        targetPeriod.setAppliedStrategyId(itemPeriod.getAppliedStrategy().getId());
+                        targetPeriods.add(targetPeriod);
+                    }
+                    target.setAppliedPeriods(targetPeriods);
+
+                    return target;
+                })
+                .collect(Collectors.toList());
+    }
+
+    protected void saveAppliedStrategiesByStrategy(List<AppliedStrategyVO> sources, Strategy parent) {
+        EntityManager em = getEntityManager();
+
+        // Remember existing entities
+        Map<Integer, AppliedStrategy> sourcesToRemove = Beans.splitByProperty(parent.getAppliedStrategies(),
+                AppliedStrategy.Fields.ID);
+
+        // Save each applied strategy
+        List<AppliedStrategy> result = Beans.getStream(sources).map(source -> {
+            Integer appliedStrategyId = source.getId() != null ? source.getId() : null;
+            if (appliedStrategyId == null) throw new DataIntegrityViolationException("Missing id in a AppliedStrategyVO");
+            AppliedStrategy target = sourcesToRemove.remove(appliedStrategyId);
+            boolean isNew = target == null;
+            if (isNew) {
+                target = new AppliedStrategy();
+                target.setStrategy(parent);
+            }
+            target.setLocation(load(Location.class, source.getLocationId()));
+
+            // AppliedPeriod
+            List<AppliedPeriod> targetPeriods = Lists.newArrayList();
+            for (AppliedPeriodVO sourcePeriod : source.getAppliedPeriods()) {
+                AppliedPeriod targetPeriod = new AppliedPeriod();
+                Beans.copyProperties(sourcePeriod, targetPeriod);
+                targetPeriod.setAppliedStrategy(load(AppliedStrategy.class, appliedStrategyId));
+                targetPeriods.add(targetPeriod);
+            }
+            target.setAppliedPeriods(targetPeriods);
+
+            if (isNew) {
+                em.persist(target);
+            }
+            else {
+                em.merge(target);
+            }
+            return target;
+        }).collect(Collectors.toList());
+
+        // Update the target strategy
+        parent.setAppliedStrategies(result);
+
+        // Remove unused entities
+        if (MapUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.values().forEach(em::remove);
+        }
+    }
 
 }
