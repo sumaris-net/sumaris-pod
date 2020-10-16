@@ -25,25 +25,35 @@ package net.sumaris.rdf;
  */
 
 
-import net.sumaris.rdf.service.ExportServicesTest;
-import net.sumaris.rdf.service.schema.SchemaServiceTest;
+import net.sumaris.rdf.dao.referential.taxon.SandreLoaderTest;
+import net.sumaris.rdf.dao.referential.taxon.TaxrefLoaderTest;
 import net.sumaris.rdf.service.DatasetServiceTest;
-import net.sumaris.server.http.vowl.WebvowlRestControllerTest;
+import net.sumaris.rdf.service.ExportServicesTest;
+import net.sumaris.rdf.service.data.DataServiceTest;
+import net.sumaris.rdf.service.schema.SchemaServiceTest;
+import net.sumaris.rdf.util.ModelUtilsTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+
+
+
 
 /**
  * Created by Ludovic on 02/02/2016.
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-    ExportServicesTest.class,
-    // Service
-    SchemaServiceTest.class,
-    // Controller
-    DatasetServiceTest.class,
-    WebvowlRestControllerTest.class
+        // Loader
+        SandreLoaderTest.class,
+        TaxrefLoaderTest.class,
+        // Service
+        DatasetServiceTest.class,
+        ExportServicesTest.class,
+        SchemaServiceTest.class,
+        DataServiceTest.class,
+        // Util
+        ModelUtilsTest.class
 })
 public class AllTests {
 

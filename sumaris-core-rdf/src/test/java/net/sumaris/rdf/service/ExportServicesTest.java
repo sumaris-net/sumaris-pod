@@ -191,7 +191,7 @@ public class ExportServicesTest extends AbstractTest {
     }
 
     protected void outputToFile(Model model, Path path, RdfFormat format) throws IOException {
-        String content = ModelUtils.modelToString(model, format);
+        String content = ModelUtils.toString(model, format);
         Files.write(path, content.getBytes());
     }
 

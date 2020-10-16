@@ -195,7 +195,7 @@ public class DatasetService {
                             if (this.dataset.containsNamedModel(graphUri)) {
                                 return this.dataset.getNamedModel(graphUri);
                             } else {
-                                return FileManager.get().loadModel(graphUri, RdfFormat.fromUrlExtension(graphUri).orElse(RdfFormat.RDF).toJenaFormat());
+                                return FileManager.get().loadModel(graphUri, RdfFormat.fromUrlExtension(graphUri).orElse(RdfFormat.RDFXML).toJenaFormat());
                             }
                         })
                         .reduce(ModelFactory::createUnion)
@@ -210,7 +210,7 @@ public class DatasetService {
                 for (String graphUri : datasetDescription.getNamedGraphURIs()) {
                     Model namedGraph;
                     if (!this.dataset.containsNamedModel(graphUri)) {
-                        namedGraph = FileManager.get().loadModel(graphUri, RdfFormat.fromUrlExtension(graphUri).orElse(RdfFormat.RDF).toJenaFormat());
+                        namedGraph = FileManager.get().loadModel(graphUri, RdfFormat.fromUrlExtension(graphUri).orElse(RdfFormat.RDFXML).toJenaFormat());
                     } else {
                         namedGraph = this.dataset.getNamedModel(graphUri);
                     }

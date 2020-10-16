@@ -22,18 +22,23 @@
 
 package net.sumaris.rdf.service.schema;
 
+import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.AbstractTest;
+import net.sumaris.rdf.util.ModelUtils;
+import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.util.FileManager;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.tdwg.rs.DWC;
 
 
 public class SchemaServiceTest extends AbstractTest {
@@ -49,43 +54,84 @@ public class SchemaServiceTest extends AbstractTest {
     public void getOntologyWithRdfsReasoner() {
 
         // load some data that uses RDFS
-        Model data = FileManager.get().loadModel("file:src/test/resources/rdf-test-data.ttl");
+        Model individuals = FileManager.get().loadModel("file:src/test/resources/rdf-test-data.ttl");
 
+        // Get schema ontology
         Model model = schemaService.getOntology(RdfSchemaOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
+                .className(TaxonName.class.getSimpleName())
+                // Will add RDFS equivalence between:
+                // - TaxonName#name <--> rdfs:label
+                // - TaxonName#name <--> dwc:scientificName
                 .withEquivalences(true)
                 .reasoningLevel(ReasoningLevel.RDFS)
                 .build())
-                .add(data);
+                // Add individuals
+                .add(individuals);
 
         // Get by rdfs:label
         assertQueryHasResult(model, StrUtils.strjoinNL(
-                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
                 "SELECT * ",
                 "WHERE { ",
-                "  ?x rdfs:label ?label .",
+                "  ?x <"+ RDFS.label.getURI() +"> ?label .",
                 "  FILTER ( ?label=\"Lophius budegassa\" )",
                 "}"));
 
         // Get by dwc:scientificName
         assertQueryHasResult(model,  StrUtils.strjoinNL(
-                "PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>",
                 "SELECT * ",
                 "WHERE { ",
-                "  ?x dwc:scientificName ?label .",
+                "  ?x <"+ DWC.Terms.scientificName.getURI() +"> ?label .",
                 "  FILTER ( ?label=\"Lophius budegassa\" )",
                 "}"));
     }
 
+    @Test
+    public void getOntologyWithOwlReasoner() {
+
+        // load some data that uses RDFS
+        Model individuals = FileManager.get().loadModel("file:src/test/resources/rdf-test-data.ttl");
+
+        // Get schema ontology
+        Model model = schemaService.getOntology(RdfSchemaOptions.builder()
+                .domain(ModelVocabulary.REFERENTIAL)
+                .className(TaxonName.class.getSimpleName())
+                // Will add OWL equivalence between:
+                // - TaxonName#name <--> rdfs:label
+                // - TaxonName#name <--> dwc:scientificName
+                .withEquivalences(true)
+                .reasoningLevel(ReasoningLevel.OWL)
+                .build())
+                // Add individuals
+                .add(individuals);
+
+        ModelUtils.toString(model, RdfFormat.TURTLE);
+
+        // Get by rdfs:label
+        assertQueryHasResult(model, StrUtils.strjoinNL(
+                "SELECT * ",
+                "WHERE { ",
+                "  ?x <"+ RDFS.label.getURI() +"> ?label .",
+                "  FILTER ( ?label=\"Lophius budegassa\" )",
+                "}"));
+
+        // Get by dwc:scientificName
+        assertQueryHasResult(model,  StrUtils.strjoinNL(
+                "SELECT * ",
+                "WHERE { ",
+                "  ?x <"+ DWC.Terms.scientificName.getURI() +"> ?label .",
+                "  FILTER ( ?label=\"Lophius budegassa\" )",
+                "}"));
+    }
 
     /* -- protected functions -- */
 
     protected void assertQueryHasResult(Model model, String queryString) {
         Query query = QueryFactory.create(queryString);
-        QueryExecution qexec = QueryExecutionFactory.create(query, model);
+        try (QueryExecution qExec = QueryExecutionFactory.create(query, model)) {
+            ResultSet resultSet = qExec.execSelect();
+            Assert.assertTrue(resultSet.hasNext());
+        };
 
-        ResultSet resultSet = qexec.execSelect();
-        Assert.assertTrue(resultSet.hasNext());
-        //QueryExecUtils.executeQuery(qexec);
     }
 }

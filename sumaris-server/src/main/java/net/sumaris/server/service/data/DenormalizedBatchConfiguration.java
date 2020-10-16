@@ -30,20 +30,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.JmsListener;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
 @Configuration
 @ConditionalOnProperty(
-        prefix = "batch.elevation",
-        name = {"enabled"},
-        matchIfMissing = true // TODO change to true
-        )
-public class BatchElevationConfiguration {
+        prefix = "sumaris.persistence",
+        name = {"denormalizedBatch.enabled"}
+
+        // TODO BLA Mettre à 'true' quand l'élévation sera finit
+        //, matchIfMissing = true
+)
+public class DenormalizedBatchConfiguration {
 
     /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(BatchElevationConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(DenormalizedBatchConfiguration.class);
 
     @Resource
     private DenormalizedBatchService denormalizedBatchService;
