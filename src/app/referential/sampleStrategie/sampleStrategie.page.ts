@@ -5,7 +5,7 @@ import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
 import {Strategy} from "../services/model/strategy.model";
 import {ProgramService} from "../services/program.service";
-import {StrategieImagineForm} from "../strategieImagine/form/strategieImagine.form";
+import {SampleStrategieForm} from "../sampleStrategie/form/sampleStrategie.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
 import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
@@ -28,8 +28,8 @@ export enum AnimationState {
 }
 
 @Component({
-  selector: 'app-strategieImagine',
-  templateUrl: 'strategieImagine.page.html',
+  selector: 'app-sampleStrategie',
+  templateUrl: 'sampleStrategie.page.html',
   providers: [
     {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
@@ -51,7 +51,7 @@ export enum AnimationState {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StrategieImaginePage extends AppEntityEditor<Program, ProgramService> implements OnInit {
+export class SampleStrategiePage extends AppEntityEditor<Program, ProgramService> implements OnInit {
 
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   fieldDefinitions: FormFieldDefinitionMap = {};
@@ -59,7 +59,7 @@ export class StrategieImaginePage extends AppEntityEditor<Program, ProgramServic
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
 
-  @ViewChild('strategieImagineForm', { static: true }) strategieImagineForm: StrategieImagineForm;
+  @ViewChild('sampleStrategieForm', { static: true }) sampleStrategieForm: SampleStrategieForm;
 
 
   constructor(
@@ -87,7 +87,7 @@ export class StrategieImaginePage extends AppEntityEditor<Program, ProgramServic
  //  super.ngOnInit();
 
     // Set entity name (required for referential form validator)
-    this.strategieImagineForm.entityName = 'Program';
+    this.sampleStrategieForm.entityName = 'Program';
 
 
    }
@@ -111,14 +111,14 @@ export class StrategieImaginePage extends AppEntityEditor<Program, ProgramServic
 
 
   protected getFirstInvalidTabIndex(): number {
-    if (this.strategieImagineForm.invalid) return 0;
+    if (this.sampleStrategieForm.invalid) return 0;
    // TODO
     return 0;
   }
 
   protected registerForms() {
     this.addChildForms([
-      this.strategieImagineForm
+      this.sampleStrategieForm
        // TODO
     ]);
   }

@@ -135,8 +135,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   // TODO : séparer entre édition et création de ligne
   async openRow(row: TableElement<Strategy>): Promise<boolean> {
-    const id = row.currentData.label;
-    const path = '/referential/strategieImagine/'+id;
+    const id = row.currentData.id;
+
+    const path = '/referential/sampleStrategie/'+id;
     
     if (isNotNilOrBlank(path)) {
       await this.router.navigateByUrl(
