@@ -92,12 +92,12 @@ case "$task" in
     echo "Uploading files to $upload_url ..."
     DIRNAME=$(pwd)
 
-    artifact_name="sumaris-pod-$current.war"
-    WAR_FILE="${DIRNAME}/sumaris-server/target/${artifact_name}"
+    WAR_FILE="${DIRNAME}/sumaris-server/target/sumaris-server-$current.war"
     if [[ ! -f "${WAR_FILE}" ]]; then
       echo "ERROR: Missing WAR artifact: ${WAR_FILE}. Skipping upload"
       missing_file=true
     else
+      artifact_name="sumaris-pod-$current.war"
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${WAR_FILE}" "${upload_url}?name=${artifact_name}")
       browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
       SHA256=$(sha256sum "${WAR_FILE}" | sed 's/ /\n/gi' | head -n 1)
@@ -107,12 +107,12 @@ case "$task" in
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${WAR_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
     fi
 
-    artifact_name="sumaris-pod-$current.zip"
-    ZIP_FILE="${DIRNAME}/sumaris-server/target/${artifact_name}"
+    ZIP_FILE="${DIRNAME}/sumaris-server/target/sumaris-server-$current-standalone.zip"
     if [[ ! -f "${ZIP_FILE}" ]]; then
       echo "ERROR: Missing ZIP artifact: ${ZIP_FILE}. Skipping upload"
       missing_file=true
     else
+      artifact_name="sumaris-pod-$current.zip"
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${ZIP_FILENAME}")
       browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
       SHA256=$(sha256sum "${ZIP_FILE}" | sed 's/ /\n/gi' | head -n 1)
@@ -141,7 +141,8 @@ case "$task" in
       echo "-----------------------------------------"
       echo "ERROR: missing some artifacts (see logs)"
       echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${current}"
-      exit 1
+      # Continue if error
+      #exit 1
     else
       echo "-----------------------------------------"
       echo "Successfully uploading files !"

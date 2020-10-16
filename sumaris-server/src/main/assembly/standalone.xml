@@ -29,15 +29,6 @@
       </includes>
     </fileSet>
 
-    <!-- /lib -->
-    <fileSet>
-      <directory>target</directory>
-      <outputDirectory>lib</outputDirectory>
-      <includes>
-        <include>${project.build.finalName}.${project.packaging}</include>
-      </includes>
-    </fileSet>
-
     <!-- /config -->
     <fileSet>
       <directory>src/main/assembly/config</directory>
@@ -49,4 +40,14 @@
     </fileSet>
 
   </fileSets>
+
+  <!-- /lib -->
+  <files>
+    <file>
+      <source>target/${project.build.finalName}.${project.packaging}</source>
+      <outputDirectory>lib</outputDirectory>
+      <destName>${project.parent.artifactId}-${project.version}.${project.packaging}</destName>
+    </file>
+  </files>
+
 </assembly>

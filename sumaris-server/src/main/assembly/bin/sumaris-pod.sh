@@ -16,7 +16,8 @@ TIMEZONE=UTC
 # --- Fixed variables (DO NOT changes):  --------------------------------------
 
 WAR_FILENAME="@project.parent.artifactId@-${VERSION}.@project.packaging@"
-WAR_URL="https://github.com/sumaris-net/sumaris-pod/releases/download/${VERSION}/${WAR_FILENAME}"
+REPO_URL="https://github.com/sumaris-net/sumaris-pod"
+WAR_URL="${REPO_URL}/releases/download/${VERSION}/${WAR_FILENAME}"
 JAVA_VERSION=1.8.121
 JAVA_JRE_URL=https://nexus.e-is.pro/nexus/service/local/repositories/jvm/content/com/oracle/jre/${JAVA_VERSION}/jre-${JAVA_VERSION}-linux-x64.zip
 
