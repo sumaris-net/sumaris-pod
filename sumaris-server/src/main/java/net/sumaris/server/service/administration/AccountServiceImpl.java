@@ -87,7 +87,7 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private UserTokenRepository userTokenRepository;
 
-    @Autowired
+    @Autowired(required = false)
     private EmailService emailService;
 
     @Autowired
@@ -131,10 +131,16 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @PostConstruct
-    public void registerConverter() {
+    public void init() {
         log.debug("Register {Account} converters");
         conversionService.addConverter(PersonVO.class, AccountVO.class, p -> self.toAccountVO(p));
         conversionService.addConverter(Person.class, AccountVO.class, p -> self.getByPubkey(p.getPubkey()));
+
+        if (emailService == null) {
+            log.debug("/!\\ Cannot send email to user! Please configure SMTP server, using options: {} and {}",
+                    SumarisServerConfigurationOption.MAIL_HOST.getKey(),
+                    SumarisServerConfigurationOption.MAIL_PORT.getKey());
+        }
     }
 
     @Override
@@ -411,36 +417,40 @@ public class AccountServiceImpl implements AccountService {
         Preconditions.checkNotNull(settings.getLatLongFormat(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.settings.latLongFormat")));
     }
 
+    /**
+     * Send confirmation Email
+     *
+     * @param toAddress
+     * @param locale
+     */
     private void sendConfirmationLinkByEmail(String toAddress, Locale locale) {
+        if (this.mailFromAddress == null || this.emailService == null) return; // Skip
 
-        // Send confirmation Email
-        if (this.mailFromAddress != null) {
-            try {
+        try {
 
-                String signatureHash = serverCryptoService.hash(serverCryptoService.sign(toAddress));
+            String signatureHash = serverCryptoService.hash(serverCryptoService.sign(toAddress));
 
-                String confirmationLinkURL = config.getRegistrationConfirmUrlPattern()
-                        .replace("{email}", toAddress)
-                        .replace("{code}", signatureHash);
+            String confirmationLinkURL = config.getRegistrationConfirmUrlPattern()
+                    .replace("{email}", toAddress)
+                    .replace("{code}", signatureHash);
 
-                final Email email = DefaultEmail.builder()
-                        .from(this.mailFromAddress)
-                        .replyTo(this.mailFromAddress)
-                        .to(Lists.newArrayList(new InternetAddress(toAddress)))
-                        .subject(I18n.l(locale,"sumaris.server.mail.subject.prefix", config.getAppName())
-                                + " " + I18n.l(locale, "sumaris.server.account.register.mail.subject"))
-                        .body(I18n.l(locale, "sumaris.server.account.register.mail.body",
-                                this.serverUrl,
-                                confirmationLinkURL,
-                                config.getAppName()))
-                        .encoding(CHARSET_UTF8.name())
-                        .build();
+            final Email email = DefaultEmail.builder()
+                    .from(this.mailFromAddress)
+                    .replyTo(this.mailFromAddress)
+                    .to(Lists.newArrayList(new InternetAddress(toAddress)))
+                    .subject(I18n.l(locale,"sumaris.server.mail.subject.prefix", config.getAppName())
+                            + " " + I18n.l(locale, "sumaris.server.account.register.mail.subject"))
+                    .body(I18n.l(locale, "sumaris.server.account.register.mail.body",
+                            this.serverUrl,
+                            confirmationLinkURL,
+                            config.getAppName()))
+                    .encoding(CHARSET_UTF8.name())
+                    .build();
 
-                emailService.send(email);
-            }
-            catch(AddressException e) {
-                throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
-            }
+            emailService.send(email);
+        }
+        catch(AddressException e) {
+            throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
         }
     }
 
@@ -452,6 +462,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     protected void sendRegistrationToAdmins(PersonVO confirmedAccount) {
+        if (emailService == null) return; // Skip
 
         try {
 

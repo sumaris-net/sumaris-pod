@@ -22,6 +22,7 @@
 
 package net.sumaris.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
 import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.server.config.SumarisServerConfiguration;
@@ -31,6 +32,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -40,6 +42,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -57,7 +60,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         },
         exclude = {
                 LiquibaseAutoConfiguration.class,
-                FreeMarkerAutoConfiguration.class
+                FreeMarkerAutoConfiguration.class,
+                JsonbAutoConfiguration.class
         }
 )
 @EntityScan(basePackages = {
@@ -163,6 +167,5 @@ public class Application extends SpringBootServletInitializer {
         executor.initialize();
         return executor;
     }
-
 
 }

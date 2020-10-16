@@ -243,9 +243,26 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
-     * <p>find the ActiveMQ broker URL.</p>
+     * <p>Get mail host?</p>
      *
-     * @return a {@link Integer}
+     * @return a {@link Boolean}
+     */
+    public String getMailHost() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.MAIL_HOST.getKey());
+    }
+    /**
+     * <p>Get mail host?</p>
+     *
+     * @return a {@link Boolean}
+     */
+    public int getMailPort() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.MAIL_PORT.getKey());
+    }
+
+    /**
+     * <p>Is ActiveMQ enabled ?</p>
+     *
+     * @return a {@link Boolean}
      */
     public boolean isActiveMQEnable() {
         return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.ACTIVEMQ_ENABLE.getKey());

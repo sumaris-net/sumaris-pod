@@ -340,11 +340,6 @@
         <version>1.5.0-b01</version>
       </dependency>
       <dependency>
-        <groupId>javax</groupId>
-        <artifactId>javaee-api</artifactId>
-        <version>8.0</version>
-      </dependency>
-      <dependency>
         <groupId>dnl.utils</groupId>
         <artifactId>j-text-utils</artifactId>
         <version>${jTextUtilsVersion}</version>
