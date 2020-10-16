@@ -984,6 +984,8 @@
       "TAB_GENERAL": "Détails",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type de valeur",
+      "CODE": "code paramètre",
+      "NAME": "nom",
       "NEW": {
         "TITLE": "Nouveau Paramètre"
       },
@@ -1021,6 +1023,18 @@
       "EDIT": {
         "TITLE": "PSFM {{label}} - {{name}}"
       }
+    },
+    "MATRIX": {
+      "NAME": "Support",
+      "DESCRIPTION": "description"
+    },
+    "FRACTION": {
+      "NAME": "Fraction",
+      "DESCRIPTION": "description"
+    },
+    "METHOD": {
+      "NAME": "Méthode de collecte",
+      "DESCRIPTION": "description"
     },
     "LIST": {
       "TITLE": "Listes",
@@ -1138,6 +1152,11 @@
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
         "PMFM": "Paramètre collecté (PMFM)",
+        "PARAMETER": "Paramètre",
+        "MATRIX": "Matrix",
+        "FRACTION": "Fraction",
+        "METHOD": "Méthode",
+        "UNIT": "Unité",
         "IS_MANDATORY": "Oblig ?",
         "ACQUISITION_NUMBER": "Nb acquis.",
         "MIN_VALUE": "Min",
