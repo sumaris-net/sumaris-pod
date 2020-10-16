@@ -22,8 +22,8 @@
 
 package net.sumaris.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
+import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.slf4j.Logger;
@@ -37,12 +37,12 @@ import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfigurati
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -92,7 +92,10 @@ public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SumarisServerConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(args));
-        SpringApplication.run(Application.class, args);
+        ConfigurableApplicationContext appContext = SpringApplication.run(Application.class, args);
+
+        // Init service locator
+        ServiceLocator.init(appContext);
     }
 
     @Override
