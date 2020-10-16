@@ -40,10 +40,10 @@ public class SandreTaxonRdfLoader extends AbstractNamedRdfLoader {
     @Value("${rdf.sandre.sparql.limit:10000}")
     private int fetchSize = 10000;
 
-    @Value("${rdf.sandre.dataset.name:http://id.eaufrance.fr/apt/}")
+    @Value("${rdf.dataset.sandre.apt.name:http://id.eaufrance.fr/apt/}")
     private String name;
 
-    @Value("${rdf.taxref.query.name:classpath:sparql/taxon.sparql}")
+    @Value("${rdf.dataset.sandre.apt.query:classpath:sparql/taxon.sparql}")
     private String queryFile;
 
     @Override
@@ -62,7 +62,7 @@ public class SandreTaxonRdfLoader extends AbstractNamedRdfLoader {
     }
 
     @Override
-    protected String getQueryFile() {
+    protected String getQueryPath() {
         return queryFile;
     }
 }

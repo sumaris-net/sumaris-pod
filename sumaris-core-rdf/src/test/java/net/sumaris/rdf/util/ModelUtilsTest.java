@@ -28,7 +28,6 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.model.ModelURIs;
-import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;

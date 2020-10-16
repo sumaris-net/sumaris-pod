@@ -22,12 +22,10 @@
 
 package net.sumaris.rdf.config;
 
-import net.sumaris.server.http.rest.RdfFormat;
+import net.sumaris.rdf.util.RdfFormat;
 import org.nuiton.config.ConfigOptionDef;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URL;
 
 import static org.nuiton.i18n.I18n.n;
 

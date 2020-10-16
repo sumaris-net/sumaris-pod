@@ -26,12 +26,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.service.store.DatasetService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
-import net.sumaris.server.http.rest.RdfFormat;
-import net.sumaris.server.http.rest.RdfMediaType;
+import net.sumaris.rdf.util.RdfFormat;
+import net.sumaris.rdf.util.RdfMediaType;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -61,7 +62,7 @@ import java.util.Optional;
 
 
 @RestController
-@ConditionalOnBean({WebMvcConfigurer.class})
+@ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
 public class SparqlRestController {
 
     public static final String SPARQL_ENDPOINT = "/sparql";

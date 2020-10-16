@@ -22,7 +22,7 @@
 
 package net.sumaris.rdf.service;
 
-import net.sumaris.server.http.rest.RdfFormat;
+import net.sumaris.rdf.util.RdfFormat;
 import org.apache.jena.rdf.model.Model;
 
 import javax.annotation.Nullable;
