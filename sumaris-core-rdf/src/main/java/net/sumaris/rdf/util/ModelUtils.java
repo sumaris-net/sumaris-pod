@@ -22,13 +22,13 @@
 
 package net.sumaris.rdf.util;
 
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.Ontology;
-import com.github.owlcs.ontapi.OntologyManager;
 import com.google.common.base.Preconditions;
 import de.uni_stuttgart.vis.vowl.owl2vowl.Owl2Vowl;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.jena.ontology.OntModel;
@@ -42,34 +42,22 @@ import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.vocabulary.*;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
+import org.semanticweb.owlapi.io.StringDocumentTarget;
+import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nullable;
 import java.io.*;
+import java.util.function.Function;
 
 public class ModelUtils {
-
-
 
     protected ModelUtils() {
         // Helper class
     }
 
-
-    /**
-     * Convert to Jena format, and use XML/RDF by default
-     * @param userFormat
-     * @return
-     */
-    public static String toJenaFormat(String userFormat) {
-        if (StringUtils.isBlank(userFormat)) {
-            return RdfFormat.RDF.toJenaFormat();
-        }
-        return RdfFormat.fromUserString(userFormat)
-                .map(RdfFormat::toJenaFormat)
-                .orElse(userFormat.toUpperCase());
-    }
     /**
      * Serialize model in requested format
      *
@@ -77,8 +65,8 @@ public class ModelUtils {
      * @param format output format if null then output to RDF/XML
      * @return a string representation of the model
      */
-    public static String modelToString(Model model, RdfFormat format) {
-        return modelToString(model, format.getLabel());
+    public static String toString(Model model, @Nullable String format) {
+        return toString(model, toRdfFormat(format));
     }
 
     /**
@@ -88,38 +76,12 @@ public class ModelUtils {
      * @param format output format if null then output to RDF/XML
      * @return a string representation of the model
      */
-    public static String modelToString(Model model, @Nullable String format) {
-
-        format = toJenaFormat(format);
-
-        // Special case for VOWL format
-        if ("VOWL".equalsIgnoreCase(format)) {
-            try (
-                ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-            ) {
-                model.write(bos);
-                bos.flush();
-
-                return new Owl2Vowl(new ByteArrayInputStream(bos.toByteArray())).getJsonAsString();
-            } catch (Exception e) {
-                throw new SumarisTechnicalException("Error converting model into VOWL", e);
-            }
-        }
-
-        // Other case
-        else {
-            try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-                if (format == null) {
-                    model.write(os);
-                } else {
-                    model.write(os, format);
-                }
-                os.flush();
-                os.close();
-                return new String(os.toByteArray(), "UTF8");
-            } catch (IOException e) {
-                throw new SumarisTechnicalException("Unable to serialize model to string: " + e.getMessage(), e);
-            }
+    public static String toString(Model model, @Nullable RdfFormat format) {
+        try {
+            byte[] bytes = toBytes(model, format);
+            return new String(bytes, "UTF8");
+        } catch (IOException e) {
+           throw new SumarisTechnicalException(e);
         }
     }
 
@@ -130,60 +92,8 @@ public class ModelUtils {
      * @param format output format if null then output to RDF/XML
      * @return a byte array representation of the model
      */
-    public static byte[] modelToBytes(Model model, RdfFormat format) {
-        return modelToBytes(model, format.getName());
-    }
-
-    /**
-     * Serialize model into byte array, using the expected format
-     *
-     * @param model  input model
-     * @param format output format if null then output to RDF/XML
-     * @return a byte array representation of the model
-     */
-    public static byte[] modelToBytes(Model model, @Nullable String format) {
-
-        format = toJenaFormat(format);
-
-        // Special case for VOWL format
-        if ("VOWL".equalsIgnoreCase(format)) {
-            try (
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-            ) {
-                model.write(bos);
-                bos.flush();
-
-                return new Owl2Vowl(new ByteArrayInputStream(bos.toByteArray())).getJsonAsString().getBytes();
-            } catch (Exception e) {
-                throw new SumarisTechnicalException("Error converting model into VOWL", e);
-            }
-        }
-
-        // Other case
-        else {
-            try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-                if (format == null) {
-                    model.write(os);
-                } else {
-                    model.write(os, format);
-                }
-                os.flush();
-                os.close();
-                return os.toByteArray();
-            } catch (IOException e) {
-                throw new SumarisTechnicalException("Unable to serialize model to string: " + e.getMessage(), e);
-            }
-        }
-    }
-    /**
-     * Serialize model into a file, using the expected format
-     *
-     * @param file  output file
-     * @param model  input model
-     * @param format output format if null then output to RDF/XML
-     */
-    public static void modelToFile(File file, Model model, @Nullable String format) {
-        modelToFile(file, model, RdfFormat.fromUserString(format).orElse(null));
+    public static byte[] toBytes(Model model, String format) {
+        return toBytes(model, toRdfFormat(format));
     }
 
     /**
@@ -193,37 +103,23 @@ public class ModelUtils {
      * @param model  input model
      * @param format output format if null then output to RDF/XML
      */
-    public static void modelToFile(File file, Model model, @Nullable RdfFormat format) {
+    public static void write(Model model, @Nullable String format, File file) throws IOException {
+        write(model, toRdfFormat(format), file);
+    }
 
-        // Special case for VOWL format
-        if (format == RdfFormat.VOWL) {
-            try (
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-            ) {
-                model.write(bos);
-                bos.flush();
-
-                new Owl2Vowl(new ByteArrayInputStream(bos.toByteArray())).writeToFile(file);
-            } catch (Exception e) {
-                throw new SumarisTechnicalException("Error converting model into VOWL", e);
-            }
-        }
-
-        // Other case
-        else {
-            try (FileOutputStream fos = new FileOutputStream(file);
-                 BufferedOutputStream bos = new BufferedOutputStream(fos);) {
-                if (format == null) {
-                    model.write(bos);
-                } else {
-                    model.write(bos, format.toJenaFormat());
-                }
-                bos.flush();
-            } catch (IOException e) {
-                throw new SumarisTechnicalException("Unable to serialize model to file: " + e.getMessage(), e);
-            }
+    /**
+     * Serialize model into a file, using the expected format
+     *
+     * @param file  output file
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     */
+    public static void write(Model model, @Nullable RdfFormat format, File file) throws IOException {
+        try (FileOutputStream os = new FileOutputStream(file)) {
+            write(model, format, os);
         }
     }
+
 
     /**
      * Serialize model into byte array, using the expected format
@@ -232,21 +128,60 @@ public class ModelUtils {
      * @param format output format if null then output to RDF/XML
      * @return a byte array representation of the model
      */
-    public static byte[] datasetToBytes(Dataset dataset, RdfFormat format) {
+    public static byte[] toBytes(Model model, @Nullable RdfFormat format) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(1024)) {
+            write(model, format, bos);
+            return bos.toByteArray();
+        } catch (IOException e) {
+            throw new SumarisTechnicalException("Unable to serialize model: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Serialize model into byte array, using the expected format
+     *
+     * @param dataset  input dataset
+     * @param format output format if null then output to RDF/XML
+     * @return a byte array representation of the model
+     */
+    public static byte[] toBytes(Dataset dataset, RdfFormat format) {
+        Preconditions.checkArgument(format == RdfFormat.TRIG || format == RdfFormat.NTRIPLES, "Only TRIG and NTRIPLES format are allowed");
+
         try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-            if (format == null) {
-                RDFDataMgr.write(os, dataset, RdfFormat.TURTLE);
-            } else {
-                RDFDataMgr.write(os, dataset, format);
-            }
-            os.flush();
-            os.close();
+            write(dataset, format, os);
             return os.toByteArray();
+        } catch (IOException e) {
+            throw new SumarisTechnicalException("Unable to serialize model: " + e.getMessage(), e);
+        }
+    }
+
+    public static void write(Dataset dataset, RdfFormat format, OutputStream os) {
+        if (format == null) {
+            format = RdfFormat.TRIG;
+        }
+        else {
+            Preconditions.checkArgument(format == RdfFormat.TRIG || format == RdfFormat.NTRIPLES, "Only TRIG and NTRIPLES format are allowed");
+        }
+
+        try (final BufferedOutputStream bos = new BufferedOutputStream(os)) {
+            RDFDataMgr.write(os, dataset, format);
+            bos.flush();
+            os.flush();
         } catch (IOException e) {
             throw new SumarisTechnicalException("Unable to serialize model to string: " + e.getMessage(), e);
         }
     }
 
+    /**
+     * Serialize model in requested format
+     *
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     * @return a string representation of the model
+     */
+    public static void write(Model model, @Nullable String format, OutputStream os) {
+        write(model, toRdfFormat(format), os);
+    }
 
     /**
      * Serialize model in requested format
@@ -255,37 +190,34 @@ public class ModelUtils {
      * @param format output format if null then output to RDF/XML
      * @return a string representation of the model
      */
-    public static void writeModel(Model model, @Nullable String format, OutputStream os) {
+    public static void write(Model model, @Nullable RdfFormat format, OutputStream os) {
 
-        format = toJenaFormat(format);
+        try (final BufferedOutputStream bos = new BufferedOutputStream(os)) {
 
-        // Special case for VOWL format
-        if ("VOWL".equalsIgnoreCase(format)) {
-            try (
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-            ) {
-                model.write(bos);
-                bos.flush();
-
-                String jsonString = new Owl2Vowl(new ByteArrayInputStream(bos.toByteArray())).getJsonAsString();
-                os.write(jsonString.getBytes("UTF8"));
-            } catch (Exception e) {
-                throw new SumarisTechnicalException("Error when writing model into VOWL", e);
+            // OWL
+            if (format == RdfFormat.OWL) {
+                writeOwl(model, bos);
             }
-        }
 
-        // Other case
-        else {
-            try (final BufferedOutputStream bos = new BufferedOutputStream(os)) {
+            // VOWL
+            else if (format == RdfFormat.VOWL) {
+                writeVowl(model, bos);
+            }
+
+            // Other Jena format
+            else {
                 if (format == null) {
                     model.write(bos);
-                } else {
-                    model.write(bos, format);
                 }
-                bos.flush();
-            } catch (IOException e) {
-                throw new SumarisTechnicalException("Error when writing model to stream: " + e.getMessage(), e);
+                else {
+                    model.write(bos, format.toJenaFormat());
+                }
             }
+
+            bos.flush();
+            os.flush();
+        } catch (IOException e) {
+            throw new SumarisTechnicalException("Error when writing model to stream: " + e.getMessage(), e);
         }
     }
 
@@ -295,45 +227,66 @@ public class ModelUtils {
      * @param format input format if null then output to RDF/XML
      * @return a ontology model
      */
-    public static Model loadModelByUri(String iri, RdfFormat format) {
+    public static Model read(String iri, @Nullable String format) {
+        return read(iri, toRdfFormat(format));
+    }
 
-        // Special case for OWL file format (not supported by Jena)
+    /**
+     *
+     * @param iri The IRI to parse
+     * @param format input format if null then output to RDF/XML
+     * @return a ontology model
+     */
+    public static Model read(String iri, RdfFormat format) {
+
+        // Try to get format, by the extension
+        if (format == null) {
+            format = RdfFormat.fromUrlExtension(iri).orElse(null);
+        }
+
+        // OWL
         if (format == RdfFormat.OWL) {
-            try {
-                OntologyManager ontManager = OntManagers.createONT();
-                Ontology onto = ontManager.loadOntology(IRI.create(iri));
-                com.github.owlcs.ontapi.jena.model.OntModel ontModel = onto.asGraphModel();
-                //ontModel.write(System.out);
-                return ontModel;
-            } catch(OWLOntologyCreationException e) {
-                throw new SumarisTechnicalException("Cannot parse model from IRI: " + iri, e);
-            }
+            return readOwl(iri);
         }
 
+        // VOWL
+        else if (format == RdfFormat.VOWL) {
+            throw new IllegalArgumentException("Reading VOWL model format is not supported");
+        }
+
+        // Other Jena format
         try {
             Model model = ModelFactory.createDefaultModel();
-            model.read(iri, format.toJenaFormat());
+            if (format == null) {
+                model.read(iri);
+            }
+            else {
+                model.read(iri, format.toJenaFormat());
+            }
+
             return model;
-        } catch(JenaException e) {
+        } catch (JenaException e) {
             throw new SumarisTechnicalException("Cannot parse model from IRI: " + iri, e);
         }
     }
 
     /**
      *
-     * @param iri The IRI to parse
+     * @param file The Input model file
      * @param format input format if null then output to RDF/XML
      * @return a ontology model
      */
-    public static Model loadModelByUri(String iri, @Nullable  String format) {
-        format = toJenaFormat(format);
+    public static Model read(File file, @Nullable  RdfFormat format) {
+        // If missing, try to get format from file extension
+        if (format == null) {
+            format = RdfFormat.fromUrlExtension(file.getName()).orElse(null);
+        }
 
-        try {
-            Model model = ModelFactory.createDefaultModel();
-            model.read(iri, format);
-            return model;
-        } catch(JenaException e) {
-            throw new SumarisTechnicalException("Cannot parse model from IRI: " + iri, e);
+        try (FileInputStream is = new FileInputStream(file)) {
+            return read(is, format);
+        }
+        catch(IOException e) {
+            throw new SumarisTechnicalException("Cannot parse model file:" + file.getAbsolutePath(), e);
         }
     }
 
@@ -343,12 +296,26 @@ public class ModelUtils {
      * @param format input format if null then output to RDF/XML
      * @return a ontology model
      */
-    public static Model readModel(InputStream is, @Nullable  RdfFormat format) {
-        format = format != null ? format : RdfFormat.RDF;
+    public static Model read(InputStream is, @Nullable  RdfFormat format) {
+
+        // OWL
+        if (format == RdfFormat.OWL) {
+            return readOwl(is);
+        }
+
+        // VOWL
+        else if (format == RdfFormat.VOWL) {
+            throw new IllegalArgumentException("Reading VOWL model format is not supported");
+        }
 
         try {
             Model model = ModelFactory.createDefaultModel();
-            model.read(is, format.toJenaFormat());
+            if (format == null) {
+                model.read(is, RdfFormat.RDFXML.toJenaFormat());
+            }
+            else {
+                model.read(is, format.toJenaFormat());
+            }
             return model;
         } catch(JenaException e) {
             throw new SumarisTechnicalException("Read model error: " + e.getMessage(), e);
@@ -401,5 +368,126 @@ public class ModelUtils {
         ontology.setStrictMode(true);
 
         return ontology;
+    }
+
+    /* -- protected functions -- */
+
+    /**
+     * Convert RDF format, and use XML/RDF by default
+     * @param userFormat
+     * @return
+     */
+    protected static RdfFormat toRdfFormat(String userFormat) {
+        if (StringUtils.isBlank(userFormat)) {
+            return RdfFormat.RDFXML;
+        }
+        return RdfFormat.fromUserString(userFormat)
+                .orElse(RdfFormat.RDFXML);
+    }
+
+
+    protected static Model readOwl(String iri) {
+
+        String rdfFilenameFromUri = iri.replaceAll("(http|https)", "")
+                .replaceAll("[:]+", "")
+                .replaceAll("[/]+", "_")
+                .replace("^[_]+", "")
+                .replace(".owl$", ".rdf");
+        File pivotRdfFile = new File(RdfConfiguration.instance().getRdfDirectory(), rdfFilenameFromUri);
+
+        // Reuse the pivot file if exists
+        if (pivotRdfFile.exists()) {
+            return read(pivotRdfFile, RdfFormat.RDFXML);
+        }
+
+        // Read OWL using loader, and the given pivot file
+        // Next conversion will be able to reuse the pivot file
+        return readOwl(manager -> {
+            try {
+                return manager.loadOntologyFromOntologyDocument(IRI.create(iri));
+            } catch(Exception e) {
+                throw new SumarisTechnicalException(e);
+            }
+        }, pivotRdfFile);
+    }
+
+    protected static Model readOwl(InputStream is) {
+        return readOwl(manager -> {
+            try {
+                return manager.loadOntologyFromOntologyDocument(is);
+            } catch(Exception e) {
+                throw new SumarisTechnicalException(e);
+            }
+        }, null);
+    }
+
+    protected static Model readOwl(Function<OWLOntologyManager, OWLOntology> loader, File pivotRdfFile) {
+
+        RdfConfiguration config = RdfConfiguration.instance();
+
+        try {
+            // Init the pivot file, if need
+            pivotRdfFile = pivotRdfFile != null ? pivotRdfFile :
+                    File.createTempFile("owl2rdf", "tmp", config.getRdfDirectory());
+            if (pivotRdfFile.exists() && !pivotRdfFile.delete()) {
+                throw new SumarisTechnicalException("Pivot RDF file already exists, and cannot be deleted!");
+            }
+
+            // Read OWL and write as RDF/XML
+            OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+            OWLOntology ontology = loader.apply(manager);
+            manager.saveOntology(ontology, new RDFXMLDocumentFormat(), IRI.create(pivotRdfFile));
+            manager.removeOntology(ontology);
+
+            // Read pivot RDF file
+            return read(pivotRdfFile, RdfFormat.RDFXML);
+
+        } catch (OWLException | IOException e) {
+            throw new SumarisTechnicalException("Cannot parse OWL model", e);
+        }
+    }
+
+    public static void writeOwl(Model model, OutputStream os) throws IOException {
+
+        File tempRdfFile = null;
+        try {
+            tempRdfFile = Files.createTempFile("rdf2owl",
+                    RdfConfiguration.instance().getTempDirectory());
+
+            // Write OWL
+            write(model, RdfFormat.RDFXML, tempRdfFile);
+
+            OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+            OWLOntology ontology = manager.loadOntologyFromOntologyDocument(tempRdfFile);
+            manager.saveOntology(ontology, new OWLXMLDocumentFormat(), os);
+            manager.removeOntology(ontology);
+        }
+        catch (OWLException e) {
+            throw new IOException(e);
+        }
+        finally {
+            if (tempRdfFile != null && tempRdfFile.exists()) {
+                Files.deleteQuietly(tempRdfFile);
+            }
+        }
+    }
+
+    protected static void writeVowl(Model model, OutputStream os) throws IOException {
+        Owl2Vowl converter = createOwl2Vowl(model);
+        os.write(converter.getJsonAsString().getBytes("UTF8"));
+    }
+
+
+    protected static Owl2Vowl createOwl2Vowl(Model model) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(1024)) {
+            // Dump model as RDF/XML
+            model.write(bos, RdfFormat.RDFXML.toJenaFormat());
+            bos.flush();
+
+            // Then create the converter
+            return new Owl2Vowl(new ByteArrayInputStream(bos.toByteArray()));
+        } catch (Exception e) {
+            throw new SumarisTechnicalException("Error when writing model into VOWL", e);
+        }
     }
 }

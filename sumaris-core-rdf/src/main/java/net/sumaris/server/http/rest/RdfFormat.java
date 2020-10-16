@@ -41,8 +41,9 @@ import java.util.Optional;
 public class RdfFormat extends Lang {
 
 
-    public static RdfFormat RDF = new RdfFormat(Lang.RDFXML, RdfMediaType.APPLICATION_RDF_XML);
-    public static RdfFormat JSON = new RdfFormat(Lang.RDFJSON,  RdfMediaType.APPLICATION_RDF_JSON);
+    public static RdfFormat RDFXML = new RdfFormat(Lang.RDFXML, RdfMediaType.APPLICATION_RDF_XML);
+
+    public static RdfFormat RDFJSON = new RdfFormat(Lang.RDFJSON,  RdfMediaType.APPLICATION_RDF_JSON);
     public static RdfFormat N3 = new RdfFormat(Lang.N3, RdfMediaType.TEXT_N3);
     public static RdfFormat NTRIPLES = new RdfFormat(Lang.NTRIPLES, RdfMediaType.APPLICATION_N_TRIPLES);
     public static RdfFormat NQUADS = new RdfFormat(Lang.NQUADS, RdfMediaType.APPLICATION_N_QUADS);
@@ -50,14 +51,15 @@ public class RdfFormat extends Lang {
     public static RdfFormat TRIX = new RdfFormat(Lang.TRIX, RdfMediaType.TEXT_TRIX);
     public static RdfFormat JSONLD = new RdfFormat(Lang.JSONLD, RdfMediaType.APPLICATION_JSON_LD);
     public static RdfFormat TURTLE = new RdfFormat(Lang.TURTLE, RdfMediaType.TEXT_TURTLE);
+    public static RdfFormat TTL = new RdfFormat(Lang.TTL, RdfMediaType.TEXT_TURTLE);
 
     // RDF binary - see https://jena.apache.org/documentation/io/rdf-binary.html
-    public static RdfFormat RDFTHRIFT = new RdfFormat( Lang.RDFTHRIFT, RdfMediaType.TEXT_TURTLE);
+    public static RdfFormat RDFTHRIFT = new RdfFormat(Lang.RDFTHRIFT,  RdfMediaType.APPLICATION_THRIFT);
 
     public static RdfFormat OWL = new RdfFormat("OWL", RdfMediaType.APPLICATION_XML, ImmutableList.of("owl"));
     public static RdfFormat VOWL = new RdfFormat("VOWL", RdfMediaType.APPLICATION_WEBVOWL, ImmutableList.of("json", "vowl"));
 
-    public static Collection<RdfFormat> allValues = ImmutableList.of(RDF, JSON, N3, NTRIPLES, NQUADS, TRIG, TRIX, JSONLD, TURTLE, RDFTHRIFT, VOWL);
+    public static Collection<RdfFormat> allValues = ImmutableList.of(RDFXML, RDFJSON, N3, NTRIPLES, NQUADS, TRIG, TRIX, JSONLD, TURTLE, RDFTHRIFT, VOWL);
 
     private MediaType contentType;
     private Lang jenaLang;
@@ -95,10 +97,10 @@ public class RdfFormat extends Lang {
         switch(userFormat.toUpperCase()) {
             case "RDF/XML":
             case "RDF":
-                return Optional.of(RDF);
+                return Optional.of(RDFXML);
             case "RDF/JSON":
             case "JSON":
-                return Optional.of(JSON);
+                return Optional.of(RDFJSON);
             case "RDF/N3":
             case "N3":
                 return Optional.of(N3);
@@ -120,10 +122,12 @@ public class RdfFormat extends Lang {
             case "TTL":
             case "TURTLE":
                 return Optional.of(TURTLE);
-            case "THRIFT":
-                return Optional.of(RDFTHRIFT);
             case "OWL":
                 return Optional.of(OWL);
+            case "THRIFT":
+            case "RT":
+            case "TRDF":
+                return Optional.of(RDFTHRIFT);
             case "VOWL":
                 return Optional.of(VOWL);
         }
@@ -136,11 +140,11 @@ public class RdfFormat extends Lang {
             case RdfMediaType.APPLICATION_RDF_XML_VALUE:
             case RdfMediaType.APPLICATION_XML_VALUE:
             case RdfMediaType.TEXT_XML_VALUE:
-                return Optional.of(RDF);
+                return Optional.of(RDFXML);
             case RdfMediaType.APPLICATION_RDF_JSON_VALUE:
             case RdfMediaType.APPLICATION_JSON_VALUE:
             case RdfMediaType.APPLICATION_JSON_UTF8_VALUE:
-                return Optional.of(JSON);
+                return Optional.of(RDFJSON);
             case RdfMediaType.APPLICATION_JSON_LD_VALUE:
                 return Optional.of(JSONLD);
             case RdfMediaType.APPLICATION_TURTLE_VALUE:
@@ -164,7 +168,7 @@ public class RdfFormat extends Lang {
             case "text/n-quads":
                 return Optional.of(NQUADS);
             case RdfMediaType.APPLICATION_THRIFT_VALUE:
-            case "application/rdf+thrift":
+            case RdfMediaType.APPLICATION_RDF_THRIFT_VALUE:
             case "application/rdf+x-thrift":
             case "application/vnd.apache.thrift.binary": // See https://stackoverflow.com/questions/4844482/is-there-a-commonly-used-mime-type-for-thrift
                 return Optional.of(RDFTHRIFT);
@@ -189,15 +193,19 @@ public class RdfFormat extends Lang {
         return Optional.empty();
     }
 
+    /**
+     * See https://jena.apache.org/documentation/io/index.html
+     */
     public static Optional<RdfFormat> fromExtension(String extension) {
         Preconditions.checkNotNull(extension);
-        switch (extension) {
+        switch (extension.toLowerCase()) {
             case "rdf":
             case "xml":
-                return Optional.of(RDF);
+                return Optional.of(RDFXML);
             case "json":
             case "yml":
-                return Optional.of(JSON);
+            case "rj":
+                return Optional.of(RDFJSON);
             case "jsonld":
             case "json-ld":
                 return Optional.of(JSONLD);
@@ -221,6 +229,10 @@ public class RdfFormat extends Lang {
                 return Optional.of(NQUADS);
             case "owl":
                 return Optional.of(OWL);
+            case "thrift":
+            case "trdf":
+            case "rt":
+                return Optional.of(RDFTHRIFT);
             case "vowl":
                 return Optional.of(VOWL);
         }

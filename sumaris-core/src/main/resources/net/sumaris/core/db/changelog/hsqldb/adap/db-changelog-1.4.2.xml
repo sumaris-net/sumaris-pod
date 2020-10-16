@@ -55,7 +55,7 @@
     </changeSet>
 
     <!-- Insert taxon_name SCE - Pecten Maximus -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-401">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-401" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
@@ -126,14 +126,14 @@
 
         <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
-            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="START_DATE">2019-01-01</column>
             <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
             <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='SCE' AND IS_REFERENT = true)"/>
         </insert>
     </changeSet>
 
     <!-- Insert taxon_name ANE - Engraulis encrasicolus (Anchois) -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-402">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-402" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
@@ -205,14 +205,14 @@
 
         <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
-            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="START_DATE">2019-01-01</column>
             <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
             <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='ANE' AND IS_REFERENT = true)"/>
         </insert>
     </changeSet>
 
     <!-- Insert taxon_name PIL - Sardina pilchardus -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-403">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-403" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
@@ -282,7 +282,7 @@
         </insert>
         <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
-            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="START_DATE">2019-01-01</column>
             <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
             <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='PIL' AND IS_REFERENT = true)"/>
         </insert>
@@ -359,7 +359,7 @@
     </changeSet>
 
     <!-- Insert taxon_name ? - Maja brachydactyla -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-405">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-405" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
@@ -390,7 +390,7 @@
 
         <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
-            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="START_DATE">2019-01-01</column>
             <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
             <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE COMMENTS='Maja brachydactyla' AND IS_REFERENT = true)"/>
         </insert>
@@ -446,6 +446,31 @@
             </and>
         </preConditions>
         <sqlFile path="insert_location-1.4.2.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+
+    <changeSet id="benoit.lavenier@e-is.pro" author="1600856443393-409-0" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">select count(*) from (select max(id) MAX_ID from PARAMETER HAVING max(id) &lt; 400)</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            ALTER SEQUENCE PARAMETER_SEQ RESTART WITH 400;
+            commit;
+        </sql>
+    </changeSet>
+    <changeSet id="benoit.lavenier@e-is.pro" author="1600856443393-409-1" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">select count(*) from (select max(id) MAX_ID from PARAMETER HAVING max(id) &lt; 300)</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            ALTER SEQUENCE PARAMETER_SEQ RESTART WITH 300;
+            commit;
+        </sql>
     </changeSet>
 
     <!-- Insert PARAMETER used by WEIGHT_LENGTH_CONVERSION

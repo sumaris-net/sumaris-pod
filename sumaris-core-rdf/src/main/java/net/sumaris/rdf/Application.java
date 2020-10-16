@@ -29,6 +29,7 @@ import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JndiConnectionFactoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
