@@ -10,6 +10,14 @@
 
   <fileSets>
 
+    <!-- root directory -->
+    <fileSet>
+      <includes>
+        <include>LICENSE*</include>
+      </includes>
+    </fileSet>
+
+    <!-- /bin -->
     <fileSet>
       <directory>src/main/assembly/bin</directory>
       <outputDirectory>bin</outputDirectory>
@@ -20,8 +28,17 @@
         <include>*.bat</include>
       </includes>
     </fileSet>
-    
-    <!-- configuration file -->
+
+    <!-- /lib -->
+    <fileSet>
+      <directory>target</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>${project.build.finalName}.${project.packaging}</include>
+      </includes>
+    </fileSet>
+
+    <!-- /config -->
     <fileSet>
       <directory>src/main/assembly/config</directory>
       <outputDirectory>config</outputDirectory>
@@ -31,19 +48,5 @@
       </includes>
     </fileSet>
 
-    <fileSet>
-      <includes>
-        <include>LICENSE*</include>
-      </includes>
-    </fileSet>
-
   </fileSets>
-
-  <files>
-    <file>
-      <source>target/${project.build.finalName}.${project.packaging}</source>
-      <outputDirectory>lib</outputDirectory>
-      <destName>${project.parent.artifactId}-${project.version}.${project.packaging}</destName>
-    </file>
-  </files>
 </assembly>

@@ -4,8 +4,8 @@
 # --- User variables (can be redefined): ---------------------------------------
 
 SERVICE_NAME=sumaris-pod
-PROFILE=@env@
 VERSION=@project.version@
+PROFILE=@env@
 TIMEZONE=UTC
 
 # - Optional vars:
@@ -14,10 +14,13 @@ TIMEZONE=UTC
 #JAVA_OPTS="-Xms2g -Xmx2g"
 
 # --- Fixed variables (DO NOT changes):  --------------------------------------
+
 WAR_FILENAME="@project.parent.artifactId@-${VERSION}.@project.packaging@"
 WAR_URL="https://github.com/sumaris-net/sumaris-pod/releases/download/${VERSION}/${WAR_FILENAME}"
 JAVA_VERSION=1.8.121
 JAVA_JRE_URL=https://nexus.e-is.pro/nexus/service/local/repositories/jvm/content/com/oracle/jre/${JAVA_VERSION}/jre-${JAVA_VERSION}-linux-x64.zip
+
+# --- Program start -----------------------------------------------------------
 
 if [ "${SUMARIS_HOME}_" == "_" ]; then
   SCRIPT_DIR=$(dirname $0)
@@ -28,7 +31,7 @@ if [ "${SUMARIS_LOG_DIR}_" == "_" ]; then
   SUMARIS_LOG_DIR="${SUMARIS_HOME}/logs"
 fi
 if [ "${SUMARIS_LOG}_" == "_" ]; then
-  SUMARIS_LOG="${SUMARIS_LOG_DIR}/sumaris-pod.log"
+  SUMARIS_LOG="${SUMARIS_LOG_DIR}/${SERVICE_NAME}.log"
 fi
 if [ "${DATA_DIRECTORY}_" == "_" ]; then
   DATA_DIRECTORY="${SUMARIS_HOME}/data"
@@ -95,7 +98,7 @@ checkJreVersion() {
 
 # Make sure Java JRE exists
 checkJreExists() {
-  if [ -f ${JAVA_EXEC} ]; then
+  if [ -f "${JAVA_EXEC}" ]; then
     checkJreVersion
   else
 
@@ -115,31 +118,36 @@ checkJreExists() {
 
 # Install a fresh Java JRE
 installJre() {
-  if [[ ! -f ${JAVA_EXEC} ]]; then
+  if [[ ! -f "${JAVA_EXEC}" ]]; then
     TMP_FILE="/tmp/jre-${JAVA_VERSION}.zip"
-    echo "No Java JRE found: downloading Java JRE ${JAVA_VERSION}: ${JAVA_JRE_URL}..."
-    download "$JAVA_JRE_URL" -o "$TMP_FILE"
-    [[ $? -eq 0 ]] && unzip $TMP_FILE -d ${JAVA_HOME}
+    TMP_DIR="/tmp/jre-${JAVA_VERSION}"
+    echo "Downloading Java JRE ${JAVA_VERSION}...  ${JAVA_JRE_URL}"
+    download "${JAVA_JRE_URL}" -o "${TMP_FILE}"
+    [[ $? -eq 0 ]] && unzip "${TMP_FILE}" -d "${TMP_DIR}"
     if [[ $? -ne 0 ]]; then
         echo "ERROR - Missing Java JRE file at: ${JAVA_HOME}"
         echo " Please download it manually: ${JAVA_JRE_URL}"
         echo " or check JAVA_HOME is valid, at: ${JAVA_HOME}"
         exit 1
     fi
-    # Remove the root 'jre' folder, if need
-    if [[ -d "${JAVA_HOME}/jre" ]]; then
-        mv ${JAVA_HOME}/jre/* ${JAVA_HOME}/ && rmdir ${JAVA_HOME}/jre
+    # If root is 'jre'
+    if [[ -d "${TMP_DIR}/jre" ]]; then
+        TMP_DIR="${TMP_DIR}/jre"
     fi
+
+    mkdir -p "${JAVA_HOME}"
+    mv ${TMP_DIR}/* "${JAVA_HOME}/" && rm "${TMP_FILE}" && rm -rf "${TMP_DIR}"
+    [[ $? -ne 0 ]] && exit 1
   fi;
 }
 
 # Make sure Pod JAR exists
 checkJarExists() {
-  if [ ! -f $WAR_FILE ]; then
+  if [ ! -f "${WAR_FILE}" ]; then
     echo "Downloading Pod WAR file: ${WAR_URL}..."
-    download "$WAR_URL" -o "$WAR_FILE"
+    download "$WAR_URL" -o "${WAR_FILE}"
     if [[ $? -ne 0 ]]; then
-      echo "ERROR - Missing Pod WAR file: $WAR_FILE"
+      echo "ERROR - Missing Pod WAR file: ${WAR_FILE}"
       echo " Please download it manually: ${WAR_URL}"
       echo " and save it into the directory: ${SUMARIS_HOME}/lib/"
       exit 1
@@ -175,8 +183,8 @@ install)
     ;;
 
 start)
-    if [ -f $PID_FILE ]; then
-        PID=`cat $PID_FILE`
+    if [ -f "${PID_FILE}" ]; then
+        PID=`cat "${PID_FILE}"`
         if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
             start
         else
@@ -191,15 +199,15 @@ start)
         echo "Failed starting"
         exit 1
     else
-        echo $PID > $PID_FILE
+        echo $PID > "${PID_FILE}"
         echo "Started [$PID]"
         exit 0
     fi
     ;;
 
 status)
-    if [ -f $PID_FILE ]; then
-        PID=`cat $PID_FILE`
+    if [[ -f "${PID_FILE}" ]]; then
+        PID=`cat ${PID_FILE}`
         if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
             echo "Not running (process dead but PID file exists)"
             exit 1
@@ -214,17 +222,17 @@ status)
     ;;
 
 stop)
-    if [ -f $PID_FILE ]; then
-        PID=`cat $PID_FILE`
+    if [ -f "${PID_FILE}" ]; then
+        PID=`cat "${PID_FILE}"`
         if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
             echo "Not running (process dead but PID file exists)"
-            rm -f $PID_FILE
+            rm -f "${PID_FILE}"
             exit 1
         else
-            PID=`cat $PID_FILE`
+            PID=`cat "${PID_FILE}"`
             kill -term $PID
             echo "Stopped [$PID]"
-            rm -f $PID_FILE
+            rm -f "${PID_FILE}"
             exit 0
         fi
     else

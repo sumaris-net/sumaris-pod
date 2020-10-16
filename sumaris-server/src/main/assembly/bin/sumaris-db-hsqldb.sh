@@ -32,6 +32,9 @@ fi
 if [ "${SUMARIS_LOG_DIR}_" == "_" ]; then
   SUMARIS_LOG_DIR="${SUMARIS_HOME}/logs"
 fi
+if [ "${SUMARIS_LOG}_" == "_" ]; then
+  SUMARIS_LOG="${SUMARIS_LOG_DIR}/${SERVICE_NAME}.log"
+fi
 if [ "${DATA_DIRECTORY}_" == "_" ]; then
   DATA_DIRECTORY="${SUMARIS_HOME}/data"
 fi
@@ -87,21 +90,21 @@ download() {
 
 # Make sure jar exists
 checkJarExists() {
-  if [ ! -f $TOOL_JAR_FILE ]; then
-    echo "Downloading Hsqldb JAR file: ${TOOL_JAR_URL}..."
-    download "$TOOL_JAR_URL" -o "$TOOL_JAR_FILE"
+  if [[ ! -f "${$TOOL_JAR_FILE}" ]]; then
+    echo "Downloading Hsqldb Tools JAR...  ${TOOL_JAR_URL}"
+    download "${TOOL_JAR_URL}" -o "${TOOL_JAR_FILE}"
     if [[ $? -ne 0 ]]; then
-      echo "ERROR - Missing Hsqldb JAR file at: $TOOL_JAR_FILE"
+      echo "ERROR - Missing Hsqldb JAR file at: ${TOOL_JAR_FILE}"
       echo " Please download it manually: ${TOOL_JAR_URL}"
       echo " and save it into the directory: ${SUMARIS_HOME}/lib/"
       exit 1
     fi
   fi;
-  if [ ! -f $JAR_FILE ]; then
-    echo "Downloading Hsqldb JAR file: ${JAR_URL}..."
-    download "$JAR_URL" -o "$JAR_FILE"
+  if [ ! -f "${JAR_FILE}" ]; then
+    echo "Downloading Hsqldb JAR...  ${JAR_URL}"
+    download "${JAR_URL}" -o "${JAR_FILE}"
     if [[ $? -ne 0 ]]; then
-      echo "ERROR - Missing Hsqldb JAR file at: $JAR_FILE"
+      echo "ERROR - Missing Hsqldb JAR file at: ${JAR_FILE}"
       echo " Please download it manually: ${JAR_URL}"
       echo " and save it into the directory: ${SUMARIS_HOME}/lib/"
       exit 1
@@ -140,7 +143,7 @@ start() {
   checkJarExists
   checkDbExists
 
-  echo "Starting service $SERVICE_NAME..."
+  echo "Starting $SERVICE_NAME..."
   echo " - args: $SERVER_ARGS"
   echo " - log:  $SUMARIS_LOG"
 
@@ -204,8 +207,8 @@ backup() {
 
 case "$1" in
 start)
-    if [ -f $PID_FILE ]; then
-        PID=`cat $PID_FILE`
+    if [ -f "${PID_FILE}" ]; then
+        PID=`cat "${PID_FILE}"`
         if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
             start
         else
@@ -220,14 +223,15 @@ start)
         echo "Failed starting"
         exit 1
     else
-        echo $PID > $PID_FILE
+        echo $PID > "${PID_FILE}"
         echo "Started [$PID]"
         exit 0
     fi
-;;
+    ;;
+
 status)
-    if [ -f $PID_FILE ]; then
-        PID=`cat $PID_FILE`
+    if [[ -f "${PID_FILE}" ]]; then
+        PID=`cat ${PID_FILE}`
         if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
             echo "Not running (process dead but PID file exists)"
             exit 1
@@ -239,45 +243,47 @@ status)
         echo "Not running"
         exit 0
     fi
-;;
+    ;;
+
 stop)
-    if [ -f $PID_FILE ]; then
-        PID=`cat $PID_FILE`
+    if [ -f "${PID_FILE}" ]; then
+        PID=`cat "${PID_FILE}"`
         if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
             echo "Not running (process dead but PID file exists)"
-            rm -f $PID_FILE
+            rm -f "${PID_FILE}"
             exit 1
         else
-            PID=`cat $PID_FILE`
+            PID=`cat "${PID_FILE}"`
             kill -term $PID
             echo "Stopped [$PID]"
-            rm -f $PID_FILE
+            rm -f "${PID_FILE}"
             exit 0
         fi
     else
         echo "Not running (PID not found)"
         exit 0
     fi
-;;
+    ;;
+
 restart)
     $0 stop
     sleep 10s
     $0 start
 ;;
 backup)
-    if [ -f $PID_FILE ]; then
-        PID=`cat $PID_FILE`
+    if [ -f "${PID_FILE}" ]; then
+        PID=`cat "${PID_FILE}"`
         if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
             echo "DB not running (process dead but PID file exists)"
-            echo "DB not running (process dead but PID file exists)" >> $BACKUP_LOG
-            rm -f $PID_FILE
+            echo "DB not running (process dead but PID file exists)" >> "${BACKUP_LOG}"
+            rm -f "${PID_FILE}"
             exit 1
         else
             backup
         fi
     else
         echo "DB not running (PID not found)"
-        echo "DB not running (PID not found)" >> $BACKUP_LOG
+        echo "DB not running (PID not found)" >> "${BACKUP_LOG}"
         exit 1
     fi
 ;;

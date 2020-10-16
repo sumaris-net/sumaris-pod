@@ -226,6 +226,9 @@
   </dependencies>
 
   <build>
+    <!-- use sumaris-pod as product name -->
+    <finalName>${project.parent.artifactId}-${project.version}</finalName>
+
     <!-- Turn on filtering by default for application properties -->
     <resources>
       <resource>
@@ -309,6 +312,7 @@
         </configuration>
         <executions>
           <execution>
+            <id>package-executable-war</id>
             <goals>
               <goal>repackage</goal>
             </goals>
@@ -374,31 +378,12 @@
       <build>
         <defaultGoal>package</defaultGoal>
         <plugins>
-          <plugin>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>copy-dependencies</id>
-                <goals>
-                  <goal>copy-dependencies</goal>
-                </goals>
-                <phase>prepare-package</phase>
-                <configuration>
-                  <overWriteReleases>false</overWriteReleases>
-                  <overWriteSnapshots>true</overWriteSnapshots>
-                  <overWriteIfNewer>true</overWriteIfNewer>
-                  <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                  <silent>true</silent>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
 
           <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
             <executions>
               <execution>
-                <id>assembly-standalone</id>
+                <id>assembly-zip</id>
                 <phase>package</phase>
                 <goals>
                   <goal>single</goal>
@@ -410,6 +395,7 @@
                       src/main/assembly/standalone.xml
                     </descriptor>
                   </descriptors>
+                  <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
               </execution>
             </executions>
