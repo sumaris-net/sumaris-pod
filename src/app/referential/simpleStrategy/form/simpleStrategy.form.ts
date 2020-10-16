@@ -8,8 +8,8 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 
 @Component({
-  selector: 'app-sampleStrategie-form',
-  templateUrl: './sampleStrategie.form.html',
+  selector: 'app-simpleStrategy-form',
+  templateUrl: './simpleStrategy.form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
@@ -18,7 +18,7 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
     }
   ]
 })
-export class SampleStrategieForm extends AppForm<Referential> implements OnInit {
+export class SimpleStrategyForm extends AppForm<Referential> implements OnInit {
 
   private _statusList = DefaultStatusList;
   statusById: { [id: number]: StatusValue; };

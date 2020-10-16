@@ -60,6 +60,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
 
+  detailsPathSimpleStrategy = "/referential/simpleStrategy/:id"
+
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
   @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
@@ -126,7 +128,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Listen start editing strategy
     this.registerSubscription(this.strategiesTable.onStartEditingRow
       .subscribe(row => this.openRow(row)));
-    /*this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
+    /*this.registerSubscription(this.strategiesTable.f
       .subscribe(row => this.onConfirmEditCreateStrategy(row)));
     this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
       .subscribe(row => this.onCancelOrDeleteStrategy(row)));*/
@@ -135,13 +137,15 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   // TODO : séparer entre édition et création de ligne
   async openRow(row: TableElement<Strategy>): Promise<boolean> {
-    const id = row.currentData.id;
 
-    const path = '/referential/sampleStrategie/'+id;
+    const id = row.currentData.id;
+    const path = this.detailsPathSimpleStrategy;
     
     if (isNotNilOrBlank(path)) {
       await this.router.navigateByUrl(
-       path
+        path
+        // Replace the id in the path
+        .replace(':id', isNotNilOrBlank(row.currentData.id) ? id.toString() : '')
       );
       return true;
     
