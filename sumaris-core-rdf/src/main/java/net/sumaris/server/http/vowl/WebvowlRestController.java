@@ -25,12 +25,13 @@ package net.sumaris.server.http.vowl;
 import com.google.common.collect.Maps;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.exception.JenaExceptions;
 import net.sumaris.rdf.model.ModelURIs;
 import net.sumaris.rdf.service.RdfModelService;
 import net.sumaris.rdf.util.ModelUtils;
-import net.sumaris.server.http.rest.RdfFormat;
-import net.sumaris.server.http.rest.RdfMediaType;
+import net.sumaris.rdf.util.RdfFormat;
+import net.sumaris.rdf.util.RdfMediaType;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
@@ -48,15 +49,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @RestController
-@ConditionalOnBean({WebMvcConfigurer.class})
+@ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
 public class WebvowlRestController {
 
     public static final String BASE_PATH = "/webvowl";

@@ -4,11 +4,11 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.4.3</version>
+    <version>1.4.5</version>
   </parent>
 
   <artifactId>sumaris-server</artifactId>
-  <packaging>jar</packaging>
+  <packaging>war</packaging>
   <name>SUMARiS:: Server</name>
   <description>SUMARiS server</description>
 
@@ -36,10 +36,11 @@
     <!-- Default implementation -->
     <env>hsqldb</env>
     <jdbc.url>jdbc:hsqldb:file:data/db/sumaris</jdbc.url>
+    <server.address>localhost</server.address>
     <server.port>8080</server.port>
-    <server.url>http://localhost:${server.port}</server.url>
+    <server.url>http://${server.address}:${server.port}</server.url>
     <server.account.register.confirm.url>${server.url}/api/confirmEmail/?email={email}&amp;code={code}</server.account.register.confirm.url>
-    <admin.email>sumaris.net@gmail.com</admin.email>
+    <admin.email>admin@locahost</admin.email>
 
     <maven.jar.main.class>net.sumaris.server.Application</maven.jar.main.class>
 
@@ -74,36 +75,25 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-    <dependency>
+    <!--<dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-json</artifactId>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-   <!-- <dependency>
+
+    <!-- TODO change packaging to 'war', and change tomcat to 'provided' (see below)
+         See https://dzone.com/articles/build-a-spring-boot-app-and-deploy-into-tomcat -->
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-tomcat</artifactId>
+      <version>${spring-boot.version}</version>
       <scope>provided</scope>
-    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>org.springframework.boot</groupId>-->
-<!--      <artifactId>spring-boot-starter-actuator</artifactId>-->
-<!--    </dependency>-->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-activemq</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-broker</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-kahadb-store</artifactId>
-    </dependency>
+    <!-- Spring boot -->
     <dependency>
       <groupId>it.ozimov</groupId>
       <artifactId>spring-boot-email-core</artifactId>
@@ -116,14 +106,30 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
+
+    <!-- ActiveMQ -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-activemq</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-broker</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-kahadb-store</artifactId>
+    </dependency>
+
+    <!-- Actuator
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency> -->
+
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
     </dependency>
 
     <!-- GraphQL -->
@@ -151,54 +157,53 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
-
-    <!-- Gdal (SIG utilities)
-    <dependency>
-      <groupId>org.gdal</groupId>
-      <artifactId>gdal</artifactId>
-      <version>3.0.0</version>
-    </dependency> -->
     <dependency>
       <groupId>de.grundid.opendatalab</groupId>
       <artifactId>geojson-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>2.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-core</artifactId>
+      <version>2.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>${logback.version}</version>
     </dependency>
 
     <!-- Database drivers -->
     <dependency>
       <groupId>org.hsqldb</groupId>
       <artifactId>hsqldb</artifactId>
-      <scope>runtime</scope>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.oracle</groupId>
       <artifactId>ojdbc8</artifactId>
-      <scope>runtime</scope>
+      <scope>provided</scope>
     </dependency>
 
+    <!-- Provided -->
     <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>3.1.0</version>
-        <scope>provided</scope>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
     </dependency>
+
+    <!-- Compile -->
     <dependency>
-        <groupId>com.sun.xml.bind</groupId>
-        <artifactId>jaxb-impl</artifactId>
-        <version>2.3.0</version>
-    </dependency>
-    <dependency>
-        <groupId>com.sun.xml.bind</groupId>
-        <artifactId>jaxb-core</artifactId>
-        <version>2.3.0</version>
-    </dependency>
-    <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-classic</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-core</artifactId>
-        <version>${logback.version}</version>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
     </dependency>
 
     <!-- Unit test -->
@@ -222,6 +227,7 @@
   </dependencies>
 
   <build>
+
     <!-- Turn on filtering by default for application properties -->
     <resources>
       <resource>
@@ -305,6 +311,7 @@
         </configuration>
         <executions>
           <execution>
+            <id>package-executable-war</id>
             <goals>
               <goal>repackage</goal>
             </goals>
@@ -351,21 +358,32 @@
         </property>
       </activation>
 
-      <properties>
-        <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
-        <server.url>https://www.sumaris.net</server.url>
-        <server.port>8080</server.port>
-        <server.account.register.confirm.url>https://www.sumaris.net/api/confirmEmail/?email={email}&amp;code={code}</server.account.register.confirm.url>
-        <admin.email>sumaris.net@gmail.com</admin.email>
-      </properties>
+      <build>
+        <defaultGoal>package</defaultGoal>
+        <plugins>
 
-      <dependencies>
-        <dependency>
-          <groupId>org.hsqldb</groupId>
-          <artifactId>hsqldb</artifactId>
-          <scope>runtime</scope>
-        </dependency>
-      </dependencies>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>assembly-zip</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <attach>true</attach>
+                  <descriptors>
+                    <descriptor>
+                      src/main/assembly/standalone.xml
+                    </descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
   </profiles>

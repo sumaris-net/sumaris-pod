@@ -360,11 +360,19 @@ public class Files {
 		return result;
 	}
 
-	public static String readContent(File sourceFile, Charset charset) throws IOException {
-		checkExists(sourceFile);
+	public static String readContent(File file, Charset charset) throws IOException {
+		checkExists(file);
+
+		try (FileInputStream is = new FileInputStream(file)) {
+			return readContent(is, charset);
+		}
+	}
+
+	public static String readContent(InputStream source, Charset charset) throws IOException {
+		Preconditions.checkNotNull(source);
 
 		try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			InputStream is = new BufferedInputStream(new FileInputStream(sourceFile));) {
+			 InputStream is = new BufferedInputStream(source);) {
 			byte[] buf = new byte[1024*4];
 			int len = 0;
 			while((len = is.read(buf)) != -1) {

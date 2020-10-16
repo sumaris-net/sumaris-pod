@@ -28,8 +28,8 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
-import net.sumaris.server.http.rest.RdfFormat;
-import net.sumaris.server.http.rest.RdfMediaType;
+import net.sumaris.rdf.util.RdfFormat;
+import net.sumaris.rdf.util.RdfMediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -53,7 +53,7 @@ import java.util.Objects;
 
 
 @RestController
-@ConditionalOnBean({WebMvcConfigurer.class})
+@ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
 public class TaxonSearchRestController {
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";

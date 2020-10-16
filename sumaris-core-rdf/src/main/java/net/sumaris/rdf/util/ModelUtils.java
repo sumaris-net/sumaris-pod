@@ -24,13 +24,11 @@ package net.sumaris.rdf.util;
 
 import com.google.common.base.Preconditions;
 import de.uni_stuttgart.vis.vowl.owl2vowl.Owl2Vowl;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
-import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.Dataset;
@@ -45,7 +43,6 @@ import org.apache.jena.vocabulary.*;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
-import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nullable;

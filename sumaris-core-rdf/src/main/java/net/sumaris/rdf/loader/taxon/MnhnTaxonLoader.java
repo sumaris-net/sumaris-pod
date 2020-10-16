@@ -40,10 +40,10 @@ public class MnhnTaxonLoader extends AbstractNamedRdfLoader {
     @Value("${rdf.taxref.sparql.limit:10000}")
     private int fetchSize = 10000;
 
-    @Value("${rdf.taxref.dataset.name:http://taxref.mnhn.fr/lod/}")
+    @Value("${rdf.dataset.taxref.name:http://taxref.mnhn.fr/lod/}")
     private String name;
 
-    @Value("${rdf.taxref.query.name:classpath:sparql/taxon.sparql}")
+    @Value("${rdf.dataset.taxref.query:classpath:sparql/taxon.sparql}")
     private String queryFile;
 
     public String getName() {
@@ -61,7 +61,7 @@ public class MnhnTaxonLoader extends AbstractNamedRdfLoader {
     }
 
     @Override
-    protected String getQueryFile() {
+    protected String getQueryPath() {
         return queryFile;
     }
 }

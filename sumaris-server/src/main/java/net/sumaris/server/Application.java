@@ -23,6 +23,7 @@
 package net.sumaris.server;
 
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
+import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.slf4j.Logger;
@@ -31,10 +32,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.task.TaskExecutor;
@@ -57,7 +60,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         },
         exclude = {
                 LiquibaseAutoConfiguration.class,
-                FreeMarkerAutoConfiguration.class
+                FreeMarkerAutoConfiguration.class,
+                JsonbAutoConfiguration.class
         }
 )
 @EntityScan(basePackages = {
@@ -88,7 +92,10 @@ public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SumarisServerConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(args));
-        SpringApplication.run(Application.class, args);
+        ConfigurableApplicationContext appContext = SpringApplication.run(Application.class, args);
+
+        // Init service locator
+        ServiceLocator.init(appContext);
     }
 
     @Override
@@ -163,6 +170,5 @@ public class Application extends SpringBootServletInitializer {
         executor.initialize();
         return executor;
     }
-
 
 }

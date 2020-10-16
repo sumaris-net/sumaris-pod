@@ -40,10 +40,10 @@ public class SandreDepartmentLoader extends AbstractNamedRdfLoader {
     @Value("${rdf.sandre.sparql.limit:10000}")
     private int fetchSize = 10000;
 
-    @Value("${rdf.sandre.dataset.name:http://id.eaufrance.fr/inc/}")
+    @Value("${rdf.dataset.sandre.inc.name:http://id.eaufrance.fr/inc/}")
     private String name;
 
-    @Value("${rdf.taxref.query.name:classpath:sparql/org-sandre.sparql}")
+    @Value("${rdf.dataset.sandre.inc.query:classpath:sparql/org-sandre.sparql}")
     private String queryFile;
 
     @Override
@@ -62,7 +62,7 @@ public class SandreDepartmentLoader extends AbstractNamedRdfLoader {
     }
 
     @Override
-    protected String getQueryFile() {
+    protected String getQueryPath() {
         return queryFile;
     }
 }
