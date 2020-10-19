@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.TripSaveOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +40,6 @@ import java.util.List;
  */
 @Transactional
 public interface TripService {
-
 
 	@Transactional(readOnly = true)
 	List<TripVO> getAllTrips(int offset, int size);
@@ -63,9 +63,9 @@ public interface TripService {
 
 	void fillTripsLandingLinks(List<TripVO> targets);
 
-	TripVO save(TripVO trip, boolean withOperation, boolean withOperationGroup);
+	TripVO save(TripVO trip, TripSaveOptions saveOptions);
 
-	List<TripVO> save(List<TripVO> trips, boolean withOperation, boolean withOperationGroup);
+	List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions);
 
 	void delete(int id);
 

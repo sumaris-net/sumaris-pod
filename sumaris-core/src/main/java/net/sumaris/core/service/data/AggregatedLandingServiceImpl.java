@@ -578,13 +578,14 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
             if (tripDirty) {
                 // Save trip
-                if (trip.getLandingId() == null)
-                    trip.setLandingId(landing.getId());
+                if (trip.getLanding() == null) {
+                    trip.setLanding(landing);
+                }
                 TripVO savedTrip = saveTrip(trip);
                 if (activity.getTripId() == null)
                     activity.setTripId(savedTrip.getId());
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("Trip (id=%s) with landing (id=%s) successfully saved", savedTrip.getId(), savedTrip.getLandingId()));
+                    log.debug(String.format("Trip (id=%s) with landing (id=%s) successfully saved", savedTrip.getId(), savedTrip.getLanding().getId()));
                 }
                 return true;
             }
@@ -606,13 +607,13 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     private TripVO saveTrip(TripVO trip) {
 
         Preconditions.checkNotNull(trip);
-        Preconditions.checkNotNull(trip.getLandingId());
+        Preconditions.checkNotNull(trip.getLanding());
 
         // Trip itself
         TripVO savedTrip = tripRepository.save(trip);
 
         // Update landing
-        LandingVO landing = landingRepository.get(savedTrip.getLandingId());
+        LandingVO landing = landingRepository.get(savedTrip.getLanding().getId());
         landing.setTripId(savedTrip.getId());
         landingRepository.save(landing);
 
