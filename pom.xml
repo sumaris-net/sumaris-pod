@@ -1599,7 +1599,7 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <build>
-        <defaultGoal>package</defaultGoal>
+        <defaultGoal>compile</defaultGoal>
         <plugins>
           <plugin>
             <artifactId>maven-enforcer-plugin</artifactId>
@@ -1642,6 +1642,7 @@
                 <configuration>
                   <mainClass>${exec.mainClass}</mainClass>
                   <classpathScope>${exec.classpathScope}</classpathScope>
+                  <arguments>${exec.args}</arguments>
                 </configuration>
               </execution>
             </executions>
@@ -1652,6 +1653,7 @@
       <properties>
         <exec.mainClass>${maven.jar.main.class}</exec.mainClass>
         <exec.classpathScope>runtime</exec.classpathScope>
+        <exec.args></exec.args>
         <sumaris.log.file>${project.build.directory}/exec.log</sumaris.log.file>
       </properties>
     </profile>

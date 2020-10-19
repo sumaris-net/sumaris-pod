@@ -75,10 +75,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-    <!--<dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-json</artifactId>
-    </dependency>-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -386,6 +382,49 @@
       </build>
     </profile>
 
+    <!-- use this profile to run the main class -->
+    <profile>
+      <id>run</id>
+      <build>
+        <defaultGoal>compile</defaultGoal>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${execPluginVersion}</version>
+            <configuration>
+              <!-- Disable exec plugin (will use spring-boot:rnu)  -->
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>${spring-boot-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>run</id>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <phase>compile</phase>
+                <configuration>
+                  <jvmArguments>${exec.jvmArgs}</jvmArguments>
+                  <arguments>${exec.args}</arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+
+      <properties>
+        <exec.mainClass>${maven.jar.main.class}</exec.mainClass>
+        <exec.args></exec.args>
+        <exec.jvmArgs>-Duser.timezone=UTC -Dspring.main.banner-mode=off</exec.jvmArgs>
+      </properties>
+    </profile>
   </profiles>
 
 </project>
