@@ -1,5 +1,31 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
- 
+
 
 </form>
+
+<ion-grid>
+  <ion-row>
+
+
+    <ion-col size="12" size-lg="4">
+      <!-- Specific simple stragegy form must be implemented here -->
+
+    </ion-col>
+
+    <!-- Pmfm strategies -->
+    <ion-col>
+      <ion-card class="ion-no-margin">
+<app-pmfm-strategies-table #pmfmStrategiesTable
+                           [title]="'PROGRAM.STRATEGY.PMFM_STRATEGY.TABLE.TITLE'|translate"
+                           [program]="program"
+                           [canEdit]="enabled"
+                           [canDelete]="enabled"
+                           [sticky]="true"
+                           [showPMFMDetailsColumns]="true">
+</app-pmfm-strategies-table>
+      </ion-card>
+
+    </ion-col>
+  </ion-row>
+</ion-grid>

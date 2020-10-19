@@ -6,6 +6,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {DefaultStatusList, StatusValue} from "../../../core/services/model/referential.model";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import { Program } from '../../services/model/program.model';
 
 @Component({
   selector: 'app-simpleStrategy-form',
@@ -25,6 +26,7 @@ export class SimpleStrategyForm extends AppForm<Referential> implements OnInit {
 
   @Input() showError = true;
   @Input() entityName;
+  @Input() program: Program;
 
   @Input()
   set statusList(values: StatusValue[]) {
