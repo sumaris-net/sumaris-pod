@@ -17,7 +17,7 @@ import {MathAbsPipe} from "./math-abs.pipe";
   imports: [
     CommonModule,
     IonicModule,
-    TranslateModule.forChild()
+    TranslateModule
   ],
   declarations: [
     DateFormatPipe,

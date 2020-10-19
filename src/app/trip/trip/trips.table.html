@@ -3,54 +3,70 @@
 </app-toolbar>
 
 
-<!-- Type = options menu -->
-<mat-menu #optionsMenu="matMenu" xPosition="after">
+<!-- Synchronisation status menu -->
+<mat-menu #syncStatusMenu="matMenu"
+          xPosition="after"
+          class="ion-text-center">
 
-
-  <!-- Init offline mode -->
-  <button mat-menu-item
-          *ngIf="!hasOfflineMode"
-          (click)="prepareOfflineMode($event)">
-    <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
+  <!-- item for each synchro status-->
+  <button mat-menu-item *ngFor="let status of synchronizationStatusList"
+          (click)="setSynchronizationStatus(status)">
+    <mat-icon>{{synchronizationStatus === status ? 'radio_button_checked' : 'radio_button_unchecked'}}</mat-icon>
+    <ion-label class="ion-text-wrap"
+               [color]="status === 'SYNC' && offline && 'medium'"
+               translate>{{'TRIP.TABLE.SYNCHRONIZATION_STATUS.' + status + '_HELP' }}
+    </ion-label>
   </button>
+</mat-menu>
+
+
+
+<!-- Table options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
 
   <!-- Update offline mode -->
   <button mat-menu-item
           *ngIf="hasOfflineMode"
           (click)="prepareOfflineMode($event)">
+    <mat-icon>cloud_download</mat-icon>
     <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
   </button>
+
+  <!-- Init offline mode -->
+  <button mat-menu-item
+          *ngIf="!hasOfflineMode"
+          (click)="prepareOfflineMode($event)">
+    <mat-icon>cloud_off</mat-icon>
+    <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
 
   <!-- display columns -->
   <button mat-menu-item
           (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- trash -->
+  <button mat-menu-item
+          *ngIf="isAdmin || synchronizationStatus !== 'SYNC'"
+          (click)="openTrashModal($event)">
+    <mat-icon>delete_sweep</mat-icon>
+    <ion-label translate>COMMON.BTN_SHOW_TRASH_DOTS</ion-label>
   </button>
 
   <!-- Force offline (DEV ONLY) -->
   <button mat-menu-item *ngIf="debug && !offline"
           (click)="toggleOfflineMode($event)">
+    <mat-icon>signal_wifi_off</mat-icon>
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
 </mat-menu>
 
-<!-- Synchronisation status menu -->
-<mat-menu #syncStatusMenu="matMenu"
-          xPosition="after"
-          class="ion-text-center">
-  <ng-container *ngIf="'TRIP.TABLE.TITLE' | translate; let title">
-
-    <!-- item for each status-->
-    <button mat-menu-item *ngFor="let status of synchronizationStatusList"
-            (click)="setSynchronizationStatus(status)">
-      <mat-icon>{{synchronizationStatus === status ? 'radio_button_checked' : 'radio_button_unchecked'}}</mat-icon>
-      <ion-label class="ion-text-wrap"
-                 [color]="status === 'SYNC' && offline && 'medium'"
-                 translate>{{'TRIP.TABLE.SYNCHRONIZATION_STATUS.' + status + '_HELP' }}
-      </ion-label>
-    </button>
-  </ng-container>
-</mat-menu>
 
 <ion-content class="ion-no-padding">
   <mat-toolbar>
@@ -293,7 +309,7 @@
         <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{programToString(row.currentData.program)}}
+        {{row.currentData.program | referentialToString: ['label'] }}
       </mat-cell>
     </ng-container>
 
@@ -303,7 +319,7 @@
         <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-label>{{referentialToString(row.currentData.vesselSnapshot, autocompleteFields.vesselSnapshot.attributes)}}</ion-label>
+        <ion-label>{{row.currentData.vesselSnapshot | referentialToString:autocompleteFields.vesselSnapshot.attributes }}</ion-label>
       </mat-cell>
     </ng-container>
 
@@ -313,7 +329,7 @@
         <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{referentialToString(row.currentData.departureLocation, autocompleteFields.location.attributes)}}
+        {{row.currentData.departureLocation | referentialToString:autocompleteFields.location.attributes }}
       </mat-cell>
     </ng-container>
 
@@ -325,7 +341,6 @@
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.departureDateTime|dateFormat:{time:true} }}</ion-text>
       </mat-cell>
-
     </ng-container>
 
     <!-- return date time -->
@@ -344,7 +359,7 @@
         <ion-label translate>TRIP.TABLE.OBSERVERS</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-text>{{ personsToString(row.currentData?.observers) }}</ion-text>
+        <ion-text>{{ row.currentData?.observers | personToString }}</ion-text>
       </mat-cell>
     </ng-container>
 
@@ -362,9 +377,6 @@
       <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-        <button mat-icon-button color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
-          <mat-icon>undo</mat-icon>
-        </button>
       </mat-cell>
     </ng-container>
 
@@ -373,8 +385,14 @@
     </mat-row>
   </mat-table>
 
-  <ion-row class="ion-no-padding">
-    <ion-col></ion-col>
+  <ion-item *ngIf="!(loadingSubject| async) && !resultsLength">
+    <ion-text color="danger" class="text-italic">
+      {{ (hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'TRIP.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT') | translate }}
+    </ion-text>
+  </ion-item>
+
+  <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!resultsLength">
+    <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
     <ion-col class="ion-no-padding" size="auto">
       <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>

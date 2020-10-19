@@ -75,7 +75,7 @@ app-toolbar ion-title {
     }
   }
   // Add a separator, after the <small> part
-  small:after {
+  small:first-of-type:after {
     content: " -  ";
   }
 }
@@ -90,7 +90,7 @@ app-toolbar ion-title {
       visibility: unset;
     }
     // Add a separator, after the <small> part
-    small:after {
+    small:first-of-type:after {
       content: "";
     }
   }
@@ -684,6 +684,10 @@ mat-table {
 
     .mat-cell{
       color: var(--ion-color-secondary100-contrast);
+    }
+
+    &.mat-row-disabled:hover {
+      background-color: var(--ion-color-secondary100-shade) !important;
     }
   }
 

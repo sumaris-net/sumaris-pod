@@ -11,15 +11,12 @@ import {
   OnInit,
   Output
 } from "@angular/core";
-import {of, Subject} from 'rxjs';
-import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../../core/core.module";
 import {isNilOrBlank, isNotNil} from "../../../shared/functions";
 import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../../core/services/model/settings.model";
-import {SubBatchesModal} from "../modal/sub-batches.modal";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {Batch} from "../../services/model/batch.model";

@@ -19,6 +19,7 @@ export class DateDiffDurationPipe implements PipeTransform {
     private translate: TranslateService) {
 
     this.dayUnit = translate.instant('COMMON.DAY_UNIT');
+    translate.get('COMMON.DAY_UNIT').subscribe(dayUnit => this.dayUnit = dayUnit);
   }
 
   transform(value: { startValue: string | Moment; endValue: string | Moment }, args?: any): string | Promise<string> {
@@ -26,6 +27,11 @@ export class DateDiffDurationPipe implements PipeTransform {
 
     const startDate = this.dateAdapter.parse(value.startValue, DATE_ISO_PATTERN);
     const endDate = this.dateAdapter.parse(value.endValue, DATE_ISO_PATTERN);
+
+    return this.format(startDate, endDate);
+  }
+
+  format(startDate: Moment, endDate: Moment): string {
     const duration = moment.duration(endDate.diff(startDate));
     if (duration.asMinutes() < 0) return '';
 

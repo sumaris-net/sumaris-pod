@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {EMPTY, Observable} from "rxjs";
-import {filter, map, throttleTime} from "rxjs/operators";
+import {filter, first, map, tap, throttleTime} from "rxjs/operators";
 import {
   EntitiesService,
   EntityService,
@@ -27,7 +27,7 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
 import {EntitiesStorage} from "../../core/services/entities-storage.service";
-import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
+import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
@@ -37,6 +37,9 @@ import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum
 import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
 import {QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
+import {concatPromises, firstNotNilPromise} from "../../shared/observables";
+import {DataRootEntityUtils} from "../../data/services/model/root-data-entity.model";
+import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -242,6 +245,27 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     this._debug = !environment.production;
   }
 
+  async loadAllByTrip(filter?: OperationFilter & { tripId: number; }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
+    return firstNotNilPromise(this.watchAllByTrip(filter, opts));
+  }
+
+  watchAllByTrip(filter?: OperationFilter & { tripId: number; }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
+      return this.watchAll(0, -1, null, null, filter, opts);
+  }
+
+  async loadAll(offset: number,
+                size: number,
+                sortBy?: string,
+                sortDirection?: SortDirection,
+                dataFilter?: OperationFilter,
+                opts?: OperationServiceWatchOptions): Promise<Operation[]> {
+     return firstNotNilPromise(
+       this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts)
+         .pipe(
+           map(res => res.data)
+         ));
+  }
+
   /**
    * Load many operations
    * @param offset
@@ -272,9 +296,10 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     const variables: QueryVariables<OperationFilter> = {
       offset: offset || 0,
-      size: size || 1000,
+      size: size >= 0 ? size : 1000,
       sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
+      trash: opts && opts.trash || false,
       filter: dataFilter
     };
 
@@ -303,12 +328,12 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
         }
 
         // Compute rankOrder and re-sort (if enable AND all data fetched)
-        if (offset === 0 && size === 1000 && (!opts || opts.computeRankOrder !== false)) {
+        if (offset === 0 && size === -1 && (!opts || opts.computeRankOrder !== false)) {
           this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
         }
 
         return {
-          data: data,
+          data,
           total: data.length
         };
       }));
@@ -350,7 +375,6 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     finally {
       this.loading = false;
     }
-
   }
 
   async delete(data: Operation, options?: any): Promise<any> {
@@ -389,61 +413,25 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
    * Save many operations
    * @param data
    */
-  async saveAll(entities: Operation[], options?: OperationSaveOptions): Promise<Operation[]> {
-    if (!entities) return entities;
+  async saveAll(entities: Operation[], opts?: OperationSaveOptions): Promise<Operation[]> {
+    if (isEmptyArray(entities)) return entities;
 
-    if (!options || !options.tripId) {
-      console.error("[operation-service] Missing options.tripId");
-      throw {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR"};
-    }
-
-    // Compute rankOrderOnPeriod
-    let rankOrderOnPeriod = 1;
-    entities.sort(sortByEndDateOrStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
-
-    const json = entities.map(o => {
-      // Fill default properties
-      this.fillDefaultProperties(o, options);
-      return this.asObject(o, SAVE_AS_OBJECT_OPTIONS);
-    });
-
-    const now = this._debug && Date.now();
-    if (this._debug) console.debug("[operation-service] Saving operations...", json);
-
-    await this.graphql.mutate<{ saveOperations: Operation[] }>({
-      mutation: SaveOperations,
-      variables: {
-        operations: json
-      },
-      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR"},
-      update: (proxy, {data}) => {
-        const saveOperations = data && data.saveOperations;
-        if (saveOperations && saveOperations.length) {
-          // Copy id and update date
-          entities.forEach(entity => {
-            const savedOperation = saveOperations.find(json => entity.equals(json));
-            this.copyIdAndUpdateDate(savedOperation, entity);
-          });
-        }
-
-        if (this._debug && now) console.debug(`[operation-service] Operations saved and updated in ${Date.now() - now}ms`, entities);
-      }
-    });
-
-    return entities;
+    if (this._debug) console.debug(`[operation-service] Saving ${entities.length} operations...`);
+    const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
+    return concatPromises<Operation>(jobsFactories);
   }
 
   /**
    * Save an operation
    * @param data
    */
-  async save(entity: Operation, options?: OperationSaveOptions): Promise<Operation> {
+  async save(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
 
     const now = Date.now();
     if (this._debug) console.debug("[operation-service] Saving operation...");
 
     // Fill default properties (as recorder department and person)
-    this.fillDefaultProperties(entity, options);
+    this.fillDefaultProperties(entity, opts);
 
     // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
@@ -528,58 +516,72 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
   /**
    * Save many operations
    * @param entities
+   * @param opts
    */
-  async deleteAll(entities: Operation[]): Promise<any> {
-    // Get local entity ids, then delete id
-    const localIds = entities && entities
-      .map(t => t.id)
-      .filter(id => id < 0);
-    if (isNotEmptyArray(localIds)) {
-      if (this._debug) console.debug("[operation-service] Deleting trips locally... ids:", localIds);
-      await this.entities.deleteMany<Operation>(localIds, 'OperationVO');
+  async deleteAll(entities: Operation[], opts?: {
+    trash?: boolean; // True by default
+  }): Promise<any> {
+
+    // Delete local entities
+    const localEntities = (entities || []).filter(EntityUtils.isLocal);
+    if (isNotEmptyArray(localEntities)) {
+      const trash = !opts || opts.trash !== false;
+      const localIds = localEntities.map(e => e.id);
+      if (this._debug) console.debug(`[operation-service] Deleting local operations... {trash: ${trash}}`);
+      if (trash) {
+        await this.entities.moveManyToTrash<Operation>(localIds, {entityName: Operation.TYPENAME});
+      }
+      else {
+        await this.entities.deleteMany<Operation>(localIds, {entityName: Operation.TYPENAME});
+      }
     }
 
-    const ids: number[] = entities && entities
-      .map(t => t.id)
-      .filter(id => id >= 0);
-    if (isEmptyArray(ids)) return; // stop, if nothing else to do
+    // Get remote ids, then delete remotely
+    const remoteEntities = (entities || []).filter(EntityUtils.isRemote)
+    if (isNotEmptyArray(remoteEntities)) {
 
-    const now = Date.now();
-    if (this._debug) console.debug("[operation-service] Deleting operations... ids:", ids);
+      const remoteIds = remoteEntities.map(e => e.id);
+      const now = Date.now();
+      if (this._debug) console.debug("[operation-service] Deleting operations... ids:", remoteIds);
 
-    await this.graphql.mutate({
-      mutation: DeleteOperations,
-      variables: {
-        ids
-      },
-      update: (proxy) => {
-        // Remove from cached queries
-        this.removeFromMutableCachedQueryByIds(proxy, {
-          query: LoadAllQuery, ids
-        });
+      await this.graphql.mutate({
+        mutation: DeleteOperations,
+        variables: {
+          ids: remoteIds
+        },
+        update: (proxy) => {
+          // Remove from cached queries
+          this.removeFromMutableCachedQueryByIds(proxy, {
+            query: LoadAllQuery, ids: remoteIds
+          });
 
-        if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
-      }
-    });
+          if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
+        }
+      });
+    }
   }
 
   /**
    * Delete operation locally (from the entity storage)
    * @param tripId
+   * @param opts
    */
-  async deleteLocallyByTripId(tripId: number): Promise<any> {
-    if (tripId >= 0) throw new Error('Invalid tripId: must be a local trip (id<0)!');
+  async deleteLocally(filter: OperationFilter & { tripId: number; }): Promise<Operation[]> {
+    if (!filter || isNil(filter.tripId)) throw new Error("Missing arguments 'filter.tripId'");
 
     try {
+      // Find operations to delete
       const res = await this.entities.loadAll<Operation>('OperationVO', {
-        filter: OperationFilter.searchFilter<Operation>({tripId})
+        filter: OperationFilter.searchFilter<Operation>(filter)
       });
-
       const ids = (res && res.data || []).map(o => o.id);
-      await this.entities.deleteMany(ids, Operation.TYPENAME);
+      if (isEmptyArray(ids)) return undefined; // Skip
+
+      // Apply deletion
+      return await this.entities.deleteMany(ids, {entityName: Operation.TYPENAME});
     }
     catch (err) {
-      console.error(`[operation-service] Failed to delete operation from trip {${tripId}}`, err);
+      console.error(`[operation-service] Failed to delete operation {tripId: ${filter.tripId}}`, err);
       throw err;
     }
   }
@@ -592,7 +594,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
                  sortBy?: string,
                  sortDirection?: SortDirection,
                  dataFilter?: OperationFilter,
-                 opts?: OperationFromObjectOptions): Observable<LoadResult<Operation>> {
+                 opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
 
     if (!dataFilter || isNil(dataFilter.tripId)) {
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
@@ -602,9 +604,10 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     const variables: any = {
       offset: offset || 0,
-      size: size || 1000,
+      size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
+      trash: opts && opts.trash || false,
       filter: dataFilter
     };
 
@@ -616,9 +619,8 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       .pipe(map(res => {
         const data = (res && res.data || []).map(source => Operation.fromObject(source, opts));
 
-        // Compute rankOrder and re-sort if need
-        // (only if all operation have been loaded)
-        if (offset === 0 && size === 1000) {
+        // Compute rankOrder and re-sort (if enable AND all data fetched)
+        if (offset === 0 && size === -1 && (!opts || opts.computeRankOrder !== false)) {
           this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
         }
 
@@ -627,6 +629,36 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
           total: data.length
         };
       }))
+  }
+
+  /**
+   * Compute rank order of the given operation. This function will load all operations, to compute the rank order.
+   * Please use opts={fetchPolicy: 'cache-first'} when possible
+   * @param source
+   * @param opts
+   */
+  computeRankOrder(source: Operation, opts?: { fetchPolicy?: FetchPolicy; } ): Promise<number> {
+    return this.watchRankOrder(source, opts)
+      .pipe(first())
+      .toPromise();
+  }
+
+  /**
+   * Compute rank order of the operation
+   * @param source
+   * @param opts
+   */
+  watchRankOrder(source: Operation, opts?: { fetchPolicy?: WatchQueryFetchPolicy; }): Observable<number> {
+    console.debug(`[operation-service] Loading rankOrder of operation #${source.id}...`);
+    const tripId = isNotNil(source.tripId) ? source.tripId : source.trip && source.trip.id;
+    return this.watchAllByTrip({tripId}, opts)
+      .pipe(
+        map(res => {
+          const existingOperation = (res && res.data ||[]).find(o => o.id === source.id);
+          console.log('rankOrderOnPeriod=' + existingOperation && existingOperation.rankOrderOnPeriod);
+          return existingOperation ? existingOperation.rankOrderOnPeriod : null;
+        })
+      );
   }
 
   /* -- protected methods -- */

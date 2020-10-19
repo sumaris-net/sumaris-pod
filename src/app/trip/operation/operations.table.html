@@ -70,7 +70,10 @@
       <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.physicalGear?.gear || row.currentData.metier?.gear, displayAttributes.gear)}}</ion-label>
+      <ion-label *ngIf="row.currentData.physicalGear?.gear else metier">{{row.currentData.physicalGear.gear | referentialToString:displayAttributes.gear }}</ion-label>
+      <ng-template #metier>
+        <ion-label>{{row.currentData.metier?.gear | referentialToString:displayAttributes.gear }}</ion-label>
+      </ng-template>
     </mat-cell>
   </ng-container>
 
@@ -80,7 +83,7 @@
       <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.metier, displayAttributes.taxonGroup)}}</ion-label>
+      <ion-label>{{ row.currentData.metier | referentialToString:displayAttributes.taxonGroup }}</ion-label>
     </mat-cell>
   </ng-container>
 

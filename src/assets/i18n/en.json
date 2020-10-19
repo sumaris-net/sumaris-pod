@@ -38,6 +38,9 @@
     "BTN_HIDE_MENU": "Hide menu",
     "BTN_SHOW_MENU": "Show menu",
     "BTN_SHOW_MORE": "Show more",
+    "BTN_SHOW_TRASH_DOTS": "Open the trash...",
+    "BTN_CLEAN_TRASH": "Clean the trash",
+    "BTN_RESTORE": "Restore",
     "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on ",
     "COMMENTS": "Comments",
@@ -412,6 +415,14 @@
         "SYNC_HELP": "Online trips"
       }
     },
+    "TRASH": {
+      "TITLE": "Trash",
+      "DELETION_DATE": "Deletion date",
+      "INFO": {
+        "ONE_TRIP_RESTORED": "Trip successfully restored!",
+        "MANY_TRIPS_RESTORED": "Trips successfully restored!"
+      }
+    },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Error while loading the trip.",
       "LOAD_TRIPS_ERROR": "Error while loading trips.",
@@ -471,7 +482,8 @@
         "TITLE": "New operation"
       },
       "EDIT": {
-        "TITLE": "Ope {{startDateTime}}",
+        "TITLE": "Ope #{{rankOrder}} <small>at {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "Ope {{startDateTime}}",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
@@ -1101,7 +1113,29 @@
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)"
     },
     "STRATEGY": {
-
+      "ACQUISITION_LEVELS": "Acquisition levels",
+      "LOCATIONS": "Locations",
+      "GEARS": "Gears",
+      "TAXON_GROUPS": "Commercial species",
+      "TAXON_NAMES": "Scientific species",
+      "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFM",
+      "BTN_REMOVE_TO_SELECTED_PMFM": "Remove from selected PMFM",
+      "NEW": {
+        "TITLE": "Nouvelle stratégie"
+      },
+      "PMFM_STRATEGY": {
+        "ACQUISITION_LEVEL": "Niveau d'acquisition",
+        "RANK_ORDER": "Ordre",
+        "PMFM": "Paramètre collecté (PMFM)",
+        "IS_MANDATORY": "Oblig ?",
+        "ACQUISITION_NUMBER": "Nb acquis.",
+        "MIN_VALUE": "Min",
+        "MAX_VALUE": "Max",
+        "DEFAULT_VALUE": "Valeur par défaut",
+        "TABLE": {
+          "TITLE": "Paramètres collectés"
+        }
+      }
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Error while loading program",
@@ -1299,6 +1333,15 @@
     }
   },
   "SOCIAL": {
+    "USER_EVENT": {
+      "EVENT_TYPE": "Type",
+      "CREATION_DATE": "Date/Time",
+      "MESSAGE": "Message",
+      "BTN_COPY_TO_LOCAL": "Copy locally",
+      "INFO": {
+        "COPIED_LOCALLY": "Successfully copied"
+      }
+    },
     "EVENT_TYPE_ENUM": {
       "DEBUG_DATA": "Debug data",
       "INBOX_MESSAGE": "Inbox message"
