@@ -180,7 +180,7 @@ public class TrashServiceImpl implements TrashService {
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         boolean enable = event.getConfig().enableEntityTrash();
         boolean changed = enable != this.enable;
         this.trashDirectory = event.getConfig().getTrashDirectory();
@@ -190,14 +190,14 @@ public class TrashServiceImpl implements TrashService {
             try {
                 FileUtils.forceMkdir(this.trashDirectory);
                 checkTrashDirectory();
-                if (changed) log.info(String.format("Trash service enabled {'%s'}", this.trashDirectory.getAbsolutePath()));
+                if (changed) log.info(String.format("Started trash service at {%s}", this.trashDirectory.getAbsolutePath()));
             } catch (Exception e) {
                 log.error("Cannot enable trash service: " + e.getMessage());
                 this.enable = false;
             }
         }
         else if (changed) {
-            log.info("Trash service disabled");
+            log.info("Stopped trash service");
         }
 
     }

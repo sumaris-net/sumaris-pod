@@ -29,7 +29,7 @@ import net.sumaris.core.action.ActionUtils;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.service.store.DatasetService;
-import net.sumaris.server.http.rest.RdfFormat;
+import net.sumaris.rdf.util.RdfFormat;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.system.Txn;

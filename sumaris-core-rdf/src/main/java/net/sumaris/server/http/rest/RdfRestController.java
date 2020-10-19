@@ -34,6 +34,8 @@ import net.sumaris.rdf.service.data.RdfDataExportService;
 import net.sumaris.rdf.service.schema.RdfSchemaOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
+import net.sumaris.rdf.util.RdfFormat;
+import net.sumaris.rdf.util.RdfMediaType;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
@@ -52,14 +54,12 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 
 @RestController
-@ConditionalOnBean({WebMvcConfigurer.class})
+@ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
 public class RdfRestController {
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";

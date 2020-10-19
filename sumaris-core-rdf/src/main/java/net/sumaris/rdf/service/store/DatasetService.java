@@ -35,7 +35,7 @@ import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
-import net.sumaris.server.http.rest.RdfFormat;
+import net.sumaris.rdf.util.RdfFormat;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;

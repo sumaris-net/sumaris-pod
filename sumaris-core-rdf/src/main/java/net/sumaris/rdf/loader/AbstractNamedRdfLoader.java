@@ -27,6 +27,7 @@ import com.google.common.base.Charsets;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.StringUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryFactory;
@@ -35,16 +36,20 @@ import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ResourceLoaderAware;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.ResourceUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.stream.Stream;
 
-public abstract class AbstractNamedRdfLoader implements NamedRdfLoader {
+public abstract class AbstractNamedRdfLoader implements NamedRdfLoader, ResourceLoaderAware {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractNamedRdfLoader.class);
+
+    private ResourceLoader resourceLoader;
 
     @Override
     public Stream<Model> streamAllByPages(long maxStatements) {
@@ -65,6 +70,15 @@ public abstract class AbstractNamedRdfLoader implements NamedRdfLoader {
         }
     }
 
+    public ResourceLoader getResourceLoader() {
+        return resourceLoader;
+    }
+
+    @Override
+    public void setResourceLoader(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
+
     /* -- protected methods  -- */
 
     protected abstract String getEndpointUrl();
@@ -76,22 +90,30 @@ public abstract class AbstractNamedRdfLoader implements NamedRdfLoader {
     }
 
     protected String getQuery() {
-        String queryFile = getQueryFile();
-        if (queryFile == null) {
+        String queryPath = getQueryPath();
+        if (queryPath == null) {
             throw new SumarisTechnicalException("Not implemented. Please provide a queryFile, or override getQuery()");
         }
         try {
-            File file = ResourceUtils.getFile(queryFile);
-
-            // Read File Content
-            return new String(Files.readAllBytes(file.toPath()), Charsets.UTF_8);
+            // use resource loader, if enable
+            if (resourceLoader != null) {
+                Resource resource = resourceLoader.getResource(queryPath);
+                try (InputStream is = resource.getInputStream()) {
+                    return net.sumaris.core.util.Files.readContent(is, Charsets.UTF_8);
+                }
+            }
+            else {
+                // Read File Content
+                File file = ResourceUtils.getFile(queryPath);
+                return new String(Files.readAllBytes(file.toPath()), Charsets.UTF_8);
+            }
 
         } catch (IOException e) {
             throw new SumarisTechnicalException(e);
         }
     }
 
-    protected String getQueryFile() {
+    protected String getQueryPath() {
         return null;
     }
 

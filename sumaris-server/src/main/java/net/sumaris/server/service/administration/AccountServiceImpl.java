@@ -31,11 +31,15 @@ import it.ozimov.springboot.mail.service.EmailService;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.administration.user.UserSettingsRepository;
 import net.sumaris.core.dao.administration.user.UserTokenRepository;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -53,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jms.annotation.JmsListener;
@@ -60,6 +65,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
@@ -87,7 +93,6 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private UserTokenRepository userTokenRepository;
 
-    @Autowired
     private EmailService emailService;
 
     @Autowired
@@ -105,9 +110,33 @@ public class AccountServiceImpl implements AccountService {
 
     private String serverUrl;
 
+    private boolean emailEnable = false; // Will be update after config ready
+
     @Autowired
-    public AccountServiceImpl(SumarisServerConfiguration config) {
+    public AccountServiceImpl(SumarisServerConfiguration config, EmailService emailService) {
         this.config = config;
+        this.emailService = emailService;
+        if (this.emailService != null) {
+            log.warn("sumaris.server.email.started", config.getMailHost(), config.getMailPort());
+        }
+        else {
+            log.debug(I18n.t("sumaris.error.email.service",
+                    SumarisServerConfigurationOption.MAIL_HOST.getKey(),
+                    SumarisServerConfigurationOption.MAIL_PORT.getKey()));
+        }
+    }
+
+    @PostConstruct
+    public void init() {
+        log.debug("Register {Account} converters");
+        conversionService.addConverter(PersonVO.class, AccountVO.class, p -> self.toAccountVO(p));
+        conversionService.addConverter(Person.class, AccountVO.class, p -> self.getByPubkey(p.getPubkey()));
+    }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+
+        boolean emailEnable = (emailService != null);
 
         // Get mail 'from'
         String mailFrom = config.getMailFrom();
@@ -117,24 +146,29 @@ public class AccountServiceImpl implements AccountService {
         if (StringUtils.isEmpty(mailFrom)) {
             log.warn(I18n.t("sumaris.error.account.register.mail.disable", SumarisServerConfigurationOption.MAIL_FROM.name()));
             this.mailFromAddress = null;
+            emailEnable = false;
         }
         else {
             try {
                 this.mailFromAddress = new InternetAddress(mailFrom, config.getAppName());
             } catch (UnsupportedEncodingException e) {
-                throw new SumarisTechnicalException(I18n.t("sumaris.error.email.invalid", mailFrom, e.getMessage()), e);
+                log.error(I18n.t("sumaris.error.email.invalid", mailFrom, e.getMessage()));
+                emailEnable = false;
             }
         }
 
         // Get server URL
         this.serverUrl = config.getServerUrl();
-    }
 
-    @PostConstruct
-    public void registerConverter() {
-        log.debug("Register {Account} converters");
-        conversionService.addConverter(PersonVO.class, AccountVO.class, p -> self.toAccountVO(p));
-        conversionService.addConverter(Person.class, AccountVO.class, p -> self.getByPubkey(p.getPubkey()));
+        // Update enable state, if changed
+        if (this.emailEnable != emailEnable) {
+            this.emailEnable = emailEnable;
+            if (!emailEnable) {
+                log.warn("/!\\ Email service disabled! (see previous errors)");
+            } else {
+                log.info("sumaris.server.email.started", config.getMailHost(), config.getMailPort());
+            }
+        }
     }
 
     @Override
@@ -411,36 +445,40 @@ public class AccountServiceImpl implements AccountService {
         Preconditions.checkNotNull(settings.getLatLongFormat(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.settings.latLongFormat")));
     }
 
+    /**
+     * Send confirmation Email
+     *
+     * @param toAddress
+     * @param locale
+     */
     private void sendConfirmationLinkByEmail(String toAddress, Locale locale) {
+        if (!this.emailEnable) return; // Skip if disable
 
-        // Send confirmation Email
-        if (this.mailFromAddress != null) {
-            try {
+        try {
 
-                String signatureHash = serverCryptoService.hash(serverCryptoService.sign(toAddress));
+            String signatureHash = serverCryptoService.hash(serverCryptoService.sign(toAddress));
 
-                String confirmationLinkURL = config.getRegistrationConfirmUrlPattern()
-                        .replace("{email}", toAddress)
-                        .replace("{code}", signatureHash);
+            String confirmationLinkURL = config.getRegistrationConfirmUrlPattern()
+                    .replace("{email}", toAddress)
+                    .replace("{code}", signatureHash);
 
-                final Email email = DefaultEmail.builder()
-                        .from(this.mailFromAddress)
-                        .replyTo(this.mailFromAddress)
-                        .to(Lists.newArrayList(new InternetAddress(toAddress)))
-                        .subject(I18n.l(locale,"sumaris.server.mail.subject.prefix", config.getAppName())
-                                + " " + I18n.l(locale, "sumaris.server.account.register.mail.subject"))
-                        .body(I18n.l(locale, "sumaris.server.account.register.mail.body",
-                                this.serverUrl,
-                                confirmationLinkURL,
-                                config.getAppName()))
-                        .encoding(CHARSET_UTF8.name())
-                        .build();
+            final Email email = DefaultEmail.builder()
+                    .from(this.mailFromAddress)
+                    .replyTo(this.mailFromAddress)
+                    .to(Lists.newArrayList(new InternetAddress(toAddress)))
+                    .subject(I18n.l(locale,"sumaris.server.mail.subject.prefix", config.getAppName())
+                            + " " + I18n.l(locale, "sumaris.server.account.register.mail.subject"))
+                    .body(I18n.l(locale, "sumaris.server.account.register.mail.body",
+                            this.serverUrl,
+                            confirmationLinkURL,
+                            config.getAppName()))
+                    .encoding(CHARSET_UTF8.name())
+                    .build();
 
-                emailService.send(email);
-            }
-            catch(AddressException e) {
-                throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
-            }
+            emailService.send(email);
+        }
+        catch(AddressException e) {
+            throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
         }
     }
 
@@ -452,6 +490,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     protected void sendRegistrationToAdmins(PersonVO confirmedAccount) {
+        if (!this.emailEnable) return; // Skip if disable
 
         try {
 

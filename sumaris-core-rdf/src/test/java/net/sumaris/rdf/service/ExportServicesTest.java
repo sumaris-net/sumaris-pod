@@ -32,7 +32,7 @@ import net.sumaris.rdf.service.data.RdfDataExportService;
 import net.sumaris.rdf.service.schema.RdfSchemaOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
-import net.sumaris.server.http.rest.RdfFormat;
+import net.sumaris.rdf.util.RdfFormat;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdfconnection.RDFConnection;

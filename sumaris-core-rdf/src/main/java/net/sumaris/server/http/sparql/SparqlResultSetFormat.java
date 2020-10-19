@@ -22,7 +22,7 @@
 
 package net.sumaris.server.http.sparql;
 
-import net.sumaris.server.http.rest.RdfMediaType;
+import net.sumaris.rdf.util.RdfMediaType;
 import org.apache.jena.sparql.resultset.ResultsFormat;
 import org.springframework.http.MediaType;
 

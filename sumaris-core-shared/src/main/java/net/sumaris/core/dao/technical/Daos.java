@@ -1483,7 +1483,6 @@ public class Daos {
         existingEntities.addAll(newEntities);
     }
 
-
     /**
      * <p>getDatabaseCurrentTimestamp.</p>
      *
@@ -1498,6 +1497,14 @@ public class Daos {
         return toTimestampFromJdbcResult(result);
     }
 
+    /**
+     * <p>getDatabaseCurrentTimestamp.</p>
+     *
+     * @param connection a {@link Connection} object.
+     * @param dialect    a {@link Dialect} object.
+     * @return a {@link Timestamp} object.
+     * @throws SQLException if any.
+     */
     public static Timestamp getDatabaseCurrentTimestamp(DataSource dataSource, Dialect dialect) throws SQLException {
         final String sql = dialect.getCurrentTimestampSelectString();
         Object result = Daos.sqlUniqueTimestamp(dataSource, sql);

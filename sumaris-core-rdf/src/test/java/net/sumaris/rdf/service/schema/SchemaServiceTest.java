@@ -28,7 +28,7 @@ import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.util.ModelUtils;
-import net.sumaris.server.http.rest.RdfFormat;
+import net.sumaris.rdf.util.RdfFormat;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
