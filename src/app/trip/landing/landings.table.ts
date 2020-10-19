@@ -3,7 +3,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
+  EventEmitter, HostListener,
   Injector,
   Input,
   OnDestroy,
@@ -26,6 +26,8 @@ import {Landing} from "../services/model/landing.model";
 import {environment} from "../../../environments/environment";
 import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {EntityUtils} from "../../core/core.module";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -155,11 +157,11 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     }
   }
 
-  /**
-   * Publish the existing protected method (need by observed location page)
-   */
-  async getMaxRankOrder(): Promise<number> {
-    return super.getMaxRankOrder();
+  async getMaxRankOrderOnVessel(vessel: VesselSnapshot): Promise<number> {
+    const rows = await this.dataSource.getRows();
+    return rows
+      .filter(row => vessel.equals(row.currentData.vesselSnapshot))
+      .reduce((res, row) => Math.max(res, row.currentData.rankOrderOnVessel || 0), 0);
   }
 
   referentialToString = referentialToString;

@@ -39,6 +39,7 @@ import {ExpenseForm} from "../expense/expense.form";
 import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
+import {Landing} from "../services/model/landing.model";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -263,7 +264,21 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (isNotNil(queryParams['landing'])) {
       const landingId = +queryParams['landing'];
       console.debug(`[landedTrip-page] Get landing id {${landingId}}...`);
-      data.landingId = landingId;
+      if (data.landing) {
+        data.landing.id = landingId;
+      } else {
+        data.landing = Landing.fromObject({id: landingId});
+      }
+    }
+    // Get the landing rankOrder
+    if (isNotNil(queryParams['rankOrder'])) {
+      const landingRankOrder = +queryParams['rankOrder'];
+      console.debug(`[landedTrip-page] Get landing rank order {${landingRankOrder}}...`);
+      if (data.landing) {
+        data.landing.rankOrderOnVessel = landingRankOrder;
+      } else {
+        data.landing = Landing.fromObject({rankOrderOnVessel: landingRankOrder});
+      }
     }
 
     if (this.isOnFieldMode) {
@@ -493,7 +508,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     const json = await super.getJsonValueToSave();
 
     // parent link
-    json.landingId = this.data.landingId;
+    json.landing = this.data.landing && {id: this.data.landing.id, rankOrderOnVessel: this.data.landing.rankOrderOnVessel} || undefined;
     json.observedLocationId = this.data.observedLocationId;
 
     // recopy vesselSnapshot (disabled control)
@@ -536,7 +551,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   async save(event, options?: any): Promise<boolean> {
 
     const saveOptions: TripServiceSaveOption = {
-      isLandedTrip: true // indicate service to reload with LandedTrip query
+      withLanding: true // indicate service to reload with LandedTrip query
     };
 
     // Save children in-memory datasources

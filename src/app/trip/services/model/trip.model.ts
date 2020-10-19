@@ -28,6 +28,7 @@ import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/serv
 import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
+import {Landing} from "./landing.model";
 
 /* -- Helper function -- */
 
@@ -62,7 +63,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   operationGroups?: OperationGroup[];
   fishingArea: FishingArea;
 
-  landingId?: number;
+  landing?: Landing;
   observedLocationId?: number;
 
   constructor() {
@@ -111,6 +112,9 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     // Fishing area
     target.fishingArea = this.fishingArea && this.fishingArea.asObject(options) || undefined;
 
+    // Landing
+    target.landing = this.landing && this.landing.asObject(options) || undefined;
+
     return target;
   }
 
@@ -138,7 +142,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     this.fishingArea = source.fishingArea && FishingArea.fromObject(source.fishingArea) || undefined;
 
-    this.landingId = source.landingId;
+    this.landing = source.landing && Landing.fromObject(source.landing) || undefined;
     this.observedLocationId = source.observedLocationId;
 
     return this;
@@ -550,7 +554,8 @@ export class OperationGroup extends DataEntity<OperationGroup>
 
     // Physical gear
     target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
-    delete target.physicalGear.measurementValues;
+    if (target.physicalGear)
+      delete target.physicalGear.measurementValues;
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;

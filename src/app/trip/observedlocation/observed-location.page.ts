@@ -218,7 +218,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       try {
         const vessel = await this.openSelectVesselModal();
         if (vessel && this.landingsTable) {
-          const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
+          const rankOrder = (await this.landingsTable.getMaxRankOrderOnVessel(vessel) || 0) + 1;
           await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
         }
       } finally {
