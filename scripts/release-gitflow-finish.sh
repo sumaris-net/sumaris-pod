@@ -34,7 +34,7 @@ then
   exit 1
 fi
 
-description="$release_description"
+description="echo $release_description"
 if [[ "_$description" == "_" ]]; then
     description="Release $version"
 fi
@@ -42,7 +42,7 @@ fi
 cd $PROJECT_DIR
 rm src/assets/i18n/*-${version}.json
 git add package.json src/assets/manifest.json config.xml install.sh
-git commit -m "$description"
+git commit -m ''"$description"''
 # finishing release with:
 # -F: fetch master & develop before
 # -n: don't tag (github.sh already do it)
