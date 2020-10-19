@@ -136,6 +136,13 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+    RDF_TDB2_DIRECTORY(
+            "rdf.tdb2.directory",
+            n("sumaris.config.option.rdf.tdb2.directory.description"),
+            "${rdf.directory}/tdb2",
+            File.class,
+            false),
+
     RDF_DATA_IMPORT_ENABLED(
             "rdf.data.import.enabled",
             n("sumaris.config.option.rdf.data.import.enabled.description"),
