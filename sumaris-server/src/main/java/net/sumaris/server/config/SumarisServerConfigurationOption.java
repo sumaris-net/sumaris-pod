@@ -86,6 +86,20 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+    MAIL_HOST(
+            "spring.mail.host",
+            n("sumaris.config.option.mail.host.description"),
+            "localhost",
+            String.class,
+            false),
+
+    MAIL_PORT(
+            "spring.mail.port",
+            n("sumaris.config.option.mail.port.description"),
+            "25",
+            Integer.class,
+            false),
+
     MAIL_FROM(
             "sumaris.mail.from",
             n("sumaris.config.option.mail.from.description"),

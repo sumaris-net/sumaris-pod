@@ -37,19 +37,21 @@ import java.util.Map;
 public class JsonMapperConfiguration {
 
     @Bean
-    public ObjectMapper mapper() {
-        Map<Class<?>, Class<?>> mixins = new HashMap<>();
+    public ObjectMapper jacksonObjectMapper() {
 
-        // Add mixin here
-        // See https://blog.netapsys.fr/les-mixins-de-jackson-2-de-vrais-ameliorations-a-decouvrir/
-
-        return new Jackson2ObjectMapperBuilder()
+        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder()
                 .featuresToDisable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS)
                 .featuresToEnable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .dateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
                 //.deserializerByType(Map.class, new LinkedHashMapDeserializer())
                 //.timeZone(TimeZone.getTimeZone(ZoneOffset.UTC))
-                .mixIns(mixins)
-                .build();
+                ;
+
+        // Add mixin here
+        // See https://blog.netapsys.fr/les-mixins-de-jackson-2-de-vrais-ameliorations-a-decouvrir/
+        //Map<Class<?>, Class<?>> mixins = new HashMap<>();
+        //builder.mixIns(mixins)
+
+        return builder.build();
     }
 }

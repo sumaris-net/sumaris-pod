@@ -122,7 +122,7 @@ public class ActionUtils {
                 }
             }
             else {
-                // Could be force, so delete the directory
+                // Could be force, so delete the file
                 if (config.isCliForceOutput() || !config.isProduction()) {
                     log.info(I18n.t("sumaris.action.deleteOutputFile", output.getPath()));
                     try {

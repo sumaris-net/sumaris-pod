@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.server.http.rest;
+package net.sumaris.rdf.util;
 
 import org.springframework.http.MediaType;
 

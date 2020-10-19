@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfigura
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -67,7 +68,9 @@ public abstract class TestConfiguration extends net.sumaris.core.test.TestConfig
 
     @Bean
     public static ObjectMapper jacksonObjectMapper() {
-        return new ObjectMapper(); // JacksonUtils;
+        return new Jackson2ObjectMapperBuilder()
+                .indentOutput(true) // For test only
+                .build();
     }
 
 

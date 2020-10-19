@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.rdf.model.ModelURIs;
-import net.sumaris.server.http.rest.RdfFormat;
+import net.sumaris.rdf.util.RdfFormat;
 import org.nuiton.config.ApplicationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
