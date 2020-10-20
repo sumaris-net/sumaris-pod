@@ -25,11 +25,18 @@ package net.sumaris.core.service.administration;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.junit.*;
+import org.assertj.core.util.Lists;
+import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ProgramServiceWriteTest extends AbstractServiceTest{
@@ -40,6 +47,8 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
     @Autowired
     private ProgramService service;
 
+    @Autowired
+    private StrategyService strategyService;
 
     @Test
     public void saveExisting() {
@@ -70,9 +79,54 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
-    @Ignore("TODO: save/update program with strategies and pmfm strategies")
     public void saveWithStrategies() {
-        // TODO
+        ProgramVO program = service.getByLabel("PARAMBIO");
+        Assert.assertNotNull(program);
+        Assert.assertNotNull(program.getId());
+        Assert.assertEquals(40, program.getId().intValue());
+
+        // Modify strategies
+        //strategies = program.getStrategies();
+        List<StrategyVO> strategies = strategyService.findByProgram(program.getId(),
+                StrategyFetchOptions.builder().withPmfmStrategyInheritance(true).build());
+        List<AppliedStrategyVO> appliedStrategies = Lists.newArrayList();
+        List<AppliedPeriodVO> appliedPeriods = Lists.newArrayList();
+        Assert.assertNotNull(strategies);
+        Assert.assertTrue(strategies.size() > 0);
+        for (StrategyVO strategy : strategies) {
+            if (strategy.getId() == 30) {
+                appliedStrategies = strategy.getAppliedStrategies();
+                Assert.assertNotNull(appliedStrategies);
+                Assert.assertTrue(appliedStrategies.size() > 0);
+                strategy.setAnalyticReference("Reference changed");
+            }
+        }
+        for (AppliedStrategyVO appliedStrategy : appliedStrategies) {
+            if (appliedStrategy.getId() == 10) {
+                appliedPeriods = appliedStrategy.getAppliedPeriods();
+                Assert.assertNotNull(appliedPeriods);
+                Assert.assertEquals(4, appliedPeriods.size());
+                appliedStrategy.setLocationId(23);
+            }
+        }
+        for (AppliedPeriodVO appliedPeriod : appliedPeriods) {
+            Assert.assertNotNull(appliedPeriod.getStartDate());
+            Assert.assertNotNull(appliedPeriod.getEndDate());
+            appliedPeriod.setAcquisitionNumber(1);
+        }
+        program.setStrategies(strategies);
+
+        service.save(program);
+
+        // reload by id
+        ProgramVO actualProgram = service.get(40);
+        Assert.assertNotNull(actualProgram);
+        Assert.assertNotNull(actualProgram.getId());
+
+        //strategies = program.getStrategies();
+        List<StrategyVO> actualStrategies = strategyService.findByProgram(actualProgram.getId(),
+                StrategyFetchOptions.builder().withPmfmStrategyInheritance(true).build());
+        Assert.assertEquals(strategies, actualStrategies);
     }
 
     @Test

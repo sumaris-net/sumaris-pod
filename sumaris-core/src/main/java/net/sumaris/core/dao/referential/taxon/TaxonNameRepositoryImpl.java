@@ -117,6 +117,18 @@ public class TaxonNameRepositoryImpl
             .and(inLevelIds(TaxonName.Fields.TAXONOMIC_LEVEL, filter));
     }
 
+    @Override
+    public TaxonNameVO toVO(TaxonName source) {
+        TaxonNameVO target = super.toVO(source);
+
+        if (source.getReferenceTaxon() != null) {
+            target.setReferenceTaxonId(source.getReferenceTaxon().getId());
+            target.setIsReferent(source.isReferent());
+        }
+
+        return target;
+    }
+
     protected List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, Pageable pageable) {
 
         Preconditions.checkNotNull(filter);

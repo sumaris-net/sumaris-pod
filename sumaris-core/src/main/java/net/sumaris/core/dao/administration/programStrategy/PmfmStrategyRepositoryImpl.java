@@ -178,6 +178,15 @@ public class PmfmStrategyRepositoryImpl
             if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
                 target.setUnitLabel(pmfm.getUnit().getLabel());
             }
+
+            // Qualitative values
+            if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
+                List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
+                        .stream()
+                        .map(referentialDao::toVO)
+                        .collect(Collectors.toList());
+                target.setQualitativeValues(qualitativeValues);
+            }
         }
 
         // Parameter, Matrix, Fraction, Method Ids
@@ -197,15 +206,6 @@ public class PmfmStrategyRepositoryImpl
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {
             target.setAcquisitionLevel(source.getAcquisitionLevel().getLabel());
-        }
-
-        // Qualitative values
-        if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
-            List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
-                .stream()
-                .map(referentialDao::toVO)
-                .collect(Collectors.toList());
-            target.setQualitativeValues(qualitativeValues);
         }
 
         // Gears
@@ -262,7 +262,7 @@ public class PmfmStrategyRepositoryImpl
             parent.getPmfmStrategies().remove(ps);
         });
 
-        return sources;
+        return sources.isEmpty() ? null : sources;
     }
 
     @Override
@@ -278,14 +278,24 @@ public class PmfmStrategyRepositoryImpl
         // Pmfm
         Integer pmfmId = source.getPmfmId() != null ? source.getPmfmId() :
             (source.getPmfm() != null ? source.getPmfm().getId() : null);
-        if (pmfmId == null) throw new DataIntegrityViolationException("Missing pmfmId or pmfm.id in a PmfmStrategyVO");
-        target.setPmfm(load(Pmfm.class, pmfmId));
+        //if (pmfmId == null) throw new DataIntegrityViolationException("Missing pmfmId or pmfm.id in a PmfmStrategyVO");
+        if (pmfmId != null) {
+            target.setPmfm(load(Pmfm.class, pmfmId));
+        }
 
         // Parameter, Matrix, Fraction, Method
-        target.setParameter(load(Parameter.class, source.getParameterId()));
-        target.setMatrix(load(Matrix.class, source.getMatrixId()));
-        target.setFraction(load(Fraction.class, source.getFractionId()));
-        target.setMethod(load(Method.class, source.getMethodId()));
+        if (source.getParameterId() != null) {
+            target.setParameter(load(Parameter.class, source.getParameterId()));
+        }
+        if (source.getMatrixId() != null) {
+            target.setMatrix(load(Matrix.class, source.getMatrixId()));
+        }
+        if (source.getFractionId() != null) {
+            target.setFraction(load(Fraction.class, source.getFractionId()));
+        }
+        if (source.getMethodId() != null) {
+            target.setMethod(load(Method.class, source.getMethodId()));
+        }
 
         // Acquisition Level
         target.setAcquisitionLevel(load(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(source.getAcquisitionLevel())));

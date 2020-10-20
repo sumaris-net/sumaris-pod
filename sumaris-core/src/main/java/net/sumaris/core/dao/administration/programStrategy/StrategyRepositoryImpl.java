@@ -41,6 +41,7 @@ import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -306,7 +307,12 @@ public class StrategyRepositoryImpl
                 target.setPriorityLevel(item.getPriorityLevel());
 
                 // Taxon name
-                target.setTaxonName(taxonNameRepository.findTaxonNameReferent(item.getReferenceTaxon().getId()).orElse(null));
+                Optional<TaxonNameVO> taxonName = taxonNameRepository.findTaxonNameReferent(item.getReferenceTaxon().getId());
+                if (taxonName.isPresent()) {
+                    target.setTaxonName(taxonName.get());
+                    target.setReferenceTaxonId(taxonName.get().getReferenceTaxonId());
+                    target.setIsReferent(taxonName.get().getIsReferent());
+                }
                 return target;
             })
                 .filter(target -> target.getTaxonName() != null)
@@ -450,7 +456,7 @@ public class StrategyRepositoryImpl
 
         // Save each applied strategy
         List<AppliedStrategy> result = Beans.getStream(sources).map(source -> {
-            Integer appliedStrategyId = source.getId() != null ? source.getId() : null;
+            Integer appliedStrategyId = source.getId();
             if (appliedStrategyId == null) throw new DataIntegrityViolationException("Missing id in a AppliedStrategyVO");
             AppliedStrategy target = sourcesToRemove.remove(appliedStrategyId);
             boolean isNew = target == null;
@@ -461,14 +467,7 @@ public class StrategyRepositoryImpl
             target.setLocation(load(Location.class, source.getLocationId()));
 
             // AppliedPeriod
-            List<AppliedPeriod> targetPeriods = Lists.newArrayList();
-            for (AppliedPeriodVO sourcePeriod : source.getAppliedPeriods()) {
-                AppliedPeriod targetPeriod = new AppliedPeriod();
-                Beans.copyProperties(sourcePeriod, targetPeriod);
-                targetPeriod.setAppliedStrategy(load(AppliedStrategy.class, appliedStrategyId));
-                targetPeriods.add(targetPeriod);
-            }
-            target.setAppliedPeriods(targetPeriods);
+            saveAppliedPeriodsByAppliedStrategy(source.getAppliedPeriods(), target);
 
             if (isNew) {
                 em.persist(target);
@@ -481,6 +480,45 @@ public class StrategyRepositoryImpl
 
         // Update the target strategy
         parent.setAppliedStrategies(result);
+
+        // Remove unused entities
+        if (MapUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.values().forEach(em::remove);
+        }
+    }
+
+    protected void saveAppliedPeriodsByAppliedStrategy(List<AppliedPeriodVO> sources, AppliedStrategy parent) {
+        EntityManager em = getEntityManager();
+
+        // Remember existing entities
+        Map<Date, AppliedPeriod> sourcesToRemove = Beans.splitByProperty(parent.getAppliedPeriods(),
+                AppliedPeriod.Fields.START_DATE);
+
+        // Save each applied period
+        List<AppliedPeriod> result = Beans.getStream(sources).map(source -> {
+            Date appliedPeriodStartDate = source.getStartDate();
+            if (appliedPeriodStartDate == null) throw new DataIntegrityViolationException("Missing startDate in a AppliedPeriodVO");
+            AppliedPeriod target = sourcesToRemove.remove(appliedPeriodStartDate);
+            boolean isNew = target == null;
+            if (isNew) {
+                target = new AppliedPeriod();
+                target.setAppliedStrategy(parent);
+                target.setStartDate(appliedPeriodStartDate);
+            }
+            target.setEndDate(source.getEndDate());
+            target.setAcquisitionNumber(source.getAcquisitionNumber());
+
+            if (isNew) {
+                em.persist(target);
+            }
+            else {
+                em.merge(target);
+            }
+            return target;
+        }).collect(Collectors.toList());
+
+        // Update the target strategy
+        parent.setAppliedPeriods(result);
 
         // Remove unused entities
         if (MapUtils.isNotEmpty(sourcesToRemove)) {
