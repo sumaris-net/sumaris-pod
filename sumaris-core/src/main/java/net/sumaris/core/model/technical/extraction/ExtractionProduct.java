@@ -32,6 +32,7 @@ import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -98,6 +99,8 @@ public class ExtractionProduct implements IItemReferentialEntity,
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductTable.class, mappedBy = ExtractionProductTable.Fields.PRODUCT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OrderBy(ExtractionProductTable.Fields.RANK_ORDER + " ASC")
+    @SortNatural
     private List<ExtractionProductTable> tables = new ArrayList<>();
 
 }

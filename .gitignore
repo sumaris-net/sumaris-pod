@@ -25,6 +25,8 @@ sumaris-core/src/test/scripts/*.log
 sumaris-core/src/test/scripts/nohup.out
 sumaris-core/src/test/scripts/hsqldb-*.jar
 
+sumaris-server/*.log
+
 sumaris-importation/src/test/data/import/GBR-mix-test-HH.csv.tmp
 sumaris-importation/src/test/data/import/GBR-mix-test-HL.csv.tmp
 sumaris-importation/src/test/data/import/GBR-mix-test-SL.csv.tmp

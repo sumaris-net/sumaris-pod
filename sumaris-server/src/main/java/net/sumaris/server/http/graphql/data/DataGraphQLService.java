@@ -303,9 +303,9 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
     @IsUser
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
-                           @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
+                           @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions,
                            @GraphQLEnvironment() Set<String> fields) {
-        final TripVO result = tripService.save(trip, withOperation, false);
+        final TripVO result = tripService.save(trip, saveOptions);
 
         // Add additional properties if needed
         fillTripFields(result, fields);
@@ -316,35 +316,9 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveTrips", description = "Create or update many trips")
     @IsUser
     public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
-                                  @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
+                                  @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions,
                                   @GraphQLEnvironment() Set<String> fields) {
-        final List<TripVO> result = tripService.save(trips, withOperation, false);
-
-        // Add additional properties if needed
-        fillTrips(result, fields);
-
-        return result;
-    }
-
-    @GraphQLMutation(name = "saveLandedTrip", description = "Create or update a landed trip")
-    @IsUser
-    public TripVO saveLandedTrip(@GraphQLArgument(name = "trip") TripVO trip,
-                           @GraphQLArgument(name = "withOperationGroup", defaultValue = "false") boolean withOperationGroup,
-                           @GraphQLEnvironment() Set<String> fields) {
-        final TripVO result = tripService.save(trip, false, withOperationGroup);
-
-        // Add additional properties if needed
-        fillTripFields(result, fields);
-
-        return result;
-    }
-
-    @GraphQLMutation(name = "saveLandedTrips", description = "Create or update many landed trips")
-    @IsUser
-    public List<TripVO> saveLandedTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
-                                  @GraphQLArgument(name = "withOperationGroup", defaultValue = "false") boolean withOperationGroup,
-                                  @GraphQLEnvironment() Set<String> fields) {
-        final List<TripVO> result = tripService.save(trips, false, withOperationGroup);
+        final List<TripVO> result = tripService.save(trips, saveOptions);
 
         // Add additional properties if needed
         fillTrips(result, fields);
@@ -1203,7 +1177,7 @@ public class DataGraphQLService {
         // Add vessel if need
         fillVesselSnapshot(trip, fields);
 
-        if (fields.contains(TripVO.Fields.LANDING_ID) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
+        if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID)) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripLandingLinks(trip);
         }
     }
@@ -1217,7 +1191,7 @@ public class DataGraphQLService {
 
         // Fill link to parent landing or observed location
         // (e.g. need by ObsDeb)
-        if (fields.contains(TripVO.Fields.LANDING_ID) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
+        if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID)) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripsLandingLinks(trips);
         }
     }

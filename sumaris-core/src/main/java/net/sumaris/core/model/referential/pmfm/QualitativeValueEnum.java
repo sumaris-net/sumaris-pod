@@ -30,18 +30,18 @@ import java.util.Arrays;
 @EntityEnum(entity = QualitativeValue.class)
 public enum QualitativeValueEnum implements Serializable  {
 
-    SORTING_BULK(20, "SORTING_BULK"),
-    DRESSING_WHOLE(74, "DRESSING_WHOLE"),
-    PRESERVATION_FRESH(76, "PRESERVATION_FRESH"),
-    SIZE_CATEGORY_NONE(298, "SIZE_CATEGORY_NONE"),
+    SORTING_BULK(390, "VRAC"),
+    SORTING_NON_BULK(391, "H-VRAC"),
+    DRESSING_WHOLE(381, "WHL"),
+    PRESERVATION_FRESH(332, "FRE"),
+    SIZE_CATEGORY_NONE(435, "UNS"),
 
     /*PACKAGING*/
-    WEIGHT(317, "WEI"),
-    VOLUME(318, "VOL"),
-    UNIT(319, "UNI"),
-    DOZEN(320, "DOZ"),
-    HUNDRED(321, "HUN"),
-    PIECES(423, "PCS"),
+    WEIGHT(399, "WEI"),
+    UNIT(395, "UNI"),
+    DOZEN(396, "DOZ"),
+    HUNDRED(397, "HUN"),
+    PIECES(398, "PCS"),
 
     // LANDING_OR_DISCARD
     LANDING(190, "LAN"),
