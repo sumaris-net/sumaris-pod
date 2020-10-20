@@ -28,7 +28,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
-import net.sumaris.core.dao.data.*;
+import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
@@ -220,9 +220,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             Preconditions.checkNotNull(aggregatedLanding.getVesselSnapshot().getId());
         });
         // Check all activity have date without time
-        aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities().forEach(activity -> {
-            Preconditions.checkArgument(activity.getDate().equals(Dates.resetTime(activity.getDate())));
-        }));
+        aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities()
+            .forEach(activity -> Preconditions.checkArgument(activity.getDate().equals(Dates.resetTime(activity.getDate())))));
 
         // Load VesselSnapshot Entity
         aggregatedLandings.parallelStream().forEach(aggregatedLanding -> aggregatedLanding.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(aggregatedLanding.getVesselSnapshot().getId(), null)));
@@ -609,13 +608,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         Preconditions.checkNotNull(trip);
         Preconditions.checkNotNull(trip.getLanding());
 
-        // Trip itself
+        // Trip itself (landing updated by tripRepository)
         TripVO savedTrip = tripRepository.save(trip);
-
-        // Update landing
-        LandingVO landing = landingRepository.get(savedTrip.getLanding().getId());
-        landing.setTripId(savedTrip.getId());
-        landingRepository.save(landing);
 
         // Save metiers
         operationGroupRepository.saveMetiersByTripId(savedTrip.getId(), trip.getMetiers());

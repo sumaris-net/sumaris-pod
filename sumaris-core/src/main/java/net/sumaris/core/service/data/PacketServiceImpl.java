@@ -43,7 +43,6 @@ import net.sumaris.core.vo.data.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -63,17 +62,18 @@ public class PacketServiceImpl implements PacketService {
     private Integer sortingPmfmId;
     private static final String RATIO_SEPARATOR = " ";
 
-    @Autowired
-    private BatchDao batchDao;
+    private final BatchDao batchDao;
+    private final MeasurementDao measurementDao;
+    private final ReferentialDao referentialDao;
 
-    @Autowired
-    private MeasurementDao measurementDao;
-
-    @Autowired
-    private ReferentialDao referentialDao;
+    public PacketServiceImpl(BatchDao batchDao, MeasurementDao measurementDao, ReferentialDao referentialDao) {
+        this.batchDao = batchDao;
+        this.measurementDao = measurementDao;
+        this.referentialDao = referentialDao;
+    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         // Init pmfm ids
         this.calculatedWeightPmfmId = PmfmEnum.BATCH_CALCULATED_WEIGHT.getId();
         this.measuredWeightPmfmId = PmfmEnum.BATCH_MEASURED_WEIGHT.getId();

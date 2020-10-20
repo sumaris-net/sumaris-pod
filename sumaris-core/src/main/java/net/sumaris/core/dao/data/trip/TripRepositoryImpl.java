@@ -24,8 +24,10 @@ package net.sumaris.core.dao.data.trip;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
+import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -40,6 +42,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 public class TripRepositoryImpl
     extends RootDataRepositoryImpl<Trip, TripVO, TripFilterVO, DataFetchOptions>
@@ -49,19 +52,21 @@ public class TripRepositoryImpl
         LoggerFactory.getLogger(TripRepositoryImpl.class);
 
     private final LocationRepository locationRepository;
+    private final LandingRepository landingRepository;
 
     @Autowired
-    public TripRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository) {
+    public TripRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, LandingRepository landingRepository) {
         super(Trip.class, TripVO.class, entityManager);
         this.locationRepository = locationRepository;
+        this.landingRepository = landingRepository;
     }
 
     @Override
     public Specification<Trip> toSpecification(TripFilterVO filter) {
         return super.toSpecification(filter)
-                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-                .and(hasLocationId(filter.getLocationId()))
-                .and(hasVesselId(filter.getVesselId()));
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            .and(hasLocationId(filter.getLocationId()))
+            .and(hasVesselId(filter.getVesselId()));
     }
 
     @Override
@@ -71,7 +76,6 @@ public class TripRepositoryImpl
         // Departure & return locations
         target.setDepartureLocation(locationRepository.toVO(source.getDepartureLocation()));
         target.setReturnLocation(locationRepository.toVO(source.getReturnLocation()));
-
 
         // Parent link
         // TODO scientificCruise
@@ -102,7 +106,19 @@ public class TripRepositoryImpl
 
     }
 
+    @Override
+    protected void onAfterSaveEntity(TripVO vo, Trip savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
 
+        // Update landing if exists
+        if (vo.getLanding() != null && vo.getLanding().getId() != null) {
+            Landing landing = load(Landing.class, vo.getLanding().getId());
+            if (landing != null && (landing.getTrip() == null || !Objects.equals(landing.getTrip().getId(), savedEntity.getId()))) {
+                landing.setTrip(savedEntity);
+                landingRepository.save(landing);
+            }
+        }
+    }
 
     @Override
     public TripVO qualify(TripVO vo) {
@@ -125,8 +141,7 @@ public class TripRepositoryImpl
         // If not qualify, then remove the qualification date
         if (qualityFlagId == QualityFlagEnum.NOT_QUALIFED.getId()) {
             entity.setQualificationDate(null);
-        }
-        else {
+        } else {
             entity.setQualificationDate(newUpdateDate);
         }
         // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
