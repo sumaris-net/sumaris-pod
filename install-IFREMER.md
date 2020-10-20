@@ -6,7 +6,6 @@ Sous Windows, dans un terminal Git Bash :
 
 Puis, ajouter le clef publique dans github (settings du compte:  https://github.com/settings/keys) et ajouter une clef SSH en copiant le contenu du fichier ~/.ssh/id_ed25519.pub
 
-
 ## Installer Node JS
 Windows : 
 - <https://nodejs.org/dist/v12.18.3/node-v12.18.3-x64.msi>
@@ -33,11 +32,11 @@ Documentation: <https://github.com/sumaris-net/sumaris-pod/blob/master/src/site/
 - `git clone https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod.git`
 - `cd sumaris-pod`
 
-## Compiler le Pod
+### Compiler le Pod
 - `mvn install -DskipTests`
 - attention à la version de java si erreur de certificat!
 
-## Lancer la BDD HsqlDB
+### Lancer la BDD HsqlDB
 Générer la BDD local (avec au moins un test):
 - `mvn install -pl sumaris-core`
 
@@ -45,10 +44,10 @@ Puis la lancer :
  - `cd sumaris-core/src/test/scripts`
  - `startServer.bat` sous Windows (si erreur sur "replace" commenter la partie Copy test DB)
 
-## Lancer le Pod
+### Lancer le Pod
 - (copier lib/libsodium.dll dans target/classes)
 - `cd sumaris-server`
-- `mvn -Prun` **(ne pas oublier de lancer la base!)**
+- `mvn spring-boot:run` **(ne pas oublier de lancer la base!)**
 
 Le serveur est accessible sur <http://localhost:8080>
 
@@ -59,12 +58,13 @@ Pour installer, compiler et lancer le pod sous IntelliJ :
 - Sélectionner `git@github.com:sumaris-net/sumaris-pod.git` (ou son équivalent https: <https://github.com/sumaris-net/sumaris-pod.git>) en url puis choisir le dossier local
 - Le projet est créé automatiquement en local avec l'arborescence de sous-projet
 - OPTIONNEL : Sur chaque sous-projet, aller au niveau du pom.xml et faire un clic droit puis "Add as Maven project"
+- Installer le plugin Lombok dans "File" > "Settings" > "Plugins" pour la prise en compte des annotations Lombok
 - Ajouter une configuration d'installation dans IntelliJ de type Maven avec comme "working directory" le dossier du projet parent et pour exécution "install -DskipTests". La lancer
 - Ajouter une configuration d'installation dans IntelliJ de type Maven avec comme "working directory" le dossier du sous projet "sumaris-core" et en exécution "install" (SANS le skipTests). La lancer pour compiler et lancer les tests unitaires afin de générer la base locale.
 - lancer la base locale via:
     - `cd sumaris-core/src/test/scripts`
     - `./startServer.bat` (ou .bat sous Windows, si erreur sur "replace" commenter la partie Copy test DB)        
-- Lancer le pod : Ajouter une configuration de lancement dans IntelliJ de type Maven avec comme "working directory" le dossier du sous projet "sumaris-server" et un profile avec pour valeur "run". La lancer
+- Lancer le pod : Ajouter une configuration de lancement dans IntelliJ de type Maven avec comme "working directory" le dossier du sous projet "sumaris-server" et pour exécution "spring-boot:run". La lancer
 
 ## Installation du projet summaris doc
 
@@ -79,5 +79,3 @@ Pour installer, compiler et lancer le pod sous IntelliJ :
 
 ### génération de la documentation (svg):
 - exécuter le fichier generate.bat
-
-
