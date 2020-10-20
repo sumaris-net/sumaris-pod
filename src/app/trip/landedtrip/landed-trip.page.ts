@@ -10,7 +10,7 @@ import {
   isNotNilOrBlank
 } from '../../shared/shared.module';
 import * as moment from "moment";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
@@ -33,12 +33,13 @@ import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {fillRankOrder, isRankOrderValid} from "../../data/services/model/model.utils";
 import {SaleProductUtils} from "../services/model/sale-product.model";
-import {debounceTime, filter} from "rxjs/operators";
+import {debounceTime, filter, first} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
 import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
+import {Landing} from "../services/model/landing.model";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -51,8 +52,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   observedLocationId: number;
-
-  selectedCatchTabIndex = 0;
 
   showOperationGroupTab = false;
   showCatchTab = false;
@@ -170,17 +169,37 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       })
     );
 
-    // Update catch tab index
-    if (this.catchTabGroup) {
-      if (this.selectedTabIndex === 2) {
-        const queryParams = this.route.snapshot.queryParams;
-        this.selectedCatchTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
-      } else {
-        this.selectedCatchTabIndex = 0;
-      }
-      this.catchTabGroup.realignInkBar();
-    }
+  // Read the selected tab index, from path query params
+  this.registerSubscription(this.route.queryParams
+    .pipe(first())
+    .subscribe(queryParams => {
 
+      const tabIndex = queryParams["tab"] && parseInt(queryParams["tab"]) || 0;
+      const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
+
+      // Update catch tab index
+      if (this.catchTabGroup && tabIndex === 2) {
+        this.catchTabGroup.selectedIndex = subTabIndex;
+        this.catchTabGroup.realignInkBar();
+      }
+
+      // Update expenses tab group index
+      if (this.expenseForm && tabIndex === 3) {
+        this.expenseForm.selectedTabIndex = subTabIndex;
+        this.expenseForm.realignInkBar();
+      }
+    }));
+  }
+
+  onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
+    const changed = super.onTabChange(event, queryParamName);
+    // Force sub-tabgroup realign
+    if (changed) {
+      if (this.catchTabGroup && this.selectedTabIndex === 2) this.catchTabGroup.realignInkBar();
+      if (this.expenseForm && this.selectedTabIndex === 3) this.expenseForm.realignInkBar();
+      this.markForCheck();
+    }
+    return changed;
   }
 
   protected registerForms() {
@@ -245,7 +264,21 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (isNotNil(queryParams['landing'])) {
       const landingId = +queryParams['landing'];
       console.debug(`[landedTrip-page] Get landing id {${landingId}}...`);
-      data.landingId = landingId;
+      if (data.landing) {
+        data.landing.id = landingId;
+      } else {
+        data.landing = Landing.fromObject({id: landingId});
+      }
+    }
+    // Get the landing rankOrder
+    if (isNotNil(queryParams['rankOrder'])) {
+      const landingRankOrder = +queryParams['rankOrder'];
+      console.debug(`[landedTrip-page] Get landing rank order {${landingRankOrder}}...`);
+      if (data.landing) {
+        data.landing.rankOrderOnVessel = landingRankOrder;
+      } else {
+        data.landing = Landing.fromObject({rankOrderOnVessel: landingRankOrder});
+      }
     }
 
     if (this.isOnFieldMode) {
@@ -475,7 +508,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     const json = await super.getJsonValueToSave();
 
     // parent link
-    json.landingId = this.data.landingId;
+    json.landing = this.data.landing && {id: this.data.landing.id, rankOrderOnVessel: this.data.landing.rankOrderOnVessel} || undefined;
     json.observedLocationId = this.data.observedLocationId;
 
     // recopy vesselSnapshot (disabled control)
@@ -501,6 +534,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (json.sale) {
       // sale products won't be saved with sale directly
       delete json.sale.products;
+    } else {
+      // need a sale object if any sale product found
+      if (products.find(product => isNotEmptyArray(product.saleProducts))
+        || packets.find(packet => isNotEmptyArray(packet.saleProducts))) {
+        json.sale = {saleType: {id: SaleTypeIds.OTHER}};
+      }
     }
 
     // Affect in each operation group : products and packets
@@ -518,7 +557,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   async save(event, options?: any): Promise<boolean> {
 
     const saveOptions: TripServiceSaveOption = {
-      isLandedTrip: true // indicate service to reload with LandedTrip query
+      withLanding: true // indicate service to reload with LandedTrip query
     };
 
     // Save children in-memory datasources
@@ -545,7 +584,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       this.operationGroupTable.addRow(event);
     }
     else if (this.showCatchTab && this.selectedTabIndex === 2) {
-      switch (this.selectedCatchTabIndex) {
+      switch (this.catchTabGroup.selectedIndex) {
         case 0:
           this.productsTable.addRow(event);
           break;
@@ -596,16 +635,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   filter($event: Event) {
     console.debug('[landed-trip.page] filter : ', $event);
 
-  }
-
-  // todo à suppr
-  onCatchTabChange($event: MatTabChangeEvent) {
-    super.onSubTabChange($event);
-    if (!this.loading) {
-      // todo On each tables, confirm editing row
-      // this.productTABLE.confirmEditCreate();
-      // this.batchTABLE.confirmEditCreate();
-    }
   }
 
 }

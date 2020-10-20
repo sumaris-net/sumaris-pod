@@ -6,86 +6,85 @@
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
-  <!-- Global -->
-  <ion-grid class="ion-no-padding ion-padding-top">
-    <ng-container *ngIf="$estimatedTotalPmfm | async; let estimatedTotalPmfm">
-      <ion-row>
-        <ion-col size="12" size-md="2" size-lg="3">
+  <!-- Top form -->
+  <div class="ion-padding">
+    <ion-grid class="form-container">
+      <ion-row *ngIf="$estimatedTotalPmfm | async; let estimatedTotalPmfm">
+        <ion-col size="12" size-md="3" size-lg="4">
           <ion-label class="ion-float-end" translate>EXPENSE.TOTAL_ESTIMATION</ion-label>
         </ion-col>
         <ion-col>
           <app-pmfm-field [pmfm]="estimatedTotalPmfm"
-                                      [formControlName]="estimatedTotalPmfm.pmfmId.toString()"
-                                      [hidden]="estimatedTotalPmfm.hidden"
-                                      [compact]="compact"
-                                      [tabindex]="tabindex+2">
+                          [formControlName]="estimatedTotalPmfm.pmfmId.toString()"
+                          [hidden]="estimatedTotalPmfm.hidden"
+                          [compact]="compact"
+                          [tabindex]="tabindex+2">
           </app-pmfm-field>
         </ion-col>
       </ion-row>
-    </ng-container>
-    <ion-row>
-      <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>EXPENSE.TOTAL_CALCULATED</ion-label>
-      </ion-col>
-      <ion-col>
-        <mat-form-field [class.computed]="true">
-          <input matInput
-                 formControlName="calculatedTotal"
-                 readonly>
-        </mat-form-field>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="3" size-lg="4">
+          <ion-label class="ion-float-end" translate>EXPENSE.TOTAL_CALCULATED</ion-label>
+        </ion-col>
+        <ion-col>
+          <mat-form-field [class.computed]="true">
+            <input matInput
+                   formControlName="calculatedTotal"
+                   readonly>
+          </mat-form-field>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
 
-
-  <mat-tab-group #expenseTabGroup animationDuration="0s" dynamicHeight>
+  <mat-tab-group #tabGroup
+                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange.emit($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
+                 dynamicHeight>
 
     <!-- SUB-TAB: fluid -->
     <mat-tab label="{{'EXPENSE.TAB_FLUID'|translate}}">
-      <ion-grid class="ion-no-padding ion-padding-top form-container">
+      <div class="ion-padding">
+        <ion-grid class="form-container">
 
-        <!-- fuel -->
-        <ion-row [hidden]="!($fuelTypePmfm | async) && !($fuelPmfms | async)">
-          <ion-col size="12" size-md="2" size-lg="3">
-            <ng-container *ngIf="$fuelTypePmfm | async; let fuelTypePmfm">
-              <app-pmfm-qv-field #fuelTypeField
-                                             [pmfm]="fuelTypePmfm"
-                                             [style]="mobile? 'button' : 'autocomplete'"
-                                             [formControlName]="fuelTypePmfm.pmfmId.toString()"
-                                             [compact]="false"
-                                             [tabindex]="tabindex+2">
+          <!-- fuel -->
+          <ion-row [hidden]="!($fuelTypePmfm | async) && !($fuelPmfms | async)">
+            <ion-col size="12" size-md="2" size-lg="3">
+              <app-pmfm-qv-field  *ngIf="$fuelTypePmfm | async; let fuelTypePmfm"
+                                  [pmfm]="fuelTypePmfm"
+                                 [style]="mobile? 'button' : 'autocomplete'"
+                                 [formControlName]="fuelTypePmfm.pmfmId.toString()"
+                                 [compact]="false"
+                                 [tabindex]="tabindex+2">
               </app-pmfm-qv-field>
-            </ng-container>
-          </ion-col>
-          <ng-container *ngIf="$fuelPmfms | async; let fuelPmfms;">
-            <ion-col *ngFor="let pmfm of fuelPmfms; index as i;">
-              <!-- qualitative value (force 'button' style, on mobile)-->
-              <ng-container *ngIf="pmfm.isQualitative; else otherField">
-                <app-pmfm-qv-field [pmfm]="pmfm"
-                                               [formControlName]="pmfm.pmfmId.toString()"
-                                               [hidden]="pmfm.hidden"
-                                               [style]="mobile? 'button' : 'autocomplete'"
-                                               [compact]="compact"
-                                               [tabindex]="tabindex+2 + i*2">
-                </app-pmfm-qv-field>
-              </ng-container>
-              <!-- NOT qualitative value -->
-              <ng-template #otherField>
-                <app-pmfm-field [pmfm]="pmfm"
-                                            [formControlName]="pmfm.pmfmId.toString()"
-                                            [hidden]="pmfm.hidden"
-                                            [compact]="compact"
-                                            [class.computed]="fuelTuple[pmfm.pmfmId.toString()] && fuelTuple[pmfm.pmfmId.toString()].computed"
-                                            [tabindex]="tabindex+2 + i*2">
-                </app-pmfm-field>
-              </ng-template>
             </ion-col>
-          </ng-container>
-        </ion-row>
+            <ng-container *ngIf="$fuelPmfms | async; let fuelPmfms;">
+              <ion-col *ngFor="let pmfm of fuelPmfms; index as i;">
+                <!-- qualitative value (force 'button' style, on mobile)-->
+                <app-pmfm-qv-field *ngIf="pmfm.isQualitative; else otherField"
+                                   [pmfm]="pmfm"
+                                   [formControlName]="pmfm.pmfmId.toString()"
+                                   [hidden]="pmfm.hidden"
+                                   [style]="mobile? 'button' : 'autocomplete'"
+                                   [compact]="compact"
+                                   [tabindex]="tabindex+2 + i*2">
+                </app-pmfm-qv-field>
+                <!-- NOT qualitative value -->
+                <ng-template #otherField>
+                  <app-pmfm-field [pmfm]="pmfm"
+                                              [formControlName]="pmfm.pmfmId.toString()"
+                                              [hidden]="pmfm.hidden"
+                                              [compact]="compact"
+                                              [class.computed]="fuelTuple[pmfm.pmfmId.toString()] && fuelTuple[pmfm.pmfmId.toString()].computed"
+                                              [tabindex]="tabindex+2 + i*2">
+                  </app-pmfm-field>
+                </ng-template>
+              </ion-col>
+            </ng-container>
+          </ion-row>
 
-        <!-- engine oil -->
-        <ng-container *ngIf="$engineOilPmfms | async; let engineOilPmfms;">
-          <ion-row>
+          <!-- engine oil -->
+          <ion-row  *ngIf="$engineOilPmfms | async; let engineOilPmfms;">
             <ion-col size="12" size-md="2" size-lg="3">
               <ion-label class="ion-float-end" translate>EXPENSE.FLUID.ENGINE_OIL</ion-label>
             </ion-col>
@@ -112,25 +111,22 @@
               </ng-template>
             </ion-col>
           </ion-row>
-        </ng-container>
 
-        <!-- hydraulic oil -->
-        <ng-container *ngIf="$hydraulicOilPmfms | async; let hydraulicOilPmfms;">
-          <ion-row>
+          <!-- hydraulic oil -->
+          <ion-row *ngIf="$hydraulicOilPmfms | async; let hydraulicOilPmfms;">
             <ion-col size="12" size-md="2" size-lg="3">
               <ion-label class="ion-float-end" translate>EXPENSE.FLUID.HYDRAULIC_OIL</ion-label>
             </ion-col>
             <ion-col *ngFor="let pmfm of hydraulicOilPmfms; index as i;">
               <!-- qualitative value (force 'button' style, on mobile)-->
-              <ng-container *ngIf="pmfm.isQualitative; else otherField">
-                <app-pmfm-qv-field [pmfm]="pmfm"
-                                               [formControlName]="pmfm.pmfmId.toString()"
-                                               [hidden]="pmfm.hidden"
-                                               [style]="mobile? 'button' : 'autocomplete'"
-                                               [compact]="compact"
-                                               [tabindex]="tabindex+2 + i*2">
-                </app-pmfm-qv-field>
-              </ng-container>
+              <app-pmfm-qv-field *ngIf="pmfm.isQualitative; else otherField"
+                                 [pmfm]="pmfm"
+                                 [formControlName]="pmfm.pmfmId.toString()"
+                                 [hidden]="pmfm.hidden"
+                                 [style]="mobile? 'button' : 'autocomplete'"
+                                 [compact]="compact"
+                                 [tabindex]="tabindex+2 + i*2">
+              </app-pmfm-qv-field>
               <!-- NOT qualitative value -->
               <ng-template #otherField>
                 <app-pmfm-field [pmfm]="pmfm"
@@ -143,12 +139,13 @@
               </ng-template>
             </ion-col>
           </ion-row>
-        </ng-container>
-      </ion-grid>
+        </ion-grid>
+      </div>
     </mat-tab>
 
     <!-- SUB-TAB: ice -->
     <mat-tab label="{{'EXPENSE.TAB_ICE'|translate}}">
+      <div class="ion-padding">
         <app-typed-expense-form #iceExpenseForm
                                 expenseType="ice"
                                 entityName="VesselUseMeasurement"
@@ -157,18 +154,19 @@
                                 [forceOptional]="forceOptional"
                                 [compact]="compact"
                                 [debug]="debug"
-                                [tabindex]="tabindex+4"
-        >
+                                [tabindex]="tabindex+4">
         </app-typed-expense-form>
+      </div>
     </mat-tab>
 
     <!-- SUB-TAB: bait -->
     <mat-tab label="{{'EXPENSE.TAB_BAIT'|translate}}">
-
-      <ion-grid class="ion-no-padding ion-padding-top form-container">
-        <ion-row *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first">
-          <ion-col>
-            <ion-card>
+      <ion-grid class="form-container">
+        <ion-row *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; odd as odd"
+                 class="typed-expense-row"
+                 [class.odd]="odd">
+          <ion-col class="ion-padding-top">
+            <div class="ion-padding">
               <app-typed-expense-form #baitExpenseForm
                                       expenseType="bait"
                                       [rankOrder]="i + 1"
@@ -178,10 +176,9 @@
                                       [forceOptional]="forceOptional"
                                       [compact]="compact"
                                       [debug]="debug"
-                                      [tabindex]="tabindex+4+i*3"
-              >
+                                      [tabindex]="tabindex+4+i*3">
               </app-typed-expense-form>
-            </ion-card>
+            </div>
           </ion-col>
           <!-- buttons -->
           <ion-col size="1" class="ion-align-self-center">
@@ -199,43 +196,44 @@
         </ion-row>
 
       </ion-grid>
-
     </mat-tab>
 
     <!-- SUB-TAB: misc -->
     <mat-tab label="{{'EXPENSE.TAB_MISC'|translate}}">
-      <ion-grid class="ion-no-padding ion-padding-top form-container">
-        <ion-row>
-          <ion-col size="12" size-md="2" size-lg="3">
-            <ion-label class="ion-float-end" translate>EXPENSE.MISC.OTHER</ion-label>
-          </ion-col>
-          <ion-col>
-            <ng-container *ngIf="$miscPmfms | async; let miscPmfms">
-              <div *ngFor="let pmfm of miscPmfms; index as i;">
-                <!-- qualitative value (force 'button' style, on mobile)-->
-                <ng-container *ngIf="pmfm.isQualitative; else otherField">
-                  <app-pmfm-qv-field [pmfm]="pmfm"
-                                                 [formControlName]="pmfm.pmfmId.toString()"
-                                                 [hidden]="pmfm.hidden"
-                                                 [style]="mobile? 'button' : 'autocomplete'"
-                                                 [compact]="compact"
-                                                 [tabindex]="tabindex+2 + i*2">
-                  </app-pmfm-qv-field>
-                </ng-container>
-                <!-- NOT qualitative value -->
-                <ng-template #otherField>
-                  <app-pmfm-field [pmfm]="pmfm"
-                                              [formControlName]="pmfm.pmfmId.toString()"
-                                              [hidden]="pmfm.hidden"
-                                              [compact]="compact"
-                                              [tabindex]="tabindex+2 + i*2">
-                  </app-pmfm-field>
-                </ng-template>
-              </div>
-            </ng-container>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+      <div class="ion-padding">
+        <ion-grid class="form-container">
+          <ion-row >
+            <ion-col size="12" size-md="2" size-lg="3">
+              <ion-label class="ion-float-end" translate>EXPENSE.MISC.OTHER</ion-label>
+            </ion-col>
+            <ion-col>
+              <ng-container *ngIf="$miscPmfms | async; let miscPmfms">
+                <div *ngFor="let pmfm of miscPmfms; index as i;">
+                  <!-- qualitative value (force 'button' style, on mobile)-->
+                  <ng-container *ngIf="pmfm.isQualitative; else otherField">
+                    <app-pmfm-qv-field [pmfm]="pmfm"
+                                                   [formControlName]="pmfm.pmfmId.toString()"
+                                                   [hidden]="pmfm.hidden"
+                                                   [style]="mobile? 'button' : 'autocomplete'"
+                                                   [compact]="compact"
+                                                   [tabindex]="tabindex+2 + i*2">
+                    </app-pmfm-qv-field>
+                  </ng-container>
+                  <!-- NOT qualitative value -->
+                  <ng-template #otherField>
+                    <app-pmfm-field [pmfm]="pmfm"
+                                                [formControlName]="pmfm.pmfmId.toString()"
+                                                [hidden]="pmfm.hidden"
+                                                [compact]="compact"
+                                                [tabindex]="tabindex+2 + i*2">
+                    </app-pmfm-field>
+                  </ng-template>
+                </div>
+              </ng-container>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
     </mat-tab>
 
   </mat-tab-group>

@@ -47,7 +47,16 @@ export const PmfmIds = {
   SAMPLE_MEASURED_WEIGHT: 140,
   OUT_OF_SIZE: 142,
   OUT_OF_SIZE_PCT: 143,
-  VIVACITY: 144
+  VIVACITY: 144,
+
+  /* OBSDEB pmfms */
+  PACKAGING: 177,
+  SIZE_CATEGORY: 174,
+  TOTAL_PRICE: 270,
+  AVERAGE_PACKAGING_PRICE: 271,
+  AVERAGE_PRICE_WEI: 272,
+  SALE_ESTIMATED_RATIO: 278,
+  SALE_RANK_ORDER: 279,
 };
 
 export const QualitativeLabels = {
@@ -119,6 +128,13 @@ export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   EXPENSE: 'EXPENSE',
   BAIT_EXPENSE: 'BAIT_EXPENSE',
   ICE_EXPENSE: 'ICE_EXPENSE'
+};
+
+export const SaleTypeIds = {
+  AUCTION: 1,
+  DIRECT: 2,
+  EXPORT: 3,
+  OTHER: 4
 };
 
 

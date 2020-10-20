@@ -1,7 +1,6 @@
 import {Directive, Input, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
-import {Entity} from '../services/model/entity.model';
 import {AlertController, ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 import {Subscription} from 'rxjs';
@@ -10,9 +9,8 @@ import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
 import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.utils";
-import {ToastOptions} from "@ionic/core";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
-import {HammerSwipeAction, HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
 import {TeardownLogic} from "rxjs/src/internal/types";
 
 export class AppTabFormOptions {
@@ -44,7 +42,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   // From options
   tabCount: number;
   enableSwipe: boolean;
-  tabGroupAnimationDuration = '200ms';
+  tabGroupAnimationDuration: string;
 
   debug = false;
   previousDataId: number;

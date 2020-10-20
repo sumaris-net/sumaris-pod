@@ -56,6 +56,8 @@ import {UserEventService} from "../../social/services/user-event.service";
 import {UserEvent} from "../../social/services/model/user-event.model";
 import {showError} from "../../shared/alerts";
 import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
+import {tar} from "@ionic/cli/lib/utils/archive";
+import {Landing} from "./model/landing.model";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -168,7 +170,10 @@ export const TripFragments = {
     qualificationDate
     qualityFlagId
     comments
-    landingId
+    landing {
+      id
+      rankOrderOnVessel
+    }
     observedLocationId
     departureLocation {
       ...LocationFragment
@@ -330,7 +335,7 @@ export interface TripServiceLoadOption extends EntityServiceLoadOptions {
 }
 
 export interface TripServiceSaveOption {
-  isLandedTrip: boolean;
+  withLanding: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
   enableOptimisticResponse?: boolean; // True by default
@@ -365,8 +370,8 @@ const LoadLandedTripQuery: any = gql`
 `;
 // Save all trips
 const SaveAllTripQuery: any = gql`
-  mutation saveTrips($trips:[TripVOInput], $withOperation: Boolean!){
-    saveTrips(trips: $trips, withOperation: $withOperation){
+  mutation saveTrips($trips:[TripVOInput], $tripSaveOption: TripSaveOptionsInput!){
+    saveTrips(trips: $trips, saveOptions: $tripSaveOption){
       ...TripFragment
     }
   }
@@ -374,8 +379,8 @@ const SaveAllTripQuery: any = gql`
 `;
 // Save a trip
 const SaveTripQuery: any = gql`
-  mutation saveTrip($trip:TripVOInput, $withOperation: Boolean!){
-    saveTrip(trip: $trip, withOperation: $withOperation){
+  mutation saveTrip($trip:TripVOInput, $tripSaveOption: TripSaveOptionsInput!){
+    saveTrip(trip: $trip, saveOptions: $tripSaveOption){
       ...TripFragment
     }
   }
@@ -383,8 +388,8 @@ const SaveTripQuery: any = gql`
 `;
 // Save a landed trip
 const SaveLandedTripQuery: any = gql`
-  mutation saveTrip($trip:TripVOInput, $withOperationGroup: Boolean!){
-    saveLandedTrip(trip: $trip, withOperationGroup: $withOperationGroup){
+  mutation saveTrip($trip:TripVOInput, $tripSaveOption: TripSaveOptionsInput!){
+    saveTrip(trip: $trip, saveOptions: $tripSaveOption){
       ...LandedTripFragment
     }
   }
@@ -672,7 +677,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
    */
   async save(entity: Trip, options?: TripServiceSaveOption): Promise<Trip> {
 
-    const isLandedTrip = toBoolean(options && options.isLandedTrip, false);
+    const withLanding = toBoolean(options && options.withLanding, false);
     const withOperation = toBoolean(options && options.withOperation, false);
     const withOperationGroup = toBoolean(options && options.withOperationGroup, false);
 
@@ -719,16 +724,21 @@ export class TripService extends RootDataService<Trip, TripFilter>
         context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
         if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
 
-        return { saveTrip: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)], saveLandedTrip: undefined };
+        return {
+          saveTrip: !withLanding && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)],
+          saveLandedTrip: withLanding && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)]
+        };
       } : undefined;
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[trip-service] Using minify object, to send:", json);
 
-    const mutation = (isLandedTrip) ? SaveLandedTripQuery : SaveTripQuery;
-    const variables = {trip: json};
-    Object.assign(variables, isLandedTrip ? {withOperationGroup: withOperationGroup} : {withOperation: withOperation});
+    // Select mutation
+    const mutation = (withLanding) ? SaveLandedTripQuery : SaveTripQuery;
+    // Build save options: provided or default
+    const variables = {trip: json, tripSaveOption: options || {withLanding, withOperation, withOperationGroup}};
+    // console.debug(variables);
 
     await this.graphql.mutate<{ saveTrip: any, saveLandedTrip: any }>({
        mutation,
@@ -817,7 +827,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     try {
       // todo comment synchroniser un landedTrip ?
       entity = await this.save(entity, {
-        isLandedTrip: false,
+        withLanding: false,
         withOperation: true,
         enableOptimisticResponse: false // Optimistice response not need
       });
@@ -1341,13 +1351,19 @@ export class TripService extends RootDataService<Trip, TripFilter>
     // Update (id and updateDate), and control validation
     super.copyIdAndUpdateDate(source, target);
 
+    // Update parent link
+    target.observedLocationId = source.observedLocationId;
+    if (options.withLanding && source.landing && target.landing) {
+      EntityUtils.copyIdAndUpdateDate(source.landing, target.landing);
+    }
+
     // Update sale
     if (source.sale && target.sale) {
       EntityUtils.copyIdAndUpdateDate(source.sale, target.sale);
       DataRootEntityUtils.copyControlAndValidationDate(source.sale, target.sale);
 
       // For a landedTrip with operationGroups, copy directly sale's product, a reload must be done after service call
-      if (options && options.isLandedTrip && source.sale.products) {
+      if (options && options.withLanding && source.sale.products) {
         target.sale.products = source.sale.products;
       }
     }

@@ -37,6 +37,7 @@ import {DataModule} from "../data/data.module";
 import {OperationsMap} from "./operation/map/operations.map";
 import {SocialModule} from "../social/social.module";
 import {BatchModal} from "./batch/modal/batch.modal";
+import {TranslateModule} from "@ngx-translate/core";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -47,7 +48,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     LeafletModule,
     ReferentialModule,
     DataModule,
-    SocialModule
+    SocialModule,
+    TranslateModule.forChild()
   ],
   declarations: [
     TripTable,
@@ -84,6 +86,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
   ],
   exports: [
     // Modules
+    TranslateModule,
     CoreModule,
     DataModule,
     SocialModule,

@@ -237,7 +237,7 @@ export class PlatformService {
   protected configureCache(online?: boolean) {
     online = isNotNil(online) ? online : this.cache.isOnline();
     const cacheTTL = online ? 3600 /* 1h */ : 3600 * 24 * 30; /* 1 month */
-    console.info(`[platform] Configuring cache [OK] {online: ${online}}, {timeToLive: ${cacheTTL / 3600}h}, {offlineInvalidate: false)`);
+    console.info(`[platform] Configuring cache [OK] {online: ${online}}, {timeToLive: ${cacheTTL / 3600}h}, {offlineInvalidate: false}`);
     this.cache.setDefaultTTL(cacheTTL);
     this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
   }

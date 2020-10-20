@@ -78,7 +78,11 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SelectVesselsModal
   ],
   exports: [
+    // Modules
+    TranslateModule,
     TripModule,
+
+    // COmponents
     LandingsTable,
     LandingForm,
     LandingPage,

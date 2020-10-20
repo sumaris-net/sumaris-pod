@@ -22,6 +22,7 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   autocompleteHelper: MatAutocompleteConfigHolder;
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
   error: string = null;
+  tabGroupAnimationDuration = '200ms';
 
   @Input() debug = false;
 
@@ -214,8 +215,6 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   }
 
   /* -- protected methods -- */
-
-
 
 
   protected registerSubscription(sub: Subscription): Subscription {
