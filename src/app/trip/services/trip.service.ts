@@ -677,9 +677,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
    */
   async save(entity: Trip, options?: TripServiceSaveOption): Promise<Trip> {
 
-    const isLandedTrip = toBoolean(options && options.withLanding, false);
-    // const withOperation = toBoolean(options && options.withOperation, false);
-    // const withOperationGroup = toBoolean(options && options.withOperationGroup, false);
+    const withLanding = toBoolean(options && options.withLanding, false);
+    const withOperation = toBoolean(options && options.withOperation, false);
+    const withOperationGroup = toBoolean(options && options.withOperationGroup, false);
 
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving a trip...", entity);
@@ -725,8 +725,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
         if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
 
         return {
-          saveTrip: !isLandedTrip && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)],
-          saveLandedTrip: isLandedTrip && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)]
+          saveTrip: !withLanding && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)],
+          saveLandedTrip: withLanding && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)]
         };
       } : undefined;
 
@@ -734,10 +734,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[trip-service] Using minify object, to send:", json);
 
-    const mutation = (isLandedTrip) ? SaveLandedTripQuery : SaveTripQuery;
-    const variables = {trip: json, tripSaveOption: options};
-    // Object.assign(variables, isLandedTrip ? {withOperationGroup: withOperationGroup} : {withOperation: withOperation});
-    console.debug(variables);
+    // Select mutation
+    const mutation = (withLanding) ? SaveLandedTripQuery : SaveTripQuery;
+    // Build save options: provided or default
+    const variables = {trip: json, tripSaveOption: options || {withLanding, withOperation, withOperationGroup}};
+    // console.debug(variables);
 
     await this.graphql.mutate<{ saveTrip: any, saveLandedTrip: any }>({
        mutation,

@@ -363,27 +363,27 @@ export class MeasurementValuesUtils {
       }, {}) || undefined;
   }
 
-  static getValue(measurements: MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, remove?: boolean): MeasurementFormValue {
-    if (!measurements || !pmfms || !pmfmLabel)
+  static getValue(measurements: MeasurementFormValues, pmfmStrategies: PmfmStrategy[], pmfmId: number, remove?: boolean): MeasurementFormValue {
+    if (!measurements || !pmfmStrategies || !pmfmId)
       return undefined;
 
-    const pmfm = pmfms.find(p => p.label && p.label === pmfmLabel);
-    if (pmfm && measurements[pmfm.pmfmId]) {
-      const value = MeasurementValuesUtils.normalizeValueToForm(measurements[pmfm.pmfmId], pmfm);
+    const pmfmStrategy = pmfmStrategies.find(p => p.pmfmId === pmfmId);
+    if (pmfmStrategy && measurements[pmfmStrategy.pmfmId]) {
+      const value = MeasurementValuesUtils.normalizeValueToForm(measurements[pmfmStrategy.pmfmId], pmfmStrategy);
       if (!!remove)
-        delete measurements[pmfm.pmfmId];
+        delete measurements[pmfmStrategy.pmfmId];
       return value;
     }
     return undefined;
   }
 
-  static setValue(measurements: MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, value: MeasurementFormValue) {
-    if (!measurements || !pmfms || !pmfmLabel)
+  static setValue(measurements: MeasurementFormValues, pmfmStrategies: PmfmStrategy[], pmfmId: number, value: MeasurementFormValue) {
+    if (!measurements || !pmfmStrategies || !pmfmId)
       return undefined;
 
-    const pmfm = pmfms.find(p => p.label && p.label === pmfmLabel);
-    if (pmfm) {
-      measurements[pmfm.pmfmId] = MeasurementValuesUtils.normalizeValueToForm(value, pmfm);
+    const pmfmStrategy = pmfmStrategies.find(p => p.pmfmId === pmfmId);
+    if (pmfmStrategy) {
+      measurements[pmfmStrategy.pmfmId] = MeasurementValuesUtils.normalizeValueToForm(value, pmfmStrategy);
     }
     return undefined;
   }

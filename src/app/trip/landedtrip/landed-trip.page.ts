@@ -10,7 +10,7 @@ import {
   isNotNilOrBlank
 } from '../../shared/shared.module';
 import * as moment from "moment";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
@@ -534,6 +534,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (json.sale) {
       // sale products won't be saved with sale directly
       delete json.sale.products;
+    } else {
+      // need a sale object if any sale product found
+      if (products.find(product => isNotEmptyArray(product.saleProducts))
+        || packets.find(packet => isNotEmptyArray(packet.saleProducts))) {
+        json.sale = {saleType: {id: SaleTypeIds.OTHER}};
+      }
     }
 
     // Affect in each operation group : products and packets
