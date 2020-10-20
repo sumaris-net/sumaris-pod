@@ -208,6 +208,10 @@ public class RdfConfiguration  {
         return getApplicationConfig().getOptionAsFile(RdfConfigurationOption.RDF_DIRECTORY.getKey());
     }
 
+    public File getRdfTdb2Directory() {
+        return getApplicationConfig().getOptionAsFile(RdfConfigurationOption.RDF_TDB2_DIRECTORY.getKey());
+    }
+
     public File getTempDirectory() {
         return getApplicationConfig().getOptionAsFile(SumarisConfigurationOption.TMP_DIRECTORY.getKey());
     }

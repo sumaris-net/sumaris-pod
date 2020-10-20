@@ -28,8 +28,8 @@ import com.google.common.collect.ImmutableList;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelVocabulary;
-import net.sumaris.rdf.service.store.DatasetService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
+import net.sumaris.rdf.service.store.DatasetService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
@@ -72,8 +72,8 @@ public class SparqlRestController {
     @Resource
     private RdfSchemaService schemaService;
 
-    @Value("${server.url}" + SPARQL_ENDPOINT)
-    private String sparqlEndpointUrl;
+    @Resource
+    private RdfConfiguration config;
 
     @Value("${rdf.sparql.maxLimit:10000}")
     private long maxLimit;
@@ -81,9 +81,16 @@ public class SparqlRestController {
     @Resource
     private DatasetService datasetService;
 
+    private String sparqlEndpointUrl;
+
     @PostConstruct
     public void init() {
-        log.info("Starting SparQL endpoint {{}}...", sparqlEndpointUrl);
+        log.info("Starting SparQL endpoint {{}}...", SPARQL_ENDPOINT);
+        String serverUrl = config.getApplicationConfig().getOption("server.url");
+        if (serverUrl.endsWith("/")) {
+            serverUrl = serverUrl.substring(0, serverUrl.length() -1);
+        }
+        this.sparqlEndpointUrl = serverUrl + SPARQL_ENDPOINT;
     }
 
 
