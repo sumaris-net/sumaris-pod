@@ -33,6 +33,7 @@ import {PmfmPage} from "./pmfm/pmfm.page";
 import {ParameterPage} from "./pmfm/parameter.page";
 import {SimpleStrategyPage} from "./simpleStrategy/simpleStrategy.page";
 import {SimpleStrategyForm} from "./simpleStrategy/form/simpleStrategy.form";
+import {PlanificationForm} from "./planification/planification.form";
 import {ParameterValidatorService} from "./services/validator/parameter.validator";
 import {ReferentialTable} from "./list/referential.table";
 import {ReferentialRoutingModule} from "./referential-routing.module";
@@ -54,6 +55,7 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
     ReferentialsPage,
     ReferentialForm,
     SimpleStrategyForm,
+    PlanificationForm,
     VesselsTable,
     VesselPage,
     VesselsPage,
@@ -79,6 +81,7 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
     ReferentialsPage,
     ReferentialForm,
     SimpleStrategyForm,
+    PlanificationForm,
     VesselsTable,
     VesselPage,
     VesselForm,
