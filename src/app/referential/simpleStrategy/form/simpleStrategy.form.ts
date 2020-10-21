@@ -48,7 +48,7 @@ export class SimpleStrategyForm extends AppForm<Referential> implements OnInit {
     protected cd?: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getRowValidator(), settings);
-
+    this._enable = true;
   }
 
   ngOnInit() {

@@ -198,7 +198,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     let userColumns = this.getUserColumns();
 
     // No user override: use defaults
-    if (!userColumns) return this.columns;
+    if (!userColumns) 
+    {
+      userColumns = this.columns;
+    }
 
     // Get fixed start columns
     const fixedStartColumns = this.columns.filter(c => RESERVED_START_COLUMNS.includes(c));
