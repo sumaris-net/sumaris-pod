@@ -50,7 +50,7 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
 
     setTimeout(() => {
       this.enable();
-      this.productSaleForm.setValue(Product.fromObject(this.product));
+      this.productSaleForm.setValue(this.product);
       this.updateTitle();
     });
 

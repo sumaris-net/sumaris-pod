@@ -53,7 +53,6 @@ export class Packet extends DataEntity<Packet> {
   sampledWeight5: number;
   sampledWeight6: number;
   composition: PacketComposition[];
-  saleProducts: Product[];
 
   // used to compute packet's ratio from composition
   sampledRatio1: number;
@@ -66,6 +65,9 @@ export class Packet extends DataEntity<Packet> {
   parent: IWithPacketsEntity<any>;
   parentId: number;
 
+  // Not serialized
+  saleProducts: Product[];
+
   constructor() {
     super();
     this.rankOrder = null;
@@ -77,8 +79,8 @@ export class Packet extends DataEntity<Packet> {
     this.parentId = null;
   }
 
-  asObject(options?: DataEntityAsObjectOptions): any {
-    const target = super.asObject(options);
+  asObject(opts?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(opts);
     target.sampledWeights = [this.sampledWeight1, this.sampledWeight2, this.sampledWeight3, this.sampledWeight4, this.sampledWeight5, this.sampledWeight6];
     delete target.sampledWeight1;
     delete target.sampledWeight2;
@@ -86,11 +88,22 @@ export class Packet extends DataEntity<Packet> {
     delete target.sampledWeight4;
     delete target.sampledWeight5;
     delete target.sampledWeight6;
-    target.composition = this.composition && this.composition.map(c => c.asObject(options)) || undefined;
+
+    target.composition = this.composition && this.composition.map(c => c.asObject(opts)) || undefined;
+
+    if (!opts || opts.minify !== true) {
+      target.saleProducts = this.saleProducts && this.saleProducts.map(saleProduct => {
+        const s = saleProduct.asObject({...opts, withChildren: false});
+        // Affect batchId (=packet.id)
+        s.batchId = this.id;
+        return s;
+      }) || [];
+    } else {
+      delete target.saleProducts;
+    }
+
     target.operationId = this.parent && this.parent.id || this.parentId;
-
-    target.saleProducts = this.saleProducts && this.saleProducts.map(s => s.asObject(options)) || [];
-
+    delete target.parent;
     return target;
   }
 
@@ -106,6 +119,7 @@ export class Packet extends DataEntity<Packet> {
     this.sampledWeight5 = source.sampledWeights && source.sampledWeights[4] || source.sampledWeight5;
     this.sampledWeight6 = source.sampledWeights && source.sampledWeights[5] || source.sampledWeight6;
     this.composition = source.composition && source.composition.map(c => PacketComposition.fromObject(c));
+
     this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
 
     this.parentId = source.operationId;

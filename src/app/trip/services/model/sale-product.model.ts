@@ -10,7 +10,7 @@ import {PmfmIds} from "../../../referential/services/model/model.enum";
 
 export class SaleProduct extends Product {
 
-  static TYPENAME = 'SaleProductVO';
+  // static TYPENAME = 'SaleProductVO'; // fixme: This VO don't exists, keep its TYPENAME ?
 
   static fromObject(source: any): SaleProduct {
     const target = new SaleProduct();
@@ -32,7 +32,7 @@ export class SaleProduct extends Product {
 
   constructor() {
     super();
-    this.__typename = Product.TYPENAME;
+    this.__typename = undefined; //Product.TYPENAME;
     this.saleProducts = [];
     this.productIdByTaxonGroup = {};
   }

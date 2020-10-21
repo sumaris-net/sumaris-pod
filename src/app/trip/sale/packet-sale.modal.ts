@@ -49,7 +49,7 @@ export class PacketSaleModal implements OnInit, OnDestroy, AfterViewInit {
 
     setTimeout(() => {
       this.enable();
-      this.packetSaleForm.setValue(Packet.fromObject(this.packet));
+      this.packetSaleForm.setValue(this.packet);
       this.updateTitle();
     });
 
