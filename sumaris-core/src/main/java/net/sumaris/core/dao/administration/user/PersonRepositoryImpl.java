@@ -34,6 +34,7 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -215,7 +216,7 @@ public class PersonRepositoryImpl
         if (isNew) {
             // Set default status to Temporary
             if (vo.getStatusId() == null) {
-                vo.setStatusId(getConfig().getStatusIdTemporary());
+                vo.setStatusId(StatusEnum.TEMPORARY.getId());
             }
         }
         // If update

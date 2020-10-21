@@ -286,6 +286,7 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
+            <id>generate-hibernate-files</id>
             <phase>process-sources</phase>
             <goals>
               <goal>run</goal>

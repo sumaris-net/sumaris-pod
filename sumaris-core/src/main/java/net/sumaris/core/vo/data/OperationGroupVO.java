@@ -69,6 +69,8 @@ public class OperationGroupVO implements IDataVO<Integer> {
 
     private List<ProductVO> products;
 
+    private List<SampleVO> samples;
+
     private List<PacketVO> packets;
 
     private List<FishingAreaVO> fishingAreas;

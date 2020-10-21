@@ -201,6 +201,11 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+            </plugin>
+
         </plugins>
     </build>
 

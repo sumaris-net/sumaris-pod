@@ -58,7 +58,6 @@ public class PacketVO implements IDataVO<Integer> {
     private Double weight;
     private List<Double> sampledWeights;
     private List<PacketCompositionVO> composition;
-    private List<ProductVO> saleProducts;
 
     @EqualsAndHashCode.Exclude
     private OperationVO operation;

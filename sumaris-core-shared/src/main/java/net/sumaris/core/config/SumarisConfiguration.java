@@ -616,42 +616,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * <p>getStatusIdTemporary.</p>
-     *
-     * @return a {@link int} object.
-     */
-    public int getStatusIdTemporary() {
-        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.STATUS_ID_TEMPORARY.getKey());
-    }
-
-    /**
-     * <p>getStatusIdValid.</p>
-     *
-     * @return a {@link int}.
-     */
-    public int getStatusIdValid() {
-        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.STATUS_ID_ENABLE.getKey());
-    }
-
-    /**
-     * <p>getUnitIdNone.</p>
-     *
-     * @return a {@link int}.
-     */
-    public int getUnitIdNone() {
-        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.UNIT_ID_NONE.getKey());
-    }
-
-    /**
-     * <p>getMatrixIdIndividual.</p>
-     *
-     * @return a {@link int}.
-     */
-    public int getMatrixIdIndividual() {
-        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.MATRIX_ID_INDIVIDUAL.getKey());
-    }
-
-    /**
      * <p>getAppName.</p>
      *
      * @return a {@link String} object: the application id.

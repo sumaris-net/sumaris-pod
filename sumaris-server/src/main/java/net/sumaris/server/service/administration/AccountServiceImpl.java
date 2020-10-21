@@ -39,7 +39,6 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
-import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -65,7 +64,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
@@ -104,7 +102,7 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private AccountService self; // loop back to force transactional handling
 
-    private SumarisServerConfiguration config;
+    private final SumarisServerConfiguration config;
 
     private InternetAddress mailFromAddress;
 
@@ -217,11 +215,11 @@ public class AccountServiceImpl implements AccountService {
         // Skip mail confirmation
         if (this.mailFromAddress == null) {
             log.debug(I18n.t("sumaris.server.account.register.mail.skip"));
-            account.setStatusId(config.getStatusIdValid());
+            account.setStatusId(StatusEnum.ENABLE.getId());
         }
         else {
             // Mark account as temporary
-            account.setStatusId(config.getStatusIdTemporary());
+            account.setStatusId(StatusEnum.TEMPORARY.getId());
         }
 
         // Set default profile
@@ -300,11 +298,11 @@ public class AccountServiceImpl implements AccountService {
         // Check the matched account status
         if (valid) {
             account = matches.get(0);
-            valid = account.getStatusId() == config.getStatusIdTemporary();
+            valid = account.getStatusId() == StatusEnum.TEMPORARY.getId();
 
             if (valid) {
                 // Mark account status as valid
-                account.setStatusId(config.getStatusIdValid());
+                account.setStatusId(StatusEnum.ENABLE.getId());
 
                 // Save account
                 personRepository.save(account);
@@ -339,7 +337,7 @@ public class AccountServiceImpl implements AccountService {
         // Check the matched account status
         if (valid) {
             account = matches.get(0);
-            valid = account.getStatusId() == config.getStatusIdTemporary();
+            valid = account.getStatusId() == StatusEnum.TEMPORARY.getId();
 
             if (valid) {
                 // Sent the confirmation email

@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
@@ -31,11 +32,14 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.GearUseMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +77,9 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Autowired
     protected FishingAreaService fishingAreaService;
+
+    @Autowired
+    protected SampleService sampleService;
 
     @Override
     public List<MetierVO> getMetiersByTripId(int tripId) {
@@ -197,24 +204,49 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         }
 
         // Save products
-        if (source.getProducts() != null) source.getProducts().forEach(product -> fillDefaultProperties(source, product));
-        productService.saveByOperationId(source.getId(), source.getProducts());
+        {
+            List<ProductVO> products = Beans.getList(source.getProducts());
+            products.forEach(product -> fillDefaultProperties(source, product));
+            products = productService.saveByOperationId(source.getId(), products);
+
+            // Prepare saved samples (e.g. to be used as graphQL query response)
+            products.forEach(product -> {
+                // Set parentId (instead of parent object)
+                if (product.getOperationId() == null && product.getOperation() != null) {
+                    product.setOperationId(product.getOperation().getId());
+                }
+                // Remove link parent/children
+                product.setOperation(null);
+            });
+
+            source.setProducts(products);
+        }
+
+        // Save samples
+        {
+            List<SampleVO> samples = getSamplesAsList(source);
+            samples.forEach(s -> fillDefaultProperties(source, s));
+            samples = sampleService.saveByOperationId(source.getId(), samples);
+
+            // Prepare saved samples (e.g. to be used as graphQL query response)
+            samples.forEach(sample -> {
+                // Set parentId (instead of parent object)
+                if (sample.getParentId() == null && sample.getParent() != null) {
+                    sample.setParentId(sample.getParent().getId());
+                }
+                // Remove link parent/children
+                sample.setParent(null);
+                sample.setChildren(null);
+            });
+
+            source.setSamples(samples);
+        }
 
         // Save packets
         if (source.getPackets() != null) {
 
-            // Keep saleProducts before save packets
-            Map<Integer, List<ProductVO>> saleProductsByPacketRankOrder = new HashMap<>();
-            source.getPackets().forEach(packet -> {
-                fillDefaultProperties(source, packet);
-                saleProductsByPacketRankOrder.put(packet.getRankOrder(), packet.getSaleProducts());
-            });
-
             // Save packets
             List<PacketVO> savedPackets = packetService.saveByOperationId(source.getId(), source.getPackets());
-
-            // Restore saleProducts
-            savedPackets.forEach(savedPacket -> savedPacket.setSaleProducts(saleProductsByPacketRankOrder.get(savedPacket.getRankOrder())));
 
             // Re-affect saved packets to source
             source.setPackets(savedPackets);
@@ -293,5 +325,41 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         }
         batch.setOperationId(parent.getOperationId());
     }
+
+    protected void fillDefaultProperties(OperationGroupVO parent, SampleVO sample) {
+        if (sample == null) return;
+
+        // Copy recorder department from the parent
+        if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
+            sample.setRecorderDepartment(parent.getRecorderDepartment());
+        }
+
+        // Fill matrix
+        if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
+            ReferentialVO matrix = new ReferentialVO();
+            matrix.setId(MatrixEnum.INDIVIDUAL.getId());
+            sample.setMatrix(matrix);
+        }
+
+        sample.setOperationId(parent.getId());
+    }
+
+    /**
+     * Get all samples, in the sample tree parent/children
+     *
+     * @param parent
+     * @return
+     */
+    protected List<SampleVO> getSamplesAsList(final OperationGroupVO parent) {
+        final List<SampleVO> result = Lists.newArrayList();
+        if (CollectionUtils.isNotEmpty(parent.getSamples())) {
+            parent.getSamples().forEach(sample -> {
+                fillDefaultProperties(parent, sample);
+                sampleService.treeToList(sample, result);
+            });
+        }
+        return result;
+    }
+
 
 }

@@ -231,34 +231,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     // -- DATA CONSTANTS --------------------------------------------------//
     // ------------------------------------------------------------------------//
 
-    STATUS_ID_TEMPORARY(
-            "sumaris.enumeration.StatusId.TEMPORARY",
-            n("sumaris.enumeration.StatusId.TEMPORARY.description"),
-            "2",
-            String.class,
-            false),
-
-    STATUS_ID_ENABLE(
-            "sumaris.enumeration.StatusId.ENABLE",
-            n("sumaris.enumeration.StatusId.ENABLE.description"),
-            "1",
-            String.class,
-            false),
-
-    UNIT_ID_NONE(
-            "sumaris.enumeration.UnitId.NONE",
-            n("sumaris.enumeration.UnitId.NONE.description"),
-            "0",
-            Integer.class,
-            false),
-
-    MATRIX_ID_INDIVIDUAL(
-            "sumaris.enumeration.MatrixId.INDIVIDUAL",
-            n("sumaris.enumeration.MatrixId.INDIVIDUAL.description"),
-            "2",
-            Integer.class,
-            false),
-
     IMPORT_NB_YEARS_DATA_HISTORY (
             "sumaris.synchro.import.nbYearDataHistory",
             n("sumaris.config.option.synchro.import.nbYearDataHistory.description"),
