@@ -107,7 +107,7 @@ public class StrategyRepositoryImpl
 
         if (vo.getId() == null && vo.getStatusId() == null)
             // Set default status to Temporary
-            vo.setStatusId(getConfig().getStatusIdTemporary());
+            vo.setStatusId(StatusEnum.TEMPORARY.getId());
 
         return super.save(vo);
     }

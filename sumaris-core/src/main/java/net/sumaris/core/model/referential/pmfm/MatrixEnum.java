@@ -30,7 +30,9 @@ import java.util.Arrays;
 @EntityEnum(entity = Matrix.class)
 public enum MatrixEnum implements Serializable {
 
-    GEAR(3, "GEAR");
+    INDIVIDUAL(2, "INDIV"),
+    GEAR(3, "GEAR"),
+    PRODUCT(24, "PRODUCT");
 
     public static MatrixEnum valueOf(final int id) {
         return Arrays.stream(values())

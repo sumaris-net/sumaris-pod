@@ -33,7 +33,6 @@ import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -73,7 +72,6 @@ public class ProductVO implements IDataVO<Integer>, IWithRecorderPersonEntity<In
     private Integer preservationId;
     private Integer sizeCategoryId;
     private Double cost;
-    private List<ProductVO> saleProducts;
 
     private Map<Integer, String> measurementValues; // = sorting_measurement_p or quantification_measurement_p
 

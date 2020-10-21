@@ -278,15 +278,11 @@ public class TripServiceImpl implements TripService {
         if (CollectionUtils.isNotEmpty(source.getSales())) {
             List<SaleVO> sales = Beans.getList(source.getSales());
             sales.forEach(sale -> fillDefaultProperties(result, sale));
-            // fill sale products but only if there is only one sale
-            if (sales.size() == 1)
-                fillSaleProducts(result, sales.get(0));
             sales = saleService.saveAllByTripId(result.getId(), sales);
             result.setSales(sales);
         } else if (source.getSale() != null) {
             SaleVO sale = source.getSale();
             fillDefaultProperties(result, sale);
-            fillSaleProducts(result, sale);
             List<SaleVO> sales = saleService.saveAllByTripId(result.getId(), ImmutableList.of(sale));
             result.setSale(sales.get(0));
         } else {
@@ -617,20 +613,4 @@ public class TripServiceImpl implements TripService {
         measurement.setEntityName(VesselUseMeasurement.class.getSimpleName());
     }
 
-    protected void fillSaleProducts(TripVO parent, SaleVO sale) {
-
-        // Fill sale products list with parent trip products, from operation group's product and packets
-        if (CollectionUtils.isNotEmpty(parent.getOperationGroups())) {
-            List<ProductVO> saleProducts = new ArrayList<>();
-            parent.getOperationGroups().forEach(operationGroup -> {
-                operationGroup.getProducts().forEach(product -> saleProducts.addAll(product.getSaleProducts()));
-                operationGroup.getPackets().forEach(packet -> saleProducts.addAll(
-                    // Applying packet id to product.batchId
-                    packet.getSaleProducts().stream().peek(saleProduct -> saleProduct.setBatchId(packet.getId())).collect(Collectors.toList())
-                ));
-            });
-            sale.setProducts(saleProducts);
-        }
-
-    }
 }

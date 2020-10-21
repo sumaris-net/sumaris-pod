@@ -60,7 +60,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
     @Test
     public void getAll() {
         ExtractionProductFilterVO filter = new ExtractionProductFilterVO();
-        filter.setStatusIds(new Integer[]{config.getStatusIdTemporary(), config.getStatusIdValid()});
+        filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
         List<ExtractionProductVO> products = repository.findAll(filter);
         Assert.assertNotNull(products);
         Assert.assertEquals(1, products.size());

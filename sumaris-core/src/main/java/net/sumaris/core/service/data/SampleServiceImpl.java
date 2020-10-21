@@ -24,12 +24,12 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleRepository;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SampleMeasurement;
+import net.sumaris.core.model.referential.pmfm.MatrixEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
@@ -49,9 +49,6 @@ import java.util.stream.Collectors;
 public class SampleServiceImpl implements SampleService {
 
 	private static final Logger log = LoggerFactory.getLogger(SampleServiceImpl.class);
-
-	@Autowired
-	protected SumarisConfiguration config;
 
 	@Autowired
 	protected SampleRepository sampleRepository;
@@ -197,7 +194,7 @@ public class SampleServiceImpl implements SampleService {
 		// Fill matrix
 		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
 			ReferentialVO matrix = new ReferentialVO();
-			matrix.setId(config.getMatrixIdIndividual());
+			matrix.setId(MatrixEnum.INDIVIDUAL.getId());
 			sample.setMatrix(matrix);
 		}
 

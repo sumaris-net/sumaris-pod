@@ -34,7 +34,11 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.GearUseMeasurement;
+import net.sumaris.core.model.data.IMeasurementEntity;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
@@ -56,9 +60,6 @@ import java.util.stream.Collectors;
 public class OperationServiceImpl implements OperationService {
 
     private static final Logger log = LoggerFactory.getLogger(OperationServiceImpl.class);
-
-    @Autowired
-    protected SumarisConfiguration config;
 
     @Autowired
     protected OperationRepository operationRepository;
@@ -333,7 +334,7 @@ public class OperationServiceImpl implements OperationService {
         // Fill matrix
         if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
             ReferentialVO matrix = new ReferentialVO();
-            matrix.setId(config.getMatrixIdIndividual());
+            matrix.setId(MatrixEnum.INDIVIDUAL.getId());
             sample.setMatrix(matrix);
         }
 
