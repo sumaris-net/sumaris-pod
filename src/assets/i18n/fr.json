@@ -353,7 +353,7 @@
     "CREATE_SAMPLING_PLAN" : "Création d'une ligne de plan d'échantillonnage",
     "FISHING_AREA" :"Zone (s) de pêche",
     "EOTP":"EOTP",
-    "LABORATORY" :"Laboratoire",
+    "LABORATORY" :"Laboratoire (s)",
     "TARGET_SPECIE" :"Espèce cible",
     "LANDING_PORT" :"Port de débarquement",
     "SEX": "Sexe",
