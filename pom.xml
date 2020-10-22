@@ -1391,6 +1391,8 @@
             <excludes>
               <exclude>**/Abstract*.java</exclude>
             </excludes>
+            <!-- Enable Java 17 features -->
+            <argLine>--enable-preview</argLine>
             <!-- parallel execution NOT SUPPORT yet (cause access error on DB)
             <parallel>classes</parallel>
             <threadCount>10</threadCount>-->

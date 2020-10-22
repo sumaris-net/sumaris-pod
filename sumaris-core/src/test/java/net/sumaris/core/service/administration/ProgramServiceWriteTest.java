@@ -63,7 +63,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(program.getId());
         Assert.assertEquals(11, program.getId().intValue());
         Assert.assertNotNull(program.getProperties());
-        Assert.assertEquals(6, program.getProperties().size());
+        Assert.assertEquals(7, program.getProperties().size());
         Assert.assertNull(program.getStrategies()); // no strategy
 
         // Modify name

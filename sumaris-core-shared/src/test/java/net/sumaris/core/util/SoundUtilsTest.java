@@ -23,14 +23,16 @@
 package net.sumaris.core.util;
 
 import net.sumaris.core.util.sound.SoundUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class SoundUtilsTest {
 
 
     @Test
     public void playError() {
-        SoundUtils.playError(10);
+        SoundUtils.playError(2);
     }
 
 }

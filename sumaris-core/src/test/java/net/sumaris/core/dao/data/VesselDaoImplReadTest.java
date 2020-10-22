@@ -67,7 +67,8 @@ public class VesselDaoImplReadTest extends AbstractDaoTest {
         VesselVO vessel1 = result.get(0);
         Assert.assertEquals(1, vessel1.getId().intValue());
         Assert.assertEquals("CN851751", vessel1.getVesselFeatures().getExteriorMarking());
-        Assert.assertEquals("FRA000851751", vessel1.getVesselRegistrationPeriod().getRegistrationCode());
+        Assert.assertEquals("851751", vessel1.getVesselRegistrationPeriod().getRegistrationCode());
+        Assert.assertEquals("FRA000851751", vessel1.getVesselRegistrationPeriod().getIntRegistrationCode());
         Assert.assertNotNull(vessel1.getVesselFeatures().getBasePortLocation());
         Assert.assertEquals(10, vessel1.getVesselFeatures().getBasePortLocation().getId().intValue());
         Assert.assertNotNull(vessel1.getVesselRegistrationPeriod().getRegistrationLocation());

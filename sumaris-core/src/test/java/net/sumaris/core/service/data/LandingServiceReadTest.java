@@ -27,6 +27,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.junit.Assert;
@@ -71,12 +72,12 @@ public class LandingServiceReadTest extends AbstractServiceTest{
 
         LandingFilterVO filter = LandingFilterVO.builder()
                 .programLabel("ADAP-CONTROLE")
-                .startDate(Dates.parseDate("01/03/2018", "DD/MM/YYYY"))
-                .endDate(Dates.parseDate("01/04/2018", "DD/MM/YYYY"))
+                .startDate(Dates.parseDateStrictly("01/03/2018", "dd/MM/yyyy"))
+                .endDate(Dates.parseDateStrictly("01/04/2018", "dd/MM/yyyy"))
                 .locationId(30) // Auction Douarnenez
                 .build();
 
-        List<LandingVO> vos = service.findAll(filter, Page.builder().size(100).build(), null);
+        List<LandingVO> vos = service.findAll(filter, Page.builder().size(100).build(), LandingFetchOptions.MINIMAL);
         Assert.assertNotNull(vos);
         Assert.assertTrue(vos.size() > 0);
     }
