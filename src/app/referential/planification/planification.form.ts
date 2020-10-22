@@ -9,6 +9,7 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {BehaviorSubject} from "rxjs";
 import { Planification } from 'src/app/trip/services/model/planification.model';
 import { PlanificationValidatorService } from 'src/app/trip/services/validator/planification.validator';
+import { Program } from '../services/model/program.model';
 
 @Component({
   selector: 'form-planification',
@@ -26,6 +27,8 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
   mobile: boolean;
   enableTaxonNameFilter = false;
   canFilterTaxonName = true;
+
+  @Input() program: Program;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,

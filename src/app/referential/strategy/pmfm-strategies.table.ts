@@ -113,6 +113,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   fieldDefinitionsMap: FormFieldDefinitionMap = {};
   fieldDefinitions: FormFieldDefinition[] = [];
 
+  @Input() canDisplayToolbar = true;
+  @Input() canDisplayColumnsHeaders = true;
+  @Input() initializeOneRow = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
@@ -198,7 +201,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     let userColumns = this.getUserColumns();
 
     // No user override: use defaults
-    if (!userColumns) 
+    if (!userColumns)
     {
       userColumns = this.columns;
     }
@@ -322,7 +325,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // PMFM.FRACTION
-    const pmfmFractionAttributes = ['fraction.name', 'fraction.description'];
+    /*const pmfmFractionAttributes = ['fraction.name', 'fraction.description'];
     this.registerFormField('fraction', {
       type: 'entity',
       required: true,
@@ -341,7 +344,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
-    });
+    });*/
+
+    
 
     // PMFM.METHOD
     const pmfmMethodAttributes = ['method.name', 'method.description'];
@@ -349,6 +354,26 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: true,
       autocomplete: this.registerAutocompleteField('method', {
+        items: this.$pmfmsMethods,
+        attributes: pmfmMethodAttributes,
+        columnSizes: pmfmMethodAttributes.map(attr => {
+          switch(attr) {
+            case 'method.name':
+              return 3;
+            case 'method.description':
+              return 4;
+            default: return undefined;
+          }
+        }),
+        showAllOnFocus: false,
+        class: 'mat-autocomplete-panel-full-size'
+      })
+    });
+
+    this.registerFormField('fraction', {
+      type: 'entity',
+      required: true,
+      autocomplete: this.registerAutocompleteField('fraction', {
         items: this.$pmfmsMethods,
         attributes: pmfmMethodAttributes,
         columnSizes: pmfmMethodAttributes.map(attr => {
@@ -427,6 +452,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     //    )*/
     //    .subscribe((pmfmsUnits) => this.onPmfmsUnitsChanged(pmfmsUnits))
     //);
+
+    if (this.initializeOneRow)
+    {
+      this.addRow();
+    }
 
   }
 
@@ -630,7 +660,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       }
 
       protected async loadPmfmsFractions() {
-          const res = await this.pmfmService.loadAllPmfmsFractions(0, 1000, null, null, null,
+        // FIXME CLT: Empty fraction list. We use methods instead
+          //const res = await this.pmfmService.loadAllPmfmsFractions(0, 1000, null, null, null,
+          const res = await this.pmfmService.loadAllPmfmsMethods(0, 1000, null, null, null,
             {
               withTotal: false,
               withDetails: true

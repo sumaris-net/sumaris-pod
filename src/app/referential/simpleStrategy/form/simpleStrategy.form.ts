@@ -7,6 +7,7 @@ import {DefaultStatusList, StatusValue} from "../../../core/services/model/refer
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import { Program } from '../../services/model/program.model';
+import {FormBuilder, FormGroup} from "@angular/forms";
 
 @Component({
   selector: 'app-simpleStrategy-form',
@@ -21,8 +22,11 @@ import { Program } from '../../services/model/program.model';
 })
 export class SimpleStrategyForm extends AppForm<Referential> implements OnInit {
 
+  protected formBuilder: FormBuilder;
   private _statusList = DefaultStatusList;
   statusById: { [id: number]: StatusValue; };
+
+  simpleStrategyForm: FormGroup;
 
   @Input() showError = true;
   @Input() entityName;
