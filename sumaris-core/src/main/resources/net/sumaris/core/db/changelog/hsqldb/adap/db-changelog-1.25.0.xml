@@ -26,7 +26,7 @@
                 <sqlCheck expectedResult="0">SELECT count(*) FROM round_weight_conversion</sqlCheck>
             </and>
         </preConditions>
-        <sqlFile path="../all/insert_round_weight_conversion.sql" relativeToChangelogFile="true" endDelimiter=";" />
+        <sqlFile path="insert_round_weight_conversion.sql" relativeToChangelogFile="true" endDelimiter=";" />
     </changeSet>
 
     <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-402" runOnChange="true">

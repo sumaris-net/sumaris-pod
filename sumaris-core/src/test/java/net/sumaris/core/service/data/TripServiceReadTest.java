@@ -123,12 +123,12 @@ public class TripServiceReadTest extends AbstractServiceTest{
         assertFindAll(TripFilterVO.builder()
                 .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED})
                 .build(),
-            5);
+            4);
 
         assertFindAll(TripFilterVO.builder()
                 .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
                 .build(),
-            1);
+            2);
 
         assertFindAll(TripFilterVO.builder()
                 .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED})

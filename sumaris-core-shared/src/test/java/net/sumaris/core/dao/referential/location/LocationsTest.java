@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential.location;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +30,8 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Set;
@@ -36,8 +39,9 @@ import java.util.Set;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
+@TestPropertySource(locations="classpath:application-test.properties")
+@Slf4j
 public class LocationsTest {
-
 
 	@Autowired
 	ResourceLoader resourceLoader;
@@ -50,9 +54,9 @@ public class LocationsTest {
 
 		// Check label = 25E5
 		label = Locations.getRectangleLabelByLatLong(48f, -5.01f);
-		assertEquals("25E5", label);
+		assertEquals("25E4", label);
 
-		// Check label = 25E
+		// Check label = 25E4
 		label = Locations.getRectangleLabelByLatLong(48.001f, -5.0547f);
 		assertEquals("25E4", label);
 

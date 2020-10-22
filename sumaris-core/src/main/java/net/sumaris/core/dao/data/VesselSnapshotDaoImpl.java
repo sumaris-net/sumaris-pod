@@ -266,6 +266,10 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
 
             // Registration code
             target.setRegistrationCode(period.getRegistrationCode());
+
+            // Int registration code
+            target.setIntRegistrationCode(period.getIntRegistrationCode());
+
             // Registration location
             LocationVO registrationLocation = locationRepository.toVO(period.getRegistrationLocation());
             target.setRegistrationLocation(registrationLocation);

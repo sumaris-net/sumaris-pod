@@ -28,6 +28,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.administration.PersonService;
+import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
@@ -51,6 +52,15 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
 
     @Autowired
     private PersonService personService = null;
+
+    @Autowired
+    private ConfigurationService configurationService;
+
+    @Before
+    public void setup() {
+        // force apply software configuration
+        configurationService.applySoftwareProperties();
+    }
 
     @Test
     public void loadFromFile() {
@@ -104,6 +114,6 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
                 .userProfileId(UserProfileEnum.ADMIN.getId())
                 .build(), Pageables.create(0,1))
             .stream().findFirst().map(PersonVO::getId)
-            .orElseThrow(() -> new SumarisTechnicalException("No admin user found in DB"));
+            .orElse(1); // Admin user
     }
 }
