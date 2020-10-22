@@ -115,6 +115,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   @Input() canDisplayToolbar = true;
   @Input() canDisplayColumnsHeaders = true;
+  @Input() initializeOneRow = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
@@ -429,6 +430,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     //    )*/
     //    .subscribe((pmfmsUnits) => this.onPmfmsUnitsChanged(pmfmsUnits))
     //);
+
+    if (this.initializeOneRow)
+    {
+      this.addRow();
+    }
 
   }
 
