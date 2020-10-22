@@ -638,7 +638,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       }
 
       protected async loadPmfmsFractions() {
-          const res = await this.pmfmService.loadAllPmfmsFractions(0, 1000, null, null, null,
+        // FIXME CLT: Empty fraction list. We use methods instead
+          //const res = await this.pmfmService.loadAllPmfmsFractions(0, 1000, null, null, null,
+          const res = await this.pmfmService.loadAllPmfmsMethods(0, 1000, null, null, null,
             {
               withTotal: false,
               withDetails: true
