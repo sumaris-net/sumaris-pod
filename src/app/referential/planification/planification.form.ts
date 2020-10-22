@@ -24,6 +24,17 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
   protected formBuilder: FormBuilder;
   private _taxonNameSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _laboratoryubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _fishingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+
+  
+  private eotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
+    {id: '1', label: 'P1', name: 'Projet 1', statusId:1,entityName:"Eotp"},
+    {id: '2', label: 'P2', name: 'Projet 2', statusId:1,entityName:"Eotp"},
+    {id: '3', label: 'P3', name: 'Projet 3',statusId:1,entityName:"Eotp"},
+];
+
   mobile: boolean;
   enableTaxonNameFilter = false;
   canFilterTaxonName = true;
@@ -55,9 +66,36 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       items: this._taxonNameSubject,
       mobile: this.mobile
     });
-
     this.loadTaxonNames();
+
+
+      // laboratory combo ------------------------------------------------------------
+      this.registerAutocompleteField('laboratory', {
+        items: this._laboratoryubject,
+        mobile: this.mobile
+      });
+
+      this.loadDepartment();
+
+      // fishingArea combo ------------------------------------------------------------
+      this.registerAutocompleteField('fishingArea', {
+        items: this._fishingAreaSubject,
+        mobile: this.mobile
+      });
+      this.loadFishingAreas();
+    
+
+     // eotp combo ------------------------------------------------------------
+     this.registerAutocompleteField('eotp', {
+      items: this._eotpSubject,
+      mobile: this.mobile
+    });
+    this.loadEotps();
+
+
+      
   }
+
 
 
   /*setValue(data: Test, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
@@ -128,5 +166,58 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
     return res.data;
   }
 
+
+  //department-----------------------------------------------------------------------------------------------
+
+     protected async loadDepartment() {
+      const departmentControl = this.form.get('laboratory');
+      departmentControl.enable();
+        // Refresh departments
+        const departments = await this.loadDepartmentsMethod();
+        this._laboratoryubject.next(departments);
+    }
+  
+    // Load department Service
+    protected async loadDepartmentsMethod(): Promise<ReferentialRef[]> {
+      const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+        {
+          entityName: "Department"   
+        });
+  
+        console.log("data departement :"+res.data);
+      return res.data;
+    }
+
+
+  //department-----------------------------------------------------------------------------------------------
+
+  protected async loadFishingAreas() {
+    const fishingAreaControl = this.form.get('fishingArea');
+    fishingAreaControl.enable();
+      // Refresh fishingAreas
+      const fishingAreas = await this.loadFishingAreasMethod();
+      this._fishingAreaSubject.next(fishingAreas);
+  }
+
+  // Load fishingAreas Service
+  protected async loadFishingAreasMethod(): Promise<ReferentialRef[]> {
+    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+      {
+        entityName: "Location"   
+      });
+
+    return res.data;
+  }    
+
+  //Eotp en mode bouchon------------------------------------------------------------------------------------------------
+  protected  loadEotps() {
+    const eotpAreaControl = this.form.get('eotp');
+    eotpAreaControl.enable();
+      // Refresh fishingAreas
+      const eotps =  this.eotpList; 
+      this._eotpSubject.next(eotps);
+  }
+ //--------------------------------------------------------------------------------------------------------------------
+   
 
 }
