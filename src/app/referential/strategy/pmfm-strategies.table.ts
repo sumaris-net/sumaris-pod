@@ -113,6 +113,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   fieldDefinitionsMap: FormFieldDefinitionMap = {};
   fieldDefinitions: FormFieldDefinition[] = [];
 
+  @Input() canDisplayToolbar = true;
+  @Input() canDisplayColumnsHeaders = true;
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
@@ -198,7 +200,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     let userColumns = this.getUserColumns();
 
     // No user override: use defaults
-    if (!userColumns) 
+    if (!userColumns)
     {
       userColumns = this.columns;
     }
