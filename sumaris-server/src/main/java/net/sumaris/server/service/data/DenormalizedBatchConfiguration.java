@@ -23,10 +23,9 @@
 package net.sumaris.server.service.data;
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.vo.data.BatchVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.JmsListener;
@@ -41,10 +40,8 @@ import javax.annotation.Resource;
         // TODO BLA Mettre à 'true' quand l'élévation sera finit
         //, matchIfMissing = true
 )
+@Slf4j
 public class DenormalizedBatchConfiguration {
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(DenormalizedBatchConfiguration.class);
 
     @Resource
     private DenormalizedBatchService denormalizedBatchService;

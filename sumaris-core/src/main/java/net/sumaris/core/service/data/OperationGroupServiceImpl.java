@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
@@ -49,6 +50,7 @@ import java.util.*;
  * @author peck7 on 28/11/2019.
  */
 @Service("operationGroupService")
+@Slf4j
 public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Autowired

@@ -24,6 +24,7 @@ package net.sumaris.rdf.util;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
@@ -31,8 +32,6 @@ import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -43,13 +42,8 @@ import java.util.stream.Stream;
 
 import static net.sumaris.rdf.util.OwlUtils.*;
 
+@Slf4j
 public class Bean2Owl {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(Bean2Owl.class);
-
 
     private String modelPrefix;
     private boolean debug;

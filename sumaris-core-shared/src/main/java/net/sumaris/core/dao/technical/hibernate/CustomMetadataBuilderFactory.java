@@ -22,6 +22,7 @@
 
 package net.sumaris.core.dao.technical.hibernate;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.hibernate.boot.MetadataSources;
@@ -33,8 +34,6 @@ import org.hibernate.boot.spi.MetadataBuilderImplementor;
 import org.hibernate.cfg.BinderHelper;
 import org.hibernate.id.PersistentIdentifierGenerator;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.GenerationType;
 import javax.persistence.SequenceGenerator;
@@ -46,9 +45,8 @@ import javax.persistence.TableGenerator;
  *
  * @author peck7 on 18/11/2019.
  */
+@Slf4j
 public class CustomMetadataBuilderFactory implements MetadataBuilderFactory {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CustomMetadataBuilderFactory.class);
 
     // default no arg constructor needed for Java Service
     public CustomMetadataBuilderFactory() {
@@ -62,7 +60,7 @@ public class CustomMetadataBuilderFactory implements MetadataBuilderFactory {
         // Read sumaris.persistence.sequence.increment option
         int allocationSize = config != null ? config.getSequenceIncrementValue() : 0;
         if (allocationSize <= 0) {
-            LOG.debug(String.format("invalid allocationSize : %s, fallback to default MetadataBuilderImplementor", allocationSize));
+            log.debug(String.format("invalid allocationSize : %s, fallback to default MetadataBuilderImplementor", allocationSize));
             return null;
         }
 

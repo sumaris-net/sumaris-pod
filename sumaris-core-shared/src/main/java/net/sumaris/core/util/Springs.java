@@ -28,9 +28,8 @@ package net.sumaris.core.util;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.*;
 import org.springframework.util.Assert;
@@ -47,11 +46,9 @@ import java.util.List;
 /**
  * <p>Springs class.</p>
  */
+@Slf4j
 public class Springs {
-	/** Logger. */
-	private static final Logger log = LoggerFactory.getLogger(Springs.class);
 
-	
 	/**
 	 * <p>Constructor for Springs.</p>
 	 */

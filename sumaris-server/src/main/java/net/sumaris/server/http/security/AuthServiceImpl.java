@@ -22,6 +22,7 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.administration.user.PersonSpecifications;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -37,8 +38,6 @@ import net.sumaris.server.vo.security.AuthDataVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -55,13 +54,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("authService")
+@Slf4j
 public class AuthServiceImpl implements AuthService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log =
-        LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final ValidationExpiredCache challenges;
     private final ValidationExpiredCacheMap<AuthUser> checkedTokens;

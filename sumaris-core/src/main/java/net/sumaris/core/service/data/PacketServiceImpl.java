@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -41,8 +42,6 @@ import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -53,9 +52,9 @@ import java.util.stream.Collectors;
  * @author peck7 on 09/04/2020.
  */
 @Service("packetService")
+@Slf4j
 public class PacketServiceImpl implements PacketService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PacketServiceImpl.class);
     private Integer calculatedWeightPmfmId;
     private Integer measuredWeightPmfmId;
     private Integer estimatedRatioPmfmId;

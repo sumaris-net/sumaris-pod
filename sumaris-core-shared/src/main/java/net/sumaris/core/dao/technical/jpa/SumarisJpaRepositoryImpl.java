@@ -24,6 +24,7 @@ package net.sumaris.core.dao.technical.jpa;
 
 import com.google.common.base.Preconditions;
 import com.querydsl.jpa.impl.JPAQuery;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -39,8 +40,6 @@ import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.domain.Sort;
@@ -59,11 +58,10 @@ import java.util.*;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @NoRepositoryBean
+@Slf4j
 public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
     extends SimpleJpaRepository<E, ID>
     implements SumarisJpaRepository<E, ID, V> {
-
-    private static final Logger log = LoggerFactory.getLogger(SumarisJpaRepositoryImpl.class);
 
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;

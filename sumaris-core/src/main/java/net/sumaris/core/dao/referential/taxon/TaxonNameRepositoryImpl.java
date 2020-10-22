@@ -23,7 +23,7 @@ package net.sumaris.core.dao.referential.taxon;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.cache.CacheNames;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -33,9 +33,6 @@ import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -48,12 +45,10 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 31/07/2020.
  */
+@Slf4j
 public class TaxonNameRepositoryImpl
     extends ReferentialRepositoryImpl<TaxonName, TaxonNameVO, TaxonNameFilterVO, ReferentialFetchOptions>
     implements TaxonNameSpecifications {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
     public TaxonNameRepositoryImpl(EntityManager entityManager) {
         super(TaxonName.class, TaxonNameVO.class, entityManager);

@@ -25,13 +25,12 @@ package net.sumaris.server.http.rest;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.MediaTypes;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -53,10 +52,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 @Controller
+@Slf4j
 public class DownloadController {
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(DownloadController.class);
 
     @Autowired
     private ServletContext servletContext;

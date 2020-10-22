@@ -25,19 +25,17 @@ package net.sumaris.core.action;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import org.nuiton.version.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * <p>Update database schema class.</p>
  */
+@Slf4j
 public class DatabaseUpdateSchemaAction {
-	/* Logger */
-	private static final Logger log = LoggerFactory.getLogger(DatabaseUpdateSchemaAction.class);
 
 	/**
 	 * <p>run.</p>

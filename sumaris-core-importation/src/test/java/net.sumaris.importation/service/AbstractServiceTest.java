@@ -24,12 +24,11 @@ package net.sumaris.importation.service;
 
 
 import com.google.common.io.CharStreams;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,11 +53,8 @@ import java.util.Properties;
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
 @TestPropertySource(locations="classpath:sumaris-importation-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Slf4j
 public abstract class AbstractServiceTest {
-
-	/** Logger. */
-	private static final Logger log =
-			LoggerFactory.getLogger(AbstractServiceTest.class);
 
 	@Autowired
 	protected SumarisConfiguration config;

@@ -24,6 +24,7 @@ package net.sumaris.rdf.dao;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -35,8 +36,6 @@ import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.model.ModelVocabulary;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -52,9 +51,8 @@ import java.util.stream.Stream;
 
 @Repository("entitiesDao")
 @Lazy
+@Slf4j
 public class EntitiesDaoImpl extends HibernateDaoSupport implements EntitiesDao {
-
-    private static final Logger log = LoggerFactory.getLogger(EntitiesDaoImpl.class);
 
     public static final String ORDER_BY_CLAUSE = " ORDER BY t.%s %s";
 

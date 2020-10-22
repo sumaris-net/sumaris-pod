@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
@@ -32,13 +33,13 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.model.data.IWithVesselEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -48,8 +49,6 @@ import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.IDataFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -69,15 +68,10 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
+@Slf4j
 public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends DataFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
     implements DataRepository<E, V, F, O>, DataSpecifications<E> {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log =
-        LoggerFactory.getLogger(DataRepositoryImpl.class);
 
     private String[] copyExcludeProperties = new String[]{IUpdateDateEntityBean.Fields.UPDATE_DATE};
 

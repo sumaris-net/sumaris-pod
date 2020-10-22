@@ -24,28 +24,30 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
-import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.utils.ExtractionBeans;
+import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.*;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -60,9 +62,8 @@ import java.util.stream.Collectors;
  */
 @Service("aggregationService")
 @Lazy
+@Slf4j
 public class AggregationServiceImpl implements AggregationService {
-
-    private static final Logger log = LoggerFactory.getLogger(AggregationServiceImpl.class);
 
     @Autowired
     private ExtractionService extractionService;

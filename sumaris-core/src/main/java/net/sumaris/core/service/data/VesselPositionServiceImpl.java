@@ -24,14 +24,10 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.data.VesselPositionDao;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.VesselPositionDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.VesselPositionVO;
-import net.sumaris.core.vo.data.VesselPositionVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,9 +36,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("vesselPositionService")
+@Slf4j
 public class VesselPositionServiceImpl implements VesselPositionService {
-
-	private static final Logger log = LoggerFactory.getLogger(VesselPositionServiceImpl.class);
 
 	@Autowired
 	protected VesselPositionDao vesselPositionDao;

@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data.operation;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
@@ -36,8 +37,6 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
@@ -50,11 +49,10 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 01/09/2020.
  */
+@Slf4j
 public class OperationRepositoryImpl
     extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, DataFetchOptions>
     implements OperationRepository {
-
-    private static final Logger log = LoggerFactory.getLogger(OperationRepositoryImpl.class);
 
     @Autowired
     private PhysicalGearRepository physicalGearRepository;

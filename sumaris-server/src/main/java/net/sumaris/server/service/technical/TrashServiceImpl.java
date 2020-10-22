@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -39,8 +40,6 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
@@ -61,9 +60,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service("trashService")
+@Slf4j
 public class TrashServiceImpl implements TrashService {
 
-    private static final Logger log = LoggerFactory.getLogger(TrashServiceImpl.class);
     private static final String CLASS_FILE_NAME = "class.info";
     private static final String FILE_PREFIX_PARENT = "%s#%s_";
     private static final String JSON_FILE_EXTENSION = "json";

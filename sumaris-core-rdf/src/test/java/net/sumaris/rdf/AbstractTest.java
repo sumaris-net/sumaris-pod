@@ -24,8 +24,6 @@ package net.sumaris.rdf;
 
 import net.sumaris.rdf.config.RdfConfiguration;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,10 +38,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @TestPropertySource(locations="classpath:sumaris-core-rdf-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AbstractTest {
-
-	/** Logger. */
-	private static final Logger log =
-			LoggerFactory.getLogger(AbstractTest.class);
 
 	@Autowired
 	protected RdfConfiguration config;

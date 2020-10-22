@@ -24,13 +24,12 @@ package net.sumaris.server.config;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.i18n.I18n;
 import org.nuiton.i18n.init.DefaultI18nInitializer;
@@ -47,6 +46,7 @@ import java.util.TimeZone;
  * <p>SumarisServerConfiguration class.</p>
  *
  */
+@Slf4j
 public class SumarisServerConfiguration extends SumarisConfiguration {
 
     public static final String CONFIG_FILE_NAME = "application.properties";
@@ -54,10 +54,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     private static final String CONFIG_FILE_ENV_PROPERTY = "spring.config.location";
 
     private static final String CONFIG_FILE_JNDI_NAME = "java:comp/env/" + CONFIG_FILE_NAME;
-
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(SumarisServerConfiguration.class);
 
     private static SumarisServerConfiguration instance;
 

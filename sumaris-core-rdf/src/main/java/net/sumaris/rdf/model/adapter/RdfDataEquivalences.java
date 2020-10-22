@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf.model.adapter;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
@@ -30,9 +31,8 @@ import net.sumaris.rdf.service.data.RdfDataExportService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.jena.vocabulary.DC;
+import org.apache.jena.vocabulary.DCTerms;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -47,9 +47,8 @@ import java.util.Objects;
         prefix = "rdf.equivalences",
         name = {"enabled"},
         matchIfMissing = true)
+@Slf4j
 public class RdfDataEquivalences implements IModelVisitor<Model, RdfDataExportOptions> {
-
-    private static final Logger log = LoggerFactory.getLogger(RdfDataEquivalences.class);
 
     private boolean debug;
 

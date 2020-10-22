@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf.util;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
@@ -29,22 +30,22 @@ import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntResource;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Id;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
-import static net.sumaris.rdf.util.OwlUtils.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
+import static net.sumaris.rdf.util.OwlUtils.isJavaType;
+import static net.sumaris.rdf.util.OwlUtils.setterOfField;
+
+@Slf4j
 public abstract class Owl2Bean {
-    /**
-     * Logger.
-     */
-    private static Logger log = LoggerFactory.getLogger(Owl2Bean.class);
 
     private EntityManager entityManager;
 

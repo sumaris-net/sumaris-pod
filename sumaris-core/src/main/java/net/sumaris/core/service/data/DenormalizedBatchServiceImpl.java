@@ -24,32 +24,18 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import net.sumaris.core.dao.data.BatchDao;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DenormalizedBatchRepository;
-import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.model.data.BatchQuantificationMeasurement;
-import net.sumaris.core.model.data.BatchSortingMeasurement;
-import net.sumaris.core.model.data.IMeasurementEntity;
-import net.sumaris.core.service.referential.pmfm.PmfmService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.DenormalizedBatchVO;
-import net.sumaris.core.vo.data.MeasurementVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service("denormalizedBatchService")
+@Slf4j
 public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
-
-	private static final Logger log = LoggerFactory.getLogger(DenormalizedBatchServiceImpl.class);
 
 	@Autowired
 	protected DenormalizedBatchRepository denormalizedBatchRepository;

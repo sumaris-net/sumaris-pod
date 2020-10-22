@@ -25,6 +25,7 @@ package net.sumaris.core.service.administration;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -40,8 +41,6 @@ import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
@@ -51,9 +50,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("personService")
+@Slf4j
 public class PersonServiceImpl implements PersonService {
-
-	private static final Logger log = LoggerFactory.getLogger(PersonServiceImpl.class);
 
 	@Autowired
 	protected PersonRepository personRepository;

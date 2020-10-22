@@ -26,6 +26,7 @@ package net.sumaris.core.dao.technical;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.BadUpdateDateException;
@@ -37,8 +38,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.hibernate.Session;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
@@ -51,7 +50,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
-import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
@@ -84,6 +82,7 @@ import static org.nuiton.i18n.I18n.t;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  * @since 3.5
  */
+@Slf4j
 public class Daos {
 
     private final static String JDBC_URL_PREFIX = "jdbc:";
@@ -96,11 +95,6 @@ public class Daos {
      * Constant <code>DB_DIRECTORY="db"</code>
      */
     public static final String DB_DIRECTORY = "db";
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(Daos.class);
 
     private static final boolean debug = log.isDebugEnabled();
 
@@ -1500,7 +1494,7 @@ public class Daos {
     /**
      * <p>getDatabaseCurrentTimestamp.</p>
      *
-     * @param connection a {@link Connection} object.
+     * @param dataSource a {@link DataSource} object.
      * @param dialect    a {@link Dialect} object.
      * @return a {@link Timestamp} object.
      * @throws SQLException if any.

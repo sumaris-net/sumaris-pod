@@ -22,6 +22,7 @@ package net.sumaris.core.service.referential.taxon;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -33,8 +34,6 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -43,9 +42,8 @@ import java.util.Date;
 import java.util.List;
 
 @Service("taxonGroupService")
+@Slf4j
 public class TaxonGroupServiceImpl implements TaxonGroupService {
-
-    private static final Logger log = LoggerFactory.getLogger(TaxonGroupServiceImpl.class);
 
     @Autowired
     protected TaxonGroupRepository taxonGroupRepository;

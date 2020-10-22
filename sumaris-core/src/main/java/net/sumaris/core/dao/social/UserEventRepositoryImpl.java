@@ -23,11 +23,10 @@ package net.sumaris.core.dao.social;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.vo.social.UserEventVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,13 +39,10 @@ import java.util.Date;
 /**
  * @author <benoit.lavenier@e-is.pro> on 08/07/2020.
  */
+@Slf4j
 public class UserEventRepositoryImpl
     extends SumarisJpaRepositoryImpl<UserEvent, Integer, UserEventVO>
     implements UserEventSpecifications {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(UserEventRepositoryImpl.class);
-
 
     @Autowired
     public UserEventRepositoryImpl(EntityManager entityManager) {

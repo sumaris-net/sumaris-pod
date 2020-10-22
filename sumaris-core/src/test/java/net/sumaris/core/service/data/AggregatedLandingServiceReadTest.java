@@ -22,6 +22,7 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Dates;
@@ -31,8 +32,6 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
@@ -43,9 +42,8 @@ import java.util.List;
  */
 @TestPropertySource(locations = "classpath:sumaris-core-test-oracle.properties")
 @Ignore("Use only SFA Oracle database")
+@Slf4j
 public class AggregatedLandingServiceReadTest extends AbstractServiceTest {
-
-    private static final Logger log = LoggerFactory.getLogger(AggregatedLandingServiceReadTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle");

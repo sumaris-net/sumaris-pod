@@ -27,6 +27,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
@@ -48,8 +49,6 @@ import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
@@ -67,13 +66,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository("batchDao")
+@Slf4j
 public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
 
-    /**
-     * Logger.
-     */
-    protected static final Logger logger = LoggerFactory.getLogger(BatchDaoImpl.class);
-    private static final boolean trace = logger.isTraceEnabled();
+    private static final boolean trace = log.isTraceEnabled();
 
     private boolean enableSaveUsingHash;
 
@@ -157,8 +153,8 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
     @Override
     public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
 
-        long debugTime = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} batches... {hash_optimization:%s}", operationId, enableSaveUsingHash));
+        long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} batches... {hash_optimization:%s}", operationId, enableSaveUsingHash));
 
         // Load parent entity
         Operation parent = getOne(Operation.class, operationId);
@@ -175,7 +171,7 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             entityManager.clear();
         }
 
-        if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} batches [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
+        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} batches [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
 
         return sources;
     }
@@ -232,7 +228,7 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
 
     @Override
     public void delete(int id) {
-        if (trace) logger.trace(String.format("Deleting batch {id: %s}...", id));
+        if (trace) log.trace(String.format("Deleting batch {id: %s}...", id));
         delete(Batch.class, id);
     }
 
@@ -251,7 +247,7 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
 
         // Assume there is only 1 catch batch
         if (sources.stream().filter(batch -> batch.getParentId() == null).count() > 1) {
-            logger.warn("Multiple catch batches in this source list, will return the first one.");
+            log.warn("Multiple catch batches in this source list, will return the first one.");
         }
 
         BatchVO catchBatch = sources.stream().filter(batch -> batch.getParentId() == null).findFirst().orElse(null);
@@ -314,7 +310,7 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
                 }
             }
             if (skip && trace) {
-                logger.trace(String.format("Skip batch {id: %s, label: '%s'}", source.getId(), source.getLabel()));
+                log.trace(String.format("Skip batch {id: %s, label: '%s'}", source.getId(), source.getLabel()));
             }
             return !skip;
         })
@@ -393,10 +389,10 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             // Add new batch
             entityManager.persist(entity);
             source.setId(entity.getId());
-            if (trace) logger.trace(String.format("Adding batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
+            if (trace) log.trace(String.format("Adding batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
         } else {
             // Update existing batch
-            if (trace) logger.trace(String.format("Updating batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
+            if (trace) log.trace(String.format("Updating batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
             entityManager.merge(entity);
         }
 

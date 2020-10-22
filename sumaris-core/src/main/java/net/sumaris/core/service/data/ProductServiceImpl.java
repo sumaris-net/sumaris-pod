@@ -25,7 +25,6 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.product.ProductRepository;
-import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.filter.ProductFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +41,10 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final PmfmService pmfmService;
 
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, PmfmService pmfmService) {
+    public ProductServiceImpl(ProductRepository productRepository) {
         this.productRepository = productRepository;
-        this.pmfmService = pmfmService;
     }
 
     @Override

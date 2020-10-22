@@ -27,8 +27,7 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,9 +40,8 @@ import java.util.Map;
 
 
 @RestController
+@Slf4j
 public class GraphQLRestController {
-
-    private static final Logger log = LoggerFactory.getLogger(GraphQLRestController.class);
 
     private final GraphQL graphQL;
 

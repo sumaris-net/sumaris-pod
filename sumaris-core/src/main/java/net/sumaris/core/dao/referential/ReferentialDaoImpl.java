@@ -24,38 +24,27 @@ package net.sumaris.core.dao.referential;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.grouping.Grouping;
-import net.sumaris.core.model.referential.grouping.GroupingClassification;
 import net.sumaris.core.model.referential.grouping.GroupingLevel;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.pmfm.*;
+import net.sumaris.core.model.referential.pmfm.Fraction;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
-import net.sumaris.core.model.referential.transcribing.TranscribingItem;
-import net.sumaris.core.model.technical.configuration.Software;
-import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
-import net.sumaris.core.model.technical.versionning.SystemVersion;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
@@ -64,8 +53,6 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -87,13 +74,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository("referentialDao")
+@Slf4j
 public class ReferentialDaoImpl
     extends HibernateDaoSupport
     implements ReferentialDao {
-
-    private static final Logger log = LoggerFactory.getLogger(ReferentialDaoImpl.class);
-
-
 
     private final Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
 

@@ -23,13 +23,12 @@
 package net.sumaris.rdf.config;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.rdf.model.ModelURIs;
 import net.sumaris.rdf.util.RdfFormat;
 import org.nuiton.config.ApplicationConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -53,12 +52,8 @@ import java.util.Optional;
     prefix = "rdf",
     name = {"enabled"}
 )
+@Slf4j
 public class RdfConfiguration  {
-    /**
-     * Logger.
-     */
-    protected static final Logger log =
-            LoggerFactory.getLogger(RdfConfiguration.class);
 
     private static RdfConfiguration INSTANCE;
 

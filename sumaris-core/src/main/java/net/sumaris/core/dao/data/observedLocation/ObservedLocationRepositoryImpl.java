@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data.observedLocation;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
@@ -32,8 +33,6 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -44,11 +43,10 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 31/08/2020.
  */
+@Slf4j
 public class ObservedLocationRepositoryImpl
     extends RootDataRepositoryImpl<ObservedLocation, ObservedLocationVO, ObservedLocationFilterVO, DataFetchOptions>
     implements ObservedLocationSpecifications {
-
-    private static final Logger log = LoggerFactory.getLogger(ObservedLocationRepositoryImpl.class);
 
     @Autowired
     private LocationRepository locationRepository;

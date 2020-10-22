@@ -25,16 +25,17 @@ package net.sumaris.rdf.service.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.rdf.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.EntitiesDao;
-import net.sumaris.rdf.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
-import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelEntities;
+import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.service.schema.RdfSchemaOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
@@ -49,8 +50,6 @@ import org.reflections.Reflections;
 import org.reflections.scanners.Scanner;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -66,9 +65,8 @@ import java.util.stream.Stream;
 
 @Service("rdfDataExportService")
 @ConditionalOnBean({RdfConfiguration.class})
+@Slf4j
 public class RdfDataExportServiceImpl implements RdfDataExportService {
-
-    private static final Logger log = LoggerFactory.getLogger(RdfDataExportServiceImpl.class);
 
     @Autowired
     protected RdfConfiguration config;

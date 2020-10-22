@@ -26,6 +26,7 @@ package net.sumaris.core.extraction.dao.technical.table;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -38,19 +39,13 @@ import net.sumaris.core.util.ExtractionBeans;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,9 +56,8 @@ import java.util.stream.Collectors;
  */
 @Repository("extractionTableDao")
 @Lazy
+@Slf4j
 public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements ExtractionTableDao {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionTableDaoImpl.class);
 
     private String dropTableQuery;
 

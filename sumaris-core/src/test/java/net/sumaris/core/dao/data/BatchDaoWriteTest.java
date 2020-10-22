@@ -23,29 +23,24 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
-import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.assertj.core.util.Lists;
 import org.junit.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+@Slf4j
 public class BatchDaoWriteTest extends AbstractDaoTest {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(BatchDaoWriteTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

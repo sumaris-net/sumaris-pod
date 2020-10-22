@@ -25,6 +25,7 @@ package net.sumaris.rdf;
  */
 
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.util.Files;
@@ -32,18 +33,13 @@ import net.sumaris.rdf.action.RdfDatasetAction;
 import net.sumaris.rdf.config.RdfConfigurationOption;
 import net.sumaris.rdf.service.store.DatasetService;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.event.ContextClosedEvent;
 
 import java.io.File;
 import java.sql.SQLException;
 import java.util.Arrays;
 
+@Slf4j
 public class InitTests extends net.sumaris.core.test.InitTests {
-
-    private static final Logger log = LoggerFactory.getLogger(InitTests.class);
 
     private String[] args;
 

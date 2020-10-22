@@ -23,23 +23,20 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.IDataFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 
 /**
  * @author peck7 on 31/08/2020.
  */
+@Slf4j
 public class ImageAttachmentRepositoryImpl
     extends DataRepositoryImpl<ImageAttachment, ImageAttachmentVO, IDataFilter, DataFetchOptions> {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(ImageAttachmentRepositoryImpl.class);
 
     protected ImageAttachmentRepositoryImpl(EntityManager entityManager) {
         super(ImageAttachment.class, ImageAttachmentVO.class, entityManager);

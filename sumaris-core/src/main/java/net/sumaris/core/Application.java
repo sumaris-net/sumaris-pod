@@ -23,6 +23,7 @@ package net.sumaris.core;
  */
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
@@ -32,8 +33,6 @@ import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
 import org.nuiton.i18n.init.DefaultI18nInitializer;
 import org.nuiton.i18n.init.UserI18nInitializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -81,10 +80,8 @@ import java.util.Locale;
 })
 @EnableAsync
 @Component("core-application")
+@Slf4j
 public class Application {
-
-	/* Logger */
-	private static final Logger log = LoggerFactory.getLogger(Application.class);
 
 	private static String CONFIG_FILE;
 

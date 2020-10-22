@@ -23,11 +23,10 @@
 package net.sumaris.server;
 
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -78,12 +77,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableCaching
 @EnableJms
 @EnableAsync
+@Slf4j
 public class Application extends SpringBootServletInitializer {
-    /**
-     * Logger.
-     */
-    protected static final Logger log =
-            LoggerFactory.getLogger(Application.class);
 
     @Bean
     public static SumarisServerConfiguration sumarisConfiguration() {

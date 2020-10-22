@@ -22,25 +22,17 @@
 
 package net.sumaris.core.service.technical;
 
-import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Map;
-
+@Slf4j
 public class ConfigurationServiceTest extends AbstractServiceTest {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(ConfigurationServiceTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

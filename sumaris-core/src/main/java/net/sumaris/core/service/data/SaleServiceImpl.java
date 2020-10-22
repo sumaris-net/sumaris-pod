@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sale.SaleRepository;
 import net.sumaris.core.model.data.IMeasurementEntity;
@@ -33,8 +34,6 @@ import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.filter.SaleFilterVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,9 +42,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("saleService")
+@Slf4j
 public class SaleServiceImpl implements SaleService {
-
-	private static final Logger log = LoggerFactory.getLogger(SaleServiceImpl.class);
 
 	@Autowired
 	protected SaleRepository saleRepository;

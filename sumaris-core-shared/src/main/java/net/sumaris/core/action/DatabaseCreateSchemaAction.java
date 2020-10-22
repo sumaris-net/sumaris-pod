@@ -25,24 +25,21 @@ package net.sumaris.core.action;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.schema.DatabaseSchemaDaoImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 /**
  * <p>DatabaseNewDbAction class.</p>
  */
+@Slf4j
 public class DatabaseCreateSchemaAction {
-	/* Logger */
-	private static final Logger log = LoggerFactory.getLogger(DatabaseCreateSchemaAction.class);
 
 	/**
 	 * <p>run.</p>

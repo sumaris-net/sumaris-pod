@@ -28,12 +28,13 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.rdf.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
 import net.sumaris.rdf.dao.EntitiesDao;
-import net.sumaris.rdf.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelType;
 import net.sumaris.rdf.model.ModelVocabulary;
@@ -52,8 +53,6 @@ import org.reflections.Reflections;
 import org.reflections.scanners.Scanner;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -71,10 +70,8 @@ import java.util.stream.Stream;
 
 @Service("rdfSchemaService")
 @ConditionalOnBean({RdfConfiguration.class})
+@Slf4j
 public class RdfSchemaServiceImpl implements RdfSchemaService {
-
-
-    private static final Logger log = LoggerFactory.getLogger(RdfSchemaServiceImpl.class);
 
     @Autowired
     protected RdfConfiguration config;

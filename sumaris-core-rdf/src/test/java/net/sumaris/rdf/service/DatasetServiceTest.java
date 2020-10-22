@@ -23,25 +23,23 @@
 package net.sumaris.rdf.service;
 
 import graphql.Assert;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.service.store.DatasetService;
-import org.apache.jena.query.*;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.system.Txn;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class DatasetServiceTest extends AbstractTest {
-
-    private static final Logger log = LoggerFactory.getLogger(DatasetServiceTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();

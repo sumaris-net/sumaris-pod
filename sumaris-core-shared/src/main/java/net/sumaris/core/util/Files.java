@@ -24,10 +24,9 @@ package net.sumaris.core.util;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -46,9 +45,8 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class Files {
-
-	private static final Logger log = LoggerFactory.getLogger(Files.class);
 
 	public static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 	public static final String TEMPORARY_FILE_DEFAULT_EXTENSION =".tmp";

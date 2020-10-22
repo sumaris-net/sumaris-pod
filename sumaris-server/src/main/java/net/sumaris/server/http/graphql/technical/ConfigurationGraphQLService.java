@@ -27,6 +27,7 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLEnvironment;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.ehcache.CacheException;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Ehcache;
@@ -46,8 +47,6 @@ import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,11 +61,10 @@ import java.util.stream.Stream;
 
 @Service
 @Transactional
+@Slf4j
 public class ConfigurationGraphQLService {
 
     public static final String JSON_START_SUFFIX = "{";
-
-    private static final Log log = LogFactory.getLog(ConfigurationGraphQLService.class);
 
     @Autowired
     private SoftwareService service;

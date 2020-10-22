@@ -22,22 +22,20 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service("physicalGearService")
+@Slf4j
 public class PhysicalGearServiceImpl implements PhysicalGearService {
-
-	private static final Logger log = LoggerFactory.getLogger(PhysicalGearServiceImpl.class);
 
 	@Autowired
 	protected PhysicalGearRepository physicalGearRepository;

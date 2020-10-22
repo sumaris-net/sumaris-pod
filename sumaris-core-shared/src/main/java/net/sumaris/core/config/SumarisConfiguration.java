@@ -27,6 +27,7 @@ package net.sumaris.core.config;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
@@ -35,8 +36,6 @@ import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ArgumentsParserException;
 import org.nuiton.version.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Configuration;
@@ -56,9 +55,8 @@ import static org.nuiton.i18n.I18n.t;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Configuration
+@Slf4j
 public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
-    /** Logger. */
-    private static final Logger log = LoggerFactory.getLogger(SumarisConfiguration.class);
 
     private static final String DEFAULT_SHARED_CONFIG_FILE = "sumaris-core-shared.config";
 

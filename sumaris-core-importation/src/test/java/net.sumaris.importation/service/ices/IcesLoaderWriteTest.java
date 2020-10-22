@@ -22,20 +22,18 @@ package net.sumaris.importation.service.ices;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Files;
 import net.sumaris.importation.service.AbstractServiceTest;
-import org.junit.Ignore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 
+@Slf4j
 public class IcesLoaderWriteTest extends AbstractServiceTest {
-
-    protected static final Logger log = LoggerFactory.getLogger(IcesLoaderWriteTest.class);
 
     @Autowired
     private IcesDataLoaderServiceImpl service = null;

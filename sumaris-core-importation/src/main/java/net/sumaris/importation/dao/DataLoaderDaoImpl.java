@@ -25,6 +25,7 @@ package net.sumaris.importation.dao;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.schema.*;
@@ -65,9 +66,10 @@ import java.util.Set;
 import static net.sumaris.importation.service.vo.DataLoadError.ErrorType;
 
 @Repository("dataLoaderDao")
+@Slf4j
 public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoaderDao {
 
-	private static final Logger log = LoggerFactory.getLogger(DataLoaderDaoImpl.class);
+	// Additional log
 	private static final Logger hibernateLog = LoggerFactory.getLogger("org.hibernate.SQL");
 
 	public final static int MAX_LOG_ERRORS = 500;

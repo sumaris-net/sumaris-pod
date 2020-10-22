@@ -22,12 +22,11 @@ package net.sumaris.core.extraction.dao.technical;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.service.referential.ReferentialService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -41,9 +40,8 @@ import java.util.stream.Stream;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
+@Slf4j
 public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionBaseDaoImpl.class);
 
     protected static final String XML_QUERY_PATH = "xmlQuery";
 

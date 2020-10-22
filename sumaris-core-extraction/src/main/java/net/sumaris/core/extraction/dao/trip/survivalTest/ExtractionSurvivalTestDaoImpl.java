@@ -23,15 +23,14 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
+import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.specification.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -40,10 +39,9 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionSurvivalTestDao")
 @Lazy
+@Slf4j
 public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestContextVO> extends ExtractionRdbTripDaoImpl<C>
         implements ExtractionSurvivalTestDao, SurvivalTestSpecification {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionSurvivalTestDaoImpl.class);
 
     private static final String XML_QUERY_ST_PATH = "survivalTest/v%s/%s";
 

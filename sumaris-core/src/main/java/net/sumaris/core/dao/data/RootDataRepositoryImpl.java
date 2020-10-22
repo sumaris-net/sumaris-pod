@@ -23,19 +23,18 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -45,6 +44,7 @@ import java.sql.Timestamp;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
+@Slf4j
 public abstract class RootDataRepositoryImpl<
     E extends IRootDataEntity<Integer>,
     V extends IRootDataVO<Integer>,
@@ -53,12 +53,6 @@ public abstract class RootDataRepositoryImpl<
     >
     extends DataRepositoryImpl<E, V, F, O>
     implements RootDataRepository<E, V, F, O> {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log =
-        LoggerFactory.getLogger(RootDataRepositoryImpl.class);
 
     @Autowired
     private PersonRepository personRepository;

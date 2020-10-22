@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import it.ozimov.springboot.mail.service.EmailService;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.administration.user.UserSettingsRepository;
 import net.sumaris.core.dao.administration.user.UserTokenRepository;
@@ -52,8 +53,6 @@ import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import net.sumaris.server.service.crypto.ServerCryptoService;
 import org.apache.commons.collections.CollectionUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -74,11 +73,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("accountService")
+@Slf4j
 public class AccountServiceImpl implements AccountService {
-
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 

@@ -22,8 +22,7 @@
 
 package net.sumaris.rdf.model.adapter;
 
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationArea;
 import net.sumaris.core.model.referential.location.LocationLine;
@@ -32,8 +31,6 @@ import net.sumaris.rdf.config.RdfConfiguration;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.eclipse.rdf4j.model.vocabulary.GEO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -44,10 +41,8 @@ import org.springframework.stereotype.Component;
         prefix = "rdf.equivalences",
         name = {"geo.enabled"},
         matchIfMissing = true)
+@Slf4j
 public class GeoSchemaEquivalences extends AbstractSchemaEquivalences {
-
-    private static final Logger log = LoggerFactory.getLogger(GeoSchemaEquivalences.class);
-
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

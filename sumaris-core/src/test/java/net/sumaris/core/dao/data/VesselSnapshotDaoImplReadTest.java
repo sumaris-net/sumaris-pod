@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
@@ -30,8 +31,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -39,11 +38,8 @@ import java.util.List;
 /**
  * @author peck7 on 06/11/2019.
  */
+@Slf4j
 public class VesselSnapshotDaoImplReadTest extends AbstractDaoTest {
-
-    /** Logger. */
-    private static final Logger log =
-        LoggerFactory.getLogger(VesselSnapshotDaoImplReadTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();

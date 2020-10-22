@@ -25,12 +25,11 @@ package net.sumaris.core.test;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sf.ehcache.CacheManager;
 import org.hibernate.Session;
 import org.junit.After;
 import org.junit.Before;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -41,10 +40,8 @@ import javax.persistence.EntityManager;
  * <p>Abstract AbstractDaoTest class.</p>
  */
 
+@Slf4j
 public abstract class AbstractDaoTest {
-
-	/** Logger. */
-	private static final Logger log = LoggerFactory.getLogger(AbstractDaoTest.class);
 
 	private TransactionStatus status;
 	

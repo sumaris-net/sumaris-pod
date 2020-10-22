@@ -25,6 +25,7 @@ package net.sumaris.rdf.service;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelURIs;
@@ -36,8 +37,6 @@ import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
@@ -50,9 +49,8 @@ import java.util.Map;
 
 @Component("rdfModelService")
 @ConditionalOnBean({RdfConfiguration.class})
+@Slf4j
 public class RdfModelServiceImpl implements RdfModelService {
-
-    private static final Logger log = LoggerFactory.getLogger(RdfModelServiceImpl.class);
 
     @Resource
     private RdfSchemaService schemaExportService;

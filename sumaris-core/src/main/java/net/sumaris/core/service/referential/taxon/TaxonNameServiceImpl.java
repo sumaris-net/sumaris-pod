@@ -22,21 +22,19 @@ package net.sumaris.core.service.referential.taxon;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service("taxonNameService")
+@Slf4j
 public class TaxonNameServiceImpl implements TaxonNameService {
-
-    private static final Logger log = LoggerFactory.getLogger(TaxonNameServiceImpl.class);
 
     @Autowired
     protected TaxonNameRepository taxonNameRepository;

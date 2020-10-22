@@ -23,12 +23,11 @@
 package net.sumaris.core.event.jms;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -41,8 +40,8 @@ import javax.annotation.Resource;
 
 @Component
 @ConditionalOnBean(JmsTemplate.class)
+@Slf4j
 public class EntityJmsNotifier {
-    private static final Logger log = LoggerFactory.getLogger(EntityJmsNotifier.class);
 
     @Resource
     private JmsTemplate jmsTemplate;

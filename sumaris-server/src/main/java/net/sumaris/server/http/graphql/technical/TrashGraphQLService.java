@@ -25,13 +25,12 @@ package net.sumaris.server.http.graphql.technical;
 import com.google.common.collect.ImmutableList;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.service.technical.TrashService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,11 +41,10 @@ import java.util.List;
 
 @Service
 @Transactional
+@Slf4j
 public class TrashGraphQLService {
 
     public static final String JSON_START_SUFFIX = "{";
-
-    private static final Log log = LogFactory.getLog(TrashGraphQLService.class);
 
     @Autowired
     private TrashService service;
