@@ -40,6 +40,7 @@
     "@ionic-native/camera": "^5.28.0",
     "@ionic-native/core": "^5.28.0",
     "@ionic-native/downloader": "^5.27.0",
+    "@ionic-native/geolocation": "^5.29.0",
     "@ionic-native/http": "^5.28.0",
     "@ionic-native/in-app-browser": "^5.28.0",
     "@ionic-native/keyboard": "^5.28.0",
@@ -91,6 +92,7 @@
     "ionic-cache": "^5.2.0",
     "ionicons": "^5.1.2",
     "leaflet": "^1.6.0",
+    "localforage": "1.7.1",
     "lodash.clonedeep": "^4.5.0",
     "luxon": "^1.24.1",
     "material-design-icons": "^3.0.1",
@@ -108,8 +110,7 @@
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",
     "uuid": "^3.3.3",
-    "zone.js": "~0.10.3",
-    "localforage": "1.7.1"
+    "zone.js": "~0.10.3"
   },
   "peerDependencies": {
     "tar": "^5.0.5"
