@@ -46,10 +46,8 @@ public interface ExtractionService {
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> findByFilter(@Nullable ExtractionTypeFilterVO filter);
 
-    @Transactional
     ExtractionContextVO execute(ExtractionTypeVO type, @Nullable ExtractionFilterVO filter);
 
-    @Transactional
     ExtractionResultVO read(ExtractionContextVO context,
                             @Nullable ExtractionFilterVO filter,
                             int offset,
@@ -57,7 +55,6 @@ public interface ExtractionService {
                             String sort,
                             SortDirection direction) ;
 
-    @Transactional
     ExtractionResultVO executeAndRead(ExtractionTypeVO type,
                                       @Nullable ExtractionFilterVO filter,
                                       int offset,
@@ -69,8 +66,9 @@ public interface ExtractionService {
     File executeAndDump(ExtractionTypeVO type,
                         ExtractionFilterVO filter) throws IOException;
 
-    @Transactional
     File executeAndDumpTrips(ExtractionRawFormatEnum format, ExtractionTripFilterVO filter);
+
+    File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
     void clean(ExtractionContextVO context);
@@ -81,6 +79,5 @@ public interface ExtractionService {
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     ExtractionProductVO toProductVO(ExtractionContextVO context);
 
-    @Transactional
     ExtractionTypeVO save(ExtractionTypeVO type, ExtractionFilterVO filter);
 }

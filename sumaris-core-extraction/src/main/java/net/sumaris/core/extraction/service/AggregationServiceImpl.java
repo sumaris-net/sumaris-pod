@@ -24,6 +24,8 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -52,6 +54,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -123,7 +126,8 @@ public class AggregationServiceImpl implements AggregationService {
                     return executeProduct(source, aggregationFilter);
                 } finally {
                     // Clean intermediate tables
-                    asyncClean(rawExtractionContext);
+                    // TODO BLA ENABLE
+                    //asyncClean(rawExtractionContext);
                 }
             default:
                 throw new SumarisTechnicalException(String.format("Aggregation on category %s not implemented yet !", type.getCategory()));
@@ -161,6 +165,7 @@ public class AggregationServiceImpl implements AggregationService {
         switch (format) {
             case RDB:
             case COST:
+            case FREE1:
             case SURVIVAL_TEST:
                 return aggregationRdbTripDao.read(tableName, filter, strata, offset, size, sort, direction);
             default:
@@ -187,6 +192,19 @@ public class AggregationServiceImpl implements AggregationService {
             return read(context, readFilter, strata, offset, size, sort, direction);
         } finally {
             // Clean created tables
+            asyncClean(context);
+        }
+    }
+
+    @Override
+    public File executeAndDump(AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
+        // Execute the aggregation
+        AggregationContextVO context = execute(type, filter);
+        try {
+            return extractionService.dumpTablesToFile(context, null /*already apply*/);
+        }
+        finally {
+            // Delete aggregation tables, after dump
             asyncClean(context);
         }
     }
@@ -261,7 +279,7 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public List<ExtractionProductColumnVO> getColumnsBySheetName(AggregationTypeVO type, String sheetName) {
+    public List<ExtractionTableColumnVO> getColumnsBySheetName(AggregationTypeVO type, String sheetName) {
         Preconditions.checkNotNull(type);
         Preconditions.checkArgument(type.getId() != null || type.getLabel() != null, "Missing type.id or type.label");
 
@@ -271,7 +289,7 @@ public class AggregationServiceImpl implements AggregationService {
             productId = product.getId();
         }
         // Try to find columns from the DB
-        List<ExtractionProductColumnVO> dataColumns = null;
+        List<ExtractionTableColumnVO> dataColumns = null;
         if (StringUtils.isNotBlank(sheetName)) {
             dataColumns = extractionProductRepository.getColumnsByIdAndTableLabel(productId, sheetName);
         }
@@ -392,13 +410,16 @@ public class AggregationServiceImpl implements AggregationService {
         target.setTables(toProductTableVO(source));
     }
 
-    protected List<ExtractionProductTableVO> toProductTableVO(AggregationContextVO source) {
+    protected List<ExtractionTableVO> toProductTableVO(AggregationContextVO source) {
 
-        return SetUtils.emptyIfNull(source.getTableNames())
-            .stream()
+        final List<String> tableNames = ImmutableList.copyOf(source.getTableNames());
+        return tableNames.stream()
             .map(tableName -> {
-                ExtractionProductTableVO table = new ExtractionProductTableVO();
+                ExtractionTableVO table = new ExtractionTableVO();
                 table.setTableName(tableName);
+
+                // Keep rankOrder from original linked has map
+                table.setRankOrder(tableNames.indexOf(tableName) + 1);
 
                 // Label (=the sheet name)
                 String label = source.getSheetName(tableName);
@@ -411,7 +432,7 @@ public class AggregationServiceImpl implements AggregationService {
                 table.setIsSpatial(source.hasSpatialColumn(tableName));
 
                 // Columns
-                List<ExtractionProductColumnVO> columns = toProductColumnVOs(source, tableName);
+                List<ExtractionTableColumnVO> columns = toProductColumnVOs(source, tableName);
                 table.setColumns(columns);
 
                 return table;
@@ -419,20 +440,28 @@ public class AggregationServiceImpl implements AggregationService {
             .collect(Collectors.toList());
     }
 
-    protected List<ExtractionProductColumnVO> toProductColumnVOs(AggregationContextVO context, String tableName) {
+    protected List<ExtractionTableColumnVO> toProductColumnVOs(AggregationContextVO context, String tableName) {
 
-        Set<String> hiddenColumns = Beans.getSet(context.getHiddenColumns(tableName));
-        Map<String, List<String>> columnValues = context.getColumnValues(tableName);
 
         // Get columns (from table metadata), but exclude hidden columns
-        List<ExtractionProductColumnVO> columns = Beans.getStream(extractionTableDao.getColumns(tableName))
-            .filter(column -> !hiddenColumns.contains(column.getColumnName()))
-            .collect(Collectors.toList());
+        List<ExtractionTableColumnVO> columns = extractionTableDao.getColumns(tableName);
+        Set<String> hiddenColumns = Beans.getSet(context.getHiddenColumns(tableName));
+        Map<String, List<String>> columnValues = Beans.getMap(context.getColumnValues(tableName));
 
-        // Set values on each columns
-        if (CollectionUtils.isNotEmpty(columns) && MapUtils.isNotEmpty(columnValues)) {
-            columns.forEach(column -> column.setValues(columnValues.get(column.getColumnName())));
-        }
+        // For each column
+        Beans.getStream(columns).forEach(column -> {
+            String columnName = column.getColumnName();
+            // If hidden, replace the type with 'hidden'
+            if (hiddenColumns.contains(columnName)) {
+                column.setType("hidden");
+            }
+
+            // Set values
+            List<String> values = columnValues.get(columnName);
+            if (CollectionUtils.isNotEmpty(values)) {
+                column.setValues(values);
+            }
+        });
 
         return columns;
     }

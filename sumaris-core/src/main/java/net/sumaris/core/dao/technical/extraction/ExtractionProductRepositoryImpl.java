@@ -49,10 +49,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -80,7 +77,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
+    @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL)
     public ExtractionProductVO getByLabel(String label, ExtractionProductFetchOptions fetchOption) {
         return super.getByLabel(label, fetchOption);
     }
@@ -98,7 +95,7 @@ public class ExtractionProductRepositoryImpl
         // Tables
         if (fetchOptions == null || fetchOptions.isWithTables()) {
             if (CollectionUtils.isNotEmpty(source.getTables())) {
-                List<ExtractionProductTableVO> tables = source.getTables().stream()
+                List<ExtractionTableVO> tables = source.getTables().stream()
                     .map(t -> toProductTableVO(t, fetchOptions))
                     .collect(Collectors.toList());
                 target.setTables(tables);
@@ -124,8 +121,8 @@ public class ExtractionProductRepositoryImpl
         }
     }
 
-    protected ExtractionProductTableVO toProductTableVO(ExtractionProductTable source, ExtractionProductFetchOptions fetchOptions) {
-        ExtractionProductTableVO target = new ExtractionProductTableVO();
+    protected ExtractionTableVO toProductTableVO(ExtractionProductTable source, ExtractionProductFetchOptions fetchOptions) {
+        ExtractionTableVO target = new ExtractionTableVO();
         Beans.copyProperties(source, target);
 
         // parent
@@ -189,12 +186,9 @@ public class ExtractionProductRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#vo.label", condition = "#vo != null && #vo.id != null"),
+            @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_FILTER, allEntries = true),
-        },
-        put = {
-            @CachePut(cacheNames= CacheNames.PRODUCT_BY_LABEL, key="#vo.label", condition = "#vo != null && #vo.label != null")
         }
     )
     public ExtractionProductVO save(ExtractionProductVO vo) {
@@ -257,7 +251,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     private void saveProductTables(ExtractionProductVO vo, ExtractionProduct entity) {
-        List<ExtractionProductTableVO> sources = vo.getTables();
+        List<ExtractionTableVO> sources = vo.getTables();
         Date updateDate = entity.getUpdateDate();
 
         final EntityManager em = getEntityManager();
@@ -323,7 +317,7 @@ public class ExtractionProductRepositoryImpl
         }
     }
 
-    private void saveProductTableColumns(List<ExtractionProductColumnVO> sources, int tableId, Date updateDate) {
+    private void saveProductTableColumns(List<ExtractionTableColumnVO> sources, int tableId, Date updateDate) {
         final EntityManager em = getEntityManager();
 
         // Load parent
@@ -530,7 +524,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    public List<ExtractionProductColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel) {
+    public List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel) {
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<ExtractionProductColumn> query = cb.createQuery(ExtractionProductColumn.class);
         Root<ExtractionProductColumn> root = query.from(ExtractionProductColumn.class);
@@ -561,8 +555,8 @@ public class ExtractionProductRepositoryImpl
             .collect(Collectors.toList());
     }
 
-    protected ExtractionProductColumnVO toColumnVO(ExtractionProductColumn source, ExtractionProductFetchOptions fetchOptions) {
-        ExtractionProductColumnVO target = new ExtractionProductColumnVO();
+    protected ExtractionTableColumnVO toColumnVO(ExtractionProductColumn source, ExtractionProductFetchOptions fetchOptions) {
+        ExtractionTableColumnVO target = new ExtractionTableColumnVO();
         Beans.copyProperties(source, target);
 
         if (fetchOptions == null || fetchOptions.isWithColumnValues()) {

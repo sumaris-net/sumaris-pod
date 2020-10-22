@@ -64,7 +64,13 @@ public class SumarisTableMetadatas {
         return getSqlWhereClauseContent(table, filter, sheetName, table != null ? table.getAlias() : null);
     }
 
-    public static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter, String sheetName, String tableAlias) {
+    public static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter,
+                                                  String sheetName, String tableAlias) {
+        return getSqlWhereClauseContent(table, filter, sheetName, tableAlias, false);
+    }
+
+    public static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter,
+                                                  String appliedSheetName, String tableAlias, boolean skipInvalidCriteria) {
 
         if (filter == null || CollectionUtils.isEmpty(filter.getCriteria())) return "";
 
@@ -76,15 +82,15 @@ public class SumarisTableMetadatas {
         String aliasWithPoint = tableAlias != null ? (tableAlias + ".") : "";
 
         filter.getCriteria().stream()
-                .filter(criterion -> sheetName == null || sheetName.equals(criterion.getSheetName()))
+                .filter(criterion -> appliedSheetName == null || appliedSheetName.equals(criterion.getSheetName()))
                 .forEach(criterion -> {
 
                     // Get the column to tripFilter
                     Preconditions.checkNotNull(criterion.getName());
                     SumarisColumnMetadata column = table != null ? table.getColumnMetadata(criterion.getName().toLowerCase()) : null;
                     if (column == null) {
-                        if (sheetName != null) {
-                            throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found", criterion.getName()));
+                        if (appliedSheetName != null && !skipInvalidCriteria) {
+                            throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found in table '%s'", criterion.getName(), table.getName()));
                         } else {
                             // Continue (=skip)
                         }

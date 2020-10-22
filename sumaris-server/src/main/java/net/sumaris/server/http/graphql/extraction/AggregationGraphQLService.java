@@ -38,7 +38,7 @@ import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
 import net.sumaris.server.http.security.IsSupervisor;
@@ -86,8 +86,8 @@ public class AggregationGraphQLService {
 
     @GraphQLQuery(name = "aggregationColumns", description = "Read columns from aggregation")
     //@IsUser
-    public List<ExtractionProductColumnVO> getAggregationColumns(@GraphQLArgument(name = "type") AggregationTypeVO type,
-                                                                 @GraphQLArgument(name = "sheet") String sheet) {
+    public List<ExtractionTableColumnVO> getAggregationColumns(@GraphQLArgument(name = "type") AggregationTypeVO type,
+                                                               @GraphQLArgument(name = "sheet") String sheet) {
 
         return aggregationService.getColumnsBySheetName(type, sheet);
     }

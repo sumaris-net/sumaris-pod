@@ -94,12 +94,12 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbSpeciesList.COLUMN_TRIP_CODE,
                     ProductRdbSpeciesList.COLUMN_STATION_NUMBER,
                     ProductRdbSpeciesList.COLUMN_SPECIES,
-                    ProductRdbSpeciesList.COLUMN_SEX,
                     ProductRdbSpeciesList.COLUMN_CATCH_CATEGORY,
                     ProductRdbSpeciesList.COLUMN_LANDING_CATEGORY,
                     ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
                     ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY,
                     ProductRdbSpeciesList.COLUMN_SUBSAMPLING_CATEGORY,
+                    ProductRdbSpeciesList.COLUMN_SEX,
                     ProductRdbSpeciesList.COLUMN_WEIGHT,
                     ProductRdbSpeciesList.COLUMN_SUBSAMPLING_WEIGHT,
                     ProductRdbSpeciesList.COLUMN_LENGTH_CODE

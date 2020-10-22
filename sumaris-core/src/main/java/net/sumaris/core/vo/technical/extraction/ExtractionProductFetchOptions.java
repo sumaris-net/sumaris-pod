@@ -54,6 +54,14 @@ public class ExtractionProductFetchOptions implements IFetchOptions {
             .withColumns(false)
             .withColumnValues(false)
             .build();
+    public static ExtractionProductFetchOptions MINIMAL_WITH_TABLES_AND_COLUMNS = builder()
+            .withRecorderDepartment(false)
+            .withRecorderPerson(false)
+            .withTables(true)
+            .withStratum(true)
+            .withColumns(true)
+            .withColumnValues(false)
+            .build();
     public static ExtractionProductFetchOptions NO_COLUMNS = builder()
             .withColumns(false)
             .withColumnValues(false)

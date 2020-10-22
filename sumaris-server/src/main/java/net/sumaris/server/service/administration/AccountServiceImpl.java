@@ -117,7 +117,7 @@ public class AccountServiceImpl implements AccountService {
         this.config = config;
         this.emailService = emailService;
         if (this.emailService != null) {
-            log.warn("sumaris.server.email.started", config.getMailHost(), config.getMailPort());
+            log.warn(I18n.t("sumaris.server.email.started", config.getMailHost(), config.getMailPort()));
         }
         else {
             log.debug(I18n.t("sumaris.error.email.service",
@@ -166,7 +166,7 @@ public class AccountServiceImpl implements AccountService {
             if (!emailEnable) {
                 log.warn("/!\\ Email service disabled! (see previous errors)");
             } else {
-                log.info("sumaris.server.email.started", config.getMailHost(), config.getMailPort());
+                log.info(I18n.t("sumaris.server.email.started", config.getMailHost(), config.getMailPort()));
             }
         }
     }

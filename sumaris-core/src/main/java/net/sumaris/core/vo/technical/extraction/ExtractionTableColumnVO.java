@@ -33,7 +33,7 @@ import java.util.List;
  */
 @Data
 @FieldNameConstants
-public class ExtractionProductColumnVO implements IEntity<Integer> {
+public class ExtractionTableColumnVO implements IEntity<Integer> {
 
     private Integer id;
     private String label;
@@ -44,7 +44,7 @@ public class ExtractionProductColumnVO implements IEntity<Integer> {
     private String description;
     private Integer rankOrder;
 
-    //private ExtractionProductTableVO table;
+    //private tTableVO table;
     private Integer tableId;
 
     private List<String> values;

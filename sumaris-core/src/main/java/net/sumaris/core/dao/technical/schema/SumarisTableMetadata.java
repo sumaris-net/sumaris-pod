@@ -160,8 +160,11 @@ public class SumarisTableMetadata {
 	}
 
 	public SumarisColumnMetadata getColumnMetadata(String columnName) {
-
 		return columns.get(columnName.toLowerCase());
+	}
+
+	public boolean hasColumn(String columnName) {
+		return columns.containsKey(columnName.toLowerCase());
 	}
 
 	public String getSchema() {

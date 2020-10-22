@@ -26,10 +26,12 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -68,7 +70,12 @@ public interface AggregationService {
                              int offset, int size, String sort, SortDirection direction);
 
     @Transactional(readOnly = true)
-    List<ExtractionProductColumnVO> getColumnsBySheetName(AggregationTypeVO type, String sheetName);
+    List<ExtractionTableColumnVO> getColumnsBySheetName(AggregationTypeVO type, String sheetName);
+
+    @Transactional(rollbackFor = IOException.class)
+    File executeAndDump(AggregationTypeVO type,
+                        @Nullable ExtractionFilterVO filter,
+                        @Nullable AggregationStrataVO strata);
 
     @Transactional
     AggregationResultVO executeAndRead(AggregationTypeVO type,

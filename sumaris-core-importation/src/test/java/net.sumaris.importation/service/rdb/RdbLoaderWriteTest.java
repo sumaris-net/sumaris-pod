@@ -1,4 +1,4 @@
-package net.sumaris.importation.service.ices;
+package net.sumaris.importation.service.rdb;
 
 /*-
  * #%L
@@ -33,12 +33,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 
-public class IcesLoaderWriteTest extends AbstractServiceTest {
+public class RdbLoaderWriteTest extends AbstractServiceTest {
 
-    protected static final Logger log = LoggerFactory.getLogger(IcesLoaderWriteTest.class);
+    protected static final Logger log = LoggerFactory.getLogger(RdbLoaderWriteTest.class);
 
     @Autowired
-    private IcesDataLoaderServiceImpl service = null;
+    private RdbDataLoaderServiceImpl service = null;
 
     @Test
     @Ignore

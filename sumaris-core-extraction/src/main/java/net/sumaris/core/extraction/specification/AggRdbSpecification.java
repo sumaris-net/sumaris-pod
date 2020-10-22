@@ -34,9 +34,10 @@ public interface AggRdbSpecification {
     String FORMAT = RdbSpecification.FORMAT;
     String VERSION_1_3 = RdbSpecification.VERSION_1_3;
 
-    String TR_SHEET_NAME = "HH";
+    String TR_SHEET_NAME = "HH"; // TODO to remove
     String HH_SHEET_NAME = "HH";
     String SL_SHEET_NAME = "SL";
+    String HL_SHEET_NAME = "HL";
 
     // Time columns
     String COLUMN_YEAR  = ProductRdbStation.COLUMN_YEAR;
@@ -51,6 +52,10 @@ public interface AggRdbSpecification {
     // Agg columns
     String COLUMN_TRIP_COUNT = "trip_count";
     String COLUMN_STATION_COUNT = "station_count";
+
+    // Link columns
+    String COLUMN_ID = "id";
+    String COLUMN_SAMPLE_IDS = "sample_ids";
 
     List<String> SPACE_STRATA = ImmutableList.of("area", "rect", "square");
     List<String> TIME_STRATA = ImmutableList.of("year", "quarter", "month");

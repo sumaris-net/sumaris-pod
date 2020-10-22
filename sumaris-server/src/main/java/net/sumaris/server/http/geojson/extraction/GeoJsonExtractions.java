@@ -25,7 +25,7 @@ package net.sumaris.server.http.geojson.extraction;
 import net.sumaris.core.dao.referential.location.Locations;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.server.http.geojson.GeoJsonGeometries;
 import org.geojson.Feature;
 import org.geojson.FeatureCollection;
@@ -68,7 +68,7 @@ public class GeoJsonExtractions {
 
         final Function<String, Geometry> finalMapper = mapper;
         List<String> propertyNames = result.getColumns().stream()
-                .map(ExtractionProductColumnVO::getColumnName)
+                .map(ExtractionTableColumnVO::getColumnName)
                 //.map(StringUtils::underscoreToChangeCase)
                 .map(String::toLowerCase)
                 .collect(Collectors.toList());

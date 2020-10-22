@@ -22,7 +22,6 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
-import liquibase.util.csv.opencsv.CSVReader;
 import net.sumaris.core.extraction.dao.DatabaseResource;
 import net.sumaris.core.extraction.specification.Free2Specification;
 import net.sumaris.core.extraction.specification.SurvivalTestSpecification;
@@ -30,19 +29,14 @@ import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.util.Files;
-import net.sumaris.core.util.ZipUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -79,15 +73,15 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
         // MAREES.csv
         File tripFile = new File(root, Free2Specification.TRIP_SHEET_NAME + ".csv");
-        Assert.assertTrue(countLine(tripFile) > 1);
+        Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
 
         // OPERATION_PECHE.csv
         File stationFile = new File(root, Free2Specification.STATION_SHEET_NAME + ".csv");
-        Assert.assertTrue(countLine(stationFile) > 1);
+        Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
 
         // ENGINS.csv
         File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME+".csv");
-        Assert.assertTrue(countLine(gearFile) > 1);
+        Assert.assertTrue(countLineInCsvFile(gearFile) > 1);
     }
 
     @Test
@@ -99,11 +93,11 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
         // RL (release)
         File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME+".csv");
-        Assert.assertTrue(countLine(releaseFile) > 1);
+        Assert.assertTrue(countLineInCsvFile(releaseFile) > 1);
 
         // ST (Survival test)
         File stFile = new File(root, SurvivalTestSpecification.ST_SHEET_NAME+".csv");
-        Assert.assertTrue(countLine(stFile) > 1);
+        Assert.assertTrue(countLineInCsvFile(stFile) > 1);
     }
 
 
@@ -126,39 +120,7 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
     /* -- protected methods -- */
 
-    protected int countLine(File file) throws IOException {
-        Files.checkExists(file);
 
-        FileReader fr = new FileReader(file);
-        try {
-            CSVReader read = new CSVReader(fr);
-            List<String[]> lines = read.readAll();
 
-            read.close();
 
-            return lines.size();
-        }
-        finally {
-            fr.close();
-        }
-    }
-
-    protected File unpack(File sourceFile, ExtractionRawFormatEnum format) {
-
-        File tempFile = new File("target/result.zip");
-        File outputDirectory = new File("target/result/" + format.getLabel() + '_' + format.getVersion());
-        try {
-            Files.deleteQuietly(tempFile);
-            Files.copyFile(sourceFile, tempFile);
-
-            Files.deleteQuietly(outputDirectory);
-            FileUtils.forceMkdir(outputDirectory);
-
-            ZipUtils.uncompressFileToPath(tempFile, outputDirectory.getPath(), true);
-
-        } catch (IOException e) {
-            Assert.fail(e.getMessage());
-        }
-        return outputDirectory;
-    }
 }

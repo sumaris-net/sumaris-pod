@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.dao.trip.rdb;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -473,11 +474,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         return count;
     }
 
-
     protected XMLQuery createSpeciesListQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");
         xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
+
+        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
 
         return xmlQuery;
     }

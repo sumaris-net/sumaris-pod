@@ -121,6 +121,7 @@ public class InitTests extends net.sumaris.core.test.InitTests {
         System.setProperty("logging.level." + DatasetService.class.getName(), "info");
         System.setProperty("logging.level.net.sumaris.core", "error");
         System.setProperty("logging.level.org.hibernate", "error");
+        System.setProperty("logging.level.Hibernate Types", "error");
 
         String[] args = ImmutableList.<String>builder()
                 .add(RdfDatasetAction.LOAD_ALIAS)

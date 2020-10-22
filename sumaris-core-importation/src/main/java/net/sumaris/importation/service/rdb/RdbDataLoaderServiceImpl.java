@@ -1,4 +1,4 @@
-package net.sumaris.importation.service.ices;
+package net.sumaris.importation.service.rdb;
 
 /*-
  * #%L
@@ -35,6 +35,7 @@ import net.sumaris.importation.exception.FileValidationException;
 import net.sumaris.importation.service.DataLoaderService;
 import net.sumaris.importation.util.csv.CSVFileReader;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -48,10 +49,10 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-@Service("icesDataLoaderService")
-public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
+@Service("rdbDataLoaderService")
+public class RdbDataLoaderServiceImpl implements RdbDataLoaderService {
 
-	protected static final Logger log = LoggerFactory.getLogger(IcesDataLoaderServiceImpl.class);
+	protected static final Logger log = LoggerFactory.getLogger(RdbDataLoaderServiceImpl.class);
 
 	/**
 	 * Allow to override the default column headers array, on a given table
@@ -240,6 +241,11 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 			.put("FAC_EC_lvl5", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL5)
 			.put("FAC_EC_lvl6", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL6)
 
+			// GBR synonyms
+			.put("comm_size_cat_scale", ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE)
+			.put("comm_size_cat", ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY)
+			.put("number_hauls", ProductRdbTrip.COLUMN_NUMBER_OF_SETS)
+			.put("haul_count", ProductRdbTrip.COLUMN_NUMBER_OF_SETS)
 
 			.build();
 
@@ -395,7 +401,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 		}
 		finally {
 			if (CollectionUtils.isNotEmpty(tempFiles)) {
-				//tempFiles.forEach(FileUtils::deleteQuietly);
+				tempFiles.forEach(FileUtils::deleteQuietly);
 			}
 		}
 

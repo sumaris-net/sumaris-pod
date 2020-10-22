@@ -28,6 +28,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
 
+import java.util.List;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
@@ -40,5 +42,8 @@ public class AggregationRdbTripContextVO extends AggregationTripContextVO {
     String speciesListTableName; // SL table
     String speciesLengthTableName; // HL table
     String sampleTableName; // CA table
+
+    String speciesLengthMapTableName; // Map to get SL.ID from HL.ID
+
 
 }

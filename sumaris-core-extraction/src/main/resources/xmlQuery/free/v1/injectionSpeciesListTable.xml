@@ -24,13 +24,13 @@
 <query type="select">
 
   <!-- Total (elevated) individual count -->
-  <select alias="NUMBER_INDIVIDUAL" type="number">(CASE WHEN (S.WEIGHT IS NOT NULL AND S.WEIGHT > 0) THEN
+  <select alias="NUMBER_INDIVIDUAL" type="number">(CASE WHEN (SL.WEIGHT IS NOT NULL AND SL.WEIGHT > 0) THEN
     (
       SELECT
         SUM(COALESCE(BL.INDIVIDUAL_COUNT, 1))
       FROM BATCH BL
       WHERE
-        BL.PARENT_BATCH_FK=S.SAMPLE_ID
+        BL.PARENT_BATCH_FK=SL.SAMPLE_ID
         AND BL.LABEL like 'SORTING_BATCH_INDIVIDUAL#%'
     ) END)</select>
 

@@ -42,7 +42,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
@@ -111,13 +113,20 @@ public class SumarisDatabaseMetadata {
 	}
 
 	@Cacheable(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
-	public SumarisTableMetadata getTable(String name) throws HibernateException {
-		return getTable(name, defaultSchemaName, defaultCatalogName);
+	public SumarisHibernateTableMetadata getHibernateTable(String name) throws HibernateException {
+		return (SumarisHibernateTableMetadata) getTable(name);
 	}
 
 	@Cacheable(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
-	public SumarisHibernateTableMetadata getHibernateTable(String name) throws HibernateException {
-		return (SumarisHibernateTableMetadata) getTable(name);
+	public SumarisTableMetadata getTable(String name) throws HibernateException {
+		return getTable(name.toLowerCase(), defaultSchemaName, defaultCatalogName);
+	}
+
+
+	@Caching(evict = {
+			@CacheEvict(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()")
+	})
+	public void clearCache(String name) {
 	}
 
 	public int getTableCount() {
@@ -320,8 +329,8 @@ public class SumarisDatabaseMetadata {
 	}
 
 	public SumarisTableMetadata getTable(String name,
-											String schema,
-											String catalog) throws HibernateException {
+										 String schema,
+										 String catalog) throws HibernateException {
 		QualifiedTableName qualifiedTableName = getQualifiedTableName(catalog, schema, name);
 		SumarisTableMetadata sumarisTableMetadata = tables.get(qualifiedTableName.render().toLowerCase());
 		if (sumarisTableMetadata == null) {

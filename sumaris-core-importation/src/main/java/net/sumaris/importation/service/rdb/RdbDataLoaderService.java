@@ -1,4 +1,4 @@
-package net.sumaris.importation.service.ices;
+package net.sumaris.importation.service.rdb;
 
 /*-
  * #%L
@@ -29,7 +29,7 @@ import java.io.File;
 import java.io.IOException;
 
 @Transactional
-public interface IcesDataLoaderService {
+public interface RdbDataLoaderService {
 
     /**
      * Import a CL file (landing statistics) into the database

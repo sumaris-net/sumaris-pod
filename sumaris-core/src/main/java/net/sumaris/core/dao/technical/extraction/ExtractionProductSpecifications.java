@@ -25,7 +25,7 @@ package net.sumaris.core.dao.technical.extraction;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
@@ -51,6 +51,6 @@ public interface ExtractionProductSpecifications {
     }
 
 
-    List<ExtractionProductColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel);
+    List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel);
 
 }

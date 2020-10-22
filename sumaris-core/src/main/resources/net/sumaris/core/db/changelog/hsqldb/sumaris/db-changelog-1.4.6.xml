@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/sumaris/db-changelog-1.4.6.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.sumaris.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'"/>
+    <property name="sqlCheck.sumaris.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a SUMARiS database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Fix wrong position, in FRA ope {id: 103} -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-300" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM VESSEL_POSITION WHERE OPERATION_FK=103 AND LATITUDE=0.96 AND DATE_TIME='2018-07-10 02:05:00.000000'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE VESSEL_POSITION set LATITUDE=50.5628333 WHERE OPERATION_FK=103 AND DATE_TIME='2018-07-10 02:05:00.000000';
+            commit;
+        </sql>
+
+    </changeSet>
+
+    <!-- Fix wrong position, in FRA ope {id: 625} -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-301" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM VESSEL_POSITION WHERE OPERATION_FK=625 AND LATITUDE =21.3373 AND DATE_TIME='2019-04-30 03:40:00.000000'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE VESSEL_POSITION set LATITUDE=51.3373 WHERE OPERATION_FK=625 AND DATE_TIME='2019-04-30 03:40:00.000000';
+            commit;
+        </sql>
+
+    </changeSet>
+
+    <!-- Fix HL table -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-302" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM P01_RDB_SPECIES_LENGTH where UPPER(CATCH_CATEGORY) in ('DIS', 'LAN')</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update P01_RDB_SPECIES_LENGTH set CATCH_CATEGORY=LANDING_CATEGORY;
+            update P01_RDB_SPECIES_LENGTH set LANDING_CATEGORY=COMMERCIAL_SIZE_CATEGORY_SCALE;
+            update P01_RDB_SPECIES_LENGTH set COMMERCIAL_SIZE_CATEGORY_SCALE=COMMERCIAL_SIZE_CATEGORY;
+            update P01_RDB_SPECIES_LENGTH set COMMERCIAL_SIZE_CATEGORY=null;
+            commit;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

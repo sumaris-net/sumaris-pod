@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -61,7 +62,8 @@ import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -88,6 +90,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -185,7 +188,15 @@ public class ExtractionServiceImpl implements ExtractionService {
         switch (category) {
             case PRODUCT:
                 ExtractionProductVO product = extractionProductRepository.getByLabel(checkedType.getLabel(),
-                        ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
+                        ExtractionProductFetchOptions.MINIMAL_WITH_TABLES_AND_COLUMNS);
+                Set<String> hiddenColumns = product.getTables().stream()
+                        .map(ExtractionTableVO::getColumns)
+                        .filter(Objects::nonNull)
+                        .flatMap(List::stream)
+                        .filter(c -> "hidden".equalsIgnoreCase(c.getType()))
+                        .map(ExtractionTableColumnVO::getColumnName)
+                        .collect(Collectors.toSet());
+                filter.setExcludeColumnNames(hiddenColumns);
                 return readProductRows(product, filter, offset, size, sort, direction);
             case LIVE:
                 return extractRawDataAndRead(checkedType, filter, offset, size, sort, direction);
@@ -334,7 +345,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         target.setTables(SetUtils.emptyIfNull(source.getTableNames())
             .stream()
             .map(t -> {
-                ExtractionProductTableVO table = new ExtractionProductTableVO();
+                ExtractionTableVO table = new ExtractionTableVO();
                 table.setLabel(source.getSheetName(t));
                 table.setName(t);
                 table.setTableName(t);
@@ -378,6 +389,87 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Transform back to type
         return toExtractionTypeVO(target);
+    }
+
+    @Override
+    public File dumpTablesToFile(ExtractionContextVO context,
+                                 @Nullable ExtractionFilterVO filter) {
+        Preconditions.checkNotNull(context);
+        Preconditions.checkNotNull(context.getLabel());
+
+        if (CollectionUtils.isEmpty(context.getTableNames())) return null;
+
+        // Dump table to CSV files
+        log.debug(String.format("Extraction #%s > Creating CSV files...", context.getId()));
+
+        String dateStr = Dates.formatDate(new Date(context.getId()), "yyyy-MM-dd-HHmm");
+        String basename = context.getLabel() + "-" + dateStr;
+
+        final ExtractionFilterVO tableFilter = filter != null ? filter : new ExtractionFilterVO();
+        final Set<String> defaultExcludeColumns = SetUtils.emptyIfNull(tableFilter.getExcludeColumnNames());
+        final boolean defaultEnableDistinct = filter != null && filter.isDistinct();
+
+        File outputDirectory = createTempDirectory(basename);
+        List<File> outputFiles = context.getTableNames().stream()
+                .map(tableName -> {
+                    try {
+                        // Add table's hidden columns has excluded columns
+                        Set<String> hiddenColumns = context.getHiddenColumns(tableName);
+
+                        boolean enableDistinct = defaultEnableDistinct ||
+                                // Force distinct, when excluded columns AND distinct option on the XML query
+                                (CollectionUtils.isNotEmpty(hiddenColumns) && context.isDistinctEnable(tableName));
+
+                        tableFilter.setExcludeColumnNames(SetUtils.union(defaultExcludeColumns,
+                                SetUtils.emptyIfNull(hiddenColumns)));
+                        tableFilter.setDistinct(enableDistinct);
+
+                        // Compute the table output file
+                        File tempCsvFile = new File(outputDirectory, context.getSheetName(tableName) + ".csv");
+                        dumpTableToFile(tableName, tableFilter, tempCsvFile);
+                        return tempCsvFile;
+                    } catch (IOException e) {
+                        log.error(String.format("Could not generate CSV file for table {%s}", tableName), e);
+                        throw new SumarisTechnicalException(e);
+                    }
+                })
+                .collect(Collectors.toList());
+
+        File outputFile;
+
+        // One file: copy to result file
+        if (outputFiles.size() == 1) {
+            File uniqueFile = outputFiles.get(0);
+            basename = String.format("%s-%s-%s.%s",
+                    context.getLabel(),
+                    Files.getNameWithoutExtension(uniqueFile),
+                    dateStr,
+                    Files.getExtension(uniqueFile));
+            outputFile = new File(outputDirectory.getParent(), basename);
+            try {
+                FileUtils.moveFile(uniqueFile, outputFile);
+            } catch (IOException e) {
+                throw new SumarisTechnicalException(e);
+            }
+            log.debug(String.format("Extraction file created at {%s}", outputFile.getPath()));
+        }
+
+        // Many files: create a zip archive
+        else {
+            outputFile = new File(outputDirectory.getParent(), basename + ".zip");
+            log.debug(String.format("Creating extraction file {%s}...", outputFile.getPath()));
+            try {
+                ZipUtils.compressFilesInPath(outputDirectory, outputFile, false);
+            } catch (IOException e) {
+                throw new SumarisTechnicalException(e);
+            }
+            log.debug(String.format("Extraction file created at {%s}", outputFile.getPath()));
+        }
+
+        // Remove created tables
+        asyncClean(context);
+
+        return outputFile;
     }
 
     /* -- protected -- */
@@ -519,86 +611,6 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
 
         return context;
-    }
-
-    protected File dumpTablesToFile(ExtractionContextVO context,
-                                    @Nullable ExtractionFilterVO filter) {
-        Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getLabel());
-
-        if (CollectionUtils.isEmpty(context.getTableNames())) return null;
-
-        // Dump table to CSV files
-        log.debug(String.format("Extraction #%s > Creating CSV files...", context.getId()));
-
-        String dateStr = Dates.formatDate(new Date(context.getId()), "yyyy-MM-dd-HHmm");
-        String basename = context.getLabel() + "-" + dateStr;
-
-        final ExtractionFilterVO tableFilter = filter != null ? filter : new ExtractionFilterVO();
-        final Set<String> defaultExcludeColumns = SetUtils.emptyIfNull(tableFilter.getExcludeColumnNames());
-        final boolean defaultEnableDistinct = filter != null && filter.isDistinct();
-
-        File outputDirectory = createTempDirectory(basename);
-        List<File> outputFiles = context.getTableNames().stream()
-            .map(tableName -> {
-                try {
-                    // Add table's hidden columns has excluded columns
-                    Set<String> hiddenColumns = context.getHiddenColumns(tableName);
-
-                    boolean enableDistinct = defaultEnableDistinct ||
-                        // Force distinct, when excluded columns AND distinct option on the XML query
-                        (CollectionUtils.isNotEmpty(hiddenColumns) && context.isDistinctEnable(tableName));
-
-                    tableFilter.setExcludeColumnNames(SetUtils.union(defaultExcludeColumns,
-                        SetUtils.emptyIfNull(hiddenColumns)));
-                    tableFilter.setDistinct(enableDistinct);
-
-                    // Compute the table output file
-                    File tempCsvFile = new File(outputDirectory, context.getSheetName(tableName) + ".csv");
-                    dumpTableToFile(tableName, tableFilter, tempCsvFile);
-                    return tempCsvFile;
-                } catch (IOException e) {
-                    log.error(String.format("Could not generate CSV file for table {%s}", tableName), e);
-                    throw new SumarisTechnicalException(e);
-                }
-            })
-            .collect(Collectors.toList());
-
-        File outputFile;
-
-        // One file: copy to result file
-        if (outputFiles.size() == 1) {
-            File uniqueFile = outputFiles.get(0);
-            basename = String.format("%s-%s-%s.%s",
-                context.getLabel(),
-                Files.getNameWithoutExtension(uniqueFile),
-                dateStr,
-                Files.getExtension(uniqueFile));
-            outputFile = new File(outputDirectory.getParent(), basename);
-            try {
-                FileUtils.moveFile(uniqueFile, outputFile);
-            } catch (IOException e) {
-                throw new SumarisTechnicalException(e);
-            }
-            log.debug(String.format("Extraction file created at {%s}", outputFile.getPath()));
-        }
-
-        // Many files: create a zip archive
-        else {
-            outputFile = new File(outputDirectory.getParent(), basename + ".zip");
-            log.debug(String.format("Creating extraction file {%s}...", outputFile.getPath()));
-            try {
-                ZipUtils.compressFilesInPath(outputDirectory, outputFile, false);
-            } catch (IOException e) {
-                throw new SumarisTechnicalException(e);
-            }
-            log.debug(String.format("Extraction file created at {%s}", outputFile.getPath()));
-        }
-
-        // Remove created tables
-        asyncClean(context);
-
-        return outputFile;
     }
 
     protected void dumpTableToFile(String tableName, ExtractionFilterVO filter, File outputFile) throws IOException {
@@ -748,7 +760,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             .stream()
             .map(t -> {
                 String sheetName = source.getSheetName(t);
-                ExtractionProductTableVO table = new ExtractionProductTableVO();
+                ExtractionTableVO table = new ExtractionTableVO();
                 table.setLabel(sheetName);
                 table.setName(getNameBySheet(source.getFormatName(), sheetName));
                 table.setTableName(t);

@@ -23,7 +23,7 @@ package net.sumaris.core.util;
  */
 
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 
 import java.sql.Types;
 
@@ -33,8 +33,8 @@ import java.sql.Types;
  */
 public class ExtractionBeans {
 
-    public static ExtractionProductColumnVO toProductColumnVO(SumarisColumnMetadata columnMetadata) {
-        ExtractionProductColumnVO column = new ExtractionProductColumnVO();
+    public static ExtractionTableColumnVO toProductColumnVO(SumarisColumnMetadata columnMetadata) {
+        ExtractionTableColumnVO column = new ExtractionTableColumnVO();
 
         column.setLabel(StringUtils.underscoreToChangeCase(columnMetadata.getName()));
         column.setName(columnMetadata.getName().toLowerCase());

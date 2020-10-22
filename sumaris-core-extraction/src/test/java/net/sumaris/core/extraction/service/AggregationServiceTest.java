@@ -25,18 +25,23 @@ package net.sumaris.core.extraction.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.extraction.dao.DatabaseResource;
+import net.sumaris.core.extraction.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
+import net.sumaris.core.model.technical.extraction.rdb.ProductRdbTrip;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import org.assertj.core.util.Lists;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -51,7 +56,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
     private AggregationService service;
 
     @Test
-    public void aggregateLiveRdb() {
+    public void aggregateLiveRdb() throws IOException {
 
         AggregationTypeVO type = new AggregationTypeVO();
         type.setCategory(ExtractionCategoryEnum.LIVE.name());
@@ -64,17 +69,24 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setTechColumnName("vessel_count");
 
         ExtractionFilterVO filter = new ExtractionFilterVO();
-        filter.setSheetName("HH");
 
-        ExtractionResultVO result = service.executeAndRead(type, filter, strata, 0, 100, null, null);
-        Preconditions.checkNotNull(result);
-        Preconditions.checkNotNull(result.getRows());
-        Preconditions.checkArgument(result.getRows().size() > 0);
-        Preconditions.checkNotNull(result.getTotal());
-        Preconditions.checkArgument(result.getTotal().intValue() > 0);
-        Preconditions.checkArgument(result.getTotal().intValue() >= result.getRows().size());
+        File outputFile = service.executeAndDump(type, filter, strata);
+        File root = unpack(outputFile, type);
+
+        // HH.csv
+        File stationFile = new File(root, AggRdbSpecification.HH_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+        // SL.csv
+        File speciesListFile = new File(root, AggRdbSpecification.SL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+        // HL.csv
+        File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
 
     }
+
 
     @Test
     public void aggregateProductRdb() {
@@ -85,6 +97,26 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
         ExtractionFilterVO filter = new ExtractionFilterVO();
         filter.setSheetName("HH");
+
+        // Add criterion
+        List<ExtractionFilterCriterionVO> criteria = Lists.newArrayList();
+        filter.setCriteria(criteria);
+        /*{
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .sheetName("HH")
+                    .name(ProductRdbStation.COLUMN_YEAR)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value("2017")
+                    .build());
+        }*/
+
+        /*{
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .name(ProductRdbStation.COLUMN_TRIP_CODE)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value("83716")
+                    .build());
+        }*/
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpaceColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
@@ -122,7 +154,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
     @Test
     public void save() {
 
-        AggregationTypeVO savedType = doSave(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.RDB);
+        AggregationTypeVO savedType = createAggType(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.RDB);
         Assert.assertNotNull(savedType);
         Assert.assertNotNull(savedType.getId());
 
@@ -131,17 +163,45 @@ public class AggregationServiceTest extends AbstractServiceTest {
         String sheetName = savedType.getSheetNames()[0];
 
         // Check columns
-        List<ExtractionProductColumnVO> columns = service.getColumnsBySheetName(savedType, sheetName);
+        List<ExtractionTableColumnVO> columns = service.getColumnsBySheetName(savedType, sheetName);
         Assert.assertNotNull(columns);
         Assert.assertTrue(columns.size() > 0);
 
     }
 
     @Test
+    public void executeAndRead() {
+
+
+        AggregationTypeVO type = createAggType(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.SURVIVAL_TEST);
+
+        ExtractionFilterVO filter = new ExtractionFilterVO();
+        filter.setSheetName("SL");
+
+        ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO() ;
+        criterion.setSheetName("HH");
+        criterion.setName("year");
+        criterion.setOperator("=");
+        criterion.setValue("2018");
+        filter.setCriteria(ImmutableList.of(criterion));
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpaceColumnName("area");
+        AggregationResultVO result = service.executeAndRead(type, filter, strata, 0,100, null, null);
+
+        Assert.assertNotNull(result);
+        Assert.assertNotNull(result.getRows());
+        Assert.assertTrue(result.getRows().size() > 0);
+    }
+
+    @Test
     public void saveThenRead() {
+        AggregationTypeVO type = createAggType(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.SURVIVAL_TEST);
 
-
-        AggregationTypeVO type = doSave(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.SURVIVAL_TEST);
+        // Save
+        AggregationTypeVO savedType = service.save(type, null);
+        Assert.assertNotNull(savedType);
+        Assert.assertNotNull(savedType.getId());
 
         ExtractionFilterVO filter = new ExtractionFilterVO();
         filter.setSheetName("HH");
@@ -155,7 +215,8 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpaceColumnName("area");
-        AggregationResultVO result = service.read(type, filter, strata, 0,100, null, null);
+
+        AggregationResultVO result = service.read(savedType, filter, strata, 0,100, null, null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
@@ -164,13 +225,20 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
     @Test
     public void saveThenDelete() {
-        AggregationTypeVO type = doSave(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.SURVIVAL_TEST);
-        service.delete(type.getId());
+        AggregationTypeVO type = createAggType(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.SURVIVAL_TEST);
+
+        // Save
+        AggregationTypeVO savedType = service.save(type, null);
+        Assert.assertNotNull(savedType);
+        Assert.assertNotNull(savedType.getId());
+
+        // Delete
+        service.delete(savedType.getId());
     }
 
     /* -- protected methods --*/
 
-    protected AggregationTypeVO doSave(ExtractionCategoryEnum category, ExtractionRawFormatEnum format) {
+    protected AggregationTypeVO createAggType(ExtractionCategoryEnum category, ExtractionRawFormatEnum format) {
 
         AggregationTypeVO type = new AggregationTypeVO();
         type.setCategory(category.name().toLowerCase());
@@ -182,6 +250,6 @@ public class AggregationServiceTest extends AbstractServiceTest {
         recDep.setId(dbResource.getFixtures().getDepartmentId(0));
         type.setRecorderDepartment(recDep);
 
-        return service.save(type, null);
+        return type;
     }
 }

@@ -62,29 +62,29 @@ public class ExtractionProductVO implements IReferentialVO,
     private Integer statusId;
     private Integer parentId;
 
-    private List<ExtractionProductTableVO> tables;
+    private List<ExtractionTableVO> tables;
     private List<ExtractionProductStrataVO> stratum;
 
     public List<String> getTableNames() {
         if (tables == null) return null;
-        return tables.stream().map(ExtractionProductTableVO::getTableName).collect(Collectors.toList());
+        return tables.stream().map(ExtractionTableVO::getTableName).collect(Collectors.toList());
     }
 
     public List<String> getSheetNames() {
         if (tables == null) return null;
-        return tables.stream().map(ExtractionProductTableVO::getLabel).collect(Collectors.toList());
+        return tables.stream().map(ExtractionTableVO::getLabel).collect(Collectors.toList());
     }
 
     public Map<String, String> getItems() {
         if (tables == null) return null;
-        return tables.stream().collect(Collectors.toMap(ExtractionProductTableVO::getLabel, ExtractionProductTableVO::getTableName));
+        return tables.stream().collect(Collectors.toMap(ExtractionTableVO::getLabel, ExtractionTableVO::getTableName));
     }
 
     public Optional<String> getTableNameBySheetName(String sheetName) {
         Preconditions.checkNotNull(sheetName);
         return ListUtils.emptyIfNull(tables).stream()
                 .filter(t -> sheetName.equalsIgnoreCase(t.getLabel()))
-                .map(ExtractionProductTableVO::getTableName)
+                .map(ExtractionTableVO::getTableName)
                 .findFirst();
     }
 
@@ -92,7 +92,7 @@ public class ExtractionProductVO implements IReferentialVO,
         Preconditions.checkNotNull(tableName);
         return ListUtils.emptyIfNull(tables).stream()
                 .filter(t -> tableName.equalsIgnoreCase(t.getTableName()))
-                .map(ExtractionProductTableVO::getLabel)
+                .map(ExtractionTableVO::getLabel)
                 .findFirst();
     }
 

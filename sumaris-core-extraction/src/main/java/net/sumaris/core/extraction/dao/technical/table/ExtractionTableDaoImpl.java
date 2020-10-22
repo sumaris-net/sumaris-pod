@@ -35,22 +35,20 @@ import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.util.ExtractionBeans;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableShort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -89,13 +87,14 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     @Override
-    public List<ExtractionProductColumnVO> getColumns(String tableName) {
+    public List<ExtractionTableColumnVO> getColumns(String tableName) {
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         return toProductColumnVOs(table, table.getColumnNames());
     }
 
     @Override
-    public ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
+    public ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter,
+                                           int offset, int size, String sort, SortDirection direction) {
         Preconditions.checkNotNull(tableName);
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
@@ -109,7 +108,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 .collect(Collectors.toList());
 
         // Set columns metadata
-        List<ExtractionProductColumnVO> columns = toProductColumnVOs(table, columnNames);
+        List<ExtractionTableColumnVO> columns = toProductColumnVOs(table, columnNames);
         result.setColumns(columns);
 
         String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
@@ -161,7 +160,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         // Set columns metadata
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         if (table != null && table.getColumnsCount() > 0) {
-            List<ExtractionProductColumnVO> columns = toProductColumnVOs(table, columnNames);
+            List<ExtractionTableColumnVO> columns = toProductColumnVOs(table, columnNames);
             result.setColumns(columns);
 
             whereBuilder.append(SumarisTableMetadatas.getSqlWhereClause(table, filter));
@@ -275,9 +274,9 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         return result;
     }
 
-    protected List<ExtractionProductColumnVO> toProductColumnVOs(SumarisTableMetadata table,
-                                                                 Collection<String> columnNames) {
-        List<ExtractionProductColumnVO> columns = columnNames.stream()
+    protected List<ExtractionTableColumnVO> toProductColumnVOs(SumarisTableMetadata table,
+                                                               Collection<String> columnNames) {
+        List<ExtractionTableColumnVO> columns = columnNames.stream()
                 // Get column metadata
                 .map(table::getColumnMetadata)
                 .filter(Objects::nonNull)
@@ -295,20 +294,23 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
         String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableNameUppercase);
         if (ArrayUtils.isNotEmpty(orderedColumnNames)) {
-            int maxRankOrder = -1;
-            for (ExtractionProductColumnVO column : columns) {
+            // Set rank Order of well known columns
+            int maxRankOrder = columns.stream().mapToInt(column -> {
                 int rankOrder = ArrayUtils.indexOf(orderedColumnNames, column.getName().toLowerCase());
                 if (rankOrder != -1) {
                     column.setRankOrder(rankOrder + 1);
-                    maxRankOrder = Math.max(maxRankOrder, rankOrder + 1);
                 }
-            }
+                return rankOrder + 1;
+            }).max().orElse(0);
+
             // Set rankOrder of unknown columns (e.g. new columns)
-            for (ExtractionProductColumnVO column : columns) {
-                if (column.getRankOrder() == null) {
-                    column.setRankOrder(++maxRankOrder);
-                }
-            }
+            MutableInt rankOrder = new MutableInt(maxRankOrder);
+            columns.stream()
+                    .filter(c -> c.getRankOrder() == null)
+                    .forEach(c -> {
+                        rankOrder.increment();
+                        c.setRankOrder(rankOrder.getValue());
+                    });
         }
 
         return columns;

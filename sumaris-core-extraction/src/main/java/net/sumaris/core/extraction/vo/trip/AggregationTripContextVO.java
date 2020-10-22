@@ -48,6 +48,10 @@ public abstract class AggregationTripContextVO extends AggregationContextVO {
 
     List<ExtractionPmfmInfoVO> pmfmInfos;
 
+    public List<String> getProgramLabels() {
+        return tripFilter != null && StringUtils.isNotBlank(tripFilter.getProgramLabel()) ? ImmutableList.of(tripFilter.getProgramLabel()) : null;
+    }
+
     public Date getStartDate() {
         return tripFilter != null ? tripFilter.getStartDate() : null;
     }
@@ -56,20 +60,22 @@ public abstract class AggregationTripContextVO extends AggregationContextVO {
         return tripFilter != null ? tripFilter.getEndDate() : null;
     }
 
-    public List<String> getProgramLabels() {
-        return tripFilter != null && StringUtils.isNotBlank(tripFilter.getProgramLabel()) ? ImmutableList.of(tripFilter.getProgramLabel()) : null;
-    }
-
-    public List<Integer> getRecorderDepartmentIds() {
-        return tripFilter != null && tripFilter.getRecorderDepartmentId() != null ? ImmutableList.of(tripFilter.getRecorderDepartmentId()) : null;
-    }
 
     public List<Integer> getVesselIds() {
         return tripFilter != null && tripFilter.getVesselId() != null ? ImmutableList.of(tripFilter.getVesselId()) : null;
     }
 
+    public List<String> getTripCodes() {
+        return tripFilter != null && tripFilter.getTripId() != null ? ImmutableList.of(tripFilter.getTripId().toString()) : null;
+    }
+
+
     public List<Integer> getLocationIds() {
         return tripFilter != null && tripFilter.getLocationId() != null ? ImmutableList.of(tripFilter.getLocationId()) : null;
+    }
+
+    public List<Integer> getRecorderDepartmentIds() {
+        return tripFilter != null && tripFilter.getRecorderDepartmentId() != null ? ImmutableList.of(tripFilter.getRecorderDepartmentId()) : null;
     }
 
 }

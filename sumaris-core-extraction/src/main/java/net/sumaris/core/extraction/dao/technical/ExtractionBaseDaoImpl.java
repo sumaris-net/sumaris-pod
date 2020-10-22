@@ -23,6 +23,8 @@ package net.sumaris.core.extraction.dao.technical;
  */
 
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.service.referential.ReferentialService;
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataRetrievalFailureException;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.Query;
 import java.util.List;
 import java.util.function.Function;
@@ -56,9 +59,16 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
     @Autowired
     ApplicationContext applicationContext;
 
+    protected DatabaseType databaseType = null;
+
     @Autowired
     public ExtractionBaseDaoImpl() {
         super();
+    }
+
+    @PostConstruct
+    protected void init() {
+        this.databaseType = Daos.getDatabaseType(configuration.getJdbcURL());
     }
 
     @SuppressWarnings("unchecked")

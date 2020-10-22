@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="extractionCreateSpeciesLengthMapTable">
+
+  <query type="create" temp="false" table="&amp;speciesLengthMapTableName" option="DISTINCT">
+
+    <with alias="SL_MAP">
+      <subquery>
+        <subselect alias="ID" type="number">MIN(ID)</subselect>
+        <subselect alias="PK_STR" type="text">
+          SAMPLING_TYPE  || '|' ||
+          LANDING_COUNTRY || '|' ||
+          VESSEL_FLAG_COUNTRY || '|' ||
+          YEAR || '|' ||
+          PROJECT || '|' ||
+          TRIP_CODE || '|' ||
+          STATION_NUMBER || '|' ||
+          SPECIES || '|' ||
+          CATCH_CATEGORY || '|' ||
+          LANDING_CATEGORY || '|' ||
+          COALESCE(COMMERCIAL_SIZE_CATEGORY_SCALE, '') || '|' ||
+          COALESCE(COMMERCIAL_SIZE_CATEGORY, '') || '|' ||
+          COALESCE(SUBSAMPLING_CATEGORY, '') || '|' ||
+          COALESCE(SEX, '')
+        </subselect>
+        <subselect alias="COUNT" type="number">COUNT(DISTINCT ID)</subselect>
+
+        <from>&amp;rawSpeciesListTableName</from>
+
+        <where>1=1</where>
+
+        <where operator="AND" group="programFilter">
+          <in field="PROJECT">&amp;progLabels</in>
+        </where>
+        <where group="vesselFilter" operator="AND">
+          <in field="VESSEL_IDENTIFIER">&amp;vesselIds</in>
+        </where>
+        <where group="tripFilter" operator="AND">
+          <in field="TRIP_CODE">&amp;tripCodes</in>
+        </where>
+
+        <groupby>PK_STR</groupby>
+      </subquery>
+    </with>
+    <with alias="HL_MAP">
+      <subquery>
+        <subselect alias="ID" type="number">ID</subselect>
+        <subselect alias="FK_STR_1" type="text">
+          SAMPLING_TYPE  || '|' ||
+          LANDING_COUNTRY || '|' ||
+          VESSEL_FLAG_COUNTRY || '|' ||
+          YEAR || '|' ||
+          PROJECT || '|' ||
+          TRIP_CODE || '|' ||
+          STATION_NUMBER || '|' ||
+          SPECIES || '|' ||
+          CATCH_CATEGORY || '|' ||
+          LANDING_CATEGORY || '|' ||
+          COALESCE(COMMERCIAL_SIZE_CATEGORY_SCALE, '') || '|' ||
+          COALESCE(COMMERCIAL_SIZE_CATEGORY, '') || '|' ||
+          COALESCE(SUBSAMPLING_CATEGORY, '') || '|' ||
+          COALESCE(INDIVIDUAL_SEX, '')
+        </subselect>
+        <subselect alias="FK_STR_2" type="text">
+          SAMPLING_TYPE  || '|' ||
+          LANDING_COUNTRY || '|' ||
+          VESSEL_FLAG_COUNTRY || '|' ||
+          YEAR || '|' ||
+          PROJECT || '|' ||
+          TRIP_CODE || '|' ||
+          STATION_NUMBER || '|' ||
+          SPECIES || '|' ||
+          CATCH_CATEGORY || '|' ||
+          LANDING_CATEGORY || '|' ||
+          COALESCE(COMMERCIAL_SIZE_CATEGORY_SCALE, '') || '|' ||
+          COALESCE(COMMERCIAL_SIZE_CATEGORY, '') || '|' ||
+          COALESCE(SUBSAMPLING_CATEGORY, '') || '|' ||
+          COALESCE(SEX, '')
+        </subselect>
+
+        <from>&amp;rawSpeciesLengthTableName</from>
+
+        <where>1=1</where>
+
+        <where operator="AND" group="programFilter">
+          <in field="PROJECT">&amp;progLabels</in>
+        </where>
+        <where group="vesselFilter" operator="AND">
+          <in field="VESSEL_IDENTIFIER">&amp;vesselIds</in>
+        </where>
+        <where group="tripFilter" operator="AND">
+          <in field="TRIP_CODE">&amp;tripCodes</in>
+        </where>
+      </subquery>
+    </with>
+
+    <select alias="SL_ID" type="number">SL_MAP.ID</select>
+    <select alias="HL_ID" type="number">COALESCE(HL_MAP_1.ID, HL_MAP_2.ID)</select>
+    <select alias="SL_COUNT" type="number">SL_MAP.COUNT</select>
+
+    <from>SL_MAP</from>
+    <from join="true">left join HL_MAP HL_MAP_1 on HL_MAP_1.FK_STR_1 = PK_STR</from>
+    <from join="true">left join HL_MAP HL_MAP_2 on HL_MAP_2.FK_STR_2 = PK_STR and HL_MAP_2.ID = HL_MAP_1.ID</from>
+
+    <where>HL_MAP_1.ID is not null or HL_MAP_2.ID is not null</where>
+
+    <groupby>SL_ID, HL_ID, SL_COUNT</groupby>
+  </query>
+
+</queries>

@@ -129,6 +129,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
 
+
+        System.setProperty("logging.level.Hibernate Types", "error");
+
         // find all config providers
         Set<ApplicationConfigProvider> providers =
                 ApplicationConfigHelper.getProviders(null,

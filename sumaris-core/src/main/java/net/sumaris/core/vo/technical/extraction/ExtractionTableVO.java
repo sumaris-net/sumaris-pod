@@ -35,7 +35,7 @@ import java.util.Map;
  */
 @Data
 @FieldNameConstants
-public class ExtractionProductTableVO implements IReferentialVO {
+public class ExtractionTableVO implements IReferentialVO {
 
     private Integer id;
     private String label;
@@ -46,6 +46,7 @@ public class ExtractionProductTableVO implements IReferentialVO {
     private Date creationDate;
     private Integer statusId;
     private Boolean isSpatial;
+    private Integer rankOrder;
 
     private ExtractionProductVO product;
     private Integer productId;
@@ -56,7 +57,7 @@ public class ExtractionProductTableVO implements IReferentialVO {
     private String defaultAggColumn;
     private String defaultTechColumn;
 
-    private List<ExtractionProductColumnVO> columns;
+    private List<ExtractionTableColumnVO> columns;
     private Map<String, List<Object>> columnValues;
 
 }

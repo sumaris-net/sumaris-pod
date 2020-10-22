@@ -22,9 +22,15 @@ package net.sumaris.core.extraction.vo;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExtractionFilterCriterionVO {
 
     private String sheetName;
