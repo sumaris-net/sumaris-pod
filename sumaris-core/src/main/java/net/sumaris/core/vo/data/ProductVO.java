@@ -25,6 +25,7 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -76,18 +77,22 @@ public class ProductVO implements IDataVO<Integer>, IWithRecorderPersonEntity<In
     private Map<Integer, String> measurementValues; // = sorting_measurement_p or quantification_measurement_p
 
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private OperationVO operation;
     private Integer operationId;
 
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private SaleVO sale;
     private Integer saleId;
 
     @EqualsAndHashCode.Exclude
     private LandingVO landing;
+    @ToString.Exclude
     private Integer landingId;
 
     @EqualsAndHashCode.Exclude
     private BatchVO batch;
+    @ToString.Exclude
     private Integer batchId;
 }

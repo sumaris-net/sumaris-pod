@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -94,5 +95,6 @@ public class LandingMeasurement implements IMeasurementEntity, ISortedMeasuremen
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Landing.class)
     @JoinColumn(name = "landing_fk", nullable = false)
+    @ToString.Exclude
     private Landing landing;
 }

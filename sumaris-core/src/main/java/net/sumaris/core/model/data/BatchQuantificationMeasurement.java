@@ -23,6 +23,7 @@
 package net.sumaris.core.model.data;
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
@@ -33,6 +34,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name="quantification_measurement_b")
@@ -41,6 +43,7 @@ public class BatchQuantificationMeasurement implements IQuantifiedMeasurementEnt
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUANTIF_MEASUREMENT_B_SEQ")
     @SequenceGenerator(name = "QUANTIF_MEASUREMENT_B_SEQ", sequenceName="QUANTIF_MEASUREMENT_B_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(name = "update_date")
@@ -96,17 +99,12 @@ public class BatchQuantificationMeasurement implements IQuantifiedMeasurementEnt
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)
     @JoinColumn(name = "pmfm_fk", nullable = false)
+    @ToString.Include
     private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Batch.class)
     @JoinColumn(name = "batch_fk")
+    @ToString.Include
     private Batch batch;
 
-    public String toString() {
-        return String.format("BatchQuantificationMeasurement{id:%s, batch:{id:%s}, pmfm:{id:%s, label:%s}}}",
-                id,
-                batch != null ? batch.getId() : null,
-                pmfm != null ? pmfm.getId() : null,
-                pmfm != null ? pmfm.getLabel() : null);
-    }
 }

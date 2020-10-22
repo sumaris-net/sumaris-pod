@@ -23,9 +23,9 @@ package net.sumaris.core.model.social;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ISignedEntityBean;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.ObjectType;
 
@@ -34,6 +34,7 @@ import java.util.Date;
 
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "user_interaction")
@@ -54,9 +55,11 @@ public class UserInteraction implements ISignedEntityBean<Integer, Date> {
     private Date updateDate;
 
     @Column(name = "issuer", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
+    @ToString.Include
     private String issuer;
 
     @Column(name = "interaction_type", nullable = false, length = 30)
+    @ToString.Include(rank = 1)
     private String interactionType;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObjectType.class)
@@ -70,16 +73,10 @@ public class UserInteraction implements ISignedEntityBean<Integer, Date> {
     private String comment;
 
     @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
+    @ToString.Include
     private String hash;
 
     @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String signature;
 
-    public String toString() {
-        return new StringBuilder().append(super.toString())
-                .append(",interactionType=").append(this.interactionType)
-                .append(",issuer=").append(this.issuer)
-                .append(",hash=").append(this.hash)
-                .toString();
-    }
 }

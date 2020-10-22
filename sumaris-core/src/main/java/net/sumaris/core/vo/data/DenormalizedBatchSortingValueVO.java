@@ -24,8 +24,8 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 @Data
@@ -48,6 +48,7 @@ public class DenormalizedBatchSortingValueVO {
     private ReferentialVO unit;
 
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DenormalizedBatchVO batch;
 
 }

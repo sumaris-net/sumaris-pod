@@ -23,6 +23,7 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -33,6 +34,7 @@ import java.util.Date;
 import java.util.Objects;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Cacheable
@@ -42,6 +44,7 @@ public class AcquisitionLevel implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ACQUISITION_LEVEL_SEQ")
     @SequenceGenerator(name = "ACQUISITION_LEVEL_SEQ", sequenceName="ACQUISITION_LEVEL_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,6 +60,7 @@ public class AcquisitionLevel implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)

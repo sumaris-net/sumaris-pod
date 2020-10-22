@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -45,6 +46,7 @@ public class VesselPositionVO implements IUpdateDateEntityBean<Integer, Date>, I
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
 
+    @ToString.Exclude
     private OperationVO operation;
     private Integer operationId;
 }

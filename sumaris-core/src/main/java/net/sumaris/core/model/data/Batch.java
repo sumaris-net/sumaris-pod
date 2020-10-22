@@ -23,6 +23,7 @@
 package net.sumaris.core.model.data;
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.model.administration.user.Department;
@@ -37,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 public class Batch implements IDataEntity<Integer>,
@@ -45,9 +47,11 @@ public class Batch implements IDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BATCH_SEQ")
     @SequenceGenerator(name = "BATCH_SEQ", sequenceName="BATCH_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(length = 40)
+    @ToString.Include
     private String label;
 
     @Column(name = "rank_order", nullable = false)
@@ -139,7 +143,4 @@ public class Batch implements IDataEntity<Integer>,
     //@JoinColumn(name = "location_fk")
     //private Location location;
 
-    public String toString() {
-        return String.format("Batch{id=%s,label=%s}", id, label);
-    }
 }

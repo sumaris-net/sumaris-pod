@@ -25,6 +25,7 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -36,11 +37,13 @@ import java.util.List;
  * @author peck7 on 09/04/2020.
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @EqualsAndHashCode
 public class PacketVO implements IDataVO<Integer> {
 
     @EqualsAndHashCode.Exclude
+    @ToString.Include
     private Integer id;
     private String comments;
     @EqualsAndHashCode.Exclude
@@ -53,19 +56,19 @@ public class PacketVO implements IDataVO<Integer> {
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
+    @ToString.Include
     private Integer rankOrder;
+    @ToString.Include
     private Integer number;
+    @ToString.Include
     private Double weight;
     private List<Double> sampledWeights;
+    @ToString.Include
     private List<PacketCompositionVO> composition;
 
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private OperationVO operation;
     private Integer operationId;
 
-    public String toString() {
-        return "PacketVO(id=" + id + ", rankOrder=" + rankOrder +
-            ", number=" + number + ", weight=" + weight +
-            ", composition=" + composition.toString() + ")";
-    }
 }

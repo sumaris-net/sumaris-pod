@@ -23,6 +23,7 @@
 package net.sumaris.core.model.referential.conversion;
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
@@ -51,6 +52,7 @@ import java.util.Date;
  * </p>
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "round_weight_conversion")
@@ -88,6 +90,7 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ROUND_WEIGHT_CONVERSION_SEQ")
     @SequenceGenerator(name = "ROUND_WEIGHT_CONVERSION_SEQ", sequenceName="ROUND_WEIGHT_CONVERSION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -107,6 +110,7 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity {
     private OriginItemType originItemType;
 
     @Column(name = "conversion_coefficient", nullable = false)
+    @ToString.Include
     private Double conversionCoefficient;
 
     private String description;
@@ -116,10 +120,12 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "taxon_group_fk", nullable = false)
+    @ToString.Include
     private TaxonGroup taxonGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_fk", nullable = false)
+    @ToString.Include
     private Location location;
 
     /**
@@ -127,6 +133,7 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "preserving_fk", nullable = false)
+    @ToString.Include
     private QualitativeValue preserving;
 
     /**
@@ -134,23 +141,14 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dressing_fk", nullable = false)
+    @ToString.Include
     private QualitativeValue dressing;
 
     @Column(name = "start_date", nullable = false)
+    @ToString.Include
     private Date startDate;
 
     @Column(name = "end_date")
     private Date endDate;
 
-    public String toString() {
-        return new StringBuilder().append(super.toString())
-                .append(",id=").append(this.id)
-                .append(",conversionCoefficient=").append(this.conversionCoefficient)
-                .append(",taxonGroup=").append(this.taxonGroup.getLabel())
-                .append(",location=").append(this.location.getLabel())
-                .append(",preserving=").append(this.preserving.getLabel())
-                .append(",dressing=").append(this.dressing.getLabel())
-                .append(",startDate=").append(this.startDate)
-                .toString();
-    }
 }

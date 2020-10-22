@@ -23,6 +23,7 @@ package net.sumaris.core.model.administration.user;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.data.Trip;
@@ -39,6 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "person")
@@ -64,6 +66,7 @@ public class Person implements IReferentialWithStatusEntity {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PERSON_SEQ")
     @SequenceGenerator(name = "PERSON_SEQ", sequenceName="PERSON_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -85,6 +88,7 @@ public class Person implements IReferentialWithStatusEntity {
     private String lastName;
 
     @Column(name="email", nullable = false, unique = true)
+    @ToString.Include
     private String email;
 
     @Column(name="email_md5", unique = true)
@@ -113,10 +117,6 @@ public class Person implements IReferentialWithStatusEntity {
     @JoinColumn(name = "avatar_fk")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private ImageAttachment avatar;
-
-    public String toString() {
-        return new StringBuilder().append(super.toString()).append(",email=").append(this.email).toString();
-    }
 
     public int hashCode() {
         return Objects.hash(id, pubkey, email);
