@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
@@ -31,8 +32,6 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
@@ -67,6 +66,7 @@ public class SaleVO implements IRootDataVO<Integer>,
     private Set<PersonVO> observers;
     private List<SampleVO> samples;
 
+    @ToString.Exclude
     private TripVO trip;
     private Integer tripId;
 
@@ -74,10 +74,6 @@ public class SaleVO implements IRootDataVO<Integer>,
     private Map<Integer, String> measurementValues; // sale_measurement
 
     private List<ProductVO> products;
-
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-    }
 
     @Override
     public Date getVesselDateTime() {

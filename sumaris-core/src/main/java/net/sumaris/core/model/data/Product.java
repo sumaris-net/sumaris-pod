@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -140,17 +141,21 @@ public class Product
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operation_fk", nullable = false)
+    @ToString.Exclude
     private Operation operation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "landing_fk")
+    @ToString.Exclude
     private Landing landing;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_fk")
+    @ToString.Exclude
     private Sale sale;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_fk")
+    @ToString.Exclude
     private Batch batch;
 }

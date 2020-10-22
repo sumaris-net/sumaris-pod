@@ -26,8 +26,6 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.data.IWithMeasurementValues;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -53,10 +51,6 @@ public class VesselActivityVO implements IWithMeasurementValues, Serializable {
 
     public VesselActivityVO() {
         metiers = new ArrayList<>();
-    }
-
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }
 
 }

@@ -23,6 +23,7 @@ package net.sumaris.core.model.administration.user;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -34,6 +35,7 @@ import java.util.Date;
 import java.util.Objects;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "department")
@@ -58,6 +60,7 @@ public class Department implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)
@@ -78,10 +81,6 @@ public class Department implements IItemReferentialEntity {
     @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
     @JoinColumn(name = "location_fk")
     private Location location;
-
-    public String toString() {
-        return label;
-    }
 
     public int hashCode() {
         return Objects.hash(label);

@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
@@ -37,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name="physical_gear")
@@ -45,6 +47,7 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PHYSICAL_GEAR_SEQ")
     @SequenceGenerator(name = "PHYSICAL_GEAR_SEQ", sequenceName="PHYSICAL_GEAR_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -90,6 +93,7 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Gear.class)
     @JoinColumn(name = "gear_fk", nullable = false)
+    @ToString.Include
     private Gear gear;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
@@ -108,7 +112,4 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
     @JoinColumn(name = "trip_fk", nullable = false)
     private Trip trip;
 
-    public String toString() {
-        return new StringBuilder().append(super.toString()).append(",gear=").append(this.gear).toString();
-    }
 }

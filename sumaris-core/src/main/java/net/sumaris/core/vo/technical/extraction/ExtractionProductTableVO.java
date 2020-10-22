@@ -23,6 +23,7 @@ package net.sumaris.core.vo.technical.extraction;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
 
@@ -47,6 +48,7 @@ public class ExtractionProductTableVO implements IReferentialVO {
     private Integer statusId;
     private Boolean isSpatial;
 
+    @ToString.Exclude
     private ExtractionProductVO product;
     private Integer productId;
 

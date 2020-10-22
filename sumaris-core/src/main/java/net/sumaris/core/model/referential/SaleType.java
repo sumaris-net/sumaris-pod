@@ -23,12 +23,14 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "sale_type")
@@ -37,6 +39,7 @@ public class SaleType implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "SALE_TYPE_SEQ")
     @SequenceGenerator(name = "SALE_TYPE_SEQ", sequenceName="SALE_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,6 +55,7 @@ public class SaleType implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

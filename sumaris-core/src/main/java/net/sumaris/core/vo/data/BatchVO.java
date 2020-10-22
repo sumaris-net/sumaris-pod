@@ -24,10 +24,9 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -39,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @EqualsAndHashCode
 public class BatchVO implements IDataVO<Integer>,
@@ -48,6 +48,7 @@ public class BatchVO implements IDataVO<Integer>,
     // TODO LP 03/05/2020 : why not implements IDataVO<Integer> and add qualification properties ?
 
     @EqualsAndHashCode.Exclude
+    @ToString.Include
     private Integer id;
     @EqualsAndHashCode.Exclude
     private Date updateDate;
@@ -65,6 +66,7 @@ public class BatchVO implements IDataVO<Integer>,
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
+    @ToString.Include
     private String label;
     private Integer rankOrder;
     private Boolean exhaustiveInventory;
@@ -96,10 +98,4 @@ public class BatchVO implements IDataVO<Integer>,
     private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_b (from a list)
     private List<QuantificationMeasurementVO> quantificationMeasurements; // = quantification_measurement_b (from a list)
 
-    public String toString() {
-        return new StringBuilder().append("BatchVO(")
-                .append("id=").append(id)
-                .append(",label=").append(label)
-                .append(")").toString();
-    }
 }

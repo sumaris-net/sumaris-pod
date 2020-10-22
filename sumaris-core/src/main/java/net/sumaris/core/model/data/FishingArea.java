@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.DepthGradient;
@@ -63,6 +64,7 @@ public class FishingArea implements IEntity<Integer> {
     // parent
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
     @JoinColumn(name = "operation_fk")
+    @ToString.Exclude
     private Operation operation;
 
     // TODO : add other parent (from SIH-Adagio model)

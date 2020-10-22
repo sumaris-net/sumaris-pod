@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -94,5 +95,6 @@ public class ObservedLocationMeasurement implements IMeasurementEntity, ISortedM
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObservedLocation.class)
     @JoinColumn(name = "observed_location_fk", nullable = false)
+    @ToString.Exclude
     private ObservedLocation observedLocation;
 }

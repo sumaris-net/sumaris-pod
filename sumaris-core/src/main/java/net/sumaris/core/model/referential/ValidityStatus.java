@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 
@@ -34,6 +35,7 @@ import java.util.Date;
  * Validity status of a referential data.
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Cacheable
@@ -43,9 +45,11 @@ public class ValidityStatus implements IUpdateDateEntityBean<Integer, Date> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VALIDITY_STATUS_SEQ")
     @SequenceGenerator(name = "VALIDITY_STATUS_SEQ", sequenceName="VALIDITY_STATUS_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(nullable = false)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false)

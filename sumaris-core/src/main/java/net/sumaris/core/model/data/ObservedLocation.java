@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
@@ -46,6 +47,7 @@ import java.util.*;
             })
 })
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name="observed_location")
@@ -54,6 +56,7 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OBSERVED_LOCATION_SEQ")
     @SequenceGenerator(name = "OBSERVED_LOCATION_SEQ", sequenceName="OBSERVED_LOCATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -95,6 +98,7 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     private QualityFlag qualityFlag;
 
     @Column(name = "start_date_time", nullable = false)
+    @ToString.Include
     private Date startDateTime;
 
     @Column(name = "end_date_time", nullable = false)
@@ -102,6 +106,7 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
 
     @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
     @JoinColumn(name = "location_fk", nullable = false)
+    @ToString.Include
     private Location location;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
@@ -127,14 +132,6 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
             inverseJoinColumns = {
                     @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
     private Set<Person> observers = Sets.newHashSet();
-
-    public String toString() {
-        return new StringBuilder().append("ObservedLocation(")
-                .append("id=").append(id)
-                .append(",dateTime=").append(startDateTime)
-                .append(",location=").append(location)
-                .append(")").toString();
-    }
 
     public int hashCode() {
         return Objects.hash(id, program, startDateTime, location);

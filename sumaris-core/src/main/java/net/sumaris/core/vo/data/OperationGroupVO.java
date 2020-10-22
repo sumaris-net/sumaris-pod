@@ -24,11 +24,10 @@ package net.sumaris.core.vo.data;
 
 import io.leangen.graphql.annotations.GraphQLIgnore;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.MetierVO;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
@@ -55,9 +54,11 @@ public class OperationGroupVO implements IDataVO<Integer> {
 
     private MetierVO metier;
 
+    @ToString.Exclude
     private TripVO trip;
     private Integer tripId;
 
+    @ToString.Exclude
     private PhysicalGearVO physicalGear;
     private Integer physicalGearId;
 
@@ -75,7 +76,4 @@ public class OperationGroupVO implements IDataVO<Integer> {
 
     private List<FishingAreaVO> fishingAreas;
 
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-    }
 }

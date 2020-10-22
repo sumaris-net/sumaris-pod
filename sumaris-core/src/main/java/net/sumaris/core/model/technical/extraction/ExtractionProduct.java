@@ -24,6 +24,7 @@ package net.sumaris.core.model.technical.extraction;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -91,6 +92,7 @@ public class ExtractionProduct implements IItemReferentialEntity,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_extraction_product_fk")
+    @ToString.Exclude
     private ExtractionProduct parent;
 
     @OneToMany(fetch = FetchType.EAGER, targetEntity = ExtractionProductStrata.class, mappedBy = ExtractionProductStrata.Fields.PRODUCT)

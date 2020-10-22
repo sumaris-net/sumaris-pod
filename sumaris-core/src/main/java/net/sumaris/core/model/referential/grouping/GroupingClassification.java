@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.grouping;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.ObjectType;
@@ -32,6 +33,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "grouping_classification")
@@ -40,6 +42,7 @@ public class GroupingClassification implements IItemReferentialEntity  {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_CLASSIFICATION_SEQ")
     @SequenceGenerator(name = "GROUPING_CLASSIFICATION_SEQ", sequenceName="GROUPING_CLASSIFICATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -55,6 +58,7 @@ public class GroupingClassification implements IItemReferentialEntity  {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

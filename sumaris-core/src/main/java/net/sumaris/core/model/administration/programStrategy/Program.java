@@ -24,10 +24,10 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationClassification;
@@ -38,6 +38,7 @@ import javax.persistence.*;
 import java.util.*;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Cacheable
@@ -46,6 +47,7 @@ public class Program implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_SEQ")
     @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -61,6 +63,7 @@ public class Program implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
@@ -105,9 +108,4 @@ public class Program implements IItemReferentialEntity {
         return Objects.hash(label);
     }
 
-    public String toString() {
-        return String.format("Program{id=%s, label=%s}",
-                id,
-                label);
-    }
 }

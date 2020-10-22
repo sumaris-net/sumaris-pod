@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
@@ -55,6 +56,7 @@ import java.util.*;
                 })
 })
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "trip")
@@ -69,6 +71,7 @@ public class Trip implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TRIP_SEQ")
     @SequenceGenerator(name = "TRIP_SEQ", sequenceName="TRIP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -114,6 +117,7 @@ public class Trip implements IRootDataEntity<Integer>,
     private Vessel vessel;
 
     @Column(name = "departure_date_time", nullable = false)
+    @ToString.Include
     private Date departureDateTime;
 
     @Column(name = "return_date_time", nullable = false)
@@ -155,13 +159,6 @@ public class Trip implements IRootDataEntity<Integer>,
             inverseJoinColumns = {
                     @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
     private Set<Person> observers = Sets.newHashSet();
-
-    public String toString() {
-        return new StringBuilder().append("Trip(")
-                .append("id=").append(id)
-                .append(",departureDateTime=").append(departureDateTime)
-                .append(")").toString();
-    }
 
     public int hashCode() {
         return Objects.hash(id, vessel, program, departureDateTime);
