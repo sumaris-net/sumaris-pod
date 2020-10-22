@@ -657,6 +657,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       const deleteCount = rowsToDelete.length;
       await this._dataSource.deleteAll(rowsToDelete);
       this.resultsLength -= deleteCount;
+      this.visibleRowCount -= deleteCount;
       this.selection.clear();
       this.editedRow = undefined;
       this.markAsDirty();
@@ -878,6 +879,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.onStartEditingRow.emit(this.editedRow);
     this._dirty = true;
     this.resultsLength++;
+    this.visibleRowCount++;
     this.markForCheck();
     return this.editedRow;
   }
