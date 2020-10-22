@@ -37,6 +37,7 @@ import {ReferentialModule} from "../referential/referential.module";
 import {TranslateModule} from "@ngx-translate/core";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {CommonModule} from "@angular/common";
+import {SamplesModal} from "./sample/samples.modal";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -75,14 +76,15 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     PacketSaleForm,
     PacketSaleModal,
     FishingAreaForm,
-    SelectVesselsModal
+    SelectVesselsModal,
+    SamplesModal
   ],
   exports: [
     // Modules
     TranslateModule,
     TripModule,
 
-    // COmponents
+    // Components
     LandingsTable,
     LandingForm,
     LandingPage,

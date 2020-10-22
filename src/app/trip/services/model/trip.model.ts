@@ -622,6 +622,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
     // Affect parent
     this.products.forEach(product => {
       product.parent = this;
+      product.operationId = this.id;
     });
 
     // Samples

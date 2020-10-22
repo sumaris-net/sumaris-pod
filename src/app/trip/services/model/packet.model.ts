@@ -63,7 +63,7 @@ export class Packet extends DataEntity<Packet> {
   sampledRatio6: number;
 
   parent: IWithPacketsEntity<any>;
-  parentId: number;
+  operationId: number;
 
   // Not serialized
   saleProducts: Product[];
@@ -76,7 +76,7 @@ export class Packet extends DataEntity<Packet> {
     this.composition = [];
     this.saleProducts = [];
     this.parent = null;
-    this.parentId = null;
+    this.operationId = null;
   }
 
   asObject(opts?: DataEntityAsObjectOptions): any {
@@ -93,7 +93,7 @@ export class Packet extends DataEntity<Packet> {
 
     if (!opts || opts.minify !== true) {
       target.saleProducts = this.saleProducts && this.saleProducts.map(saleProduct => {
-        const s = saleProduct.asObject({...opts, withChildren: false});
+        const s = saleProduct.asObject(opts);
         // Affect batchId (=packet.id)
         s.batchId = this.id;
         return s;
@@ -102,7 +102,6 @@ export class Packet extends DataEntity<Packet> {
       delete target.saleProducts;
     }
 
-    target.operationId = this.parent && this.parent.id || this.parentId;
     delete target.parent;
     return target;
   }
@@ -122,7 +121,7 @@ export class Packet extends DataEntity<Packet> {
 
     this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
 
-    this.parentId = source.operationId;
+    this.operationId = source.operationId;
     this.parent = source.parent;
     return this;
   }

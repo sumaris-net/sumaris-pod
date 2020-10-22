@@ -109,17 +109,16 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     return Product.fromObject(this.asObject());
   }
 
-  asObject(opts?: DataEntityAsObjectOptions & { withChildren?: boolean }): any {
+  asObject(opts?: DataEntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true} as ReferentialAsObjectOptions) || undefined;
     target.saleType = this.saleType && this.saleType.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
 
-    // target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
     if (!opts || opts.minify !== true) {
-      target.saleProducts = this.saleProducts && this.saleProducts.map(s => s.asObject({...opts, withChildren: false})) || [];
+      target.saleProducts = this.saleProducts && this.saleProducts.map(s => s.asObject(opts)) || [];
       target.samples = this.samples && this.samples.map(s => s.asObject({...opts, withChildren: false})) || [];
     } else {
       delete target.saleProducts;
@@ -152,7 +151,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.measurementValues = source.measurementValues && {...source.measurementValues};
 
     this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
-    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source)) || undefined;
+    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source)) || [];
 
     return this;
   }

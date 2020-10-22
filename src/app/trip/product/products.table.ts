@@ -7,13 +7,14 @@ import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {BehaviorSubject, Observable} from "rxjs";
-import {IReferentialRef} from "../../core/services/model/referential.model";
+import {IReferentialRef, referentialToString} from "../../core/services/model/referential.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {ProductSaleModal} from "../sale/product-sale.modal";
 import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {filterNotNil} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {SamplesModal} from "../sample/samples.modal";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -176,9 +177,48 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
   }
 
-  openSampling(event: MouseEvent, row: TableElement<Product>) {
+  async openSampling(event: MouseEvent, row: TableElement<Product>) {
     if (event) event.stopPropagation();
-    // todo
+
+    // test sample modal
+    this.markAsLoading();
+
+    const samples = row.currentData.samples || [];
+    const taxonGroup = row.currentData.taxonGroup;
+    const title = await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', {label: referentialToString(taxonGroup)}).toPromise();
+
+    const modal = await this.modalCtrl.create({
+      component: SamplesModal,
+      componentProps: {
+        program: this.program,
+        disabled: this.disabled,
+        value: samples,
+        defaultSampleDate: new Date(), // trick to valid sample row, should be set with correct date
+        defaultTaxonGroup: taxonGroup,
+        showLabel: false,
+        showTaxonGroup: false,
+        showTaxonName: false,
+        title
+        // onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()})
+      },
+      keyboardClose: true
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+    // if (data && this.debug)
+      console.debug("[products-table] Modal result: ", data);
+    this.markAsLoaded();
+
+    if (data) {
+      // patch samples only
+      row.validator.patchValue({samples: data}, {emitEvent: true});
+      this.markAsDirty();
+    }
+
   }
 
   private onStartEditProduct(row: TableElement<Product>) {

@@ -184,7 +184,7 @@ export class SaleProductUtils {
     // even a calculated ratio need to be saved
     MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO, saleProduct.ratio);
     // if (saleProduct.batchId && saleProduct.rankOrder) {
-    //   // for a packet sale, the rankOrder is stored in measurement (SIH)
+    //   // TODO for a packet sale, the rankOrder is stored in measurement (SIH)
     //   MeasurementValuesUtils.setValue(target.measurementValues, pmfms, 'SALE_RANK_ORDER', saleProduct.rankOrder);
     // }
     // add measurements for each non calculated values

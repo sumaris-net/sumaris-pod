@@ -1,0 +1,148 @@
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {environment} from "../../../environments/environment";
+import {AppFormUtils, ReferentialRef} from "../../core/core.module";
+import {ModalController} from "@ionic/angular";
+import {BehaviorSubject, Observable} from "rxjs";
+import {TranslateService} from "@ngx-translate/core";
+import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
+import {PlatformService} from "../../core/services/platform.service";
+import {SampleForm} from "./sample.form";
+import {Sample} from "../services/model/sample.model";
+import {SamplesTable} from "./samples.table";
+import {TaxonGroupRef} from "../../referential/services/model/taxon.model";
+import {Moment} from "moment";
+
+@Component({
+  selector: 'app-samples-modal',
+  templateUrl: 'samples.modal.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class SamplesModal implements OnInit {
+
+  debug = false;
+  loading = false;
+  mobile: boolean;
+  data: Sample[];
+  $title = new BehaviorSubject<string>(undefined);
+
+  @Input() acquisitionLevel: AcquisitionLevelType;
+
+  @Input() program: string;
+
+  @Input() canEdit: boolean;
+
+  @Input() disabled: boolean;
+
+  @Input() isNew = false;
+
+  @Input() defaultSampleDate: Moment;
+
+  @Input() defaultTaxonGroup: ReferentialRef;
+
+  @Input() showTaxonGroup = true;
+
+  @Input() showTaxonName = true;
+
+  @Input() showLabel = false;
+
+  @Input() title: string;
+
+  @Input()
+  set value(value: Sample[]) {
+    this.data = value;
+  }
+
+  @Input() onReady: (modal: SamplesModal) => void;
+
+  @ViewChild('table', { static: true }) table: SamplesTable;
+
+  get dirty(): boolean {
+    return this.table.dirty;
+  }
+
+  get invalid(): boolean {
+    return this.table.invalid;
+  }
+
+  get valid(): boolean {
+    return this.table.valid;
+  }
+
+  get $pmfms(): Observable<PmfmStrategy[]> {
+    return this.table.$pmfms;
+  }
+
+  constructor(
+    protected injector: Injector,
+    protected viewCtrl: ModalController,
+    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
+    protected translate: TranslateService,
+    protected cd: ChangeDetectorRef
+  ) {
+    // Default value
+    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
+    this.mobile = platform.mobile;
+
+    // TODO: for DEV only
+    this.debug = !environment.production;
+  }
+
+
+  ngOnInit() {
+    this.canEdit = toBoolean(this.canEdit, !this.disabled);
+    this.disabled = !this.canEdit || toBoolean(this.disabled, true);
+
+    if (this.disabled) {
+      this.table.disable();
+    }
+
+    this.table.value = this.data || [];
+
+    // Compute the title
+    this.$title.next(this.title || '');
+
+    // Add callback
+    this.ready().then(() => {
+      if (this.onReady) this.onReady(this);
+      this.markForCheck();
+    });
+  }
+
+  async cancel() {
+    await this.viewCtrl.dismiss();
+  }
+
+  async ready(): Promise<void>{
+    await this.table.onReady();
+  }
+
+  async close(event?: UIEvent) {
+    if (this.loading) return; // avoid many call
+
+    if (this.invalid) {
+      // if (this.debug) AppFormUtils.logFormErrors(this.table.table., "[sample-modal] ");
+      this.table.error = "COMMON.FORM.HAS_ERROR";
+      this.table.markAsTouched({emitEvent: true});
+      return;
+    }
+
+    this.loading = true;
+
+    // Save table content
+    await this.table.save();
+    const data = this.table.value;
+
+    await this.viewCtrl.dismiss(data);
+  }
+
+  /* -- protected methods -- */
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+}

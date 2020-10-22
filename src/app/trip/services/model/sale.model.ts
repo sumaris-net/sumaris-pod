@@ -90,7 +90,7 @@ export class Sale extends DataRootVesselEntity<Sale>
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
 
     // Products
-    target.products = this.products && this.products.map(o => o.asObject({...options, withChildren: false})) || undefined;
+    target.products = this.products && this.products.map(o => o.asObject(options)) || undefined;
     // Affect parent link
     if (isNotEmptyArray(target.products)) {
       target.products.forEach(product => {

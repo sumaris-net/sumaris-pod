@@ -101,6 +101,7 @@ export const DataFragments = {
     }
     measurementValues
     qualityFlagId
+    operationId
     __typename
   }
   ${Fragments.referential}
