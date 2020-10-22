@@ -3,7 +3,8 @@ import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/tab
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {environment} from "../../../environments/environment";
-import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
+//import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
+import {PmfmSimpleStrategyValidatorService} from "../services/validator/pmfm-simple-strategy.validator";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {filterNumberInput} from "../../shared/inputs";
 import {ReferentialRefService} from "../services/referential-ref.service";
@@ -92,7 +93,9 @@ export const PmfmStrategyFilterKeys: KeysEnum<PmfmStrategyFilter> = {
   templateUrl: './pmfm-strategies.table.html',
   styleUrls: ['./pmfm-strategies.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: PmfmStrategyValidatorService}
+    // FIXME CLT : manage specific pmfm strategies validators
+    //{provide: ValidatorService, useExisting: PmfmStrategyValidatorService}
+    {provide: ValidatorService, useExisting: PmfmSimpleStrategyValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -346,7 +349,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       })
     });*/
 
-    
+
 
     // PMFM.METHOD
     const pmfmMethodAttributes = ['method.name', 'method.description'];
