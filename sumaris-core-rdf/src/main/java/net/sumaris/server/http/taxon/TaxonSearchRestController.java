@@ -25,12 +25,11 @@ package net.sumaris.server.http.taxon;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -52,14 +51,13 @@ import java.util.Objects;
 
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
+@Slf4j
 public class TaxonSearchRestController {
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
 
     // search path
     public static final String SEARCH_PATH = "/api/taxon/search";
-
-    private static final Logger log = LoggerFactory.getLogger(TaxonSearchRestController.class);
 
     @PostConstruct
     public void init() {

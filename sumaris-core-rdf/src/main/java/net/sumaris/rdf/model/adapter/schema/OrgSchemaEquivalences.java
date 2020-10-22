@@ -22,12 +22,11 @@
 
 package net.sumaris.rdf.model.adapter.schema;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.rdf.config.RdfConfiguration;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -40,10 +39,8 @@ import org.w3.W3NS;
         prefix = "rdf.equivalences",
         name = {"org.enabled"},
         matchIfMissing = true)
+@Slf4j
 public class OrgSchemaEquivalences extends AbstractSchemaVisitor {
-
-    private static final Logger log = LoggerFactory.getLogger(OrgSchemaEquivalences.class);
-
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

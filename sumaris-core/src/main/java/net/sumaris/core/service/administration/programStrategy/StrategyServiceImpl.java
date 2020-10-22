@@ -24,14 +24,13 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.StrategyRepository;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,9 +40,8 @@ import java.util.List;
 import java.util.Map;
 
 @Service("strategyService")
+@Slf4j
 public class StrategyServiceImpl implements StrategyService {
-
-	private static final Logger log = LoggerFactory.getLogger(StrategyServiceImpl.class);
 
 	@Autowired
 	private StrategyRepository strategyRepository;

@@ -23,6 +23,7 @@
 package net.sumaris.rdf.util;
 
 import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.rdf.model.ModelURIs;
 import org.apache.jena.ontology.OntClass;
@@ -30,9 +31,8 @@ import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.XSD;
 
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -51,12 +51,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Stream;
 
+@Slf4j
 public abstract class OwlUtils {
-
-    private static Logger log = LoggerFactory.getLogger(OwlUtils.class);
 
     public static String ADAGIO_PREFIX = "http://www.e-is.pro/2019/03/adagio/";
     public static ZoneId ZONE_ID = ZoneId.systemDefault();

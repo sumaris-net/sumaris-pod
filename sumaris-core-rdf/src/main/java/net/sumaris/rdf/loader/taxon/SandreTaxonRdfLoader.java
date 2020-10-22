@@ -23,16 +23,14 @@
 package net.sumaris.rdf.loader.taxon;
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.rdf.loader.AbstractNamedRdfLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component("sandreTaxonLoader")
+@Slf4j
 public class SandreTaxonRdfLoader extends AbstractNamedRdfLoader {
-
-    private static final Logger log = LoggerFactory.getLogger(SandreTaxonRdfLoader.class);
 
     @Value("${rdf.sandre.sparql.endpoint:http://id.eaufrance.fr/sparql}")
     private String endpointUrl;

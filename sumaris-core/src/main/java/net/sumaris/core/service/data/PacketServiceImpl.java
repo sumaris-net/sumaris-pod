@@ -24,6 +24,8 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.batch.BatchSpecifications;
@@ -57,6 +59,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 09/04/2020.
  */
 @Service("packetService")
+@Slf4j
 public class PacketServiceImpl implements PacketService {
 
     private Integer calculatedWeightPmfmId;

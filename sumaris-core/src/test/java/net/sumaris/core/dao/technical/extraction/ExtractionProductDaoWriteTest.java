@@ -24,6 +24,7 @@ package net.sumaris.core.dao.technical.extraction;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -33,17 +34,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+@Slf4j
 public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(ExtractionProductDaoWriteTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

@@ -23,6 +23,7 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
@@ -53,8 +54,6 @@ import net.sumaris.core.vo.technical.SoftwareVO;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -76,15 +75,10 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 20/08/2020.
  */
+@Slf4j
 public class PersonRepositoryImpl
     extends SumarisJpaRepositoryImpl<Person, Integer, PersonVO>
     implements PersonSpecifications {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log =
-        LoggerFactory.getLogger(PersonRepositoryImpl.class);
 
     @Autowired
     protected DepartmentRepository departmentRepository;

@@ -23,6 +23,7 @@ package net.sumaris.server.http.ontology;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.technical.ConfigurationService;
@@ -36,8 +37,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
@@ -52,10 +51,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @RestController
+@Slf4j
 public class ImageRestController implements ResourceLoaderAware {
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(ImageRestController.class);
 
     @Autowired
     private PersonService personService;

@@ -22,12 +22,11 @@ package net.sumaris.server.service.crypto;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.crypto.CryptoService;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.util.crypto.KeyPair;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,11 +35,8 @@ import org.springframework.util.StringUtils;
 import java.nio.charset.Charset;
 
 @Service("serverCryptoService")
+@Slf4j
 public class ServerCryptoServiceImpl extends net.sumaris.core.service.crypto.CryptoServiceImpl implements ServerCryptoService {
-
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(ServerCryptoServiceImpl.class);
 
     private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 

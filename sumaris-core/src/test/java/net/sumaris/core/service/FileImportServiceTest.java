@@ -22,21 +22,17 @@ package net.sumaris.core.service;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.file.FileImportService;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 //@Ignore
+@Slf4j
 public class FileImportServiceTest extends AbstractServiceTest {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(FileImportServiceTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();

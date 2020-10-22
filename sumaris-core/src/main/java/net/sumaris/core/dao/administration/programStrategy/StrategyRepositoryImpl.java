@@ -24,6 +24,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
@@ -44,8 +45,6 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -65,12 +64,10 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 24/08/2020.
  */
+@Slf4j
 public class StrategyRepositoryImpl
     extends ReferentialRepositoryImpl<Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>
     implements StrategySpecifications {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
     @Autowired
     private ReferentialDao referentialDao;

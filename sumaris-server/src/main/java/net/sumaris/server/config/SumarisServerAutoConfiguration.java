@@ -24,9 +24,8 @@ package net.sumaris.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -41,12 +40,8 @@ import org.springframework.jms.support.converter.MessageType;
 import javax.jms.ConnectionFactory;
 
 @Configuration
+@Slf4j
 public class SumarisServerAutoConfiguration {
-    /**
-     * Logger.
-     */
-    protected static final Logger log =
-            LoggerFactory.getLogger(SumarisServerAutoConfiguration.class);
 
     @Bean
     public JmsListenerContainerFactory<?> jmsListenerContainerFactory(

@@ -22,11 +22,12 @@
 
 package net.sumaris.rdf.service.data;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
-import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
@@ -41,8 +42,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.io.File;
@@ -50,9 +49,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Slf4j
 public class IndividualServicesTest extends AbstractTest {
-
-    private static final Logger log = LoggerFactory.getLogger(IndividualServicesTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf.service.data.remote;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
@@ -31,13 +32,10 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class RdfIndividualRemoteServiceTest extends AbstractTest {
-
-    private static final Logger log = LoggerFactory.getLogger(RdfIndividualRemoteServiceTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

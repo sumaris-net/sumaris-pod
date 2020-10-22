@@ -22,22 +22,18 @@ package net.sumaris.core.dao.technical.schema;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 
+@Slf4j
 public class DatabaseSchemaDaoTest extends AbstractDaoTest {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(DatabaseSchemaDaoTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

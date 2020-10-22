@@ -23,6 +23,7 @@ package net.sumaris.core.dao.referential;
  */
 
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
@@ -35,19 +36,12 @@ import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+@Slf4j
 public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log =
-        LoggerFactory.getLogger(TaxonNameRepositoryReadTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

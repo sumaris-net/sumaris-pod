@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.dao.trip.rdb;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -54,8 +55,6 @@ import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
@@ -76,11 +75,10 @@ import static org.nuiton.i18n.I18n.t;
  */
 @Repository("extractionRdbTripDao")
 @Lazy
+@Slf4j
 public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
         extends ExtractionBaseDaoImpl
         implements ExtractionRdbTripDao<C, F> {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionRdbTripDaoImpl.class);
 
     private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.TR_SHEET_NAME + "_%s";
     private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.HH_SHEET_NAME + "_%s";

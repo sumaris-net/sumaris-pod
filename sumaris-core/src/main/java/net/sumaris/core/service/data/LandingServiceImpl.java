@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
@@ -44,8 +45,6 @@ import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -56,9 +55,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("landingService")
+@Slf4j
 public class LandingServiceImpl implements LandingService {
-
-    private static final Logger log = LoggerFactory.getLogger(LandingServiceImpl.class);
 
     @Autowired
     protected LandingRepository landingRepository;

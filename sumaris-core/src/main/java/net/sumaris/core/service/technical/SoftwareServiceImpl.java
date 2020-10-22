@@ -23,22 +23,20 @@ package net.sumaris.core.service.technical;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SoftwareDao;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.technical.configuration.Software;
 import net.sumaris.core.vo.technical.SoftwareVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 
 @Component("softwareService")
+@Slf4j
 public class SoftwareServiceImpl implements SoftwareService {
-
-    private static final Log log = LogFactory.getLog(SoftwareServiceImpl.class);
 
     @Autowired
     private SoftwareDao dao;

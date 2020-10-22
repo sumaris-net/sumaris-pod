@@ -23,13 +23,12 @@ package net.sumaris.core.test;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.util.I18nUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
@@ -40,6 +39,7 @@ import javax.sql.DataSource;
  *
  */
 @org.springframework.boot.test.context.TestConfiguration()
+@Slf4j
 public abstract class TestConfiguration {
 
     /** Logger. */

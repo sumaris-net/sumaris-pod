@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import com.google.common.collect.Lists;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -35,6 +36,8 @@ import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrde
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.cost.AggregationCostDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
+import net.sumaris.core.extraction.utils.ExtractionBeans;
+import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
@@ -48,13 +51,14 @@ import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.*;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -74,9 +78,8 @@ import java.util.stream.Collectors;
  * @author peck7 on 17/12/2018.
  */
 @Service("aggregationService")
+@Slf4j
 public class AggregationServiceImpl implements AggregationService {
-
-    private static final Logger log = LoggerFactory.getLogger(AggregationServiceImpl.class);
 
     @Autowired
     private ExtractionService extractionService;

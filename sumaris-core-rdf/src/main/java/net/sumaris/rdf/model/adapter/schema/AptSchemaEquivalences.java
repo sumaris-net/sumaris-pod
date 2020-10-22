@@ -23,12 +23,11 @@
 package net.sumaris.rdf.model.adapter.schema;
 
 import fr.eaufrance.sandre.schema.apt.APT;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.config.RdfConfiguration;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -39,9 +38,8 @@ import org.springframework.stereotype.Component;
         prefix = "rdf.equivalences",
         name = {"sandre.enabled"},
         matchIfMissing = true)
+@Slf4j
 public class AptSchemaEquivalences extends AbstractSchemaVisitor {
-
-    private static final Logger log = LoggerFactory.getLogger(AptSchemaEquivalences.class);
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

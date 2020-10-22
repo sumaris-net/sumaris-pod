@@ -22,29 +22,28 @@ package net.sumaris.importation.service;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.util.Files;
 import net.sumaris.importation.dao.DataLoaderDao;
 import net.sumaris.importation.exception.FileValidationException;
+import net.sumaris.importation.service.vo.DataLoadError;
 import net.sumaris.importation.util.csv.CSVFileReader;
 import net.sumaris.importation.util.csv.FileReader;
-import static net.sumaris.importation.service.vo.DataLoadError.*;
-import net.sumaris.importation.service.vo.DataLoadError;
 import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 
-@Service("dataLoaderService")
-public class DataLoaderServiceImpl implements DataLoaderService {
+import static net.sumaris.importation.service.vo.DataLoadError.ErrorType;
 
-	protected static final Logger log = LoggerFactory.getLogger(DataLoaderServiceImpl.class);
+@Service("dataLoaderService")
+@Slf4j
+public class DataLoaderServiceImpl implements DataLoaderService {
 
 	@Autowired
 	protected SumarisConfiguration config;

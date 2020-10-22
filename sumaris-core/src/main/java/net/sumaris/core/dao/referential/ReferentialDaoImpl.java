@@ -24,7 +24,7 @@ package net.sumaris.core.dao.referential;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -56,8 +56,6 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -79,11 +77,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository("referentialDao")
+@Slf4j
 public class ReferentialDaoImpl
     extends HibernateDaoSupport
     implements ReferentialDao {
-
-    private static final Logger log = LoggerFactory.getLogger(ReferentialDaoImpl.class);
 
     private final Map<String, Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES_BY_NAME = Maps.uniqueIndex(
             REFERENTIAL_CLASSES,

@@ -26,14 +26,13 @@ import com.google.common.base.Preconditions;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.dao.technical.EntityDao;
 import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
@@ -45,13 +44,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service("changesPublisherService")
+@Slf4j
 public class ChangesPublisherServiceImpl implements ChangesPublisherService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log =
-            LoggerFactory.getLogger(ChangesPublisherServiceImpl.class);
 
     private final AtomicLong publisherCount = new AtomicLong(0);
 

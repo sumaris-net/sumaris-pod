@@ -27,6 +27,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -35,9 +36,6 @@ import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.Batch;
-import net.sumaris.core.model.data.BatchQuantificationMeasurement;
-import net.sumaris.core.model.data.BatchSortingMeasurement;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -55,8 +53,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.mutable.MutableShort;
 import org.apache.lucene.analysis.util.CharArrayMap;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -76,11 +72,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("measurementDao")
+@Slf4j
 public class MeasurementDaoImpl extends HibernateDaoSupport implements MeasurementDao {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(MeasurementDaoImpl.class);
 
     static {
         I18n.n("sumaris.persistence.table.vesselUseMeasurement");

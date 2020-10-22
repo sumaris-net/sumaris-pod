@@ -24,28 +24,27 @@ package net.sumaris.core.service.technical;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnums;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.AbstractEntityEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.schema.SchemaEvent;
 import net.sumaris.core.event.schema.SchemaReadyEvent;
 import net.sumaris.core.event.schema.SchemaUpdatedEvent;
-import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.DenyDeletionException;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
@@ -70,9 +69,8 @@ import java.util.stream.Stream;
 
 
 @Component("configurationService")
+@Slf4j
 public class ConfigurationServiceImpl implements ConfigurationService {
-
-    private static final Log log = LogFactory.getLog(ConfigurationServiceImpl.class);
 
     private final SumarisConfiguration configuration;
     private final String currentSoftwareLabel;

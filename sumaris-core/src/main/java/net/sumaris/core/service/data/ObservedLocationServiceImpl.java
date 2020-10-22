@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -37,8 +38,6 @@ import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -47,9 +46,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("observedLocationService")
+@Slf4j
 public class ObservedLocationServiceImpl implements ObservedLocationService {
-
-	private static final Logger log = LoggerFactory.getLogger(ObservedLocationServiceImpl.class);
 
 	@Autowired
 	protected ObservedLocationRepository observedLocationRepository;

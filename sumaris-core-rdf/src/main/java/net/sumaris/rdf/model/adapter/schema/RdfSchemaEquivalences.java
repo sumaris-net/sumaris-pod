@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf.model.adapter.schema;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
@@ -33,8 +34,6 @@ import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -48,9 +47,8 @@ import javax.annotation.PostConstruct;
         prefix = "rdf.equivalences",
         name = {"enabled"},
         matchIfMissing = true)
+@Slf4j
 public class RdfSchemaEquivalences extends AbstractSchemaVisitor {
-
-    private static final Logger log = LoggerFactory.getLogger(RdfSchemaEquivalences.class);
 
     private boolean debug;
 

@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.data.MeasurementDao;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
@@ -47,8 +48,6 @@ import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
@@ -60,15 +59,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public class BatchRepositoryImpl
         extends DataRepositoryImpl<Batch, BatchVO, BatchFilterVO, BatchFetchOptions>
         implements BatchSpecifications {
 
-    /**
-     * Logger.
-     */
-    protected static final Logger logger = LoggerFactory.getLogger(BatchRepositoryImpl.class);
-    private static final boolean trace = logger.isTraceEnabled();
+    private static final boolean trace = log.isTraceEnabled();
 
     private boolean enableSaveUsingHash;
 
@@ -158,8 +154,8 @@ public class BatchRepositoryImpl
     @Override
     public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
 
-        long debugTime = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} batches... {hash_optimization:%s}", operationId, enableSaveUsingHash));
+        long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} batches... {hash_optimization:%s}", operationId, enableSaveUsingHash));
 
         // Load parent entity
         Operation parent = getOne(Operation.class, operationId);
@@ -176,7 +172,7 @@ public class BatchRepositoryImpl
             entityManager.clear();
         }
 
-        if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} batches [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
+        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} batches [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
 
         return sources;
     }
@@ -285,7 +281,7 @@ public class BatchRepositoryImpl
                 }
             }
             if (skip && trace) {
-                logger.trace(String.format("Skip batch {id: %s, label: '%s'}", source.getId(), source.getLabel()));
+                log.trace(String.format("Skip batch {id: %s, label: '%s'}", source.getId(), source.getLabel()));
             }
             return !skip;
         })

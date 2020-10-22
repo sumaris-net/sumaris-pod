@@ -23,21 +23,21 @@ package net.sumaris.server.http.ontology;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.util.node.NodeSummaryVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Slf4j
 public class NodeInfoRestController {
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(NodeInfoRestController.class);
 
     @Autowired
     private SumarisServerConfiguration config;

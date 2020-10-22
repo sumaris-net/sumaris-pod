@@ -26,6 +26,7 @@ package net.sumaris.core.extraction.dao.technical.table;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -46,8 +47,6 @@ import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOption
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.dialect.Dialect;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -65,10 +64,8 @@ import java.util.stream.Collectors;
  */
 @Repository("extractionTableDao")
 @Lazy
+@Slf4j
 public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements ExtractionTableDao {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionTableDaoImpl.class);
-
 
     @Override
     public List<String> getAllTableNames() {

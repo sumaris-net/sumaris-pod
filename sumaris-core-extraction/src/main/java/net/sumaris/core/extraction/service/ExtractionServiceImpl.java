@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
@@ -75,8 +76,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
@@ -101,9 +101,8 @@ import java.util.stream.Collectors;
  * @author peck7 on 17/12/2018.
  */
 @Service("extractionService")
+@Slf4j
 public class ExtractionServiceImpl implements ExtractionService {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionServiceImpl.class);
 
     @Autowired
     protected SumarisConfiguration configuration;

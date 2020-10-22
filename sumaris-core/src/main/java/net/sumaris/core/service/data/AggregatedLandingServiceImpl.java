@@ -27,6 +27,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
@@ -50,8 +51,6 @@ import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
@@ -61,9 +60,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Service("aggregatedLandingService")
+@Slf4j
 public class AggregatedLandingServiceImpl implements AggregatedLandingService {
-
-    private static final Logger log = LoggerFactory.getLogger(AggregatedLandingServiceImpl.class);
 
     private static final DataFetchOptions defaultFetchOption = DataFetchOptions.builder()
         .withRecorderDepartment(true)

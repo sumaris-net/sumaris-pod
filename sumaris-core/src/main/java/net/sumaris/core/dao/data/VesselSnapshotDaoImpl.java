@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
@@ -42,8 +43,6 @@ import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -59,10 +58,8 @@ import java.util.stream.Collectors;
  * @author peck7 on 19/11/2019.
  */
 @Repository("vesselSnapshotDao")
+@Slf4j
 public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements VesselSnapshotDao {
-
-    /** Logger. */
-    private static final Logger log = LoggerFactory.getLogger(VesselSnapshotDaoImpl.class);
 
     @Autowired
     private LocationRepository locationRepository;

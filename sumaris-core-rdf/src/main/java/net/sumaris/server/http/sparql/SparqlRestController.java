@@ -25,6 +25,7 @@ package net.sumaris.server.http.sparql;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelVocabulary;
@@ -40,8 +41,6 @@ import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.resultset.ResultsFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.convert.converter.Converter;
@@ -63,11 +62,10 @@ import java.util.Optional;
 
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
+@Slf4j
 public class SparqlRestController {
 
     public static final String SPARQL_ENDPOINT = "/sparql";
-
-    private static final Logger log = LoggerFactory.getLogger(SparqlRestController.class);
 
     @Resource
     private RdfSchemaService schemaService;

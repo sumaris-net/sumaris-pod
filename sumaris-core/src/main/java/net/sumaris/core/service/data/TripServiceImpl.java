@@ -28,8 +28,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.landing.LandingRepository;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -52,8 +53,6 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -63,9 +62,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service("tripService")
+@Slf4j
 public class TripServiceImpl implements TripService {
-
-    private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
 
     @Autowired
     private SumarisConfiguration configuration;

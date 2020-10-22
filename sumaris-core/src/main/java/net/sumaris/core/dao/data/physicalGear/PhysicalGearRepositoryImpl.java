@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data.physicalGear;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -38,8 +39,6 @@ import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 import org.apache.commons.collections4.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -48,12 +47,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class PhysicalGearRepositoryImpl
     extends RootDataRepositoryImpl<PhysicalGear, PhysicalGearVO, PhysicalGearFilterVO, DataFetchOptions>
     implements PhysicalGearSpecifications {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(PhysicalGearRepositoryImpl.class);
 
     private final ReferentialDao referentialDao;
     private final MeasurementDao measurementDao;
