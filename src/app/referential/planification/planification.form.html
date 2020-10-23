@@ -31,6 +31,20 @@
         [config]="autocompleteFields.laboratory"
         [tabindex]="tabindex+1"
         [required]="true">
+
+        <button matAfter type="button" mat-icon-button tabindex="-1"
+          [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+          (click)="add()">
+          <mat-icon>add</mat-icon>
+        </button>
+
+        <!-- TEST -->
+        <button matAfter type="button" mat-icon-button tabindex="-1"
+                [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+                (click)="close()">
+          <mat-icon>close</mat-icon>
+        </button>
+
       </mat-autocomplete-field>
     </ion-col>
     <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
@@ -44,13 +58,24 @@
       <ion-label>&nbsp;</ion-label>
     </ion-col>
       <ion-col>
-        <mat-autocomplete-field
-          formControlName="fishingArea"
-          [placeholder]="'PLANIFICATION.FISHING_AREA'|translate"
-          [config]="autocompleteFields.fishingArea"
-          [tabindex]="tabindex+1"
-          [required]="true">
-          <mat-icon matPrefix>room</mat-icon>
+         <mat-autocomplete-field formControlName="fishingArea"
+                                 [placeholder]="'PLANIFICATION.FISHING_AREA'|translate"
+                                 [config]="autocompleteFields.fishingArea"
+                                 [tabindex]="tabindex+1"
+                                 [required]="true">
+           <mat-icon matPrefix>room</mat-icon>
+          <button matAfter type="button" mat-icon-button tabindex="-1"
+                  [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+                  (click)="add()">
+            <mat-icon>add</mat-icon>
+          </button>
+
+          <!-- TEST -->
+          <button matAfter type="button" mat-icon-button tabindex="-1"
+                  [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+                  (click)="close()">
+            <mat-icon>close</mat-icon>
+          </button>
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">

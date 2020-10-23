@@ -27,7 +27,9 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
   private _laboratoryubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _fishingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _landingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
 
+  
   
   private eotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
     {id: '1', label: 'P1', name: 'Projet 1', statusId:1,entityName:"Eotp"},
@@ -84,8 +86,14 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       });
       this.loadFishingAreas();
     
+      // landingArea combo ------------------------------------------------------------
+      this.registerAutocompleteField('landingArea', {
+        items: this._landingAreaSubject,
+        mobile: this.mobile
+      });
+      this.loadLandingAreas();
 
-     // eotp combo ------------------------------------------------------------
+     // eotp combo -------------------------------------------------------------------
      this.registerAutocompleteField('eotp', {
       items: this._eotpSubject,
       mobile: this.mobile
@@ -189,8 +197,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
     }
 
 
-  //department-----------------------------------------------------------------------------------------------
-
+  //fishing area ( zone en mer) ---------------------------------------------------------------------------------
   protected async loadFishingAreas() {
     const fishingAreaControl = this.form.get('fishingArea');
     fishingAreaControl.enable();
@@ -203,7 +210,30 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
   protected async loadFishingAreasMethod(): Promise<ReferentialRef[]> {
     const res = await this.referentialRefService.loadAll(0, 200, null,null, 
       {
-        entityName: "Location"   
+        entityName: "Location",
+        //statusId : 1,
+        levelId : 2
+      });
+
+    return res.data;
+  }    
+
+  //landingArea  ( zone terrestre) ---------------------------------------------------------------------------------
+  protected async loadLandingAreas() {
+    const landingAreaControl = this.form.get('landingArea');
+    landingAreaControl.enable();
+      // Refresh landingArea
+      const landingAreas = await this.loadLandingAreasMethod();
+      this._landingAreaSubject.next(landingAreas);
+  }
+
+  // Load landingArea Service
+  protected async loadLandingAreasMethod(): Promise<ReferentialRef[]> {
+    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+      {
+        entityName: "Location",
+        //statusId : 1,
+        levelId : 3
       });
 
     return res.data;
