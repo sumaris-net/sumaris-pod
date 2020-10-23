@@ -261,7 +261,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       {
         entityName: "Location",
         //statusId : 1,
-        levelId : 2
+        levelId : 5
       });
 
     return res.data;
@@ -273,7 +273,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       {
         entityName: "Location",
         //statusId : 1,
-        levelId : 2
+        levelId : 5
       });
 
     return res.data;
@@ -307,7 +307,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       {
         entityName: "Location",
         //statusId : 1,
-        levelId : 3
+        levelId : 2
       });
 
     return res.data;
@@ -319,7 +319,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       {
         entityName: "Location",
         //statusId : 1,
-        levelId : 3
+        levelId : 2
       });
 
     return res.data;
