@@ -12,7 +12,16 @@
           [config]="autocompleteFields.eotp"
           [tabindex]="tabindex+1">
 
+          <button matAfter type="button" mat-icon-button
+              tabindex="-1"
+              [disabled]="!canFilterEotp"
+              [title]="'PLANIFICATION.BTN_FILTER'|translate"
+              (click)="toggleFilteredEotp()"
+              [color]="enableEotpFilter ? 'primary' : undefined">        
+              <mat-icon>filter_list</mat-icon>
+          </button>
         </mat-autocomplete-field>
+        
       </ion-col>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
@@ -31,7 +40,14 @@
         [config]="autocompleteFields.laboratory"
         [tabindex]="tabindex+1"
         [required]="true">
-
+        <button matAfter type="button" mat-icon-button
+          tabindex="-1"
+          [disabled]="!canFilterLaboratory"
+          [title]="'PLANIFICATION.BTN_FILTER'|translate"
+          (click)="toggleFilteredLaboratory()"
+          [color]="enableLaboratoryFilter ? 'primary' : undefined">        
+          <mat-icon>filter_list</mat-icon>
+        </button>
         <button matAfter type="button" mat-icon-button tabindex="-1"
           [title]="'TRIP.BTN_ADD_VESSEL'|translate"
           (click)="add()">
@@ -63,12 +79,20 @@
                                  [config]="autocompleteFields.fishingArea"
                                  [tabindex]="tabindex+1"
                                  [required]="true">
+           <button matAfter type="button" mat-icon-button
+              tabindex="-1"
+              [disabled]="!canFilterFishingArea"
+              [title]="'PLANIFICATION.BTN_FILTER'|translate"
+              (click)="toggleFilteredFishingArea()"
+              [color]="enableFishingAreaFilter ? 'primary' : undefined">        
+              <mat-icon>filter_list</mat-icon>
+           </button>
            <mat-icon matPrefix>room</mat-icon>
-          <button matAfter type="button" mat-icon-button tabindex="-1"
+           <button matAfter type="button" mat-icon-button tabindex="-1"
                   [title]="'TRIP.BTN_ADD_VESSEL'|translate"
                   (click)="add()">
             <mat-icon>add</mat-icon>
-          </button>
+           </button>
 
           <!-- TEST -->
           <button matAfter type="button" mat-icon-button tabindex="-1"
@@ -95,6 +119,14 @@
       [config]="autocompleteFields.landingArea"
       [tabindex]="tabindex+1"
       [required]="true">
+      <button matAfter type="button" mat-icon-button
+              tabindex="-1"
+              [disabled]="!canFilterLandingArea"
+              [title]="'PLANIFICATION.BTN_FILTER'|translate"
+              (click)="toggleFilteredLandingArea()"
+              [color]="enableLandingAreaFilter ? 'primary' : undefined">        
+              <mat-icon>filter_list</mat-icon>
+      </button>
       <mat-icon matPrefix>room</mat-icon>
     </mat-autocomplete-field>
   </ion-col>
