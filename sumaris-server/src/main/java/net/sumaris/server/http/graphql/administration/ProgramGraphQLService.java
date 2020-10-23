@@ -36,6 +36,7 @@ import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
@@ -107,6 +108,33 @@ public class ProgramGraphQLService {
         return programService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
+    @GraphQLQuery(name = "strategy", description = "Get a strategy")
+    @Transactional(readOnly = true)
+    public StrategyVO getStrategy(
+            @GraphQLArgument(name = "label") String label,
+            @GraphQLArgument(name = "id") Integer id
+    ) {
+        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
+        if (id != null) {
+            return strategyService.get(id);
+        }
+        return strategyService.getByLabel(label);
+    }
+
+    @GraphQLQuery(name = "strategies", description = "Search in strategies")
+    @Transactional(readOnly = true)
+    public List<StrategyVO> findStrategiesByFilter(
+            @GraphQLArgument(name = "filter") StrategyFilterVO filter,
+            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+            @GraphQLArgument(name = "sortBy", defaultValue = StrategyVO.Fields.LABEL) String sort,
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        if (filter == null) {
+            return strategyService.getAll();
+        }
+        return strategyService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+    }
+
     @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")
     public ReferentialVO getProgramTaxonGroupType(@GraphQLContext ProgramVO program) {
         if (program.getTaxonGroupTypeId() != null && program.getTaxonGroupType() == null) {
@@ -174,6 +202,20 @@ public class ProgramGraphQLService {
     @IsAdmin
     public void deleteProgram(@GraphQLArgument(name = "id") int id) {
         programService.delete(id);
+    }
+
+    @GraphQLMutation(name = "saveStrategy", description = "Save a strategy")
+    @IsSupervisor
+    public StrategyVO saveStrategy(
+            @GraphQLArgument(name = "strategy") StrategyVO strategy) {
+        StrategyVO result = strategyService.save(strategy);
+        return result;
+    }
+
+    @GraphQLMutation(name = "deleteStrategy", description = "Delete a strategy")
+    @IsAdmin
+    public void deleteStrategy(@GraphQLArgument(name = "id") int id) {
+        strategyService.delete(id);
     }
 
     /* -- Protected methods -- */

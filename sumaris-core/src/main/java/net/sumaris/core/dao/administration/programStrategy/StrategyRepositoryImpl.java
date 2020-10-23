@@ -83,6 +83,18 @@ public class StrategyRepositoryImpl
     }
 
     @Override
+    @Cacheable(cacheNames = CacheNames.PROGRAM_BY_ID)
+    public Optional<StrategyVO> findById(int id) {
+        return super.findById(id);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheNames.PROGRAM_BY_LABEL)
+    public Optional<StrategyVO> findByLabel(String label) {
+        return super.findByLabel(label);
+    }
+
+    @Override
     @Cacheable(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, key = "#filter.programId * #fetchOptions.hashCode()")
     public List<StrategyVO> findAll(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
         return super.findAll(filter, fetchOptions);
@@ -91,6 +103,8 @@ public class StrategyRepositoryImpl
     @Override
     @Caching(
         evict = {
+            @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
+            @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
             @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true)
         }
     )
@@ -111,6 +125,8 @@ public class StrategyRepositoryImpl
     @Override
     @Caching(
         evict = {
+            @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
+            @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
             @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true)
         }
     )
@@ -185,8 +201,34 @@ public class StrategyRepositoryImpl
     }
 
     @Override
+    protected void onAfterSaveEntity(StrategyVO vo, Strategy savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        // Save program locations
+        saveProgramLocations(savedEntity);
+
+        getEntityManager().flush();
+        getEntityManager().clear();
+    }
+
+    protected void saveProgramLocations(Strategy savedEntity) {
+        EntityManager em = getEntityManager();
+
+        Beans.getList(savedEntity.getAppliedStrategies()).forEach(appliedStrategy -> {
+            if (appliedStrategy.getLocation() != null) {
+                Program2Location p2l = new Program2Location();
+                p2l.setProgram(savedEntity.getProgram());
+                p2l.setLocation(appliedStrategy.getLocation());
+                em.merge(p2l);
+            }
+        });
+    }
+
+    @Override
     @Caching(
         evict = {
+            @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_ID, key = "#id", condition = "#id != null"),
+            @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, key = "#id")
         }
@@ -204,6 +246,8 @@ public class StrategyRepositoryImpl
     @Override
     protected void toVO(Strategy source, StrategyVO target, StrategyFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
+        StrategyFetchOptions finalFetchOptions = (fetchOptions != null) ? fetchOptions
+                : StrategyFetchOptions.builder().withPmfmStrategyInheritance(false).build();
 
         // Program
         target.setProgramId(source.getProgram().getId());
@@ -232,7 +276,7 @@ public class StrategyRepositoryImpl
             List<PmfmStrategyVO> pmfmStrategies = source.getPmfmStrategies()
                 .stream()
                 // Transform to VO
-                .map(ps -> pmfmStrategyRepository.toVO(ps, fetchOptions))
+                .map(ps -> pmfmStrategyRepository.toVO(ps, finalFetchOptions))
                 .filter(Objects::nonNull)
                 // Sort by acquisitionLevel and rankOrder
                 .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))

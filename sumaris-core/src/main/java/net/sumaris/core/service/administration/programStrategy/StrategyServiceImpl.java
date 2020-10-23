@@ -23,9 +23,11 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.StrategyRepository;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
@@ -49,6 +51,28 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Autowired
 	private PmfmStrategyRepository pmfmStrategyRepository;
+
+	@Override
+	public StrategyVO get(int id) {
+		return strategyRepository.get(id);
+	}
+
+	@Override
+	public StrategyVO getByLabel(String label) {
+		Preconditions.checkNotNull(label);
+		return strategyRepository.getByLabel(label);
+	}
+
+	@Override
+	public List<StrategyVO> getAll() {
+		return strategyRepository.findAll(StrategyFilterVO.builder().build());
+	}
+
+	@Override
+	public List<StrategyVO> findByFilter(StrategyFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		if (filter == null) filter = StrategyFilterVO.builder().build();
+		return strategyRepository.findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
+	}
 
 	@Override
 	public List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions) {
@@ -103,7 +127,6 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Override
 	public StrategyVO save(StrategyVO source) {
-
 		StrategyVO result = strategyRepository.save(source);
 
 		// Save pmfm strategies
@@ -124,5 +147,10 @@ public class StrategyServiceImpl implements StrategyService {
 		});
 
 		return result;
+	}
+
+	@Override
+	public void delete(int id) {
+		strategyRepository.deleteById(id);
 	}
 }
