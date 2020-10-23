@@ -24,9 +24,42 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
   protected formBuilder: FormBuilder;
   private _taxonNameSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _laboratoryubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _fishingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _landingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+
+  
+  
+  private eotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
+    {id: '1', label: 'P1', name: 'Projet 1', statusId:1,entityName:"Eotp"},
+    {id: '2', label: 'P2', name: 'Projet 2', statusId:1,entityName:"Eotp"},
+    {id: '3', label: 'P3', name: 'Projet 3',statusId:1,entityName:"Eotp"},
+  ];
+
+  private FiltredEotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
+    {id: '4', label: 'P4', name: 'Projet 4', statusId:1,entityName:"Eotp"},
+    {id: '5', label: 'P5', name: 'Projet 5', statusId:1,entityName:"Eotp"},
+    {id: '6', label: 'P6', name: 'Projet 6',statusId:1,entityName:"Eotp"},
+  ];
+
   mobile: boolean;
   enableTaxonNameFilter = false;
   canFilterTaxonName = true;
+
+  enableEotpFilter = false;
+  canFilterEotp = true;
+
+  enableLaboratoryFilter = false;
+  canFilterLaboratory = true;
+
+  enableFishingAreaFilter = false;
+  canFilterFishingArea = true;
+
+
+  enableLandingAreaFilter = false;
+  canFilterLandingArea = true;
+
 
   @Input() program: Program;
 
@@ -55,9 +88,42 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       items: this._taxonNameSubject,
       mobile: this.mobile
     });
-
     this.loadTaxonNames();
+
+
+      // laboratory combo ------------------------------------------------------------
+      this.registerAutocompleteField('laboratory', {
+        items: this._laboratoryubject,
+        mobile: this.mobile
+      });
+
+      this.loadDepartment();
+
+      // fishingArea combo ------------------------------------------------------------
+      this.registerAutocompleteField('fishingArea', {
+        items: this._fishingAreaSubject,
+        mobile: this.mobile
+      });
+      this.loadFishingAreas();
+    
+      // landingArea combo ------------------------------------------------------------
+      this.registerAutocompleteField('landingArea', {
+        items: this._landingAreaSubject,
+        mobile: this.mobile
+      });
+      this.loadLandingAreas();
+
+     // eotp combo -------------------------------------------------------------------
+     this.registerAutocompleteField('eotp', {
+      items: this._eotpSubject,
+      mobile: this.mobile
+    });
+    this.loadEotps();
+
+
+      
   }
+
 
 
   /*setValue(data: Test, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
@@ -94,13 +160,11 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
   toggleFilteredTaxonName() {
       this.enableTaxonNameFilter = !this.enableTaxonNameFilter;
       this.loadTaxonNames();
-      console.log("enableTaxonNameFilter: " + this.enableTaxonNameFilter);
   }
 
   /* -- protected methods -- */
-
+ //Taxons -----------------------------------------------------------------------------------------------
   protected async loadTaxonNames() {
-    console.log("loadTaxonNames works");
     const taxonNameControl = this.form.get('taxonName');
     taxonNameControl.enable();
     // Refresh taxonNames
@@ -122,11 +186,169 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
   // Load Filtered taxonName Service
   protected async loadFilteredTaxonNamesMethod(): Promise<ReferentialRef[]> {
-    console.log("loadFilteredTaxonName works");
     // TODO replace with dataService.loadAlreadyFilledTaxonName(0, 200, null, null)
     const res = await this.referentialRefService.loadAll(2, 3, null, null, {entityName: "TaxonName"});
     return res.data;
   }
 
+
+  //department(laboratory)---------------------------------------------------------------------------------------------
+      toggleFilteredLaboratory(){
+        this.enableLaboratoryFilter = !this.enableLaboratoryFilter;
+        this.loadDepartment();
+        console.log("enableLaboratoryFilter: " + this.enableLaboratoryFilter);
+      }
+     protected async loadDepartment() {
+      const departmentControl = this.form.get('laboratory');
+      departmentControl.enable();
+        // Refresh filtred departments
+        if (this.enableLaboratoryFilter) {
+          const departments = await this.loadFiltredDepartmentsMethod();
+          this._laboratoryubject.next(departments);
+        } else {
+          // Refresh filtred departments
+          const departments = await this.loadDepartmentsMethod();
+          this._laboratoryubject.next(departments);
+        }
+    }
+  
+    // Load department Service
+    protected async loadDepartmentsMethod(): Promise<ReferentialRef[]> {
+      const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+        {
+          entityName: "Department"   
+        });
+  
+        console.log("data departement :"+res.data);
+      return res.data;
+    }
+
+     //TODO : Load filtred department Service : another service to implement
+     protected async loadFiltredDepartmentsMethod(): Promise<ReferentialRef[]> {
+      const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+        {
+          entityName: "Department"   
+        });
+        return res.data;
+    }
+
+
+  //fishing area ( zone en mer) ---------------------------------------------------------------------------------
+  toggleFilteredFishingArea(){
+    this.enableFishingAreaFilter = !this.enableFishingAreaFilter;
+    this.loadFishingAreas();
+    console.log("enableFishingAreaFilter: " + this.enableFishingAreaFilter);
+  }
+  protected async loadFishingAreas() {
+    const fishingAreaControl = this.form.get('fishingArea');
+    fishingAreaControl.enable();
+
+      // Refresh fishingAreas
+      if (this.enableFishingAreaFilter) {
+        const fishingAreas = await this.loadFiltredFishingAreasMethod();
+        this._fishingAreaSubject.next(fishingAreas);
+  
+      } else {
+        // Refresh filtredfishingAreas
+        const fishingAreas = await this.loadFishingAreasMethod();
+        this._fishingAreaSubject.next(fishingAreas);  
+      }
+  }
+
+  // Load fishingAreas Service
+  protected async loadFishingAreasMethod(): Promise<ReferentialRef[]> {
+    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+      {
+        entityName: "Location",
+        //statusId : 1,
+        levelId : 2
+      });
+
+    return res.data;
+  }   
+  
+   // TODO : Load fishingAreas Service : another service to implement
+   protected async loadFiltredFishingAreasMethod(): Promise<ReferentialRef[]> {
+    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+      {
+        entityName: "Location",
+        //statusId : 1,
+        levelId : 2
+      });
+
+    return res.data;
+  }  
+
+  //landingArea  ( zone terrestre) ---------------------------------------------------------------------------------
+  toggleFilteredLandingArea(){
+    this.enableLandingAreaFilter = !this.enableLandingAreaFilter;
+    this.loadLandingAreas();
+    console.log("enableLandingAreaFilter: " + this.enableLandingAreaFilter);
+  }
+  protected async loadLandingAreas() {
+    const landingAreaControl = this.form.get('landingArea');
+    landingAreaControl.enable();
+
+  // Refresh landingArea
+  if (this.enableLandingAreaFilter) {
+    const landingAreas = await this.loadFiltredLandingAreasMethod();
+      this._landingAreaSubject.next(landingAreas);
+
+  } else {
+     // Refresh filtred landingArea
+     const landingAreas = await this.loadLandingAreasMethod();
+     this._landingAreaSubject.next(landingAreas);
+   }
+  }
+
+  // Load landingArea Service
+  protected async loadLandingAreasMethod(): Promise<ReferentialRef[]> {
+    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+      {
+        entityName: "Location",
+        //statusId : 1,
+        levelId : 3
+      });
+
+    return res.data;
+  }    
+
+ // TODO : Load filtred landing Service : another service to implement
+  protected async loadFiltredLandingAreasMethod(): Promise<ReferentialRef[]> {
+    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+      {
+        entityName: "Location",
+        //statusId : 1,
+        levelId : 3
+      });
+
+    return res.data;
+  }   
+
+  //Eotp en mode bouchon------------------------------------------------------------------------------------------------
+  toggleFilteredEotp() {
+    this.enableEotpFilter = !this.enableEotpFilter;
+    //TODO :loadEotp()
+    this.loadEotps();
+    console.log("enableEotpFilter: " + this.enableEotpFilter);
+   }
+
+  protected  loadEotps() {
+    const eotpAreaControl = this.form.get('eotp');
+    eotpAreaControl.enable();
+
+    if (this.enableEotpFilter) {
+      // Refresh filtred eotp
+      const eotps =  this.FiltredEotpList; 
+      this._eotpSubject.next(eotps);
+    }
+    else {
+      // Refresh eotp
+      const eotps =  this.eotpList; 
+      this._eotpSubject.next(eotps);
+    }
+  }
+ //--------------------------------------------------------------------------------------------------------------------
+   
 
 }
