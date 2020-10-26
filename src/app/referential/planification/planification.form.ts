@@ -44,20 +44,20 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
   ];
 
   mobile: boolean;
-  enableTaxonNameFilter = false;
+  enableTaxonNameFilter = true;
   canFilterTaxonName = true;
 
-  enableEotpFilter = false;
+  enableEotpFilter = true;
   canFilterEotp = true;
 
-  enableLaboratoryFilter = false;
+  enableLaboratoryFilter = true;
   canFilterLaboratory = true;
 
-  enableFishingAreaFilter = false;
+  enableFishingAreaFilter = true;
   canFilterFishingArea = true;
 
 
-  enableLandingAreaFilter = false;
+  enableLandingAreaFilter = true;
   canFilterLandingArea = true;
 
 
@@ -118,7 +118,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       items: this._eotpSubject,
       mobile: this.mobile
     });
-    this.loadEotps();
+     this.loadEotps();
 
 
       
