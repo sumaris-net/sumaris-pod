@@ -26,7 +26,7 @@
 <dataset>
 
   <!-- PARAMBIO Programs -->
-  <PROGRAM ID="40" LABEL="PARAMBIO" NAME="Programme d'observation des paramètres biologiques" DESCRIPTION="Programme d'observation des paramètres biologiques" STATUS_FK="1" CREATION_DATE="2020-09-29" UPDATE_DATE="2020-09-29" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
+  <PROGRAM ID="40" LABEL="PARAM-BIO" NAME="Programme d'observation des paramètres biologiques" DESCRIPTION="Programme d'observation des paramètres biologiques" STATUS_FK="1" CREATION_DATE="2020-09-29" UPDATE_DATE="2020-09-29" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
 
   <PROGRAM2LOCATION PROGRAM_FK="40" LOCATION_FK="22"/>
   <PROGRAM2LOCATION PROGRAM_FK="40" LOCATION_FK="100"/>

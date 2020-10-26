@@ -101,7 +101,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
-    public void delete() {
+    public void z_delete() {
         service.delete(30);
     }
 

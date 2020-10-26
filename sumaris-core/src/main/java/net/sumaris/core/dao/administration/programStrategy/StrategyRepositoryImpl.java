@@ -213,13 +213,22 @@ public class StrategyRepositoryImpl
 
     protected void saveProgramLocations(Strategy savedEntity) {
         EntityManager em = getEntityManager();
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+
+        // Get existing locations
+        Set<Location> programLocations = new HashSet<>();
+        CriteriaQuery<Program2Location> query = cb.createQuery(Program2Location.class);
+        Root<Program2Location> root = query.from(Program2Location.class);
+        query.where(cb.equal(root.get(Program2Location.Fields.PROGRAM), savedEntity.getProgram()));
+        em.createQuery(query).getResultStream().forEach(p2l -> programLocations.add(p2l.getLocation()));
 
         Beans.getList(savedEntity.getAppliedStrategies()).forEach(appliedStrategy -> {
-            if (appliedStrategy.getLocation() != null) {
+            if (appliedStrategy.getLocation() != null && !programLocations.contains(appliedStrategy.getLocation())) {
                 Program2Location p2l = new Program2Location();
                 p2l.setProgram(savedEntity.getProgram());
                 p2l.setLocation(appliedStrategy.getLocation());
-                em.merge(p2l);
+                em.persist(p2l);
+                programLocations.add(appliedStrategy.getLocation());
             }
         });
     }

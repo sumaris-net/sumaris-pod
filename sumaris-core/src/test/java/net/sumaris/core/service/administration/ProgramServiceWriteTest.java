@@ -80,7 +80,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void saveWithStrategies() {
-        ProgramVO program = service.getByLabel("PARAMBIO");
+        ProgramVO program = service.getByLabel("PARAM-BIO");
         Assert.assertNotNull(program);
         Assert.assertNotNull(program.getId());
         Assert.assertEquals(40, program.getId().intValue());
