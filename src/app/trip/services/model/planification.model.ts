@@ -34,6 +34,7 @@ export class Planification extends DataEntity<Planification>  {
   laboratory: TaxonNameRef;
   fishingArea: TaxonNameRef;
   landingArea: TaxonNameRef;
+  calcifiedType: TaxonNameRef;
   //-------------------------------
 
 
@@ -47,6 +48,7 @@ export class Planification extends DataEntity<Planification>  {
     this.laboratory = null;
     this.fishingArea = null;
     this.landingArea = null;
+    this.calcifiedType = null;
   }
 
   clone(): Planification {
@@ -64,6 +66,7 @@ export class Planification extends DataEntity<Planification>  {
     target.laboratory = this.laboratory;
     target.fishingArea = this.fishingArea;
     target.landingArea = this.landingArea;
+    target.calcifiedType = this.calcifiedType;
 
     return target;
   }
@@ -79,6 +82,7 @@ export class Planification extends DataEntity<Planification>  {
     this.laboratory = source.laboratory && TaxonNameRef.fromObject(source.laboratory) || undefined;
     this.fishingArea = source.fishingArea && TaxonNameRef.fromObject(source.fishingArea) || undefined;
     this.landingArea = source.landingArea && TaxonNameRef.fromObject(source.landingArea) || undefined;
+    this.calcifiedType = source.calcifiedType && TaxonNameRef.fromObject(source.calcifiedType) || undefined;
     //----------------------------------------------------------------------------------------------------
     return this;
   }

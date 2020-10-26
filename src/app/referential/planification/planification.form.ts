@@ -129,7 +129,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
         items: this._calcifiedTypeSubject,
         mobile: this.mobile
       });
-
+      this.loadCalcifiedType();
 
   }
 
