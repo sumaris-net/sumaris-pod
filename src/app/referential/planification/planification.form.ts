@@ -28,9 +28,10 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
   private _fishingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _landingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
 
-  
-  
+
+
   private eotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
     {id: '1', label: 'P1', name: 'Projet 1', statusId:1,entityName:"Eotp"},
     {id: '2', label: 'P2', name: 'Projet 2', statusId:1,entityName:"Eotp"},
@@ -59,6 +60,9 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
   enableLandingAreaFilter = true;
   canFilterLandingArea = true;
+
+  enableCalcifiedTypeFilter = true;
+  canFilterCalcifiedType = true;
 
 
   @Input() program: Program;
@@ -105,7 +109,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
         mobile: this.mobile
       });
       this.loadFishingAreas();
-    
+
       // landingArea combo ------------------------------------------------------------
       this.registerAutocompleteField('landingArea', {
         items: this._landingAreaSubject,
@@ -120,8 +124,13 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
     });
      this.loadEotps();
 
+    // Calcified type combo ------------------------------------------------------------
+      this.registerAutocompleteField('calcifiedType', {
+        items: this._calcifiedTypeSubject,
+        mobile: this.mobile
+      });
 
-      
+
   }
 
 
@@ -156,7 +165,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
   close(){
     console.log("close works");
   }
-  
+
   toggleFilteredTaxonName() {
       this.enableTaxonNameFilter = !this.enableTaxonNameFilter;
       this.loadTaxonNames();
@@ -211,23 +220,23 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
           this._laboratoryubject.next(departments);
         }
     }
-  
+
     // Load department Service
     protected async loadDepartmentsMethod(): Promise<ReferentialRef[]> {
-      const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+      const res = await this.referentialRefService.loadAll(0, 200, null,null,
         {
-          entityName: "Department"   
+          entityName: "Department"
         });
-  
+
         console.log("data departement :"+res.data);
       return res.data;
     }
 
      //TODO : Load filtred department Service : another service to implement
      protected async loadFiltredDepartmentsMethod(): Promise<ReferentialRef[]> {
-      const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+      const res = await this.referentialRefService.loadAll(0, 200, null,null,
         {
-          entityName: "Department"   
+          entityName: "Department"
         });
         return res.data;
     }
@@ -247,17 +256,17 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       if (this.enableFishingAreaFilter) {
         const fishingAreas = await this.loadFiltredFishingAreasMethod();
         this._fishingAreaSubject.next(fishingAreas);
-  
+
       } else {
         // Refresh filtredfishingAreas
         const fishingAreas = await this.loadFishingAreasMethod();
-        this._fishingAreaSubject.next(fishingAreas);  
+        this._fishingAreaSubject.next(fishingAreas);
       }
   }
 
   // Load fishingAreas Service
   protected async loadFishingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+    const res = await this.referentialRefService.loadAll(0, 200, null,null,
       {
         entityName: "Location",
         //statusId : 1,
@@ -265,11 +274,11 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       });
 
     return res.data;
-  }   
-  
+  }
+
    // TODO : Load fishingAreas Service : another service to implement
    protected async loadFiltredFishingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+    const res = await this.referentialRefService.loadAll(0, 200, null,null,
       {
         entityName: "Location",
         //statusId : 1,
@@ -277,7 +286,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       });
 
     return res.data;
-  }  
+  }
 
   //landingArea  ( zone terrestre) ---------------------------------------------------------------------------------
   toggleFilteredLandingArea(){
@@ -303,7 +312,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
   // Load landingArea Service
   protected async loadLandingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+    const res = await this.referentialRefService.loadAll(0, 200, null,null,
       {
         entityName: "Location",
         //statusId : 1,
@@ -311,11 +320,11 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       });
 
     return res.data;
-  }    
+  }
 
  // TODO : Load filtred landing Service : another service to implement
   protected async loadFiltredLandingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
+    const res = await this.referentialRefService.loadAll(0, 200, null,null,
       {
         entityName: "Location",
         //statusId : 1,
@@ -323,7 +332,65 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       });
 
     return res.data;
-  }   
+  }
+
+
+  // Calcified Type ---------------------------------------------------------------------------------------------
+        toggleFilteredCalcifiedType(){
+          this.enableCalcifiedTypeFilter = !this.enableCalcifiedTypeFilter;
+          this.loadCalcifiedType();
+          console.log("enableCalcifiedTypeFilter: " + this.enableCalcifiedTypeFilter);
+        }
+
+        private calcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
+          {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
+          {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"},
+          {id: '3', label: 'vertèbre', name: 'vertèbre',statusId:1,entityName:"calcifiedType"},
+          {id: '4', label: 'otolithe', name: 'otolithe',statusId:1,entityName:"calcifiedType"}
+        ];
+      private filteredcalcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
+          {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
+          {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"}
+        ];
+       protected async loadCalcifiedType() {
+        const calcifiedTypeControl = this.form.get('calcifiedType');
+
+
+        calcifiedTypeControl.enable();
+          // Refresh filtred departments
+          if (this.enableCalcifiedTypeFilter) {
+            //const calcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
+            // Mocked data
+            const calcifiedTypes = this.calcifiedTypesList;
+            this._calcifiedTypeSubject.next(calcifiedTypes);
+          } else {
+            // Refresh filtred departments
+            //const calcifiedTypes = await this.loadCalcifiedTypesMethod();
+            // Mocked data
+            const calcifiedTypes = this.filteredcalcifiedTypesList;
+            this._calcifiedTypeSubject.next(calcifiedTypes);
+          }
+      }
+
+    // Load CalcifiedTypes Service
+    protected async loadCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
+      const res = await this.referentialRefService.loadAll(0, 200, null,null,
+        {
+          entityName: "CalcifiedTypes"
+        });
+
+        console.log("data CalcifiedTypes :"+res.data);
+      return res.data;
+    }
+
+     //TODO : Load filtred CalcifiedTypes Service : another service to implement
+     protected async loadFilteredCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
+      const res = await this.referentialRefService.loadAll(0, 200, null,null,
+        {
+          entityName: "CalcifiedTypes"
+        });
+        return res.data;
+    }
 
   //Eotp en mode bouchon------------------------------------------------------------------------------------------------
   toggleFilteredEotp() {
@@ -339,16 +406,16 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
     if (this.enableEotpFilter) {
       // Refresh filtred eotp
-      const eotps =  this.FiltredEotpList; 
+      const eotps =  this.FiltredEotpList;
       this._eotpSubject.next(eotps);
     }
     else {
       // Refresh eotp
-      const eotps =  this.eotpList; 
+      const eotps =  this.eotpList;
       this._eotpSubject.next(eotps);
     }
   }
  //--------------------------------------------------------------------------------------------------------------------
-   
+
 
 }

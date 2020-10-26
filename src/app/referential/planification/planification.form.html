@@ -17,11 +17,11 @@
               [disabled]="!canFilterEotp"
               [title]="'PLANIFICATION.BTN_FILTER'|translate"
               (click)="toggleFilteredEotp()"
-              [color]="enableEotpFilter ? 'primary' : undefined">        
+              [color]="enableEotpFilter ? 'primary' : undefined">
               <mat-icon>filter_list</mat-icon>
           </button>
         </mat-autocomplete-field>
-        
+
       </ion-col>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
@@ -45,7 +45,7 @@
           [disabled]="!canFilterLaboratory"
           [title]="'PLANIFICATION.BTN_FILTER'|translate"
           (click)="toggleFilteredLaboratory()"
-          [color]="enableLaboratoryFilter ? 'primary' : undefined">        
+          [color]="enableLaboratoryFilter ? 'primary' : undefined">
           <mat-icon>filter_list</mat-icon>
         </button>
         <button matAfter type="button" mat-icon-button tabindex="-1"
@@ -84,7 +84,7 @@
               [disabled]="!canFilterFishingArea"
               [title]="'PLANIFICATION.BTN_FILTER'|translate"
               (click)="toggleFilteredFishingArea()"
-              [color]="enableFishingAreaFilter ? 'primary' : undefined">        
+              [color]="enableFishingAreaFilter ? 'primary' : undefined">
               <mat-icon>filter_list</mat-icon>
            </button>
            <mat-icon matPrefix>room</mat-icon>
@@ -124,7 +124,7 @@
               [disabled]="!canFilterLandingArea"
               [title]="'PLANIFICATION.BTN_FILTER'|translate"
               (click)="toggleFilteredLandingArea()"
-              [color]="enableLandingAreaFilter ? 'primary' : undefined">        
+              [color]="enableLandingAreaFilter ? 'primary' : undefined">
               <mat-icon>filter_list</mat-icon>
       </button>
       <mat-icon matPrefix>room</mat-icon>
@@ -301,26 +301,39 @@
     <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
       <ion-label class="ion-float-end" translate>PLANIFICATION.CALCIFIED_TYPE</ion-label>
     </ion-col>
-    <ion-col>
-      <ion-card class="ion-no-margin">
-        <app-pmfm-strategies-table #pmfmStrategiesTable
-                                   [title]=""
-                                   [program]="program"
-                                   [canEdit]="enabled"
-                                   [canDelete]="enabled"
-                                   [canDisplayToolbar]="false"
-                                   [canDisplayColumnsHeaders]="false"
-                                   [initializeOneRow]="true"
-                                   [sticky]="true"
-                                   [showPMFMDetailsColumns]="true">
-        </app-pmfm-strategies-table>
-      </ion-card>
-    </ion-col>
+    <!--<ion-col>
+      <mat-autocomplete-field
+        formControlName="calcifiedType"
+        [placeholder]="'PLANIFICATION.CALCIFIED_TYPE'|translate"
+        [config]="autocompleteFields.calcifiedType"
+        [tabindex]="tabindex+1"
+        [required]="true">
+        <button matAfter type="button" mat-icon-button
+                tabindex="-1"
+                [disabled]="!canFilterCalcifiedType"
+                [title]="'PLANIFICATION.BTN_FILTER'|translate"
+                (click)="toggleFilteredCalcifiedType()"
+                [color]="enableCalcifiedTypeFilter ? 'primary' : undefined">
+          <mat-icon>filter_list</mat-icon>
+        </button>
+        <button matAfter type="button" mat-icon-button tabindex="-1"
+                [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+                (click)="add()">
+          <mat-icon>add</mat-icon>
+        </button>
+
+        <button matAfter type="button" mat-icon-button tabindex="-1"
+                [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+                (click)="close()">
+          <mat-icon>close</mat-icon>
+        </button>
+
+      </mat-autocomplete-field>
+    </ion-col>-->
     <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
       <ion-label>&nbsp;</ion-label>
     </ion-col>
   </ion-row>
-  <ion-row style="height: 15px"></ion-row>
 
   <!--SEX -->
   <ion-row>
