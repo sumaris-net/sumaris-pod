@@ -25,10 +25,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.vo.administration.programStrategy.AppliedStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.TaxonGroupStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.TaxonNameStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -63,5 +60,7 @@ public interface StrategySpecifications {
     List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
 
     List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
+
+    List<StrategyDepartmentVO> getStrategyDepartments(int strategyId);
 
 }

@@ -126,6 +126,11 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
+	public List<StrategyDepartmentVO> getStrategyDepartments(int strategyId) {
+		return strategyRepository.getStrategyDepartments(strategyId);
+	}
+
+	@Override
 	public StrategyVO save(StrategyVO source) {
 		StrategyVO result = strategyRepository.save(source);
 

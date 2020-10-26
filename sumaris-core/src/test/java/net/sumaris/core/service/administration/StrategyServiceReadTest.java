@@ -92,6 +92,18 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     }
 
     @Test
+    public void getStrategyDepartments() {
+
+        List<StrategyDepartmentVO> strategyDepartments = service.getStrategyDepartments(30);
+        Assert.assertNotNull(strategyDepartments);
+        Assert.assertTrue(strategyDepartments.size() > 0);
+        StrategyDepartmentVO strategyDepartment = strategyDepartments.get(0);
+        Assert.assertNotNull(strategyDepartment.getDepartmentId());
+        Assert.assertNotNull(strategyDepartment.getPrivilegeId());
+
+    }
+
+    @Test
     public void findPmfmStrategiesByProgramAndAcquisitionLevel() {
 
         List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByProgramAndAcquisitionLevel(dbResource.getFixtures().getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());

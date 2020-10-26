@@ -72,7 +72,7 @@
   </changeSet>
 
   <!-- Modify STRATEGY table -->
-  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-21">
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-20">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="strategy" columnName="analytic_reference"/></not>
     </preConditions>
@@ -82,13 +82,42 @@
   </changeSet>
 
   <!-- Modify APPLIED_PERIOD table -->
-  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-22">
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-21">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="applied_period" columnName="acquisition_number"/></not>
     </preConditions>
     <addColumn tableName="applied_period">
       <column name="acquisition_number" type="INT"/>
     </addColumn>
+  </changeSet>
+
+  <!-- Add STRATEGY2DEPARTMENT table -->
+  <changeSet author="nolwenn.rannou@ifremer.fr" id="1600856443493-30">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="strategy2department"/></not>
+    </preConditions>
+    <createTable tableName="strategy2department">
+      <column name="id" type="integer">
+        <constraints primaryKey="true" primaryKeyName="strategy2department_pk"/>
+      </column>
+      <column name="strategy_fk" type="integer">
+        <constraints nullable="false" foreignKeyName="strategy2department_strategy_fkc" referencedTableName="strategy" referencedColumnNames="id"/>
+      </column>
+      <column name="location_fk" type="integer">
+        <constraints foreignKeyName="strategy2department_location_fkc" referencedTableName="location" referencedColumnNames="id"/>
+      </column>
+      <column name="program_privilege_fk" type="integer">
+        <constraints nullable="false" foreignKeyName="strategy2department_privilege_fkc" referencedTableName="program_privilege" referencedColumnNames="id"/>
+      </column>
+      <column name="department_fk" type="integer">
+        <constraints nullable="false" foreignKeyName="strategy2department_department_fkc" referencedTableName="department" referencedColumnNames="id"/>
+      </column>
+      <column name="update_date" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="timestamp"/>
+    </createTable>
+    <createSequence sequenceName="STRATEGY2DEPARTMENT_SEQ"/>
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->
@@ -101,6 +130,7 @@
       <column name="LABEL">1.4.3</column>
       <column name="DESCRIPTION">
         - Add columns PMFM_STRATEGY.PARAMETER_FK, MATRIX_FK, FRACTION_FK, METHOD_FK and STRATEGY.ANALYTIC_REFERENCE, APPLIED_PERIOD.ACQUISITION_NUMBER
+        - Add table STRATEGY2DEPARTMENT
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -108,6 +138,7 @@
         - Set PMFM_STRATEGY.PMFM_FK nullable
         - Add nullable columns PMFM_STRATEGY.PARAMETER_FK, MATRIX_FK, FRACTION_FK, METHOD_FK
         - Add columns STRATEGY.ANALYTIC_REFERENCE and APPLIED_PERIOD.ACQUISITION_NUMBER
+        - Add table STRATEGY2DEPARTMENT
       </column>
     </insert>
   </changeSet>

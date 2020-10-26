@@ -23,41 +23,24 @@ package net.sumaris.core.vo.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.IReferentialVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 
+import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @FieldNameConstants
-public class StrategyVO implements IReferentialVO {
+@EqualsAndHashCode
+public class StrategyDepartmentVO implements Serializable, IUpdateDateEntityBean<Integer, Date> {
 
     private Integer id;
-    private String label;
-    private String name;
-    private String description;
-    private String comments;
-    private String analyticReference;
     private Date updateDate;
-    private Date creationDate;
 
-    private Integer statusId;
-    private Integer programId;
-
-    private List<AppliedStrategyVO> appliedStrategies;
-    private List<PmfmStrategyVO> pmfmStrategies;
-
-    private List<StrategyDepartmentVO> strategyDepartments;
-
-    private List<Integer> gearIds;
-    private List<ReferentialVO> gears;
-
-    private List<Integer> taxonGroupIds;
-    private List<TaxonGroupStrategyVO> taxonGroups;
-
-    private List<Integer> taxonNameIds;
-    private List<TaxonNameStrategyVO> taxonNames;
+    private Integer strategyId;
+    private Integer locationId;
+    private Integer privilegeId;
+    private Integer departmentId;
 
 }

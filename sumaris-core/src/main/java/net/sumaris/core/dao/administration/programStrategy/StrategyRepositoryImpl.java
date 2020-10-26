@@ -30,6 +30,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.model.administration.programStrategy.*;
+import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -201,6 +202,11 @@ public class StrategyRepositoryImpl
     }
 
     @Override
+    public List<StrategyDepartmentVO> getStrategyDepartments(int strategyId) {
+        return getStrategyDepartments(load(Strategy.class, strategyId));
+    }
+
+    @Override
     protected void onAfterSaveEntity(StrategyVO vo, Strategy savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
 
@@ -280,6 +286,9 @@ public class StrategyRepositoryImpl
         // Applied strategies
         target.setAppliedStrategies(getAppliedStrategies(source));
 
+        // Strategy departments
+        target.setStrategyDepartments(getStrategyDepartments(source));
+
         // Pmfm strategies
         if (CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
             List<PmfmStrategyVO> pmfmStrategies = source.getPmfmStrategies()
@@ -334,6 +343,11 @@ public class StrategyRepositoryImpl
         // Applied strategies
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getAppliedStrategies())) {
             saveAppliedStrategiesByStrategy(source.getAppliedStrategies(), target);
+        }
+
+        // Strategy departments
+        if (copyIfNull || CollectionUtils.isNotEmpty(source.getStrategyDepartments())) {
+            saveStrategyDepartmentsByStrategy(source.getStrategyDepartments(), target);
         }
 
         // Pmfm Strategies
@@ -572,6 +586,69 @@ public class StrategyRepositoryImpl
 
         // Update the target strategy
         parent.setAppliedPeriods(result);
+
+        // Remove unused entities
+        if (MapUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.values().forEach(em::remove);
+        }
+    }
+
+    protected List<StrategyDepartmentVO> getStrategyDepartments(Strategy source) {
+        if (CollectionUtils.isEmpty(source.getStrategyDepartments())) return null;
+        return source.getStrategyDepartments()
+                .stream()
+                // Sort by id
+                .sorted(Comparator.comparingInt((item) -> item.getId()))
+                .map(item -> {
+                    StrategyDepartmentVO target = new StrategyDepartmentVO();
+                    target.setId(item.getId());
+                    target.setUpdateDate(item.getUpdateDate());
+                    target.setStrategyId(source.getId());
+                    target.setPrivilegeId(item.getPrivilege().getId());
+                    target.setDepartmentId(item.getDepartment().getId());
+                    if (item.getLocation() != null) {
+                        target.setLocationId(item.getLocation().getId());
+                    }
+
+                    return target;
+                })
+                .collect(Collectors.toList());
+    }
+
+    protected void saveStrategyDepartmentsByStrategy(List<StrategyDepartmentVO> sources, Strategy parent) {
+        EntityManager em = getEntityManager();
+
+        // Remember existing entities
+        Map<Integer, StrategyDepartment> sourcesToRemove = Beans.splitByProperty(parent.getStrategyDepartments(),
+                StrategyDepartment.Fields.ID);
+
+        // Save each strategy department
+        List<StrategyDepartment> result = Beans.getStream(sources).map(source -> {
+            Integer strategyDepartmentId = source.getId();
+            if (strategyDepartmentId == null) throw new DataIntegrityViolationException("Missing id in a StrategyDepartmentVO");
+            StrategyDepartment target = sourcesToRemove.remove(strategyDepartmentId);
+            boolean isNew = target == null;
+            if (isNew) {
+                target = new StrategyDepartment();
+                target.setStrategy(parent);
+            }
+            target.setPrivilege(load(ProgramPrivilege.class, source.getPrivilegeId()));
+            target.setDepartment(load(Department.class, source.getDepartmentId()));
+            if (source.getLocationId() != null) {
+                target.setLocation(load(Location.class, source.getLocationId()));
+            }
+
+            if (isNew) {
+                em.persist(target);
+            }
+            else {
+                em.merge(target);
+            }
+            return target;
+        }).collect(Collectors.toList());
+
+        // Update the target strategy
+        parent.setStrategyDepartments(result);
 
         // Remove unused entities
         if (MapUtils.isNotEmpty(sourcesToRemove)) {

@@ -76,6 +76,9 @@ public interface StrategyService {
 	@Transactional(readOnly = true)
 	List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
 
+	@Transactional(readOnly = true)
+	List<StrategyDepartmentVO> getStrategyDepartments(int strategyId);
+
 	StrategyVO save(StrategyVO source);
 
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
