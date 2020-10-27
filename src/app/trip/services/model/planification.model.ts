@@ -34,6 +34,8 @@ export class Planification extends DataEntity<Planification>  {
   laboratory: TaxonNameRef;
   fishingArea: TaxonNameRef;
   landingArea: TaxonNameRef;
+  sex : boolean;
+  age : boolean;
   calcifiedType: TaxonNameRef;
   //-------------------------------
 
@@ -48,6 +50,8 @@ export class Planification extends DataEntity<Planification>  {
     this.laboratory = null;
     this.fishingArea = null;
     this.landingArea = null;
+    this.sex = null;
+    this.age =null;
     this.calcifiedType = null;
   }
 
@@ -68,6 +72,9 @@ export class Planification extends DataEntity<Planification>  {
     target.landingArea = this.landingArea;
     target.calcifiedType = this.calcifiedType;
 
+    target.sex = this.sex;
+    target.age = this.age;
+
     return target;
   }
 
@@ -84,6 +91,9 @@ export class Planification extends DataEntity<Planification>  {
     this.landingArea = source.landingArea && TaxonNameRef.fromObject(source.landingArea) || undefined;
     this.calcifiedType = source.calcifiedType && TaxonNameRef.fromObject(source.calcifiedType) || undefined;
     //----------------------------------------------------------------------------------------------------
+    this.sex = source.sex  || undefined;
+    this.age = source.age  || undefined;
+
     return this;
   }
 
