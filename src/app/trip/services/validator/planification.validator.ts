@@ -42,6 +42,7 @@ export class PlanificationValidatorService<O extends PlanificationValidatorOptio
         laboratory: [data && data.laboratory || null, Validators.compose([Validators.required, SharedValidators.entity])],
         fishingArea: [data && data.fishingArea || null, Validators.compose([Validators.required, SharedValidators.entity])],
         landingArea: [data && data.landingArea || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        calcifiedType: [data && data.calcifiedType || null, Validators.compose([Validators.required, SharedValidators.entity])],
         //------------------------------------------------------------------------------------------------------------------
 
         sex: [data && data.sex || null,Validators.nullValidator],

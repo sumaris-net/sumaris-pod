@@ -274,6 +274,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             default: return undefined;
           }
         }),
+        // FIXME CLT : Modifier le nom de colonne en PSFM
         columnNames: pmfmColumnNames,
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'

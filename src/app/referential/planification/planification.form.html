@@ -216,7 +216,13 @@
 </ion-row>
 
 
-
+    <ion-row>
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+        <h2>
+          <ion-label class="ion-float-end" translate>PLANIFICATION.PARAMETERS_TITLE</ion-label>
+        </h2>
+      </ion-col>
+    </ion-row>
 
   <!-- Weight Pmfms -->
   <ion-row>
@@ -237,9 +243,6 @@
                                    [showPMFMDetailsColumns]="true">
         </app-pmfm-strategies-table>
       </ion-card>
-    </ion-col>
-    <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-      <ion-label>&nbsp;</ion-label>
     </ion-col>
   </ion-row>
   <ion-row style="height: 15px"></ion-row>
@@ -264,9 +267,6 @@
         </app-pmfm-strategies-table>
       </ion-card>
     </ion-col>
-    <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-      <ion-label>&nbsp;</ion-label>
-    </ion-col>
   </ion-row>
   <ion-row style="height: 15px"></ion-row>
 
@@ -290,9 +290,6 @@
         </app-pmfm-strategies-table>
       </ion-card>
     </ion-col>
-    <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-      <ion-label>&nbsp;</ion-label>
-    </ion-col>
   </ion-row>
   <ion-row style="height: 15px"></ion-row>
 
@@ -301,7 +298,7 @@
     <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
       <ion-label class="ion-float-end" translate>PLANIFICATION.CALCIFIED_TYPE</ion-label>
     </ion-col>
-    <!--<ion-col>
+    <ion-col>
       <mat-autocomplete-field
         formControlName="calcifiedType"
         [placeholder]="'PLANIFICATION.CALCIFIED_TYPE'|translate"
@@ -309,19 +306,20 @@
         [tabindex]="tabindex+1"
         [required]="true">
         <button matAfter type="button" mat-icon-button
-                tabindex="-1"
-                [disabled]="!canFilterCalcifiedType"
-                [title]="'PLANIFICATION.BTN_FILTER'|translate"
-                (click)="toggleFilteredCalcifiedType()"
-                [color]="enableCalcifiedTypeFilter ? 'primary' : undefined">
+          tabindex="-1"
+          [disabled]="!canFilterCalcifiedType"
+          [title]="'PLANIFICATION.BTN_FILTER'|translate"
+          (click)="toggleFilteredCalcifiedType()"
+          [color]="enableCalcifiedTypeFilter ? 'primary' : undefined">
           <mat-icon>filter_list</mat-icon>
         </button>
         <button matAfter type="button" mat-icon-button tabindex="-1"
-                [title]="'TRIP.BTN_ADD_VESSEL'|translate"
-                (click)="add()">
+          [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+          (click)="add()">
           <mat-icon>add</mat-icon>
         </button>
 
+        <!-- TEST -->
         <button matAfter type="button" mat-icon-button tabindex="-1"
                 [title]="'TRIP.BTN_ADD_VESSEL'|translate"
                 (click)="close()">
@@ -329,7 +327,7 @@
         </button>
 
       </mat-autocomplete-field>
-    </ion-col>-->
+    </ion-col>
     <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
       <ion-label>&nbsp;</ion-label>
     </ion-col>

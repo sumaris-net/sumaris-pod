@@ -129,7 +129,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
         items: this._calcifiedTypeSubject,
         mobile: this.mobile
       });
-
+      this.loadCalcifiedType();
 
   }
 
@@ -361,14 +361,14 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
           if (this.enableCalcifiedTypeFilter) {
             //const calcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
             // Mocked data
-            const calcifiedTypes = this.calcifiedTypesList;
-            this._calcifiedTypeSubject.next(calcifiedTypes);
+           const calcifiedTypes = this.filteredcalcifiedTypesList;
+           this._calcifiedTypeSubject.next(calcifiedTypes);
           } else {
             // Refresh filtred departments
             //const calcifiedTypes = await this.loadCalcifiedTypesMethod();
             // Mocked data
-            const calcifiedTypes = this.filteredcalcifiedTypesList;
-            this._calcifiedTypeSubject.next(calcifiedTypes);
+             const calcifiedTypes = this.calcifiedTypesList;
+             this._calcifiedTypeSubject.next(calcifiedTypes);
           }
       }
 
