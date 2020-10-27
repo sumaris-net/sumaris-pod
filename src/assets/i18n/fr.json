@@ -1153,7 +1153,7 @@
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
-        "PMFM": "Paramètre collecté (PMFM)",
+        "PMFM": "PSFM",
         "PARAMETER": "Paramètre",
         "MATRIX": "Support",
         "FRACTION": "Fraction",
