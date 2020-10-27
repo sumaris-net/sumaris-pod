@@ -285,7 +285,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const pmfmParameterAttributes = ['label', 'name'];
     this.registerFormField('parameter', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('parameter', {
         items: this.$pmfmsParameters,
         attributes: pmfmParameterAttributes,
@@ -310,7 +310,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const pmfmMatrixAttributes = ['matrix.name', 'matrix.description'];
     this.registerFormField('matrix', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('matrix', {
         items: this.$pmfmsMatrix,
         attributes: pmfmMatrixAttributes,
@@ -356,7 +356,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const pmfmMethodAttributes = ['method.name', 'method.description'];
     this.registerFormField('method', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('method', {
         items: this.$pmfmsMethods,
         attributes: pmfmMethodAttributes,
@@ -376,7 +376,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     this.registerFormField('fraction', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('fraction', {
         items: this.$pmfmsMethods,
         attributes: pmfmMethodAttributes,
