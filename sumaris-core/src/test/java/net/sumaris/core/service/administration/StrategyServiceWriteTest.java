@@ -22,13 +22,17 @@ package net.sumaris.core.service.administration;
  * #L%
  */
 
+import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
+import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.administration.programStrategy.AppliedPeriodVO;
-import net.sumaris.core.vo.administration.programStrategy.AppliedStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
@@ -46,6 +50,9 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
 
     @Autowired
     private StrategyService service;
+
+    @Autowired
+    private ReferentialService referentialService;
 
     @Test
     public void saveExisting() {
@@ -65,7 +72,15 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         // Modify name
         strategy.setName("Strategy Name changed");
         // Modify departments
-        strategy.getStrategyDepartments().remove(1);
+        StrategyDepartmentVO strategyDepartment = new StrategyDepartmentVO();
+        ProgramPrivilegeVO privilege = new ProgramPrivilegeVO();
+        DepartmentVO department = new DepartmentVO();
+        Beans.copyProperties(referentialService.get(ProgramPrivilege.class, 3), privilege);
+        Beans.copyProperties(referentialService.get(Department.class, 3), department);
+        strategyDepartment.setPrivilege(privilege);
+        strategyDepartment.setDepartment(department);
+        strategyDepartment.setId(-1);
+        strategy.setStrategyDepartments(Lists.newArrayList(strategyDepartment));
         // Add an applied period
         AppliedPeriodVO appliedPeriod = new AppliedPeriodVO();
         appliedPeriod.setAppliedStrategyId(30);
@@ -81,8 +96,13 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         strategy = service.get(30);
         Assert.assertNotNull(strategy);
         Assert.assertEquals("Strategy Name changed", strategy.getName());
+
         Assert.assertNotNull(strategy.getStrategyDepartments());
         Assert.assertEquals(1, strategy.getStrategyDepartments().size());
+        StrategyDepartmentVO actualStrategyDepartment = strategy.getStrategyDepartments().get(0);
+        Assert.assertEquals(privilege, actualStrategyDepartment.getPrivilege());
+        Assert.assertEquals(department, actualStrategyDepartment.getDepartment());
+
         Assert.assertNotNull(strategy.getAppliedStrategies());
         Assert.assertEquals(3, strategy.getAppliedStrategies().size());
         List<AppliedPeriodVO> actualAppliedPeriods = strategy.getAppliedStrategies().get(1).getAppliedPeriods();

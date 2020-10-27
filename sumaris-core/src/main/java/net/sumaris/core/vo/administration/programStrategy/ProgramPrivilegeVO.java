@@ -25,20 +25,25 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.LocationVO;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Date;
 
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class AppliedStrategyVO implements Serializable {
+public class ProgramPrivilegeVO implements Serializable {
 
     private Integer id;
+    private String label;
+    private String name;
+    private String description;
+    private String comments;
+
+    private Date updateDate;
+    private Date creationDate;
+    private Integer statusId;
 
     private Integer strategyId;
-    private LocationVO location;
-    private List<AppliedPeriodVO> appliedPeriods;
 
 }

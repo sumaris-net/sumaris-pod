@@ -70,7 +70,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         Assert.assertNotNull(appliedStrategies);
         Assert.assertTrue(appliedStrategies.size() > 0);
         AppliedStrategyVO appliedStrategy = appliedStrategies.get(0);
-        Assert.assertNotNull(appliedStrategy.getLocationId());
+        Assert.assertNotNull(appliedStrategy.getLocation());
         List<AppliedPeriodVO> appliedPeriods = appliedStrategy.getAppliedPeriods();
         Assert.assertNotNull(appliedPeriods);
         Assert.assertEquals(4, appliedPeriods.size());
@@ -98,8 +98,8 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         Assert.assertNotNull(strategyDepartments);
         Assert.assertTrue(strategyDepartments.size() > 0);
         StrategyDepartmentVO strategyDepartment = strategyDepartments.get(0);
-        Assert.assertNotNull(strategyDepartment.getDepartmentId());
-        Assert.assertNotNull(strategyDepartment.getPrivilegeId());
+        Assert.assertNotNull(strategyDepartment.getDepartment());
+        Assert.assertNotNull(strategyDepartment.getPrivilege());
 
     }
 

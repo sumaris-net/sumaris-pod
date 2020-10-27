@@ -23,10 +23,14 @@ package net.sumaris.core.service.administration;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.assertj.core.util.Lists;
 import org.junit.Assert;
@@ -49,6 +53,9 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
 
     @Autowired
     private StrategyService strategyService;
+
+    @Autowired
+    private ReferentialService referentialService;
 
     @Test
     public void saveExisting() {
@@ -106,7 +113,10 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
                 appliedPeriods = appliedStrategy.getAppliedPeriods();
                 Assert.assertNotNull(appliedPeriods);
                 Assert.assertEquals(4, appliedPeriods.size());
-                appliedStrategy.setLocationId(23);
+
+                LocationVO location = new LocationVO();
+                Beans.copyProperties(referentialService.get(Location.class, 23), location);
+                appliedStrategy.setLocation(location);
             }
         }
         for (AppliedPeriodVO appliedPeriod : appliedPeriods) {

@@ -25,9 +25,11 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
@@ -77,6 +79,12 @@ public class StrategyRepositoryImpl
 
     @Autowired
     private TaxonNameRepository taxonNameRepository;
+
+    @Autowired
+    private LocationRepository locationRepository;
+
+    @Autowired
+    protected DepartmentRepository departmentRepository;
 
     public StrategyRepositoryImpl(EntityManager entityManager) {
         super(Strategy.class, StrategyVO.class, entityManager);
@@ -497,7 +505,8 @@ public class StrategyRepositoryImpl
                     AppliedStrategyVO target = new AppliedStrategyVO();
                     target.setId(item.getId());
                     target.setStrategyId(source.getId());
-                    target.setLocationId(item.getLocation().getId());
+
+                    target.setLocation(locationRepository.toVO(item.getLocation()));
 
                     // AppliedPeriod
                     List<AppliedPeriodVO> targetPeriods = Lists.newArrayList();
@@ -531,7 +540,9 @@ public class StrategyRepositoryImpl
                 target = new AppliedStrategy();
                 target.setStrategy(parent);
             }
-            target.setLocation(load(Location.class, source.getLocationId()));
+            if (source.getLocation() != null) {
+                target.setLocation(load(Location.class, source.getLocation().getId()));
+            }
 
             // AppliedPeriod
             saveAppliedPeriodsByAppliedStrategy(source.getAppliedPeriods(), target);
@@ -604,11 +615,15 @@ public class StrategyRepositoryImpl
                     target.setId(item.getId());
                     target.setUpdateDate(item.getUpdateDate());
                     target.setStrategyId(source.getId());
-                    target.setPrivilegeId(item.getPrivilege().getId());
-                    target.setDepartmentId(item.getDepartment().getId());
-                    if (item.getLocation() != null) {
-                        target.setLocationId(item.getLocation().getId());
-                    }
+
+                    target.setLocation(locationRepository.toVO(item.getLocation()));
+                    target.setDepartment(departmentRepository.toVO(item.getDepartment()));
+
+                    // Privilege
+                    ProgramPrivilegeVO p = new ProgramPrivilegeVO();
+                    Beans.copyProperties(item.getPrivilege(), p);
+                    p.setStatusId(item.getPrivilege().getStatus().getId());
+                    target.setPrivilege(p);
 
                     return target;
                 })
@@ -632,10 +647,14 @@ public class StrategyRepositoryImpl
                 target = new StrategyDepartment();
                 target.setStrategy(parent);
             }
-            target.setPrivilege(load(ProgramPrivilege.class, source.getPrivilegeId()));
-            target.setDepartment(load(Department.class, source.getDepartmentId()));
-            if (source.getLocationId() != null) {
-                target.setLocation(load(Location.class, source.getLocationId()));
+            if (source.getLocation() != null) {
+                target.setLocation(load(Location.class, source.getLocation().getId()));
+            }
+            if (source.getDepartment() != null) {
+                target.setDepartment(load(Department.class, source.getDepartment().getId()));
+            }
+            if (source.getPrivilege() != null) {
+                target.setPrivilege(load(ProgramPrivilege.class, source.getPrivilege().getId()));
             }
 
             if (isNew) {
