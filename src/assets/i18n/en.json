@@ -314,6 +314,13 @@
           "EXTERIOR_MARKING_NAME": "Exterior marking - Name",
           "REGISTRATION_CODE_NAME": "Registration code - Name"
         }
+      },
+      "PMFM_STRATEGY": {
+        "NAME": "Strategy > PMFM Parameter",
+        "ATTRIBUTES": {
+          "LONG_NAME": "PMFM Parameter (PMFM)",
+          "SHORT_NAME": "PMFM"
+        }
       }
     },
     "ERROR": {

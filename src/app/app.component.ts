@@ -213,6 +213,17 @@ export class AppComponent {
         {key: 'exteriorMarking,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME'},
         {key: 'registrationCode,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME'}
       ]});
+
+
+
+    this.settings.registerAdditionalField({
+      key: 'sumaris.field.strategy.pmfmParamaterColumnName',
+      label: 'SETTINGS.FIELDS.PMFM_STRATEGY.NAME',
+      type: 'enum',
+      values: [
+        {key: 'pmfmStrategyPmfmColumnLongTitle',   value: 'SETTINGS.FIELDS.PMFM_STRATEGY.ATTRIBUTES.LONG_COLUMN_TITLE'},
+        {key: 'pmfmStrategyPmfmColumnShortTitle',   value: 'SETTINGS.FIELDS.PMFM_STRATEGY.ATTRIBUTES.SHORT_COLUMN_TITLE'}
+      ]});
   }
 
 }

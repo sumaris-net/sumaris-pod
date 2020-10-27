@@ -314,6 +314,13 @@
           "EXTERIOR_MARKING_NAME": "Marquage extérieur - Nom",
           "REGISTRATION_CODE_NAME": "Code d'immatriculation - Nom"
         }
+      },
+      "PMFM_STRATEGY": {
+        "NAME": "Stratégie > Paramètre PSFM",
+        "ATTRIBUTES": {
+          "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
+          "SHORT_COLUMN_TITLE": "PSFM"
+        }
       }
     },
     "ERROR": {
