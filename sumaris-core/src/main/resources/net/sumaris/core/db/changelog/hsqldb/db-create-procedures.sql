@@ -163,3 +163,60 @@ BEGIN ATOMIC
     RETURN CONCAT(quadrant, resultLatitude, resultLongitude);
 END;
 //
+
+DROP FUNCTION F_HASH_CODE IF EXISTS;
+//
+
+CREATE FUNCTION F_HASH_CODE(EXPR VARCHAR(100))
+    RETURNS INTEGER
+BEGIN ATOMIC
+--$ ********************************************************************
+--$
+--$  MOD : F_HASH_CODE
+--$  ROL : Convert a string to a hash code (return a number)
+--$  param :
+--$    - EXPR: the expression to convert
+--$
+--$  return : a number, that represent the 'EXPR' string (or NULL, is EXPR is null)
+--$
+--$  example : select SIH2_ADAGIO_DBA.F_HASH('value1') from STATUS where ID=1; --
+--$            call SIH2_ADAGIO_DBA.F_HASH('value1'); --
+--$
+--$ History :
+--$  28/10/20 BL Creation (used by aggregation, over a RDB/COST extractions)
+--$
+--$ ********************************************************************
+    DECLARE LEN INTEGER;
+    DECLARE VAR INTEGER;
+    DECLARE HASH BIGINT default 0;
+    DECLARE COUNTER INTEGER default 0;
+    DECLARE INTEGER_MAX BIGINT default 2147483647;
+    DECLARE INTEGER_MIN BIGINT default -2147483648;
+
+    IF (EXPR IS NULL) THEN
+        return NULL;
+    END IF;
+
+    SET LEN = CHAR_LENGTH(EXPR);
+    IF (LEN = 0) THEN
+        RETURN 0;
+    END IF;
+
+    WHILE (COUNTER < LEN) DO
+        SET VAR = ASCII(SUBSTRING(EXPR, COUNTER+1, 1));
+        SET HASH = HASH * 31 + VAR;
+
+        -- java.lang.Integer.MAX_VALUE = 2 147 483 647
+        WHILE (HASH > INTEGER_MAX) DO
+            SET HASH = HASH + INTEGER_MIN * 2;
+        END WHILE;
+        WHILE (HASH < INTEGER_MIN) DO
+            SET HASH = HASH - INTEGER_MIN * 2;
+        END WHILE;
+
+        SET COUNTER = COUNTER + 1;
+    END WHILE;
+
+    RETURN CAST(HASH AS INTEGER);
+END;
+//

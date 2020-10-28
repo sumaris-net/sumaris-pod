@@ -22,7 +22,7 @@
 
 <queries name="aggregationCreateSpeciesListTable">
 
-  <query type="create" temp="false" table="&amp;speciesListTableName">
+  <query type="create" temp="false" table="&amp;speciesListTableName" option="distinct">
 
     <!-- PK (inherited from station) -->
     <select alias="RECORD_TYPE" type="text">'SL'</select>
@@ -44,6 +44,7 @@
     <select alias="EU_METIER_LEVEL6" group="euMetierLevel6" type="text">S.EU_METIER_LEVEL6</select>
     <select alias="GEAR_TYPE" group="gearType" type="text">S.GEAR_TYPE</select>
 
+
     <!-- SL fields -->
     <select alias="SPECIES" type="text">SL.SPECIES</select>
     <select alias="CATCH_CATEGORY" type="text">SL.CATCH_CATEGORY</select>
@@ -51,18 +52,23 @@
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">SL.COMMERCIAL_SIZE_CATEGORY_SCALE</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">SL.COMMERCIAL_SIZE_CATEGORY</select>
     <select alias="SUBSAMPLING_CATEGORY" type="text">SL.SUBSAMPLING_CATEGORY</select>
-    <select alias="SEX" type="text">SL.SEX</select><!-- always define in the HL table -->
+    <!-- Remove, because not always filled, and unable to link HL children rows using this field.
+         Moreover, it is always defined in the HL table -->
+    <!--<select alias="SEX" type="text">SL.SEX</select>-->
+
+    <!-- Unique identifier for station, to be able to link HL children rows -->
+    <select alias="STATION_NUMBER" group="hsqldb" type="number">F_HASH_CODE(SL.TRIP_CODE || '-' || SL.STATION_NUMBER)</select>
+    <select alias="STATION_NUMBER" group="oracle" type="number">ORA_HASH(SL.TRIP_CODE || '-' || SL.STATION_NUMBER)</select>
 
     <!-- other fields -->
     <select alias="WEIGHT" type="number">SUM(SL.WEIGHT)</select>
     <select alias="SUBSAMPLING_WEIGHT" type="number">SUM(SL.SUBSAMPLING_WEIGHT)</select>
     <select alias="LENGTH_CODE" type="text">SL.LENGTH_CODE</select>
 
-    <!--<select alias="STATION_OFFSET" group="hasSampleIds" type="number">POS</select>-->
 
     <!-- need to link other tables -->
     <select alias="SAMPLE_IDS" group="hasSampleIds" type="hidden">SL.SAMPLE_IDS</select>
-    <select alias="ID" group="hasId" type="hidden">MIN(SL.ID)</select>
+    <select alias="IDS" group="hasId" type="hidden">ARRAY_AGG(SL.ID)</select>
 
     <from alias="S">&amp;stationTableName</from>
 
@@ -97,7 +103,9 @@
 
     <groupby>
       SPECIES, CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY,
-      SUBSAMPLING_CATEGORY, SEX, LENGTH_CODE
+      SUBSAMPLING_CATEGORY,
+      SL.TRIP_CODE, SL.STATION_NUMBER,
+      SL.LENGTH_CODE
     </groupby>
 
 

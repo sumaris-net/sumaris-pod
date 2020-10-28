@@ -61,4 +61,14 @@ public interface ExtractionTableDao {
 
     void dropTable(String tableName);
 
+    /**
+     * Create a sequence for a table.
+     *
+     * @param tableName
+     * @return the sequence name
+     */
+    String createSequence(String tableName);
+
+    void dropSequence(String sequenceName);
+
 }

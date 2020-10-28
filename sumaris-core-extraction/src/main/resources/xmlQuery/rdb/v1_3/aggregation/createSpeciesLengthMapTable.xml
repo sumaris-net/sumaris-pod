@@ -24,7 +24,7 @@
 
   <query type="create" temp="false" table="&amp;speciesLengthMapTableName" option="DISTINCT">
 
-    <with alias="SL_MAP">
+    <with alias="SL">
       <subquery>
         <subselect alias="ID" type="number">MIN(ID)</subselect>
         <subselect alias="PK_STR" type="text">
@@ -40,8 +40,7 @@
           LANDING_CATEGORY || '|' ||
           COALESCE(COMMERCIAL_SIZE_CATEGORY_SCALE, '') || '|' ||
           COALESCE(COMMERCIAL_SIZE_CATEGORY, '') || '|' ||
-          COALESCE(SUBSAMPLING_CATEGORY, '') || '|' ||
-          COALESCE(SEX, '')
+          COALESCE(SUBSAMPLING_CATEGORY, '')
         </subselect>
         <subselect alias="COUNT" type="number">COUNT(DISTINCT ID)</subselect>
 
@@ -62,10 +61,10 @@
         <groupby>PK_STR</groupby>
       </subquery>
     </with>
-    <with alias="HL_MAP">
+    <with alias="HL">
       <subquery>
         <subselect alias="ID" type="number">ID</subselect>
-        <subselect alias="FK_STR_1" type="text">
+        <subselect alias="FK_STR" type="text">
           SAMPLING_TYPE  || '|' ||
           LANDING_COUNTRY || '|' ||
           VESSEL_FLAG_COUNTRY || '|' ||
@@ -78,24 +77,7 @@
           LANDING_CATEGORY || '|' ||
           COALESCE(COMMERCIAL_SIZE_CATEGORY_SCALE, '') || '|' ||
           COALESCE(COMMERCIAL_SIZE_CATEGORY, '') || '|' ||
-          COALESCE(SUBSAMPLING_CATEGORY, '') || '|' ||
-          COALESCE(INDIVIDUAL_SEX, '')
-        </subselect>
-        <subselect alias="FK_STR_2" type="text">
-          SAMPLING_TYPE  || '|' ||
-          LANDING_COUNTRY || '|' ||
-          VESSEL_FLAG_COUNTRY || '|' ||
-          YEAR || '|' ||
-          PROJECT || '|' ||
-          TRIP_CODE || '|' ||
-          STATION_NUMBER || '|' ||
-          SPECIES || '|' ||
-          CATCH_CATEGORY || '|' ||
-          LANDING_CATEGORY || '|' ||
-          COALESCE(COMMERCIAL_SIZE_CATEGORY_SCALE, '') || '|' ||
-          COALESCE(COMMERCIAL_SIZE_CATEGORY, '') || '|' ||
-          COALESCE(SUBSAMPLING_CATEGORY, '') || '|' ||
-          COALESCE(SEX, '')
+          COALESCE(SUBSAMPLING_CATEGORY, '')
         </subselect>
 
         <from>&amp;rawSpeciesLengthTableName</from>
@@ -114,17 +96,14 @@
       </subquery>
     </with>
 
-    <select alias="SL_ID" type="number">SL_MAP.ID</select>
-    <select alias="HL_ID" type="number">COALESCE(HL_MAP_1.ID, HL_MAP_2.ID)</select>
-    <select alias="SL_COUNT" type="number">SL_MAP.COUNT</select>
+    <select alias="SL_ID" type="number">min(SL.ID)</select>
+    <select alias="HL_ID" type="number">HL.ID</select>
+    <select alias="SL_COUNT" type="number">avg(SL.COUNT)</select>
 
-    <from>SL_MAP</from>
-    <from join="true">left join HL_MAP HL_MAP_1 on HL_MAP_1.FK_STR_1 = PK_STR</from>
-    <from join="true">left join HL_MAP HL_MAP_2 on HL_MAP_2.FK_STR_2 = PK_STR and HL_MAP_2.ID = HL_MAP_1.ID</from>
+    <from>SL</from>
+    <from join="true">inner join HL on SL.PK_STR = HL.FK_STR</from>
 
-    <where>HL_MAP_1.ID is not null or HL_MAP_2.ID is not null</where>
-
-    <groupby>SL_ID, HL_ID, SL_COUNT</groupby>
+    <groupby>HL_ID</groupby>
   </query>
 
 </queries>

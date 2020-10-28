@@ -51,17 +51,23 @@
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">SL.COMMERCIAL_SIZE_CATEGORY_SCALE</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">SL.COMMERCIAL_SIZE_CATEGORY</select>
     <select alias="SUBSAMPLING_CATEGORY" type="text">SL.SUBSAMPLING_CATEGORY</select>
-    <select alias="SEX" group="sex" type="text">SL.SEX</select>
+    <!--<select alias="SEX" group="sex" type="text">SL.SEX</select>-->
+    <select alias="STATION_NUMBER" type="number">SL.STATION_NUMBER</select>
 
     <!-- other fields -->
     <select alias="INDIVIDUAL_SEX" group="sex" type="text">HL.INDIVIDUAL_SEX</select>
     <select alias="LENGTH_CLASS" group="lengthClass" type="number">HL.LENGTH_CLASS</select>
     <select alias="NUMBER_AT_LENGTH"  group="numberAtLength" type="number">SUM(HL.NUMBER_AT_LENGTH)</select>
 
+    <select alias="ID" group="hasId" type="hidden">HL.ID</select>
+
     <from alias="SL" >&amp;speciesListTableName</from>
 
-    <from group="hasId" join="true">INNER JOIN &amp;speciesLengthMapTableName SL2HL on SL2HL.SL_ID = SL.ID</from>
-    <from group="hasId" join="true">INNER JOIN &amp;rawSpeciesLengthTableName HL on HL.ID = SL2HL.HL_ID</from>
+    <from group="hsqldb-hasId"><![CDATA[
+      UNNEST(SL.IDS) WITH ORDINALITY COORDS(SL_ID, POS)
+        INNER JOIN &speciesLengthMapTableName SL2HL on SL2HL.SL_ID = SL_ID
+        INNER JOIN &rawSpeciesLengthTableName HL on HL.ID = SL2HL.HL_ID
+    ]]></from>
 
     <from group="hsqldb-hasSampleIds"><![CDATA[
       UNNEST(SL.SAMPLE_IDS) WITH ORDINALITY COORDS(SAMPLE_ID, POS)
@@ -89,10 +95,11 @@
     <groupby group="euMetierLevel6">EU_METIER_LEVEL6</groupby>
     <groupby group="gearType">GEAR_TYPE</groupby>
     <groupby group="hasSampleIds">SAMPLE_IDS</groupby>
+    <groupby group="hasId">HL.ID</groupby>
 
     <groupby>
       SPECIES, CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY,
-      SUBSAMPLING_CATEGORY, SEX, INDIVIDUAL_SEX, LENGTH_CLASS
+      SUBSAMPLING_CATEGORY, STATION_NUMBER, SEX, INDIVIDUAL_SEX, LENGTH_CLASS
     </groupby>
   </query>
 

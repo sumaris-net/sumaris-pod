@@ -53,6 +53,12 @@ public interface AggRdbSpecification {
     String COLUMN_TRIP_COUNT = "trip_count";
     String COLUMN_STATION_COUNT = "station_count";
 
+    // Other columns
+    String COLUMN_NATIONAL_METIER = ProductRdbStation.COLUMN_NATIONAL_METIER;
+    String COLUMN_EU_METIER_LEVEL5 = ProductRdbStation.COLUMN_EU_METIER_LEVEL5;
+    String COLUMN_EU_METIER_LEVEL6 = ProductRdbStation.COLUMN_EU_METIER_LEVEL6;
+    String COLUMN_GEAR_TYPE = ProductRdbStation.COLUMN_GEAR_TYPE;
+
     // Link columns
     String COLUMN_ID = "id";
     String COLUMN_SAMPLE_IDS = "sample_ids";

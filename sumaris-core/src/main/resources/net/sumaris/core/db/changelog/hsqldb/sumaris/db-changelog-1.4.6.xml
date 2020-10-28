@@ -65,4 +65,97 @@
         </sql>
     </changeSet>
 
+    <!-- Fix wrong GEAR_TYPE, in GBR data -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-303" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="42">SELECT count(distinct gear_type) FROM P01_RDB_STATION where EU_METIER_LEVEL5 iS NOT NULL</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE P01_RDB_STATION set MESH_SIZE=GEAR_TYPE where MESH_SIZE is null and GEAR_TYPE is not null AND GEAR_TYPE NOT IN ('DRB', 'GND', 'GNS', 'GTR', 'LLS', 'OTB', 'UNK');
+            UPDATE P01_RDB_STATION set GEAR_TYPE='UNK' where GEAR_TYPE is not null AND GEAR_TYPE NOT IN ('DRB', 'GND', 'GNS', 'GTR', 'LLS', 'OTB', 'UNK');
+            UPDATE P01_RDB_STATION set GEAR_TYPE=substr(EU_METIER_LEVEL5, 0, 4) where GEAR_TYPE='UNK' AND EU_METIER_LEVEL5 IS NOT NULL AND substr(EU_METIER_LEVEL5, 4, 1) = '_';
+            commit;
+        </sql>
+
+    </changeSet>
+
+    <!-- Remove duplicated station -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-304" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0"><![CDATA[select count(*) from (
+                        select TRIP_CODE, STATION_NUMBER
+                        from P01_RDB_STATION S1
+                        group by TRIP_CODE, STATION_NUMBER
+                        having count(*) > 1
+                     )]]></sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            DELETE FROM P01_RDB_SPECIES_LIST where ID in (
+                select T2.ID
+                from
+                    (select TRIP_CODE, STATION_NUMBER, count(*) NB
+                     from P01_RDB_STATION
+                     group by TRIP_CODE, STATION_NUMBER
+                    ) S
+                    inner join  P01_RDB_SPECIES_LIST T1
+                        on T1.TRIP_CODE = S.TRIP_CODE
+                        AND T1.STATION_NUMBER = S.STATION_NUMBER
+                    inner join P01_RDB_SPECIES_LIST T2
+                        on T1.ID < T2.ID
+                        AND T1.TRIP_CODE = T2.TRIP_CODE
+                        AND T1.STATION_NUMBER = T2.STATION_NUMBER
+                        AND T1.WEIGHT = T2.WEIGHT
+                        AND T1.LANDING_CATEGORY = T2.LANDING_CATEGORY
+                        AND T1.CATCH_CATEGORY = T2.CATCH_CATEGORY
+                        AND T1.SUBSAMPLING_WEIGHT = T2.SUBSAMPLING_WEIGHT
+                where S.NB > 1
+            );
+            DELETE FROM P01_RDB_SPECIES_LENGTH where ID in (
+                select T2.ID
+                from
+                    (select TRIP_CODE, STATION_NUMBER, count(*) NB
+                     from P01_RDB_STATION
+                     group by TRIP_CODE, STATION_NUMBER
+                    ) S
+                        inner join  P01_RDB_SPECIES_LENGTH T1
+                                    on T1.TRIP_CODE = S.TRIP_CODE
+                                        AND T1.STATION_NUMBER = S.STATION_NUMBER
+                        inner join P01_RDB_SPECIES_LENGTH T2
+                                   on T1.ID < T2.ID
+                                       AND T1.TRIP_CODE = T2.TRIP_CODE
+                                       AND T1.STATION_NUMBER = T2.STATION_NUMBER
+                                       AND T1.LANDING_CATEGORY = T2.LANDING_CATEGORY
+                                       AND T1.CATCH_CATEGORY = T2.CATCH_CATEGORY
+                                       AND T1.LENGTH_CLASS = T2.LENGTH_CLASS
+                                       AND T1.NUMBER_AT_LENGTH = T2.NUMBER_AT_LENGTH
+                where S.NB > 1
+            );
+            DELETE FROM P01_RDB_STATION where ID in (
+                select T2.ID from
+                    (select
+                        TRIP_CODE,
+                        STATION_NUMBER,
+                        MIN(ID) "ID",
+                        count(*) NB
+                     from P01_RDB_STATION
+                     group by TRIP_CODE, STATION_NUMBER
+                    ) T1
+                      inner join  P01_RDB_STATION T2
+                        on T1.ID < T2.ID
+                        AND T1.TRIP_CODE = T2.TRIP_CODE
+                        AND T1.STATION_NUMBER = T2.STATION_NUMBER
+                    where T1.NB > 1
+            );
+            commit;
+        ]]></sql>
+    </changeSet>
+
 </databaseChangeLog>

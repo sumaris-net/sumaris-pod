@@ -111,7 +111,6 @@ public class AggregationRdbTripDaoImpl<
     @Autowired
     protected ExtractionTableDao extractionTableDao;
 
-
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, F filter) {
         long rowCount;
@@ -155,7 +154,7 @@ public class AggregationRdbTripDaoImpl<
             return context;
         }
         finally {
-            //dropHiddenColumns(context);
+            dropHiddenColumns(context);
         }
 
     }
@@ -272,18 +271,18 @@ public class AggregationRdbTripDaoImpl<
 
     protected XMLQuery createStationQuery(ExtractionProductVO source, AggregationRdbTripContextVO context) {
 
+        String stationTableName = context.getStationTableName();
         String rawTripTableName = source.getTableNameBySheetName(RdbSpecification.TR_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.TR_SHEET_NAME)));
         String rawStationTableName = source.getTableNameBySheetName(RdbSpecification.HH_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HH_SHEET_NAME)));
 
-        SumarisTableMetadata rawStationTable = databaseMetadata.getTable(rawStationTableName);
 
         XMLQuery xmlQuery = createXMLQuery(context, "createStationTable");
 
         xmlQuery.bind("rawTripTableName", rawTripTableName);
         xmlQuery.bind("rawStationTableName", rawStationTableName);
-        xmlQuery.bind("stationTableName", context.getStationTableName());
+        xmlQuery.bind("stationTableName", stationTableName);
 
         // Date
         xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
@@ -306,7 +305,16 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.bind("tripCodes", Daos.getSqlInValueFromStringCollection(context.getTripCodes()));
 
         xmlQuery.setGroup("excludeInvalidStation", true);
-        xmlQuery.setGroup("gearType", rawStationTable.getColumnMetadata(ProductRdbStation.COLUMN_GEAR_TYPE) != null);
+        SumarisTableMetadata rawStationTable = databaseMetadata.getTable(rawStationTableName);
+        xmlQuery.setGroup("month", true);
+        xmlQuery.setGroup("quarter", true);
+        xmlQuery.setGroup("area", true);
+        xmlQuery.setGroup("rect", true);
+        xmlQuery.setGroup("square", true);
+        xmlQuery.setGroup("nationalMetier", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_NATIONAL_METIER));
+        xmlQuery.setGroup("euMetierLevel5", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL5));
+        xmlQuery.setGroup("euMetierLevel6", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
+        xmlQuery.setGroup("gearType", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
@@ -339,15 +347,14 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected XMLQuery createSpeciesListQuery(ExtractionProductVO source, AggregationRdbTripContextVO context) {
-        String rawStationTableName = source.getTableNameBySheetName(RdbSpecification.HH_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HH_SHEET_NAME)));
         String rawSpeciesListTableName = source.getTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
+        String stationTableName = context.getStationTableName();
 
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");
 
         xmlQuery.bind("rawSpeciesListTableName", rawSpeciesListTableName);
-        xmlQuery.bind("stationTableName", context.getStationTableName());
+        xmlQuery.bind("stationTableName", stationTableName);
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
 
         // Enable/Disable group, on DBMS
@@ -355,8 +362,16 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
 
         // Enable/Disable group, on optional columns
-        SumarisTableMetadata rawStationTable = databaseMetadata.getTable(rawStationTableName);
-        xmlQuery.setGroup("gearType", rawStationTable.getColumnMetadata(ProductRdbStation.COLUMN_GEAR_TYPE) != null);
+        SumarisTableMetadata stationTable = databaseMetadata.getTable(stationTableName);
+        xmlQuery.setGroup("month", stationTable.hasColumn(AggRdbSpecification.COLUMN_MONTH));
+        xmlQuery.setGroup("quarter", stationTable.hasColumn(AggRdbSpecification.COLUMN_QUARTER));
+        xmlQuery.setGroup("area", stationTable.hasColumn(AggRdbSpecification.COLUMN_AREA));
+        xmlQuery.setGroup("rect", stationTable.hasColumn(AggRdbSpecification.COLUMN_STATISTICAL_RECTANGLE));
+        xmlQuery.setGroup("square", stationTable.hasColumn(AggRdbSpecification.COLUMN_SQUARE));
+        xmlQuery.setGroup("nationalMetier", stationTable.hasColumn(AggRdbSpecification.COLUMN_NATIONAL_METIER));
+        xmlQuery.setGroup("euMetierLevel5", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL5));
+        xmlQuery.setGroup("euMetierLevel6", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
+        xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
         SumarisTableMetadata rawSpeciesListTable = databaseMetadata.getTable(rawSpeciesListTableName);
         xmlQuery.setGroup("hasSampleIds", rawSpeciesListTable.hasColumn(COLUMN_SAMPLE_IDS));
@@ -470,6 +485,7 @@ public class AggregationRdbTripDaoImpl<
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
         String rawSpeciesLengthTableName = source.getTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HL_SHEET_NAME)));
+        String stationTableName = context.getStationTableName();
 
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesLengthTable");
         xmlQuery.bind("rawSpeciesLengthTableName", rawSpeciesLengthTableName);
@@ -488,8 +504,21 @@ public class AggregationRdbTripDaoImpl<
                   COLUMN_SAMPLE_IDS, COLUMN_ID, rawSpeciesListTableName));
         }
 
+        SumarisTableMetadata stationTable = databaseMetadata.getTable(stationTableName);
+        xmlQuery.setGroup("month", stationTable.hasColumn(AggRdbSpecification.COLUMN_MONTH));
+        xmlQuery.setGroup("quarter", stationTable.hasColumn(AggRdbSpecification.COLUMN_QUARTER));
+        xmlQuery.setGroup("area", stationTable.hasColumn(AggRdbSpecification.COLUMN_AREA));
+        xmlQuery.setGroup("rect", stationTable.hasColumn(AggRdbSpecification.COLUMN_STATISTICAL_RECTANGLE));
+        xmlQuery.setGroup("square", stationTable.hasColumn(AggRdbSpecification.COLUMN_SQUARE));
+        xmlQuery.setGroup("nationalMetier", stationTable.hasColumn(AggRdbSpecification.COLUMN_NATIONAL_METIER));
+        xmlQuery.setGroup("euMetierLevel5", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL5));
+        xmlQuery.setGroup("euMetierLevel6", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
+        xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
+
         // Enable/Disable group, on DBMS
         xmlQuery.setGroup("hasId", hasId);
+        xmlQuery.setGroup("hsqldb-hasId", hasId && this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("oracle-hasId", hasId && this.databaseType == DatabaseType.oracle);
         xmlQuery.setGroup("hasSampleIds", hasSampleIds);
         xmlQuery.setGroup("hsqldb-hasSampleIds", hasSampleIds && this.databaseType == DatabaseType.hsqldb);
         xmlQuery.setGroup("oracle-hasSampleIds", hasSampleIds && this.databaseType == DatabaseType.oracle);

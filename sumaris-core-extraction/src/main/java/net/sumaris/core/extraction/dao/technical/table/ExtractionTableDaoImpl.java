@@ -30,6 +30,8 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.AggregationDao;
+import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
@@ -39,7 +41,7 @@ import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.lang3.mutable.MutableShort;
+import org.hibernate.dialect.Dialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +75,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     @PostConstruct
     public void init() {
-        dropTableQuery = databaseMetadata.getDialect().getDropTableString("%s");
+        dropTableQuery = getDialect().getDropTableString("%s");
     }
 
     @Override
@@ -128,7 +130,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     @Override
     public void dropTable(String tableName) {
         Preconditions.checkNotNull(tableName);
-        Preconditions.checkArgument(tableName.toUpperCase().startsWith("EXT_"));
+        Preconditions.checkArgument(tableName.toUpperCase().startsWith(ExtractionDao.TABLE_NAME_PREFIX));
 
         log.debug(String.format("Dropping extraction table {%s}...", tableName));
         try {
@@ -137,6 +139,41 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
         } catch (Exception e) {
             throw new SumarisTechnicalException(String.format("Cannot drop extraction table {%s}...", tableName), e);
+        }
+    }
+
+    @Override
+    public String createSequence(String tableName) {
+        Preconditions.checkNotNull(tableName);
+        String upperTableName = tableName.toUpperCase();
+        Preconditions.checkArgument(upperTableName.startsWith(ExtractionDao.TABLE_NAME_PREFIX)
+                || upperTableName.startsWith(AggregationDao.TABLE_NAME_PREFIX));
+
+        // Make sue sequence name length is lower than 30 characters
+        if (upperTableName.length() + ExtractionDao.SEQUENCE_NAME_SUFFIX.length() > 30) {
+            upperTableName = upperTableName.substring(0, 30 - ExtractionDao.SEQUENCE_NAME_SUFFIX.length());
+        }
+        String sequenceName = upperTableName + ExtractionDao.SEQUENCE_NAME_SUFFIX;
+        try {
+            String sql = getDialect().getCreateSequenceStrings(sequenceName, 1, 1)[0];
+            getSession().createSQLQuery(sql).executeUpdate();
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(String.format("Cannot create sequence '%s': %s", sequenceName, e.getMessage()), e);
+        }
+        return sequenceName;
+    }
+
+    @Override
+    public void dropSequence(String sequenceName) {
+        Preconditions.checkNotNull(sequenceName);
+        Preconditions.checkArgument(sequenceName.startsWith(ExtractionDao.TABLE_NAME_PREFIX)
+                || sequenceName.startsWith(AggregationDao.TABLE_NAME_PREFIX));
+        Preconditions.checkArgument(sequenceName.endsWith(ExtractionDao.SEQUENCE_NAME_SUFFIX));
+        try {
+            String sql = getDialect().getDropSequenceStrings(sequenceName)[0];
+            getSession().createSQLQuery(sql).executeUpdate();
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(String.format("Cannot drop sequence '%s': %s", sequenceName, e.getMessage()), e);
         }
     }
 
@@ -232,6 +269,10 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     /* -- protected method -- */
+
+    protected Dialect getDialect() {
+        return databaseMetadata.getDialect();
+    }
 
     protected Number getRowCount(SumarisTableMetadata table, String whereClause) {
 

@@ -1750,4 +1750,25 @@ public class Daos {
         String dbms = urlParts[1];
         return DatabaseType.valueOf(dbms.toLowerCase());
     }
+
+    public static String getSelectHashCodeString(DatabaseType databaseType, String expr) {
+        switch (databaseType) {
+            case oracle:
+                return String.format("ORA_HASH(%s)", expr);
+            case hsqldb:
+                return String.format("F_HASH_CODE(%s)", expr);
+            default:
+                    throw new SumarisTechnicalException("Daos.getSelectHashCodeString() not implemented for DBMS: " + databaseType.name());
+        }
+    }
+
+    public static String getHashCodeString(DatabaseType databaseType, String expr) {
+        switch (databaseType) {
+            case oracle:
+            case hsqldb:
+                return "CALL " + getSelectHashCodeString(databaseType, expr);
+            default:
+                throw new SumarisTechnicalException("Daos.getHashCodeString() not implemented for DBMS: " + databaseType.name());
+        }
+    }
 }

@@ -89,7 +89,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
 
     @Test
-    public void aggregateProductRdb() {
+    public void aggregateProductRdb() throws IOException {
 
         AggregationTypeVO type = new AggregationTypeVO();
         type.setCategory(ExtractionCategoryEnum.PRODUCT.name());
@@ -124,13 +124,22 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setAggColumnName("station_count");
         strata.setTechColumnName("vessel_count");
 
+/*
         ExtractionResultVO result = service.executeAndRead(type, filter, strata, 0, 100, null, null);
         Preconditions.checkNotNull(result);
         Preconditions.checkNotNull(result.getRows());
         Preconditions.checkArgument(result.getRows().size() > 0);
+*/
 
         // FIXME
         //Preconditions.checkNotNull(result.getTotal() > 0);
+
+        File outputFile = service.executeAndDump(type, filter, strata);
+        File root = unpack(outputFile, type);
+
+        // HH.csv
+        File stationFile = new File(root, AggRdbSpecification.HH_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
     }
 
     @Test

@@ -91,6 +91,7 @@
     <select alias="TRIP_AVG_NUMBER_OF_SETS" type="number">AVG(T.NUMBER_OF_SETS)</select>
     <select alias="TRIP_SUM_FISHING_TIME" type="number">AVG(T.FISHING_TIME)</select> -->
 
+
     <!-- Hidden field (use min trip/station as identifier) -->
     <select alias="TRIP_CODES" group="hsqldb" type="hidden">ARRAY_AGG(S.TRIP_CODE)</select>
     <select alias="TRIP_CODES" group="oracle" type="hidden">LISTAGG(S.TRIP_CODE, ',')</select>
