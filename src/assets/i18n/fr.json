@@ -1144,7 +1144,10 @@
       "LANDING_EDITOR_TRIP": "Marée",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu"
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
@@ -1160,7 +1163,9 @@
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
-        "PMFM": "PSFM",
+        "PMFM": "Paramètre collecté (PMFM)",
+        "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
+        "SHORT_COLUMN_TITLE": "PSFM",
         "PARAMETER": "Paramètre",
         "MATRIX": "Support",
         "FRACTION": "Fraction",
