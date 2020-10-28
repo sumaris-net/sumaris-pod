@@ -8,6 +8,7 @@ import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
+import {SimpleStrategiesTable} from "../simpleStrategy/simpleStrategies/simpleStrategies.table";
 import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
@@ -64,9 +65,14 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
-  @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
-  @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
 
+  @ViewChild('simpleStrategiesTable', { static: true }) simpleStrategiesTable: SimpleStrategiesTable;
+  //@ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
+
+  @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
+  //TODO : implement option
+  testOption= true;
+  
   constructor(
     protected injector: Injector,
     protected formBuilder: FormBuilder,
@@ -125,27 +131,35 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       }
     });
 
-    // Listen start editing strategy
-    this.registerSubscription(this.strategiesTable.onStartEditingRow
-      .subscribe(row => this.openRow(row)));
-    /*this.registerSubscription(this.strategiesTable.f
+    if( this.testOption){
+    this.registerSubscription(this.simpleStrategiesTable.onOpenRow
+        .subscribe(row => this.openRow(row)));
+    }
+    else {
+      //TODO : remplace simpleStrategiesTable by strategiesTable
+       // Listen start editing strategy
+    this.registerSubscription(this.simpleStrategiesTable.onStartEditingRow
+      .subscribe(row => this.onStartEditStrategy(row)));
+    this.registerSubscription(this.simpleStrategiesTable.onConfirmEditCreateRow
       .subscribe(row => this.onConfirmEditCreateStrategy(row)));
-    this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
-      .subscribe(row => this.onCancelOrDeleteStrategy(row)));*/
+    this.registerSubscription(this.simpleStrategiesTable.onCancelOrDeleteRow
+      .subscribe(row => this.onCancelOrDeleteStrategy(row)));
+    }
+   
   }
 
 
   // TODO : séparer entre édition et création de ligne
   async openRow(row: TableElement<Strategy>): Promise<boolean> {
 
-    const id = row.currentData.id;
+    const id = row.id;
     const path = this.detailsPathSimpleStrategy;
     
     if (isNotNilOrBlank(path)) {
       await this.router.navigateByUrl(
         path
         // Replace the id in the path
-        .replace(':id', isNotNilOrBlank(row.currentData.id) ? id.toString() : '')
+        .replace(':id', isNotNilOrBlank(row.id) ? id.toString() : '')
       );
       return true;
     
@@ -188,7 +202,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.addChildForms([
       this.referentialForm,
       this.propertiesForm,
-      this.strategiesTable,
+
+      this.simpleStrategiesTable,
+      //TODO this.strategiesTable,
+
       this.strategyForm
     ]);
   }
@@ -201,7 +218,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
 
     // strategies
-    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    this.simpleStrategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    // TODO this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
 
     this.markAsPristine();
   }
@@ -215,15 +233,26 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     data.properties = this.propertiesForm.value;
 
     // Finish edition of strategy
-    if (this.strategiesTable.dirty) {
-      if (this.strategiesTable.editedRow) {
-        await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
+    if (this.simpleStrategiesTable.dirty) {
+      if (this.simpleStrategiesTable.editedRow) {
+        await this.onConfirmEditCreateStrategy(this.simpleStrategiesTable.editedRow);
       }
-      await this.strategiesTable.save();
+      await this.simpleStrategiesTable.save();
     }
 
-    data.strategies = this.strategiesTable.value;
+    data.strategies = this.simpleStrategiesTable.value;
 
+
+  // TODO : remplace simpleStrategiesTable by strategiesTable
+  // Finish edition of strategy
+  /*if (this.strategiesTable.dirty) {
+    if (this.strategiesTable.editedRow) {
+      await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
+    }
+    await this.strategiesTable.save();
+  }
+  data.strategies = this.strategiesTable.value;
+   */
     return data;
   }
 
@@ -240,7 +269,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     if (this.propertiesForm.invalid) return 1;
-    if (this.strategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
+    if (this.simpleStrategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
+    //TODO if (this.strategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
     return 0;
   }
 
