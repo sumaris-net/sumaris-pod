@@ -57,7 +57,7 @@
     <!--<select alias="SEX" type="text">SL.SEX</select>-->
 
     <!-- Unique identifier for station, to be able to link HL children rows -->
-    <select alias="STATION_NUMBER" group="hsqldb" type="number">F_HASH_CODE(SL.TRIP_CODE || '-' || SL.STATION_NUMBER)</select>
+    <select alias="STATION_NUMBER" group="hsqldb" type="number">ABS(F_HASH_CODE(SL.TRIP_CODE || '-' || SL.STATION_NUMBER))</select>
     <select alias="STATION_NUMBER" group="oracle" type="number">ORA_HASH(SL.TRIP_CODE || '-' || SL.STATION_NUMBER)</select>
 
     <!-- other fields -->

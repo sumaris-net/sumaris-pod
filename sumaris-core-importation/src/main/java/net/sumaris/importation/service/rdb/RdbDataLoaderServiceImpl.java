@@ -182,30 +182,30 @@ public class RdbDataLoaderServiceImpl implements RdbDataLoaderService {
 					ProductRdbSpeciesLength.COLUMN_NUMBER_AT_LENGTH
 			})
 			// TODO CA
-			.put(ProductRdbLandingStatistics.TABLE, new String[]{
+			.put(ProductRdbLanding.TABLE, new String[]{
 					MIXED_COLUMN_RECORD_TYPE,
-					ProductRdbLandingStatistics.COLUMN_VESSEL_FLAG_COUNTRY,
-					ProductRdbLandingStatistics.COLUMN_LANDING_COUNTRY,
-					ProductRdbLandingStatistics.COLUMN_YEAR,
-					ProductRdbLandingStatistics.COLUMN_QUARTER,
-					ProductRdbLandingStatistics.COLUMN_MONTH,
-					ProductRdbLandingStatistics.COLUMN_AREA,
-					ProductRdbLandingStatistics.COLUMN_STATISTICAL_RECTANGLE,
-					ProductRdbLandingStatistics.COLUMN_SUB_POLYGON,
-					ProductRdbLandingStatistics.COLUMN_SPECIES,
-					ProductRdbLandingStatistics.COLUMN_LANDING_CATEGORY,
-					ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
-					ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY,
-					ProductRdbLandingStatistics.COLUMN_NATIONAL_METIER,
-					ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL5,
-					ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL6,
-					ProductRdbLandingStatistics.COLUMN_HARBOUR,
-					ProductRdbLandingStatistics.COLUMN_VESSEL_LENGTH_CATEGORY,
-					ProductRdbLandingStatistics.COLUMN_UNALLOCATED_CATCH_WEIGHT,
-					ProductRdbLandingStatistics.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT,
-					ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_WEIGHT,
-					ProductRdbLandingStatistics.COLUMN_LANDINGS_MULTIPLIER,
-					ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_VALUE
+					ProductRdbLanding.COLUMN_VESSEL_FLAG_COUNTRY,
+					ProductRdbLanding.COLUMN_LANDING_COUNTRY,
+					ProductRdbLanding.COLUMN_YEAR,
+					ProductRdbLanding.COLUMN_QUARTER,
+					ProductRdbLanding.COLUMN_MONTH,
+					ProductRdbLanding.COLUMN_AREA,
+					ProductRdbLanding.COLUMN_STATISTICAL_RECTANGLE,
+					ProductRdbLanding.COLUMN_SUB_POLYGON,
+					ProductRdbLanding.COLUMN_SPECIES,
+					ProductRdbLanding.COLUMN_LANDING_CATEGORY,
+					ProductRdbLanding.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
+					ProductRdbLanding.COLUMN_COMMERCIAL_SIZE_CATEGORY,
+					ProductRdbLanding.COLUMN_NATIONAL_METIER,
+					ProductRdbLanding.COLUMN_EU_METIER_LEVEL5,
+					ProductRdbLanding.COLUMN_EU_METIER_LEVEL6,
+					ProductRdbLanding.COLUMN_HARBOUR,
+					ProductRdbLanding.COLUMN_VESSEL_LENGTH_CATEGORY,
+					ProductRdbLanding.COLUMN_UNALLOCATED_CATCH_WEIGHT,
+					ProductRdbLanding.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT,
+					ProductRdbLanding.COLUMN_OFFICIAL_LANDINGS_WEIGHT,
+					ProductRdbLanding.COLUMN_LANDINGS_MULTIPLIER,
+					ProductRdbLanding.COLUMN_OFFICIAL_LANDINGS_VALUE
 			})
 			// TODO CE
 			.build();
@@ -213,39 +213,42 @@ public class RdbDataLoaderServiceImpl implements RdbDataLoaderService {
 
 	protected static final Map<String, String> headerReplacements = ImmutableMap.<String, String>builder()
 			// FRA synonyms
-			.put("landCtry", ProductRdbLandingStatistics.COLUMN_LANDING_COUNTRY)
-			.put("vslFlgCtry", ProductRdbLandingStatistics.COLUMN_VESSEL_FLAG_COUNTRY)
-			.put("year", ProductRdbLandingStatistics.COLUMN_YEAR)
-			.put("quarter", ProductRdbLandingStatistics.COLUMN_QUARTER)
-			.put("month", ProductRdbLandingStatistics.COLUMN_MONTH)
-			.put("area", ProductRdbLandingStatistics.COLUMN_AREA)
-			.put("rect", ProductRdbLandingStatistics.COLUMN_STATISTICAL_RECTANGLE)
-			.put("subRect", ProductRdbLandingStatistics.COLUMN_SUB_POLYGON)
-			.put("taxon", ProductRdbLandingStatistics.COLUMN_SPECIES)
-			.put("landCat", ProductRdbLandingStatistics.COLUMN_LANDING_CATEGORY)
-			.put("commCatScl", ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE)
-			.put("commCat", ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY)
-			.put("foCatNat", ProductRdbLandingStatistics.COLUMN_NATIONAL_METIER)
-			.put("foCatEu5", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL5)
-			.put("foCatEu6", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL6)
-			.put("harbour", ProductRdbLandingStatistics.COLUMN_HARBOUR)
-			.put("vslLenCat", ProductRdbLandingStatistics.COLUMN_VESSEL_LENGTH_CATEGORY)
-			.put("unallocCatchWt", ProductRdbLandingStatistics.COLUMN_UNALLOCATED_CATCH_WEIGHT)
-			.put("misRepCatchWt", ProductRdbLandingStatistics.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT)
-			.put("landWt", ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_WEIGHT)
-			.put("landMult", ProductRdbLandingStatistics.COLUMN_LANDINGS_MULTIPLIER)
-			.put("landValue", ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_VALUE)
+			.put("landCtry", ProductRdbLanding.COLUMN_LANDING_COUNTRY)
+			.put("vslFlgCtry", ProductRdbLanding.COLUMN_VESSEL_FLAG_COUNTRY)
+			.put("year", ProductRdbLanding.COLUMN_YEAR)
+			.put("quarter", ProductRdbLanding.COLUMN_QUARTER)
+			.put("month", ProductRdbLanding.COLUMN_MONTH)
+			.put("area", ProductRdbLanding.COLUMN_AREA)
+			.put("rect", ProductRdbLanding.COLUMN_STATISTICAL_RECTANGLE)
+			.put("subRect", ProductRdbLanding.COLUMN_SUB_POLYGON)
+			.put("taxon", ProductRdbLanding.COLUMN_SPECIES)
+			.put("landCat", ProductRdbLanding.COLUMN_LANDING_CATEGORY)
+			.put("commCatScl", ProductRdbLanding.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE)
+			.put("commCat", ProductRdbLanding.COLUMN_COMMERCIAL_SIZE_CATEGORY)
+			.put("foCatNat", ProductRdbLanding.COLUMN_NATIONAL_METIER)
+			.put("foCatEu5", ProductRdbLanding.COLUMN_EU_METIER_LEVEL5)
+			.put("foCatEu6", ProductRdbLanding.COLUMN_EU_METIER_LEVEL6)
+			.put("harbour", ProductRdbLanding.COLUMN_HARBOUR)
+			.put("vslLenCat", ProductRdbLanding.COLUMN_VESSEL_LENGTH_CATEGORY)
+			.put("unallocCatchWt", ProductRdbLanding.COLUMN_UNALLOCATED_CATCH_WEIGHT)
+			.put("misRepCatchWt", ProductRdbLanding.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT)
+			.put("landWt", ProductRdbLanding.COLUMN_OFFICIAL_LANDINGS_WEIGHT)
+			.put("landMult", ProductRdbLanding.COLUMN_LANDINGS_MULTIPLIER)
+			.put("landValue", ProductRdbLanding.COLUMN_OFFICIAL_LANDINGS_VALUE)
 
 			// BEL synonyms
-			.put("FAC_National", ProductRdbLandingStatistics.COLUMN_NATIONAL_METIER)
-			.put("FAC_EC_lvl5", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL5)
-			.put("FAC_EC_lvl6", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL6)
+			.put("FAC_National", ProductRdbLanding.COLUMN_NATIONAL_METIER)
+			.put("FAC_EC_lvl5", ProductRdbLanding.COLUMN_EU_METIER_LEVEL5)
+			.put("FAC_EC_lvl6", ProductRdbLanding.COLUMN_EU_METIER_LEVEL6)
 
 			// GBR synonyms
-			.put("comm_size_cat_scale", ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE)
-			.put("comm_size_cat", ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY)
 			.put("number_hauls", ProductRdbTrip.COLUMN_NUMBER_OF_SETS)
 			.put("haul_count", ProductRdbTrip.COLUMN_NUMBER_OF_SETS)
+			.put("comm_size_cat_scale", ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE)
+			.put("comm_size_cat", ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY)
+
+			// All synonyms
+			.put("vessel_length_cat", ProductRdbLanding.COLUMN_VESSEL_LENGTH_CATEGORY)
 
 			.build();
 

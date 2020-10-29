@@ -158,4 +158,38 @@
         ]]></sql>
     </changeSet>
 
+    <!-- Insert LOCATION_LEVEL -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-305" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM LOCATION_LEVEL where ID IN (101, 110, 111, 140, 141)</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (101, 'FAO_AREA', 'FAO Area', sysdate, now, null, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (110, 'ICES_SUB_AREA', 'ICES Sub-area', sysdate, now, 101, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (111, 'ICES_DIVISION', 'ICES Division', sysdate, now, 110, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (112, 'ICES_SUB_DIVISION', 'ICES Sub-division', sysdate, now, 111, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (140, 'GFCM_SUB_AREA', 'GFCM Sub-area', sysdate, now, 101, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (141, 'GFCM_DIVISION', 'GFCM Division', sysdate, now, 140, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (142, 'GFCM_SUB_DIVISION', 'GFCM Sub-division', sysdate, now, 141, 2, null, null, 1);
+            ALTER SEQUENCE LOCATION_LEVEL_SEQ RESTART WITH 300;
+            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from STATUS where ID=1;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Insert LOCATION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-306">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM LOCATION where LOCATION_LEVEL_FK in (111,145)</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_location-1.4.6.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+
+
 </databaseChangeLog>

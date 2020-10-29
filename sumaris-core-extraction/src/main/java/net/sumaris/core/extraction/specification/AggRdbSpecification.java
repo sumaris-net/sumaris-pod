@@ -24,20 +24,22 @@ package net.sumaris.core.extraction.specification;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface AggRdbSpecification {
 
     String FORMAT = RdbSpecification.FORMAT;
     String VERSION_1_3 = RdbSpecification.VERSION_1_3;
 
-    String TR_SHEET_NAME = "HH"; // TODO to remove
     String HH_SHEET_NAME = "HH";
     String SL_SHEET_NAME = "SL";
     String HL_SHEET_NAME = "HL";
+    String CL_SHEET_NAME = "CL";
 
     // Time columns
     String COLUMN_YEAR  = ProductRdbStation.COLUMN_YEAR;
@@ -48,6 +50,7 @@ public interface AggRdbSpecification {
     String COLUMN_AREA = ProductRdbStation.COLUMN_AREA;
     String COLUMN_STATISTICAL_RECTANGLE = ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE;
     String COLUMN_SQUARE = "square";
+    String COLUMN_SUB_POLYGON = ProductRdbStation.COLUMN_SUB_POLYGON;
 
     // Agg columns
     String COLUMN_TRIP_COUNT = "trip_count";
@@ -63,10 +66,10 @@ public interface AggRdbSpecification {
     String COLUMN_ID = "id";
     String COLUMN_SAMPLE_IDS = "sample_ids";
 
-    List<String> SPACE_STRATA = ImmutableList.of("area", "rect", "square");
-    List<String> TIME_STRATA = ImmutableList.of("year", "quarter", "month");
-    Map<String, List<String>> AGG_STRATA_BY_SHEETNAME = ImmutableMap.<String, List<String>>builder()
-            .put(HH_SHEET_NAME, ImmutableList.of(COLUMN_TRIP_COUNT, COLUMN_STATION_COUNT))
+    Set<String> SPACE_STRATA = ImmutableSet.of("area", "rect", "square");
+    Set<String> TIME_STRATA = ImmutableSet.of("year", "quarter", "month");
+    Map<String, Set<String>> AGG_STRATA_BY_SHEETNAME = ImmutableMap.<String, Set<String>>builder()
+            .put(HH_SHEET_NAME, ImmutableSet.of(COLUMN_TRIP_COUNT, COLUMN_STATION_COUNT))
             .build();
 
 

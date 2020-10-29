@@ -28,8 +28,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.AggregationContextVO;
+import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
@@ -45,6 +47,8 @@ import java.util.List;
 public abstract class AggregationTripContextVO extends AggregationContextVO {
 
     TripFilterVO tripFilter;
+
+    AggregationStrataVO strata;
 
     List<ExtractionPmfmInfoVO> pmfmInfos;
 
@@ -78,4 +82,11 @@ public abstract class AggregationTripContextVO extends AggregationContextVO {
         return tripFilter != null && tripFilter.getRecorderDepartmentId() != null ? ImmutableList.of(tripFilter.getRecorderDepartmentId()) : null;
     }
 
+    public String getStrataSpaceColumnName() {
+        return strata != null ? strata.getSpaceColumnName() : null;
+    }
+
+    public String getStrataTimeColumnName() {
+        return strata != null ? strata.getTimeColumnName() : null;
+    }
 }

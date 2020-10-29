@@ -24,8 +24,6 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -42,8 +40,6 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
@@ -98,7 +94,7 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public AggregationContextVO execute(AggregationTypeVO type, ExtractionFilterVO filter) {
+    public AggregationContextVO execute(AggregationTypeVO type, ExtractionFilterVO filter, AggregationStrataVO strata) {
         AggregationTypeVO checkedType = ExtractionBeans.checkAndFindType(getAllAggregationTypes(null), type);
         ExtractionCategoryEnum category = ExtractionCategoryEnum.valueOf(checkedType.getCategory().toUpperCase());
         ExtractionProductVO source;
@@ -108,7 +104,7 @@ public class AggregationServiceImpl implements AggregationService {
                 // Get the product VO
                 source = extractionProductRepository.getByLabel(checkedType.getFormat(), ExtractionProductFetchOptions.MINIMAL);
                 // Execute, from product
-                return executeProduct(source, filter);
+                return aggregate(source, filter, strata);
 
             case LIVE:
                 // First execute the raw extraction
@@ -123,11 +119,10 @@ public class AggregationServiceImpl implements AggregationService {
                     }
 
                     // Execute, from product
-                    return executeProduct(source, aggregationFilter);
+                    return aggregate(source, aggregationFilter, strata);
                 } finally {
                     // Clean intermediate tables
-                    // TODO BLA ENABLE
-                    //asyncClean(rawExtractionContext);
+                    asyncClean(rawExtractionContext);
                 }
             default:
                 throw new SumarisTechnicalException(String.format("Aggregation on category %s not implemented yet !", type.getCategory()));
@@ -178,7 +173,7 @@ public class AggregationServiceImpl implements AggregationService {
     public AggregationResultVO executeAndRead(AggregationTypeVO type, ExtractionFilterVO filter, AggregationStrataVO strata,
                                               int offset, int size, String sort, SortDirection direction) {
         // Execute the aggregation
-        AggregationContextVO context = execute(type, filter);
+        AggregationContextVO context = execute(type, filter, strata);
 
         // Prepare the read filter
         ExtractionFilterVO readFilter = null;
@@ -199,7 +194,7 @@ public class AggregationServiceImpl implements AggregationService {
     @Override
     public File executeAndDump(AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
         // Execute the aggregation
-        AggregationContextVO context = execute(type, filter);
+        AggregationContextVO context = execute(type, filter, strata);
         try {
             return extractionService.dumpTablesToFile(context, null /*already apply*/);
         }
@@ -229,8 +224,10 @@ public class AggregationServiceImpl implements AggregationService {
             target.setLabel(type.getLabel());
         }
 
-        // Applying a new execution
-        if (isNew || filter != null) {
+        boolean needExecuteAggregation = isNew || filter != null;
+
+        // Run the aggregation (if need) before saving
+        if (needExecuteAggregation) {
 
             // Prepare a executable type (with label=format)
             AggregationTypeVO executableType = new AggregationTypeVO();
@@ -238,7 +235,7 @@ public class AggregationServiceImpl implements AggregationService {
             executableType.setCategory(type.getCategory());
 
             // Execute the aggregation
-            AggregationContextVO context = execute(executableType, filter);
+            AggregationContextVO context = execute(executableType, filter, null);
 
             // Update product tables, using the aggregation result
             toProductVO(context, target);
@@ -250,10 +247,9 @@ public class AggregationServiceImpl implements AggregationService {
             target.setStatusId(type.getStatusId());
             target.setRecorderDepartment(type.getRecorderDepartment());
             target.setRecorderPerson(type.getRecorderPerson());
-            target.setStratum(type.getStratum());
         }
 
-        // Aggregation already exists, and not new execution need: just save it
+        // Not need new aggregation: update entity before saving
         else {
             Preconditions.checkArgument(StringUtils.equalsIgnoreCase(target.getLabel(), type.getLabel()), "Cannot update the label of an existing product");
             target.setName(type.getName());
@@ -263,8 +259,8 @@ public class AggregationServiceImpl implements AggregationService {
             target.setStatusId(type.getStatusId());
             target.setUpdateDate(type.getUpdateDate());
             target.setIsSpatial(type.getIsSpatial());
-            target.setStratum(type.getStratum());
         }
+        target.setStratum(type.getStratum());
 
         // Save the product
         target = extractionProductRepository.save(target);
@@ -356,7 +352,9 @@ public class AggregationServiceImpl implements AggregationService {
         return result;
     }
 
-    public AggregationContextVO executeProduct(ExtractionProductVO source, ExtractionFilterVO filter) {
+    public AggregationContextVO aggregate(ExtractionProductVO source,
+                                          ExtractionFilterVO filter,
+                                          AggregationStrataVO strata) {
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getLabel());
 
@@ -369,7 +367,7 @@ public class AggregationServiceImpl implements AggregationService {
 
             //case FREE2: // TODO: test FREE2 is compatible
             case SURVIVAL_TEST:
-                return aggregationRdbTripDao.aggregate(source, filter);
+                return aggregationRdbTripDao.aggregate(source, filter, strata);
             default:
                 throw new SumarisTechnicalException(String.format("Data aggregation on type '%s' is not implemented!", format.name()));
         }

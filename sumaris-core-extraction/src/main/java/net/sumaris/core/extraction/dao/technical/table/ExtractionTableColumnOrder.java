@@ -124,29 +124,29 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbSpeciesLength.COLUMN_NUMBER_AT_LENGTH
             })
             // TODO CA
-            .put(ProductRdbLandingStatistics.TABLE.name(), new String[]{
-                    ProductRdbLandingStatistics.COLUMN_VESSEL_FLAG_COUNTRY,
-                    ProductRdbLandingStatistics.COLUMN_LANDING_COUNTRY,
-                    ProductRdbLandingStatistics.COLUMN_YEAR,
-                    ProductRdbLandingStatistics.COLUMN_QUARTER,
-                    ProductRdbLandingStatistics.COLUMN_MONTH,
-                    ProductRdbLandingStatistics.COLUMN_AREA,
-                    ProductRdbLandingStatistics.COLUMN_STATISTICAL_RECTANGLE,
-                    ProductRdbLandingStatistics.COLUMN_SUB_POLYGON,
-                    ProductRdbLandingStatistics.COLUMN_SPECIES,
-                    ProductRdbLandingStatistics.COLUMN_LANDING_CATEGORY,
-                    ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
-                    ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY,
-                    ProductRdbLandingStatistics.COLUMN_NATIONAL_METIER,
-                    ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL5,
-                    ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL6,
-                    ProductRdbLandingStatistics.COLUMN_HARBOUR,
-                    ProductRdbLandingStatistics.COLUMN_VESSEL_LENGTH_CATEGORY,
-                    ProductRdbLandingStatistics.COLUMN_UNALLOCATED_CATCH_WEIGHT,
-                    ProductRdbLandingStatistics.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT,
-                    ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_WEIGHT,
-                    ProductRdbLandingStatistics.COLUMN_LANDINGS_MULTIPLIER,
-                    ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_VALUE
+            .put(ProductRdbLanding.TABLE.name(), new String[]{
+                    ProductRdbLanding.COLUMN_VESSEL_FLAG_COUNTRY,
+                    ProductRdbLanding.COLUMN_LANDING_COUNTRY,
+                    ProductRdbLanding.COLUMN_YEAR,
+                    ProductRdbLanding.COLUMN_QUARTER,
+                    ProductRdbLanding.COLUMN_MONTH,
+                    ProductRdbLanding.COLUMN_AREA,
+                    ProductRdbLanding.COLUMN_STATISTICAL_RECTANGLE,
+                    ProductRdbLanding.COLUMN_SUB_POLYGON,
+                    ProductRdbLanding.COLUMN_SPECIES,
+                    ProductRdbLanding.COLUMN_LANDING_CATEGORY,
+                    ProductRdbLanding.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
+                    ProductRdbLanding.COLUMN_COMMERCIAL_SIZE_CATEGORY,
+                    ProductRdbLanding.COLUMN_NATIONAL_METIER,
+                    ProductRdbLanding.COLUMN_EU_METIER_LEVEL5,
+                    ProductRdbLanding.COLUMN_EU_METIER_LEVEL6,
+                    ProductRdbLanding.COLUMN_HARBOUR,
+                    ProductRdbLanding.COLUMN_VESSEL_LENGTH_CATEGORY,
+                    ProductRdbLanding.COLUMN_UNALLOCATED_CATCH_WEIGHT,
+                    ProductRdbLanding.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT,
+                    ProductRdbLanding.COLUMN_OFFICIAL_LANDINGS_WEIGHT,
+                    ProductRdbLanding.COLUMN_LANDINGS_MULTIPLIER,
+                    ProductRdbLanding.COLUMN_OFFICIAL_LANDINGS_VALUE
             })
             // TODO CE
             .build();

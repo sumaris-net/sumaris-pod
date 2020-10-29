@@ -63,14 +63,10 @@ public class AggregationServiceTest extends AbstractServiceTest {
         type.setLabel(ExtractionRawFormatEnum.RDB.name());
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpaceColumnName("area");
-        strata.setTimeColumnName("year");
-        strata.setAggColumnName("station_count");
-        strata.setTechColumnName("vessel_count");
+        strata.setSpaceColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        ExtractionFilterVO filter = new ExtractionFilterVO();
-
-        File outputFile = service.executeAndDump(type, filter, strata);
+        File outputFile = service.executeAndDump(type, null, strata);
         File root = unpack(outputFile, type);
 
         // HH.csv
@@ -84,9 +80,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         // HL.csv
         File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
-
     }
-
 
     @Test
     public void aggregateProductRdb() throws IOException {
@@ -95,52 +89,27 @@ public class AggregationServiceTest extends AbstractServiceTest {
         type.setCategory(ExtractionCategoryEnum.PRODUCT.name());
         type.setLabel("p01_rdb");
 
-        ExtractionFilterVO filter = new ExtractionFilterVO();
-        filter.setSheetName("HH");
-
-        // Add criterion
-        List<ExtractionFilterCriterionVO> criteria = Lists.newArrayList();
-        filter.setCriteria(criteria);
-        /*{
-            criteria.add(ExtractionFilterCriterionVO.builder()
-                    .sheetName("HH")
-                    .name(ProductRdbStation.COLUMN_YEAR)
-                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value("2017")
-                    .build());
-        }*/
-
-        /*{
-            criteria.add(ExtractionFilterCriterionVO.builder()
-                    .name(ProductRdbStation.COLUMN_TRIP_CODE)
-                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value("83716")
-                    .build());
-        }*/
-
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpaceColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
-        strata.setAggColumnName("station_count");
-        strata.setTechColumnName("vessel_count");
 
-/*
-        ExtractionResultVO result = service.executeAndRead(type, filter, strata, 0, 100, null, null);
-        Preconditions.checkNotNull(result);
-        Preconditions.checkNotNull(result.getRows());
-        Preconditions.checkArgument(result.getRows().size() > 0);
-*/
-
-        // FIXME
-        //Preconditions.checkNotNull(result.getTotal() > 0);
-
-        File outputFile = service.executeAndDump(type, filter, strata);
+        File outputFile = service.executeAndDump(type, null, strata);
         File root = unpack(outputFile, type);
 
         // HH.csv
         File stationFile = new File(root, AggRdbSpecification.HH_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+        // SL.csv
+        File speciesListFile = new File(root, AggRdbSpecification.SL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+        // HL.csv
+        File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }
+
+
 
     @Test
     @Ignore

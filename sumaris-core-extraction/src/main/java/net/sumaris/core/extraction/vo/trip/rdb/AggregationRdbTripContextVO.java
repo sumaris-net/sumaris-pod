@@ -37,7 +37,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AggregationRdbTripContextVO extends AggregationTripContextVO {
-    String tripTableName; // TR table
     String stationTableName; // HH table
     String speciesListTableName; // SL table
     String speciesLengthTableName; // HL table
@@ -45,5 +44,6 @@ public class AggregationRdbTripContextVO extends AggregationTripContextVO {
 
     String speciesLengthMapTableName; // Map to get SL.ID from HL.ID
 
+    String landingTableName; // CL table
 
 }

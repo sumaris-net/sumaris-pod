@@ -111,6 +111,30 @@
     <renameColumn tableName="p01_rdb_trip" oldColumnName="number_hauls" newColumnName="number_of_sets"/>
   </changeSet>
 
+  <!-- Rename on p01_rdb_landing -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-10">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="p01_rdb_landing" columnName="vessel_length_cat"/>
+        <not><columnExists tableName="p01_rdb_landing" columnName="vessel_length_category"/></not>
+      </and>
+    </preConditions>
+    <renameColumn tableName="p01_rdb_landing" oldColumnName="vessel_length_cat" newColumnName="vessel_length_category"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-11">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM p01_rdb_landing where VESSEL_LENGTH_CATEGORY in ('u10','o40')</sqlCheck>
+      </not>
+    </preConditions>
+    <sql endDelimiter=";">
+      UPDATE p01_rdb_landing set VESSEL_LENGTH_CATEGORY='>40' where VESSEL_LENGTH_CATEGORY='o40';
+      UPDATE p01_rdb_landing set VESSEL_LENGTH_CATEGORY='0-10' where VESSEL_LENGTH_CATEGORY='u10';
+      commit;
+    </sql>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">

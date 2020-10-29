@@ -26,6 +26,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,7 +56,8 @@ public interface AggregationService {
      */
     @Transactional
     AggregationContextVO execute(AggregationTypeVO type,
-                                 @Nullable ExtractionFilterVO filter);
+                                 @Nullable ExtractionFilterVO filter,
+                                 @Nullable AggregationStrataVO strata);
 
     @Transactional(readOnly = true)
     AggregationResultVO read(AggregationTypeVO type,

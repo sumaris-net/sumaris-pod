@@ -30,9 +30,10 @@ import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface AggregationRdbTripDao<C extends AggregationRdbTripContextVO, F extends ExtractionFilterVO, S extends AggregationStrataVO> {
+public interface AggregationRdbTripDao<C extends AggregationRdbTripContextVO,
+        F extends ExtractionFilterVO, S extends AggregationStrataVO> {
 
-    <R extends C> R aggregate(ExtractionProductVO source, F filter);
+    <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata);
 
     AggregationResultVO read(String tableName, F filter, S strata, int offset, int size, String sortAttribute, SortDirection sortDirection);
 }

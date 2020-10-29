@@ -34,7 +34,7 @@ import java.io.Serializable;
 @FieldNameConstants
 @Entity
 @Table(name = "p01_rdb_landing")
-public class ProductRdbLandingStatistics implements Serializable, IEntity<Integer> {
+public class ProductRdbLanding implements Serializable, IEntity<Integer> {
 
     public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_RDB_LANDING;
 

@@ -36,13 +36,19 @@ public interface RdbSpecification {
     String SL_SHEET_NAME = "SL";
     String HL_SHEET_NAME = "HL";
     String CA_SHEET_NAME = "CA";
+    String CL_SHEET_NAME = "CL";
 
     String COLUMN_PROJECT = "project";
     String COLUMN_YEAR = "year";
     String COLUMN_VESSEL_IDENTIFIER = "vessel_identifier";
     String COLUMN_TRIP_CODE = "trip_code";
 
-    String[] SHEET_NAMES = {TR_SHEET_NAME, HH_SHEET_NAME, SL_SHEET_NAME, HL_SHEET_NAME
-            // TODO: , CA_SHEET_NAME
+    String[] SHEET_NAMES = {
+            TR_SHEET_NAME,
+            HH_SHEET_NAME,
+            SL_SHEET_NAME,
+            HL_SHEET_NAME,
+            // CA_SHEET_NAME
+            CL_SHEET_NAME
     };
 }

@@ -69,6 +69,7 @@ public class ProductRdbStation implements Serializable, IEntity<Integer> {
     public static final String COLUMN_MESH_SIZE = "mesh_size";
     public static final String COLUMN_SELECTION_DEVICE = "selection_device";
     public static final String COLUMN_MESH_SIZE_SELECTION_DEVICE  = "mesh_size_selection_device";
+    public static final String COLUMN_VESSEL_LENGTH_CATEGORY = "vessel_length_category";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_rdb_station_seq")
