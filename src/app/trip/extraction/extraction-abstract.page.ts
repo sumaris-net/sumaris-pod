@@ -137,36 +137,36 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     opts.emitEvent = isNotNil(opts.emitEvent) ? opts.emitEvent : true;
     opts.skipLocationChange = isNotNil(opts.skipLocationChange) ? opts.skipLocationChange : false;
 
-    // If empty or same: skip
-    if (!type || this.isEquals(type, this.type)) return false;
+    // If empty: skip
+    if (!type) return false;
 
-    // Replace by the full entity
-    type = (await firstNotNilPromise(this.$types)).find(t => this.isEquals(t, type));
-    if (!type) {
-      console.warn("[extraction-form] Type not found:", type);
-      return false;
+    // If same: skip
+    const typeChanged = !this.isEquals(type, this.type);
+    if (!typeChanged) {
+      type = this.type;
     }
+    else {
+      // Replace by the full entity
+      type = await this.getFullType(type);
+      if (!type) {
+        console.warn("[extraction-form] Type not found:", type);
+        return false;
+      }
+      console.debug(`[extraction-form] Set type to {${type.label}}`, type);
+      this.type = type;
+      this.criteriaForm.type = type;
 
-    console.debug(`[extraction-form] Set type to {${type.label}}`, type);
-    this.type = type;
-    this.criteriaForm.type = type;
+      // Check if user can edit (admin or supervisor in the rec department)
+      this.canEdit = this.canUserWrite(type);
 
-    // Check if user can edit (admin or supervisor in the rec department)
-    this.canEdit = this.canUserWrite(type);
-
-    // Select the given sheet, or the first one
-    const sheetName = opts.sheetName || (type.sheetNames && type.sheetNames[0]);
-    this.setSheetName(sheetName || null,
-      {
-        emitEvent: false,
-        skipLocationChange: true
-      });
-
-    // Reset criteria form
-    this.criteriaForm.reset();
-
-    // Enable form
-    this.criteriaForm.enable(opts);
+      // Select the given sheet, or the first one
+      const sheetName = opts.sheetName || (type.sheetNames && type.sheetNames[0]);
+      this.setSheetName(sheetName || null,
+        {
+          emitEvent: false,
+          skipLocationChange: true
+        });
+    }
 
     // Update the window location
     if (opts.skipLocationChange === false) {
@@ -178,7 +178,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
       this.onRefresh.emit();
     }
 
-    return true;
+    return typeChanged;
   }
 
 
@@ -267,6 +267,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     return undefined;
   }
 
+
   async save(event): Promise<any> {
     console.warn("Not allow to save extraction filter yet!");
 
@@ -286,6 +287,11 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   protected abstract fromObject(type?: any): T;
 
   protected abstract isEquals(t1: T, t2: T): boolean;
+
+  async getFullType(type: T) {
+    return (await firstNotNilPromise(this.$types))
+      .find(t => this.isEquals(t, type));
+  }
 
   protected getFilterValue(): ExtractionFilter {
     const res = {

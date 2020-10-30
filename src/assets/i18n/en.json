@@ -1224,9 +1224,15 @@
       }
     },
     "SHEET": {
-      "TR": "Trips",
-      "HH": "Stations",
-      "SL": "Catch"
+      "TR": "Trips (TR)",
+      "HH": "Fishing stations (HH)",
+      "SL": "Species list (SL)",
+      "HL": "Individual length (HL)",
+      "CA": "Sex-Age (CA)",
+      "CL": "Landings (CL)",
+      "CE": "Efforts (CE)",
+      "ST": "Survival tests (ST)",
+      "RL": "Releases (RL)"
     },
     "CATEGORY": {
       "PRODUCT": "Fixed product",
@@ -1239,7 +1245,7 @@
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",
           "SL": "Species list (SL)",
-          "HL": "Species length (HL)",
+          "HL": "Individual length (HL)",
           "CA": "Sex-Age (CA)",
           "CL": "Landings (CL)",
           "CE": "Efforts (CE)"
@@ -1248,31 +1254,13 @@
     },
     "LIVE": {
       "RDB": {
-        "TITLE": "Raw data (RDB v1.3)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)"
-        }
+        "TITLE": "Raw data (RDB v1.3)"
       },
       "COST": {
-        "TITLE": "Raw data (COST v1.4)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)"
-        }
+        "TITLE": "Raw data (COST v1.4)"
       },
       "FREE1": {
-        "TITLE": "Raw data (FREE v{{version}})",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)"
-        }
+        "TITLE": "Raw data (FREE v{{version}})"
       },
       "FREE2": {
         "TITLE": "Raw data (FREE2 v{{version}})",
@@ -1287,15 +1275,7 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Raw data (SUMARiS v1.0)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)",
-          "ST": "Survival tests (ST)",
-          "RL": "Releases (RL)"
-        }
+        "TITLE": "Raw data (SUMARiS v1.0)"
       }
     },
     "ERROR": {

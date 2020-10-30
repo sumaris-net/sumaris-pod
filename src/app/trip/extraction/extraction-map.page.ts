@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from "@angular/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {AggregationTypeFilter, CustomAggregationStrata, ExtractionService} from "../services/extraction.service";
 import {BehaviorSubject, Observable, Subject, Subscription, timer} from "rxjs";
@@ -38,7 +46,7 @@ import {MatExpansionPanel} from "@angular/material/expansion";
   animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> implements OnInit {
+export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> implements OnInit, OnDestroy {
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -93,8 +101,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   $onOverFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
 
+  $sheetNames = new BehaviorSubject<String[]>(undefined);
   $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $spaceColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $spatialColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $criteriaColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
@@ -213,7 +222,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         // avoid multiple load)
         filter(() => this.ready && !this.loading && isNotNil(this.type)),
         switchMap(() => {
-          if (!this.ready || this.loading || isNil(this.type)) return; // avoid multiple load
           console.debug('[extraction-map] Refreshing...');
           return this.loadData();
         })
@@ -241,6 +249,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           debounceTime(250)
         ).subscribe(() => this.markForCheck())
     );
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
   }
 
   onMapReady(leafletMap: L.Map) {
@@ -286,42 +298,70 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       // Update the title
       const typeName = this.getI18nTypeName(this.type);
       this.$title.next(typeName);
-
-      // Update filter columns
-      const columns = (await this.service.loadColumns(this.type, this.sheetName)) || [];
-
-      // Translate names
-      this.translateColumns(columns);
-
-      // Convert to a map, by column name
-      this.columnNames = columns.reduce((res, c) => {
-        res[c.columnName] = c.name;
-        return res;
-      }, {});
-
-      const columnsMap = ExtractionUtils.dispatchColumns(columns, {excludeIfNoValue: true});
-
-      this.$aggColumns.next(columnsMap.aggColumns);
-      this.$techColumns.next(columnsMap.techColumns);
-      this.$spaceColumns.next(columnsMap.spaceColumns);
-      this.$timeColumns.next(columnsMap.timeColumns);
-      this.$criteriaColumns.next(columnsMap.criteriaColumns);
-
-
-      const yearColumn = (columns || []).find(c => c.columnName === 'year');
-      const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
-      this.$years.next(years);
-
-      // Apply default strata
-      const defaultStrata = (this.type.stratum || []).find(s => s.isDefault || s.label === 'default');
-      if (defaultStrata) {
-        this.form.patchValue({
-          strata: defaultStrata
-        }, opts);
-      }
-
     }
+    else {
+      this.updateForms(opts);
+    }
+
     return changed;
+  }
+
+  setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
+    const changed = this.sheetName != sheetName;
+
+    super.setSheetName(sheetName, {
+      emitEvent: !this.loading,
+      ...opts
+    });
+
+    if (changed) {
+      this.updateForms(opts);
+    }
+  }
+
+  /* -- protected method -- */
+
+  protected async updateForms(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+
+    // Update filter columns
+    const sheetName = this.sheetName;
+    const columns = (await this.service.loadColumns(this.type, sheetName)) || [];
+
+    // Translate names
+    this.translateColumns(columns);
+
+    // Convert to a map, by column name
+    this.columnNames = columns.reduce((res, c) => {
+      res[c.columnName] = c.name;
+      return res;
+    }, {});
+
+    const columnsMap = ExtractionUtils.dispatchColumns(columns);
+
+    this.$aggColumns.next(columnsMap.aggColumns);
+    this.$techColumns.next(columnsMap.techColumns);
+    this.$spatialColumns.next(columnsMap.spatialColumns);
+    this.$timeColumns.next(ExtractionUtils.filterWithValues(columnsMap.timeColumns));
+    this.$criteriaColumns.next(ExtractionUtils.filterValuesMinSize(columnsMap.criteriaColumns, 2));
+
+    const yearColumn = (columns || []).find(c => c.columnName === 'year');
+    const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
+    this.$years.next(years);
+
+    this.$sheetNames.next(this.type.sheetNames || []);
+
+    // Apply default strata
+    const defaultStrata = (this.type.stratum || []).find(s => s.isDefault || s.sheetName === sheetName);
+    console.debug('DEFAULT STRATA: ', defaultStrata);
+
+    if (defaultStrata) {
+      this.form.patchValue({
+        strata: defaultStrata
+      }, opts);
+    }
   }
 
   protected async tryLoadByYearIterations(
@@ -330,13 +370,14 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     endYear?: number
   ) {
 
+    type = type || this.type;
     startYear = isNotNil(startYear) ? startYear : new Date().getFullYear();
-    endYear = isNotNil(endYear) && endYear < startYear ? endYear : startYear - 3;
+    endYear = isNotNil(endYear) && endYear < startYear ? endYear : startYear - 10;
 
-    const strata: any = (type && type.stratum || []).find(s => s && s.isDefault) || {
-      spaceColumnName: 'square',
-      timeColumnName: 'year'
-    };
+    const sheetName = this.sheetName || (type && type.sheetNames && type.sheetNames[0]) || null;
+    const strata: any = (type && type.stratum || []).find(s => s && (s.isDefault || sheetName == s.sheetName));
+
+    if (!strata) return false; // Skip
 
     let year = startYear;
     let hasData = false;
@@ -353,7 +394,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
       hasData = this.hasData;
     }
-    while (!hasData && year > endYear);
+    while (!hasData && year >= endYear);
 
     return hasData;
   }
@@ -483,6 +524,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     this.onRefresh.emit();
   }
 
+  onRefreshClick(event?: UIEvent) {
+    this.stopAnimation();
+    this.onRefresh.emit(event);
+  }
+
   protected onEachFeature(feature: Feature, layer: L.Layer) {
     layer.on('mouseover', (_) => this.zone.run(() => this.$onOverFeature.next(feature)));
     layer.on('mouseout', (_) => this.zone.run(() => this.closeFeatureDetails(feature)));
@@ -584,30 +630,44 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     }
     // Stop existing animation
     if (this.animation) {
-      this.animation.unsubscribe();
-      this.animation = null;
+      this.stopAnimation();
     }
     else {
-      const years = this.$years.getValue();
-      console.info("[extraction-map] Starting animation...");
-      this.animation = isNotEmptyArray(years) && timer(500, 500)
-        .pipe(
-          tap(index => {
-            const year = years[index % arraySize(years)];
-            console.info("[extraction-map] Rendering animation for year {" + year + "}...");
-            this.setYear(null, year);
-          })
-        )
-        .subscribe();
-
-      this.animation.add(() => {
-        console.info("[extraction-map] Animation stopped");
-      });
+      this.startAnimation();
     }
   }
 
 
+
   /* -- protected methods -- */
+
+  protected startAnimation() {
+    const years = this.$years.getValue();
+    console.info("[extraction-map] Starting animation...");
+    this.animation = isNotEmptyArray(years) && timer(500, 500)
+      .pipe(
+        tap(index => {
+          const year = years[index % arraySize(years)];
+          console.info("[extraction-map] Rendering animation for year {" + year + "}...");
+          this.setYear(null, year);
+        })
+      )
+      .subscribe();
+
+    this.animation.add(() => {
+      console.info("[extraction-map] Animation stopped");
+    });
+
+    this.registerSubscription(this.animation);
+  }
+
+  protected stopAnimation() {
+    if (this.animation) {
+      this.unregisterSubscription(this.animation);
+      this.animation.unsubscribe();
+      this.animation = null;
+    }
+  }
 
   protected getFeatureStyleFn(scale: ColorScale, propertyName: string): L.StyleFunction<any> | null {
     if (isNil(propertyName)) return;

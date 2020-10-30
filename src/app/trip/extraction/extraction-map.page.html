@@ -28,6 +28,22 @@
   </button>
 </mat-menu>
 
+<!-- sheet menu -->
+<mat-menu #sheetNameMenu="matMenu">
+  <button mat-menu-item *ngFor="let item of $sheetNames | async"
+          (click)="setSheetName(item)">
+    <ion-label>{{'EXTRACTION.MAP.SHEET.' + item | translate}}</ion-label>
+  </button>
+</mat-menu>
+
+<!-- agg column menu
+<mat-menu #aggColumnMenu="matMenu">
+  <button mat-menu-item *ngFor="let item of $aggColumns | async"
+          (click)="setSheetName(item)">
+    <ion-label>{{'EXTRACTION.MAP.SHEET.' + item | translate}}</ion-label>
+  </button>
+</mat-menu>-->
+
 <ion-content>
 
   <!-- -->
@@ -50,6 +66,13 @@
                   <ion-text color="medium" translate>EXTRACTION.MAP.YEAR</ion-text>
                   <ion-text>&nbsp;{{year}}</ion-text>
                 </button>
+
+                <!-- sheetname -->
+                <button mat-stroked-button class="ion-margin-start"
+                        [matMenuTriggerFor]="sheetNameMenu"
+                        (click)="$event.stopPropagation()">
+                  <ion-text>{{ 'EXTRACTION.MAP.SHEET.' + sheetName | translate }}</ion-text>
+                </button>
               </div>
 
               <!-- no data or panel expanded -->
@@ -62,9 +85,10 @@
           </mat-panel-title>
         </mat-expansion-panel-header>
 
-        <div [hidden]="!filterExpansionPanel.expanded">
-          <ng-container *ngIf="type?.sheetNames as sheetNames">
-            <nav mat-tab-nav-bar *ngIf="sheetNames.length > 1">
+        <div [class.cdk-visually-hidden]="!filterExpansionPanel.expanded">
+
+          <ng-container *ngIf="$sheetNames | async; let sheetNames">
+            <nav mat-tab-nav-bar [class.cdk-visually-hidden]="sheetNames | isArrayLength: {lessThan: 2}" >
               <a mat-tab-link *ngFor="let item of sheetNames"
                  (click)="setSheetName(item)"
                  [active]="item === sheetName">
@@ -89,10 +113,10 @@
                 </ion-col>
 
                 <!-- space -->
-                <ion-col size="4" class="ion-no-padding" *ngIf="strataForm.get('spaceColumnName') as spaceControl">
+                <ion-col size="4" class="ion-no-padding" *ngIf="strataForm.get('spatialColumnName') as spatialControl">
                   <mat-form-field>
-                    <mat-select [formControl]="spaceControl" [placeholder]="'EXTRACTION.MAP.SPACE'|translate">
-                      <mat-option *ngFor="let column of $spaceColumns | async"
+                    <mat-select [formControl]="spatialControl" [placeholder]="'EXTRACTION.MAP.SPACE'|translate">
+                      <mat-option *ngFor="let column of $spatialColumns | async"
                                   [value]="column.columnName">{{column.name}}</mat-option>
                     </mat-select>
                   </mat-form-field>
@@ -111,24 +135,15 @@
 
                   </mat-form-field>
                 </ion-col>
-
-                <!-- tech
-                <ion-col no-padding *ngIf="strataForm.get('techColumnName') as techControl">
-                  <mat-form-field>
-                    <mat-select [formControl]="techControl" [placeholder]="'EXTRACTION.MAP.TECH_VALUE'|translate">
-                      <mat-option *ngFor="let column of $techColumns | async"
-                                  [value]="column.columnName">{{column.name}}</mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </ion-col>-->
               </ion-row>
             </ion-grid>
 
             <!-- filter criteria -->
             <app-extraction-criteria-form #criteriaForm
-                                          showSheetsTab="false"
+                                          [class.cdk-visually-hidden]="$criteriaColumns|async|isEmptyArray"
+                                          [showSheetsTab]="false"
                                           [columns]="$criteriaColumns|async"
-                                          (onRefresh)="onRefresh.emit($event)">
+                                          (onSubmit)="onRefresh.emit($event)">
             </app-extraction-criteria-form>
           </form>
         </div>
@@ -142,7 +157,7 @@
           <ion-button mat-button
                       [color]="dirty ? 'tertiary' : undefined"
                       [fill]="dirty ? 'solid' : 'clear'"
-                      (click)="onRefresh.emit($event)">
+                      (click)="onRefreshClick($event)">
             <ion-text translate>COMMON.BTN_APPLY</ion-text>
           </ion-button>
         </mat-action-row>

@@ -3,6 +3,7 @@ import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
 import {AggregationStrata, AggregationType} from "../model/extraction.model";
 import {AppValidatorService} from "../../../core/services/validator/base.validator.class";
+import {toBoolean} from "../../../shared/functions";
 
 @Injectable({providedIn: 'root'})
 export class AggregationTypeValidatorService extends AppValidatorService<AggregationType> {
@@ -42,12 +43,13 @@ export class AggregationTypeValidatorService extends AppValidatorService<Aggrega
     return this.formBuilder.group({
       __typename: ['AggregationStrataVO'],
       id: [null],
-      label: ['default', Validators.required],
-      timeColumnName: ['year', Validators.required],
-      spaceColumnName: ['square', Validators.required],
-      aggColumnName: [null, Validators.required],
-      aggFunction: ['SUM', Validators.required],
-      techColumnName: [null]
+      isDefault: [toBoolean(data && data.isDefault, false), Validators.required],
+      sheetName: [data && data.sheetName || null, Validators.required],
+      timeColumnName: [data && data.timeColumnName || 'year', Validators.required],
+      spatialColumnName: [data && data.spatialColumnName || 'square', Validators.required],
+      aggColumnName: [data && data.aggColumnName || null, Validators.required],
+      aggFunction: [data && data.aggFunction || 'SUM', Validators.required],
+      techColumnName: [data && data.techColumnName || null]
     });
   }
 }

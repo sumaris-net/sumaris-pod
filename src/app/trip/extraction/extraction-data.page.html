@@ -122,10 +122,12 @@
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel >
     <mat-expansion-panel-header>
-      <mat-panel-title hidden-xs hidden-sm hidden-mobile>
+      <mat-panel-title class="hidden-xs hidden-sm hidden-mobile">
         <ion-label>
           <!-- Loading spinner -->
-          <ion-spinner [ngClass]="{'center':true}" *ngIf="loading && !filterExpansionPanel.expanded"></ion-spinner>
+          <ion-spinner *ngIf="loading && !filterExpansionPanel.expanded"></ion-spinner>
+
+          <!-- Counter -->
           <ng-container *ngIf="!loading && !filterExpansionPanel.expanded">
             <ion-text [color]="data?.total === 0 && 'danger'" *ngIf="data?.total === 0"><b>{{ 'COMMON.NO_RESULT' |
               translate }}</b></ion-text>
@@ -137,6 +139,7 @@
               'EXTRACTION.FILTER.NO_FILTER_PARENTHESIS' ) | translate}}
             </small>
           </ng-container>
+
           <ion-card-subtitle *ngIf="filterExpansionPanel.expanded">
             <ion-text color="primary100">
               {{ 'EXTRACTION.FILTER.TITLE' | translate}}
@@ -153,13 +156,15 @@
     </app-extraction-criteria-form>
 
     <mat-action-row>
-      <!-- Loading spinner -->
-      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
-      <!-- Counter  -->
-      <ion-label [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'"
-        class="ion-padding">
-        {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total |
-              numberFormat)} }}
+      <ion-label class="ion-padding">
+        <!-- Loading spinner -->
+        <ion-spinner [hidden]="!loading"></ion-spinner>
+
+        <!-- Counter  -->
+        <ion-text [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
+          {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total |
+            numberFormat)} }}
+        </ion-text>
       </ion-label>
 
       <div class="toolbar-spacer"></div>
@@ -168,15 +173,10 @@
       <ion-button mat-button
                   [color]="dirty ? 'tertiary' : undefined"
                   [fill]="dirty ? 'solid' : 'clear'"
-                  (click)="onRefresh.emit(true)"
+                  (click)="onRefresh.emit()"
                   [disabled]="loading">
         <ion-text translate>COMMON.BTN_APPLY</ion-text>
       </ion-button>
-
-<!--      <button mat-button [color]="dirty ? 'primary' : undefined"-->
-<!--              (click)="onRefresh.emit(true)"-->
-<!--              [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}-->
-<!--      </button>-->
     </mat-action-row>
   </mat-expansion-panel>
 

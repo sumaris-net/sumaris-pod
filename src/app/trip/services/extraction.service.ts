@@ -57,14 +57,13 @@ export const ExtractionFragments = {
     statusId
     stratum {
       id
-      label
-      name
       updateDate
       isDefault
       sheetName
-      spaceColumnName
+      spatialColumnName
       timeColumnName
       aggColumnName
+      aggFunction
       techColumnName
     }
     recorderDepartment {
@@ -77,7 +76,7 @@ export const ExtractionFragments = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   `,
-  column: gql`fragment ExtractionColumnFragment on ExtractionProductColumnVO {
+  column: gql`fragment ExtractionColumnFragment on ExtractionTableColumnVO {
     label
     name
     columnName
@@ -88,7 +87,7 @@ export const ExtractionFragments = {
 }
 
 export declare interface CustomAggregationStrata {
-  spaceColumnName: StrataAreaType;
+  spatialColumnName: StrataAreaType;
   timeColumnName: StrataTimeType;
   techColumnName?: string;
   aggColumnName?: string;

@@ -100,6 +100,12 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     )
       .subscribe(() => {
         if (this.loading || isNil(this.type)) return; // avoid multiple load
+
+        // Reset paginator if filter change
+        if (isNotNil(this.paginator) && this.paginator.pageIndex > 0 && this.dirty) {
+          this.paginator.pageIndex = 0;
+        }
+
         return this.loadData();
       });
   }

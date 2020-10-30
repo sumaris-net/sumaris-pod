@@ -3,7 +3,7 @@
 import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {Department} from "../../../core/services/model/department.model";
 import {Person} from "../../../core/services/model/person.model";
-import {arraySize, isNotEmptyArray, isNotNil, toBoolean} from "../../../shared/functions";
+import {arraySize, isNil, isNotEmptyArray, isNotNil, toBoolean, toNumber} from "../../../shared/functions";
 import {Moment} from "moment";
 import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from "../../../data/services/model/model.utils";
 
@@ -160,15 +160,14 @@ export class AggregationStrata extends Entity<AggregationStrata> {
     return res;
   }
 
-  label: string;
   isDefault: boolean;
   sheetName: string;
 
-  spaceColumnName: StrataAreaType;
+  spatialColumnName: StrataAreaType;
   timeColumnName: StrataTimeType;
+  aggColumnName: string;
+  aggFunction: string;
   techColumnName?: string;
-  aggColumnName?: string;
-  aggFunction?: string;
 
   constructor() {
     super();
@@ -185,10 +184,9 @@ export class AggregationStrata extends Entity<AggregationStrata> {
 
   fromObject(source: any): AggregationStrata {
     super.fromObject(source);
-    this.label = source.label;
     this.sheetName = source.sheetName;
-    this.isDefault = isNotNil(source.isDefault) ? source.isDefault : ('default' === source.label);
-    this.spaceColumnName = source.spaceColumnName;
+    this.isDefault = toBoolean(source.isDefault, false);
+    this.spatialColumnName = source.spatialColumnName;
     this.timeColumnName = source.timeColumnName;
     this.techColumnName = source.techColumnName;
     this.aggColumnName = source.aggColumnName;
@@ -250,43 +248,41 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
   }
 }
 
-export const SPACE_STRATA_COLUMNS: string[] = ['rect', 'statistical_rectangle', 'square', 'area'];
+export const SPATIAL_STRATA_COLUMNS: string[] = [
+  //'area',
+  'statistical_rectangle',
+  //'sub_polygon',
+  'square'];
 export const TIME_STRATA_COLUMNS:   string[] = ['year', 'quarter', 'month'];
 
 export class ExtractionUtils {
 
-  static dispatchColumns(columns: ExtractionColumn[], opts?: {
-    excludeIfNoValue?: boolean
-  }): {
+  static dispatchColumns(columns: ExtractionColumn[]): {
     timeColumns: ExtractionColumn[];
-    spaceColumns: ExtractionColumn[];
+    spatialColumns: ExtractionColumn[];
     aggColumns: ExtractionColumn[];
     techColumns: ExtractionColumn[];
     criteriaColumns: ExtractionColumn[];} {
 
-    const excludeIfNoValue = toBoolean(opts && opts.excludeIfNoValue, false);
-
     const timeColumns = columns.filter(c => TIME_STRATA_COLUMNS.includes(c.columnName));
-    const spaceColumns = columns.filter(c => SPACE_STRATA_COLUMNS.includes(c.columnName)
-      // Exclude column if no value
-      && (!excludeIfNoValue || isNotEmptyArray(c.values)));
+    const spatialColumns = columns.filter(c => SPATIAL_STRATA_COLUMNS.includes(c.columnName));
 
     // Aggregation columns (numeric columns)
     const aggColumns = columns.filter(c =>
       (!c.type || c.type === 'integer' || c.type === 'double')
       && (c.columnName.endsWith('_count')
+      || c.columnName.indexOf('_count_by_') != -1
       || c.columnName.endsWith('_time')
-      || c.columnName.endsWith('_weight')));
+      || c.columnName.endsWith('_weight')
+      || c.columnName.endsWith('_length')));
 
-    const excludedFilterColumns = spaceColumns.concat(timeColumns);
+    const excludedFilterColumns = spatialColumns.concat(timeColumns);
     const techColumns = columns.filter(c => !excludedFilterColumns.includes(c) && c.type === 'string');
-    const criteriaColumns = columns.filter(c => !excludedFilterColumns.includes(c)
-      // Exclude string column if only one value
-      && (c.type !== 'string' || !excludeIfNoValue || arraySize(c.values) > 1));
+    const criteriaColumns = columns.filter(c => !excludedFilterColumns.includes(c));
 
     return {
       timeColumns,
-      spaceColumns,
+      spatialColumns,
       aggColumns,
       techColumns,
       criteriaColumns
@@ -311,6 +307,14 @@ export class ExtractionUtils {
       }, []).join(";");
     }
     return queryParams;
+  }
+
+  static filterWithValues(columns: ExtractionColumn[]) {
+    return this.filterValuesMinSize(columns, 1);
+  }
+
+  static filterValuesMinSize(columns: ExtractionColumn[], minSize: number) {
+    return (columns || []).filter(c => arraySize(c.values) >= minSize);
   }
 }
 

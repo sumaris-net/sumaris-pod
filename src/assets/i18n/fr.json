@@ -1162,7 +1162,9 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
+        "STRATUM": "Strates :",
         "STRATA": {
+          "SHEET_NAME": "Table",
           "TIME_COLUMN": "Temps",
           "SPACE_COLUMN": "Geometrie",
           "AGG_COLUMN": "Cumul",
@@ -1183,10 +1185,14 @@
     "COMMON": {
       "VESSEL_FLAG_COUNTRY": "Pavillon",
       "HARBOUR": "Port",
-      "YEAR": "Année",
       "PROJECT": "Projet",
+      "YEAR": "Année",
+      "QUARTER": "Trimestre",
+      "MONTH": "Mois",
       "AREA": "Zone",
-      "STATISTICAL_RECTANGLE": "Rectangle statistique"
+      "STATISTICAL_RECTANGLE": "Rectangle statistique",
+      "SQUARE": "Carré 10'x10'",
+      "SUB_POLYGGON": "Sous-rectangle"
     },
     "FILTER": {
       "TITLE": "Filtrer les données :",
@@ -1223,12 +1229,29 @@
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",
         "HELP": "Voici la liste des cartes disponibles :"
+      },
+      "SHEET": {
+        "TR": "Marées",
+        "HH": "Opérations",
+        "SL": "Captures",
+        "HL": "Mensurations",
+        "CA": "Sex-Age",
+        "CL": "Débarquements",
+        "CE": "Effort",
+        "ST": "Tests de survie",
+        "RL": "Relachés"
       }
     },
     "SHEET": {
-      "TR": "Marées",
-      "HH": "Opérations",
-      "SL": "Captures"
+      "TR": "Marées (TR)",
+      "HH": "Opérations (HH)",
+      "SL": "Captures (SL)",
+      "HL": "Mensurations (HL)",
+      "CA": "Sex-Age (CA)",
+      "CL": "Débarquements (CL)",
+      "CE": "Efforts (CE)",
+      "ST": "Tests de survie (ST)",
+      "RL": "Relachés (RL)"
     },
     "CATEGORY": {
       "PRODUCT": "Produit figé",
@@ -1250,31 +1273,13 @@
     },
     "LIVE": {
       "RDB": {
-        "TITLE": "Données brutes (RDB v1.3)",
-        "SHEET": {
-          "TR": "Marées (TR)",
-          "HH": "Opérations (HH)",
-          "SL": "Captures (SL)",
-          "HL": "Mensurations (HL)"
-        }
+        "TITLE": "Données brutes (RDB v1.3)"
       },
       "COST": {
-        "TITLE": "Données brutes (COST v1.4)",
-        "SHEET": {
-          "TR": "Marées (TR)",
-          "HH": "Opérations (HH)",
-          "SL": "Captures (SL)",
-          "HL": "Mensurations (HL)"
-        }
+        "TITLE": "Données brutes (COST v1.4)"
       },
       "FREE1": {
-        "TITLE": "Données brutes (FREE v{{version}})",
-        "SHEET": {
-          "TR": "Marées (TR)",
-          "HH": "Opérations (HH)",
-          "SL": "Captures (SL)",
-          "HL": "Mensurations (HL)"
-        }
+        "TITLE": "Données brutes (FREE v{{version}})"
       },
       "FREE2": {
         "TITLE": "Données brutes (FREE2 v{{version}})",
@@ -1289,15 +1294,7 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Données brutes (SUMARiS v1.0)",
-        "SHEET": {
-          "TR": "Marées (TR)",
-          "HH": "Opérations (HH)",
-          "SL": "Captures (SL)",
-          "HL": "Mensurations (HL)",
-          "ST": "Tests de survie (ST)",
-          "RL": "Relachés (RL)"
-        }
+        "TITLE": "Données brutes (SUMARiS v1.0)"
       }
     },
     "ERROR": {

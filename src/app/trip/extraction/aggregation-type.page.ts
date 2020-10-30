@@ -11,6 +11,7 @@ import {AggregationTypeForm} from "./aggregation-type.form";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {isNotEmptyArray} from "../../shared/functions";
 
 @Component({
   selector: 'app-aggregation-type-page',
@@ -119,18 +120,7 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
   protected async onEntityLoaded(data: AggregationType, options?: EntityServiceLoadOptions): Promise<void> {
     super.onEntityLoaded(data, options);
 
-    // If spatial, load columns
-    if (data.isSpatial) {
-      this.columns = await this.extractionService.loadColumns(data) || [];
-
-      const map = ExtractionUtils.dispatchColumns(this.columns);
-      console.debug('[aggregation-type] Columns repartition:', map);
-
-      this.typeForm.$timeColumns.next(map.timeColumns);
-      this.typeForm.$spaceColumns.next(map.spaceColumns);
-      this.typeForm.$aggColumns.next(map.aggColumns);
-      this.typeForm.$techColumns.next(map.techColumns);
-    }
+    this.typeForm.updateLists(data);
 
     // Define default back link
     this.defaultBackHref = '/extraction?category=product&label=' + data.label;

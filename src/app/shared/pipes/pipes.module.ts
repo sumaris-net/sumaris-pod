@@ -1,4 +1,4 @@
-import {ModuleWithProviders, NgModule} from "@angular/core";
+import {NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {TranslateModule} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
@@ -11,6 +11,8 @@ import {HighlightPipe} from "./highlight.pipe";
 import {FileSizePipe} from "./file-size.pipe";
 import {DurationPipe} from "./duration.pipe";
 import {MathAbsPipe} from "./math-abs.pipe";
+import {ArrayLengthPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
+import {MapGetPipe} from "./maps.pipe";
 
 
 @NgModule({
@@ -30,7 +32,11 @@ import {MathAbsPipe} from "./math-abs.pipe";
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
-    MathAbsPipe
+    MathAbsPipe,
+    NotEmptyArrayPipe,
+    EmptyArrayPipe,
+    ArrayLengthPipe,
+    MapGetPipe
   ],
   exports: [
     DateFormatPipe,
@@ -43,7 +49,11 @@ import {MathAbsPipe} from "./math-abs.pipe";
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
-    MathAbsPipe
+    MathAbsPipe,
+    NotEmptyArrayPipe,
+    EmptyArrayPipe,
+    ArrayLengthPipe,
+    MapGetPipe
   ]
 })
 export class SharedPipesModule {
