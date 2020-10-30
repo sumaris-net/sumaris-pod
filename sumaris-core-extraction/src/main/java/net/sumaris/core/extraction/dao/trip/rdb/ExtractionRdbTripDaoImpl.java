@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
@@ -75,7 +76,9 @@ import static org.nuiton.i18n.I18n.t;
  */
 @Repository("extractionRdbTripDao")
 @Lazy
-public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> extends ExtractionBaseDaoImpl implements ExtractionRdbTripDao {
+public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
+        extends ExtractionBaseDaoImpl
+        implements ExtractionRdbTripDao<C, F> {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionRdbTripDaoImpl.class);
 
@@ -104,17 +107,16 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
     protected ExtractionTableDao extractionTableDao;
 
     @Override
-    public C execute(ExtractionFilterVO filter) {
+    public <R extends C> R execute(F filter) {
         ExtractionTripFilterVO tripFilter = toTripFilterVO(filter);
 
         // Init context
-        C context = createNewContext();
+        R context = createNewContext();
         context.setTripFilter(tripFilter);
         context.setFilter(filter);
         context.setFormatName(RdbSpecification.FORMAT);
         context.setFormatVersion(RdbSpecification.VERSION_1_3);
         context.setId(System.currentTimeMillis());
-
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
@@ -188,7 +190,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
     }
 
     @Override
-    public void clean(ExtractionRdbTripContextVO context) {
+    public void clean(C context) {
         Set<String> tableNames = ImmutableSet.<String>builder()
                 .addAll(context.getTableNames())
                 .addAll(context.getRawTableNames())
@@ -198,10 +200,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
         tableNames.stream()
             // Keep only tables with EXT_ prefix
-            .filter(tableName -> tableName != null && tableName.startsWith("EXT_"))
+            .filter(tableName -> tableName != null && tableName.startsWith(TABLE_NAME_PREFIX))
             .forEach(tableName -> {
                 try {
                     extractionTableDao.dropTable(tableName);
+                    databaseMetadata.clearCache(tableName);
                 }
                 catch (SumarisTechnicalException e) {
                     log.error(e.getMessage());

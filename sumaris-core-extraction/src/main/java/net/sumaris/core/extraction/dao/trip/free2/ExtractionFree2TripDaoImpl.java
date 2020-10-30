@@ -49,8 +49,9 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionFree2TripDao")
 @Lazy
-public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> extends ExtractionRdbTripDaoImpl<C>
-        implements ExtractionFree2TripDao, Free2Specification {
+public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F extends ExtractionFilterVO>
+        extends ExtractionRdbTripDaoImpl<C, F>
+        implements ExtractionFree2TripDao<C, F>, Free2Specification {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionFree2TripDaoImpl.class);
 
@@ -72,10 +73,10 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
     protected ExtractionTableDao extractionTableDao;
 
     @Override
-    public C execute(ExtractionFilterVO filter) {
+    public <R extends C> R execute(F filter) {
         String sheetName = filter != null ? filter.getSheetName() : null;
 
-        C context = super.execute(filter);
+        R context = super.execute(filter);
 
         // Override some context properties
         context.setFormatName(FORMAT);

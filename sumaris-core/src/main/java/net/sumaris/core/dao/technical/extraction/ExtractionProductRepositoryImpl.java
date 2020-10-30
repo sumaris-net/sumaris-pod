@@ -508,8 +508,9 @@ public class ExtractionProductRepositoryImpl
 
     protected ExtractionProductColumn findColumnByName(ExtractionProductTable table, String columnName) {
         if (StringUtils.isBlank(columnName)) return null;
+        final String columnNameLowerCase = columnName.toLowerCase();
         return table.getColumns().stream()
-            .filter(c -> columnName.equalsIgnoreCase(c.getColumnName()))
+            .filter(c -> columnNameLowerCase.equalsIgnoreCase(c.getColumnName()))
             .findFirst().orElse(null);
     }
 

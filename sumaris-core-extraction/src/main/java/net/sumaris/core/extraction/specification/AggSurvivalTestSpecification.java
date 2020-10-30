@@ -20,15 +20,22 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.dao.trip.free;
+package net.sumaris.core.extraction.specification;
 
-import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
-import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- */
-public interface ExtractionFree1TripDao<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
-        extends ExtractionRdbTripDao<C, F> {
+import java.util.Map;
+import java.util.Set;
+
+public interface AggSurvivalTestSpecification extends AggRdbSpecification {
+
+    String FORMAT = SurvivalTestSpecification.FORMAT;
+    String VERSION_1_0 = SurvivalTestSpecification.VERSION_1_0;
+
+    String ST_SHEET_NAME = "ST"; // Survival test
+    String RL_SHEET_NAME = "RL"; // Release
+
+    String[] SHEET_NAMES = {HH_SHEET_NAME, SL_SHEET_NAME, HL_SHEET_NAME, ST_SHEET_NAME, RL_SHEET_NAME};
 }

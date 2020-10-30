@@ -50,8 +50,10 @@ public class ExtractionBeans {
             case Types.BIGINT:
                 type = "integer";
                 break;
+            case Types.REAL:
             case Types.FLOAT:
             case Types.DOUBLE:
+            case Types.DECIMAL:
                 type = "double";
                 break;
             case Types.VARCHAR:

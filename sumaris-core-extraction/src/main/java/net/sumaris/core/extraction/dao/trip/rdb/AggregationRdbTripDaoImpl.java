@@ -31,6 +31,8 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.AggregationDao;
+import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
@@ -55,6 +57,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -68,7 +71,7 @@ import static org.nuiton.i18n.I18n.t;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-@Repository("aggregationRdbDao")
+@Repository("aggregationRdbTripDao")
 @Lazy
 public class AggregationRdbTripDaoImpl<
         C extends AggregationRdbTripContextVO,
@@ -86,7 +89,6 @@ public class AggregationRdbTripDaoImpl<
     private static final String CL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + CL_SHEET_NAME + "_%s";
 
     private static final String HL_MAP_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HL_SHEET_NAME + "_MAP_%s";
-
 
     @Autowired
     protected StrategyService strategyService;
@@ -129,6 +131,8 @@ public class AggregationRdbTripDaoImpl<
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
 
+        // -- Execute the aggregation --
+
         try {
             // Station
             rowCount = createStationTable(source, context);
@@ -153,21 +157,25 @@ public class AggregationRdbTripDaoImpl<
 
             // Landing
             createLandingTable(source, context);
-
-            return context;
         }
-        finally {
-            dropHiddenColumns(context);
+        catch (PersistenceException e) {
+            // If error,clean created tables first, then rethrow the exception
+            clean(context);
+            throw e;
         }
 
+        return context;
     }
 
-    public AggregationResultVO read(String tableName, F filter, S strata, int offset, int size, String sortAttribute, SortDirection direction) {
+    public AggregationResultVO read(String tableName, F filter, S strata,
+                                    int offset, int size,
+                                    String sortAttribute, SortDirection direction) {
         Preconditions.checkNotNull(tableName);
         Preconditions.checkNotNull(strata);
 
-        Set<String> groupByColumnNames = getGroupByColumnNames(strata);
-        Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(strata);
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+        Set<String> groupByColumnNames = getExistingGroupByColumnNames(strata, table);
+        Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
 
         ExtractionResultVO rows = extractionTableDao.getTableGroupByRows(tableName, filter,
                 groupByColumnNames, aggColumns,
@@ -175,14 +183,16 @@ public class AggregationRdbTripDaoImpl<
 
         AggregationResultVO result = new AggregationResultVO(rows);
 
-        result.setSpaceStrata(SPACE_STRATA.stream()
-                .filter(groupByColumnNames::contains)
+        result.setSpaceStrata(SPACE_STRATA_COLUMN_NAMES.stream()
+                .filter(table::hasColumn)
                 .collect(Collectors.toSet()));
-        result.setTimeStrata(TIME_STRATA.stream()
-                .filter(groupByColumnNames::contains)
+        result.setTimeStrata(TIME_STRATA_COLUMN_NAMES.stream()
+                .filter(table::hasColumn)
                 .collect(Collectors.toSet()));
-        if (filter.getSheetName() != null) {
-            result.setAggStrata(AGG_STRATA_BY_SHEETNAME.get(filter.getSheetName()));
+        String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
+        if (sheetName != null) {
+            Set<String> aggColumnNames = getAggColumnNamesBySheetName(sheetName);
+            result.setAggStrata(aggColumnNames);
         }
 
         return result;
@@ -206,7 +216,7 @@ public class AggregationRdbTripDaoImpl<
         return AggregationRdbTripContextVO.class;
     }
 
-    protected long createStationTable(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected long createStationTable(ExtractionProductVO source, C context) {
 
         String tableName = context.getStationTableName();
         XMLQuery xmlQuery = createStationQuery(source, context);
@@ -215,7 +225,10 @@ public class AggregationRdbTripDaoImpl<
         execute(xmlQuery);
         long count = countFrom(tableName);
 
-        if (count == 0) return 0;
+        if (count == 0) {
+            context.addRawTableName(tableName);
+            return 0;
+        }
 
         // Clean row using filter
         count -= cleanRow(tableName, context.getFilter(), HH_SHEET_NAME);
@@ -236,14 +249,13 @@ public class AggregationRdbTripDaoImpl<
         return count;
     }
 
-    protected XMLQuery createStationQuery(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected XMLQuery createStationQuery(ExtractionProductVO source, C context) {
 
         String stationTableName = context.getStationTableName();
         String rawTripTableName = source.getTableNameBySheetName(RdbSpecification.TR_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.TR_SHEET_NAME)));
         String rawStationTableName = source.getTableNameBySheetName(RdbSpecification.HH_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HH_SHEET_NAME)));
-
 
         XMLQuery xmlQuery = createXMLQuery(context, "createStationTable");
 
@@ -293,24 +305,23 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected Set<String> getGroupByColumnNames(AggregationStrataVO strata) {
-        if (strata == null) return ImmutableSet.<String>builder()
-                .addAll(SPACE_STRATA)
-                .addAll(TIME_STRATA)
-                .build();
 
         Set<String> groupByColumnNames = Sets.newLinkedHashSet();
 
-        // Process space strata
-        {
-            String spaceStrata = strata.getSpaceColumnName() != null ? strata.getSpaceColumnName().toLowerCase() : COLUMN_AREA;
+        if (strata == null) {
+            groupByColumnNames.addAll(SPACE_STRATA_COLUMN_NAMES);
+            groupByColumnNames.addAll(TIME_STRATA_COLUMN_NAMES);
+        }
 
-            // Replace alias
-            spaceStrata = COLUMN_ALIAS.containsKey(spaceStrata) ? COLUMN_ALIAS.get(spaceStrata) : spaceStrata;
+        else {
+            // Process space strata
+            String spaceStrata = strata.getSpaceColumnName() != null ? strata.getSpaceColumnName().toLowerCase() : COLUMN_AREA;
+            spaceStrata = COLUMN_ALIAS.getOrDefault(spaceStrata, spaceStrata); // Replace alias
 
             switch (spaceStrata) {
                 case COLUMN_SQUARE:
-                case COLUMN_SUB_POLYGON:
                     groupByColumnNames.add(COLUMN_SQUARE);
+                case COLUMN_SUB_POLYGON:
                     groupByColumnNames.add(COLUMN_SUB_POLYGON);
                 case COLUMN_STATISTICAL_RECTANGLE:
                     groupByColumnNames.add(COLUMN_STATISTICAL_RECTANGLE);
@@ -318,11 +329,11 @@ public class AggregationRdbTripDaoImpl<
                 default:
                     groupByColumnNames.add(COLUMN_AREA);
             }
-        }
 
-        // Time strata
-        {
+            // Time strata
             String timeStrata = strata.getTimeColumnName() != null ? strata.getTimeColumnName().toLowerCase() : COLUMN_YEAR;
+            timeStrata = COLUMN_ALIAS.getOrDefault(timeStrata, timeStrata); // Replace alias
+
             switch (timeStrata) {
                 case COLUMN_MONTH:
                     groupByColumnNames.add(COLUMN_MONTH);
@@ -337,22 +348,50 @@ public class AggregationRdbTripDaoImpl<
         return groupByColumnNames;
     }
 
-    protected Map<String, ExtractionTableDao.SQLAggregatedFunction> getAggColumnNames(AggregationStrataVO strata) {
+    protected Set<String> getExistingGroupByColumnNames(final AggregationStrataVO strata,
+                                                        final SumarisTableMetadata table) {
+        return getGroupByColumnNames(strata)
+                .stream()
+                .filter(table::hasColumn)
+                .collect(Collectors.toSet());
+    }
+
+    protected Map<String, ExtractionTableDao.SQLAggregatedFunction> getAggColumnNames(SumarisTableMetadata table, AggregationStrataVO strata) {
         Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = Maps.newHashMap();
 
         // Read strata agg column
-        String aggStrata = strata.getAggColumnName() != null ? strata.getAggColumnName().toLowerCase() : COLUMN_STATION_COUNT;
-        ExtractionTableDao.SQLAggregatedFunction function = strata.getAggFunction() != null ?
-                ExtractionTableDao.SQLAggregatedFunction.valueOf(strata.getAggFunction().toUpperCase()) :
-                ExtractionTableDao.SQLAggregatedFunction.SUM;
-        aggColumns.put(aggStrata, function);
+        String aggColumnName = strata.getAggColumnName();
+        if (aggColumnName == null) {
+            Set<String> aggColumnNames = getAggColumnNamesBySheetName(strata.getSheetName());
+            if (CollectionUtils.isNotEmpty(aggColumnNames)) {
+                aggColumnName = aggColumnNames.iterator().next();
+            }
+        }
+
+        // Replace alias
+        aggColumnName = COLUMN_ALIAS.getOrDefault(aggColumnName, aggColumnName);
+
+        // Make sure column exists, in table
+        aggColumnName = aggColumnName != null && !table.hasColumn(aggColumnName) ? null : aggColumnName;
+
+        if (aggColumnName != null) {
+            ExtractionTableDao.SQLAggregatedFunction function = strata.getAggFunction() != null ?
+                    ExtractionTableDao.SQLAggregatedFunction.valueOf(strata.getAggFunction().toUpperCase()) :
+                    ExtractionTableDao.SQLAggregatedFunction.SUM;
+            aggColumns.put(aggColumnName, function);
+        }
 
         return aggColumns;
     }
 
-    protected long createSpeciesListTable(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected Set<String> getAggColumnNamesBySheetName(String sheetName) {
+        sheetName = sheetName != null ? sheetName : AggRdbSpecification.HH_SHEET_NAME;
+        return AGG_STRATA_BY_SHEETNAME.get(sheetName);
+    }
+
+    protected long createSpeciesListTable(ExtractionProductVO source, C context) {
         String tableName = context.getSpeciesListTableName();
-        log.debug("Computing Species List table... " + tableName);
+        log.debug(String.format("Aggregation #%s > Creating Species List table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesListQuery(source, context);
 
@@ -360,23 +399,31 @@ public class AggregationRdbTripDaoImpl<
         execute(xmlQuery);
         long count = countFrom(tableName);
 
+        if (count == 0) {
+            context.addRawTableName(tableName);
+            return 0;
+        }
+
         // Clean row using generic tripFilter
-        if (count > 0) {
-            count -= cleanRow(tableName, context.getFilter(), SL_SHEET_NAME);
+        count -= cleanRow(tableName, context.getFilter(), SL_SHEET_NAME);
+
+        // Analyze row
+        Map<String, List<String>> columnValues = null;
+        if (context.isEnableAnalyze()) {
+            columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context
-        if (count > 0) {
-            context.addTableName(tableName, SL_SHEET_NAME);
-            log.debug(String.format("Species list table: %s rows inserted", count));
-        }
-        else {
-            context.addRawTableName(tableName);
-        }
+        context.addTableName(tableName, SL_SHEET_NAME,
+                xmlQuery.getHiddenColumnNames(),
+                getSpatialColumnNames(xmlQuery),
+                columnValues);
+        log.debug(String.format("Species list table: %s rows inserted", count));
+
         return count;
     }
 
-    protected XMLQuery createSpeciesListQuery(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected XMLQuery createSpeciesListQuery(ExtractionProductVO source, C context) {
         String rawSpeciesListTableName = source.getTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
         String stationTableName = context.getStationTableName();
@@ -416,10 +463,10 @@ public class AggregationRdbTripDaoImpl<
      * @param context
      * @return
      */
-    protected long createSpeciesLengthMapTable(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected long createSpeciesLengthMapTable(ExtractionProductVO source, C context) {
 
         String tableName = context.getSpeciesLengthMapTableName();
-        log.debug("Computing Species MAP table... " + tableName);
+        log.debug(String.format("Aggregation #%s > Creating Species Map table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesLengthMapQuery(source, context);
         if (xmlQuery == null) return -1; // Skip
@@ -432,9 +479,7 @@ public class AggregationRdbTripDaoImpl<
 
         long count = countFrom(tableName);
 
-        if (count > 0) {
-            log.debug(String.format("Species length map table: %s rows inserted", count));
-        }
+        if (count > 0) log.debug(String.format("Species length map table: %s rows inserted", count));
 
         // Add result table to context
         context.addRawTableName(tableName);
@@ -442,7 +487,7 @@ public class AggregationRdbTripDaoImpl<
         return count;
     }
 
-    protected XMLQuery createSpeciesLengthMapQuery(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected XMLQuery createSpeciesLengthMapQuery(ExtractionProductVO source, C context) {
         String rawSpeciesListTableName = source.getTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
                 .orElse(null);
         String rawSpeciesLengthTableName = source.getTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
@@ -486,10 +531,10 @@ public class AggregationRdbTripDaoImpl<
         return xmlQuery;
     }
 
-    protected long createSpeciesLengthTable(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected long createSpeciesLengthTable(ExtractionProductVO source, C context) {
 
         String tableName = context.getSpeciesLengthTableName();
-        log.debug("Computing Species Length table... " + tableName);
+        log.debug(String.format("Aggregation #%s > Creating Species Map table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesLengthQuery(source, context);
 
@@ -497,20 +542,31 @@ public class AggregationRdbTripDaoImpl<
         execute(xmlQuery);
         long count = countFrom(tableName);
 
+        if (count == 0) {
+            context.addRawTableName(tableName);
+            return 0;
+        }
+
         // Clean row using generic tripFilter
-        if (count > 0) {
-            count -= cleanRow(tableName, context.getFilter(), RdbSpecification.HL_SHEET_NAME);
+        count -= cleanRow(tableName, context.getFilter(), RdbSpecification.HL_SHEET_NAME);
+
+        // Analyze row
+        Map<String, List<String>> columnValues = null;
+        if (context.isEnableAnalyze()) {
+            columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context
-        if (count > 0) {
-            context.addTableName(tableName, RdbSpecification.HL_SHEET_NAME);
-            log.debug(String.format("Species length table: %s rows inserted", count));
-        }
+        context.addTableName(tableName, HL_SHEET_NAME,
+                xmlQuery.getHiddenColumnNames(),
+                getSpatialColumnNames(xmlQuery),
+                columnValues);
+        log.debug(String.format("Species length table: %s rows inserted", count));
+
         return count;
     }
 
-    protected XMLQuery createSpeciesLengthQuery(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected XMLQuery createSpeciesLengthQuery(ExtractionProductVO source, C context) {
         String rawSpeciesListTableName = source.getTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
         String rawSpeciesLengthTableName = source.getTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
@@ -557,33 +613,42 @@ public class AggregationRdbTripDaoImpl<
     }
 
 
-    protected long createLandingTable(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected long createLandingTable(ExtractionProductVO source, C context) {
         String tableName = context.getLandingTableName();
-        log.debug("Computing Landing table... " + tableName);
+        log.debug(String.format("Aggregation #%s > Creating Landing table...", context.getId()));
 
         XMLQuery xmlQuery = createLandingQuery(source, context);
+        if (xmlQuery == null) return -1; // Skip
 
         // aggregate insertion
         execute(xmlQuery);
         long count = countFrom(tableName);
 
+        if (count == 0) {
+            context.addRawTableName(tableName);
+            return 0;
+        }
+
         // Clean row using generic tripFilter
-        if (count > 0) {
-            count -= cleanRow(tableName, context.getFilter(), CL_SHEET_NAME);
+        count -= cleanRow(tableName, context.getFilter(), CL_SHEET_NAME);
+
+        // Analyze row
+        Map<String, List<String>> columnValues = null;
+        if (context.isEnableAnalyze()) {
+            columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context
-        if (count > 0) {
-            context.addTableName(tableName, CL_SHEET_NAME);
-            log.debug(String.format("Landing table: %s rows inserted", count));
-        }
-        else {
-            context.addRawTableName(tableName);
-        }
+        context.addTableName(tableName, CL_SHEET_NAME,
+                xmlQuery.getHiddenColumnNames(),
+                getSpatialColumnNames(xmlQuery),
+                columnValues);
+        log.debug(String.format("Landing table: %s rows inserted", count));
+
         return count;
     }
 
-    protected XMLQuery createLandingQuery(ExtractionProductVO source, AggregationRdbTripContextVO context) {
+    protected XMLQuery createLandingQuery(ExtractionProductVO source, C context) {
         String rawLandingTableName = source.getTableNameBySheetName(RdbSpecification.CL_SHEET_NAME)
                 .orElse(null);
         if (rawLandingTableName == null) return null; // Skip
@@ -595,7 +660,8 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.bind("landingTableName", landingTableName);
 
         // Enable/Disable group, on optional columns
-        Set<String> groupByColumnNames = getGroupByColumnNames(context.getStrata());
+        SumarisTableMetadata rawLandingTable = databaseMetadata.getTable(rawLandingTableName);
+        Set<String> groupByColumnNames = getExistingGroupByColumnNames(context.getStrata(), rawLandingTable);
         xmlQuery.setGroup("year", groupByColumnNames.contains(AggRdbSpecification.COLUMN_YEAR));
         xmlQuery.setGroup("month", groupByColumnNames.contains(AggRdbSpecification.COLUMN_MONTH));
         xmlQuery.setGroup("quarter", groupByColumnNames.contains(AggRdbSpecification.COLUMN_QUARTER));
@@ -603,7 +669,6 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.setGroup("rect", groupByColumnNames.contains(AggRdbSpecification.COLUMN_STATISTICAL_RECTANGLE));
         xmlQuery.setGroup("subPolygon", groupByColumnNames.contains(AggRdbSpecification.COLUMN_SUB_POLYGON));
 
-        SumarisTableMetadata rawLandingTable = databaseMetadata.getTable(rawLandingTableName);
         xmlQuery.setGroup("nationalMetier", rawLandingTable.hasColumn(AggRdbSpecification.COLUMN_NATIONAL_METIER));
         xmlQuery.setGroup("euMetierLevel5", rawLandingTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL5));
         xmlQuery.setGroup("euMetierLevel6", rawLandingTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
@@ -619,18 +684,25 @@ public class AggregationRdbTripDaoImpl<
         return extractionTableDao.getRowCount(tableName);
     }
 
-    protected String getQueryFullName(ExtractionContextVO context, String queryName) {
+    protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getFormatName());
         Preconditions.checkNotNull(context.getFormatVersion());
 
-        return String.format("%s/v%s/aggregation/%s",
-                context.getFormatName().toLowerCase(),
-                context.getFormatVersion().replaceAll("[.]", "_"),
+        return getQueryFullName(
+                context.getFormatName(),
+                context.getFormatVersion(),
                 queryName);
     }
 
-    protected XMLQuery createXMLQuery(ExtractionContextVO context, String queryName) {
+    protected String getQueryFullName(String formatName, String formatVersion, String queryName) {
+        return String.format("%s/v%s/aggregation/%s",
+                StringUtils.underscoreToChangeCase(formatName),
+                formatVersion.replaceAll("[.]", "_"),
+                queryName);
+    }
+
+    protected XMLQuery createXMLQuery(C context, String queryName) {
         return createXMLQuery(getQueryFullName(context, queryName));
     }
 
@@ -640,7 +712,7 @@ public class AggregationRdbTripDaoImpl<
         return query;
     }
 
-    protected URL getXMLQueryURL(ExtractionContextVO context, String queryName) {
+    protected URL getXMLQueryURL(C context, String queryName) {
         return getXMLQueryClasspathURL(getQueryFullName(context, queryName));
     }
 
@@ -687,7 +759,9 @@ public class AggregationRdbTripDaoImpl<
                 .collect(Collectors.toMap(
                         c -> c,
                         c -> query(String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c), Object.class)
-                                .stream().map(String::valueOf).collect(Collectors.toList())
+                                .stream()
+                                .map(String::valueOf)
+                                .collect(Collectors.toList())
                         )
                 );
     }
@@ -695,12 +769,37 @@ public class AggregationRdbTripDaoImpl<
     protected Set<String> getSpatialColumnNames(final XMLQuery xmlQuery) {
         return xmlQuery.getVisibleColumnNames()
                 .stream()
-                .map(c -> c.toLowerCase())
-                .filter(SPACE_STRATA::contains)
+                .map(String::toLowerCase)
+                .filter(SPACE_STRATA_COLUMN_NAMES::contains)
                 .collect(Collectors.toSet());
     }
 
-    protected <R extends C> void dropHiddenColumns(R context) {
+    @Override
+    public <R extends C> void clean(R context) {
+        Set<String> tableNames = ImmutableSet.<String>builder()
+                .addAll(context.getTableNames())
+                .addAll(context.getRawTableNames())
+                .build();
+
+        if (CollectionUtils.isEmpty(tableNames)) return; // Nothing to drop
+
+        tableNames.stream()
+            // Keep only tables with AGG_ prefix
+            .filter(tableName -> tableName != null && tableName.startsWith(TABLE_NAME_PREFIX))
+            .forEach(tableName -> {
+                try {
+                    extractionTableDao.dropTable(tableName);
+                    databaseMetadata.clearCache(tableName);
+                }
+                catch (SumarisTechnicalException e) {
+                    log.error(e.getMessage());
+                    // Continue
+                }
+            });
+    }
+
+    @Override
+    public <R extends C> void dropHiddenColumns(R context) {
         Map<String, Set<String>> hiddenColumns = context.getHiddenColumnNames();
         context.getTableNames().forEach(tableName -> {
             dropHiddenColumns(tableName, hiddenColumns.get(tableName));

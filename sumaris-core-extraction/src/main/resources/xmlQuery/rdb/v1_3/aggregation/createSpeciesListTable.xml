@@ -44,6 +44,9 @@
     <select alias="EU_METIER_LEVEL6" group="euMetierLevel6" type="text">S.EU_METIER_LEVEL6</select>
     <select alias="GEAR_TYPE" group="gearType" type="text">S.GEAR_TYPE</select>
 
+    <!-- Unique identifier for station, to be able to link HL children rows -->
+    <select alias="STATION_NUMBER" group="hsqldb" type="number">ABS(F_HASH_CODE(SL.TRIP_CODE || '-' || SL.STATION_NUMBER))</select>
+    <select alias="STATION_NUMBER" group="oracle" type="number">ORA_HASH(SL.TRIP_CODE || '-' || SL.STATION_NUMBER)</select>
 
     <!-- SL fields -->
     <select alias="SPECIES" type="text">SL.SPECIES</select>
@@ -56,9 +59,6 @@
          Moreover, it is always defined in the HL table -->
     <!--<select alias="SEX" type="text">SL.SEX</select>-->
 
-    <!-- Unique identifier for station, to be able to link HL children rows -->
-    <select alias="STATION_NUMBER" group="hsqldb" type="number">ABS(F_HASH_CODE(SL.TRIP_CODE || '-' || SL.STATION_NUMBER))</select>
-    <select alias="STATION_NUMBER" group="oracle" type="number">ORA_HASH(SL.TRIP_CODE || '-' || SL.STATION_NUMBER)</select>
 
     <!-- other fields -->
     <select alias="WEIGHT" type="number">SUM(SL.WEIGHT)</select>

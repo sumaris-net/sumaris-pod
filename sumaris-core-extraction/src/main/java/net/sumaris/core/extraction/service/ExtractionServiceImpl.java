@@ -54,7 +54,9 @@ import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
+import net.sumaris.core.extraction.vo.trip.ExtractionTripContextVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
@@ -305,26 +307,10 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public void clean(ExtractionContextVO context) {
-        Preconditions.checkNotNull(context);
-
-        Set<String> tableNames = ImmutableSet.<String>builder()
-            .addAll(context.getTableNames())
-            .addAll(context.getRawTableNames())
-            .build();
-
-        if (CollectionUtils.isEmpty(tableNames)) return;
-
-        tableNames.stream()
-            // Keep only tables with EXT_ prefix
-            .filter(tableName -> tableName != null && tableName.startsWith("EXT_"))
-            .forEach(tableName -> {
-                try {
-                    extractionTableDao.dropTable(tableName);
-                } catch (SumarisTechnicalException e) {
-                    log.error(e.getMessage());
-                    // Continue
-                }
-            });
+        if (context == null) return;
+        if (context instanceof ExtractionRdbTripContextVO) {
+            extractionRdbTripDao.clean((ExtractionRdbTripContextVO) context);
+        }
     }
 
     @Override

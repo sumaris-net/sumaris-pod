@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.trip.rdb;
+package net.sumaris.core.extraction.dao.trip.survivalTest;
 
 /*-
  * #%L
@@ -22,18 +22,21 @@ package net.sumaris.core.extraction.dao.trip.rdb;
  * #L%
  */
 
+import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
 import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
-import net.sumaris.core.extraction.specification.RdbSpecification;
+import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
+import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionRdbTripDao<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
-        extends ExtractionTripDao {
+public interface AggregationSurvivalTestDao<C extends AggregationTripContextVO,
+        F extends ExtractionFilterVO,
+        S extends AggregationStrataVO> extends AggregationTripDao {
 
-    <R extends C> R execute(F filter);
+    <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata);
 
-    void clean(C context);
 }

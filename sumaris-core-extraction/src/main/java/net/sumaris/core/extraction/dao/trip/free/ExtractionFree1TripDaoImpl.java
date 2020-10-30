@@ -37,14 +37,15 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionFree1TripDao")
 @Lazy
-public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO> extends ExtractionRdbTripDaoImpl<C>
-        implements ExtractionFree1TripDao, Free1Specification {
+public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
+        extends ExtractionRdbTripDaoImpl<C, F>
+        implements ExtractionFree1TripDao<C, F>, Free1Specification {
 
     private static final String XML_QUERY_FREE_PATH = "free/v%s/%s";
 
     @Override
-    public C execute(ExtractionFilterVO filter) {
-        C context = super.execute(filter);
+    public <R extends C> R execute(F filter) {
+        R context = super.execute(filter);
 
         // Override some context properties
         context.setFormatName(FORMAT);

@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.extraction.dao.DatabaseResource;
 import net.sumaris.core.extraction.specification.AggRdbSpecification;
+import net.sumaris.core.extraction.specification.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -109,23 +110,28 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }
 
-
-
     @Test
-    @Ignore
-    public void aggregate_SurvivalTest() {
+    public void aggregateSurvivalTest() throws IOException {
 
         AggregationTypeVO type = new AggregationTypeVO();
-        type.setCategory(ExtractionCategoryEnum.LIVE.name().toLowerCase());
-        type.setLabel(ExtractionRawFormatEnum.SURVIVAL_TEST.name().toLowerCase());
+        type.setCategory(ExtractionCategoryEnum.LIVE.name());
+        type.setLabel(ExtractionRawFormatEnum.SURVIVAL_TEST.name());
 
-        ExtractionResultVO result = service.executeAndRead(type, null, null, 0, 100, null, null);
-        Preconditions.checkNotNull(result);
-        Preconditions.checkNotNull(result.getRows());
-        Preconditions.checkArgument(result.getRows().size() > 0);
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpaceColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        // FIXME
-        //Preconditions.checkNotNull(result.getTotal() > 0);
+        File outputFile = service.executeAndDump(type, null, strata);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, type);
+
+        // ST.csv
+        File survivalTestFile = new File(root, AggSurvivalTestSpecification.ST_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(survivalTestFile) > 1);
+
+        // RL.csv
+        File releaseFile = new File(root, AggSurvivalTestSpecification.RL_SHEET_NAME + ".csv");
+        Assert.assertTrue(!releaseFile.exists()); // No release DATA in the test DB
     }
 
 
@@ -150,26 +156,38 @@ public class AggregationServiceTest extends AbstractServiceTest {
     @Test
     public void executeAndRead() {
 
-
         AggregationTypeVO type = createAggType(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.SURVIVAL_TEST);
 
         ExtractionFilterVO filter = new ExtractionFilterVO();
-        filter.setSheetName("SL");
+        filter.setSheetName(AggRdbSpecification.SL_SHEET_NAME);
 
         ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO() ;
-        criterion.setSheetName("HH");
-        criterion.setName("year");
-        criterion.setOperator("=");
+        criterion.setSheetName(AggRdbSpecification.HH_SHEET_NAME);
+        criterion.setName(AggRdbSpecification.COLUMN_YEAR);
+        criterion.setOperator(ExtractionFilterOperatorEnum.EQUALS.getSymbol());
         criterion.setValue("2018");
         filter.setCriteria(ImmutableList.of(criterion));
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpaceColumnName("area");
+        strata.setSheetName(AggRdbSpecification.SL_SHEET_NAME);
+        strata.setSpaceColumnName(AggRdbSpecification.COLUMN_AREA);
+        strata.setTimeColumnName(AggRdbSpecification.COLUMN_MONTH);
+
         AggregationResultVO result = service.executeAndRead(type, filter, strata, 0,100, null, null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
         Assert.assertTrue(result.getRows().size() > 0);
+
+        Assert.assertNotNull(result.getSpaceStrata());
+        Assert.assertTrue(result.getSpaceStrata().size() > 0);
+        Assert.assertTrue(result.getSpaceStrata().contains(AggRdbSpecification.COLUMN_AREA));
+
+        Assert.assertNotNull(result.getTimeStrata());
+        Assert.assertTrue(result.getTimeStrata().size() > 0);
+        Assert.assertTrue(result.getTimeStrata().contains(AggRdbSpecification.COLUMN_MONTH));
+        Assert.assertTrue(result.getTimeStrata().contains(AggRdbSpecification.COLUMN_QUARTER));
+        Assert.assertTrue(result.getTimeStrata().contains(AggRdbSpecification.COLUMN_YEAR));
     }
 
     @Test
@@ -219,8 +237,8 @@ public class AggregationServiceTest extends AbstractServiceTest {
     protected AggregationTypeVO createAggType(ExtractionCategoryEnum category, ExtractionRawFormatEnum format) {
 
         AggregationTypeVO type = new AggregationTypeVO();
-        type.setCategory(category.name().toLowerCase());
-        type.setLabel(format.name().toLowerCase() + "-" + System.currentTimeMillis());
+        type.setCategory(category.name());
+        type.setLabel(format.name());
         type.setName(String.format("Aggregation on %s (%s) data", format.name(), category.name()));
         type.setStatusId(StatusEnum.TEMPORARY.getId());
 

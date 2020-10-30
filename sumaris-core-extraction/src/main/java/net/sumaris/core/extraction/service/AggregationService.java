@@ -28,6 +28,8 @@ import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -92,4 +94,10 @@ public interface AggregationService {
 
     @Transactional
     void delete(int id);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
+    void clean(AggregationContextVO context);
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    void asyncClean(AggregationContextVO context);
 }

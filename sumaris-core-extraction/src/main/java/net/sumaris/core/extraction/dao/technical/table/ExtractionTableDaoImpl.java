@@ -130,7 +130,8 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     @Override
     public void dropTable(String tableName) {
         Preconditions.checkNotNull(tableName);
-        Preconditions.checkArgument(tableName.toUpperCase().startsWith(ExtractionDao.TABLE_NAME_PREFIX));
+        Preconditions.checkArgument(tableName.toUpperCase().startsWith(ExtractionDao.TABLE_NAME_PREFIX)
+            || tableName.toUpperCase().startsWith(AggregationDao.TABLE_NAME_PREFIX));
 
         log.debug(String.format("Dropping extraction table {%s}...", tableName));
         try {

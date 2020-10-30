@@ -29,11 +29,15 @@ import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
+import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
+import net.sumaris.core.extraction.specification.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
+import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -46,10 +50,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
+import javax.annotation.Resource;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,14 +72,23 @@ public class AggregationServiceImpl implements AggregationService {
     @Autowired
     private ExtractionService extractionService;
 
-    @Autowired
+    @Resource(name = "aggregationRdbTripDao")
     private AggregationRdbTripDao aggregationRdbTripDao;
+
+    @Autowired
+    private AggregationSurvivalTestDao aggregationSurvivalTestDao;
 
     @Autowired
     private ExtractionProductRepository extractionProductRepository;
 
     @Autowired
     private ExtractionTableDao extractionTableDao;
+
+    @Autowired(required = false)
+    protected TaskExecutor taskExecutor = null;
+
+    @Autowired
+    private AggregationService self;
 
     @Override
     public List<AggregationTypeVO> findByFilter(AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
@@ -122,7 +137,7 @@ public class AggregationServiceImpl implements AggregationService {
                     return aggregate(source, aggregationFilter, strata);
                 } finally {
                     // Clean intermediate tables
-                    asyncClean(rawExtractionContext);
+                    extractionService.asyncClean(rawExtractionContext);
                 }
             default:
                 throw new SumarisTechnicalException(String.format("Aggregation on category %s not implemented yet !", type.getCategory()));
@@ -148,6 +163,9 @@ public class AggregationServiceImpl implements AggregationService {
         String tableName;
         if (StringUtils.isNotBlank(filter.getSheetName())) {
             tableName = context.getTableNameBySheetName(filter.getSheetName());
+            if (strata.getSheetName() == null) {
+                strata.setSheetName(filter.getSheetName());
+            }
         } else {
             tableName = context.getTableNames().iterator().next();
         }
@@ -364,19 +382,42 @@ public class AggregationServiceImpl implements AggregationService {
             case RDB:
             case COST:
             case FREE1:
-
-            //case FREE2: // TODO: test FREE2 is compatible
-            case SURVIVAL_TEST:
                 return aggregationRdbTripDao.aggregate(source, filter, strata);
+
+            case SURVIVAL_TEST:
+                return aggregationSurvivalTestDao.aggregate(source, filter, strata);
             default:
                 throw new SumarisTechnicalException(String.format("Data aggregation on type '%s' is not implemented!", format.name()));
         }
     }
 
-    protected void asyncClean(ExtractionContextVO context) {
-        if (context == null) return;
-        extractionService.asyncClean(context);
+    @Override
+    public void asyncClean(AggregationContextVO context) {
+        if (taskExecutor == null) {
+            clean(context);
+        } else {
+            taskExecutor.execute(() -> {
+                try {
+                    Thread.sleep(2000); // Wait 2 s, to to sure the table is not used anymore
+
+                    // Call self, to be sure to have a transaction
+                    self.clean(context);
+                } catch (Exception e) {
+                    log.warn("Error while cleaning extraction tables", e);
+                }
+            });
+        }
     }
+
+    @Override
+    public void clean(AggregationContextVO context) {
+        if (context == null) return;
+        if (context instanceof AggregationRdbTripContextVO) {
+            aggregationRdbTripDao.clean((AggregationRdbTripContextVO) context);
+        }
+    }
+
+    /* -- protected methods -- */
 
     protected AggregationTypeVO toAggregationType(ExtractionProductVO source) {
         AggregationTypeVO target = new AggregationTypeVO();

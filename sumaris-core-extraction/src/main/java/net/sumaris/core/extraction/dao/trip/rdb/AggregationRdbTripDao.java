@@ -36,4 +36,8 @@ public interface AggregationRdbTripDao<C extends AggregationRdbTripContextVO,
     <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata);
 
     AggregationResultVO read(String tableName, F filter, S strata, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    <R extends C> void clean(R context);
+
+    <R extends C> void dropHiddenColumns(R context);
 }

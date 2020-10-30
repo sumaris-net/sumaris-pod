@@ -25,8 +25,10 @@ package net.sumaris.core.extraction.specification;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,8 +55,13 @@ public interface AggRdbSpecification {
     String COLUMN_SUB_POLYGON = ProductRdbStation.COLUMN_SUB_POLYGON;
 
     // Agg columns
-    String COLUMN_TRIP_COUNT = "trip_count";
+    String COLUMN_FISHING_TIME = "fishing_time";
     String COLUMN_STATION_COUNT = "station_count";
+    String COLUMN_TRIP_COUNT_BY_FISHING_TIME = "trip_count_by_fishing_time";
+    String COLUMN_TRIP_COUNT_BY_STATION = "trip_count_by_station";
+
+    String COLUMN_WEIGHT = "weight";
+    String COLUMN_NUMBER_AT_LENGTH = "number_at_length";
 
     // Other columns
     String COLUMN_NATIONAL_METIER = ProductRdbStation.COLUMN_NATIONAL_METIER;
@@ -66,14 +73,29 @@ public interface AggRdbSpecification {
     String COLUMN_ID = "id";
     String COLUMN_SAMPLE_IDS = "sample_ids";
 
-    Set<String> SPACE_STRATA = ImmutableSet.of("area", "rect", "square");
-    Set<String> TIME_STRATA = ImmutableSet.of("year", "quarter", "month");
+    Set<String> SPACE_STRATA_COLUMN_NAMES = ImmutableSortedSet.of(COLUMN_AREA, COLUMN_STATISTICAL_RECTANGLE, COLUMN_SUB_POLYGON, COLUMN_SQUARE);
+    Set<String> TIME_STRATA_COLUMN_NAMES = ImmutableSortedSet.of(COLUMN_YEAR, COLUMN_QUARTER, COLUMN_MONTH);
+
     Map<String, Set<String>> AGG_STRATA_BY_SHEETNAME = ImmutableMap.<String, Set<String>>builder()
-            .put(HH_SHEET_NAME, ImmutableSet.of(COLUMN_TRIP_COUNT, COLUMN_STATION_COUNT))
+            .put(HH_SHEET_NAME, ImmutableSortedSet.of(
+                    COLUMN_FISHING_TIME,
+                    COLUMN_STATION_COUNT,
+                    COLUMN_TRIP_COUNT_BY_FISHING_TIME,
+                    COLUMN_TRIP_COUNT_BY_STATION
+            ))
+            .put(SL_SHEET_NAME, ImmutableSortedSet.of(
+                    COLUMN_WEIGHT
+            ))
+            .put(HL_SHEET_NAME, ImmutableSortedSet.of(
+                    COLUMN_NUMBER_AT_LENGTH
+            ))
             .build();
 
 
     ImmutableMap<String, String> COLUMN_ALIAS = ImmutableMap.<String, String>builder()
             .put("rect", COLUMN_STATISTICAL_RECTANGLE)
+            .put("subPolygon", COLUMN_SUB_POLYGON)
             .build();
+
+    String[] SHEET_NAMES = {HH_SHEET_NAME, SL_SHEET_NAME, HL_SHEET_NAME, CL_SHEET_NAME};
 }

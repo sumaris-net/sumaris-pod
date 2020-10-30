@@ -38,16 +38,17 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionCostTripDao")
 @Lazy
-public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO> extends ExtractionRdbTripDaoImpl<C>
-        implements ExtractionCostTripDao, CostSpecification {
+public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
+        extends ExtractionRdbTripDaoImpl<C, F>
+        implements ExtractionCostTripDao<C, F>, CostSpecification {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionCostTripDaoImpl.class);
 
     private static final String XML_QUERY_COST_PATH = "cost/v%s/%s";
 
     @Override
-    public C execute(ExtractionFilterVO filter) {
-        C context = super.execute(filter);
+    public <R extends C> R execute(F filter) {
+        R context = super.execute(filter);
 
         // Override some context properties
         context.setFormatName(CostSpecification.FORMAT);
