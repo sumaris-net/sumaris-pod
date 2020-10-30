@@ -39,7 +39,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.domain.Specification;
@@ -171,7 +170,7 @@ public class ExtractionProductRepositoryImpl
             target.setTimeColumnName(source.getTimeColumn().getColumnName());
         }
         if (source.getSpaceColumn() != null) {
-            target.setSpaceColumnName(source.getSpaceColumn().getColumnName());
+            target.setSpatialColumnName(source.getSpaceColumn().getColumnName());
         }
         if (source.getTechColumn() != null) {
             target.setTechColumnName(source.getTechColumn().getColumnName());
@@ -448,8 +447,7 @@ public class ExtractionProductRepositoryImpl
             }
 
             // Save each table
-            sources.stream()
-                .filter(Objects::nonNull)
+            sources.stream().filter(Objects::nonNull)
                 .forEach(source -> {
                     ExtractionProductStrata target = existingItems.remove(source.getLabel());
                     boolean isNew = (target == null);
@@ -466,13 +464,14 @@ public class ExtractionProductRepositoryImpl
                     target.setUpdateDate(updateDate);
 
                     // Link to table (find by sheet anem, or find as singleton)
-                    ExtractionProductTable table = StringUtils.isNotBlank(source.getSheetName())
-                        ? existingTables.get(source.getSheetName())
+                    String sheetName = source.getSheetName();
+                    ExtractionProductTable table = StringUtils.isNotBlank(sheetName)
+                        ? existingTables.get(sheetName)
                         : (existingTables.size() == 1 ? existingTables.values().iterator().next() : null);
                     if (table != null) {
                         target.setTable(table);
                         target.setTimeColumn(findColumnByName(table, source.getTimeColumnName()));
-                        target.setSpaceColumn(findColumnByName(table, source.getSpaceColumnName()));
+                        target.setSpaceColumn(findColumnByName(table, source.getSpatialColumnName()));
                         target.setAggColumn(findColumnByName(table, source.getAggColumnName()));
                         target.setTechColumn(findColumnByName(table, source.getTechColumnName()));
                     }
@@ -488,6 +487,7 @@ public class ExtractionProductRepositoryImpl
                         target.setCreationDate(updateDate);
                         em.persist(target);
                         source.setId(target.getId());
+                        entity.getStratum().add(target);
                     } else {
                         em.merge(target);
                     }
@@ -495,23 +495,23 @@ public class ExtractionProductRepositoryImpl
                     source.setUpdateDate(updateDate);
                 });
 
-            em.flush();
-
             // Remove old tables
-            if (MapUtils.isNotEmpty(existingItems)) {
-                entity.getStratum().removeAll(existingItems.values());
-                existingItems.values().forEach(em::remove);
+            List<Integer> strataIdsToRemove = existingItems.values().stream()
+                    .map(ExtractionProductStrata::getId)
+                    .filter(Objects::nonNull).collect(Collectors.toList());
+            entity.getStratum().removeAll(existingItems.values());
+
+
+            em.merge(entity);
+
+            em.flush();
+            em.clear();
+
+            // Remove old stratum
+            if (CollectionUtils.isNotEmpty(strataIdsToRemove)) {
+                strataIdsToRemove.forEach(id -> this.deleteById(id, ExtractionProductStrata.class));
             }
-
         }
-    }
-
-    protected ExtractionProductColumn findColumnByName(ExtractionProductTable table, String columnName) {
-        if (StringUtils.isBlank(columnName)) return null;
-        final String columnNameLowerCase = columnName.toLowerCase();
-        return table.getColumns().stream()
-            .filter(c -> columnNameLowerCase.equalsIgnoreCase(c.getColumnName()))
-            .findFirst().orElse(null);
     }
 
     @Override
@@ -554,6 +554,21 @@ public class ExtractionProductRepositoryImpl
             .getResultStream()
             .map(c -> toColumnVO(c, null /*with values*/))
             .collect(Collectors.toList());
+    }
+
+
+    protected ExtractionProductColumn findColumnByName(ExtractionProductTable table, String columnName) {
+        if (StringUtils.isBlank(columnName)) return null;
+        final String columnNameLowerCase = columnName.toLowerCase();
+        return table.getColumns().stream()
+                .filter(c -> columnNameLowerCase.equalsIgnoreCase(c.getColumnName()))
+                .findFirst().orElse(null);
+    }
+
+    protected int deleteById(int id, Class<?> entityClass) {
+        return getEntityManager().createQuery(String.format("delete from %s where id=:id", entityClass.getSimpleName()))
+                .setParameter("id", id)
+                .executeUpdate();
     }
 
     protected ExtractionTableColumnVO toColumnVO(ExtractionProductColumn source, ExtractionProductFetchOptions fetchOptions) {

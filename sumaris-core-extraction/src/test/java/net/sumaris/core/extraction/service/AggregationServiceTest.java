@@ -22,7 +22,6 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.extraction.dao.DatabaseResource;
 import net.sumaris.core.extraction.specification.AggRdbSpecification;
@@ -31,13 +30,10 @@ import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
-import net.sumaris.core.model.technical.extraction.rdb.ProductRdbTrip;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
-import org.assertj.core.util.Lists;
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -64,7 +60,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         type.setLabel(ExtractionRawFormatEnum.RDB.name());
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpaceColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
         File outputFile = service.executeAndDump(type, null, strata);
@@ -91,7 +87,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         type.setLabel("p01_rdb");
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpaceColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
         File outputFile = service.executeAndDump(type, null, strata);
@@ -118,7 +114,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         type.setLabel(ExtractionRawFormatEnum.SURVIVAL_TEST.name());
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpaceColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
         File outputFile = service.executeAndDump(type, null, strata);
@@ -170,7 +166,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSheetName(AggRdbSpecification.SL_SHEET_NAME);
-        strata.setSpaceColumnName(AggRdbSpecification.COLUMN_AREA);
+        strata.setSpatialColumnName(AggRdbSpecification.COLUMN_AREA);
         strata.setTimeColumnName(AggRdbSpecification.COLUMN_MONTH);
 
         AggregationResultVO result = service.executeAndRead(type, filter, strata, 0,100, null, null);
@@ -210,7 +206,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         filter.setCriteria(ImmutableList.of(criterion));
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpaceColumnName("area");
+        strata.setSpatialColumnName("area");
 
         AggregationResultVO result = service.read(savedType, filter, strata, 0,100, null, null);
 

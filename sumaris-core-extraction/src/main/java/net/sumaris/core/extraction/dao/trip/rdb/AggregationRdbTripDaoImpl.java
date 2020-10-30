@@ -31,8 +31,6 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.dao.AggregationDao;
-import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
@@ -315,7 +313,7 @@ public class AggregationRdbTripDaoImpl<
 
         else {
             // Process space strata
-            String spaceStrata = strata.getSpaceColumnName() != null ? strata.getSpaceColumnName().toLowerCase() : COLUMN_AREA;
+            String spaceStrata = strata.getSpatialColumnName() != null ? strata.getSpatialColumnName().toLowerCase() : COLUMN_AREA;
             spaceStrata = COLUMN_ALIAS.getOrDefault(spaceStrata, spaceStrata); // Replace alias
 
             switch (spaceStrata) {

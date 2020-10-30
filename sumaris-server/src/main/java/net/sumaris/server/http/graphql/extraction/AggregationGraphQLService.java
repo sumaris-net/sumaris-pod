@@ -107,8 +107,8 @@ public class AggregationGraphQLService {
         filter = filter == null ? new ExtractionFilterVO() : filter;
 
         // Fill default values for strata
-        if (strata.getSpaceColumnName() == null) {
-            strata.setSpaceColumnName(AggRdbSpecification.COLUMN_SQUARE);
+        if (strata.getSpatialColumnName() == null) {
+            strata.setSpatialColumnName(AggRdbSpecification.COLUMN_SQUARE);
         }
         if (strata.getTimeColumnName() == null){
             strata.setTimeColumnName(AggRdbSpecification.COLUMN_YEAR);
@@ -116,7 +116,7 @@ public class AggregationGraphQLService {
 
         return GeoJsonExtractions.toFeatureCollection(
                 getAggregationRows(type, filter, strata, offset, size, sort, direction),
-                strata.getSpaceColumnName()
+                strata.getSpatialColumnName()
         );
     }
 

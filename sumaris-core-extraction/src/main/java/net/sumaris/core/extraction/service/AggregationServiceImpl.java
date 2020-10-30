@@ -30,14 +30,11 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
-import net.sumaris.core.extraction.specification.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
-import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
-import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -148,8 +145,9 @@ public class AggregationServiceImpl implements AggregationService {
     public AggregationResultVO read(AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata, int offset, int size, String sort, SortDirection direction) {
         Preconditions.checkNotNull(type);
 
-        ExtractionProductVO product = extractionProductRepository.getByLabel(type.getLabel(), ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
-        AggregationContextVO context = toContextVO(product);
+        ExtractionProductVO product = extractionProductRepository.getByLabel(type.getLabel(),
+                ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
+        AggregationContextVO context = toContextVO(product, filter != null ? filter.getSheetName() : null);
 
         return read(context, filter, strata, offset, size, sort, direction);
     }
@@ -505,15 +503,28 @@ public class AggregationServiceImpl implements AggregationService {
         return columns;
     }
 
-    protected AggregationContextVO toContextVO(ExtractionProductVO source) {
+    protected AggregationContextVO toContextVO(ExtractionProductVO source, String sheetName) {
 
-        AggregationContextVO target = new AggregationRdbTripContextVO();
+        AggregationRdbTripContextVO target = new AggregationRdbTripContextVO();
 
         target.setId(source.getId());
         target.setLabel(source.getLabel());
 
         ListUtils.emptyIfNull(source.getTables())
             .forEach(t -> target.addTableName(t.getTableName(), t.getLabel()));
+
+        // Find the strata to apply, by sheetName
+        if (sheetName != null && source.getStratum() != null) {
+            ExtractionProductStrataVO productStrata = source.getStratum().stream()
+                    .filter(s -> sheetName.equals(s.getSheetName()))
+                    .findFirst().orElse(null);
+            if (productStrata != null) {
+                AggregationStrataVO strata = new AggregationStrataVO();
+                Beans.copyProperties(productStrata, strata);
+                target.setStrata(strata);
+            }
+        }
+
         return target;
     }
 

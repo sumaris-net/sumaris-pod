@@ -31,7 +31,6 @@ import net.sumaris.core.extraction.vo.AggregationContextVO;
 import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
@@ -83,7 +82,7 @@ public abstract class AggregationTripContextVO extends AggregationContextVO {
     }
 
     public String getStrataSpaceColumnName() {
-        return strata != null ? strata.getSpaceColumnName() : null;
+        return strata != null ? strata.getSpatialColumnName() : null;
     }
 
     public String getStrataTimeColumnName() {

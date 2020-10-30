@@ -22,32 +22,17 @@ package net.sumaris.server.http.rest;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
-import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLContext;
-import io.leangen.graphql.annotations.GraphQLQuery;
-import net.sumaris.core.dao.referential.location.Locations;
-import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.service.AggregationService;
-import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.vo.*;
-import net.sumaris.server.http.geojson.GeoJsonGeometries;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
 import org.apache.commons.lang3.StringUtils;
 import org.geojson.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.websocket.server.PathParam;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 public class AggregationRestService {
@@ -79,7 +64,7 @@ public class AggregationRestService {
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setTimeColumnName(StringUtils.isNotBlank(timeStrata) ? timeStrata : AggRdbSpecification.COLUMN_YEAR);
-        strata.setSpaceColumnName(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : AggRdbSpecification.COLUMN_SQUARE);
+        strata.setSpatialColumnName(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : AggRdbSpecification.COLUMN_SQUARE);
         strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_STATION_COUNT);
         strata.setTechColumnName(null);
 
@@ -89,7 +74,7 @@ public class AggregationRestService {
                 strata,
                 offset, size,
                 null, null),
-                strata.getSpaceColumnName());
+                strata.getSpatialColumnName());
     }
 
 
