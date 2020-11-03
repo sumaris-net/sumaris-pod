@@ -25,6 +25,7 @@ package net.sumaris.server.http.graphql.referential;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.referential.location.LocationClassificationEnum;
 import net.sumaris.core.service.referential.ReferentialSuggestService;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -43,7 +44,7 @@ public class ReferentialSuggestGraphQLService {
 
     /* -- Referential queries -- */
 
-    @GraphQLQuery(name = "suggestedReferentials", description = "Get already filled values from entityName")
+    @GraphQLQuery(name = "suggestedStrategyReferentials", description = "Get already filled values from entityName")
     public List<? extends ReferentialVO> findSuggestedReferentialsFromStrategy(
             @GraphQLArgument(name = "entityName") String entityName,
             @GraphQLArgument(name = "programId") int programId,
@@ -58,6 +59,40 @@ public class ReferentialSuggestGraphQLService {
                 size == null ? 1000 : size,
                 sort == null ? ReferentialVO.Fields.LABEL : sort,
                 direction == null ? SortDirection.ASC : SortDirection.valueOf(direction.toUpperCase()));
+    }
+
+    @GraphQLQuery(name = "suggestedStrategyAnalyticReferences", description = "Get already filled analytic references")
+    public List<String> findSuggestedAnalyticReferencesFromStrategy(
+            @GraphQLArgument(name = "programId") int programId) {
+        return referentialSuggestService.findAnalyticReferencesFromStrategy(programId);
+    }
+
+    @GraphQLQuery(name = "suggestedStrategyDepartments", description = "Get already filled departments")
+    public List<Integer> findSuggestedDepartmentsFromStrategy(
+            @GraphQLArgument(name = "programId") int programId) {
+        return referentialSuggestService.findDepartmentsFromStrategy(programId);
+    }
+
+    @GraphQLQuery(name = "suggestedStrategyLocations", description = "Get already filled locations")
+    public List<Integer> findSuggestedLocationsFromStrategy(
+            @GraphQLArgument(name = "programId") int programId,
+            @GraphQLArgument(name = "locationClassification") LocationClassificationEnum locationClassification) {
+        return referentialSuggestService.findLocationsFromStrategy(programId, locationClassification);
+    }
+
+    @GraphQLQuery(name = "suggestedStrategyTaxonNames", description = "Get already filled taxon names")
+    public List<Integer> findSuggestedTaxonNamesFromStrategy(
+            @GraphQLArgument(name = "programId") int programId) {
+        return referentialSuggestService.findTaxonNamesFromStrategy(programId);
+    }
+
+    @GraphQLQuery(name = "suggestedStrategyPmfms", description = "Get already filled PMFM or one of parameter, matrix, fraction, method")
+    public List<Integer> findSuggestedPmfmsFromStrategy(
+            @GraphQLArgument(name = "programId") int programId,
+            @GraphQLArgument(name = "referenceTaxonId") Integer referenceTaxonId,
+            @GraphQLArgument(name = "field", defaultValue = PmfmStrategy.Fields.PMFM) String field) {
+        return referentialSuggestService.findPmfmsFromStrategy(programId, referenceTaxonId,
+                field == null ? PmfmStrategy.Fields.PMFM : field);
     }
 
 }

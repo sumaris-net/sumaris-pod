@@ -37,4 +37,14 @@ public interface ReferentialSuggestService {
     List<ReferentialVO> findFromStrategy(String entityName, int programId, LocationClassificationEnum locationClassification, int offset, int size);
 
     List<ReferentialVO> findFromStrategy(String entityName, int programId, LocationClassificationEnum locationClassification, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    List<String> findAnalyticReferencesFromStrategy(int programId);
+
+    List<Integer> findDepartmentsFromStrategy(int programId);
+
+    List<Integer> findLocationsFromStrategy(int programId, LocationClassificationEnum locationClassification);
+
+    List<Integer> findTaxonNamesFromStrategy(int programId);
+
+    List<Integer> findPmfmsFromStrategy(int programId, Integer referenceTaxonId, String field);
 }

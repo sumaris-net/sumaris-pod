@@ -27,19 +27,16 @@ import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
-import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
@@ -64,9 +61,6 @@ public class ConversionServiceImpl extends GenericConversionService {
     @Autowired
     private PersonRepository personRepository;
 
-    @Autowired
-    private TaxonNameRepository taxonNameRepository;
-
     @PostConstruct
     private void initConverters() {
 
@@ -76,6 +70,5 @@ public class ConversionServiceImpl extends GenericConversionService {
         addConverter(Operation.class, OperationVO.class, operationRepository::toVO);
         addConverter(Landing.class, LandingVO.class, landingRepository::toVO);
         addConverter(Person.class, PersonVO.class, personRepository::toVO);
-        addConverter(TaxonName.class, TaxonNameVO.class, taxonNameRepository::toVO);
     }
 }

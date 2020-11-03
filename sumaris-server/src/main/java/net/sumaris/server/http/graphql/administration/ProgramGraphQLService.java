@@ -191,7 +191,7 @@ public class ProgramGraphQLService {
     /* -- Mutations -- */
 
     @GraphQLMutation(name = "saveProgram", description = "Save a program (with strategies)")
-    //@IsSupervisor
+    @IsSupervisor
     public ProgramVO saveProgram(
             @GraphQLArgument(name = "program") ProgramVO program) {
         ProgramVO result = programService.save(program);
@@ -199,13 +199,13 @@ public class ProgramGraphQLService {
     }
 
     @GraphQLMutation(name = "deleteProgram", description = "Delete a program")
-    //@IsAdmin
+    @IsAdmin
     public void deleteProgram(@GraphQLArgument(name = "id") int id) {
         programService.delete(id);
     }
 
     @GraphQLMutation(name = "saveStrategy", description = "Save a strategy")
-    //@IsSupervisor
+    @IsSupervisor
     public StrategyVO saveStrategy(
             @GraphQLArgument(name = "strategy") StrategyVO strategy) {
         StrategyVO result = strategyService.save(strategy);
@@ -213,7 +213,7 @@ public class ProgramGraphQLService {
     }
 
     @GraphQLMutation(name = "deleteStrategy", description = "Delete a strategy")
-    //@IsAdmin
+    @IsAdmin
     public void deleteStrategy(@GraphQLArgument(name = "id") int id) {
         strategyService.delete(id);
     }

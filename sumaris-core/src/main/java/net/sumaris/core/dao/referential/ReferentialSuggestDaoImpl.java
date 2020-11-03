@@ -24,7 +24,6 @@ package net.sumaris.core.dao.referential;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -42,9 +41,9 @@ import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,12 +54,7 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
     @Autowired
     private ReferentialDao referentialDao;
 
-    @Autowired
-    private TaxonNameRepository taxonNameRepository;
-
-    @Autowired
-    private ConversionService conversionService;
-
+    @Override
     public List<ReferentialVO> findFromStrategy(final String entityName,
                                                 int programId,
                                                 LocationClassificationEnum locationClassification,
@@ -72,7 +66,7 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
 
         // Special case: AnalyticReference
         if (entityName.equals("AnalyticReference")) {
-            List<String> labels = getStrategyAnalyticReferences(programId);
+            List<String> labels = findAnalyticReferencesFromStrategy(programId);
             return findAnalyticReferencesByLabels(labels, offset, size, sortAttribute, sortDirection);
         }
 
@@ -81,60 +75,54 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
 
         // switch entityName
         List<Integer> entityIds;
-        switch (entityName) { // TODO lieu (zone pêche/port déb), espèce (reftax/taxonname), PMFM (P/M/F/M), code (AAAA_BIO_XXXX)
+        switch (entityName) {
             case "Department":
-                entityIds = getStrategyDepartmentIds(programId);
+                entityIds = findDepartmentsFromStrategy(programId);
                 break;
             case "Location":
-                entityIds = getStrategyLocationIds(programId, locationClassification);
+                entityIds = findLocationsFromStrategy(programId, locationClassification);
                 break;
             case "TaxonName":
-                entityIds = getStrategyTaxonNameIds(programId);
+                entityIds = findTaxonNamesFromStrategy(programId);
                 break;
-            default:
+            case "Pmfm":
+                entityIds = findPmfmsFromStrategy(programId, null, PmfmStrategy.Fields.PMFM);
+                break;
+            default: // TODO PMFM (P/M/F/M), code (AAAA_BIO_XXXX)
                 throw new SumarisTechnicalException(String.format("Unable to find data on entity '%s': not implemented", entityName));
         }
 
         return findByIds(entityClass, entityIds, offset, size, sortAttribute, sortDirection);
     }
 
-
-    /* -- protected methods -- */
-
-    protected <T extends IReferentialEntity> List<ReferentialVO> findByIds(final Class<T> entityClass,
-                                                                           List<Integer> entityIds,
-                                                                           int offset,
-                                                                           int size,
-                                                                           String sortAttribute,
-                                                                           SortDirection sortDirection) {
+    @Override
+    public List<String> findAnalyticReferencesFromStrategy(int programId) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<T> query = builder.createQuery(entityClass);
-        Root<T> root = query.from(entityClass);
+        CriteriaQuery<Strategy> query = builder.createQuery(Strategy.class);
+        Root<Strategy> root = query.from(Strategy.class);
+
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
 
         query.select(root)
                 .where(
                         builder.and(
-                                // Id
-                                builder.in(root.get(IItemReferentialEntity.Fields.ID)).value(entityIds),
+                                // Program
+                                builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
                                 // Status (temporary or valid)
-                                builder.in(root.get(IItemReferentialEntity.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                                builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
                         ));
-
-        // Apply sorting
-        addSorting(query, builder, root, sortAttribute, sortDirection);
 
         return getEntityManager()
                 .createQuery(query)
-                .setFirstResult(offset)
-                .setMaxResults(size)
+                .setParameter(programIdParam, programId)
                 .getResultStream()
                 .distinct()
-                //.map(referentialDao::toVO)
-                .map(source -> toTypedVO(source))
+                .map(source -> source.getAnalyticReference())
                 .collect(Collectors.toList());
     }
 
-    protected List<Integer> getStrategyDepartmentIds(int programId) {
+    @Override
+    public List<Integer> findDepartmentsFromStrategy(int programId) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Department> query = builder.createQuery(Department.class);
         Root<Strategy> root = query.from(Strategy.class);
@@ -156,11 +144,13 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
                 .getResultStream()
+                .distinct()
                 .map(source -> source.getId())
                 .collect(Collectors.toList());
     }
 
-    protected List<Integer> getStrategyLocationIds(int programId, LocationClassificationEnum locationClassification) {
+    @Override
+    public List<Integer> findLocationsFromStrategy(int programId, LocationClassificationEnum locationClassification) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Location> query = builder.createQuery(Location.class);
         Root<Strategy> root = query.from(Strategy.class);
@@ -190,11 +180,13 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
                 .getResultStream()
+                .distinct()
                 .map(source -> source.getId())
                 .collect(Collectors.toList());
     }
 
-    protected List<Integer> getStrategyTaxonNameIds(int programId) {
+    @Override
+    public List<Integer> findTaxonNamesFromStrategy(int programId) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<TaxonName> query = builder.createQuery(TaxonName.class);
         Root<Strategy> root = query.from(Strategy.class);
@@ -214,41 +206,69 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                                 builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId())),
                                 // Taxon name
                                 builder.isTrue(taxonNameInnerJoin.get(TaxonName.Fields.IS_REFERENT))
-                                ));
-
-        return getEntityManager()
-                .createQuery(query)
-                .setParameter(programIdParam, programId)
-                .getResultStream()
-                .map(source -> source.getId())
-                .collect(Collectors.toList());
-    }
-
-    protected List<String> getStrategyAnalyticReferences(int programId) {
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Strategy> query = builder.createQuery(Strategy.class);
-        Root<Strategy> root = query.from(Strategy.class);
-
-        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
-
-        query.select(root)
-                .where(
-                        builder.and(
-                                // Program
-                                builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
-                                // Status (temporary or valid)
-                                builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
                         ));
 
         return getEntityManager()
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
                 .getResultStream()
-                .map(source -> source.getAnalyticReference())
+                .distinct()
+                .map(source -> source.getId())
                 .collect(Collectors.toList());
     }
 
-    // TODO move in a dedicated service
+    @Override
+    public List<Integer> findPmfmsFromStrategy(int programId, Integer referenceTaxonId, String field) {
+        ImmutableList<String> validFields = ImmutableList.of(PmfmStrategy.Fields.PMFM,
+                PmfmStrategy.Fields.PARAMETER, PmfmStrategy.Fields.MATRIX, PmfmStrategy.Fields.FRACTION, PmfmStrategy.Fields.METHOD);
+        Preconditions.checkNotNull(field, "Missing field argument");
+        Preconditions.checkArgument(validFields.contains(field), "Invalid field. Must be in " + validFields);
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<IItemReferentialEntity> query = builder.createQuery(IItemReferentialEntity.class);
+        Root<Strategy> root = query.from(Strategy.class);
+
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+        ParameterExpression<Integer> referenceTaxonIdParam = builder.parameter(Integer.class);
+
+        Join<Strategy, PmfmStrategy> pmfmStrategyInnerJoin = root.joinList(Strategy.Fields.PMFM_STRATEGIES, JoinType.INNER);
+
+        Predicate predicate = builder.and(
+                // Program
+                builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
+                // Status (temporary or valid)
+                builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+        );
+
+        // Taxon
+        if (referenceTaxonId != null) {
+            Join<Strategy, ReferenceTaxonStrategy> referenceTaxonStrategyInnerJoin = root.joinList(Strategy.Fields.REFERENCE_TAXONS, JoinType.INNER);
+            predicate = builder.and(
+                    predicate,
+                    builder.equal(referenceTaxonStrategyInnerJoin.get(ReferenceTaxonStrategy.Fields.REFERENCE_TAXON).get(ReferenceTaxon.Fields.ID), referenceTaxonIdParam)
+            );
+        }
+
+        query.select(pmfmStrategyInnerJoin.get(field)).where(predicate);
+
+        TypedQuery<IItemReferentialEntity> typedQuery = getEntityManager().createQuery(query);
+
+        if (referenceTaxonId != null) {
+            typedQuery.setParameter(referenceTaxonIdParam, referenceTaxonId);
+        }
+
+        return typedQuery
+                .setParameter(programIdParam, programId)
+                .getResultStream()
+                .distinct()
+                .map(source -> source.getId())
+                .collect(Collectors.toList());
+    }
+
+
+    /* -- protected methods -- */
+
+    // TODO move in a dedicated service and get id, label, name, status from it
     protected List<ReferentialVO> findAnalyticReferencesByLabels(List<String> labels,
                                                                  int offset,
                                                                  int size,
@@ -257,8 +277,7 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
         return labels.stream()
                 .skip(offset)
                 .limit(size)
-                .distinct()
-                .map(source -> { // TODO get id, label, name, status from EOTP webservice
+                .map(source -> {
                     ReferentialVO target = new ReferentialVO();
                     target.setId(source.hashCode());
                     target.setLabel(source);
@@ -271,18 +290,50 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
         );
     }
 
-    protected ReferentialVO toTypedVO(IReferentialEntity source) {
+    protected <T extends IReferentialEntity> List<ReferentialVO> findByIds(final Class<T> entityClass,
+                                                                           List<Integer> entityIds,
+                                                                           int offset,
+                                                                           int size,
+                                                                           String sortAttribute,
+                                                                           SortDirection sortDirection) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<T> query = builder.createQuery(entityClass);
+        Root<T> root = query.from(entityClass);
+
+        query.select(root)
+                .where(
+                        builder.and(
+                                // Id
+                                builder.in(root.get(IItemReferentialEntity.Fields.ID)).value(entityIds),
+                                // Status (temporary or valid)
+                                builder.in(root.get(IItemReferentialEntity.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                        ));
+
+        // Apply sorting
+        addSorting(query, builder, root, sortAttribute, sortDirection);
+
+        return getEntityManager()
+                .createQuery(query)
+                .setFirstResult(offset)
+                .setMaxResults(size)
+                .getResultStream()
+                .map(referentialDao::toVO)
+                //.map(source -> toTypedVO(source))
+                .collect(Collectors.toList());
+    }
+
+    /*protected ReferentialVO toTypedVO(IReferentialEntity source) {
         Preconditions.checkNotNull(source);
 
         // Get VO class from entityName
         String targetClazzName = ReferentialVO.class.getPackage().getName() + "." + source.getClass().getSimpleName() + "VO";
         try {
             Class<? extends ReferentialVO> targetClazz = Class.forName(targetClazzName).asSubclass(ReferentialVO.class);
-            ReferentialVO target = conversionService.convert(source, targetClazz);
+            ReferentialVO target = conversionService.convert(source, targetClazz); //cf ConversionServiceImpl
             return target;
         } catch (ClassNotFoundException | ClassCastException e) {
             throw new IllegalArgumentException(String.format("Referential value object [%s] not exists", targetClazzName));
         }
-    }
+    }*/
 
 }

@@ -56,4 +56,29 @@ public class ReferentialSuggestServiceImpl implements ReferentialSuggestService 
 	public List<ReferentialVO> findFromStrategy(String entityName, int programId, int offset, int size) {
 		return findFromStrategy(entityName, programId, null, offset, size, IItemReferentialEntity.Fields.LABEL, SortDirection.ASC);
 	}
+
+	@Override
+	public List<String> findAnalyticReferencesFromStrategy(int programId) {
+		return referentialSuggestDao.findAnalyticReferencesFromStrategy(programId);
+	}
+
+	@Override
+	public List<Integer> findDepartmentsFromStrategy(int programId) {
+		return referentialSuggestDao.findDepartmentsFromStrategy(programId);
+	}
+
+	@Override
+	public List<Integer> findLocationsFromStrategy(int programId, LocationClassificationEnum locationClassification) {
+		return referentialSuggestDao.findLocationsFromStrategy(programId, locationClassification);
+	}
+
+	@Override
+	public List<Integer> findTaxonNamesFromStrategy(int programId) {
+		return referentialSuggestDao.findTaxonNamesFromStrategy(programId);
+	}
+
+	@Override
+	public List<Integer> findPmfmsFromStrategy(int programId, Integer referenceTaxonId, String field) {
+		return referentialSuggestDao.findPmfmsFromStrategy(programId, referenceTaxonId, field);
+	}
 }
