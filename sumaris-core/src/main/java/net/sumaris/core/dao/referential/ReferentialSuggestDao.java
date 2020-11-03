@@ -23,21 +23,16 @@ package net.sumaris.core.dao.referential;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.location.LocationClassificationEnum;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.List;
 
 public interface ReferentialSuggestDao {
 
-    List<String> getAnalyticReferences(int programId);
-
-    List<String> getAnalyticReferences(int programId, Integer nbYear);
-
-    List<ReferentialVO> getDepartments(int programId);
-
     List<ReferentialVO> findFromStrategy(final String entityName,
                                          int programId,
+                                         LocationClassificationEnum locationClassification,
                                          int offset,
                                          int size,
                                          String sortAttribute,

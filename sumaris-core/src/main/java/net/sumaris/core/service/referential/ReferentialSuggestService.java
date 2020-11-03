@@ -23,6 +23,7 @@
 package net.sumaris.core.service.referential;
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.location.LocationClassificationEnum;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,13 +32,9 @@ import java.util.List;
 @Transactional(readOnly = true)
 public interface ReferentialSuggestService {
 
-    List<String> getAnalyticReferences(int programId);
-
-    List<String> getAnalyticReferences(int programId, int nbYear);
-
-    List<ReferentialVO> getDepartments(int programId);
-
     List<ReferentialVO> findFromStrategy(String entityName, int programId, int offset, int size);
 
-    List<ReferentialVO> findFromStrategy(String entityName, int programId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<ReferentialVO> findFromStrategy(String entityName, int programId, LocationClassificationEnum locationClassification, int offset, int size);
+
+    List<ReferentialVO> findFromStrategy(String entityName, int programId, LocationClassificationEnum locationClassification, int offset, int size, String sortAttribute, SortDirection sortDirection);
 }

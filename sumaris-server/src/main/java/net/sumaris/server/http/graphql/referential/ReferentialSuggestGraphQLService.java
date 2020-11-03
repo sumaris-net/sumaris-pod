@@ -25,6 +25,7 @@ package net.sumaris.server.http.graphql.referential;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.location.LocationClassificationEnum;
 import net.sumaris.core.service.referential.ReferentialSuggestService;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,22 +47,17 @@ public class ReferentialSuggestGraphQLService {
     public List<? extends ReferentialVO> findSuggestedReferentialsFromStrategy(
             @GraphQLArgument(name = "entityName") String entityName,
             @GraphQLArgument(name = "programId") int programId,
+            @GraphQLArgument(name = "locationClassification", description = "only for Location entities") LocationClassificationEnum locationClassification,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.LABEL) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
-        return referentialSuggestService.findFromStrategy(entityName, programId,
+        return referentialSuggestService.findFromStrategy(entityName, programId, locationClassification,
                 offset == null ? 0 : offset,
                 size == null ? 1000 : size,
                 sort == null ? ReferentialVO.Fields.LABEL : sort,
                 direction == null ? SortDirection.ASC : SortDirection.valueOf(direction.toUpperCase()));
-    }
-
-    @GraphQLQuery(name = "suggestedDepartments", description = "Get already filled Departments")
-    public List<ReferentialVO> getSuggestedDepartmentsFromStrategy(
-            @GraphQLArgument(name = "programId") int programId) {
-        return referentialSuggestService.getDepartments(programId);
     }
 
 }

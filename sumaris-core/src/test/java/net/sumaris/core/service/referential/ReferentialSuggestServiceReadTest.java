@@ -25,6 +25,8 @@ package net.sumaris.core.service.referential;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationClassificationEnum;
+import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -44,27 +46,24 @@ public class ReferentialSuggestServiceReadTest extends AbstractServiceTest{
     private ReferentialSuggestService service;
 
     @Test
-    public void getAnalyticReferences() {
-        List<String> results = service.getAnalyticReferences(40);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
-        Assert.assertTrue(results.contains("EOTP1"));
-    }
-
-    @Test
-    public void getDepartments() {
-        List<ReferentialVO> results = service.getDepartments(40);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
-    }
-
-    @Test
     public void findFromStrategy() {
-        List<ReferentialVO> results = service.findFromStrategy(Department.class.getSimpleName(), 40, 0, 100);
+        List<ReferentialVO> results = service.findFromStrategy("AnalyticReference", 40, 0, 100);
         Assert.assertNotNull(results);
         Assert.assertTrue(CollectionUtils.isNotEmpty(results));
 
-        results = service.findFromStrategy("AnalyticReference", 40, 0, 100);
+        results = service.findFromStrategy(Department.class.getSimpleName(), 40, 0, 100);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findFromStrategy(Location.class.getSimpleName(), 40, 0, 100);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findFromStrategy(Location.class.getSimpleName(), 40, LocationClassificationEnum.LAND, 0, 100);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findFromStrategy(TaxonName.class.getSimpleName(), 40, 0, 100);
         Assert.assertNotNull(results);
         Assert.assertTrue(CollectionUtils.isNotEmpty(results));
     }

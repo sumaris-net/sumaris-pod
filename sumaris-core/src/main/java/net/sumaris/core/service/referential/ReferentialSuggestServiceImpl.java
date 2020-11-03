@@ -25,6 +25,7 @@ package net.sumaris.core.service.referential;
 import net.sumaris.core.dao.referential.ReferentialSuggestDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.location.LocationClassificationEnum;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,27 +43,17 @@ public class ReferentialSuggestServiceImpl implements ReferentialSuggestService 
 	protected ReferentialSuggestDao referentialSuggestDao;
 
 	@Override
-	public List<String> getAnalyticReferences(int programId) {
-		return referentialSuggestDao.getAnalyticReferences(programId);
+	public List<ReferentialVO> findFromStrategy(String entityName, int programId, LocationClassificationEnum locationClassification, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		return referentialSuggestDao.findFromStrategy(entityName, programId, locationClassification, offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override
-	public List<String> getAnalyticReferences(int programId, int nbYear) {
-		return referentialSuggestDao.getAnalyticReferences(programId, nbYear);
-	}
-
-	@Override
-	public List<ReferentialVO> getDepartments(int programId) {
-		return referentialSuggestDao.getDepartments(programId);
-	}
-
-	@Override
-	public List<ReferentialVO> findFromStrategy(String entityName, int programId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		return referentialSuggestDao.findFromStrategy(entityName, programId, offset, size, sortAttribute, sortDirection);
+	public List<ReferentialVO> findFromStrategy(String entityName, int programId, LocationClassificationEnum locationClassification, int offset, int size) {
+		return findFromStrategy(entityName, programId, locationClassification, offset, size, IItemReferentialEntity.Fields.LABEL, SortDirection.ASC);
 	}
 
 	@Override
 	public List<ReferentialVO> findFromStrategy(String entityName, int programId, int offset, int size) {
-		return findFromStrategy(entityName, programId, offset, size, IItemReferentialEntity.Fields.LABEL, SortDirection.ASC);
+		return findFromStrategy(entityName, programId, null, offset, size, IItemReferentialEntity.Fields.LABEL, SortDirection.ASC);
 	}
 }
