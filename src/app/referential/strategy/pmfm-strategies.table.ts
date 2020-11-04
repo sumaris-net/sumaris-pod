@@ -3,8 +3,7 @@ import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/tab
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {environment} from "../../../environments/environment";
-//import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
-import {PmfmSimpleStrategyValidatorService} from "../services/validator/pmfm-simple-strategy.validator";
+import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {filterNumberInput} from "../../shared/inputs";
 import {ReferentialRefService} from "../services/referential-ref.service";
@@ -95,9 +94,7 @@ export const PmfmStrategyFilterKeys: KeysEnum<PmfmStrategyFilter> = {
   templateUrl: './pmfm-strategies.table.html',
   styleUrls: ['./pmfm-strategies.table.scss'],
   providers: [
-    // FIXME CLT : manage specific pmfm strategies validators
-    //{provide: ValidatorService, useExisting: PmfmStrategyValidatorService}
-    {provide: ValidatorService, useExisting: PmfmSimpleStrategyValidatorService}
+    {provide: PmfmStrategyValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -120,6 +117,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   @Input() canDisplayToolbar = true;
   @Input() canDisplayColumnsHeaders = true;
+  @Input() canDisplaySimpleStrategyValidators = true;
   @Input() initializeOneRow = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -166,7 +164,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   constructor(
     protected injector: Injector,
-    protected validatorService: ValidatorService,
+    protected validatorService: PmfmStrategyValidatorService,
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
@@ -244,6 +242,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.validatorService.isSimpleStrategy = this.canDisplaySimpleStrategyValidators;
 
     // Acquisition level
     this.registerFormField('acquisitionLevel', {
