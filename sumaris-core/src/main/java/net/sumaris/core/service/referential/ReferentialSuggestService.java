@@ -47,4 +47,6 @@ public interface ReferentialSuggestService {
     List<Integer> findTaxonNamesFromStrategy(int programId);
 
     List<Integer> findPmfmsFromStrategy(int programId, Integer referenceTaxonId, String field);
+
+    String findNextLabelFromStrategy(int programId, String labelPrefix, int nbDigit);
 }

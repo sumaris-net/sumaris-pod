@@ -40,6 +40,7 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -88,7 +89,19 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
             case "Pmfm":
                 entityIds = findPmfmsFromStrategy(programId, null, PmfmStrategy.Fields.PMFM);
                 break;
-            default: // TODO PMFM (P/M/F/M), code (AAAA_BIO_XXXX)
+            case "Parameter":
+                entityIds = findPmfmsFromStrategy(programId, null, PmfmStrategy.Fields.PARAMETER);
+                break;
+            case "Matrix":
+                entityIds = findPmfmsFromStrategy(programId, null, PmfmStrategy.Fields.MATRIX);
+                break;
+            case "Fraction":
+                entityIds = findPmfmsFromStrategy(programId, null, PmfmStrategy.Fields.FRACTION);
+                break;
+            case "Method":
+                entityIds = findPmfmsFromStrategy(programId, null, PmfmStrategy.Fields.METHOD);
+                break;
+            default:
                 throw new SumarisTechnicalException(String.format("Unable to find data on entity '%s': not implemented", entityName));
         }
 
@@ -98,12 +111,12 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
     @Override
     public List<String> findAnalyticReferencesFromStrategy(int programId) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Strategy> query = builder.createQuery(Strategy.class);
+        CriteriaQuery<String> query = builder.createQuery(String.class);
         Root<Strategy> root = query.from(Strategy.class);
 
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
 
-        query.select(root)
+        query.select(root.get(Strategy.Fields.ANALYTIC_REFERENCE))
                 .where(
                         builder.and(
                                 // Program
@@ -117,7 +130,6 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .setParameter(programIdParam, programId)
                 .getResultStream()
                 .distinct()
-                .map(source -> source.getAnalyticReference())
                 .collect(Collectors.toList());
     }
 
@@ -137,8 +149,10 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                                 // Program
                                 builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
                                 // Status (temporary or valid)
-                                builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
-                                ));
+                                builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId())),
+                                // Referential status
+                                builder.in(strategyDepartmentInnerJoin.get(StrategyDepartment.Fields.DEPARTMENT).get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                        ));
 
         return getEntityManager()
                 .createQuery(query)
@@ -172,6 +186,8 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                                 builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
                                 // Status (temporary or valid)
                                 builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId())),
+                                // Referential status
+                                builder.in(appliedStrategyInnerJoin.get(AppliedStrategy.Fields.LOCATION).get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId())),
                                 // Location classification
                                 locationPredicate
                                 ));
@@ -204,6 +220,8 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                                 builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
                                 // Status (temporary or valid)
                                 builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId())),
+                                // Referential status
+                                builder.in(taxonNameInnerJoin.get(TaxonName.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId())),
                                 // Taxon name
                                 builder.isTrue(taxonNameInnerJoin.get(TaxonName.Fields.IS_REFERENT))
                         ));
@@ -237,7 +255,9 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 // Program
                 builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
                 // Status (temporary or valid)
-                builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId())),
+                // Referential status
+                builder.in(pmfmStrategyInnerJoin.get(field).get(IItemReferentialEntity.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
         );
 
         // Taxon
@@ -263,6 +283,46 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .distinct()
                 .map(source -> source.getId())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * @param programId program id
+     * @param labelPrefix label prefix (ex: AAAA_BIO_)
+     * @return next strategy label for this prefix (ex: AAAA_BIO_0001)
+     */
+    @Override
+    public String findNextLabelFromStrategy(int programId, String labelPrefix, int nbDigit) {
+        final String prefix = (labelPrefix == null) ? "" : labelPrefix;
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<String> query = builder.createQuery(String.class);
+        Root<Strategy> root = query.from(Strategy.class);
+
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+
+        query.select(root.get(Strategy.Fields.LABEL))
+                .where(
+                        builder.and(
+                                // Program
+                                builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
+                                // Label
+                                builder.like(root.get(Strategy.Fields.LABEL), prefix.concat("%"))
+                        ));
+
+        String result = getEntityManager()
+                .createQuery(query)
+                .setParameter(programIdParam, programId)
+                .getResultStream()
+                .max(String::compareTo)
+                .map(source -> StringUtils.removeStart(source, prefix))
+                .orElse("0");
+
+        if (!StringUtils.isNumeric(result)) {
+            throw new SumarisTechnicalException(String.format("Unable to increment label '%s' on strategy", prefix.concat(result)));
+        }
+        result = String.valueOf(Integer.valueOf(result) + 1);
+        result = prefix.concat(StringUtils.leftPad(result, nbDigit, '0'));
+        return result;
     }
 
 

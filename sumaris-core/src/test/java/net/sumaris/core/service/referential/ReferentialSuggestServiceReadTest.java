@@ -27,6 +27,7 @@ import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationClassificationEnum;
+import net.sumaris.core.model.referential.pmfm.Fraction;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.service.AbstractServiceTest;
@@ -46,42 +47,6 @@ public class ReferentialSuggestServiceReadTest extends AbstractServiceTest{
 
     @Autowired
     private ReferentialSuggestService service;
-
-    @Test
-    public void findRefsFromStrategy() {
-        List<String> refs = service.findAnalyticReferencesFromStrategy(40);
-        Assert.assertNotNull(refs);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(refs));
-        Assert.assertTrue(refs.contains("EOTP1"));
-
-        List<Integer> results = service.findDepartmentsFromStrategy(40);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
-
-        results = service.findLocationsFromStrategy(40, null);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
-
-        results = service.findLocationsFromStrategy(40, LocationClassificationEnum.LAND);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
-
-        results = service.findTaxonNamesFromStrategy(40);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
-
-        results = service.findPmfmsFromStrategy(40, null, null);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
-
-        results = service.findPmfmsFromStrategy(40, 1006, null);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
-
-        results = service.findPmfmsFromStrategy(40, null, PmfmStrategy.Fields.FRACTION);
-        Assert.assertNotNull(results);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
-    }
 
     @Test
     public void findFromStrategy() {
@@ -108,6 +73,55 @@ public class ReferentialSuggestServiceReadTest extends AbstractServiceTest{
         results = service.findFromStrategy(Pmfm.class.getSimpleName(), 40, 0, 100);
         Assert.assertNotNull(results);
         Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findFromStrategy(Fraction.class.getSimpleName(), 40, 0, 100);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+    }
+
+    @Test
+    public void findRefsFromStrategy() {
+        List<String> refs = service.findAnalyticReferencesFromStrategy(40);
+        Assert.assertNotNull(refs);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(refs));
+        Assert.assertTrue(refs.contains("EOTP1"));
+
+        List<Integer> results = service.findDepartmentsFromStrategy(40);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findLocationsFromStrategy(40, null);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findLocationsFromStrategy(40, LocationClassificationEnum.LAND);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findTaxonNamesFromStrategy(40);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findPmfmsFromStrategy(40, null, PmfmStrategy.Fields.PMFM);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findPmfmsFromStrategy(40, 1006, PmfmStrategy.Fields.PMFM);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        results = service.findPmfmsFromStrategy(40, 1006, PmfmStrategy.Fields.FRACTION);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+    }
+
+    @Test
+    public void findNextLabelFromStrategy() {
+        String label = service.findNextLabelFromStrategy(40, "BIO", 0);
+        Assert.assertEquals("BIO1", label);
+
+        label = service.findNextLabelFromStrategy(40, "2020_BIO_", 4);
+        Assert.assertEquals("2020_BIO_0003", label);
     }
 
 }
