@@ -1,4 +1,4 @@
-<mat-toolbar>
+<mat-toolbar *ngIf="canDisplayToolbar">
 
   <button mat-icon-button
           *ngIf="canEdit && !selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
@@ -40,10 +40,10 @@
 
 
 <mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
-           matSortDisableClear [trackBy]="trackByFn">
+           matSortDisableClear [trackBy]="trackByFn" >
 
   <ng-container matColumnDef="select">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+    <mat-header-cell [hidden]="!canDisplayColumnsHeaders" class="hidden-xs hidden-sm" *matHeaderCellDef>
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                     [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
@@ -56,7 +56,7 @@
 
   <!-- Id column -->
   <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell [hidden]="!canDisplayColumnsHeaders" *matHeaderCellDef mat-sort-header>
       <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
@@ -79,9 +79,9 @@
     </mat-cell>
   </ng-container> -->
 
-  <!-- Fields -->
+  <!-- Fields-->
   <ng-container *ngFor="let definition of fieldDefinitions" [matColumnDef]="definition.key">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell   [hidden]="!canDisplayColumnsHeaders" *matHeaderCellDef mat-sort-header>
       <ion-label>{{definition.label | translate}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
@@ -95,7 +95,7 @@
 
   <!-- Default value -->
   <ng-container matColumnDef="defaultValue">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell  [hidden]="!canDisplayColumnsHeaders" *matHeaderCellDef mat-sort-header>
       <ion-label>{{fieldDefinitionsMap.defaultValue.label | translate}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
@@ -115,7 +115,7 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+    <mat-header-cell  [hidden]="!canDisplayColumnsHeaders" *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
 
@@ -141,7 +141,7 @@
     </mat-cell>
   </ng-container>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: sticky"></mat-header-row>
+  <mat-header-row  [hidden]="!canDisplayColumnsHeaders" *matHeaderRowDef="displayedColumns; sticky: sticky"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;"
            [class.mat-row-error]="row.validator.invalid"
            [class.mat-row-dirty]="row.validator.dirty"

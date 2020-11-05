@@ -50,7 +50,8 @@
     "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
-    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_YEAR_PATTERN": "YYYY",
+    "DATE_YEAR_PLACEHOLDER": "yyyy",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
@@ -313,6 +314,13 @@
           "EXTERIOR_MARKING_NAME": "Marquage extérieur - Nom",
           "REGISTRATION_CODE_NAME": "Code d'immatriculation - Nom"
         }
+      },
+      "PMFM_STRATEGY": {
+        "NAME": "Stratégie > Paramètre PSFM",
+        "ATTRIBUTES": {
+          "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
+          "SHORT_COLUMN_TITLE": "PSFM"
+        }
       }
     },
     "ERROR": {
@@ -347,6 +355,30 @@
       }
     }
   },
+
+  "PLANIFICATION": {
+    "CREATE_SAMPLING_PLAN" : "Création d'une ligne de plan d'échantillonnage",
+    "FISHING_AREA" :"Zone (s) de pêche",
+    "EOTP":"EOTP",
+    "LABORATORY" :"Laboratoire (s)",
+    "TARGET_SPECIE" :"Espèce cible",
+    "LANDING_PORT" :"Port de débarquement",
+    "SEX": "Sexe",
+    "AGE": "Age",
+    "YEAR": "Année",
+    "WEIGHT": "Poids : ",
+    "SIZE": "Tailles : ",
+    "MATURITY": "Maturités : ",
+    "CALCIFIED_TYPE": "Types de pièces calcifiées : ",
+    "SIZE_INCREMENT": "incrément de taille",
+    "EFFORT"    : "Effort : ",
+    "QUARTER_1" : "Trimestre 1" ,
+    "QUARTER_2" : "Trimestre 2",
+    "QUARTER_3" : "Trimestre 3",
+    "QUARTER_4" : "Trimestre 4",
+    "PARAMETERS_TITLE" : "Paramètres à mesurer :"
+  },
+
   "TRIP": {
     "TITLE": "Marée",
     "PROGRAM": "Programme de collecte",
@@ -961,6 +993,8 @@
       "TAB_GENERAL": "Détails",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type de valeur",
+      "CODE": "code paramètre",
+      "NAME": "nom",
       "NEW": {
         "TITLE": "Nouveau Paramètre"
       },
@@ -998,6 +1032,18 @@
       "EDIT": {
         "TITLE": "PSFM {{label}} - {{name}}"
       }
+    },
+    "MATRIX": {
+      "NAME": "Support",
+      "DESCRIPTION": "description"
+    },
+    "FRACTION": {
+      "NAME": "Fraction",
+      "DESCRIPTION": "description"
+    },
+    "METHOD": {
+      "NAME": "Méthode de collecte",
+      "DESCRIPTION": "description"
     },
     "LIST": {
       "TITLE": "Listes",
@@ -1098,7 +1144,10 @@
       "LANDING_EDITOR_TRIP": "Marée",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu"
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
@@ -1115,6 +1164,13 @@
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
         "PMFM": "Paramètre collecté (PMFM)",
+        "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
+        "SHORT_COLUMN_TITLE": "PSFM",
+        "PARAMETER": "Paramètre",
+        "MATRIX": "Support",
+        "FRACTION": "Fraction",
+        "METHOD": "Méthode",
+        "UNIT": "Unité",
         "IS_MANDATORY": "Oblig ?",
         "ACQUISITION_NUMBER": "Nb acquis.",
         "MIN_VALUE": "Min",

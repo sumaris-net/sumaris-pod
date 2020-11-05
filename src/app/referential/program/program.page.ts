@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild, OnDestroy} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
@@ -20,6 +20,8 @@ import {animate, AnimationEvent, state, style, transition, trigger} from "@angul
 import {debounceTime, filter, first} from "rxjs/operators";
 import {AppFormHolder} from "../../core/form/form.utils";
 import {ProgramProperties} from "../services/config/program.config";
+import {isNotNilOrBlank} from "../../shared/functions";
+
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -57,6 +59,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
+
+  detailsPathSimpleStrategy = "/referential/simpleStrategy/:id"
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
@@ -123,17 +127,33 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // Listen start editing strategy
     this.registerSubscription(this.strategiesTable.onStartEditingRow
-      .subscribe(row => this.onStartEditStrategy(row)));
-    this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
+      .subscribe(row => this.openRow(row)));
+    /*this.registerSubscription(this.strategiesTable.f
       .subscribe(row => this.onConfirmEditCreateStrategy(row)));
     this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
-      .subscribe(row => this.onCancelOrDeleteStrategy(row)));
+      .subscribe(row => this.onCancelOrDeleteStrategy(row)));*/
+  }
+
+
+  // TODO : séparer entre édition et création de ligne
+  async openRow(row: TableElement<Strategy>): Promise<boolean> {
+
+    const id = row.currentData.id;
+    const path = this.detailsPathSimpleStrategy;
+    
+    if (isNotNilOrBlank(path)) {
+      await this.router.navigateByUrl(
+        path
+        // Replace the id in the path
+        .replace(':id', isNotNilOrBlank(row.currentData.id) ? id.toString() : '')
+      );
+      return true;
+    
+      } 
   }
 
 
   /* -- protected methods -- */
-
-
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
