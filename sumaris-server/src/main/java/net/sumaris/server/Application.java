@@ -281,6 +281,6 @@ public class Application extends SpringBootServletInitializer {
      * @return a {@link String} object.
      */
     protected static String getI18nBundleName() {
-        return "sumaris-core-server-i18n";
+        return "sumaris-server-i18n";
     }
 }

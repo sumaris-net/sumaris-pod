@@ -34,7 +34,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {TestConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-server-test.properties")
+@TestPropertySource(locations="classpath:sumaris-server-test.properties")
 public abstract class AbstractServiceTest {
 
     @Autowired

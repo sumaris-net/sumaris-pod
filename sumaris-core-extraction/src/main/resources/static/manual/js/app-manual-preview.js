@@ -87,31 +87,35 @@ function AppManualPreview() {
 
     function onExtractionTypeChanged() {
 
-        const type = inputExtractionType.value;
-        console.info("Extraction type changed to: " + type);
+        const extractionTypePath = inputExtractionType.value;
+        console.info("Extraction type changed to: " + extractionTypePath);
 
-        let path = computeBaseUri();
-        path += type + '.md';
+        let path = computeBaseUri() + 'manual/';
+
+        path += extractionTypePath.toLowerCase() + '.md';
 
         // Run the request
         executeRequest(path, computePreview, 'text/markdown');
     }
 
-    function fillExtractionTypes(category) {
+    function fillExtractionTypes(filterCategory) {
         let path = computeBaseUri();
         path += 'types';
 
-        category = category && category.toUpperCase();
+        filterCategory = filterCategory && filterCategory.toLowerCase();
 
         const onReceivedResponse = function(response) {
             types = response && JSON.parse(response) || [];
             console.info("Loaded types: ", types);
 
             inputExtractionType.innerHTML = types.reduce((res, type) => {
+                const category = type.category.toLowerCase();
+
                 // Filter on same category
-                if (category && type.category !== category) return res;
-                const value = type.category + '/' + type.label
-                const name = type.category + ' > ' + (type.name || type.label);
+                if (filterCategory && category !== filterCategory) return res; // Skip
+
+                const value = category + '/' + type.label;
+                const name = category + ' > ' + (type.name || type.label);
                 return res + '<option value=' + value + '>' + name + '</option>\n';
             }, "\n");
         }

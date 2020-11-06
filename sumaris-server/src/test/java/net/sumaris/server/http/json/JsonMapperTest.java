@@ -43,7 +43,7 @@ import java.util.HashMap;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {JsonMapperConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-server-test.properties")
+@TestPropertySource(locations="classpath:sumaris-server-test.properties")
 public class JsonMapperTest {
 
     @Autowired

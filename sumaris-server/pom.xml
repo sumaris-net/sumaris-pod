@@ -14,7 +14,7 @@
 
   <properties>
     <!-- i18n configuration -->
-    <i18n.bundleOutputName>sumaris-core-server-i18n</i18n.bundleOutputName>
+    <i18n.bundleOutputName>sumaris-server-i18n</i18n.bundleOutputName>
     <i18n.generateCsvFile>true</i18n.generateCsvFile>
     <i18n.bundleCsvFile>
       ${project.build.directory}/generated-sources/resources/META-INF/${i18n.bundleOutputName}.csv
@@ -200,6 +200,10 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuiton.i18n</groupId>
+      <artifactId>nuiton-i18n</artifactId>
     </dependency>
 
     <!-- Unit test -->
