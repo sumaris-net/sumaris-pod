@@ -22,10 +22,14 @@
 
 package net.sumaris.core.extraction.format;
 
+import com.google.common.base.Preconditions;
+import lombok.NonNull;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.format.specification.*;
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -33,11 +37,11 @@ import java.util.Optional;
  */
 public enum LiveFormatEnum implements IExtractionFormat {
 
-    RDB(RdbSpecification.FORMAT, RdbSpecification.SHEET_NAMES, RdbSpecification.VERSION_1_3),
+    RDB (RdbSpecification.FORMAT, RdbSpecification.SHEET_NAMES, RdbSpecification.VERSION_1_3),
     COST (CostSpecification.FORMAT, CostSpecification.SHEET_NAMES, CostSpecification.VERSION_1_4),
     FREE1 (Free1Specification.FORMAT, Free1Specification.SHEET_NAMES, Free1Specification.VERSION_1),
     FREE2 (Free2Specification.FORMAT, Free2Specification.SHEET_NAMES, Free2Specification.VERSION_1_9),
-    SURVIVAL_TEST(SurvivalTestSpecification.FORMAT, SurvivalTestSpecification.SHEET_NAMES, SurvivalTestSpecification.VERSION_1_0)
+    SURVIVAL_TEST (SurvivalTestSpecification.FORMAT, SurvivalTestSpecification.SHEET_NAMES, SurvivalTestSpecification.VERSION_1_0)
     ;
 
     private String label;
@@ -63,17 +67,32 @@ public enum LiveFormatEnum implements IExtractionFormat {
     }
 
     @Override
-    public ExtractionCategoryEnum getCategory() {
+    public final ExtractionCategoryEnum getCategory() {
         return ExtractionCategoryEnum.LIVE;
     }
 
-    public static Optional<LiveFormatEnum> fromString(@Nullable String value) {
-        if (value == null) return Optional.empty();
-        try {
-            return Optional.of(valueOf(value.toUpperCase()));
-        }
-        catch(IllegalArgumentException e) {
-            return Optional.empty();
-        }
+    public static LiveFormatEnum valueOf(@NonNull String label, @Nullable String version) {
+        return findFirst(label, version)
+                .orElseGet(() -> {
+                    if (label.contains(LiveFormatEnum.RDB.name())) {
+                        return LiveFormatEnum.RDB;
+                    }
+                    throw new SumarisTechnicalException(String.format("Unknown live format '%s'", label));
+                });
     }
+
+    public static Optional<LiveFormatEnum> findFirst(@NonNull IExtractionFormat format) {
+        Preconditions.checkArgument(format.getCategory() == ExtractionCategoryEnum.LIVE, "Invalid format. Must be a LIVE format");
+        return findFirst(format.getLabel(), format.getVersion());
+    }
+
+    public static Optional<LiveFormatEnum> findFirst(@NonNull String label, @Nullable String version) {
+        final String rawFormatLabel = IExtractionFormat.getRawFormatLabel(label);
+
+        return Arrays.stream(values())
+                .filter(e -> e.getLabel().equalsIgnoreCase(rawFormatLabel)
+                        && (version == null || e.getVersion().equalsIgnoreCase(version)))
+                .findFirst();
+    }
+
 }

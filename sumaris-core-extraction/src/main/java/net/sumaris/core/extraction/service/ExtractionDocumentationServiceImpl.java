@@ -27,7 +27,6 @@ import com.google.common.base.Joiner;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.format.ExtractionFormats;
 import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
@@ -76,59 +75,69 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
     private SumarisConfiguration configuration;
 
     @Override
-    public Optional<Resource> find(@NonNull ExtractionTypeVO type, Locale locale) {
+    public Optional<Resource> find(@NonNull IExtractionFormat format, @NonNull Locale locale) {
 
-        type = extractionService.checkAndGet(type);
-        IExtractionFormat format = ExtractionFormats.getFormatFromLabel(type.getLabel());
+        ExtractionTypeVO type = extractionService.getByFormat(format);
 
-        // Try with locale
-        String localizedFileName = String.format("%s-v%s-%s.md",
-                StringUtils.underscoreToChangeCase(format.getLabel()),
-                format.getVersion(),
-                locale
-        );
-        Resource result = getResourceOrNull(MANUAL_CLASSPATH_DIR + localizedFileName);
+        // Try to get a generic localized file
+        {
+            String localizedFileName = String.format("%s-v%s-%s.md",
+                    StringUtils.underscoreToChangeCase(type.getRawFormatLabel()),
+                    type.getVersion(),
+                    locale
+            );
+            Resource result = getResourceOrNull(MANUAL_CLASSPATH_DIR + localizedFileName);
+            if (result != null) return Optional.of(result);
+        }
 
-        // Retry without locale
-        if (result == null || result.exists()) {
+        // Retry without the locale
+        {
             String fileName = String.format("%s-v%s.md",
-                    StringUtils.underscoreToChangeCase(type.getFormat()),
+                    StringUtils.underscoreToChangeCase(type.getRawFormatLabel()),
                     type.getVersion()
             );
-            result = getResourceOrNull(MANUAL_CLASSPATH_DIR + fileName);
+            Resource result = getResourceOrNull(MANUAL_CLASSPATH_DIR + fileName);
+            if (result != null) return Optional.of(result);
         }
 
         // If product: try to create doc file
         if (ExtractionCategoryEnum.PRODUCT == type.getCategory()) {
 
-            File localizedFile = new File(configuration.getTempDirectory(), localizedFileName);
-            boolean fileExists = localizedFile.exists();
+            // Computed a specific file name, for the product
+            String productFileName = String.format("%s-v%s-%s.md",
+                    StringUtils.underscoreToChangeCase(type.getLabel()), // Keep the full label
+                    type.getVersion(),
+                    locale
+            );
+            File productFile = new File(configuration.getTempDirectory(), productFileName);
+            boolean fileExists = productFile.exists();
 
             ExtractionProductVO product = productService.get(type.getId(), ExtractionProductFetchOptions.MINIMAL);
 
             // Remove old file if update need
             long lastUpdateDate = product.getUpdateDate() != null ? product.getUpdateDate().getTime() : 0l;
-            if (fileExists && lastUpdateDate > localizedFile.lastModified()) {
-                Files.deleteQuietly(localizedFile);
+            if (fileExists && lastUpdateDate > productFile.lastModified()) {
+                Files.deleteQuietly(productFile);
                 fileExists = false;
             }
 
-            // Create file from product's comment
+            // Create the doc file
             if (!fileExists) {
+                // If exists, use comments, or generate new documentation
                 String content = StringUtils.isNotBlank(product.getComments())
                         ? product.getComments()
                         : generate(product.getId(), locale);
                 try {
-                    FileUtils.write(localizedFile, content, Charsets.UTF_8);
+                    FileUtils.write(productFile, content, Charsets.UTF_8);
                 } catch (IOException e) {
-                    throw new SumarisTechnicalException("Unable to write temp manual file at:" + localizedFile.getAbsolutePath(), e);
+                    throw new SumarisTechnicalException("Unable to write manual file at:" + productFile.getAbsolutePath(), e);
                 }
-
-                result = getResourceOrNull("file:" + localizedFile.getAbsolutePath());
             }
+
+            return ResourceUtils.findResource("file:" + productFile.getAbsolutePath());
         }
 
-        return Optional.ofNullable(result);
+        return Optional.empty();
     }
 
     @Override

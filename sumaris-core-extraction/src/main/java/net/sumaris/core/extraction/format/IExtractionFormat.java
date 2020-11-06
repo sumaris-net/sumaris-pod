@@ -23,10 +23,27 @@
 package net.sumaris.core.extraction.format;
 
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
+import net.sumaris.core.util.StringUtils;
 
 public interface IExtractionFormat {
+
+    /**
+     * If label was derived from another format, return the raw (original) format.
+     * Example: "rdb-001" will return "RDB"
+     *
+     * @param label
+     * @return
+     */
+    static String getRawFormatLabel(String label) {
+        return label != null ? StringUtils.changeCaseToUnderscore(label).split("-")[0].toUpperCase() : null;
+    }
+
     String getLabel();
     String[] getSheetNames();
     String getVersion();
     ExtractionCategoryEnum getCategory();
+
+    default String getRawFormatLabel() {
+        return getRawFormatLabel(getLabel());
+    }
 }

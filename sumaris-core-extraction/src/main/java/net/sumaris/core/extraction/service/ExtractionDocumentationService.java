@@ -22,6 +22,7 @@
 
 package net.sumaris.core.extraction.service;
 
+import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.springframework.core.io.Resource;
@@ -33,8 +34,7 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public interface ExtractionDocumentationService {
 
-
-    Optional<Resource> find(ExtractionTypeVO type, Locale locale);
+    Optional<Resource> find(IExtractionFormat format, Locale locale);
 
     String generate(ExtractionProductVO source, Locale locale);
 

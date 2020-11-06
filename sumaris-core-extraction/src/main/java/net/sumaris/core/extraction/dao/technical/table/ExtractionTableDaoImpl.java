@@ -37,7 +37,7 @@ import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
-import net.sumaris.core.extraction.util.ExtractionBeans;
+import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.dialect.Dialect;
@@ -323,7 +323,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingInt(SumarisColumnMetadata::getOrdinalPosition))
                 // Transform in VO
-                .map(ExtractionBeans::toProductColumnVO)
+                .map(ExtractionProducts::toProductColumnVO)
                 .collect(Collectors.toList());
 
 

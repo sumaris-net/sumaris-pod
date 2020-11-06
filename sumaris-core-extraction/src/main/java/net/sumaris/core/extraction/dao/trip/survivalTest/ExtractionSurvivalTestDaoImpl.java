@@ -25,6 +25,8 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
@@ -61,8 +63,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         R context = super.execute(filter);
 
         // Override some context properties
-        context.setFormatName(FORMAT);
-        context.setFormatVersion(VERSION_1_0);
+        context.setFormat(LiveFormatEnum.SURVIVAL_TEST);
         context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
         context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
 
@@ -156,7 +157,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getVersion());
 
         String versionStr = VERSION_1_0.replaceAll("[.]", "_");
         switch (queryName) {

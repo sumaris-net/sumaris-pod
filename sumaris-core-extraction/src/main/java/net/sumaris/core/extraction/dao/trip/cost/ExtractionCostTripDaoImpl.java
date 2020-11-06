@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.dao.trip.cost;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.specification.CostSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
@@ -50,9 +51,7 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
     public <R extends C> R execute(F filter) {
         R context = super.execute(filter);
 
-        // Override some context properties
-        context.setFormatName(CostSpecification.FORMAT);
-        context.setFormatVersion(VERSION_1_4);
+        context.setFormat(LiveFormatEnum.COST);
 
         return context;
     }
@@ -88,7 +87,7 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getVersion());
 
         String versionStr = VERSION_1_4.replaceAll("[.]", "_");
         switch (queryName) {

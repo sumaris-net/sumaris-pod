@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import org.nuiton.i18n.I18n;
 
 import java.sql.Types;
 
@@ -34,17 +35,41 @@ import java.sql.Types;
  * Helper class
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public class ExtractionBeans {
+public class ExtractionProducts {
 
     public static String getProductLabel(@NonNull IExtractionFormat format, @NonNull long timeInMillis) {
-        return getProductLabel(format.getLabel(), format.getVersion(), timeInMillis);
+        return getProductLabel(format.getLabel(), timeInMillis);
     }
 
-    public static String getProductLabel(@NonNull String formatLabel, @NonNull String formatVersion, @NonNull long timeInMillis) {
-        return String.format("%s-v%s-%s",
-                StringUtils.underscoreToChangeCase(formatLabel),
-                formatVersion,
+    public static String getProductLabel(@NonNull String formatLabel, @NonNull long timeInMillis) {
+        return String.format("%s-%s",
+                formatLabel,
                 timeInMillis);
+    }
+
+    public static String getProductDisplayName(@NonNull IExtractionFormat format, @NonNull long timeInMillis) {
+        return getProductDisplayName(format.getLabel(), timeInMillis);
+    }
+
+
+    public static String getProductDisplayName(@NonNull String formatLabel, long timeInMillis) {
+        String key = String.format("sumaris.extraction.%s", formatLabel.toUpperCase());
+        String result = I18n.t(key);
+        if (!key.equals(result)) return result; // OK, translated
+        // Fallback, if not translated
+        return String.format("%s#%s", formatLabel, timeInMillis);
+    }
+
+    public static String getSheetDisplayName(@NonNull IExtractionFormat format, String sheetName) {
+        return getSheetDisplayName(format.getLabel(), sheetName);
+    }
+
+    public static String getSheetDisplayName(@NonNull String formatLabel, @NonNull String sheetName) {
+        String key = String.format("sumaris.extraction.%s.%s", formatLabel.toUpperCase(), sheetName.toUpperCase());
+        String result = I18n.t(key);
+        if (!key.equals(result)) return result; // OK, translated
+        // Fallback, if not translated
+        return sheetName;
     }
 
     public static ExtractionTableColumnVO toProductColumnVO(SumarisColumnMetadata columnMetadata) {

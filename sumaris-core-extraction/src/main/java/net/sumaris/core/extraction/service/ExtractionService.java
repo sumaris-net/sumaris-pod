@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.service;
 
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
@@ -46,12 +47,12 @@ public interface ExtractionService {
 
 
     @Transactional(readOnly = true)
-    ExtractionTypeVO checkAndGet(ExtractionTypeVO type);
+    ExtractionTypeVO getByFormat(IExtractionFormat type);
 
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> findByFilter(@Nullable ExtractionTypeFilterVO filter);
 
-    ExtractionContextVO execute(ExtractionTypeVO type, @Nullable ExtractionFilterVO filter);
+    ExtractionContextVO execute(IExtractionFormat format, @Nullable ExtractionFilterVO filter);
 
     ExtractionResultVO read(ExtractionContextVO context,
                             @Nullable ExtractionFilterVO filter,

@@ -22,6 +22,7 @@
 
 package net.sumaris.core.util;
 
+import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -67,24 +68,22 @@ public class I18nUtil extends org.nuiton.i18n.I18nUtil {
         return Optional.empty();
     }
 
-    public static Optional<Locale> findFirstI18nLocale(@NonNull Collection<String> localeStrings) {
+    public static Optional<Locale> findFirstI18nLocale(@NonNull String str) {
 
         // Compute lower case list
-        List<String> locales = localeStrings.stream().map(String::toLowerCase).collect(Collectors.toList());
+        List<Locale> locales = ImmutableList.copyOf(I18nUtil.parseLocales(str));
 
-        // try full match (with country)
-        Locale result = Arrays.stream(I18n.getStore().getLanguages())
-                .map(I18nLanguage::getLocale)
-                .filter(l -> locales.contains(l.getDisplayName().toLowerCase()))
+        // Find on locales (with country)
+        Locale result = Arrays.stream(I18n.getStore().getLocales())
+                .filter(locales::contains)
                 .findFirst().orElse(null);
         if (result != null) return Optional.of(result);
 
-        // retry without country
+        // Find on language (without country)
         List<String> languages = locales.stream()
-                .map(ls -> ls.substring(0, 2)) // Extract 2 first characters
+                .map(Locale::getLanguage) // Extract 2 first characters
                 .collect(Collectors.toList());
-        result = Arrays.stream(I18n.getStore().getLanguages())
-                .map(I18nLanguage::getLocale)
+        result = Arrays.stream(I18n.getStore().getLocales())
                 .filter(l -> languages.contains(l.getLanguage()))
                 .findFirst().orElse(null);
         if (result != null) return Optional.of(result);

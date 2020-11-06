@@ -105,7 +105,7 @@ public class AggregationGraphQLService {
                                                                @GraphQLArgument(name = "sheet") String sheet) {
 
         // Check type
-        type = aggregationService.checkAndGet(type);
+        type = aggregationService.getByFormat(type);
 
         // Check access right
         securityService.checkReadAccess(type);
@@ -124,7 +124,7 @@ public class AggregationGraphQLService {
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         // Check type
-        type = aggregationService.checkAndGet(type);
+        type = aggregationService.getByFormat(type);
 
         // Check access right
         securityService.checkReadAccess(type);

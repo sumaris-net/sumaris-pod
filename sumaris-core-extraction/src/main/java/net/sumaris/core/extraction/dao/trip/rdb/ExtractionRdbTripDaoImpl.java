@@ -34,6 +34,7 @@ import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
@@ -113,9 +114,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         R context = createNewContext();
         context.setTripFilter(tripFilter);
         context.setFilter(filter);
-        context.setFormatName(RdbSpecification.FORMAT);
-        context.setFormatVersion(RdbSpecification.VERSION_1_3);
         context.setId(System.currentTimeMillis());
+        context.setFormat(LiveFormatEnum.RDB);
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
@@ -125,7 +125,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting extraction #%s (raw data / trips)... %s", context.getFormatName(), context.getId(), filterInfo.toString()));
+            log.info(String.format("Starting extraction %s-%s (raw data / trips)... %s", context.getLabel(), context.getId(), filterInfo.toString()));
         }
 
         // Fill context table names
@@ -543,12 +543,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatName());
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getLabel());
+        Preconditions.checkNotNull(context.getVersion());
 
         return String.format("%s/v%s/%s",
-                context.getFormatName().toLowerCase(),
-                context.getFormatVersion().replaceAll("[.]", "_"),
+                StringUtils.underscoreToChangeCase(context.getLabel()),
+                context.getVersion().replaceAll("[.]", "_"),
                 queryName);
     }
 

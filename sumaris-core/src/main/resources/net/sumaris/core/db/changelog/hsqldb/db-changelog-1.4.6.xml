@@ -137,6 +137,24 @@
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-12" runOnChange="true">
     <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product" columnName="format"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="format" type="VARCHAR(50)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-13" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product" columnName="version"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="version" type="VARCHAR(10)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-14" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="extraction_product" columnName="documentation"/></not>
     </preConditions>
     <addColumn tableName="extraction_product">
@@ -156,7 +174,7 @@
         - Add column EXTRACTION_TABLE.RANK_ORDER
         - Make PRODUCT.OPERATION_FK nullable
         - Rename a column of P01 product
-        - Add column EXTRACTION_PRODUCT.DOCUMENTATION
+        - Add columns to EXTRACTION_PRODUCT
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -164,7 +182,7 @@
         - Add column EXTRACTION_TABLE.RANK_ORDER
         - Make PRODUCT.OPERATION_FK nullable
         - Rename a column of P01 product
-        - Add column EXTRACTION_PRODUCT.DOCUMENTATION
+        - Add columns FORMAT, VERSION, DOCUMENTATION to EXTRACTION_PRODUCT
       </column>
     </insert>
   </changeSet>

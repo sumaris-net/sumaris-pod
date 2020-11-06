@@ -52,6 +52,8 @@ public class ExtractionProductVO implements IReferentialVO,
     private String label;
     private String name;
     private String description;
+    private String format;
+    private String version;
     private String comments;
     private Date updateDate;
     private Date creationDate;

@@ -30,14 +30,15 @@ import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrde
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
-import net.sumaris.core.extraction.format.ExtractionFormats;
+import net.sumaris.core.extraction.util.ExtractionFormats;
+import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.extraction.util.ExtractionBeans;
+import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -103,19 +104,19 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public AggregationTypeVO checkAndGet(AggregationTypeVO type) {
-        return ExtractionFormats.checkAndGet(getAllAggregationTypes(null), type);
+    public AggregationTypeVO getByFormat(IExtractionFormat format) {
+        return ExtractionFormats.findOneMatch(getAllAggregationTypes(null), format);
     }
 
     @Override
     public AggregationContextVO execute(AggregationTypeVO type, ExtractionFilterVO filter, AggregationStrataVO strata) {
-        type = checkAndGet(type);
+        type = getByFormat(type);
         ExtractionProductVO source;
 
         switch (type.getCategory()) {
             case PRODUCT:
                 // Get the product VO
-                source = productService.getByLabel(type.getFormat(), ExtractionProductFetchOptions.MINIMAL);
+                source = productService.getByLabel(type.getRawFormatLabel(), ExtractionProductFetchOptions.MINIMAL);
                 // Execute, from product
                 return aggregate(source, filter, strata);
 
@@ -227,7 +228,6 @@ public class AggregationServiceImpl implements AggregationService {
         Preconditions.checkNotNull(type.getLabel());
         Preconditions.checkNotNull(type.getName());
 
-
         // Load the product
         ExtractionProductVO target = null;
         if (type.getId() != null) {
@@ -240,12 +240,12 @@ public class AggregationServiceImpl implements AggregationService {
             target.setLabel(type.getLabel().toUpperCase());
 
             // Check label != format
-            Preconditions.checkArgument(!Objects.equals(type.getLabel(), type.getFormat()), "Invalid label. Expected pattern: <type_name>-NNN");
+            Preconditions.checkArgument(!Objects.equals(type.getLabel(), type.getRawFormatLabel()), "Invalid label. Expected pattern: <type_name>-NNN");
         }
         else {
-            // Check label not changed
-            Preconditions.checkArgument(Objects.equals(type.getLabel().toUpperCase(), target.getLabel()), "Cannot change label");
-            target.setLabel(type.getLabel().toUpperCase());
+            // Check label was not changed
+            String previousLabel = target.getLabel();
+            Preconditions.checkArgument(previousLabel.equalsIgnoreCase(type.getLabel()), "Cannot change a product label");
         }
 
         boolean needExecuteAggregation = isNew || filter != null;
@@ -255,7 +255,7 @@ public class AggregationServiceImpl implements AggregationService {
 
             // Prepare a executable type (with label=format)
             AggregationTypeVO executableType = new AggregationTypeVO();
-            executableType.setLabel(type.getFormat());
+            executableType.setLabel(type.getRawFormatLabel());
             executableType.setCategory(type.getCategory());
 
             // Execute the aggregation
@@ -327,7 +327,7 @@ public class AggregationServiceImpl implements AggregationService {
         return Arrays.stream(LiveFormatEnum.values())
             .map(format -> {
                 AggregationTypeVO type = new AggregationTypeVO();
-                type.setLabel(format.name().toLowerCase());
+                type.setLabel(format.getLabel().toLowerCase());
                 type.setCategory(ExtractionCategoryEnum.LIVE);
                 type.setSheetNames(format.getSheetNames());
                 return type;
@@ -416,10 +416,10 @@ public class AggregationServiceImpl implements AggregationService {
 
     protected void toProductVO(AggregationContextVO source, ExtractionProductVO target) {
 
-        target.setLabel(ExtractionBeans.getProductLabel(source.getFormatName(),
-                source.getFormatVersion(),
-                source.getId()));
-        target.setName(String.format("Aggregation #%s", source.getId()));
+        target.setLabel(ExtractionProducts.getProductLabel(source, source.getId()));
+        target.setName(ExtractionProducts.getProductDisplayName(source, source.getId()));
+        target.setFormat(source.getRawFormatLabel());
+        target.setVersion(source.getVersion());
         target.setIsSpatial(source.isSpatial());
 
         target.setTables(toProductTableVO(source));
@@ -440,17 +440,14 @@ public class AggregationServiceImpl implements AggregationService {
                 String sheetName = source.getSheetName(tableName);
                 table.setLabel(sheetName);
 
-                // Name: generated using i18n
-                String name = getI18nSheetName(source.getFormatName(), sheetName);
-                table.setName(name);
-
+                table.setName(ExtractionProducts.getSheetDisplayName(source, sheetName));
                 table.setIsSpatial(source.hasSpatialColumn(tableName));
 
                 // Columns
                 List<ExtractionTableColumnVO> columns = toProductColumnVOs(source, tableName);
 
                 // Fill rank order
-                ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source.getFormatName(), sheetName, columns);
+                ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source, sheetName, columns);
 
                 table.setColumns(columns);
 

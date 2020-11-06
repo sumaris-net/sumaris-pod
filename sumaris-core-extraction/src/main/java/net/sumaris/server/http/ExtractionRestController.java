@@ -84,19 +84,18 @@ public class ExtractionRestController {
 
     // Download file paths
     public static final String DOWNLOAD_BASE_PATH = BASE_PATH + "/download";
-    public static final String DOWNLOAD_LABEL_PATH = DOWNLOAD_BASE_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}";
-    public static final String DOWNLOAD_LABEL_AND_VERSION_PATH = DOWNLOAD_LABEL_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}/{version}";
+    public static final String DOWNLOAD_PATH = DOWNLOAD_BASE_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}";
+    public static final String DOWNLOAD_WITH_VERSION_PATH = DOWNLOAD_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}/{version}";
 
     // Get documentation paths
     public static final String MANUAL_BASE_PATH = BASE_PATH + "/manual";
-    public static final String MANUAL_LABEL_PATH = MANUAL_BASE_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}";
-    public static final String MANUAL_LABEL_AND_VERSION_PATH = MANUAL_LABEL_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}/{version}";
+    public static final String MANUAL_PATH = MANUAL_BASE_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}";
+    public static final String MANUAL_WITH_VERSION_PATH = MANUAL_PATH + "/{version}";
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
     protected static final String HTML_PREVIEW_PATH = "classpath:static/manual/preview.html";
 
     protected static final Collection<MediaType> HTML_MEDIA_TYPES = ImmutableList.of(
-            MediaType.TEXT_HTML,
             MediaType.TEXT_HTML,
             MediaType.APPLICATION_XHTML_XML
     );
@@ -147,10 +146,10 @@ public class ExtractionRestController {
 
     @GetMapping(
             value = {
-                    MANUAL_LABEL_PATH,
-                    MANUAL_LABEL_PATH + EXTENSION_PATH_PARAM,
-                    MANUAL_LABEL_AND_VERSION_PATH,
-                    MANUAL_LABEL_AND_VERSION_PATH + EXTENSION_PATH_PARAM,
+                    MANUAL_PATH,
+                    MANUAL_PATH + EXTENSION_PATH_PARAM,
+                    MANUAL_WITH_VERSION_PATH,
+                    MANUAL_WITH_VERSION_PATH + EXTENSION_PATH_PARAM,
             },
             produces = {
                     MediaType.TEXT_MARKDOWN_VALUE,
@@ -204,10 +203,10 @@ public class ExtractionRestController {
 
     @GetMapping(
             value = {
-                    DOWNLOAD_LABEL_PATH,
-                    DOWNLOAD_LABEL_PATH + EXTENSION_PATH_PARAM,
-                    DOWNLOAD_LABEL_AND_VERSION_PATH,
-                    DOWNLOAD_LABEL_AND_VERSION_PATH + EXTENSION_PATH_PARAM,
+                    DOWNLOAD_PATH,
+                    DOWNLOAD_PATH + EXTENSION_PATH_PARAM,
+                    DOWNLOAD_WITH_VERSION_PATH,
+                    DOWNLOAD_WITH_VERSION_PATH + EXTENSION_PATH_PARAM,
             })
     public ResponseEntity executeAndDownload(@PathVariable(name = "category") String category,
                                    @PathVariable(name = "label") String label,
@@ -321,7 +320,10 @@ public class ExtractionRestController {
 
 
     protected Locale getLocale(@NonNull final HttpServletRequest request) {
-        Collection<String> acceptedLocales = Splitter.on(",").trimResults().splitToList(request.getHeader(HttpHeaders.ACCEPT));
-        return I18nUtil.findFirstI18nLocale(acceptedLocales).orElse(Locale.UK);
+        String languages = request.getHeader(HttpHeaders.ACCEPT_LANGUAGE)
+                .replaceAll("-", "_") // Change format 'fr-FR' to 'fr_FR'
+                .replaceAll(";[^,]+", ""); // Remove charset
+        return I18nUtil.findFirstI18nLocale(languages)
+                .orElse(Locale.UK);
     }
 }

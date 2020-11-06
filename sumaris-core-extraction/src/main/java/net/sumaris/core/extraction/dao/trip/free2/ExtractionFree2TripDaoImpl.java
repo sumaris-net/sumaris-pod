@@ -28,6 +28,7 @@ import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.specification.Free2Specification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.free2.ExtractionFree2ContextVO;
@@ -79,8 +80,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         R context = super.execute(filter);
 
         // Override some context properties
-        context.setFormatName(FORMAT);
-        context.setFormatVersion(VERSION_1_9);
+        context.setFormat(LiveFormatEnum.FREE2);
 
         // Stop here, if sheet already filled
         if (sheetName != null && context.hasSheet(sheetName)) return context;
@@ -365,7 +365,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getVersion());
 
         String versionStr = VERSION_1_9.replaceAll("[.]", "_");
         switch (queryName) {

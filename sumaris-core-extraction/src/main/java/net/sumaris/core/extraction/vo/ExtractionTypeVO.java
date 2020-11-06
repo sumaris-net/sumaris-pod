@@ -64,10 +64,6 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
     PersonVO recorderPerson;
     DepartmentVO recorderDepartment;
 
-    public String getFormat() {
-        return getLabel() != null ? getLabel().split("-")[0] : null;
-    }
-
     @JsonIgnore
     public boolean isPublic() {
         return statusId == StatusEnum.ENABLE.getId();

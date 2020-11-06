@@ -24,12 +24,15 @@ package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.extraction.DatabaseResource;
 import net.sumaris.core.extraction.format.specification.Free2Specification;
+import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
+import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -48,6 +51,7 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
     @Autowired
     private ExtractionService service;
+
 
     @Test
     public void exportRdbFormat() {
@@ -117,6 +121,48 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
         Assert.assertNotNull(savedType);
     }
+
+
+    @Test
+    public void getByFormat() {
+
+        // Get valid live format
+        {
+            AggregationTypeVO format = new AggregationTypeVO();
+            format.setLabel(LiveFormatEnum.RDB.getLabel());
+            format.setCategory(LiveFormatEnum.RDB.getCategory());
+            ExtractionTypeVO type = service.getByFormat(format);
+
+            Assert.assertNotNull(type);
+            Assert.assertEquals("type.label should be in lowerCase", format.getLabel().toLowerCase(), type.getLabel());
+        }
+
+        // Get invalid live format
+        {
+            AggregationTypeVO format = new AggregationTypeVO();
+            format.setLabel("FAKE");
+            format.setCategory(ExtractionCategoryEnum.LIVE);
+            try {
+                service.getByFormat(format);
+                Assert.fail("Should failed on wrong format");
+            } catch (Exception e) {
+                // OK
+            }
+        }
+
+        // Get a valid product
+        {
+            AggregationTypeVO format = new AggregationTypeVO();
+            format.setLabel("rdb-01");
+            format.setCategory(ExtractionCategoryEnum.PRODUCT);
+            ExtractionTypeVO type = service.getByFormat(format);
+            Assert.assertNotNull(type);
+            Assert.assertEquals(format.getLabel(), type.getLabel());
+        }
+
+
+    }
+
 
     /* -- protected methods -- */
 

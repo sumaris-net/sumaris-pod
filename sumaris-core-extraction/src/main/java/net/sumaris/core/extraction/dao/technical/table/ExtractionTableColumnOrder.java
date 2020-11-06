@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.dao.technical.table;
  */
 
 import com.google.common.collect.ImmutableMap;
+import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.model.technical.extraction.rdb.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
@@ -194,14 +195,22 @@ public final class ExtractionTableColumnOrder {
         fillRankOrderByTableName(orderedColumnNames, columns);
     }
 
+    /**
+     * Compute rankOrder
+     * @param tableName
+     * @param columns
+     */
+    public static void fillRankOrderByFormatAndSheet(IExtractionFormat format, String sheetName, List<ExtractionTableColumnVO> columns) {
+        fillRankOrderByFormatAndSheet(format.getLabel(), sheetName, columns);
+    }
 
     /**
      * Compute rankOrder
      * @param tableName
      * @param columns
      */
-    public static void fillRankOrderByFormatAndSheet(String format, String sheetName, List<ExtractionTableColumnVO> columns) {
-        fillRankOrderByTableName(ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(key(format, sheetName)), columns);
+    public static void fillRankOrderByFormatAndSheet(String formatLabel, String sheetName, List<ExtractionTableColumnVO> columns) {
+        fillRankOrderByTableName(ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(key(formatLabel, sheetName)), columns);
     }
 
     /* -- internal methods -- */

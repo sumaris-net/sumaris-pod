@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.dao.trip.free;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.specification.Free1Specification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
@@ -48,8 +49,7 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         R context = super.execute(filter);
 
         // Override some context properties
-        context.setFormatName(FORMAT);
-        context.setFormatVersion(VERSION_1);
+        context.setFormat(LiveFormatEnum.FREE1);
 
         return context;
     }
@@ -122,7 +122,7 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getVersion());
 
         String versionStr = VERSION_1.replaceAll("[.]", "_");
         switch (queryName) {

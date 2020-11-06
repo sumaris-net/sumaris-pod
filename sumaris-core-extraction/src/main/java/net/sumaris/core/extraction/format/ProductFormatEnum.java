@@ -22,12 +22,16 @@
 
 package net.sumaris.core.extraction.format;
 
+import com.google.common.base.Preconditions;
+import lombok.NonNull;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -36,11 +40,11 @@ import java.util.Optional;
 public enum ProductFormatEnum implements IExtractionFormat {
 
     // Raw data product
-    RDB(RdbSpecification.FORMAT, RdbSpecification.SHEET_NAMES, RdbSpecification.VERSION_1_3),
+    RDB (RdbSpecification.FORMAT, RdbSpecification.SHEET_NAMES, RdbSpecification.VERSION_1_3),
 
     // Aggregation product
-    AGG_RDB(AggRdbSpecification.FORMAT, AggRdbSpecification.SHEET_NAMES, AggRdbSpecification.VERSION_1_3),
-    AGG_SURVIVAL_TEST(AggSurvivalTestSpecification.FORMAT, AggSurvivalTestSpecification.SHEET_NAMES, AggSurvivalTestSpecification.VERSION_1_0)
+    AGG_RDB (AggRdbSpecification.FORMAT, AggRdbSpecification.SHEET_NAMES, AggRdbSpecification.VERSION_1_3),
+    AGG_SURVIVAL_TEST (AggSurvivalTestSpecification.FORMAT, AggSurvivalTestSpecification.SHEET_NAMES, AggSurvivalTestSpecification.VERSION_1_0)
     ;
 
     private String label;
@@ -66,17 +70,32 @@ public enum ProductFormatEnum implements IExtractionFormat {
     }
 
     @Override
-    public ExtractionCategoryEnum getCategory() {
+    public final ExtractionCategoryEnum getCategory() {
         return ExtractionCategoryEnum.PRODUCT;
     }
 
-    public static Optional<ProductFormatEnum> fromString(@Nullable String value) {
-        if (value == null) return Optional.empty();
-        try {
-            return Optional.of(valueOf(value.toUpperCase()));
-        }
-        catch(IllegalArgumentException e) {
-            return Optional.empty();
-        }
+    public static ProductFormatEnum valueOf(@NonNull String label, @Nullable String version) {
+        return findFirst(label, version)
+                .orElseGet(() -> {
+                    if (label.contains(ProductFormatEnum.RDB.name())) {
+                        return ProductFormatEnum.RDB;
+                    }
+                    throw new SumarisTechnicalException(String.format("Unknown product format '%s'", label));
+                });
     }
+
+    public static Optional<ProductFormatEnum> findFirst(@NonNull IExtractionFormat format) {
+        Preconditions.checkArgument(format.getCategory() == ExtractionCategoryEnum.PRODUCT, "Invalid format. Must be a PRODUCT format");
+        return findFirst(format.getLabel(), format.getVersion());
+    }
+
+    public static Optional<ProductFormatEnum> findFirst(@NonNull String label, String version) {
+        final String rawFormatLabel = IExtractionFormat.getRawFormatLabel(label);
+
+        return Arrays.stream(values())
+                .filter(e -> e.getLabel().equalsIgnoreCase(rawFormatLabel)
+                        && (version == null || e.getVersion().equalsIgnoreCase(version)))
+                .findFirst();
+    }
+
 }

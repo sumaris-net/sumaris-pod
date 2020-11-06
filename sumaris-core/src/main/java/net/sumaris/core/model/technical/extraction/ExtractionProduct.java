@@ -50,7 +50,6 @@ public class ExtractionProduct implements IItemReferentialEntity,
         IWithRecorderPersonEntity<Integer, Person>,
         IWithRecorderDepartmentEntity<Integer, Department> {
 
-
     public final static int LENGTH_VERSION = 10;
 
     @Id
@@ -81,6 +80,12 @@ public class ExtractionProduct implements IItemReferentialEntity,
 
     @Column(length = LENGTH_COMMENTS)
     private String comments;
+
+    @Column(length = LENGTH_LABEL)
+    private String format;
+
+    @Column(length = 10)
+    private String version;
 
     @Lob
     private String documentation;

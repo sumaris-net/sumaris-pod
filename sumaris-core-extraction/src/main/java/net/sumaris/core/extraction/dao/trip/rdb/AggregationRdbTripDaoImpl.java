@@ -37,6 +37,7 @@ import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
+import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.*;
@@ -115,9 +116,8 @@ public class AggregationRdbTripDaoImpl<
         context.setTripFilter(extractionRdbTripDao.toTripFilterVO(filter));
         context.setFilter(filter);
         context.setStrata(strata);
-        context.setFormatName(AggRdbSpecification.FORMAT);
-        context.setFormatVersion(AggRdbSpecification.VERSION_1_3);
         context.setId(System.currentTimeMillis());
+        context.setFormat(ProductFormatEnum.AGG_RDB);
 
         // Compute table names
         context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
@@ -684,18 +684,18 @@ public class AggregationRdbTripDaoImpl<
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatName());
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getLabel());
+        Preconditions.checkNotNull(context.getVersion());
 
         return getQueryFullName(
-                context.getFormatName(),
-                context.getFormatVersion(),
+                context.getLabel(),
+                context.getVersion(),
                 queryName);
     }
 
-    protected String getQueryFullName(String formatName, String formatVersion, String queryName) {
+    protected String getQueryFullName(String formatLabel, String formatVersion, String queryName) {
         return String.format("%s/v%s/%s",
-                StringUtils.underscoreToChangeCase(formatName),
+                StringUtils.underscoreToChangeCase(formatLabel),
                 formatVersion.replaceAll("[.]", "_"),
                 queryName);
     }

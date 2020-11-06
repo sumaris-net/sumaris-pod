@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDaoImpl;
+import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
@@ -66,8 +67,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         R context = super.aggregate(source, filter, strata);
 
         // Override some context properties
-        context.setFormatName(AggSurvivalTestSpecification.FORMAT);
-        context.setFormatVersion(AggSurvivalTestSpecification.VERSION_1_0);
+        context.setFormat(ProductFormatEnum.AGG_SURVIVAL_TEST);
         context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
         context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
 
@@ -102,7 +102,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getVersion());
 
         switch (queryName) {
             case "injectionStationTable":

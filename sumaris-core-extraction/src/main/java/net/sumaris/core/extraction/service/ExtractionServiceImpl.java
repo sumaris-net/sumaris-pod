@@ -48,9 +48,11 @@ import net.sumaris.core.extraction.dao.trip.free.ExtractionFree1TripDao;
 import net.sumaris.core.extraction.dao.trip.free2.ExtractionFree2TripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
-import net.sumaris.core.extraction.format.ExtractionFormats;
+import net.sumaris.core.extraction.util.ExtractionFormats;
+import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
@@ -71,7 +73,6 @@ import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +81,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -154,8 +156,8 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public ExtractionTypeVO checkAndGet(@NonNull ExtractionTypeVO type) {
-        return ExtractionFormats.checkAndGet(this.getAllTypes(), type);
+    public ExtractionTypeVO getByFormat(@Nonnull IExtractionFormat format) {
+        return ExtractionFormats.findOneMatch(this.getAllTypes(), format);
     }
 
     @Override
@@ -188,7 +190,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Override
     public ExtractionResultVO executeAndRead(ExtractionTypeVO type, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
         // Make sure type has category AND label filled
-        type = checkAndGet(type);
+        type = getByFormat(type);
 
         // Force preview
         filter.setPreview(true);
@@ -254,7 +256,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Override
     public File executeAndDump(ExtractionTypeVO type, ExtractionFilterVO filter) throws IOException {
         // Make sure type has category AND label filled
-        type = checkAndGet(type);
+        type = getByFormat(type);
 
         filter = filter != null ? filter : new ExtractionFilterVO();
 
@@ -280,9 +282,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public ExtractionContextVO execute(@NonNull ExtractionTypeVO type, ExtractionFilterVO filter) {
+    public ExtractionContextVO execute(@NonNull IExtractionFormat format, ExtractionFilterVO filter) {
         // Make sure type has category AND label filled
-        type = checkAndGet(type);
+        ExtractionTypeVO type = getByFormat(format);
 
         filter = filter != null ? filter : new ExtractionFilterVO();
 
@@ -321,28 +323,8 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Override
     public ExtractionProductVO toProductVO(ExtractionContextVO source) {
         if (source == null) return null;
-        Preconditions.checkNotNull(source.getLabel());
-
         ExtractionProductVO target = new ExtractionProductVO();
-
-        String format = source.getFormatName();
-        if (StringUtils.isNotBlank(format)) {
-            target.setLabel(StringUtils.changeCaseToUnderscore(format).toUpperCase());
-        } else {
-            target.setLabel(source.getLabel());
-        }
-        target.setName(String.format("Extraction #%s", source.getId()));
-
-        target.setTables(SetUtils.emptyIfNull(source.getTableNames())
-            .stream()
-            .map(t -> {
-                ExtractionTableVO table = new ExtractionTableVO();
-                table.setLabel(source.getSheetName(t));
-                table.setName(t);
-                table.setTableName(t);
-                return table;
-            })
-            .collect(Collectors.toList()));
+        toProductVO(source, target);
 
         return target;
     }
@@ -366,7 +348,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         ExtractionContextVO context;
         {
             ExtractionTypeVO cleanType = new ExtractionTypeVO();
-            cleanType.setLabel(type.getFormat());
+            cleanType.setLabel(type.getRawFormatLabel());
             cleanType.setCategory(type.getCategory());
             context = execute(cleanType, filter);
         }
@@ -489,7 +471,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             .map(format -> {
                 ExtractionTypeVO type = new ExtractionTypeVO();
                 type.setId(id.getValue());
-                type.setLabel(format.name().toLowerCase());
+                type.setLabel(format.getLabel().toLowerCase());
                 type.setCategory(ExtractionCategoryEnum.LIVE);
                 type.setSheetNames(format.getSheetNames());
                 type.setStatusId(StatusEnum.TEMPORARY.getId()); // = not public by default
@@ -740,8 +722,10 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     protected void toProductVO(ExtractionContextVO source, ExtractionProductVO target) {
 
-        target.setLabel(source.getLabel().toUpperCase() + "-" + source.getId());
-        target.setName(String.format("Extraction #%s", source.getId()));
+        target.setLabel(ExtractionProducts.getProductLabel(source, source.getId()));
+        target.setName(ExtractionProducts.getProductDisplayName(source, source.getId()));
+        target.setFormat(source.getRawFormatLabel());
+        target.setVersion(source.getVersion());
 
         target.setTables(SetUtils.emptyIfNull(source.getTableNames())
             .stream()
@@ -749,15 +733,11 @@ public class ExtractionServiceImpl implements ExtractionService {
                 String sheetName = source.getSheetName(t);
                 ExtractionTableVO table = new ExtractionTableVO();
                 table.setLabel(sheetName);
-                table.setName(getNameBySheet(source.getFormatName(), sheetName));
+                table.setName(ExtractionProducts.getSheetDisplayName(source, sheetName));
                 table.setTableName(t);
                 return table;
             })
             .collect(Collectors.toList()));
-    }
-
-    protected String getNameBySheet(String format, String sheetName) {
-        return I18n.t(String.format("sumaris.extraction.%s.%s", format.toUpperCase(), sheetName.toUpperCase()));
     }
 
     protected void commitIfHsqldb() {

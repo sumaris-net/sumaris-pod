@@ -27,7 +27,7 @@ import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
 import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.extraction.util.ExtractionBeans;
+import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
@@ -92,7 +92,9 @@ public class ExtractionProductServiceTest extends AbstractServiceTest {
     protected ExtractionProductVO createProduct(ExtractionCategoryEnum category, IExtractionFormat format) {
 
         ExtractionProductVO target = new ExtractionProductVO();
-        target.setLabel(ExtractionBeans.getProductLabel(format, System.currentTimeMillis()));
+        target.setLabel(ExtractionProducts.getProductLabel(format, System.currentTimeMillis()));
+        target.setFormat(format.getLabel());
+        target.setVersion(format.getVersion());
         target.setName(String.format("Product on %s (%s) data", format.getLabel(), category.name()));
         target.setStatusId(StatusEnum.TEMPORARY.getId());
 

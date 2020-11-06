@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
@@ -49,13 +50,14 @@ import java.util.Optional;
 public interface AggregationService {
 
     @Transactional(readOnly = true)
+    AggregationTypeVO getByFormat(IExtractionFormat format);
+
+    @Transactional(readOnly = true)
     List<AggregationTypeVO> findByFilter(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     AggregationTypeVO get(int id, ExtractionProductFetchOptions fetchOptions);
 
-    @Transactional(readOnly = true)
-    AggregationTypeVO checkAndGet(AggregationTypeVO type);
 
     /**
      * Do an aggregate
