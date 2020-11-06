@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 public class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
-    public static final String MODULE_NAME = "sumaris-importation";
+    public static final String MODULE_NAME = "sumaris-core-importation";
     public static final String DATASOURCE_PLATFORM = "hsqldb";
     public static final String CONFIG_FILE_PREFIX = MODULE_NAME + "-test";
     public static final String CONFIG_FILE_NAME = CONFIG_FILE_PREFIX + ".properties";
