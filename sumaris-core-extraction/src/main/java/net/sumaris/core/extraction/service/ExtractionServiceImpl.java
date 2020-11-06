@@ -658,7 +658,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             long statisticalRectanglesCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_ICES.getId())
                 + referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_GFCM.getId());
             if (statisticalRectanglesCount == 0) {
-                locationService.insertOrUpdateRectangleLocations();
+            //    locationService.insertOrUpdateRectangleLocations();
             }
 
             // Insert missing squares

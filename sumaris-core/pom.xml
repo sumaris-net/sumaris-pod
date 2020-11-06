@@ -362,7 +362,8 @@
         <jdbc.password />
         <jdbc.driver>org.hsqldb.jdbcDriver</jdbc.driver>
         <jdbc.schema>PUBLIC</jdbc.schema>
-        <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect</hibernate.dialect>
+        <jdbc.platform>hsqldb</jdbc.platform>
+        <hibernate.dialect>org.hibernate.dialect.HSQLDialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
 
@@ -414,11 +415,12 @@
       </activation>
 
       <properties>
-        <jdbc.url>jdbc:oracle:thin:@192.168.0.6:1521:ORCL</jdbc.url>
+        <jdbc.url>jdbc:oracle:thin:@HARMONIE_TEST</jdbc.url>
         <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc8/${ojdbc8.version}/ojdbc8-${ojdbc8.version}.jar</jdbc.driver.jar>
-        <jdbc.username>SUMARIS_TU</jdbc.username>
-        <jdbc.password>SUMARIS_TU</jdbc.password>
-        <jdbc.schema>SUMARIS_TU</jdbc.schema>
+        <jdbc.username>SIH2_SUMARIS_MAP</jdbc.username>
+        <jdbc.password>SIH2_SUMARIS_MAP</jdbc.password>
+        <jdbc.schema>SIH2_SUMARIS_MAP</jdbc.schema>
+        <jdbc.platform>oracle</jdbc.platform>
         <jdbc.driver>oracle.jdbc.driver.OracleDriver</jdbc.driver>
         <hibernate.dialect>org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
