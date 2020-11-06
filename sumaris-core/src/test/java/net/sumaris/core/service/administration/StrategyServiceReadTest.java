@@ -25,10 +25,7 @@ package net.sumaris.core.service.administration;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
-import net.sumaris.core.vo.administration.programStrategy.TaxonGroupStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -48,7 +45,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void getGears() {
 
-        ProgramVO defaultProg =  dbResource.getFixtures().getDefaultProgram();
+        ProgramVO defaultProg = dbResource.getFixtures().getDefaultProgram();
 
         List<ReferentialVO> results = service.getGears(defaultProg.getId());
         Assert.assertNotNull(results);
@@ -59,11 +56,26 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void getTaxonGroupStrategies() {
 
-        ProgramVO program =  dbResource.getFixtures().getAuctionProgram();
+        ProgramVO program = dbResource.getFixtures().getAuctionProgram();
 
         List<TaxonGroupStrategyVO> results = service.getTaxonGroupStrategies(program.getId());
         Assert.assertNotNull(results);
         Assert.assertTrue(results.size() > 0);
+    }
+
+    @Test
+    public void getAppliedStrategies() {
+
+        List<AppliedStrategyVO> appliedStrategies = service.getAppliedStrategies(30);
+        Assert.assertNotNull(appliedStrategies);
+        Assert.assertTrue(appliedStrategies.size() > 0);
+        AppliedStrategyVO appliedStrategy = appliedStrategies.get(0);
+        Assert.assertNotNull(appliedStrategy.getLocation());
+        List<AppliedPeriodVO> appliedPeriods = appliedStrategy.getAppliedPeriods();
+        Assert.assertNotNull(appliedPeriods);
+        Assert.assertEquals(4, appliedPeriods.size());
+        AppliedPeriodVO appliedPeriod = appliedPeriods.get(0);
+        Assert.assertNotNull(appliedPeriod.getStartDate());
     }
 
     @Test
@@ -76,6 +88,18 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         Assert.assertNotNull(pmfmStrategy);
         Assert.assertNotNull(pmfmStrategy.getPmfmId());
         Assert.assertNull(pmfmStrategy.getPmfm());
+
+    }
+
+    @Test
+    public void getStrategyDepartments() {
+
+        List<StrategyDepartmentVO> strategyDepartments = service.getStrategyDepartments(30);
+        Assert.assertNotNull(strategyDepartments);
+        Assert.assertTrue(strategyDepartments.size() > 0);
+        StrategyDepartmentVO strategyDepartment = strategyDepartments.get(0);
+        Assert.assertNotNull(strategyDepartment.getDepartment());
+        Assert.assertNotNull(strategyDepartment.getPrivilege());
 
     }
 

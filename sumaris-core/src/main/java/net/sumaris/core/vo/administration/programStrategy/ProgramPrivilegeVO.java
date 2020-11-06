@@ -1,4 +1,4 @@
-package net.sumaris.core.model.administration.programStrategy;
+package net.sumaris.core.vo.administration.programStrategy;
 
 /*-
  * #%L
@@ -23,32 +23,27 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
 @FieldNameConstants
-@Entity
-@Table(name = "applied_period")
-public class AppliedPeriod implements Serializable {
+@EqualsAndHashCode
+public class ProgramPrivilegeVO implements Serializable {
 
-    @Id
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "applied_strategy_fk", nullable = false)
-    private AppliedStrategy appliedStrategy;
+    private Integer id;
+    private String label;
+    private String name;
+    private String description;
+    private String comments;
 
-    @Id
-    @Column(name = "start_date", nullable = false)
-    @Temporal(TemporalType.DATE)
-    private Date startDate;
+    private Date updateDate;
+    private Date creationDate;
+    private Integer statusId;
 
-    @Column(name = "end_date", nullable = false)
-    @Temporal(TemporalType.DATE)
-    private Date endDate;
-
-    private Integer acquisitionNumber;
+    private Integer strategyId;
 
 }
