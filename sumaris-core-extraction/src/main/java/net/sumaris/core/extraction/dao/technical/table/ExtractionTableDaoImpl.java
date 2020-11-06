@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -36,11 +37,9 @@ import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
-import net.sumaris.core.util.ExtractionBeans;
+import net.sumaris.core.extraction.util.ExtractionBeans;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.hibernate.dialect.Dialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -322,38 +321,13 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 // Get column metadata
                 .map(table::getColumnMetadata)
                 .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(SumarisColumnMetadata::getOrdinalPosition))
                 // Transform in VO
                 .map(ExtractionBeans::toProductColumnVO)
                 .collect(Collectors.toList());
 
-        // Compute the rank order
-        String tableNameUppercase = table.getName().toUpperCase();
 
-        // Need for compatibility for SUMARiS DB
-        if (tableNameUppercase.startsWith("P01_ICES")) {
-            tableNameUppercase.replaceAll("P01_ICES_", "P01_RDB_");
-        }
-
-        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableNameUppercase);
-        if (ArrayUtils.isNotEmpty(orderedColumnNames)) {
-            // Set rank Order of well known columns
-            int maxRankOrder = columns.stream().mapToInt(column -> {
-                int rankOrder = ArrayUtils.indexOf(orderedColumnNames, column.getName().toLowerCase());
-                if (rankOrder != -1) {
-                    column.setRankOrder(rankOrder + 1);
-                }
-                return rankOrder + 1;
-            }).max().orElse(0);
-
-            // Set rankOrder of unknown columns (e.g. new columns)
-            MutableInt rankOrder = new MutableInt(maxRankOrder);
-            columns.stream()
-                    .filter(c -> c.getRankOrder() == null)
-                    .forEach(c -> {
-                        rankOrder.increment();
-                        c.setRankOrder(rankOrder.getValue());
-                    });
-        }
+        ExtractionTableColumnOrder.fillRankOrderByTableName(table.getName(), columns);
 
         return columns;
     }

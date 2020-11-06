@@ -24,14 +24,10 @@ package net.sumaris.core;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.ApplicationUtils;
+import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.StringUtils;
-import org.apache.commons.io.FileUtils;
-import org.nuiton.i18n.I18n;
-import org.nuiton.i18n.init.DefaultI18nInitializer;
-import org.nuiton.i18n.init.UserI18nInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -45,6 +41,7 @@ import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfigurati
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -53,9 +50,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.persistence.EntityManager;
-import java.io.File;
-import java.io.IOException;
-import java.util.Locale;
 
 /**
  * <p>
@@ -149,7 +143,7 @@ public class Application {
     }
 
 	@Bean
-	public SumarisConfiguration sumarisConfiguration() {
+	public SumarisConfiguration configuration() {
 
 		SumarisConfiguration config = SumarisConfiguration.getInstance();
 		if (config == null) {
@@ -157,12 +151,8 @@ public class Application {
 			config = SumarisConfiguration.getInstance();
 		}
 
-		// Init i18n
-		try {
-			initI18n();
-		} catch (IOException e) {
-			throw new SumarisTechnicalException("i18n initialization failed", e);
-		}
+		// Init I18n
+		I18nUtil.init(config, getI18nBundleName());
 
 		return config;
 	}
@@ -172,39 +162,7 @@ public class Application {
 		return new JPAQueryFactory(em);
 	}
 
-	/**
-	 * <p>
-	 * initI18n.
-	 * </p>
-	 *
-	 * @throws IOException
-	 *             if any.
-	 */
-	protected void initI18n() throws IOException {
 
-		SumarisConfiguration config = SumarisConfiguration.getInstance();
-
-		// --------------------------------------------------------------------//
-		// init i18n
-		// --------------------------------------------------------------------//
-		File i18nDirectory = new File(config.getDataDirectory(), "i18n");
-		if (i18nDirectory.exists()) {
-			// clean i18n cache
-			FileUtils.cleanDirectory(i18nDirectory);
-		}
-
-		FileUtils.forceMkdir(i18nDirectory);
-
-		Locale i18nLocale = config.getI18nLocale();
-
-		if (log.isInfoEnabled()) {
-			log.info(String.format("Starts i18n with locale {%s} at {%s}",
-					i18nLocale, i18nDirectory));
-		}
-		I18n.init(new UserI18nInitializer(
-				i18nDirectory, new DefaultI18nInitializer(getI18nBundleName())),
-				i18nLocale);
-	}
 
 	/**
 	 * <p>

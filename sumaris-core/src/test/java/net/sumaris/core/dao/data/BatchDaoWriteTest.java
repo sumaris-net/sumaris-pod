@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.AbstractDaoTest;
+import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
@@ -81,17 +82,17 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
 
         // Taxon group
         ReferentialVO taxonGroup= new ReferentialVO();
-        taxonGroup.setId(dbResource.getFixtures().getTaxonGroupFAOId(0));
+        taxonGroup.setId(fixtures.getTaxonGroupFAOId(0));
         batch.setTaxonGroup(taxonGroup);
 
         // Recorder department
         DepartmentVO recorderDepartment = new DepartmentVO();
-        recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
         batch.setRecorderDepartment(recorderDepartment);
 
         // Measurement: weight
         QuantificationMeasurementVO weightMeasurement = new QuantificationMeasurementVO();
-        weightMeasurement.setPmfmId(dbResource.getFixtures().getPmfmBatchWeight()); // landing weight
+        weightMeasurement.setPmfmId(fixtures.getPmfmBatchWeight()); // landing weight
         weightMeasurement.setEntityName(BatchQuantificationMeasurement.class.getSimpleName());
         weightMeasurement.setIsReferenceQuantification(true);
 
@@ -104,7 +105,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
 
     @Test
     public void delete() {
-        Integer id = dbResource.getFixtures().getBatchId(0);
+        Integer id = fixtures.getBatchId(0);
         dao.delete(id);
     }
 
@@ -124,7 +125,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
 
             // Recorder department
             DepartmentVO recorderDepartment = new DepartmentVO();
-            recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
+            recorderDepartment.setId(fixtures.getDepartmentId(0));
             catchBatch.setRecorderDepartment(recorderDepartment);
 
             batches.add(catchBatch);
@@ -145,12 +146,12 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
 
                 // Taxon group
                 ReferentialVO taxonGroup = new ReferentialVO();
-                taxonGroup.setId(dbResource.getFixtures().getTaxonGroupFAOId(0));
+                taxonGroup.setId(fixtures.getTaxonGroupFAOId(0));
                 child.setTaxonGroup(taxonGroup);
 
                 // Measurement: weight
                 QuantificationMeasurementVO weightMeasurement = new QuantificationMeasurementVO();
-                weightMeasurement.setPmfmId(dbResource.getFixtures().getPmfmBatchWeight()); // landing weight
+                weightMeasurement.setPmfmId(fixtures.getPmfmBatchWeight()); // landing weight
                 weightMeasurement.setEntityName(BatchQuantificationMeasurement.class.getSimpleName());
                 weightMeasurement.setIsReferenceQuantification(true);
 

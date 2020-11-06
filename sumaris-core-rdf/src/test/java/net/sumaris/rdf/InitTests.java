@@ -89,9 +89,8 @@ public class InitTests extends net.sumaris.core.test.InitTests {
 
     @Override
     protected String getModuleName() {
-        return DatabaseResource.MODULE_NAME;
+        return TestConfiguration.MODULE_NAME;
     }
-
 
     @Override
     protected void before() throws Throwable {

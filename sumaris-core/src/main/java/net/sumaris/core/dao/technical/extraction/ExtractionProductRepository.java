@@ -38,5 +38,4 @@ public interface ExtractionProductRepository
         return getByLabel(label, null);
     }
 
-
 }

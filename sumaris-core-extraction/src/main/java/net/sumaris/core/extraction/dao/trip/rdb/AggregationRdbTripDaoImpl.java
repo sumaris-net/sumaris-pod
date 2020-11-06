@@ -37,8 +37,8 @@ import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
-import net.sumaris.core.extraction.specification.AggRdbSpecification;
-import net.sumaris.core.extraction.specification.RdbSpecification;
+import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
+import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
@@ -250,9 +250,9 @@ public class AggregationRdbTripDaoImpl<
     protected XMLQuery createStationQuery(ExtractionProductVO source, C context) {
 
         String stationTableName = context.getStationTableName();
-        String rawTripTableName = source.getTableNameBySheetName(RdbSpecification.TR_SHEET_NAME)
+        String rawTripTableName = source.findTableNameBySheetName(RdbSpecification.TR_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.TR_SHEET_NAME)));
-        String rawStationTableName = source.getTableNameBySheetName(RdbSpecification.HH_SHEET_NAME)
+        String rawStationTableName = source.findTableNameBySheetName(RdbSpecification.HH_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HH_SHEET_NAME)));
 
         XMLQuery xmlQuery = createXMLQuery(context, "createStationTable");
@@ -422,7 +422,7 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected XMLQuery createSpeciesListQuery(ExtractionProductVO source, C context) {
-        String rawSpeciesListTableName = source.getTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
+        String rawSpeciesListTableName = source.findTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
         String stationTableName = context.getStationTableName();
 
@@ -486,9 +486,9 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected XMLQuery createSpeciesLengthMapQuery(ExtractionProductVO source, C context) {
-        String rawSpeciesListTableName = source.getTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
+        String rawSpeciesListTableName = source.findTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
                 .orElse(null);
-        String rawSpeciesLengthTableName = source.getTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
+        String rawSpeciesLengthTableName = source.findTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
                 .orElse(null);
         if (rawSpeciesListTableName == null || rawSpeciesLengthTableName == null) return null; // Skip
 
@@ -565,9 +565,9 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected XMLQuery createSpeciesLengthQuery(ExtractionProductVO source, C context) {
-        String rawSpeciesListTableName = source.getTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
+        String rawSpeciesListTableName = source.findTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
-        String rawSpeciesLengthTableName = source.getTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
+        String rawSpeciesLengthTableName = source.findTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HL_SHEET_NAME)));
         String stationTableName = context.getStationTableName();
 
@@ -647,7 +647,7 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected XMLQuery createLandingQuery(ExtractionProductVO source, C context) {
-        String rawLandingTableName = source.getTableNameBySheetName(RdbSpecification.CL_SHEET_NAME)
+        String rawLandingTableName = source.findTableNameBySheetName(RdbSpecification.CL_SHEET_NAME)
                 .orElse(null);
         if (rawLandingTableName == null) return null; // Skip
         String landingTableName = context.getLandingTableName();
@@ -694,7 +694,7 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected String getQueryFullName(String formatName, String formatVersion, String queryName) {
-        return String.format("%s/v%s/aggregation/%s",
+        return String.format("%s/v%s/%s",
                 StringUtils.underscoreToChangeCase(formatName),
                 formatVersion.replaceAll("[.]", "_"),
                 queryName);

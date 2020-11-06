@@ -29,11 +29,15 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ArgumentsParserException;
+import org.nuiton.i18n.I18n;
+import org.nuiton.i18n.init.DefaultI18nInitializer;
+import org.nuiton.i18n.init.UserI18nInitializer;
 import org.nuiton.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +59,6 @@ import static org.nuiton.i18n.I18n.t;
  *
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-@Configuration
 public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     /** Logger. */
     private static final Logger log = LoggerFactory.getLogger(SumarisConfiguration.class);
@@ -294,6 +297,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         }
 
     }
+
+
 
     /**
      * <p>Getter for the field <code>configFile</code>.</p>

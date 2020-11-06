@@ -60,7 +60,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
     @Test
     public void getAll() {
         ExtractionProductFilterVO filter = new ExtractionProductFilterVO();
-        filter.setStatusIds(new Integer[]{getConfig().getStatusIdTemporary(), getConfig().getStatusIdValid()});
+        filter.setStatusIds(new Integer[]{config.getStatusIdTemporary(), config.getStatusIdValid()});
         List<ExtractionProductVO> products = repository.findAll(filter);
         Assert.assertNotNull(products);
         Assert.assertEquals(1, products.size());
@@ -68,7 +68,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
 
     @Test
     public void delete() {
-        Integer id = dbResource.getFixtures().getProductId(0);
+        Integer id = fixtures.getProductId(0);
         repository.deleteById(id);
 
     }
@@ -81,7 +81,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
         source.setStatusId(StatusEnum.ENABLE.getId());
 
         DepartmentVO dep = new DepartmentVO();
-        dep.setId(dbResource.getFixtures().getDepartmentId(0));
+        dep.setId(fixtures.getDepartmentId(0));
         source.setRecorderDepartment(dep);
 
         List<ExtractionTableVO> tables = Lists.newArrayList();

@@ -53,13 +53,11 @@ public class PersonServiceTest extends AbstractServiceTest{
     @Autowired
     private ReferentialService referentialService;
 
-    private static final String ADMIN_PUBKEY = "Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB";
-    private static final String OBSERVER_PUBKEY = "5rojwz7mTRFE9LCJXSGB2w48kcZtg7vM4SDQkN2s9GFe";
 
     @Test
     public void a_findPersons() {
 
-        Integer observerProfileId =  dbResource.getFixtures().getUserProfileObserver();
+        Integer observerProfileId =  fixtures.getUserProfileObserver();
 
         // Find by one profile
         PersonFilterVO filter = new PersonFilterVO();
@@ -72,17 +70,17 @@ public class PersonServiceTest extends AbstractServiceTest{
 
         // Find by many profile
         filter = new PersonFilterVO();
-        filter.setUserProfileIds(new Integer[]{observerProfileId, dbResource.getFixtures().getUserProfileSupervisor()});
+        filter.setUserProfileIds(new Integer[]{observerProfileId, fixtures.getUserProfileSupervisor()});
         assertFindResult(filter, 3);
 
         // Find by status (inactive person)
         filter = new PersonFilterVO();
-        filter.setStatusIds(new Integer[]{getConfig().getStatusIdTemporary(), getConfig().getStatusIdValid()});
+        filter.setStatusIds(new Integer[]{config.getStatusIdTemporary(), config.getStatusIdValid()});
         assertFindResult(filter, 5);
 
         // Find by email
         filter = new PersonFilterVO();
-        filter.setEmail(dbResource.getFixtures().getPersonEmail(0));
+        filter.setEmail(fixtures.getPersonEmail(0));
         assertFindResult(filter, 1);
 
         // Find by last name (case insensitive)
@@ -106,7 +104,7 @@ public class PersonServiceTest extends AbstractServiceTest{
     @Test
     public void isExistsByEmailHash() {
 
-        PersonVO person = service.get(dbResource.getFixtures().getPersonId(0));
+        PersonVO person = service.get(fixtures.getPersonId(0));
         Assume.assumeNotNull(person);
         String emailHash = MD5Util.md5Hex(person.getEmail());
 
@@ -120,10 +118,10 @@ public class PersonServiceTest extends AbstractServiceTest{
         vo.setFirstName("first name");
         vo.setLastName("last name");
         vo.setEmail("test@sumaris.net");
-        vo.setStatusId(getConfig().getStatusIdValid());
+        vo.setStatusId(config.getStatusIdValid());
 
         DepartmentVO department = new DepartmentVO();
-        department.setId(dbResource.getFixtures().getDepartmentId(0));
+        department.setId(fixtures.getDepartmentId(0));
 
         vo.setDepartment(department);
 
@@ -147,10 +145,10 @@ public class PersonServiceTest extends AbstractServiceTest{
         vo.setFirstName("first name with profiles");
         vo.setLastName("last name");
         vo.setEmail("test2@sumaris.net");
-        vo.setStatusId(getConfig().getStatusIdValid());
+        vo.setStatusId(config.getStatusIdValid());
 
         DepartmentVO department = new DepartmentVO();
-        department.setId(dbResource.getFixtures().getDepartmentId(0));
+        department.setId(fixtures.getDepartmentId(0));
 
         vo.setDepartment(department);
 
@@ -172,7 +170,7 @@ public class PersonServiceTest extends AbstractServiceTest{
 
         long userProfileCountBefore = CollectionUtils.size(referentialService.findByFilter(UserProfile.class.getSimpleName(), null, 0, 1000));
 
-        service.delete(dbResource.getFixtures().getPersonIdNoData());
+        service.delete(fixtures.getPersonIdNoData());
 
         // Make there is no cascade on user profile !!
         long userProfileCountAfter = CollectionUtils.size(referentialService.findByFilter(UserProfile.class.getSimpleName(), null, 0, 1000));
@@ -189,7 +187,7 @@ public class PersonServiceTest extends AbstractServiceTest{
     @Test
     public void getByPubkey() {
 
-        PersonVO person = service.getByPubkey(ADMIN_PUBKEY);
+        PersonVO person = service.getByPubkey(fixtures.getAdminPubkey());
         Assert.assertNotNull(person);
         Assert.assertEquals(5, person.getId().intValue());
 
@@ -204,11 +202,13 @@ public class PersonServiceTest extends AbstractServiceTest{
     @Test
     public void getAvatarByPubkey() {
 
-        ImageAttachmentVO avatar = service.getAvatarByPubkey(OBSERVER_PUBKEY);
+        // Observer (has an avatar)
+        ImageAttachmentVO avatar = service.getAvatarByPubkey(fixtures.getObserverPubkey());
         Assert.assertNotNull(avatar);
 
+        // Admin (no avatar)
         try {
-            service.getAvatarByPubkey(ADMIN_PUBKEY);
+            service.getAvatarByPubkey(fixtures.getAdminPubkey());
             Assert.fail("should throw exception");
         } catch (Exception e) {
             Assert.assertNotNull(e);

@@ -22,8 +22,9 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
@@ -42,6 +43,10 @@ import java.util.List;
  */
 @Transactional
 public interface ExtractionService {
+
+
+    @Transactional(readOnly = true)
+    ExtractionTypeVO checkAndGet(ExtractionTypeVO type);
 
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> findByFilter(@Nullable ExtractionTypeFilterVO filter);
@@ -66,7 +71,7 @@ public interface ExtractionService {
     File executeAndDump(ExtractionTypeVO type,
                         ExtractionFilterVO filter) throws IOException;
 
-    File executeAndDumpTrips(ExtractionRawFormatEnum format, ExtractionTripFilterVO filter);
+    File executeAndDumpTrips(LiveFormatEnum format, ExtractionTripFilterVO filter);
 
     File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 

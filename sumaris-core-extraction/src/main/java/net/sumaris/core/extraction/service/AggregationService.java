@@ -27,6 +27,7 @@ import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -36,6 +37,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Create aggregation tables, from a data extraction.
@@ -50,6 +53,9 @@ public interface AggregationService {
 
     @Transactional(readOnly = true)
     AggregationTypeVO get(int id, ExtractionProductFetchOptions fetchOptions);
+
+    @Transactional(readOnly = true)
+    AggregationTypeVO checkAndGet(AggregationTypeVO type);
 
     /**
      * Do an aggregate
@@ -73,9 +79,6 @@ public interface AggregationService {
                              @Nullable AggregationStrataVO strata,
                              int offset, int size, String sort, SortDirection direction);
 
-    @Transactional(readOnly = true)
-    List<ExtractionTableColumnVO> getColumnsBySheetName(AggregationTypeVO type, String sheetName);
-
     @Transactional(rollbackFor = IOException.class)
     File executeAndDump(AggregationTypeVO type,
                         @Nullable ExtractionFilterVO filter,
@@ -91,9 +94,6 @@ public interface AggregationService {
 
     @Transactional
     AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
-
-    @Transactional
-    void delete(int id);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
     void clean(AggregationContextVO context);

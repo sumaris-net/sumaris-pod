@@ -25,7 +25,7 @@ package net.sumaris.core.extraction.dao.trip.free;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.core.extraction.specification.Free1Specification;
+import net.sumaris.core.extraction.format.specification.Free1Specification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;

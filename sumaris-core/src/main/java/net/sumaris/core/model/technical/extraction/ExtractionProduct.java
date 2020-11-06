@@ -35,6 +35,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
+import java.sql.Clob;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -48,6 +49,9 @@ import java.util.List;
 public class ExtractionProduct implements IItemReferentialEntity,
         IWithRecorderPersonEntity<Integer, Person>,
         IWithRecorderDepartmentEntity<Integer, Department> {
+
+
+    public final static int LENGTH_VERSION = 10;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_SEQ")
@@ -77,6 +81,9 @@ public class ExtractionProduct implements IItemReferentialEntity,
 
     @Column(length = LENGTH_COMMENTS)
     private String comments;
+
+    @Lob
+    private String documentation;
 
     @Column(name = "is_spatial")
     private Boolean isSpatial;

@@ -530,7 +530,8 @@ public class RdbDataLoaderServiceImpl implements RdbDataLoaderService {
 
 				tempFile = prepareFileForTable(tempFile, table, separator);
 
-				String recordBasename = String.format("%s-%s.%s%s", Files.getNameWithoutExtension(inputFile), recordType, Files.getExtension(inputFile), Files.TEMPORARY_FILE_DEFAULT_EXTENSION);
+				String recordBasename = String.format("%s-%s.%s%s", Files.getNameWithoutExtension(inputFile), recordType,
+						Files.getExtension(inputFile).orElse(""), Files.TEMPORARY_FILE_DEFAULT_EXTENSION);
 				File recordFile = new File(inputFile.getParentFile(), recordBasename);
 				Files.copyFile(tempFile, recordFile);
 

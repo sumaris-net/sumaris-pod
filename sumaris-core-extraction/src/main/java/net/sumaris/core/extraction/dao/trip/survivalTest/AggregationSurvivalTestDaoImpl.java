@@ -25,21 +25,15 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.core.extraction.specification.AggRdbSpecification;
-import net.sumaris.core.extraction.specification.AggSurvivalTestSpecification;
-import net.sumaris.core.extraction.specification.RdbSpecification;
-import net.sumaris.core.extraction.specification.SurvivalTestSpecification;
+import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
+import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
+import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
-import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.extraction.vo.trip.survivalTest.AggregationSurvivalTestContextVO;
-import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
-import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,7 +170,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
     }
 
     protected XMLQuery createSurvivalTestQuery(ExtractionProductVO source, C context) {
-        String rawSurvivalTestTableName = source.getTableNameBySheetName(SurvivalTestSpecification.ST_SHEET_NAME)
+        String rawSurvivalTestTableName = source.findTableNameBySheetName(SurvivalTestSpecification.ST_SHEET_NAME)
                 .orElse(null);
         if (rawSurvivalTestTableName == null) return null; // Skip
 
@@ -242,7 +236,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
     }
 
     protected XMLQuery createReleaseQuery(ExtractionProductVO source, C context) {
-        String rawReleaseTableName = source.getTableNameBySheetName(AggSurvivalTestSpecification.RL_SHEET_NAME)
+        String rawReleaseTableName = source.findTableNameBySheetName(AggSurvivalTestSpecification.RL_SHEET_NAME)
                 .orElse(null);
         if (rawReleaseTableName == null) return null; // Skip
 
@@ -253,6 +247,17 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         xmlQuery.bind("rawReleaseTableName", rawReleaseTableName);
         xmlQuery.bind("stationTableName", stationTableName);
         xmlQuery.bind("releaseTableName", tableName);
+
+        SumarisTableMetadata stationTable = databaseMetadata.getTable(stationTableName);
+        xmlQuery.setGroup("month", stationTable.hasColumn(AggRdbSpecification.COLUMN_MONTH));
+        xmlQuery.setGroup("quarter", stationTable.hasColumn(AggRdbSpecification.COLUMN_QUARTER));
+        xmlQuery.setGroup("area", stationTable.hasColumn(AggRdbSpecification.COLUMN_AREA));
+        xmlQuery.setGroup("rect", stationTable.hasColumn(AggRdbSpecification.COLUMN_STATISTICAL_RECTANGLE));
+        xmlQuery.setGroup("square", stationTable.hasColumn(AggRdbSpecification.COLUMN_SQUARE));
+        xmlQuery.setGroup("nationalMetier", stationTable.hasColumn(AggRdbSpecification.COLUMN_NATIONAL_METIER));
+        xmlQuery.setGroup("euMetierLevel5", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL5));
+        xmlQuery.setGroup("euMetierLevel6", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
+        xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);

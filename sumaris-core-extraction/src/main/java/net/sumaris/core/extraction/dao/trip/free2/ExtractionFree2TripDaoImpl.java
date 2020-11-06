@@ -28,7 +28,7 @@ import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.core.extraction.specification.Free2Specification;
+import net.sumaris.core.extraction.format.specification.Free2Specification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.free2.ExtractionFree2ContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;

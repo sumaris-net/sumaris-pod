@@ -22,6 +22,7 @@ package net.sumaris.server.config;
  * #L%
  */
 
+import net.sumaris.core.service.ServiceLocator;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,5 +47,7 @@ public class ApplicationStartupListener {
     @EventListener
     protected void onApplicationEvent(final ApplicationReadyEvent event) {
         log.info(I18n.t("sumaris.server.started", this.port));
+
+        ServiceLocator.init(event.getApplicationContext());
     }
 }

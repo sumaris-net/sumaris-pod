@@ -37,6 +37,7 @@ import java.io.Serializable;
 public class ProductRdbStation implements Serializable, IEntity<Integer> {
 
     public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_RDB_STATION;
+    public static final String SHEET_NAME = "HH";
 
     public static final String COLUMN_SAMPLING_TYPE = ProductRdbTrip.COLUMN_SAMPLING_TYPE;
     public static final String COLUMN_VESSEL_FLAG_COUNTRY = ProductRdbTrip.COLUMN_VESSEL_FLAG_COUNTRY;

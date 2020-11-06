@@ -48,6 +48,7 @@ public class ExtractionProductFilterVO implements IReferentialFilter {
     private String searchText;
     private String searchAttribute;
 
-    private Integer departmentId;
+    private Integer recorderDepartmentId;
+    private Integer recorderPersonId;
 
 }

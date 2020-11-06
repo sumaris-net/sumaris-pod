@@ -34,7 +34,7 @@
     <quadrige3.log.file>${project.build.directory}/${bundlePrefix}.log</quadrige3.log.file>
 
     <!-- Default implementation -->
-    <env>hsqldb</env>
+    <spring.datasource.platform>hsqldb</spring.datasource.platform>
     <jdbc.url>jdbc:hsqldb:file:data/db/sumaris</jdbc.url>
     <server.address>localhost</server.address>
     <server.port>8080</server.port>
@@ -334,7 +334,7 @@
       <activation>
         <activeByDefault>true</activeByDefault>
         <property>
-          <name>env</name>
+          <name>spring.datasource.platform</name>
           <value>hsqldb</value>
         </property>
       </activation>

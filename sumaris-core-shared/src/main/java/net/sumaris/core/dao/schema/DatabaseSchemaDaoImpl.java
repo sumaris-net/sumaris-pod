@@ -41,7 +41,7 @@ import net.sumaris.core.dao.technical.liquibase.Liquibase;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
-import net.sumaris.core.util.Springs;
+import net.sumaris.core.util.ResourceUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -68,7 +68,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.ResourceUtils;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
@@ -508,12 +507,12 @@ public class DatabaseSchemaDaoImpl
 
         // Make sure the path is an URL (if not, add "file:" prefix)
         String scriptPathWithPrefix = scriptPath;
-        if (!ResourceUtils.isUrl(scriptPath)) {
-            scriptPathWithPrefix = ResourceUtils.FILE_URL_PREFIX + scriptPath;
+        if (!org.springframework.util.ResourceUtils.isUrl(scriptPath)) {
+            scriptPathWithPrefix = org.springframework.util.ResourceUtils.FILE_URL_PREFIX + scriptPath;
         }
 
 
-        Resource scriptResource = Springs.getResource(scriptPathWithPrefix);
+        Resource scriptResource = ResourceUtils.getResource(scriptPathWithPrefix);
         if (scriptResource.exists()) {
             if (log.isInfoEnabled()) {
                 log.info("Will use create script: " + scriptPath);
@@ -529,7 +528,7 @@ public class DatabaseSchemaDaoImpl
             try {
                 scriptFile = File.createTempFile("script", ".tmp.sql");
                 generateCreateSchemaFile(scriptFile.getAbsolutePath(), false, false, true);
-                scriptResource = Springs.getResource(ResourceUtils.FILE_URL_PREFIX + scriptFile.getAbsolutePath());
+                scriptResource = ResourceUtils.getResource(org.springframework.util.ResourceUtils.FILE_URL_PREFIX + scriptFile.getAbsolutePath());
 
             } catch(IOException e){
                 throw new SumarisTechnicalException(String.format("Could not find DB script file, at %s", scriptPath));
@@ -614,6 +613,7 @@ public class DatabaseSchemaDaoImpl
         try (InputStream is = scriptResource.getInputStream()) {
             Iterator<String> lines = IOUtils.lineIterator(is, Charsets.UTF_8);
 
+            int sequenceStartWithValue = getConfig().getSequenceStartWithValue();
             while (lines.hasNext()) {
                 String line = lines.next().trim().toUpperCase();
                 if (predicate.test(line)) {
@@ -623,7 +623,7 @@ public class DatabaseSchemaDaoImpl
 
                     // Reset sequence to zero
                     if (line.startsWith("CREATE SEQUENCE")) {
-                        line = line.replaceAll("START WITH [0-9]+", "START WITH " + getConfig().getSequenceStartWithValue());
+                        line = line.replaceAll("START WITH [0-9]+", "START WITH " + sequenceStartWithValue);
                     }
 
                     // Use cached table

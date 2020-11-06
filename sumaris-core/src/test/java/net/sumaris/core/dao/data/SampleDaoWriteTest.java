@@ -54,8 +54,6 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
     private SampleRepository sampleRepository;
 
     private OperationVO parentOperation;
-    
-    private DatabaseFixtures fixtures;
 
     @Before
     public void setUp() throws Exception {
@@ -64,8 +62,6 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
 
         parentOperation = operationRepository.get(1);
         Assume.assumeNotNull(parentOperation);
-
-        this.fixtures = dbResource.getFixtures();
     }
 
     @Test

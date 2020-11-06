@@ -37,6 +37,7 @@ import java.io.Serializable;
 public class ProductRdbLanding implements Serializable, IEntity<Integer> {
 
     public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_RDB_LANDING;
+    public static final String SHEET_NAME = "CL";
 
     public static final String COLUMN_VESSEL_FLAG_COUNTRY = ProductRdbTrip.COLUMN_VESSEL_FLAG_COUNTRY;
     public static final String COLUMN_LANDING_COUNTRY = ProductRdbTrip.COLUMN_LANDING_COUNTRY;

@@ -66,7 +66,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @Before
     public void setUp() {
-        this.fixtures = dbResource.getFixtures();
+        this.fixtures = fixtures;
         this.parent = tripService.get(fixtures.getTripId(0));
         Assume.assumeNotNull(this.parent);
     }

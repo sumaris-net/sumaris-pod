@@ -135,6 +135,15 @@
     </sql>
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-12" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product" columnName="documentation"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="documentation" type="LONGVARCHAR"/>
+    </addColumn>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
@@ -147,6 +156,7 @@
         - Add column EXTRACTION_TABLE.RANK_ORDER
         - Make PRODUCT.OPERATION_FK nullable
         - Rename a column of P01 product
+        - Add column EXTRACTION_PRODUCT.DOCUMENTATION
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -154,6 +164,7 @@
         - Add column EXTRACTION_TABLE.RANK_ORDER
         - Make PRODUCT.OPERATION_FK nullable
         - Rename a column of P01 product
+        - Add column EXTRACTION_PRODUCT.DOCUMENTATION
       </column>
     </insert>
   </changeSet>

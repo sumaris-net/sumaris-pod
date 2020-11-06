@@ -25,7 +25,7 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
-import net.sumaris.core.extraction.specification.SurvivalTestSpecification;
+import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;

@@ -22,6 +22,7 @@ package net.sumaris.core.vo.technical.extraction;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
@@ -80,7 +81,7 @@ public class ExtractionProductVO implements IReferentialVO,
         return tables.stream().collect(Collectors.toMap(ExtractionTableVO::getLabel, ExtractionTableVO::getTableName));
     }
 
-    public Optional<String> getTableNameBySheetName(String sheetName) {
+    public Optional<String> findTableNameBySheetName(String sheetName) {
         Preconditions.checkNotNull(sheetName);
         return ListUtils.emptyIfNull(tables).stream()
                 .filter(t -> sheetName.equalsIgnoreCase(t.getLabel()))
@@ -88,7 +89,7 @@ public class ExtractionProductVO implements IReferentialVO,
                 .findFirst();
     }
 
-    public Optional<String> getSheetNameByTableName(String tableName) {
+    public Optional<String> findSheetNameByTableName(String tableName) {
         Preconditions.checkNotNull(tableName);
         return ListUtils.emptyIfNull(tables).stream()
                 .filter(t -> tableName.equalsIgnoreCase(t.getTableName()))
@@ -99,7 +100,9 @@ public class ExtractionProductVO implements IReferentialVO,
     public boolean hasSpatialSheet() {
         return ListUtils.emptyIfNull(tables).stream()
                 .anyMatch(t -> t.getIsSpatial() != null && t.getIsSpatial());
-
     }
 
+    public String getFormat() {
+        return getLabel() != null ? getLabel().split("-")[0] : null;
+    }
 }

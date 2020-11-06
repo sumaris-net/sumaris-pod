@@ -24,13 +24,13 @@ package net.sumaris.core.extraction.service;
 
 import liquibase.util.csv.opencsv.CSVReader;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
+import net.sumaris.core.extraction.DatabaseFixtures;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ZipUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.junit.runner.RunWith;
@@ -62,18 +62,17 @@ public abstract class AbstractServiceTest {
     @Autowired
     protected SumarisConfiguration config;
 
+    @Autowired
+    protected DatabaseFixtures fixtures;
+
     /* -- Protected functions -- */
 
-    protected SumarisConfiguration getConfig() {
-        return config;
-    }
-
-    protected File unpack(File zipFile, ExtractionRawFormatEnum format) {
+    protected File unpack(File zipFile, LiveFormatEnum format) {
         return unpack(zipFile, format.getLabel() + '_' + format.getVersion());
     }
 
     protected File unpack(File zipFile, ExtractionTypeVO type) {
-        return unpack(zipFile,  type.getCategory() + '_' + type.getLabel());
+        return unpack(zipFile,  type.getCategory().name() + '_' + type.getLabel());
     }
 
     protected File unpack(File zipFile, String dirName) {

@@ -24,7 +24,6 @@ package net.sumaris.core.extraction;
  * #L%
  */
 
-import net.sumaris.core.extraction.dao.DatabaseResource;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +59,7 @@ public class InitTests extends net.sumaris.core.test.InitTests {
 
     @Override
     protected String getModuleName() {
-        return DatabaseResource.MODULE_NAME;
+        return TestConfiguration.MODULE_NAME;
     }
 
     @Override

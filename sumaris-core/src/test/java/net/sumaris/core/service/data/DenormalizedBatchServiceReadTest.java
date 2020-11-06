@@ -47,7 +47,7 @@ public class DenormalizedBatchServiceReadTest extends AbstractServiceTest{
     @Test
     public void denormalize() {
 
-        BatchVO catchBatch = DataTestUtils.createAdapBatchTree(dbResource.getFixtures());
+        BatchVO catchBatch = DataTestUtils.createAdapBatchTree(fixtures);
         Assume.assumeNotNull(catchBatch);
         List<BatchVO> batches = TreeNodeEntities.treeAsList(catchBatch);
         Assume.assumeNotNull(batches);

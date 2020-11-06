@@ -22,11 +22,11 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
-import net.sumaris.core.extraction.dao.DatabaseResource;
-import net.sumaris.core.extraction.specification.Free2Specification;
-import net.sumaris.core.extraction.specification.SurvivalTestSpecification;
+import net.sumaris.core.extraction.DatabaseResource;
+import net.sumaris.core.extraction.format.specification.Free2Specification;
+import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
-import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -53,23 +53,23 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     public void exportRdbFormat() {
 
         // Test the RDB format
-        service.executeAndDumpTrips(ExtractionRawFormatEnum.RDB, null);
+        service.executeAndDumpTrips(LiveFormatEnum.RDB, null);
     }
 
     @Test
     public void exportFree1Format() {
 
         // Test the FREE 1 format
-        service.executeAndDumpTrips(ExtractionRawFormatEnum.FREE1, null);
+        service.executeAndDumpTrips(LiveFormatEnum.FREE1, null);
     }
 
     @Test
     public void exportFree2Format() throws IOException {
 
         // Test the FREE v2 format
-        File outputFile = service.executeAndDumpTrips(ExtractionRawFormatEnum.FREE2, null);
+        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.FREE2, null);
 
-        File root = unpack(outputFile, ExtractionRawFormatEnum.FREE2);
+        File root = unpack(outputFile, LiveFormatEnum.FREE2);
 
         // MAREES.csv
         File tripFile = new File(root, Free2Specification.TRIP_SHEET_NAME + ".csv");
@@ -88,8 +88,8 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     public void exportSurvivalTestFormat() throws IOException  {
 
         // Test Survival test format
-        File outputFile = service.executeAndDumpTrips(ExtractionRawFormatEnum.SURVIVAL_TEST, null);
-        File root = unpack(outputFile, ExtractionRawFormatEnum.SURVIVAL_TEST);
+        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.SURVIVAL_TEST, null);
+        File root = unpack(outputFile, LiveFormatEnum.SURVIVAL_TEST);
 
         // RL (release)
         File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME+".csv");
@@ -105,12 +105,12 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     public void save() {
 
         ExtractionTypeVO type = new ExtractionTypeVO();
-        type.setCategory(ExtractionCategoryEnum.LIVE.name());
-        type.setLabel(ExtractionRawFormatEnum.RDB.name() + "-ext");
+        type.setCategory(ExtractionCategoryEnum.LIVE);
+        type.setLabel(LiveFormatEnum.RDB.name() + "-ext");
         type.setStatusId(StatusEnum.TEMPORARY.getId());
 
         DepartmentVO recDep = new DepartmentVO();
-        recDep.setId(dbResource.getFixtures().getDepartmentId(0));
+        recDep.setId(fixtures.getDepartmentId(0));
         type.setRecorderDepartment(recDep);
 
         ExtractionTypeVO savedType = service.save(type, null);

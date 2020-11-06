@@ -22,6 +22,14 @@ package net.sumaris.core.extraction.vo;
  * #L%
  */
 
+import lombok.NonNull;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
+import org.apache.commons.lang3.ArrayUtils;
+
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
@@ -35,5 +43,19 @@ public enum ExtractionCategoryEnum {
     /**
      * Raw data extraction
      */
-    LIVE
+    LIVE;
+
+    public static Optional<ExtractionCategoryEnum> fromString(@Nullable String value) {
+        if (value == null) return Optional.empty();
+        try {
+            return Optional.of(valueOf(value.toUpperCase()));
+        }
+        catch(IllegalArgumentException e) {
+            return Optional.empty();
+        }
+    }
+
+    public static ExtractionCategoryEnum valueOfIgnoreCase(@NonNull String value) {
+        return fromString(value.toUpperCase()).orElseThrow(IllegalArgumentException::new);
+    }
 }

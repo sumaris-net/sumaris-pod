@@ -65,10 +65,6 @@ public abstract class AbstractServiceTest {
 
 	/* -- Internal method -- */
 
-	protected SumarisConfiguration getConfig() {
-		return config;
-	}
-
 	/**
 	 * Delete all existing observations and linked data
 	 * 

@@ -23,10 +23,8 @@ package net.sumaris.server.http.graphql.security;
  */
 
 import io.leangen.graphql.annotations.*;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.http.security.AuthService;
-import net.sumaris.server.vo.security.AuthDataVO;
+import net.sumaris.server.util.security.AuthDataVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

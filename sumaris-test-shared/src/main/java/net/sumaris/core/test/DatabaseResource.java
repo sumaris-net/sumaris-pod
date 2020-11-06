@@ -42,9 +42,6 @@ import org.junit.Assume;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.nuiton.i18n.I18n;
-import org.nuiton.i18n.init.DefaultI18nInitializer;
-import org.nuiton.i18n.init.UserI18nInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +49,6 @@ import java.io.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 
@@ -67,8 +63,9 @@ public abstract class DatabaseResource implements TestRule {
     /** Logger. */
     protected static final Logger log = LoggerFactory.getLogger(DatabaseResource.class);
 
-    /** Constant <code>BUILD_ENVIRONMENT_DEFAULT="hsqldb"</code> */
-    public static final String BUILD_ENVIRONMENT_DEFAULT = "hsqldb";
+    /** Constant <code>HSQLDB_DATASOURCE_TYPE="hsqldb"</code> */
+    public static final String HSQLDB_DATASOURCE_TYPE = "hsqldb";
+
     /** Constant <code>HSQLDB_SRC_DATABASE_DIRECTORY= ie : "../sumaris-core/src/test/db"</code> */
     public static final String HSQLDB_SRC_DATABASE_DIRECTORY_PATTERN = "../%s/target/db";
     public static final String HSQLDB_SRC_DATABASE_NAME = "sumaris";
@@ -82,24 +79,24 @@ public abstract class DatabaseResource implements TestRule {
 
     private String dbDirectory;
 
-    private final boolean writeDb;
+    private final boolean readOnly;
 
-    private final String configName;
+    private final String configFileSuffix;
 
-    private boolean witherror = false;
+    private boolean withError = false;
 
     private Class<?> testClass;
 
     /**
      * <p>Constructor for DatabaseResource.</p>
      *
-     * @param configName a {@link String} object.
-     * @param writeDb a boolean.
+     * @param configFileSuffix a {@link String} object.
+     * @param needWrite a boolean.
      */
-    protected DatabaseResource(String configName,
-                               boolean writeDb) {
-        this.configName = configName;
-        this.writeDb = writeDb;
+    protected DatabaseResource(String configFileSuffix,
+                              boolean readOnly) {
+        this.configFileSuffix = configFileSuffix;
+        this.readOnly = readOnly;
     }
 
     /**
@@ -140,12 +137,21 @@ public abstract class DatabaseResource implements TestRule {
     }
 
     /**
+     * <p>canWrite.</p>
+     *
+     * @return a boolean.
+     */
+    protected boolean canWrite() {
+        return !readOnly;
+    }
+
+    /**
      * <p>isWriteDb.</p>
      *
      * @return a boolean.
      */
-    protected boolean isWriteDb() {
-        return writeDb;
+    protected boolean isReadOnly() {
+        return readOnly;
     }
 
     /** {@inheritDoc} */
@@ -159,7 +165,7 @@ public abstract class DatabaseResource implements TestRule {
                 try {
                     base.evaluate();
                 } catch (Throwable e) {
-                    witherror = true;
+                    withError = true;
                     log.error("Error during test", e);
                 } finally {
                     after(description);
@@ -177,12 +183,9 @@ public abstract class DatabaseResource implements TestRule {
     protected void before(Description description) throws Throwable {
         testClass = description.getTestClass();
 
-        boolean defaultDbName = StringUtils.isEmpty(configName);
+        boolean defaultDbName = StringUtils.isEmpty(configFileSuffix);
 
         dbDirectory = null;
-//        if (defaultDbName) {
-//            configName = "db";
-//        }
 
         if (log.isDebugEnabled()) {
             log.debug("Prepare test " + testClass);
@@ -191,42 +194,39 @@ public abstract class DatabaseResource implements TestRule {
         resourceDirectory = getTestSpecificDirectory(testClass, "");
         addToDestroy(resourceDirectory);
 
-        // Load building env
-        String buildEnvironment = getBuildEnvironment();
+        // Load datasource type
+        String datasourcePlatform = getDatasourcePlatform();
 
         // check that config file is in classpath (avoid to find out why it does not works...)
         String configFilename = getConfigFilesPrefix();
-        /*if (enableDb()) {
-            configFilename += "-" + (writeDb ? "write" : "read");
-        }*/
         if (!defaultDbName) {
-            configFilename += "-" + configName;
+            configFilename += "-" + configFileSuffix;
         }
-        String configFilenameNoEnv = configFilename + ".properties";
-        if (StringUtils.isNotBlank(buildEnvironment)) {
-            configFilename += "-" + buildEnvironment;
+        String configFilenameNoPlatform = configFilename + ".properties";
+        if (StringUtils.isNotBlank(datasourcePlatform)) {
+            configFilename += "-" + datasourcePlatform;
         }
         configFilename += ".properties";
 
         InputStream resourceAsStream = getClass().getResourceAsStream("/" + configFilename);
-        if (resourceAsStream == null && StringUtils.isNotBlank(buildEnvironment)) {
-            resourceAsStream = getClass().getResourceAsStream("/" + configFilenameNoEnv);
-            Preconditions.checkNotNull(resourceAsStream, "Could not find " + configFilename + " or " + configFilenameNoEnv + " in test class-path");
-            configFilename = configFilenameNoEnv;
+        if (resourceAsStream == null && StringUtils.isNotBlank(datasourcePlatform)) {
+            resourceAsStream = getClass().getResourceAsStream("/" + configFilenameNoPlatform);
+            Preconditions.checkNotNull(resourceAsStream, "Could not find " + configFilename + " or " + configFilenameNoPlatform + " in test class-path");
+            configFilename = configFilenameNoPlatform;
         }
         else {
             Preconditions.checkNotNull(resourceAsStream, "Could not find " + configFilename + " in test class-path");
         }
 
-        // Prepare DB
-        if (BUILD_ENVIRONMENT_DEFAULT.equalsIgnoreCase(buildEnvironment)) {
+        // Prepare Hsqldb DB
+        if (HSQLDB_DATASOURCE_TYPE.equalsIgnoreCase(datasourcePlatform)) {
 
             dbDirectory = getHsqldbSrcDatabaseDirectory();
-            if (!defaultDbName) {
-                dbDirectory += configName;
+            if (StringUtils.isNotEmpty(configFileSuffix)) {
+                dbDirectory += configFileSuffix;
             }
 
-            if (writeDb) {
+            if (canWrite()) {
                 Properties p = new Properties();
                 p.load(resourceAsStream);
                 String jdbcUrl = p.getProperty(SumarisConfigurationOption.JDBC_URL.getKey());
@@ -262,9 +262,6 @@ public abstract class DatabaseResource implements TestRule {
 
         // Initialize configuration
         initConfiguration(configFilename);
-
-        // Init i18n
-        initI18n();
     }
 
     protected final Set<File> toDestroy = Sets.newHashSet();
@@ -385,7 +382,7 @@ public abstract class DatabaseResource implements TestRule {
                     if (log.isErrorEnabled()) {
                         log.error("Could not close database.", e);
                     }
-                    witherror = true;
+                    withError = true;
                 }
             }
 
@@ -393,7 +390,7 @@ public abstract class DatabaseResource implements TestRule {
             serviceLocator.shutdown();
         }
 
-        if (!witherror) {
+        if (!withError) {
             destroyDirectories(toDestroy, true);
         }
 
@@ -509,35 +506,35 @@ public abstract class DatabaseResource implements TestRule {
      *
      * @return a {@link String} object.
      */
-    public String getBuildEnvironment() {
-        return getBuildEnvironment(null);
+    public String getDatasourcePlatform() {
+        return getDatasourcePlatform(null);
     }
 
     /**
      * -- protected methods--
      *
-     * @param defaultEnvironment a {@link String} object.
+     * @param defaultValue a {@link String} object.
      * @return a {@link String} object.
      */
-    protected String getBuildEnvironment(String defaultEnvironment) {
-        String buildEnv = System.getProperty("env");
+    protected String getDatasourcePlatform(String defaultValue) {
+        String result = System.getProperty("spring.datasource.platform");
 
         // Check validity
-        if (buildEnv == null && StringUtils.isNotBlank(defaultEnvironment)) {
-            buildEnv = defaultEnvironment;
-            log.warn("Could not find build environment. Please add -Denv=<hsqldb|oracle|pgsql>. Test [" +
-                    testClass + "] will use default environment : " + defaultEnvironment);
-        } else if (!"hsqldb".equals(buildEnv)
-                && !"oracle".equals(buildEnv)
-                && !"pgsql".equals(buildEnv)) {
+        if (result == null && StringUtils.isNotBlank(defaultValue)) {
+            result = defaultValue;
+            log.warn("Could not find build environment. Please add -Dspring.datasource.platform=<hsqldb|oracle|pgsql>. Test [" +
+                    testClass + "] will use default environment : " + defaultValue);
+        } else if (!"hsqldb".equals(result)
+                && !"oracle".equals(result)
+                && !"pgsql".equals(result)) {
 
             if (log.isWarnEnabled()) {
-                log.warn("Could not find build environment. Please add -Denv=<hsqldb|oracle|pgsql>. Test [" +
+                log.warn("Could not find build environment. Please add -Dspring.datasource.platform=<hsqldb|oracle|pgsql>. Test [" +
                         testClass + "] will be skipped.");
             }
             Assume.assumeTrue(false);
         }
-        return buildEnv;
+        return result;
     }
 
     /**
@@ -552,6 +549,12 @@ public abstract class DatabaseResource implements TestRule {
         if (dbDirectory != null) {
             configArgs.addAll(Lists.newArrayList("--option", SumarisConfigurationOption.DB_DIRECTORY.getKey(), dbDirectory));
         }
+
+        // Push sequence to 1000
+        if (canWrite()) {
+            configArgs.addAll(Lists.newArrayList("--option", SumarisConfigurationOption.SEQUENCE_START_WITH.getKey(), String.valueOf(1000)));
+        }
+
         return configArgs.toArray(new String[configArgs.size()]);
     }
 
@@ -561,52 +564,7 @@ public abstract class DatabaseResource implements TestRule {
      * @param configFilename a {@link String} object.
      */
     protected void initConfiguration(String configFilename) {
-        String[] configArgs = getConfigArgs();
-        SumarisConfiguration config = new SumarisConfiguration(configFilename, configArgs);
-        SumarisConfiguration.setInstance(config);
-    }
-
-    /**
-     * <p>initI18n.</p>
-     *
-     * @throws IOException if any.
-     */
-    protected void initI18n() throws IOException {
-        SumarisConfiguration config = SumarisConfiguration.getInstance();
-
-        // --------------------------------------------------------------------//
-        // init i18n
-        // --------------------------------------------------------------------//
-        File i18nDirectory = new File(config.getDataDirectory(), "i18n");
-        if (i18nDirectory.exists()) {
-            // clean i18n cache
-            FileUtils.cleanDirectory(i18nDirectory);
-        }
-
-        FileUtils.forceMkdir(i18nDirectory);
-
-        if (log.isDebugEnabled()) {
-            log.debug("I18N directory: " + i18nDirectory);
-        }
-
-        Locale i18nLocale = config.getI18nLocale();
-
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Starts i18n with locale [%s] at [%s]",
-                    i18nLocale, i18nDirectory));
-        }
-        I18n.init(new UserI18nInitializer(
-                i18nDirectory, new DefaultI18nInitializer(getI18nBundleName())),
-                i18nLocale);
-    }
-
-    /**
-     * <p>getI18nBundleName.</p>
-     *
-     * @return a {@link String} object.
-     */
-    protected String getI18nBundleName() {
-        return "sumaris-core-core-i18n";
+        TestConfiguration.createConfiguration(configFilename, null, getConfigArgs());
     }
 
     /**

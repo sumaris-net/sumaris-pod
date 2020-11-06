@@ -49,6 +49,7 @@ public class SumarisColumnMetadata {
 	protected final String typeName;
 	protected final boolean isNullable;
 	protected final String description;
+	protected final int ordinalPosition;
 
 	public SumarisColumnMetadata(ResultSet rs) throws SQLException {
 		this(rs, null);
@@ -70,6 +71,8 @@ public class SumarisColumnMetadata {
 		this.isNullable = "YES".equalsIgnoreCase(rs.getString("IS_NULLABLE"));
 		this.typeName = (new StringTokenizer(rs.getString("TYPE_NAME"), "() ")).nextToken();
 		this.description = rs.getString("REMARKS");
+		this.ordinalPosition = rs.getInt("ORDINAL_POSITION");
+
 	}
 
 	public int hashCode() {
@@ -110,6 +113,10 @@ public class SumarisColumnMetadata {
 
 	public String getDescription() {
 		return description;
+	}
+
+	public int getOrdinalPosition() {
+		return ordinalPosition;
 	}
 
 

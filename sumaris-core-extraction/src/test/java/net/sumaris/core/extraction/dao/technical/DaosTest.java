@@ -24,14 +24,13 @@ package net.sumaris.core.extraction.dao.technical;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.DatabaseType;
-import net.sumaris.core.extraction.dao.DatabaseResource;
+import net.sumaris.core.extraction.DatabaseResource;
 import net.sumaris.core.util.Dates;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

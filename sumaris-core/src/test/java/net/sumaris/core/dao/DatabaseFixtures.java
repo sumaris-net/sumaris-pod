@@ -268,4 +268,12 @@ public class DatabaseFixtures {
 				return 1;
 		}
 	}
+
+    public String getAdminPubkey() {
+		return "Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB";
+	}
+
+	public String getObserverPubkey() {
+		return "5rojwz7mTRFE9LCJXSGB2w48kcZtg7vM4SDQkN2s9GFe";
+	}
 }

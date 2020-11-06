@@ -108,7 +108,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void delete() {
-        service.delete(dbResource.getFixtures().getTripId(0));
+        service.delete(fixtures.getTripId(0));
     }
 
     @Test
@@ -130,39 +130,39 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
     protected TripVO createTrip() {
         TripVO vo = new TripVO();
-        vo.setProgram(dbResource.getFixtures().getDefaultProgram());
+        vo.setProgram(fixtures.getDefaultProgram());
         vo.setDepartureDateTime(new Date());
         vo.setReturnDateTime(new Date());
 
         VesselSnapshotVO vessel = new VesselSnapshotVO();
-        vessel.setId(dbResource.getFixtures().getVesselId(0));
+        vessel.setId(fixtures.getVesselId(0));
         vo.setVesselSnapshot(vessel);
 
         LocationVO departureLocation = new LocationVO();
-        departureLocation.setId(dbResource.getFixtures().getLocationPortId(0));
+        departureLocation.setId(fixtures.getLocationPortId(0));
         vo.setDepartureLocation(departureLocation);
 
         LocationVO returnLocation = new LocationVO();
-        returnLocation.setId(dbResource.getFixtures().getLocationPortId(0));
+        returnLocation.setId(fixtures.getLocationPortId(0));
         vo.setReturnLocation(returnLocation);
 
         vo.setCreationDate(new Date());
 
         DepartmentVO recorderDepartment = new DepartmentVO();
-        recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
         vo.setRecorderDepartment(recorderDepartment);
 
         // Observers
         PersonVO observer1 = new PersonVO();
-        observer1.setId(dbResource.getFixtures().getPersonId(0));
+        observer1.setId(fixtures.getPersonId(0));
         PersonVO observer2 = new PersonVO();
-        observer2.setId(dbResource.getFixtures().getPersonId(1));
+        observer2.setId(fixtures.getPersonId(1));
         vo.setObservers(ImmutableSet.of(observer1, observer2));
 
         // Physical gear
         PhysicalGearVO gear = new PhysicalGearVO();
         gear.setRankOrder(1);
-        gear.setGear(createReferentialVO(dbResource.getFixtures().getGearId(0)));
+        gear.setGear(createReferentialVO(fixtures.getGearId(0)));
         gear.setRecorderDepartment(recorderDepartment);
         vo.setGears(ImmutableList.of(gear));
 
@@ -170,7 +170,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
     }
 
     protected OperationVO createOperation(TripVO parent) {
-        return DataTestUtils.createOperation(dbResource.getFixtures(), pmfmService, parent);
+        return DataTestUtils.createOperation(fixtures, pmfmService, parent);
     }
 
 }
