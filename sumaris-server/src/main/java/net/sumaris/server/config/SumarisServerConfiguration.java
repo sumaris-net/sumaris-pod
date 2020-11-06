@@ -89,9 +89,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public SumarisServerConfiguration(String file, String... args) {
         super(file, args);
-
-
-
     }
 
     /** {@inheritDoc} */

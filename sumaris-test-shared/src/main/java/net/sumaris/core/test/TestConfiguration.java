@@ -47,19 +47,26 @@ public abstract class TestConfiguration {
             LoggerFactory.getLogger(TestConfiguration.class);
 
     public static SumarisConfiguration createConfiguration(@NonNull String configFileName,
-                                                           String i18BundleName,
                                                            String... args) {
         log.info(String.format("Configuration file: %s", configFileName));
         SumarisConfiguration config = new SumarisConfiguration(configFileName, args);
         SumarisConfiguration.setInstance(config);
+        return config;
+    }
 
-        // Init i18n
-        if (StringUtils.isNotBlank(i18BundleName)) {
-            I18nUtil.init(config, i18BundleName);
+    @Bean
+    public SumarisConfiguration configuration() {
+        // If exists, use existing config (from DatabaseResource)
+        SumarisConfiguration config = SumarisConfiguration.getInstance();
+        if (config == null) {
+            return createConfiguration(getConfigFileName(), getConfigArgs());
         }
+
+        I18nUtil.init(config, getI18nBundleName());
 
         return config;
     }
+
 
     @Bean
     public DataSource dataSource(SumarisConfiguration testConfiguration) {
@@ -89,4 +96,10 @@ public abstract class TestConfiguration {
         return dataSource;
     }
 
+    protected abstract String getConfigFileName();
+    protected abstract String getI18nBundleName();
+
+    protected String[] getConfigArgs() {
+        return null;
+    }
 }

@@ -24,11 +24,9 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.format.ExtractionFormats;
 import net.sumaris.core.extraction.format.IExtractionFormat;
 import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
@@ -75,7 +73,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
     private ExtractionProductService productService;
 
     @Autowired
-    private SumarisConfiguration config;
+    private SumarisConfiguration configuration;
 
     @Override
     public Optional<Resource> find(@NonNull ExtractionTypeVO type, Locale locale) {
@@ -103,7 +101,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
         // If product: try to create doc file
         if (ExtractionCategoryEnum.PRODUCT == type.getCategory()) {
 
-            File localizedFile = new File(config.getTempDirectory(), localizedFileName);
+            File localizedFile = new File(configuration.getTempDirectory(), localizedFileName);
             boolean fileExists = localizedFile.exists();
 
             ExtractionProductVO product = productService.get(type.getId(), ExtractionProductFetchOptions.MINIMAL);

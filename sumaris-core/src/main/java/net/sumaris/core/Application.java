@@ -75,6 +75,7 @@ import javax.persistence.EntityManager;
 })
 @EnableAsync
 @Component("core-application")
+@Profile("!test")
 public class Application {
 
 	/* Logger */

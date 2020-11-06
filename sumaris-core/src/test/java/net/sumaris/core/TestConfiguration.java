@@ -24,6 +24,7 @@ package net.sumaris.core;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.DatabaseFixtures;
+import net.sumaris.core.util.I18nUtil;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -44,9 +45,14 @@ public abstract class TestConfiguration extends net.sumaris.core.test.TestConfig
         return new DatabaseFixtures();
     }
 
-    @Bean
-    public static SumarisConfiguration testConfiguration() {
-        return createConfiguration(CONFIG_FILE_NAME, I18N_BUNDLE_NAME);
+
+    @Override
+    protected String getConfigFileName() {
+        return CONFIG_FILE_NAME;
     }
 
+    @Override
+    protected String getI18nBundleName() {
+        return I18N_BUNDLE_NAME;
+    }
 }

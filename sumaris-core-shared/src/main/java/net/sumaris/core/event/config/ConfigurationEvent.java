@@ -30,6 +30,6 @@ import net.sumaris.core.config.SumarisConfiguration;
 @AllArgsConstructor
 public class ConfigurationEvent {
 
-    private SumarisConfiguration config;
+    private SumarisConfiguration configuration;
 
 }

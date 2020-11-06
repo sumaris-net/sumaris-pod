@@ -53,7 +53,7 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
     String version;
     String description;
     String comments;
-    String documentation;
+    String docUrl;
     String[] sheetNames;
     Integer statusId;
     Boolean isSpatial;

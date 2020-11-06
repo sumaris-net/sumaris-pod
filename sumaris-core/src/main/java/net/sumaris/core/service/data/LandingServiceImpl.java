@@ -84,7 +84,7 @@ public class LandingServiceImpl implements LandingService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
-        this.enableTrash = event.getConfig().enableEntityTrash();
+        this.enableTrash = event.getConfiguration().enableEntityTrash();
     }
 
     @Override

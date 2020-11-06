@@ -104,7 +104,7 @@ public class ExtractionRestController {
     private static final Logger log = LoggerFactory.getLogger(ExtractionRestController.class);
 
     @Autowired
-    private SumarisConfiguration config;
+    private SumarisConfiguration configuration;
 
     @Autowired
     private ExtractionService extractionService;
@@ -284,7 +284,7 @@ public class ExtractionRestController {
 
         String baseName = Files.getNameWithoutExtension(new File(source.getFilename()));
         String fileName = String.format("%s.%s", baseName, "html");
-        File renderFile = new File(config.getTempDirectory(), fileName);
+        File renderFile = new File(configuration.getTempDirectory(), fileName);
 
         boolean needRender = !renderFile.exists();
 
@@ -298,7 +298,7 @@ public class ExtractionRestController {
 
             String htmlTemplate = ResourceUtils.readContent(templateResource, Charsets.UTF_8);
             String markdownContent = ResourceUtils.readContent(source, Charsets.UTF_8);
-            String serverUrl = config.getApplicationConfig().getOption(ExtractionWebConfigurationOption.SERVER_URL.getKey());
+            String serverUrl = configuration.getApplicationConfig().getOption(ExtractionWebConfigurationOption.SERVER_URL.getKey());
             if (serverUrl.lastIndexOf('/') != serverUrl.length() -1) {
                 serverUrl += "/";
             }

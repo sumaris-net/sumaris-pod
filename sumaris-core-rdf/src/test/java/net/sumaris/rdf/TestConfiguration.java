@@ -68,16 +68,19 @@ public abstract class TestConfiguration extends net.sumaris.core.test.TestConfig
     }
 
     @Bean
-    public static SumarisConfiguration initConfiguration() {
-        return createConfiguration(CONFIG_FILE_NAME, I18N_BUNDLE_NAME);
-    }
-
-    @Bean
     public static ObjectMapper jacksonObjectMapper() {
         return new Jackson2ObjectMapperBuilder()
                 .indentOutput(true) // For test only
                 .build();
     }
 
+    @Override
+    protected String getConfigFileName() {
+        return CONFIG_FILE_NAME;
+    }
 
+    @Override
+    protected String getI18nBundleName() {
+        return I18N_BUNDLE_NAME;
+    }
 }

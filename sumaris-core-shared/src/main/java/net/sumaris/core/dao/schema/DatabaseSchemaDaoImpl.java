@@ -72,6 +72,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -151,7 +152,7 @@ public class DatabaseSchemaDaoImpl
                 if (schemaVersion != null) {
                     log.info(I18n.t("sumaris.persistence.schemaVersion", schemaVersion.toString()));
                 }
-            } catch (VersionNotFoundException e) {
+            } catch (VersionNotFoundException | PersistenceException e) {
                 // silent
             }
         }

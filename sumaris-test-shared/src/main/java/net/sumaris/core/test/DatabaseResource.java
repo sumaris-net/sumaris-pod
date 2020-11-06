@@ -564,7 +564,7 @@ public abstract class DatabaseResource implements TestRule {
      * @param configFilename a {@link String} object.
      */
     protected void initConfiguration(String configFilename) {
-        TestConfiguration.createConfiguration(configFilename, null, getConfigArgs());
+        TestConfiguration.createConfiguration(configFilename, getConfigArgs());
     }
 
     /**

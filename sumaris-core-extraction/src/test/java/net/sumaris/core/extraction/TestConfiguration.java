@@ -33,8 +33,13 @@ public class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
     public static final String CONFIG_FILE_NAME = CONFIG_FILE_PREFIX + ".properties";
     public static final String I18N_BUNDLE_NAME = MODULE_NAME + "-i18n";
 
-    @Bean
-    public static SumarisConfiguration initConfiguration() {
-        return createConfiguration(CONFIG_FILE_NAME, I18N_BUNDLE_NAME);
+    @Override
+    protected String getConfigFileName() {
+        return CONFIG_FILE_NAME;
+    }
+
+    @Override
+    protected String getI18nBundleName() {
+        return I18N_BUNDLE_NAME;
     }
 }

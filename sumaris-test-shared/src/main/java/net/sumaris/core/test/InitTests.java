@@ -33,6 +33,7 @@ import net.sumaris.core.dao.schema.DatabaseSchemaDaoImpl;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
+import net.sumaris.core.util.I18nUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -154,11 +155,9 @@ public class InitTests extends ExternalResource {
     @Override
     protected void before() throws Throwable {
 
-        config = TestConfiguration.createConfiguration(
-                getConfigFileName(),
-                getI18nBundleName(),
-                getConfigArgs()
-        );
+        config = TestConfiguration.createConfiguration(getConfigFileName(), getConfigArgs());
+
+        I18nUtil.init(config, getI18nBundleName());
 
         initServiceLocator();
 
