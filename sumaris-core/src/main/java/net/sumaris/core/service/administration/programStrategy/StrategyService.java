@@ -23,7 +23,9 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +41,18 @@ import java.util.List;
 public interface StrategyService {
 
 	@Transactional(readOnly = true)
+	StrategyVO get(int id);
+
+	@Transactional(readOnly = true)
+	StrategyVO getByLabel(String label);
+
+	@Transactional(readOnly = true)
+	List<StrategyVO> getAll();
+
+	@Transactional(readOnly = true)
+	List<StrategyVO> findByFilter(StrategyFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+	@Transactional(readOnly = true)
 	List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
@@ -48,7 +62,7 @@ public interface StrategyService {
 	List<PmfmStrategyVO> findPmfmStrategiesByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getGears(int strategyId);
@@ -59,8 +73,16 @@ public interface StrategyService {
 	@Transactional(readOnly = true)
 	List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
 
+	@Transactional(readOnly = true)
+	List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
+
+	@Transactional(readOnly = true)
+	List<StrategyDepartmentVO> getStrategyDepartments(int strategyId);
+
 	StrategyVO save(StrategyVO source);
 
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
+
+	void delete(int id);
 
 }

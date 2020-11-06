@@ -81,6 +81,9 @@ public class ProgramRepositoryImpl
     @Autowired
     private TaxonGroupRepository taxonGroupRepository;
 
+    @Autowired
+    private StrategyRepository strategyRepository;
+
     public ProgramRepositoryImpl(EntityManager entityManager) {
         super(Program.class, ProgramVO.class, entityManager);
         setLockForUpdate(true);
@@ -153,6 +156,14 @@ public class ProgramRepositoryImpl
             target.setLocations(
                 Beans.getStream(source.getLocations())
                     .map(referentialDao::toVO)
+                    .collect(Collectors.toList()));
+        }
+
+        // strategies
+        if (fetchOptions != null && fetchOptions.isWithStrategies()) {
+            target.setStrategies(
+                Beans.getStream(source.getStrategies())
+                    .map(strategyRepository::toVO)
                     .collect(Collectors.toList()));
         }
     }

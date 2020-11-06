@@ -111,6 +111,16 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean strategiesByIdCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.STRATEGIES_BY_ID, 100, CacheDurations.DEFAULT, 100);
+    }
+
+    @Bean
+    public EhCacheFactoryBean strategiesByLabelCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.STRATEGIES_BY_LABEL, 100);
+    }
+
+    @Bean
     public EhCacheFactoryBean pmfmByStrategyIdCache() {
         return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 100);
     }

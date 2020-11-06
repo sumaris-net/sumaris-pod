@@ -23,9 +23,11 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.StrategyRepository;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
@@ -51,13 +53,35 @@ public class StrategyServiceImpl implements StrategyService {
 	private PmfmStrategyRepository pmfmStrategyRepository;
 
 	@Override
+	public StrategyVO get(int id) {
+		return strategyRepository.get(id);
+	}
+
+	@Override
+	public StrategyVO getByLabel(String label) {
+		Preconditions.checkNotNull(label);
+		return strategyRepository.getByLabel(label);
+	}
+
+	@Override
+	public List<StrategyVO> getAll() {
+		return strategyRepository.findAll(StrategyFilterVO.builder().build());
+	}
+
+	@Override
+	public List<StrategyVO> findByFilter(StrategyFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		if (filter == null) filter = StrategyFilterVO.builder().build();
+		return strategyRepository.findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
+	}
+
+	@Override
 	public List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions) {
 		return strategyRepository.findAll(StrategyFilterVO.builder().programId(programId).build(), fetchOptions);
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, StrategyFetchOptions fetchOptions) {
-		return pmfmStrategyRepository.findByStrategyId(strategy, fetchOptions);
+	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategyId, StrategyFetchOptions fetchOptions) {
+		return pmfmStrategyRepository.findByStrategyId(strategyId, fetchOptions);
 	}
 
 	@Override
@@ -97,11 +121,20 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public StrategyVO save(StrategyVO source) {
+	public List<AppliedStrategyVO> getAppliedStrategies(int strategyId) {
+		return strategyRepository.getAppliedStrategies(strategyId);
+	}
 
+	@Override
+	public List<StrategyDepartmentVO> getStrategyDepartments(int strategyId) {
+		return strategyRepository.getStrategyDepartments(strategyId);
+	}
+
+	@Override
+	public StrategyVO save(StrategyVO source) {
 		StrategyVO result = strategyRepository.save(source);
 
-		// Save pmfm stratgeies
+		// Save pmfm strategies
 		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(result.getId(), Beans.getList(source.getPmfmStrategies()));
 		source.setPmfmStrategies(savedPmfmStrategies);
 
@@ -119,5 +152,10 @@ public class StrategyServiceImpl implements StrategyService {
 		});
 
 		return result;
+	}
+
+	@Override
+	public void delete(int id) {
+		strategyRepository.deleteById(id);
 	}
 }

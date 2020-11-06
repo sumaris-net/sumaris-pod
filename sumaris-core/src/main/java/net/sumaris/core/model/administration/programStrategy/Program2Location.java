@@ -24,31 +24,24 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
 
 @Data
 @FieldNameConstants
 @Entity
-@Table(name = "applied_period")
-public class AppliedPeriod implements Serializable {
+@Table(name = "program2location")
+public class Program2Location implements Serializable {
 
     @Id
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "applied_strategy_fk", nullable = false)
-    private AppliedStrategy appliedStrategy;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class, cascade = CascadeType.DETACH)
+    @JoinColumn(name = "program_fk", nullable = false)
+    private Program program;
 
     @Id
-    @Column(name = "start_date", nullable = false)
-    @Temporal(TemporalType.DATE)
-    private Date startDate;
-
-    @Column(name = "end_date", nullable = false)
-    @Temporal(TemporalType.DATE)
-    private Date endDate;
-
-    private Integer acquisitionNumber;
-
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Location.class, cascade = CascadeType.DETACH)
+    @JoinColumn(name = "location_fk", nullable = false)
+    private Location location;
 }
