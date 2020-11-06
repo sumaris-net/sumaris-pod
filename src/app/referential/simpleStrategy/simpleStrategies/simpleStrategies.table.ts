@@ -72,6 +72,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
 
   ngOnInit() {
     this.inlineEdition = false;
+   //this.inlineEdition = toBoolean(this.inlineEdition, true);
     super.ngOnInit();
   }
 

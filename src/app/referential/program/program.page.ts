@@ -22,6 +22,8 @@ import {debounceTime, filter, first} from "rxjs/operators";
 import {AppFormHolder} from "../../core/form/form.utils";
 import {ProgramProperties} from "../services/config/program.config";
 import {isNotNilOrBlank} from "../../shared/functions";
+import { isBoolean } from 'util';
+
 
 
 export enum AnimationState {
@@ -60,19 +62,15 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
-
   detailsPathSimpleStrategy = "/referential/simpleStrategy/:id"
+  simpleStrategiesOption = false;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
-
   @ViewChild('simpleStrategiesTable', { static: true }) simpleStrategiesTable: SimpleStrategiesTable;
-  //@ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
-
+  @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
   @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
-  //TODO : implement option
-  testOption= true;
-  
+
   constructor(
     protected injector: Injector,
     protected formBuilder: FormBuilder,
@@ -92,13 +90,41 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
-
-
     //this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
+    
+    // get value option 
+    this.registerSubscription(
+      this.onUpdateView
+        .subscribe(async program => {
+         this.simpleStrategiesOption=  program.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
+    
+                // Listen start opening  simple strategy
+                if(this.simpleStrategiesOption){
+                  this.registerSubscription(this.simpleStrategiesTable.onOpenRow
+                    .subscribe(row => this.openRow(row))); 
+                }
+                    
+                  // Listen start editing strategy
+                if(!this.simpleStrategiesOption){
+                  this.registerSubscription(this.strategiesTable.onStartEditingRow
+                      .subscribe(row => this.onStartEditStrategy(row)));
+                  this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
+                      .subscribe(row => this.onConfirmEditCreateStrategy(row)));
+                  this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
+                      .subscribe(row => this.onCancelOrDeleteStrategy(row)));
+
+                }
+
+        this.markForCheck();  
+      })
+    );
+
+
+  
 
     // Set entity name (required for referential form validator)
     this.referentialForm.entityName = 'Program';
@@ -131,40 +157,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       }
     });
 
-    if( this.testOption){
-    this.registerSubscription(this.simpleStrategiesTable.onOpenRow
-        .subscribe(row => this.openRow(row)));
-    }
-    else {
-      //TODO : remplace simpleStrategiesTable by strategiesTable
-       // Listen start editing strategy
-    this.registerSubscription(this.simpleStrategiesTable.onStartEditingRow
-      .subscribe(row => this.onStartEditStrategy(row)));
-    this.registerSubscription(this.simpleStrategiesTable.onConfirmEditCreateRow
-      .subscribe(row => this.onConfirmEditCreateStrategy(row)));
-    this.registerSubscription(this.simpleStrategiesTable.onCancelOrDeleteRow
-      .subscribe(row => this.onCancelOrDeleteStrategy(row)));
-    }
-   
+    
+    
+       
+  
   }
 
-
-  // TODO : séparer entre édition et création de ligne
-  async openRow(row: TableElement<Strategy>): Promise<boolean> {
-
-    const id = row.id;
-    const path = this.detailsPathSimpleStrategy;
-    
-    if (isNotNilOrBlank(path)) {
-      await this.router.navigateByUrl(
-        path
-        // Replace the id in the path
-        .replace(':id', isNotNilOrBlank(row.id) ? id.toString() : '')
-      );
-      return true;
-    
-      } 
-  }
 
 
   /* -- protected methods -- */
@@ -199,60 +197,91 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   protected registerForms() {
-    this.addChildForms([
-      this.referentialForm,
-      this.propertiesForm,
 
-      this.simpleStrategiesTable,
-      //TODO this.strategiesTable,
+    this.registerSubscription(
+      this.onUpdateView
+        .subscribe(async program => {
+         this.simpleStrategiesOption=  program.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
+         if(this.simpleStrategiesOption){
+          this.addChildForms([
+            this.referentialForm,
+            this.propertiesForm,
+            this.simpleStrategiesTable
+          ]);
+        }
+        if (!this.simpleStrategiesOption){
+          this.addChildForms([
+            this.referentialForm,
+            this.propertiesForm, 
+            this.strategiesTable,  
+            this.strategyForm
+          ]);
+        }
+        this.markForCheck();  
+      })
+    );
 
-      this.strategyForm
-    ]);
-  }
+
+
+   
+}
 
   protected setValue(data: Program) {
     if (!data) return; // Skip
 
     this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
-
     this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
 
-    // strategies
-    this.simpleStrategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
-    // TODO this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    this.registerSubscription(
+      this.onUpdateView
+        .subscribe(async program => {
+        // simple strategies
+        if(this.simpleStrategiesOption){
+          this.simpleStrategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+        }
+        // strategies
+        if(!this.simpleStrategiesOption){
+          this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+        } 
+        this.markForCheck();  
+      })
+    );
+
 
     this.markAsPristine();
   }
 
   protected async getJsonValueToSave(): Promise<any> {
-
     const data = await super.getJsonValueToSave();
 
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
     data.properties = this.propertiesForm.value;
 
-    // Finish edition of strategy
+    // Finish edition of simple strategies
+    if(this.simpleStrategiesOption){
     if (this.simpleStrategiesTable.dirty) {
       if (this.simpleStrategiesTable.editedRow) {
         await this.onConfirmEditCreateStrategy(this.simpleStrategiesTable.editedRow);
       }
       await this.simpleStrategiesTable.save();
     }
-
     data.strategies = this.simpleStrategiesTable.value;
+  } 
 
-
-  // TODO : remplace simpleStrategiesTable by strategiesTable
   // Finish edition of strategy
-  /*if (this.strategiesTable.dirty) {
-    if (this.strategiesTable.editedRow) {
-      await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
+  if(!this.simpleStrategiesOption){
+    if (this.strategiesTable.dirty) {
+     
+      if (this.strategiesTable.editedRow) {
+        
+        await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
+      }
+      await this.strategiesTable.save();
     }
-    await this.strategiesTable.save();
+    data.strategies = this.strategiesTable.value;
   }
-  data.strategies = this.strategiesTable.value;
-   */
+
     return data;
   }
 
@@ -269,12 +298,28 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     if (this.propertiesForm.invalid) return 1;
-    if (this.simpleStrategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
-    //TODO if (this.strategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
-    return 0;
+    if (this.strategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
+        return 0;
+  }
+
+
+ // TODO : édition de la ligne du plan
+  protected async openRow(row: TableElement<Strategy>): Promise<boolean> {
+    const id = row.id;
+    const path = this.detailsPathSimpleStrategy;
+    
+    if (isNotNilOrBlank(path)) {
+      await this.router.navigateByUrl(
+        path
+        // Replace the id in the path
+        .replace(':id', isNotNilOrBlank(row.id) ? id.toString() : '')
+      );
+      return true; 
+      } 
   }
 
   protected async onStartEditStrategy(row: TableElement<Strategy>) {
+
     if (!row) return; // skip
 
     const strategy = this.loadOrCreateStrategy(row.currentData);

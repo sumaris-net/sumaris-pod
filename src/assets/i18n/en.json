@@ -1080,6 +1080,7 @@
   "PROGRAM": {
     "TAB_GENERAL": "Details",
     "TAB_STRATEGIES": "Strategies",
+    "TAB_SIMPLE_STRATEGIES": "Simple strategies",
     "TAB_ACCESS_RIGHTS": "Access rights",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Referential for taxon groups",
@@ -1123,7 +1124,8 @@
       "LANDING_EDITOR_TRIP": "Fishing trip",
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)"
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
+      "SIMPLE_STRATEGIES": "Simple strategies"
     },
     "STRATEGY": {
 
