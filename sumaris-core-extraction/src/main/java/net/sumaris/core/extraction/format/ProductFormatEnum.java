@@ -28,7 +28,8 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
-import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;

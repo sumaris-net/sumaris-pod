@@ -19,17 +19,21 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-function AppManualSelector() {
+function AppDocSelector() {
 
     let restBasePath = '/api/extraction',
         inputUri,
+        baseUri,
         uriDiv,
         inputCategory,
         inputExtractionType,
         inputFormat,
         paramsDiv,
         logDiv,
-        outputTextarea,
+        outputDiv,
+        previewDiv,
+        sourceDiv,
+        markdownDiv,
         types;
 
 
@@ -45,12 +49,12 @@ function AppManualSelector() {
         inputExtractionType = document.getElementById("extractionType");
         inputFormat = document.getElementById("format");
         paramsDiv  = document.getElementById("paramsDiv");
-        outputTextarea = document.getElementById("outputTextarea");
+        outputDiv = document.getElementById("output");
+        previewDiv = document.getElementById("preview");
+        sourceDiv = document.getElementById("source");
+        markdownDiv = document.getElementById("markdown");
         logDiv = document.getElementById("logDiv");
 
-        if (window.location && window.location.origin) {
-            inputUri.value = window.location.origin + restBasePath + '/';
-        }
         computeBaseUri();
 
         onCategoryChanged();
@@ -76,14 +80,19 @@ function AppManualSelector() {
     }
 
     function computeBaseUri() {
-        let baseUri = inputUri.value;
-        if (baseUri.lastIndexOf('/') !== baseUri.length - 1) {
+
+        baseUri = inputUri.value;
+        if (!baseUri && window.location && window.location.origin) {
+            baseUri = window.location.origin + restBasePath + '/';
+            inputUri.value = baseUri;
+        }
+        if (baseUri && baseUri.lastIndexOf('/') !== baseUri.length - 1) {
             baseUri += '/';
         }
 
         console.info("New base URI: " + baseUri);
 
-        uriDiv.innerHTML = baseUri;
+        uriDiv.innerHTML = baseUri  + 'doc/';
 
         return baseUri;
     }
@@ -137,7 +146,7 @@ function AppManualSelector() {
 
     function createRequestUri() {
         let path = computeBaseUri();
-        path += 'manual/';
+        path += 'doc/';
 
         // Add category
         const category = inputCategory.value;
@@ -160,38 +169,58 @@ function AppManualSelector() {
         try {
 
             logInfo("GET: " + requestUri, "text-muted");
-            const xmlhttp = new XMLHttpRequest();
+            const request = new XMLHttpRequest();
             const now = Date.now();
-            xmlhttp.onreadystatechange = function () {
-                if (xmlhttp.readyState === XMLHttpRequest.OPENED) {
-                    xmlhttp.setRequestHeader('Accept', acceptHeader || 'application/html, text/markdown, text/plain')
-                } else if (xmlhttp.readyState === XMLHttpRequest.LOADING) {   // XMLHttpRequest.LOADING == 3
-                    outputTextarea.value = 'Loading...';
-                } else if (xmlhttp.readyState === XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-                    if (xmlhttp.status === 200) {
+            request.onreadystatechange = function () {
+                if (request.readyState === XMLHttpRequest.OPENED) {
+                    request.setRequestHeader('Accept', acceptHeader || 'application/html, text/markdown, text/plain')
+                } else if (request.readyState === XMLHttpRequest.LOADING) {   // XMLHttpRequest.LOADING == 3
+                    previewDiv.innerHTML = '<br/><i>Loading...</i>';
+                    sourceDiv.innerHTML = '';
+                    $('#html-source').addClass('d-none');
+
+                } else if (request.readyState === XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+                    if (request.status === 200) {
                         var execTimeMs = Date.now() - now;
+                        logInfo('Response received in ' + execTimeMs + 'ms');
 
                         // Send response to callback, if any
                         if (callback && typeof callback == "function") {
-                            callback(xmlhttp.responseText);
+                            callback(request.responseText);
                         }
 
                         // Other wise, add response to output div
                         else {
-                            outputTextarea.value = xmlhttp.responseText;
-                            outputTextarea.classList.remove('d-none');
-                            logInfo('Response received in ' + execTimeMs + 'ms');
+
+                            if (inputFormat.value === "md") {
+                                previewDiv.innerHTML = marked(request.responseText);
+                                sourceDiv.innerHTML = '<pre>' + request.responseText + '</pre>';
+
+                                $('#html-source').html(''); // Remove html source content
+                                $('#output .nav-tabs').removeClass('d-none'); // Show tabs header
+                            }
+                            else if (inputFormat.value === "html") {
+                                previewDiv.innerHTML = '';
+
+                                $('#html-source').text(request.responseText);
+                                $('#html-source').removeClass('d-none');
+
+                                $('#output .nav-tabs').addClass('d-none'); // Hide tabs header
+                            }
+
+                            outputDiv.classList.remove('d-none'); // Show output
+
                         }
-                    } else if (xmlhttp.status === 400 || xmlhttp.status === 404) {
-                        logError('Http error ' + xmlhttp.status + ' (not found)');
+                    } else if (request.status === 400 || request.status === 404) {
+                        logError('Http error ' + request.status + ' (not found)');
                     } else {
-                        logError('Unknown error (code=' + xmlhttp.status + ')', xmlhttp.error);
+                        logError('Unknown error (code=' + request.status + ')', request.error);
                     }
                 }
             };
 
-            xmlhttp.open("GET", requestUri, true);
-            xmlhttp.send();
+            request.open("GET", requestUri, true);
+            request.send();
 
         } catch (error) {
             console.error(error);

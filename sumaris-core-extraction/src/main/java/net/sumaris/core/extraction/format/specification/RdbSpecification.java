@@ -39,6 +39,7 @@ public interface RdbSpecification {
     String CL_SHEET_NAME = "CL";
     String CE_SHEET_NAME = "CE";
 
+    String COLUMN_RECORD_TYPE = "record_type";
     String COLUMN_PROJECT = "project";
     String COLUMN_YEAR = "year";
     String COLUMN_VESSEL_IDENTIFIER = "vessel_identifier";

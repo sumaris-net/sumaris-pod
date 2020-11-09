@@ -69,9 +69,9 @@ public class ExtractionWebAutoConfiguration {
 
                 // Extraction manual
                 {
-                    final String MANUAL_BASE_PATH = ExtractionRestController.MANUAL_BASE_PATH;
-                    registry.addRedirectViewController(MANUAL_BASE_PATH + "/", MANUAL_BASE_PATH);
-                    registry.addViewController(MANUAL_BASE_PATH).setViewName("forward:/manual/index.html");
+                    final String DOC_BASE_PATH = ExtractionRestController.DOC_BASE_PATH;
+                    registry.addRedirectViewController(DOC_BASE_PATH + "/", DOC_BASE_PATH);
+                    registry.addViewController(DOC_BASE_PATH).setViewName("forward:/doc/index.html");
                 }
 
             }

@@ -28,6 +28,7 @@ import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.service.ExtractionProductService;
@@ -36,13 +37,17 @@ import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.server.security.ExtractionSecurityService;
 import net.sumaris.server.geojson.ExtractionGeoJsonConverter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
@@ -102,7 +107,8 @@ public class AggregationGraphQLService {
 
     @GraphQLQuery(name = "aggregationColumns", description = "Read columns from aggregation")
     public List<ExtractionTableColumnVO> getAggregationColumns(@GraphQLArgument(name = "type") AggregationTypeVO type,
-                                                               @GraphQLArgument(name = "sheet") String sheet) {
+                                                               @GraphQLArgument(name = "sheet") String sheetName,
+                                                               @GraphQLEnvironment() Set<String> fields) {
 
         // Check type
         type = aggregationService.getByFormat(type);
@@ -110,12 +116,16 @@ public class AggregationGraphQLService {
         // Check access right
         securityService.checkReadAccess(type);
 
-        return productService.getColumnsBySheetName(type.getId(), sheet);
+        ExtractionTableColumnFetchOptions fetchOptions = ExtractionTableColumnFetchOptions.builder()
+                .withRankOrder(fields.contains(ExtractionTableColumnVO.Fields.RANK_ORDER))
+                .build();
+
+        return productService.getColumnsBySheetName(type.getId(), sheetName, fetchOptions);
     }
 
 
     @GraphQLQuery(name = "aggregationGeoJson", description = "Execute an aggregation and return as GeoJson")
-    public Object getGeoJsonAggregation(@GraphQLArgument(name = "type") AggregationTypeVO type,
+    public Object getGeoJsonAggregation(@GraphQLArgument(name = "type") AggregationTypeVO format,
                                         @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                         @GraphQLArgument(name = "strata") AggregationStrataVO strata,
                                         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
@@ -124,26 +134,43 @@ public class AggregationGraphQLService {
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         // Check type
-        type = aggregationService.getByFormat(type);
+        final AggregationTypeVO type = aggregationService.getByFormat(format);
 
         // Check access right
         securityService.checkReadAccess(type);
 
-        strata = (strata == null) ? new AggregationStrataVO() : strata;
-        filter = filter == null ? new ExtractionFilterVO() : filter;
+        // Use the first product's strata, as default
+        if ((strata == null || strata.getSpatialColumnName() == null || strata.getTimeColumnName() == null)
+                && CollectionUtils.isNotEmpty(type.getStratum())) {
 
-        // Fill default values for strata
-        if (strata.getSpatialColumnName() == null) {
-            strata.setSpatialColumnName(AggRdbSpecification.COLUMN_SQUARE);
-        }
-        if (strata.getTimeColumnName() == null){
-            strata.setTimeColumnName(AggRdbSpecification.COLUMN_YEAR);
+            // Get a strata, to use by default
+            final String sheetName = strata != null ? strata.getSheetName() : (filter != null ? filter.getSheetName() : null);
+            ExtractionProductStrataVO defaultStrata = type.getStratum().stream()
+                            .filter(s -> sheetName == null || sheetName.equalsIgnoreCase(s.getSheetName()))
+                            .findFirst()
+                    .orElseThrow(() -> new SumarisTechnicalException(String.format("Unknown sheetName '%s' in type '%s'", sheetName, type.getLabel())));
+
+            // Apply default strata, if need
+            if (strata == null) {
+                strata = new AggregationStrataVO();
+                Beans.copyProperties(defaultStrata, strata);
+            }
+
+            else {
+                if (strata.getSpatialColumnName() == null) {
+                    strata.setSpatialColumnName(defaultStrata.getSpatialColumnName());
+                }
+                if (strata.getTimeColumnName() == null){
+                    strata.setTimeColumnName(defaultStrata.getTimeColumnName());
+                }
+            }
         }
 
-        return geoJsonConverter.toFeatureCollection(
-                getAggregationRows(type, filter, strata, offset, size, sort, direction),
-                strata.getSpatialColumnName()
-        );
+        // Get data
+        AggregationResultVO data = aggregationService.read(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
+
+        // Convert to GeoJSON
+        return geoJsonConverter.toFeatureCollection(data, strata.getSpatialColumnName());
     }
 
     @GraphQLMutation(name = "saveAggregation", description = "Create or update a data aggregation")

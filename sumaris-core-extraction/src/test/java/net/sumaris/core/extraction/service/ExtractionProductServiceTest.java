@@ -23,21 +23,27 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.extraction.DatabaseResource;
-import net.sumaris.core.extraction.format.IExtractionFormat;
+import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
+import net.sumaris.core.extraction.format.specification.RdbSpecification;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -53,7 +59,7 @@ public class ExtractionProductServiceTest extends AbstractServiceTest {
 
     @Test
     public void getAndSave() {
-        ExtractionProductVO source = service.getByLabel("P01_RDB", ExtractionProductFetchOptions.FOR_UPDATE);
+        ExtractionProductVO source = service.getByLabel(fixtures.getRdbProductLabel(0), ExtractionProductFetchOptions.FOR_UPDATE);
 
         source.setComments("Test save");
 
@@ -79,12 +85,30 @@ public class ExtractionProductServiceTest extends AbstractServiceTest {
     @Test
     public void getColumnsBySheetName() {
 
-        ExtractionProductVO source = service.getByLabel("P01_RDB", ExtractionProductFetchOptions.MINIMAL);
+        ExtractionProductVO source = service.getByLabel(fixtures.getRdbProductLabel(0), ExtractionProductFetchOptions.MINIMAL);
+        String sheetName = RdbSpecification.HH_SHEET_NAME;
 
         // Check columns
-        List<ExtractionTableColumnVO> columns = service.getColumnsBySheetName(source.getId(), "HH");
+        List<ExtractionTableColumnVO> columns = service.getColumnsBySheetName(source.getId(), sheetName, ExtractionTableColumnFetchOptions.FULL);
         Assert.assertNotNull(columns);
         Assert.assertTrue(columns.size() > 0);
+
+        // Check columns order
+        String[] orderedColumns = ExtractionTableColumnOrder.COLUMNS_BY_SHEET.get(ExtractionTableColumnOrder.key(RdbSpecification.FORMAT, sheetName));
+
+        // Remove the record_type
+        orderedColumns = Arrays.copyOfRange(orderedColumns, 1, orderedColumns.length);
+
+        for(ExtractionTableColumnVO column: columns) {
+            Assert.assertNotNull(column.getRankOrder());
+            Assert.assertNotNull(column.getColumnName());
+            Assert.assertEquals(column.getColumnName().toLowerCase(), column.getColumnName());
+
+            int index = ArrayUtils.indexOf(orderedColumns, column.getColumnName());
+            if (index != -1) {
+                Assert.assertEquals(index, column.getRankOrder().intValue());
+            }
+        }
     }
 
     /* -- protected methods --*/

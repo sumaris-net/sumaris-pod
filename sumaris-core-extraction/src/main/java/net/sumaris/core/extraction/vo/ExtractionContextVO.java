@@ -27,7 +27,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.extraction.format.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.*;

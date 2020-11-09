@@ -24,15 +24,13 @@ package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.extraction.DatabaseResource;
 import net.sumaris.core.extraction.format.specification.Free2Specification;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
-import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;

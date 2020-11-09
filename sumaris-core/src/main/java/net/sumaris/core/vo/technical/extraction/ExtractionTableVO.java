@@ -60,4 +60,7 @@ public class ExtractionTableVO implements IReferentialVO {
     private List<ExtractionTableColumnVO> columns;
     private Map<String, List<Object>> columnValues;
 
+    public String getSheetName() {
+        return label;
+    }
 }

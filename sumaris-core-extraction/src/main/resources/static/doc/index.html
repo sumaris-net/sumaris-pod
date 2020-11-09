@@ -26,11 +26,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>Pod Api - Output format specification</title>
+    <title>Pod Api - Extraction documentation</title>
     <link rel="icon" href="/api/favicon" type="image/x-icon" />
 
     <link rel="stylesheet" href="/core/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/manual/css/app-manual.css" />
+    <link rel="stylesheet" href="/doc/css/app-doc.css" />
 
 </head>
 <body>
@@ -39,7 +39,7 @@
 
 <div class="container">
 
-    <h1>Output format specification</h1>
+    <h1>Extraction documentation</h1>
 
     <div class="form-group">
         <label for="baseUri">Server API URL</label>
@@ -61,12 +61,8 @@
 
             <span>&nbsp;/&nbsp;</span>
 
-            <!-- extraction type -->
+            <!-- extraction type (Filled by JS) -->
             <select name="extractionType" id="extractionType">
-                <option value="rdb">RDB</option>
-                <option value="cost">COST</option>
-                <option value="free1">FREE 1</option>
-                <option value="survivalTest" selected>Survival Tests</option>
             </select>
 
             <span>&nbsp;?format=</span>
@@ -103,7 +99,34 @@
         <div class="row">
             <!-- Output -->
             <div class="col col-8">
-                <textarea name="output" id="outputTextarea" rows="30" class="form-control d-none" placeholder="Output result"></textarea><br/>
+
+                <div id="output" class="container d-none">
+
+                    <pre id="html-source" class="d-none"></pre>
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="preview-tab" data-toggle="tab" href="#preview" role="tab" aria-controls="preview"
+                               aria-selected="true">Preview</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="source-tab" data-toggle="tab" href="#source" role="tab" aria-controls="source"
+                               aria-selected="false">Source</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+
+                        <div class="tab-pane fade show active" id="preview" role="tabpanel" aria-labelledby="preview-tab">
+                            <!-- output preview -->
+                        </div>
+                        <div class="tab-pane fade" id="source" role="tabpanel" aria-labelledby="source-tab">
+                            <!-- output source -->
+                        </div>
+                    </div>
+
+
+                </div>
+                <!--<textarea name="output" id="outputTextarea" rows="30" class="form-control d-none" placeholder="Output result"></textarea><br/>-->
             </div>
 
             <!-- Log -->
@@ -122,12 +145,13 @@
 <script type="text/javascript" src="/core/js/bootstrap.min.js" crossorigin="anonymous"></script>
 <script type="text/javascript" src="/core/js/app-menu.js" crossorigin="anonymous"></script>
 
-<script type="text/javascript" src="/manual/js/marked.min.js"></script>
-<script type="text/javascript" src="/manual/js/app-manual-selector.js"></script>
+<script type="text/javascript" src="/doc/js/marked.min.js"></script>
+<script type="text/javascript" src="/doc/js/app-doc-selector.js"></script>
+<script type="text/javascript" src="/doc/js/marked.min.js"></script>
 
 <script language="JavaScript" type="text/javascript">
     const menu = new AppMenu('#menu', {active: '#nav-item-tools'});
-    const app = new AppManualSelector();
+    const app = new AppDocSelector();
 </script>
 </body>
 </html>

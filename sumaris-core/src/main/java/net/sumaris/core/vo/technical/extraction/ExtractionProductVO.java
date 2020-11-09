@@ -28,6 +28,8 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
@@ -44,7 +46,7 @@ import java.util.stream.Collectors;
  */
 @Data
 @FieldNameConstants
-public class ExtractionProductVO implements IReferentialVO,
+public class ExtractionProductVO implements IReferentialVO, IExtractionFormat,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
@@ -54,6 +56,7 @@ public class ExtractionProductVO implements IReferentialVO,
     private String description;
     private String format;
     private String version;
+    private String documentation;
     private String comments;
     private Date updateDate;
     private Date creationDate;
@@ -73,9 +76,9 @@ public class ExtractionProductVO implements IReferentialVO,
         return tables.stream().map(ExtractionTableVO::getTableName).collect(Collectors.toList());
     }
 
-    public List<String> getSheetNames() {
+    public String[] getSheetNames() {
         if (tables == null) return null;
-        return tables.stream().map(ExtractionTableVO::getLabel).collect(Collectors.toList());
+        return tables.stream().map(ExtractionTableVO::getLabel).toArray(String[]::new);
     }
 
     public Map<String, String> getItems() {
@@ -104,7 +107,9 @@ public class ExtractionProductVO implements IReferentialVO,
                 .anyMatch(t -> t.getIsSpatial() != null && t.getIsSpatial());
     }
 
-    public String getFormat() {
-        return getLabel() != null ? getLabel().split("-")[0] : null;
+    @Override
+    public ExtractionCategoryEnum getCategory() {
+        return ExtractionCategoryEnum.PRODUCT;
     }
+
 }

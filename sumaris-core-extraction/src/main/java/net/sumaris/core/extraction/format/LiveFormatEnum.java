@@ -26,7 +26,8 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.format.specification.*;
-import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;

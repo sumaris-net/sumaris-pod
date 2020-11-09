@@ -22,7 +22,10 @@
 
 package net.sumaris.server.geojson;
 
+import com.google.common.collect.Maps;
+import lombok.NonNull;
 import net.sumaris.core.dao.referential.location.Locations;
+import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
@@ -34,6 +37,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -43,28 +47,20 @@ import java.util.stream.Collectors;
 @Component("extractionGeoJsonConverter")
 public class ExtractionGeoJsonConverter {
 
+    private Map<String, Function<String, Geometry>> convertersByColumnNames = Maps.newConcurrentMap();
 
-    public FeatureCollection toFeatureCollection(ExtractionResultVO result, String spaceColumnName) {
+    public FeatureCollection toFeatureCollection(final ExtractionResultVO result,
+                                                 final String spatialColumnName) {
+        return toFeatureCollection(result, spatialColumnName,
+                findGeometryConverterByColumnName(spatialColumnName).orElse(null));
+    }
 
-        Function<String, Geometry> mapper = null;
-        if ("square".equalsIgnoreCase(spaceColumnName)) {
-            mapper = (value) -> {
-                if (value == null) return null;
-                org.locationtech.jts.geom.Geometry geom = Locations.getGeometryFromMinuteSquareLabel(value, 10, false);
-                return GeoJsonGeometries.jtsGeometry(geom);
-            };
-        }
-        else if ("statistical_rectangle".equals(spaceColumnName) || "rect".equalsIgnoreCase(spaceColumnName)){
-            mapper = (value) -> {
-                if (value == null) return null;
-                org.locationtech.jts.geom.Geometry geom = Locations.getGeometryFromRectangleLabel(value, false);
-                return GeoJsonGeometries.jtsGeometry(geom);
-            };
-        }
+    public FeatureCollection toFeatureCollection(@NonNull final ExtractionResultVO result,
+                                                 final String spatialColumnName,
+                                                 @NonNull final Function<String, Geometry> geometryConverter) {
 
         FeatureCollection features = new FeatureCollection();
 
-        final Function<String, Geometry> finalMapper = mapper;
         List<String> propertyNames = result.getColumns().stream()
                 .map(ExtractionTableColumnVO::getColumnName)
                 //.map(StringUtils::underscoreToChangeCase)
@@ -82,10 +78,10 @@ public class ExtractionGeoJsonConverter {
             }
             feature.setProperties(properties);
 
-            // Geometry
-            if (finalMapper != null) {
-                String spaceValue = (String) properties.get(spaceColumnName);
-                feature.setGeometry(finalMapper.apply(spaceValue));
+            // Map space value to geometry
+            if (geometryConverter != null) {
+                String spaceValue = (String) properties.get(spatialColumnName);
+                feature.setGeometry(geometryConverter.apply(spaceValue));
             }
 
             return feature;
@@ -94,6 +90,49 @@ public class ExtractionGeoJsonConverter {
         features.setFeatures(rows);
 
         return features;
+    }
 
+    public Optional<Function<String, Geometry>> findGeometryConverterByColumnName(String spatialColumnName) {
+
+        // Replace alias, and convert to lowercase
+        spatialColumnName = AggRdbSpecification.resolveColumnName(spatialColumnName);
+
+        // Already in the map: use it
+        Function<String, Geometry> converter = convertersByColumnNames.get(spatialColumnName);
+        if (converter != null) return Optional.of(converter);
+
+        // Square 10'x10'
+        if (AggRdbSpecification.COLUMN_SQUARE.equals(spatialColumnName)) {
+
+            // Create converter
+            converter = (value) -> {
+                if (value == null) return null;
+                org.locationtech.jts.geom.Geometry geom = Locations.getGeometryFromMinuteSquareLabel(value, 10, false);
+                return GeoJsonGeometries.jtsGeometry(geom);
+            };
+
+            // Add to map, for the next time
+            convertersByColumnNames.put(spatialColumnName, converter);
+
+            return Optional.of(converter);
+        }
+
+        // Statistical rectangle (ICES or CGPM)
+        else if (AggRdbSpecification.COLUMN_STATISTICAL_RECTANGLE.equals(spatialColumnName)) {
+
+            // Create converter
+            converter = (value) -> {
+                if (value == null) return null;
+                org.locationtech.jts.geom.Geometry geom = Locations.getGeometryFromRectangleLabel(value, false);
+                return GeoJsonGeometries.jtsGeometry(geom);
+            };
+
+            // Add to map, for the next time
+            convertersByColumnNames.put(spatialColumnName, converter);
+
+            return Optional.of(converter);
+        }
+
+        return Optional.empty();
     }
 }

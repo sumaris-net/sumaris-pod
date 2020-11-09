@@ -5,11 +5,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <title>Pod Api - Output format specification</title>
+        <title>Pod Api - Extraction documentation</title>
         <link rel="icon" href="/api/favicon" type="image/x-icon" />
 
         <link rel="stylesheet" href="/core/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/manual/css/app-manual.css" />
+        <link rel="stylesheet" href="/doc/css/app-doc.css" />
 
 
     </head>
@@ -30,12 +30,8 @@
                        aria-selected="false">Source</a>
                 </li>
 
-                <!-- extraction type -->
+                <!-- extraction type (filled by JS) -->
                 <select name="extractionType" id="extractionType">
-                    <option value="rdb">RDB</option>
-                    <option value="cost">COST</option>
-                    <option value="free1">FREE 1</option>
-                    <option value="survivalTest" selected>Survival Tests</option>
                 </select>
             </ul>
             <div class="tab-content">
@@ -55,13 +51,13 @@
         <script type="text/javascript" src="/core/js/bootstrap.min.js" crossorigin="anonymous"></script>
 
         <script type="text/javascript" src="/core/js/app-menu.js" crossorigin="anonymous"></script>
-        <script type="text/javascript" src="/manual/js/app-manual-preview.js"></script>
-        <script type="text/javascript" src="/manual/js/marked.min.js"></script>
+        <script type="text/javascript" src="/doc/js/app-doc-preview.js"></script>
+        <script type="text/javascript" src="/doc/js/marked.min.js"></script>
 
         <script type="text/javascript">
             const menu = new AppMenu('#menu', {active: '#nav-item-tools'});
 
-            const app = new AppManualPreview();
+            const app = new AppDocPreview();
 
         </script>
     </body>

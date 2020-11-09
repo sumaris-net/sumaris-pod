@@ -23,7 +23,7 @@ package net.sumaris.core.extraction.dao.technical.table;
  */
 
 import com.google.common.collect.ImmutableMap;
-import net.sumaris.core.extraction.format.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.model.technical.extraction.rdb.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
@@ -39,12 +39,13 @@ import java.util.Map;
  */
 public final class ExtractionTableColumnOrder {
 
-    protected final static String key(String format, String sheetName) {
+    public final static String key(String format, String sheetName) {
         return (format + "-" + sheetName).toUpperCase();
     }
 
     public static Map<String, String[]> COLUMNS_BY_SHEET = ImmutableMap.<String, String[]>builder()
             .put(key(RdbSpecification.FORMAT, RdbSpecification.TR_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbTrip.COLUMN_SAMPLING_TYPE,
                     ProductRdbTrip.COLUMN_VESSEL_FLAG_COUNTRY,
                     ProductRdbTrip.COLUMN_LANDING_COUNTRY,
@@ -63,6 +64,7 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbTrip.COLUMN_SAMPLING_METHOD
             })
             .put(key(RdbSpecification.FORMAT, RdbSpecification.HH_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbStation.COLUMN_SAMPLING_TYPE,
                     ProductRdbStation.COLUMN_VESSEL_FLAG_COUNTRY,
                     ProductRdbStation.COLUMN_LANDING_COUNTRY,
@@ -95,6 +97,7 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbStation.COLUMN_MESH_SIZE_SELECTION_DEVICE
             })
             .put(key(RdbSpecification.FORMAT, RdbSpecification.SL_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbSpeciesList.COLUMN_SAMPLING_TYPE,
                     ProductRdbSpeciesList.COLUMN_VESSEL_FLAG_COUNTRY,
                     ProductRdbSpeciesList.COLUMN_LANDING_COUNTRY,
@@ -114,6 +117,7 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbSpeciesList.COLUMN_LENGTH_CODE
             })
             .put(key(RdbSpecification.FORMAT, RdbSpecification.HL_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbSpeciesLength.COLUMN_SAMPLING_TYPE,
                     ProductRdbSpeciesLength.COLUMN_VESSEL_FLAG_COUNTRY,
                     ProductRdbSpeciesLength.COLUMN_LANDING_COUNTRY,
@@ -133,9 +137,11 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbSpeciesLength.COLUMN_NUMBER_AT_LENGTH
             })
             .put(key(RdbSpecification.FORMAT, RdbSpecification.CA_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE
                     // TODO
             })
             .put(key(RdbSpecification.FORMAT, RdbSpecification.CL_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbLanding.COLUMN_VESSEL_FLAG_COUNTRY,
                     ProductRdbLanding.COLUMN_LANDING_COUNTRY,
                     ProductRdbLanding.COLUMN_YEAR,
@@ -160,6 +166,7 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbLanding.COLUMN_OFFICIAL_LANDINGS_VALUE
             })
             .put(key(RdbSpecification.FORMAT, RdbSpecification.CE_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE
                     // TODO
             })
             .build();
@@ -173,7 +180,7 @@ public final class ExtractionTableColumnOrder {
             .build();
 
     /**
-     * COmpute rankOrder
+     * Compute rankOrder, starting at 0
      * @param tableName
      * @param columns
      */
@@ -196,7 +203,7 @@ public final class ExtractionTableColumnOrder {
     }
 
     /**
-     * Compute rankOrder
+     * Compute rankOrder, starting at 0
      * @param tableName
      * @param columns
      */
@@ -205,12 +212,12 @@ public final class ExtractionTableColumnOrder {
     }
 
     /**
-     * Compute rankOrder
+     * Compute rankOrder, starting at 0
      * @param tableName
      * @param columns
      */
     public static void fillRankOrderByFormatAndSheet(String formatLabel, String sheetName, List<ExtractionTableColumnVO> columns) {
-        fillRankOrderByTableName(ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(key(formatLabel, sheetName)), columns);
+        fillRankOrderByTableName(ExtractionTableColumnOrder.COLUMNS_BY_SHEET.get(key(formatLabel, sheetName)), columns);
     }
 
     /* -- internal methods -- */

@@ -43,6 +43,8 @@ import java.util.List;
 @FieldNameConstants
 public class AggregationTypeVO extends ExtractionTypeVO {
 
+    String documentation;
+
     Date updateDate;
     Date creationDate;
 

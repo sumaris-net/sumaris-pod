@@ -25,12 +25,11 @@ package net.sumaris.core.extraction.util;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.format.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.format.specification.AggSpecification;
-import net.sumaris.core.extraction.vo.AggregationContextVO;
-import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -126,6 +125,10 @@ public class ExtractionFormats  {
 
     public static LiveFormatEnum getLiveFormat(IExtractionFormat format) {
         return LiveFormatEnum.valueOf(format.getLabel(), format.getVersion());
+    }
+
+    public static ProductFormatEnum getProductFormat(IExtractionFormat format) {
+        return ProductFormatEnum.valueOf(format.getLabel(), format.getVersion());
     }
 
     public static IExtractionFormat getFormatFromLabel(String label, String version) {

@@ -22,18 +22,15 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
-import com.google.common.base.Joiner;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
@@ -94,26 +91,34 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
     }
 
     @Override
-    public List<ExtractionTableColumnVO> getColumnsBySheetName(int id, String sheetName) {
+    public List<ExtractionTableColumnVO> getColumnsBySheetName(int id, String sheetName, ExtractionTableColumnFetchOptions fetchOptions) {
 
         ExtractionProductVO source = self.get(id, ExtractionProductFetchOptions.MINIMAL);
 
         // Try to find columns from the DB
-        List<ExtractionTableColumnVO> dataColumns = null;
+        List<ExtractionTableColumnVO> columns = null;
         if (StringUtils.isNotBlank(sheetName)) {
-            dataColumns = repository.getColumnsByIdAndTableLabel(id, sheetName);
+            columns = repository.getColumnsByIdAndTableLabel(id, sheetName);
         }
 
-        // If nothing in the DB, find from table metadata
-        if (CollectionUtils.isEmpty(dataColumns)) {
+        // If nothing in the DB, create list from DB metadata
+        if (CollectionUtils.isEmpty(columns)) {
             String tableName = source.findTableNameBySheetName(sheetName)
                     .orElseThrow(() -> new DataRetrievalFailureException(String.format("Product id=%s has no sheetName '%s'", id, sheetName)));
-            dataColumns = tableDao.getColumns(tableName);
 
-            ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source.getFormat(), sheetName, dataColumns);
+            // Get columns
+            columns = tableDao.getColumns(tableName,
+                    ExtractionTableColumnFetchOptions.builder()
+                        .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
+                        .build());
+
+            // Fill rank order, if need
+            if (fetchOptions.isWithRankOrder()) {
+                ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source.getRawFormatLabel(), sheetName, columns);
+            }
         }
 
-        return dataColumns;
+        return columns;
     }
 
 }

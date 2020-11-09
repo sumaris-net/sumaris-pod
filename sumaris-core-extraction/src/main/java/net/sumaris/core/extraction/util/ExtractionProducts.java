@@ -24,7 +24,7 @@ package net.sumaris.core.extraction.util;
 
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
-import net.sumaris.core.extraction.format.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.nuiton.i18n.I18n;

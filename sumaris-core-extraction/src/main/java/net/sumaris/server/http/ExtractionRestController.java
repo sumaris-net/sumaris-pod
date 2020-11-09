@@ -32,7 +32,7 @@ import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.service.ExtractionDocumentationService;
 import net.sumaris.core.extraction.service.ExtractionService;
-import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
@@ -88,12 +88,12 @@ public class ExtractionRestController {
     public static final String DOWNLOAD_WITH_VERSION_PATH = DOWNLOAD_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}/{version}";
 
     // Get documentation paths
-    public static final String MANUAL_BASE_PATH = BASE_PATH + "/manual";
-    public static final String MANUAL_PATH = MANUAL_BASE_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}";
-    public static final String MANUAL_WITH_VERSION_PATH = MANUAL_PATH + "/{version}";
+    public static final String DOC_BASE_PATH = BASE_PATH + "/doc";
+    public static final String DOC_PATH = DOC_BASE_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}";
+    public static final String DOC_WITH_VERSION_PATH = DOC_PATH + "/{version}";
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
-    protected static final String HTML_PREVIEW_PATH = "classpath:static/manual/preview.html";
+    protected static final String HTML_PREVIEW_PATH = "classpath:static/doc/preview.html";
 
     protected static final Collection<MediaType> HTML_MEDIA_TYPES = ImmutableList.of(
             MediaType.TEXT_HTML,
@@ -146,10 +146,10 @@ public class ExtractionRestController {
 
     @GetMapping(
             value = {
-                    MANUAL_PATH,
-                    MANUAL_PATH + EXTENSION_PATH_PARAM,
-                    MANUAL_WITH_VERSION_PATH,
-                    MANUAL_WITH_VERSION_PATH + EXTENSION_PATH_PARAM,
+                    DOC_PATH,
+                    DOC_PATH + EXTENSION_PATH_PARAM,
+                    DOC_WITH_VERSION_PATH,
+                    DOC_WITH_VERSION_PATH + EXTENSION_PATH_PARAM,
             },
             produces = {
                     MediaType.TEXT_MARKDOWN_VALUE,

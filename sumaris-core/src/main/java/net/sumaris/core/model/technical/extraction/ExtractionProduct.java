@@ -31,6 +31,7 @@ import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.util.Beans;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.SortNatural;
 
@@ -47,6 +48,7 @@ import java.util.List;
 @Table(name = "extraction_product")
 @EqualsAndHashCode
 public class ExtractionProduct implements IItemReferentialEntity,
+        IExtractionFormat,
         IWithRecorderPersonEntity<Integer, Person>,
         IWithRecorderDepartmentEntity<Integer, Department> {
 
@@ -115,4 +117,14 @@ public class ExtractionProduct implements IItemReferentialEntity,
     @SortNatural
     private List<ExtractionProductTable> tables = new ArrayList<>();
 
+    @Override
+    public ExtractionCategoryEnum getCategory() {
+        return ExtractionCategoryEnum.PRODUCT;
+    }
+
+    @Override
+    public String[] getSheetNames() {
+        if (tables == null) return null;
+        return tables.stream().map(ExtractionProductTable::getLabel).toArray(String[]::new);
+    }
 }

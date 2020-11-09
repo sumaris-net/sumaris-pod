@@ -38,6 +38,7 @@ import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.util.ExtractionProducts;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.dialect.Dialect;
@@ -88,9 +89,9 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     @Override
-    public List<ExtractionTableColumnVO> getColumns(String tableName) {
+    public List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions) {
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
-        return toProductColumnVOs(table, table.getColumnNames());
+        return toProductColumnVOs(table, table.getColumnNames(), fetchOptions);
     }
 
     @Override
@@ -109,7 +110,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 .collect(Collectors.toList());
 
         // Set columns metadata
-        List<ExtractionTableColumnVO> columns = toProductColumnVOs(table, columnNames);
+        List<ExtractionTableColumnVO> columns = toProductColumnVOs(table, columnNames, ExtractionTableColumnFetchOptions.FULL);
         result.setColumns(columns);
 
         String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
@@ -197,7 +198,9 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         // Set columns metadata
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         if (table != null && table.getColumnsCount() > 0) {
-            List<ExtractionTableColumnVO> columns = toProductColumnVOs(table, columnNames);
+            List<ExtractionTableColumnVO> columns = toProductColumnVOs(table, columnNames,
+                    ExtractionTableColumnFetchOptions.MINIMAL // Not need rankOrder, when agg rows
+            );
             result.setColumns(columns);
 
             whereBuilder.append(SumarisTableMetadatas.getSqlWhereClause(table, filter));
@@ -315,19 +318,31 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         return result;
     }
 
+    /**
+     * Read table metadata, to get column.
+     *
+     * /!\ Important: column order must be the unchanged !! Otherwise getTableGroupByRows() will not work well
+     *
+     * @param table
+     * @param columnNames
+     * @param fetchOptions
+     * @return
+     */
     protected List<ExtractionTableColumnVO> toProductColumnVOs(SumarisTableMetadata table,
-                                                               Collection<String> columnNames) {
+                                                               Collection<String> columnNames,
+                                                               ExtractionTableColumnFetchOptions fetchOptions) {
+
         List<ExtractionTableColumnVO> columns = columnNames.stream()
                 // Get column metadata
                 .map(table::getColumnMetadata)
                 .filter(Objects::nonNull)
-                .sorted(Comparator.comparingInt(SumarisColumnMetadata::getOrdinalPosition))
                 // Transform in VO
                 .map(ExtractionProducts::toProductColumnVO)
                 .collect(Collectors.toList());
 
-
-        ExtractionTableColumnOrder.fillRankOrderByTableName(table.getName(), columns);
+        if (fetchOptions.isWithRankOrder()) {
+            ExtractionTableColumnOrder.fillRankOrderByTableName(table.getName(), columns);
+        }
 
         return columns;
     }

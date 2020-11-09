@@ -25,10 +25,8 @@ package net.sumaris.core.extraction.service;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.technical.extraction.*;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,7 +62,7 @@ public interface ExtractionProductService {
     Optional<ExtractionProductVO> findByLabel(String label, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    List<ExtractionTableColumnVO> getColumnsBySheetName(int id, String sheetName);
+    List<ExtractionTableColumnVO> getColumnsBySheetName(int id, String sheetName, ExtractionTableColumnFetchOptions fetchOptions);
 
     @Transactional
     ExtractionProductVO save(ExtractionProductVO source);

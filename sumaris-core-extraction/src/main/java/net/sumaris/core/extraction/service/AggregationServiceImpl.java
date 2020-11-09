@@ -24,19 +24,22 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
+import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.util.ExtractionFormats;
-import net.sumaris.core.extraction.format.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.util.StringUtils;
@@ -149,37 +152,37 @@ public class AggregationServiceImpl implements AggregationService {
 
         ExtractionProductVO product = productService.getByLabel(type.getLabel(),
                 ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
-        AggregationContextVO context = toContextVO(product, filter != null ? filter.getSheetName() : null);
+
+        // Convert to context VO (need the next read() function)
+        String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
+        AggregationContextVO context = toContextVO(product, sheetName);
 
         return read(context, filter, strata, offset, size, sort, direction);
     }
 
     @Override
-    public AggregationResultVO read(AggregationContextVO context, ExtractionFilterVO filter, AggregationStrataVO strata,
+    public AggregationResultVO read(@NonNull AggregationContextVO context,
+                                    @Nullable ExtractionFilterVO filter,
+                                    @Nullable AggregationStrataVO strata,
                                     int offset, int size, String sort, SortDirection direction) {
         filter = filter != null ? filter : new ExtractionFilterVO();
-        strata = strata != null ? strata : new AggregationStrataVO();
+        strata = strata != null ? strata : (context.getStrata() != null ? context.getStrata() : new AggregationStrataVO());
+        String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
 
-        String tableName;
-        if (StringUtils.isNotBlank(filter.getSheetName())) {
-            tableName = context.getTableNameBySheetName(filter.getSheetName());
-            if (strata.getSheetName() == null) {
-                strata.setSheetName(filter.getSheetName());
-            }
-        } else {
-            tableName = context.getTableNames().iterator().next();
-        }
+        String tableName = StringUtils.isNotBlank(sheetName) ? context.getTableNameBySheetName(sheetName) : null;
 
-        // Missing the expected sheet = no data
+        // Missing the expected sheet = return no data
         if (tableName == null) return createEmptyResult();
 
+        // Force strata and filter to have the same sheet
+        strata.setSheetName(sheetName);
+        filter.setSheetName(sheetName);
+
         // Read the data
-        LiveFormatEnum format = ExtractionFormats.getLiveFormat(context);
+        ProductFormatEnum format = ExtractionFormats.getProductFormat(context);
         switch (format) {
-            case RDB:
-            case COST:
-            case FREE1:
-            case SURVIVAL_TEST:
+            case AGG_RDB:
+            case AGG_SURVIVAL_TEST:
                 return aggregationRdbTripDao.read(tableName, filter, strata, offset, size, sort, direction);
             default:
                 throw new SumarisTechnicalException(String.format("Unable to read data on type '%s': not implemented", context.getLabel()));
@@ -398,15 +401,10 @@ public class AggregationServiceImpl implements AggregationService {
 
         Beans.copyProperties(source, target);
 
-        // Change label and category to lowercase (better for UI client)
-        target.setCategory(ExtractionCategoryEnum.PRODUCT);
+        // Change label to lowercase (better for UI client)
         target.setLabel(source.getLabel().toLowerCase());
 
-        Collection<String> sheetNames = source.getSheetNames();
-        if (CollectionUtils.isNotEmpty(sheetNames)) {
-            target.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
-        }
-
+        // Stratum
         if (CollectionUtils.isNotEmpty(source.getStratum())) {
             target.setStratum(source.getStratum());
         }
@@ -444,7 +442,10 @@ public class AggregationServiceImpl implements AggregationService {
                 table.setIsSpatial(source.hasSpatialColumn(tableName));
 
                 // Columns
-                List<ExtractionTableColumnVO> columns = toProductColumnVOs(source, tableName);
+                List<ExtractionTableColumnVO> columns = toProductColumnVOs(source, tableName,
+                        ExtractionTableColumnFetchOptions.builder()
+                                .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
+                                .build());
 
                 // Fill rank order
                 ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source, sheetName, columns);
@@ -456,11 +457,12 @@ public class AggregationServiceImpl implements AggregationService {
             .collect(Collectors.toList());
     }
 
-    protected List<ExtractionTableColumnVO> toProductColumnVOs(AggregationContextVO context, String tableName) {
+    protected List<ExtractionTableColumnVO> toProductColumnVOs(AggregationContextVO context, String tableName,
+                                                               ExtractionTableColumnFetchOptions fetchOptions) {
 
 
         // Get columns (from table metadata), but exclude hidden columns
-        List<ExtractionTableColumnVO> columns = extractionTableDao.getColumns(tableName);
+        List<ExtractionTableColumnVO> columns = extractionTableDao.getColumns(tableName, fetchOptions);
 
         Set<String> hiddenColumns = Beans.getSet(context.getHiddenColumns(tableName));
         Map<String, List<String>> columnValues = Beans.getMap(context.getColumnValues(tableName));
@@ -485,7 +487,7 @@ public class AggregationServiceImpl implements AggregationService {
 
     protected AggregationContextVO toContextVO(ExtractionProductVO source, String sheetName) {
 
-        AggregationRdbTripContextVO target = new AggregationRdbTripContextVO();
+        AggregationContextVO target = new AggregationContextVO();
 
         target.setId(source.getId());
         target.setLabel(source.getLabel());

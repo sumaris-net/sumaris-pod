@@ -19,11 +19,10 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-function AppManualPreview() {
+function AppDocPreview() {
 
     let restBasePath = '/api/extraction',
         baseUri,
-        inputCategory,
         inputExtractionType,
         previewDiv,
         sourceDiv,
@@ -37,7 +36,7 @@ function AppManualPreview() {
         previewDiv = document.getElementById('preview');
         sourceDiv = document.getElementById('markdown');
 
-        computePreview();
+        updatePreview();
 
         computeBaseUri();
 
@@ -60,7 +59,7 @@ function AppManualPreview() {
         }
     }
 
-    function computePreview(markdown) {
+    function updatePreview(markdown) {
         if (markdown) {
             sourceDiv.innerHTML = markdown;
         }
@@ -90,12 +89,13 @@ function AppManualPreview() {
         const extractionTypePath = inputExtractionType.value;
         console.info("Extraction type changed to: " + extractionTypePath);
 
-        let path = computeBaseUri() + 'manual/';
+        let path = computeBaseUri();
+        path += 'doc/';
 
         path += extractionTypePath.toLowerCase() + '.md';
 
         // Run the request
-        executeRequest(path, computePreview, 'text/markdown');
+        executeRequest(path, updatePreview, 'text/markdown');
     }
 
     function fillExtractionTypes(filterCategory) {
@@ -123,48 +123,31 @@ function AppManualPreview() {
         executeRequest(path, onReceivedResponse, 'application/json');
     }
 
-    function createRequestUri() {
-        let path = computeBaseUri();
-        path += 'manual/';
-
-        // Add category
-        const category = inputCategory.value;
-        path += category + '/';
-
-        // Add extraction type
-        const extractionType = inputExtractionType.value;
-        path += extractionType;
-
-
-        return path;
-    }
-
     function executeRequest(requestUri, callback, acceptHeader) {
-
-        requestUri = requestUri || createRequestUri();
+        if (!requestUri) throw Error('Missing requestUri');
 
         try {
 
             logInfo("GET: " + requestUri, "text-muted");
-            const xmlhttp = new XMLHttpRequest();
+            const request = new XMLHttpRequest();
             const now = Date.now();
-            xmlhttp.onreadystatechange = function () {
-                if (xmlhttp.readyState === XMLHttpRequest.OPENED) {
-                    xmlhttp.setRequestHeader('Accept', acceptHeader || 'application/html, text/markdown, text/plain')
-                } else if (xmlhttp.readyState === XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-                    if (xmlhttp.status === 200) {
+            request.onreadystatechange = function () {
+                if (request.readyState === XMLHttpRequest.OPENED) {
+                    request.setRequestHeader('Accept', acceptHeader || 'application/html, text/markdown, text/plain')
+                } else if (request.readyState === XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+                    if (request.status === 200) {
                         // Send response to callback
-                        callback(xmlhttp.responseText);
-                    } else if (xmlhttp.status === 400 || xmlhttp.status === 404) {
-                        logError('Http error ' + xmlhttp.status + ' (not found)');
+                        callback(request.responseText);
+                    } else if (request.status === 400 || request.status === 404) {
+                        logError('Http error ' + request.status + ' (not found)');
                     } else {
-                        logError('Unknown error (code=' + xmlhttp.status + ')', xmlhttp.error);
+                        logError('Unknown error (code=' + request.status + ')', request.error);
                     }
                 }
             };
 
-            xmlhttp.open("GET", requestUri, true);
-            xmlhttp.send();
+            request.open("GET", requestUri, true);
+            request.send();
 
         } catch (error) {
             console.error(error);

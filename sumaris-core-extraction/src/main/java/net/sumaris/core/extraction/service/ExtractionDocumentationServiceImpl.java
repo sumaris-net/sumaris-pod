@@ -27,17 +27,15 @@ import com.google.common.base.Joiner;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.format.IExtractionFormat;
-import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
+import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
+import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
@@ -62,7 +60,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
     private static final Logger log =
             LoggerFactory.getLogger(ExtractionDocumentationServiceImpl.class);
 
-    protected static final String MANUAL_CLASSPATH_DIR = ResourceLoader.CLASSPATH_URL_PREFIX + "static/manual/md/";
+    protected static final String MANUAL_CLASSPATH_DIR = ResourceLoader.CLASSPATH_URL_PREFIX + "static/doc/md/";
 
 
     @Autowired
@@ -123,9 +121,8 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
 
             // Create the doc file
             if (!fileExists) {
-                // If exists, use comments, or generate new documentation
-                String content = StringUtils.isNotBlank(product.getComments())
-                        ? product.getComments()
+                // If exists, use documentation, or generate from database metadata
+                String content = StringUtils.isNotBlank(product.getDocumentation()) ? product.getDocumentation()
                         : generate(product.getId(), locale);
                 try {
                     FileUtils.write(productFile, content, Charsets.UTF_8);
@@ -172,8 +169,10 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
 
         Beans.getStream(source.getTables()).forEach(table -> {
 
+            String sheetName = table.getLabel();
+
             // Add sub title
-            String sectionName = getI18nTable(locale, source.getFormat(), table);
+            String sectionName = getI18nTable(locale, source.getRawFormatLabel(), table);
             sb.append("## ").append(sectionName).append("\n\n");
 
             if (StringUtils.isNotBlank(table.getDescription())) {
@@ -186,7 +185,13 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
             // If not loaded of not exists
             List<ExtractionTableColumnVO> columns = table.getColumns();
             if (columns == null) {
-                columns = productService.getColumnsBySheetName(source.getId(), table.getLabel());
+                columns = productService.getColumnsBySheetName(source.getId(), table.getLabel(),
+                        ExtractionTableColumnFetchOptions.builder()
+                                .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
+                                .build());
+
+                // Fill rank order (to be able to sort)
+                ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source.getRawFormatLabel(), sheetName, columns);
             }
 
             // Add columns

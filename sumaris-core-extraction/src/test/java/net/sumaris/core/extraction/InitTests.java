@@ -54,7 +54,7 @@ public class InitTests extends net.sumaris.core.test.InitTests {
 
     @Override
     public String getTargetDbDirectory() {
-        return "target/db";
+        return "../sumaris-core/target/db";
     }
 
     @Override

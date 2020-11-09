@@ -28,7 +28,7 @@ import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
-import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.server.security.ExtractionSecurityService;

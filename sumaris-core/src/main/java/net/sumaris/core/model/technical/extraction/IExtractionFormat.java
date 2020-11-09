@@ -20,10 +20,7 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format;
-
-import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
-import net.sumaris.core.util.StringUtils;
+package net.sumaris.core.model.technical.extraction;
 
 public interface IExtractionFormat {
 
@@ -35,7 +32,7 @@ public interface IExtractionFormat {
      * @return
      */
     static String getRawFormatLabel(String label) {
-        return label != null ? StringUtils.changeCaseToUnderscore(label).split("-")[0].toUpperCase() : null;
+        return label != null ? label.split("-")[0].toUpperCase() : null;
     }
 
     String getLabel();

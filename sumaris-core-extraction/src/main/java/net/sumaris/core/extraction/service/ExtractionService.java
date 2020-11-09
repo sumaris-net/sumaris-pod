@@ -22,9 +22,8 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
-import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.extraction.format.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;

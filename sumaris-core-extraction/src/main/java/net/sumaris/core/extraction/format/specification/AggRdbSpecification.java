@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.format.specification;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
+import lombok.NonNull;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 
 import java.util.Map;
@@ -94,4 +95,14 @@ public interface AggRdbSpecification {
             .build();
 
     String[] SHEET_NAMES = {HH_SHEET_NAME, SL_SHEET_NAME, HL_SHEET_NAME, CL_SHEET_NAME};
+
+    /**
+     * Resolve alias, and convert to lower case
+     * @param columnNameOrAlias
+     * @return
+     */
+    static String resolveColumnName(@NonNull String columnNameOrAlias) {
+        columnNameOrAlias = columnNameOrAlias.toLowerCase();
+        return COLUMN_ALIAS.getOrDefault(columnNameOrAlias, columnNameOrAlias);
+    }
 }

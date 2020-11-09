@@ -49,7 +49,7 @@ import net.sumaris.core.extraction.dao.trip.free2.ExtractionFree2TripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
 import net.sumaris.core.extraction.util.ExtractionFormats;
-import net.sumaris.core.extraction.format.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.util.ExtractionProducts;
@@ -60,6 +60,7 @@ import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
@@ -706,15 +707,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Force lower case label (better in UI)
         target.setLabel(source.getLabel().toLowerCase());
-
-        // Force category to product
-        target.setCategory(ExtractionCategoryEnum.PRODUCT);
-
-        // Sheetnames, from product tables
-        Collection<String> sheetNames = source.getSheetNames();
-        if (CollectionUtils.isNotEmpty(sheetNames)) {
-            target.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
-        }
 
         // Recorder department
         target.setRecorderDepartment(source.getRecorderDepartment());

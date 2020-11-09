@@ -33,86 +33,6 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
  */
 public class DatabaseFixtures {
 
-	public String getSchemaVersion() {
-		return "1.0";
-	}
-
-	public String getSchemaVersionIfUpdate() {
-		return "1.0";
-	}
-
-	public int getUserProfileObserver() {
-		return 2;
-	}
-
-	public String getPersonEmail(int index) {
-		Preconditions.checkArgument(index >= 0);
-		switch (index) {
-			case 0:
-				return "benoit.lavenier@e-is.pro";
-			case 1:
-				return "observer@test.sumaris.net";
-
-			default:
-				return "no-reply@sumaris.net";
-		}
-	}
-
-
-	public Integer getVesselId(int index) {
-		Preconditions.checkArgument(index >= 0);
-		switch (index) {
-			case 0:
-				return 1;
-
-			default:
-				return 1;
-		}
-	}
-
-	public Integer getTripId(int index) {
-		Preconditions.checkArgument(index >= 0);
-		switch (index) {
-			case 0:
-				return 1;
-
-			default:
-				return 1;
-		}
-	}
-
-	public Integer getSampleId(int index) {
-		Preconditions.checkArgument(index >= 0);
-		switch (index) {
-			case 0:
-				return 1;
-
-			default:
-				return 1;
-		}
-	}
-
-	public Integer getBatchId(int index) {
-		Preconditions.checkArgument(index >= 0);
-		switch (index) {
-			case 0:
-				return 1;
-
-			default:
-				return 1;
-		}
-	}
-
-	public Integer getLocationPortId(int index) {
-		Preconditions.checkArgument(index >= 0);
-		switch (index) {
-			case 0:
-				return 1;
-
-			default:
-				return 1;
-		}
-	}
 
 	public Integer getDepartmentId(int index) {
 		Preconditions.checkArgument(index >= 0);
@@ -136,47 +56,13 @@ public class DatabaseFixtures {
 				return 1;
 		}
 	}
-
-	public Integer getMetierIdForOTB(int index) {
+	public String getRdbProductLabel(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:
-				return 5;
-			case 1:
-				return 6;
-
 			default:
-				return 1;
+				return "rdb-01";
 		}
-	}
-
-
-	public Integer getMatrixIdForIndividual() {
-		return 2; // INDIV
-	}
-
-	public Integer getTaxonGroupFAOId(int index) {
-		Preconditions.checkArgument(index >= 0);
-		return 1001 + index;
-	}
-
-
-
-    public ProgramVO getDefaultProgram() {
-		ProgramVO program = new ProgramVO();
-		program.setId(1);
-		program.setLabel("SUMARiS");
-		return program;
-	}
-
-	/* -- PMFM -- */
-
-	public Integer getPmfmBatchWeight() {
-		return 50;
-	}
-
-	public Integer getPmfmSampleTagId() {
-		return 82;
 	}
 
 }
