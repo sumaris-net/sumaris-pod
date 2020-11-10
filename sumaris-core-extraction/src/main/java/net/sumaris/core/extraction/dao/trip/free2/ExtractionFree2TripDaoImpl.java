@@ -152,19 +152,19 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
 
         // Program tripFilter
         xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
-        xmlQuery.bind("progLabels", Daos.getSqlInValueFromStringCollection(context.getProgramLabels()));
+        xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
 
         // Location Filter
         xmlQuery.setGroup("locationFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
-        xmlQuery.bind("locationIds", Daos.getSqlInValueFromIntegerCollection(context.getLocationIds()));
+        xmlQuery.bind("locationIds", Daos.getSqlInNumbers(context.getLocationIds()));
 
         // Recorder Department tripFilter
         xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
-        xmlQuery.bind("recDepIds", Daos.getSqlInValueFromIntegerCollection(context.getRecorderDepartmentIds()));
+        xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
 
         // Vessel tripFilter
         xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
-        xmlQuery.bind("vesselIds", Daos.getSqlInValueFromIntegerCollection(context.getVesselIds()));
+        xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
 
         return xmlQuery;
     }

@@ -192,4 +192,34 @@
     </changeSet>
 
 
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-307">
+        <preConditions onFail="MARK_RAN">
+            <and>
+            <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+            <not><sqlCheck expectedResult="0">SELECT count(*) FROM p01_rdb_landing where VESSEL_LENGTH_CATEGORY in ('u10','o40')</sqlCheck></not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE p01_rdb_landing set VESSEL_LENGTH_CATEGORY='>40' where VESSEL_LENGTH_CATEGORY='o40';
+            UPDATE p01_rdb_landing set VESSEL_LENGTH_CATEGORY='0-10' where VESSEL_LENGTH_CATEGORY='u10';
+            commit;
+        </sql>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-308">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <not><sqlCheck expectedResult="0">SELECT count(*) FROM p01_rdb_landing where SPECIES in ('Raja brachyura', 'Raja clavata', 'Raja montagui', 'Raja spp', 'Raja undulata')</sqlCheck></not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE P01_RDB_LANDING set SPECIES='RJH' where SPECIES = 'Raja brachyura';
+            UPDATE P01_RDB_LANDING set SPECIES='RJC' where SPECIES = 'Raja clavata';
+            UPDATE P01_RDB_LANDING set SPECIES='RJM' where SPECIES = 'Raja montagui';
+            UPDATE P01_RDB_LANDING set SPECIES='SKA' where SPECIES = 'Raja spp';
+            UPDATE P01_RDB_LANDING set SPECIES='RJU' where SPECIES = 'Raja undulata';
+            commit;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

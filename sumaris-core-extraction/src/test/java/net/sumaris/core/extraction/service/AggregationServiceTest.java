@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.extraction.DatabaseResource;
+import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
@@ -40,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -181,11 +183,11 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Assert.assertNotNull(savedType.getId());
 
         ExtractionFilterVO filter = new ExtractionFilterVO();
-        filter.setSheetName("HH");
+        filter.setSheetName(AggRdbSpecification.HH_SHEET_NAME);
 
         ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO() ;
-        criterion.setSheetName("HH");
-        criterion.setName("year");
+        criterion.setSheetName(AggRdbSpecification.HH_SHEET_NAME);
+        criterion.setName(AggRdbSpecification.COLUMN_YEAR);
         criterion.setOperator("=");
         criterion.setValue("2018");
         filter.setCriteria(ImmutableList.of(criterion));
@@ -198,6 +200,34 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
         Assert.assertTrue(result.getRows().size() > 0);
+    }
+
+    @Test
+    public void readTechProductRdb() {
+
+        AggregationTypeVO type = new AggregationTypeVO();
+        type.setCategory(ExtractionCategoryEnum.PRODUCT);
+        type.setLabel(fixtures.getRdbProductLabel(0));
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSheetName(RdbSpecification.HH_SHEET_NAME);
+        strata.setAggColumnName(ProductRdbStation.COLUMN_FISHING_TIME);
+        strata.setTechColumnName(ProductRdbStation.COLUMN_GEAR_TYPE);
+
+        ExtractionFilterVO filter = new ExtractionFilterVO();
+        filter.setSheetName(RdbSpecification.HH_SHEET_NAME);
+
+        ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO() ;
+        criterion.setSheetName(RdbSpecification.HH_SHEET_NAME);
+        criterion.setName(RdbSpecification.COLUMN_YEAR);
+        criterion.setOperator("=");
+        criterion.setValue("2018");
+        filter.setCriteria(ImmutableList.of(criterion));
+
+
+        Map<String, Object> result = service.readTech(type, filter, strata, null, null);
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result.size() > 0);
     }
 
     /* -- protected methods --*/

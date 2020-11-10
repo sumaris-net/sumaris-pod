@@ -27,6 +27,8 @@ import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 
+import java.util.Map;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
@@ -36,6 +38,8 @@ public interface AggregationRdbTripDao<C extends AggregationRdbTripContextVO,
     <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata);
 
     AggregationResultVO read(String tableName, F filter, S strata, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    Map<String, Object> readTech(String tableName, F filter, S strata, String sortAttribute, SortDirection direction);
 
     <R extends C> void clean(R context);
 

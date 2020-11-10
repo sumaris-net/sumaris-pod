@@ -250,7 +250,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         rowsFilter.setDistinct(enableDistinct);
 
         // Get rows from exported tables
-        return extractionTableDao.getTableRows(tableName, rowsFilter, offset, size, sort, direction);
+        return extractionTableDao.getRows(tableName, rowsFilter, offset, size, sort, direction);
 
     }
 
@@ -540,7 +540,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         String tableName = ExtractionFormats.getTableName(product, filter.getSheetName());
 
         // Get table rows
-        return extractionTableDao.getTableRows(tableName, filter, offset, size, sort, direction);
+        return extractionTableDao.getRows(tableName, filter, offset, size, sort, direction);
     }
 
     protected File dumpProductToFile(ExtractionProductVO product, ExtractionFilterVO filter) {

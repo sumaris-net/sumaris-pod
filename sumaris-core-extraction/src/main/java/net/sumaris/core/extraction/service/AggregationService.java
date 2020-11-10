@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Create aggregation tables, from a data extraction.
@@ -75,6 +76,12 @@ public interface AggregationService {
                              @Nullable  ExtractionFilterVO filter,
                              @Nullable AggregationStrataVO strata,
                              int offset, int size, String sort, SortDirection direction);
+
+    Map<String, Object> readTech(AggregationTypeVO format,
+                                 ExtractionFilterVO filter,
+                                 AggregationStrataVO strata,
+                                 String sort,
+                                 SortDirection direction);
 
     @Transactional(rollbackFor = IOException.class)
     File executeAndDump(AggregationTypeVO type,

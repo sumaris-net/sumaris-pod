@@ -55,7 +55,7 @@ public class ProductRdbLanding implements Serializable, IEntity<Integer> {
     public static final String COLUMN_EU_METIER_LEVEL5 = ProductRdbStation.COLUMN_EU_METIER_LEVEL5;
     public static final String COLUMN_EU_METIER_LEVEL6 = ProductRdbStation.COLUMN_EU_METIER_LEVEL6;
     public static final String COLUMN_HARBOUR = ProductRdbTrip.COLUMN_HARBOUR;
-    public static final String COLUMN_VESSEL_LENGTH_CATEGORY = "vessel_length_cat";
+    public static final String COLUMN_VESSEL_LENGTH_CATEGORY = "vessel_length_category";
     public static final String COLUMN_UNALLOCATED_CATCH_WEIGHT = "unallocated_catch_weight";
     public static final String COLUMN_AREA_MISREPORTED_CATCH_WEIGHT = "area_misreported_catch_weight";
     public static final String COLUMN_OFFICIAL_LANDINGS_WEIGHT = "official_landings_weight";

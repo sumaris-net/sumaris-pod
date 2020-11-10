@@ -26,8 +26,8 @@ package net.sumaris.core.extraction.dao.technical.table;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -85,21 +85,21 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     @Override
     public ExtractionResultVO getTable(String tableName) {
-        return getTableRows(tableName, null, 0, 0, null, null);
+        return getRows(tableName, null, 0, 0, null, null);
     }
 
     @Override
     public List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions) {
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+        Preconditions.checkNotNull(table, "Unknown table: " + tableName);
         return toProductColumnVOs(table, table.getColumnNames(), fetchOptions);
     }
 
     @Override
-    public ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter,
-                                           int offset, int size, String sort, SortDirection direction) {
-        Preconditions.checkNotNull(tableName);
+    public ExtractionResultVO getRows(@NonNull String tableName, ExtractionFilterVO filter,
+                                      int offset, int size, String sort, SortDirection direction) {
 
-        SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Preconditions.checkNotNull(table, "Unknown table: " + tableName);
 
         ExtractionResultVO result = new ExtractionResultVO();
@@ -179,12 +179,11 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     @Override
-    public ExtractionResultVO getTableGroupByRows(String tableName,
-                                                  ExtractionFilterVO filter,
-                                                  Set<String> groupByColumnNames,
-                                                  final Map<String, SQLAggregatedFunction> otherColumnNames,
-                                                  int offset, int size, String sort, SortDirection direction) {
-        Preconditions.checkNotNull(tableName);
+    public ExtractionResultVO getAggRows(@NonNull String tableName,
+                                         ExtractionFilterVO filter,
+                                         Set<String> groupByColumnNames,
+                                         final Map<String, SQLAggregatedFunction> otherColumnNames,
+                                         int offset, int size, String sort, SortDirection direction) {
 
         ExtractionResultVO result = new ExtractionResultVO();
 
@@ -261,6 +260,46 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         result.setRows(rows);
 
         return result;
+    }
+
+
+
+    @Override
+    public Map<String, Object> getTechRows(String tableName, ExtractionFilterVO filter,
+                                             String aggColumnName,
+                                             SQLAggregatedFunction aggFunction,
+                                             String techColumnName,
+                                             String sortColumn, SortDirection direction) {
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+        Preconditions.checkNotNull(table, "Unknown table: " + tableName);
+
+        final String tableAlias = table != null ? table.getAlias() : null;
+        String tableWithAlias = SumarisTableMetadatas.getAliasedTableName(tableAlias, tableName);
+        String aggColumnNameWithFunction = String.format("%s(COALESCE(%s, 0)) AGG_VALUE",
+                aggFunction.name().toLowerCase(),
+                SumarisTableMetadatas.getAliasedColumnName(tableAlias, aggColumnName));
+
+        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
+
+        direction = direction != null || StringUtils.isNotBlank(sortColumn) ? direction : SortDirection.DESC;
+        sortColumn = StringUtils.isNotBlank(sortColumn) ? SumarisTableMetadatas.getAliasedColumnName(tableAlias, sortColumn) : "AGG_VALUE";
+
+        String sql = SumarisTableMetadatas.getSelectGroupByQuery(
+                tableWithAlias,
+                ImmutableList.of(
+                        SumarisTableMetadatas.getAliasedColumnName(tableAlias, techColumnName),
+                        aggColumnNameWithFunction),
+                whereClause,
+                // Group by
+                ImmutableList.of(techColumnName),
+                // Sort by
+                ImmutableList.of(sortColumn),
+                direction);
+
+        return query(sql, Object[].class)
+                .stream()
+                .filter(row -> row[0] != null)
+                .collect(Collectors.toMap(row -> row[0].toString(), row -> row[1]));
     }
 
     @Override

@@ -70,10 +70,10 @@ public interface AggRdbSpecification {
     String COLUMN_ID = "id";
     String COLUMN_SAMPLE_IDS = "sample_ids";
 
-    Set<String> SPACE_STRATA_COLUMN_NAMES = ImmutableSortedSet.of(COLUMN_AREA, COLUMN_STATISTICAL_RECTANGLE, COLUMN_SUB_POLYGON, COLUMN_SQUARE);
-    Set<String> TIME_STRATA_COLUMN_NAMES = ImmutableSortedSet.of(COLUMN_YEAR, COLUMN_QUARTER, COLUMN_MONTH);
+    Set<String> SPATIAL_COLUMNS = ImmutableSortedSet.of(COLUMN_AREA, COLUMN_STATISTICAL_RECTANGLE, COLUMN_SUB_POLYGON, COLUMN_SQUARE);
+    Set<String> TIME_COLUMNS = ImmutableSortedSet.of(COLUMN_YEAR, COLUMN_QUARTER, COLUMN_MONTH);
 
-    Map<String, Set<String>> AGG_STRATA_BY_SHEETNAME = ImmutableMap.<String, Set<String>>builder()
+    Map<String, Set<String>> AGG_COLUMNS_BY_SHEETNAME = ImmutableMap.<String, Set<String>>builder()
             .put(HH_SHEET_NAME, ImmutableSortedSet.of(
                     COLUMN_FISHING_TIME,
                     COLUMN_STATION_COUNT,

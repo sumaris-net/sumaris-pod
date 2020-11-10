@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import io.leangen.graphql.annotations.GraphQLArgument;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -188,6 +189,33 @@ public class AggregationServiceImpl implements AggregationService {
                 throw new SumarisTechnicalException(String.format("Unable to read data on type '%s': not implemented", context.getLabel()));
         }
 
+    }
+
+    @Override
+    public Map<String, Object> readTech(AggregationTypeVO type,
+                                         ExtractionFilterVO filter,
+                                         AggregationStrataVO strata,
+                                         String sort,
+                                         SortDirection direction) {
+        Preconditions.checkNotNull(type);
+        filter = filter != null ? filter : new ExtractionFilterVO();
+
+        ExtractionProductVO product = productService.getByLabel(type.getLabel(),
+                ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
+
+        // Convert to context VO (need the next read() function)
+        String sheetName = strata != null && strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
+        Preconditions.checkNotNull(sheetName, String.format("Missing 'filter.%s' or 'strata.%s",
+                ExtractionFilterVO.Fields.SHEET_NAME,
+                AggregationStrataVO.Fields.LABEL));
+
+        AggregationContextVO context = toContextVO(product, sheetName);
+
+        strata = strata != null ? strata : (context.getStrata() != null ? context.getStrata() : new AggregationStrataVO());
+
+        String tableName = StringUtils.isNotBlank(sheetName) ? context.getTableNameBySheetName(sheetName) : null;
+
+        return aggregationRdbTripDao.readTech(tableName, filter, strata, sort, direction);
     }
 
     @Override

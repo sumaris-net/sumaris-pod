@@ -52,13 +52,20 @@ public interface ExtractionTableDao {
 
     List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions);
 
-    ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction);
+    ExtractionResultVO getRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction);
 
-    ExtractionResultVO getTableGroupByRows(String tableName,
-                                           ExtractionFilterVO filter,
-                                           Set<String> groupByColumnNames,
-                                           Map<String, SQLAggregatedFunction> otherColumnNames,
-                                           int offset, int size, String sort, SortDirection direction);
+    ExtractionResultVO getAggRows(String tableName,
+                                  ExtractionFilterVO filter,
+                                  Set<String> groupByColumnNames,
+                                  Map<String, SQLAggregatedFunction> otherColumnNames,
+                                  int offset, int size, String sort, SortDirection direction);
+
+    Map<String, Object> getTechRows(String tableName,
+                                              ExtractionFilterVO filter,
+                                              String aggColumnName,
+                                              SQLAggregatedFunction aggFunction,
+                                              String techColumnName,
+                                              String sort, SortDirection direction);
 
     void dropTable(String tableName);
 

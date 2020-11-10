@@ -23,9 +23,11 @@ package net.sumaris.core.extraction.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
@@ -42,6 +44,7 @@ import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.Beans;
@@ -59,9 +62,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -165,6 +166,7 @@ public class AggregationRdbTripDaoImpl<
         return context;
     }
 
+    @Override
     public AggregationResultVO read(String tableName, F filter, S strata,
                                     int offset, int size,
                                     String sortAttribute, SortDirection direction) {
@@ -175,16 +177,16 @@ public class AggregationRdbTripDaoImpl<
         Set<String> groupByColumnNames = getExistingGroupByColumnNames(strata, table);
         Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
 
-        ExtractionResultVO rows = extractionTableDao.getTableGroupByRows(tableName, filter,
+        ExtractionResultVO rows = extractionTableDao.getAggRows(tableName, filter,
                 groupByColumnNames, aggColumns,
                 offset, size, sortAttribute, direction);
 
         AggregationResultVO result = new AggregationResultVO(rows);
 
-        result.setSpaceStrata(SPACE_STRATA_COLUMN_NAMES.stream()
+        result.setSpaceStrata(SPATIAL_COLUMNS.stream()
                 .filter(table::hasColumn)
                 .collect(Collectors.toSet()));
-        result.setTimeStrata(TIME_STRATA_COLUMN_NAMES.stream()
+        result.setTimeStrata(TIME_COLUMNS.stream()
                 .filter(table::hasColumn)
                 .collect(Collectors.toSet()));
         String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
@@ -196,6 +198,59 @@ public class AggregationRdbTripDaoImpl<
         return result;
     }
 
+    @Override
+    public Map<String, Object> readTech(@NonNull String tableName, @NonNull F filter, @NonNull S strata,
+                                          String sortAttribute, SortDirection direction) {
+
+        Preconditions.checkNotNull(strata.getTechColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.TECH_COLUMN_NAME));
+        Preconditions.checkNotNull(strata.getAggColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME));
+
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+
+        Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
+        Map.Entry<String, ExtractionTableDao.SQLAggregatedFunction> aggColumn = aggColumns.entrySet().stream().findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME)));
+
+        return extractionTableDao.getTechRows(tableName, filter,
+                aggColumn.getKey(),
+                aggColumn.getValue(),
+                strata.getTechColumnName(),
+                sortAttribute, direction);
+    }
+
+
+    @Override
+    public <R extends C> void clean(R context) {
+        Set<String> tableNames = ImmutableSet.<String>builder()
+                .addAll(context.getTableNames())
+                .addAll(context.getRawTableNames())
+                .build();
+
+        if (CollectionUtils.isEmpty(tableNames)) return; // Nothing to drop
+
+        tableNames.stream()
+                // Keep only tables with AGG_ prefix
+                .filter(tableName -> tableName != null && tableName.startsWith(TABLE_NAME_PREFIX))
+                .forEach(tableName -> {
+                    try {
+                        extractionTableDao.dropTable(tableName);
+                        databaseMetadata.clearCache(tableName);
+                    }
+                    catch (SumarisTechnicalException e) {
+                        log.error(e.getMessage());
+                        // Continue
+                    }
+                });
+    }
+
+    @Override
+    public <R extends C> void dropHiddenColumns(R context) {
+        Map<String, Set<String>> hiddenColumns = context.getHiddenColumnNames();
+        context.getTableNames().forEach(tableName -> {
+            dropHiddenColumns(tableName, hiddenColumns.get(tableName));
+            databaseMetadata.clearCache(tableName);
+        });
+    }
 
     /* -- protected methods -- */
 
@@ -230,6 +285,9 @@ public class AggregationRdbTripDaoImpl<
 
         // Clean row using filter
         count -= cleanRow(tableName, context.getFilter(), HH_SHEET_NAME);
+
+        // Create an index
+        createDefaultIndex(tableName);
 
         // Analyze row
         Map<String, List<String>> columnValues = null;
@@ -269,17 +327,17 @@ public class AggregationRdbTripDaoImpl<
 
         // Program
         xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
-        xmlQuery.bind("progLabels", Daos.getSqlInValueFromStringCollection(context.getProgramLabels()));
+        xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
 
         // Vessel
         boolean hasVesselFilter = CollectionUtils.isNotEmpty(context.getVesselIds());
         xmlQuery.setGroup("vesselFilter", hasVesselFilter);
-        xmlQuery.bind("vesselIds", Daos.getSqlInValueFromIntegerCollection(context.getVesselIds()));
+        xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
 
         // Trip
         boolean hasTripFilter = CollectionUtils.isNotEmpty(context.getTripCodes());
         xmlQuery.setGroup("tripFilter", hasTripFilter);
-        xmlQuery.bind("tripCodes", Daos.getSqlInValueFromStringCollection(context.getTripCodes()));
+        xmlQuery.bind("tripCodes", Daos.getSqlInEscapedStrings(context.getTripCodes()));
 
         xmlQuery.setGroup("excludeInvalidStation", true);
 
@@ -307,8 +365,8 @@ public class AggregationRdbTripDaoImpl<
         Set<String> groupByColumnNames = Sets.newLinkedHashSet();
 
         if (strata == null) {
-            groupByColumnNames.addAll(SPACE_STRATA_COLUMN_NAMES);
-            groupByColumnNames.addAll(TIME_STRATA_COLUMN_NAMES);
+            groupByColumnNames.addAll(SPATIAL_COLUMNS);
+            groupByColumnNames.addAll(TIME_COLUMNS);
         }
 
         else {
@@ -384,8 +442,9 @@ public class AggregationRdbTripDaoImpl<
 
     protected Set<String> getAggColumnNamesBySheetName(String sheetName) {
         sheetName = sheetName != null ? sheetName : AggRdbSpecification.HH_SHEET_NAME;
-        return AGG_STRATA_BY_SHEETNAME.get(sheetName);
+        return AGG_COLUMNS_BY_SHEETNAME.get(sheetName);
     }
+
 
     protected long createSpeciesListTable(ExtractionProductVO source, C context) {
         String tableName = context.getSpeciesListTableName();
@@ -404,6 +463,9 @@ public class AggregationRdbTripDaoImpl<
 
         // Clean row using generic tripFilter
         count -= cleanRow(tableName, context.getFilter(), SL_SHEET_NAME);
+
+        // Create index
+        createDefaultIndex(tableName);
 
         // Analyze row
         Map<String, List<String>> columnValues = null;
@@ -431,6 +493,8 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.bind("rawSpeciesListTableName", rawSpeciesListTableName);
         xmlQuery.bind("stationTableName", stationTableName);
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
+
+        xmlQuery.bind("speciesTaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.FAO.getId()));
 
         // Enable/Disable group, on DBMS
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
@@ -472,8 +536,8 @@ public class AggregationRdbTripDaoImpl<
         // Create the table
         execute(xmlQuery);
 
-        // Add index
-        queryUpdate(String.format("CREATE INDEX %s_IDX on %s (%s)", tableName, tableName, "SL_ID"));
+        // Create index on SL_ID
+        createIndex(tableName, tableName + "_IDX", ImmutableList.of("SL_ID"), false);
 
         long count = countFrom(tableName);
 
@@ -516,15 +580,15 @@ public class AggregationRdbTripDaoImpl<
 
         // Program
         xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
-        xmlQuery.bind("progLabels", Daos.getSqlInValueFromStringCollection(context.getProgramLabels()));
+        xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
 
         // Vessel
         xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
-        xmlQuery.bind("vesselIds", Daos.getSqlInValueFromIntegerCollection(context.getVesselIds()));
+        xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
 
         // Trip
         xmlQuery.setGroup("tripFilter", CollectionUtils.isNotEmpty(context.getTripCodes()));
-        xmlQuery.bind("tripCodes", Daos.getSqlInValueFromStringCollection(context.getTripCodes()));
+        xmlQuery.bind("tripCodes", Daos.getSqlInEscapedStrings(context.getTripCodes()));
 
         return xmlQuery;
     }
@@ -547,6 +611,9 @@ public class AggregationRdbTripDaoImpl<
 
         // Clean row using generic tripFilter
         count -= cleanRow(tableName, context.getFilter(), RdbSpecification.HL_SHEET_NAME);
+
+        // Create index
+        createDefaultIndex(tableName);
 
         // Analyze row
         Map<String, List<String>> columnValues = null;
@@ -630,6 +697,9 @@ public class AggregationRdbTripDaoImpl<
         // Clean row using generic tripFilter
         count -= cleanRow(tableName, context.getFilter(), CL_SHEET_NAME);
 
+        // Create index
+        createDefaultIndex(tableName);
+
         // Analyze row
         Map<String, List<String>> columnValues = null;
         if (context.isEnableAnalyze()) {
@@ -656,6 +726,8 @@ public class AggregationRdbTripDaoImpl<
 
         xmlQuery.bind("rawLandingTableName", rawLandingTableName);
         xmlQuery.bind("landingTableName", landingTableName);
+
+        xmlQuery.bind("speciesTaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.FAO.getId()));
 
         // Enable/Disable group, on optional columns
         SumarisTableMetadata rawLandingTable = databaseMetadata.getTable(rawLandingTableName);
@@ -768,42 +840,10 @@ public class AggregationRdbTripDaoImpl<
         return xmlQuery.getVisibleColumnNames()
                 .stream()
                 .map(String::toLowerCase)
-                .filter(SPACE_STRATA_COLUMN_NAMES::contains)
+                .filter(SPATIAL_COLUMNS::contains)
                 .collect(Collectors.toSet());
     }
 
-    @Override
-    public <R extends C> void clean(R context) {
-        Set<String> tableNames = ImmutableSet.<String>builder()
-                .addAll(context.getTableNames())
-                .addAll(context.getRawTableNames())
-                .build();
-
-        if (CollectionUtils.isEmpty(tableNames)) return; // Nothing to drop
-
-        tableNames.stream()
-            // Keep only tables with AGG_ prefix
-            .filter(tableName -> tableName != null && tableName.startsWith(TABLE_NAME_PREFIX))
-            .forEach(tableName -> {
-                try {
-                    extractionTableDao.dropTable(tableName);
-                    databaseMetadata.clearCache(tableName);
-                }
-                catch (SumarisTechnicalException e) {
-                    log.error(e.getMessage());
-                    // Continue
-                }
-            });
-    }
-
-    @Override
-    public <R extends C> void dropHiddenColumns(R context) {
-        Map<String, Set<String>> hiddenColumns = context.getHiddenColumnNames();
-        context.getTableNames().forEach(tableName -> {
-            dropHiddenColumns(tableName, hiddenColumns.get(tableName));
-            databaseMetadata.clearCache(tableName);
-        });
-    }
 
     protected void dropHiddenColumns(final String tableName, Set<String> hiddenColumnNames) {
         Preconditions.checkNotNull(tableName);
@@ -813,6 +853,45 @@ public class AggregationRdbTripDaoImpl<
             String sql = String.format("ALTER TABLE %s DROP column %s", tableName, columnName);
             queryUpdate(sql);
         });
+
+    }
+
+    /**
+     * Create common index on a AGG_ table
+     */
+    protected void createDefaultIndex(String tableName) {
+        createIndex(tableName,
+                tableName + "_IDX",
+                new ImmutableList.Builder<String>()
+                        .addAll(TIME_COLUMNS)
+                        .addAll(SPATIAL_COLUMNS)
+                        .build(),
+                false);
+    }
+
+    protected void createIndex(String tableName,
+                               String indexName,
+                               Collection<String> columnNames,
+                               boolean isUnique) {
+
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+
+        // Filter on existing columns
+        columnNames = columnNames.stream()
+                .filter(table::hasColumn)
+                .collect(Collectors.toList());
+
+        // If has columns to index: create the index
+        if (CollectionUtils.isNotEmpty(columnNames)) {
+            super.createIndex(tableName,
+                    indexName,
+                    columnNames,
+                    isUnique
+            );
+        }
+        else {
+            log.debug("Skipping index {} on table {}: no columns to index", indexName, tableName);
+        }
 
     }
 }

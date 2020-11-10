@@ -55,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -171,6 +172,22 @@ public class AggregationGraphQLService {
 
         // Convert to GeoJSON
         return geoJsonConverter.toFeatureCollection(data, strata.getSpatialColumnName());
+    }
+
+    @GraphQLQuery(name = "aggregationTech", description = "Execute an aggregation and return as GeoJson")
+    public Map<String, Object> getAggregationByTech(@GraphQLArgument(name = "type") AggregationTypeVO format,
+                                                      @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                                      @GraphQLArgument(name = "strata") AggregationStrataVO strata,
+                                                      @GraphQLArgument(name = "sortBy") String sort,
+                                                      @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+
+        // Check type
+        final AggregationTypeVO type = aggregationService.getByFormat(format);
+
+        // Check access right
+        securityService.checkReadAccess(type);
+
+        return aggregationService.readTech(type, filter, strata, sort, SortDirection.fromString(direction));
     }
 
     @GraphQLMutation(name = "saveAggregation", description = "Create or update a data aggregation")

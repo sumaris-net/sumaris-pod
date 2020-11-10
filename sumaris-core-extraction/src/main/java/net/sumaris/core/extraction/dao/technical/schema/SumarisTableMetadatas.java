@@ -28,6 +28,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
@@ -174,8 +175,8 @@ public class SumarisTableMetadatas {
             Preconditions.checkArgument(false, "Invalid criterion: 'values' is required for operator 'IN' or 'NOT IN'");
         }
         return isNumericColumn(column) ?
-                Joiner.on(',').join(criterion.getValues()) :
-                "'" + Joiner.on("','").skipNulls().join(criterion.getValues()) + "'";
+                Daos.getSqlInNumbers(criterion.getValues()) :
+                Daos.getSqlInEscapedStrings(criterion.getValues());
     }
 
     public static String getBetweenValueByIndex(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion, int index) {

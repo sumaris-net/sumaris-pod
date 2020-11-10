@@ -26,6 +26,7 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.service.referential.ReferentialService;
 import org.slf4j.Logger;
@@ -36,7 +37,10 @@ import org.springframework.dao.DataRetrievalFailureException;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Query;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -97,6 +101,29 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
         if (log.isDebugEnabled()) log.debug("aggregate: " + query);
         Query nativeQuery = getEntityManager().createNativeQuery(query);
         return nativeQuery.executeUpdate();
+    }
+
+    /**
+     * Create an index
+     * @param tableName
+     * @param indexName
+     * @param columnNames
+     * @param isUnique
+     */
+    protected void createIndex(String tableName,
+                               String indexName,
+                               Collection<String> columnNames,
+                               boolean isUnique) {
+
+        // Create index
+        queryUpdate(String.format("CREATE %sINDEX %s on %s (%s)",
+                isUnique ? "UNIQUE " : "",
+                indexName,
+                tableName,
+                columnNames.stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.joining(","))
+        ));
     }
 
     protected long queryCount(String query) {
