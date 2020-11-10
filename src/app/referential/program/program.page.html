@@ -170,24 +170,12 @@
   </form-buttons-bar>
 </ion-footer>
 
-<!-- FAB Button: add strategy -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-          @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="simpleStrategiesTable.addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
 
-
-
-<!-- TODO : basculer sur strategiesTable via l'option-->
-
-<!--  FAB Button: add strategy 
+<!--  FAB Button: add strategy  -->
 <ion-fab slot="fixed" vertical="bottom" horizontal="end"
 *ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
 visible-xs visible-sm visible-mobile>
 <ion-fab-button color="tertiary" (click)="strategiesTable.addRow()">
 <ion-icon name="add"></ion-icon>
 </ion-fab-button>
-</ion-fab> -->
+</ion-fab> 
