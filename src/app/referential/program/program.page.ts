@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild, OnDestroy} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild, OnDestroy, ComponentFactoryResolver} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
@@ -19,10 +19,8 @@ import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/fie
 import {StrategyForm} from "../strategy/strategy.form";
 import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
 import {debounceTime, filter, first} from "rxjs/operators";
-import {AppFormHolder} from "../../core/form/form.utils";
 import {ProgramProperties} from "../services/config/program.config";
 import {isNotNilOrBlank} from "../../shared/functions";
-import { isBoolean } from 'util';
 
 
 
@@ -95,36 +93,24 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   ngOnInit() {
     super.ngOnInit();
-    
-    // get value option 
-    this.registerSubscription(
-      this.onUpdateView
-        .subscribe(async program => {
-         this.simpleStrategiesOption=  program.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
-    
-                // Listen start opening  simple strategy
-                if(this.simpleStrategiesOption){
-                  this.registerSubscription(this.simpleStrategiesTable.onOpenRow
-                    .subscribe(row => this.openRow(row))); 
-                }
-                    
-                  // Listen start editing strategy
-                if(!this.simpleStrategiesOption){
-                  this.registerSubscription(this.strategiesTable.onStartEditingRow
-                      .subscribe(row => this.onStartEditStrategy(row)));
-                  this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
-                      .subscribe(row => this.onConfirmEditCreateStrategy(row)));
-                  this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
-                      .subscribe(row => this.onCancelOrDeleteStrategy(row)));
 
-                }
-
+    // update simpleStrategiesOption when UpdateView
+    this.onUpdateView
+      .subscribe(async option => {
+        this.simpleStrategiesOption=  option.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
         this.markForCheck();  
-      })
-    );
-
-
+      }
+  ); 
   
+    this.registerSubscription(this.simpleStrategiesTable.onOpenRow
+      .subscribe(row => this.openRow(row))); 
+      this.registerSubscription(this.strategiesTable.onStartEditingRow
+        .subscribe(row => this.onStartEditStrategy(row)));
+    this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
+        .subscribe(row => this.onConfirmEditCreateStrategy(row)));
+    this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
+        .subscribe(row => this.onCancelOrDeleteStrategy(row)));
+
 
     // Set entity name (required for referential form validator)
     this.referentialForm.entityName = 'Program';
@@ -157,13 +143,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       }
     });
 
-    
-    
-       
-  
   }
-
-
 
   /* -- protected methods -- */
 
@@ -197,33 +177,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   protected registerForms() {
-
-    this.registerSubscription(
-      this.onUpdateView
-        .subscribe(async program => {
-         this.simpleStrategiesOption=  program.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
-         if(this.simpleStrategiesOption){
-          this.addChildForms([
-            this.referentialForm,
-            this.propertiesForm,
-            this.simpleStrategiesTable
-          ]);
-        }
-        if (!this.simpleStrategiesOption){
-          this.addChildForms([
-            this.referentialForm,
-            this.propertiesForm, 
-            this.strategiesTable,  
-            this.strategyForm
-          ]);
-        }
-        this.markForCheck();  
-      })
-    );
-
-
-
-   
+    this.addChildForms([
+      this.referentialForm,
+      this.propertiesForm,
+      this.simpleStrategiesTable,
+      this.strategiesTable
+    ]); 
 }
 
   protected setValue(data: Program) {
@@ -232,23 +191,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
     this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
 
-    this.registerSubscription(
-      this.onUpdateView
-        .subscribe(async program => {
-        // simple strategies
-        if(this.simpleStrategiesOption){
-          this.simpleStrategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
-        }
-        // strategies
-        if(!this.simpleStrategiesOption){
-          this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
-        } 
-        this.markForCheck();  
-      })
-    );
+    // simples strategies
+    this.simpleStrategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
 
-
-    this.markAsPristine();
+    // strategies
+    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    
+    this.markForCheck();  
   }
 
   protected async getJsonValueToSave(): Promise<any> {
@@ -440,4 +389,3 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
 }
-
