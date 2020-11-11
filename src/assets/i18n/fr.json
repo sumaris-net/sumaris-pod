@@ -1205,7 +1205,7 @@
     },
     "HELP": {
       "MODAL": {
-        "TITLE": "Aide en ligne > {{name}}",
+        "TITLE": "Aide > {{name}}",
         "DESCRIPTION": "Description",
         "FORMAT": "Format"
       }
@@ -1226,10 +1226,9 @@
       "SPACE": "Géométrie",
       "AGG_VALUE": "Indicateur",
       "TECH_VALUE": "Série du graphique",
-      "DISPLAY_OPTIONS": "Options d'affichage'",
+      "DISPLAY_OPTIONS": "Options d'affichage",
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
-      "STATS": "Statistiques",
       "TECH_CHART_TITLE": "{{aggColumnName}} par {{techColumnName}}",
       "TECH_CHART_ALL_LABELS": "Figer les libellés",
       "LEGEND": "Légende",

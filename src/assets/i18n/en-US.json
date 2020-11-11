@@ -28,6 +28,7 @@
     "BTN_SEARCH": "Search",
     "BTN_NEXT": "Next",
     "BTN_NEXT_SHORT": "Next",
+    "BTN_PREVIEW": "Preview",
     "BTN_BACK": "Back",
     "BTN_SEND": "Send",
     "BTN_OPTIONS": "Options",
@@ -35,6 +36,7 @@
     "BTN_TABLE_EDIT": "Edit in the table",
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",
+    "BTN_HIDE": "Hide",
     "BTN_HIDE_MENU": "Hide menu",
     "BTN_SHOW_MENU": "Show menu",
     "BTN_SHOW_MORE": "Show more",
@@ -137,6 +139,7 @@
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "User profile (min) to access other people data",
+      "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "User profile (min) to access to other people extractions",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -400,6 +403,7 @@
       "QUALITY": "Status",
       "OBSERVERS": "Observers",
       "COMMENTS": "Comments",
+      "NO_LOCAL_RESULT": "No result (in NOT synchronized trips)",
       "FILTER": {
         "PROGRAM": "Data collection program",
         "START_DATE": "Start period",
@@ -421,7 +425,8 @@
       "DELETION_DATE": "Deletion date",
       "INFO": {
         "ONE_TRIP_RESTORED": "Trip successfully restored!",
-        "MANY_TRIPS_RESTORED": "Trips successfully restored!"
+        "MANY_TRIPS_RESTORED": "Trips successfully restored!",
+        "LOCAL_TRASH_CLEANED": "Local trash has been cleaned"
       }
     },
     "ERROR": {
@@ -1152,6 +1157,7 @@
     "SPATIAL_AGGREGATION": "Create a spatial aggregation",
     "BTN_PUBLISH": "Publish",
     "BTN_UNPUBLISH": "Make private",
+    "BTN_OPEN_MAP": "View data on a map",
     "TYPE": "Extraction type",
     "AGGREGATION": {
       "NEW_NAME": "New aggregation / {{name}}",
@@ -1161,7 +1167,11 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
-        "STRATUM": "Stratum:",
+        "STRATUM_DOTS": "Stratum :",
+        "FORMAT_DOTS": "Documentation :",
+        "MARKDOWN_HELP": "Use <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a> format",
+        "FORMAT_PLACEHOLDER": "Documentation",
+        "FORMAT_PREVIEW": "Preview",
         "STRATA": {
           "SHEET_NAME": "Sheet",
           "TIME_COLUMN": "Temporal",
@@ -1205,19 +1215,34 @@
       "NO_FILTER_PARENTHESIS": "(no filter)",
       "WITH_FILTER_PARENTHESIS": "(filtered)"
     },
+    "HELP": {
+      "MODAL": {
+        "TITLE": "Help > {{name}}",
+        "DESCRIPTION": "Description",
+        "FORMAT": "Format"
+      }
+    },
     "MAP": {
       "BTN_SELECT_TYPE": "Map list",
+      "BTN_SELECT_AGG": "Indicator ?",
+      "BTN_ADD_TECH_GRAPH": "Add a chart",
       "BTN_EDIT": "Edit",
       "BTN_ANIMATION_PLAY": "Play animation",
       "BTN_ANIMATION_PAUSE": "Stop animation",
+      "LAYER": "Layer",
+      "LAYERS": "Data layers",
+      "BASE_LAYER": "Base layer",
+      "SHOW_GRATICULE": "Show graticule",
       "FILTER": "Filter",
       "YEAR": "Year",
       "SPACE": "Geomtery",
-      "AGG_VALUE": "Plotted value",
+      "AGG_VALUE": "Indicator",
       "TECH_VALUE": "Technical",
+      "DISPLAY_OPTIONS": "Display options",
       "QUARTER": "Quarter",
       "DETAILS": "Details",
-      "STATS": "Statistics",
+      "TECH_CHART_TITLE": "{{aggColumnName}} by {{techColumnName}}",
+      "TECH_CHART_ALL_LABELS": "Freeze labels",
       "LEGEND": "Legend",
       "LEGEND_FORM": {
         "TITLE": "Parameter",
@@ -1225,49 +1250,40 @@
         "MIN": "Min:",
         "MAX": "Max:"
       },
+      "CHART_TYPE": {
+        "TITLE": "Kind of chart",
+        "PIE" : "Pie",
+        "BAR":  "Histogram",
+        "DOUGHNUT": "Doughnut"
+      },
+      "CHART_SORT_BY": {
+        "TITLE": "Trier par",
+        "LABEL" : "Libellé",
+        "VALUE":  "Valeur"
+      },
       "SELECT_MODAL": {
         "TITLE": "Map list",
         "HELP": "Here is the list of available maps:"
-      },
-      "SHEET": {
-        "TR": "Trips",
-        "HH": "Fishing stations",
-        "SL": "Species list",
-        "HL": "Individual length",
-        "CA": "Sex-Age",
-        "CL": "Landings",
-        "CE": "Efforts",
-        "ST": "Survival tests",
-        "RL": "Releases"
       }
     },
-    "SHEET": {
-      "TR": "Trips (TR)",
-      "HH": "Fishing stations (HH)",
-      "SL": "Species list (SL)",
-      "HL": "Individual length (HL)",
-      "CA": "Sex-Age (CA)",
-      "CL": "Landings (CL)",
-      "CE": "Efforts (CE)",
-      "ST": "Survival tests (ST)",
-      "RL": "Releases (RL)"
-    },
     "CATEGORY": {
-      "PRODUCT": "Fixed product",
-      "LIVE": "Raw data collected"
+      "PRODUCT": "Products",
+      "LIVE": "Real time"
+    },
+    "SHEET": {
+      "TR": "Trips",
+      "HH": "Fishing stations",
+      "SL": "Species list",
+      "HL": "Individual length",
+      "CA": "Sex-Age",
+      "CL": "Commercial landings",
+      "CE": "Efforts",
+      "ST": "Survival tests",
+      "RL": "Releases"
     },
     "PRODUCT": {
       "P01_RDB": {
-        "TITLE": "ICES Data call (RDB v1.3)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Individual length (HL)",
-          "CA": "Sex-Age (CA)",
-          "CL": "Landings (CL)",
-          "CE": "Efforts (CE)"
-        }
+        "TITLE": "ICES Data call (RDB v1.3)"
       }
     },
     "LIVE": {
