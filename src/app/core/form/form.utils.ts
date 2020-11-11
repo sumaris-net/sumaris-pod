@@ -572,6 +572,7 @@ export class FormArrayHelper<T = Entity<any>> {
   }
 
   add(value?: T, options?: { emitEvent: boolean }): boolean {
+    console.debug('TODO');
     return addValueInArray(this._formArray, this.createControl, this.equals, this.isEmpty, value, options);
   }
 

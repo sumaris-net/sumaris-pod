@@ -11,6 +11,10 @@ import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {AggregationTypeForm} from "./aggregation-type.form";
 import {ReferentialModule} from "../../referential/referential.module";
 import {LeafletModule} from "@asymmetrik/ngx-leaflet";
+import {MarkdownModule} from "ngx-markdown";
+import {ExtractionHelpModal} from "./help/help.modal";
+import {TranslateModule} from "@ngx-translate/core";
+import {ChartsModule} from "ng2-charts";
 
 @NgModule({
   imports: [
@@ -18,7 +22,10 @@ import {LeafletModule} from "@asymmetrik/ngx-leaflet";
     CoreModule,
     ReferentialModule,
     ExtractionRoutingModule,
-    LeafletModule
+    LeafletModule,
+    TranslateModule.forChild(),
+    MarkdownModule.forChild(),
+    ChartsModule
   ],
   declarations: [
     AggregationTypePage,
@@ -26,7 +33,8 @@ import {LeafletModule} from "@asymmetrik/ngx-leaflet";
     AggregationTypeSelectModal,
     ExtractionDataPage,
     ExtractionMapPage,
-    ExtractionCriteriaForm
+    ExtractionCriteriaForm,
+    ExtractionHelpModal
   ],
   providers: [
     ExtractionCriteriaValidatorService

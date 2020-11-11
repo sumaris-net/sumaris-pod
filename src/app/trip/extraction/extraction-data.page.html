@@ -2,34 +2,37 @@
 </app-toolbar>
 
 <!-- Types menu -->
-<mat-menu #selectTypeMenu="matMenu" xPosition="after">
-  <button mat-menu-item [matMenuTriggerFor]="liveTypesMenu" translate>EXTRACTION.CATEGORY.LIVE</button>
-  <button mat-menu-item [matMenuTriggerFor]="productTypesMenu" translate>EXTRACTION.CATEGORY.PRODUCT</button>
-</mat-menu>
-
-<!-- Type = live sub menu -->
-<mat-menu #liveTypesMenu="matMenu" xPosition="after">
-  <ng-template matMenuContent>
+<mat-menu #selectTypeMenu="matMenu" xPosition="after" >
+  <!-- only one category -->
+  <ng-container *ngIf="typesByCategory$ | async | isArrayLength: {equals: 1}; else manyCategories">
     <button mat-menu-item
-            *ngFor="let item of $typesMap.live | async"
-            (click)="setType(item)">
+            *ngFor="let type of (typesByCategory$ | async)[0].value"
+            (click)="setType(type)">
       <ion-label class="ion-text-wrap">
-        <ion-icon name="eye-off" *ngIf="item.statusId===2"></ion-icon>&nbsp;
-        <span>{{item.name}}</span>
+        <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
+        <span>{{type.name}}</span>
       </ion-label>
     </button>
+  </ng-container>
+
+  <!-- More than 1 categories -->
+  <ng-template #manyCategories>
+    <button mat-menu-item
+            *ngFor="let item of typesByCategory$ | async"
+            [matMenuTriggerFor]="typesButtons"
+            [matMenuTriggerData]="{types: item.value}"
+    >{{ ('EXTRACTION.CATEGORY.' + item.key) | uppercase | translate }}</button>
   </ng-template>
 </mat-menu>
 
-<!-- Type = product sub menu -->
-<mat-menu #productTypesMenu="matMenu" xPosition="after">
-  <ng-template matMenuContent>
+<mat-menu #typesButtons="matMenu" xPosition="after">
+  <ng-template matMenuContent let-types="types">
     <button mat-menu-item
-            *ngFor="let item of $typesMap.product | async"
-            (click)="setType(item)">
+            *ngFor="let type of types"
+            (click)="setType(type)">
       <ion-label class="ion-text-wrap">
-        <ion-icon name="eye-off" *ngIf="item.statusId===2"></ion-icon>&nbsp;
-        <span>{{item.name}}</span>
+        <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
+        <span>{{type.name}}</span>
       </ion-label>
     </button>
   </ng-template>
@@ -55,35 +58,38 @@
         <mat-icon slot="end">arrow_drop_down</mat-icon>
       </ion-button>
 
-      <button mat-icon-button color="light" [title]="'COMMON.BTN_REFRESH'|translate"
-              (click)="onRefresh.emit()">
-        <mat-icon>refresh</mat-icon>
+      <!-- Show description -->
+      <button mat-icon-button
+              *ngIf="type?.description"
+              [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+              (click)="openHelpModal($event)">
+        <mat-icon>help_outline</mat-icon>
       </button>
-      <button mat-icon-button color="light" [title]="'COMMON.BTN_EDIT'|translate"
+
+      <button mat-icon-button color="light" [matTooltip]="'COMMON.BTN_EDIT'|translate"
               *ngIf="canEdit"
               (click)="openAggregationType(type)">
         <mat-icon>edit</mat-icon>
       </button>
-      <button mat-icon-button *ngIf="canEdit && isAdmin" [title]="'COMMON.BTN_DELETE'|translate"
+      <button mat-icon-button *ngIf="canEdit && isAdmin" [matTooltip]="'COMMON.BTN_DELETE'|translate"
               (click)="deleteAggregation()">
         <mat-icon>delete</mat-icon>
       </button>
-      <button mat-icon-button [title]="'EXTRACTION.BTN_DOWNLOAD_FILE'|translate" (click)="downloadAsFile()" download="true">
+      <button mat-icon-button [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_FILE'|translate" (click)="downloadAsFile()" download="true">
         <mat-icon>get_app</mat-icon>
       </button>
-      <button mat-icon-button [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
+      <button mat-icon-button [matTooltip]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
         <mat-icon>filter_list</mat-icon>
       </button>
-<!--      <button mat-icon-button-->
-<!--              *ngIf="type?.isSpatial"-->
-<!--              [title]="'EXTRACTION.BTN_OPEN_MAP'|translate" (click)="openMap()">-->
-<!--        <mat-icon>-->
-<!--          <ion-icon name="globe"></ion-icon>-->
-<!--        </mat-icon>-->
-<!--      </button>-->
-      <!--<button mat-icon-button color="secondary" [title]="'COMMON.BTN_SHOW_HELP'|translate" (click)="showHelpModal()">-->
-      <!--<mat-icon>help_outline</mat-icon>-->
-      <!--</button>-->
+      <button mat-icon-button
+              *ngIf="type?.isSpatial"
+              [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
+              (click)="openMap($event)">
+        <mat-icon>
+          <ion-icon name="earth"></ion-icon>
+        </mat-icon>
+      </button>
+
 
       <!-- error -->
       <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
@@ -93,16 +99,21 @@
 
       <span class="toolbar-spacer"></span>
 
+      <button mat-icon-button color="light" [matTooltip]="'COMMON.BTN_REFRESH'|translate"
+              (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+
       <ion-button [matMenuTriggerFor]="aggregateMenu"
                   size="small"
                   color="light"
                   *ngIf="!type?.isSpatial"
-                  [title]="'EXTRACTION.BTN_AGGREGATE_HELP'|translate">
+                  [matTooltip]="'EXTRACTION.BTN_AGGREGATE_HELP'|translate">
         <ion-label>{{'EXTRACTION.BTN_AGGREGATE'|translate}}</ion-label>
         <mat-icon slot="end">arrow_drop_down</mat-icon>
       </ion-button>
 
-      <button mat-icon-button [title]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+      <button mat-icon-button [matTooltip]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
         <mat-icon>more_vert</mat-icon>
       </button>
     </mat-toolbar-row>

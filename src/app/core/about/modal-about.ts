@@ -18,10 +18,6 @@ export class AboutModal {
     ) {
     }
 
-    async cancel() {
-        await this.modalController.dismiss();
-    }
-
     async close() {
         await this.modalController.dismiss();
     }

@@ -12,10 +12,13 @@ import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {isNotEmptyArray} from "../../shared/functions";
+import {Observable} from "rxjs";
+import {debounceTime, tap} from "rxjs/operators";
 
 @Component({
   selector: 'app-aggregation-type-page',
   templateUrl: './aggregation-type.page.html',
+  styleUrls: ['./aggregation-type.page.scss'],
   providers: [
     {provide: ValidatorService, useExisting: AggregationTypeValidatorService}
   ],
@@ -24,6 +27,8 @@ import {isNotEmptyArray} from "../../shared/functions";
 export class AggregationTypePage extends AppEntityEditor<AggregationType> implements OnInit {
 
   columns: ExtractionColumn[];
+
+
 
   @ViewChild('typeForm', {static: true}) typeForm: AggregationTypeForm;
 
@@ -56,6 +61,7 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
 
   ngOnInit() {
     super.ngOnInit();
+
 
   }
 

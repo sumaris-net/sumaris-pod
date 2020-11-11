@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
-import {isNil, isNotNil} from '../../shared/functions';
-import {TableDataSource, TableElement} from "@e-is/ngx-material-table";
+import {arrayGroupBy, isNil, isNotNil} from '../../shared/functions';
+import {TableDataSource} from "@e-is/ngx-material-table";
 import {
-  AggregationType,
+  AggregationType, ExtractionCategories,
   ExtractionColumn,
   ExtractionResult,
   ExtractionRow,
@@ -13,7 +13,7 @@ import {TableSelectColumnsComponent} from "../../core/table/table-select-columns
 import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {delay, first, map} from "rxjs/operators";
+import {delay, filter, groupBy, map, mergeMap, toArray} from "rxjs/operators";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionAbstractPage} from "./extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -28,6 +28,9 @@ import {MatTable} from "@angular/material/table";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatExpansionPanel} from "@angular/material/expansion";
+import {SubBatchesModal} from "../batch/modal/sub-batches.modal";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {ExtractionHelpModal} from "./help/help.modal";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -51,7 +54,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
   canAggregate = false;
   isAdmin = false;
 
-  $typesMap: { [category: string]: Observable<ExtractionType[]>};
+  typesByCategory$: Observable<{key: string, value: ExtractionType[]}[]>;
 
   @ViewChild(MatTable, {static: true}) table: MatSort;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -84,11 +87,17 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
 
     super.ngOnInit();
 
-    // Create a map by category (use for type sub menu)
-    this.$typesMap =  ['live', 'product'].reduce((res, category) => {
-      res[category] = this.$types.pipe(map( types => types.filter(t => t.category === category)));
-      return res;
-    }, {});
+    // Create a types map by category (use for type sub menu)
+    this.typesByCategory$ = this.$types
+      .pipe(
+        map(types => arrayGroupBy(types, 'category')),
+        filter(isNotNil),
+        map(groups => {
+          return Object.keys(groups).map(key => {
+            return {key, value: groups[key]};
+          });
+        })
+      );
 
     // If the user changes the sort order, reset back to the first page.
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
@@ -210,22 +219,22 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     return modal.present();
   }
 
-  onCellValueClick($event: MouseEvent, column: ExtractionColumn, value: string) {
+  onCellValueClick(event: MouseEvent, column: ExtractionColumn, value: string) {
     const hasChanged = this.criteriaForm.addFilterCriterion({
       name: column.columnName,
       operator: DEFAULT_CRITERION_OPERATOR,
       value: value,
       sheetName: this.sheetName
     }, {
-      appendValue: $event.ctrlKey
+      appendValue: event.ctrlKey
     });
     if (!hasChanged) return;
 
-    if (!this.filterExpansionPanel.expanded) {
+    if (this.filterExpansionPanel && !this.filterExpansionPanel.expanded) {
       this.filterExpansionPanel.open();
     }
 
-    if (!$event.ctrlKey) {
+    if (!event.ctrlKey) {
       this.onRefresh.emit();
     }
   }
@@ -281,7 +290,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
   async deleteAggregation() {
     if (!this.type || isNil(this.type.id)) return;
 
-    if (this.type.category !== 'product') {
+    if (this.type.category !== ExtractionCategories.PRODUCT) {
       console.warn("[extraction-table] Only product extraction can be deleted !");
       return;
     }
@@ -316,12 +325,18 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
 
   }
 
-  async openMap() {
+  async openMap(event?: UIEvent) {
     if (!this.type || !this.type.isSpatial) return; // Skip
 
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
     // open the map
-    await this.router.navigateByUrl('/map', {
-      queryParams:  this.getFilterAsQueryParams()
+    this.router.navigateByUrl('/extraction/map', {
+      relativeTo: this.route,
+      queryParams: {...this.queryParams, ...this.getFilterAsQueryParams()}
     });
   }
 
@@ -335,6 +350,23 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     // open the aggregation type
     await this.router.navigateByUrl(`/extraction/aggregation/${type.id}`);
 
+  }
+
+  async openHelpModal(event?: UIEvent) {
+    const modal = await this.modalCtrl.create({
+      component: ExtractionHelpModal,
+      componentProps: {
+        type: this.type
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    await modal.onDidDismiss();
   }
 
   /* -- protected method -- */

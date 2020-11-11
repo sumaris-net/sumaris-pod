@@ -159,6 +159,13 @@ export class ColorScale {
   private _rangeSize: number;
   private _legendItems: ColorScaleLegendItem[];
 
+  get min(): number {
+    return this._min;
+  }
+  get max(): number {
+    return this._max;
+  }
+
   constructor(private colorArray: string[], options?: ColorScaleOptions) {
     options = options || {};
     // reserved last colors for value > max

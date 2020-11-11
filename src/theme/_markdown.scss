@@ -1,0 +1,51 @@
+markdown {
+
+  table,
+  table>thead>tr>th,
+  table>thead>tr>td, table>tbody>tr>th, table>tbody>tr>td, table>tfoot>tr>th, table>tfoot>tr>td {
+    border: 1px solid #ddd;
+  }
+
+  table {
+    width: auto;
+    max-width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: transparent;
+
+    & > caption+thead>tr:first-child>th,
+    & > caption+thead>tr:first-child>td,
+    & > colgroup+thead>tr:first-child>th,
+    & > colgroup+thead>tr:first-child>td,
+    & > thead:first-child>tr:first-child>th,
+    & > thead:first-child>tr:first-child>td {
+      border-top: 0;
+    }
+
+    & > thead>tr>th,
+    & > thead>tr>td {
+      border-bottom-width: 2px;
+    }
+
+    &>thead>tr>th {
+      vertical-align: bottom;
+      border-bottom: 2px solid #ddd;
+    }
+    &>thead>tr>th {
+      padding: 8px;
+      border-top: 1px solid #ddd;
+    }
+    th, td {
+      padding: 12px;
+    }
+    th {
+      text-align: left;
+    }
+
+    &>tbody>tr:nth-child(odd)>td,
+    &>tbody>tr:nth-child(odd)>th {
+      background-color: #f9f9f9;
+    }
+  }
+}

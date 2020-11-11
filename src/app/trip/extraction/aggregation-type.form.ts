@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {AppForm, EntityUtils, FormArrayHelper, StatusIds} from "../../core/core.module";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
+import {AppForm, EntityUtils, FormArrayHelper, isNil, StatusIds} from "../../core/core.module";
 import {
   AggregationStrata,
   AggregationType,
@@ -9,7 +9,7 @@ import {
 import {FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../referential/form/referential.form";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {arraySize, isNotEmptyArray} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
@@ -17,6 +17,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {ExtractionService} from "../services/extraction.service";
 import {CommandMap} from "@ionic/cli/lib/namespace";
+import {debounceTime, tap} from "rxjs/operators";
 
 declare type ColumnMap = {[sheetName: string]: ExtractionColumn[] };
 
@@ -44,10 +45,12 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     }
   ];
 
-  stratumHelper: FormArrayHelper<AggregationStrata>;
-
   form: FormGroup;
   stratumFormArray: FormArray;
+  stratumHelper: FormArrayHelper<AggregationStrata>;
+
+  showMarkdownPreview = false;
+  $markdownContent = new BehaviorSubject<string>(undefined);
 
   @Input()
   showError = true;
@@ -75,7 +78,8 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
               protected formBuilder: FormBuilder,
               protected settings: LocalSettingsService,
               protected validatorService: AggregationTypeValidatorService,
-              protected extractionService: ExtractionService) {
+              protected extractionService: ExtractionService,
+              protected cd: ChangeDetectorRef) {
     super(dateAdapter,
       validatorService.getFormGroup(),
       settings);
@@ -85,14 +89,20 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     this.stratumHelper = new FormArrayHelper<AggregationStrata>(
       this.stratumFormArray,
       (strata) => validatorService.getStrataFormGroup(strata),
-      (v1, v2) => EntityUtils.equals(v1, v2, 'id'),
-      ReferentialUtils.isEmpty,
+      (v1, v2) => EntityUtils.equals(v1, v2, 'id') || v1.sheetName == v2.sheetName,
+      (strata) => !strata || isNil(strata.sheetName),
       {
         allowEmptyArray: false
       }
     );
 
-
+    this.registerSubscription(
+      this.form.get('comments').valueChanges
+        .pipe(
+          debounceTime(350)
+        )
+        .subscribe(md => this.$markdownContent.next(md))
+      );
   }
 
   async updateLists(type: AggregationType) {
@@ -149,6 +159,31 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
         label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.DISABLE'
       }
     ];
+
+    this.registerSubscription(
+      this.form.get('isSpatial').valueChanges
+        .subscribe(isSpatial => {
+          console.debug('TODO: spatial=' + isSpatial);
+           // Not need stratum
+           if (!isSpatial) {
+             this.stratumHelper.resize(0)
+             this.stratumHelper.allowEmptyArray = true;
+           }
+           else {
+             if (this.stratumHelper.size() == 0) {
+               this.stratumHelper.resize(1);
+             }
+             this.stratumHelper.allowEmptyArray = false;
+           }
+        })
+    )
+  }
+
+  toggleDocPreview() {
+    this.showMarkdownPreview = !this.showMarkdownPreview;
+    if (this.showMarkdownPreview) {
+      this.markForCheck();
+    }
   }
 
   /* -- protected -- */
@@ -167,5 +202,8 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     super.setValue(data, opts);
   }
 
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 
 }

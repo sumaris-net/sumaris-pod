@@ -2,7 +2,7 @@ import "./vendor";
 
 import {APP_BASE_HREF, CommonModule} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
-import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from "@angular/core";
+import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from "@angular/core";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
@@ -38,6 +38,7 @@ import {CacheModule} from "ionic-cache";
 import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {SharedModule} from "./shared/shared.module";
 import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
+import {MarkdownModule, MarkedOptions} from "ngx-markdown";
 
 
 @NgModule({
@@ -59,6 +60,20 @@ import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-load
         provide: TranslateLoader,
         useFactory: HttpTranslateLoaderFactory,
         deps: [HttpClient]
+      }
+    }),
+    MarkdownModule.forRoot({
+      loader: HttpClient, // Allow to load using [src]
+      sanitize: SecurityContext.NONE,
+      markedOptions: {
+        provide: MarkedOptions,
+        useValue: {
+          gfm: true,
+          breaks: false,
+          pedantic: false,
+          smartLists: true,
+          smartypants: false,
+        },
       }
     }),
 
@@ -125,10 +140,14 @@ import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-load
           titleProperty: 'sumaris.observedLocation.name'
         },
 
+        // Data access (guest only)
+        {title: 'MENU.DATA_ACCESS_DIVIDER', exactProfile: 'GUEST'},
+        {title: 'MENU.DOWNLOADS', path: '/extraction', icon: 'cloud-download', exactProfile: 'GUEST'},
+
         // Data extraction
-        {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
-        {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'cloud-download', profile: 'SUPERVISOR'},
-        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', profile: 'SUPERVISOR'},
+        {title: 'MENU.DATA_ACCESS_DIVIDER', profile: 'USER'},
+        {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', profile: 'USER'},
+        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', profile: 'USER'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},

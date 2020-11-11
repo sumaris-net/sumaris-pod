@@ -20,7 +20,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field [clearable]="false"
-                                placeholder="{{ ('EXPENSE.' + expenseType.toUpperCase() + '.PACKAGING') | translate }}"
+                                placeholder="{{ ('EXPENSE.' + (expenseType | uppercase) + '.PACKAGING') | translate }}"
                                 [config]="autocompleteFields.packaging"
                                 formControlName="packaging">
         </mat-autocomplete-field>

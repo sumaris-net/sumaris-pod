@@ -2,7 +2,7 @@ import {Directive, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {
-  AggregationType,
+  AggregationType, ExtractionCategories,
   ExtractionColumn,
   ExtractionFilter,
   ExtractionType,
@@ -325,7 +325,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   }
 
   protected canUserWrite(type: ExtractionType): boolean {
-    return type.category === "product" && (
+    return type.category === ExtractionCategories.PRODUCT && (
       this.accountService.isAdmin()
       || (this.accountService.isSupervisor() && this.accountService.canUserWriteDataForDepartment(type.recorderDepartment)));
   }
@@ -344,7 +344,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     // Try from generic translation
     key = `EXTRACTION.SHEET.${sheetName}`;
     message = self.translate.instant(key);
-    if (message !== key) return message;
+    if (message !== key) {
+      // Append sheet name
+      return (sheetName.length === 2) ? `${message} (${sheetName})` : message;
+    }
 
     // No translation found: replace underscore with space
     return sheetName.replace(/[_-]+/g, " ").toUpperCase();
@@ -355,21 +358,29 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
 
     const i19nPrefix = `EXTRACTION.TABLE.${this.type.category.toUpperCase()}.`;
     const names = columns.map(column => (column.name || column.columnName).toUpperCase());
+
     const i18nKeys = names.map(name => i19nPrefix + name)
-      .concat(names.map(name => `EXTRACTION.COMMON.${name}`));
+      .concat(names.map(name => `EXTRACTION.COLUMNS.${name}`));
+
     const i18nMap = this.translate.instant(i18nKeys);
     columns.forEach((column, i) => {
+
       let key = i18nKeys[i];
       column.name = i18nMap[key];
+
       // No I18n translation
       if (column.name === key) {
+
         // Try to get common translation
         key = i18nKeys[names.length + i];
         column.name = i18nMap[key];
 
+        // Or split column name
         if (column.name === key) {
-          // Or split column name, by replacing underscore by a space
+
+          // Replace underscore with space
           column.name = column.columnName.replace(/[_-]+/g, " ").toLowerCase();
+
           // First letter as upper case
           if (column.name.length > 1) column.name = capitalizeFirstLetter(column.name);
         }
@@ -378,7 +389,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
 
   }
 
-  getI18nColumnName(columnName: string) {
+  getI18nColumnName(columnName?: string) {
+    if (!columnName) return '';
     let key = `EXTRACTION.TABLE.${this.type.category.toUpperCase()}.${columnName.toUpperCase()}`;
     let message = this.translate.instant(key);
 
@@ -386,11 +398,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     if (message === key) {
 
       // Try to get common translation
-      key = `EXTRACTION.COMMON.${columnName.toUpperCase()}`;
+      key = `EXTRACTION.TABLE.COLUMNS.${columnName.toUpperCase()}`;
       message = this.translate.instant(key);
 
       // Or split column name
       if (message === key) {
+
         // Replace underscore with space
         message = columnName.replace(/[_-]+/g, " ").toUpperCase();
         if (message.length > 1) {

@@ -228,6 +228,7 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
 
   protected markForCheck() {
     // Should be override by subclasses
+    console.warn("markForCheck() has been called, but is not overwritten by component " + this.constructor.name);
   }
 
 }

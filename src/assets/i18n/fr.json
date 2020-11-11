@@ -28,6 +28,7 @@
     "BTN_SEARCH": "Rechercher",
     "BTN_NEXT": "Suivant",
     "BTN_NEXT_SHORT": "Suiv.",
+    "BTN_PREVIEW": "Prévisualiser",
     "BTN_BACK": "Retour",
     "BTN_SEND": "Envoyer",
     "BTN_OPTIONS": "Options",
@@ -35,6 +36,7 @@
     "BTN_TABLE_EDIT": "Editer dans le tableau",
     "BTN_TABLE_OPEN": "Editer dans un formulaire",
     "BTN_SHOW_HELP": "Voir l'aide",
+    "BTN_HIDE": "Masquer",
     "BTN_HIDE_MENU": "Masquer le menu",
     "BTN_SHOW_MENU": "Afficher le menu",
     "BTN_SHOW_MORE": "Afficher plus",
@@ -137,6 +139,7 @@
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux données des autres",
+      "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux extractions des autres",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
@@ -181,8 +184,9 @@
     "HOME": "Accueil",
     "TESTING": "Mode développeur",
     "TRIPS": "Marées",
+    "DOWNLOADS": "Téléchargements",
     "DATA_ENTRY_DIVIDER": "Saisie de données",
-    "EXTRACTION_DIVIDER": "Extractions",
+    "DATA_ACCESS_DIVIDER": "Accès aux données",
     "OBSERVED_LOCATIONS": "Observations",
     "AUCTION_CONTROL": "Contrôles en criée",
     "ADMINISTRATION_DIVIDER": "Administration",
@@ -1147,12 +1151,13 @@
     }
   },
   "EXTRACTION": {
-    "BTN_DOWNLOAD_FILE": "Télécharger le fichier CSV",
+    "BTN_DOWNLOAD_FILE": "Télécharger les données (CSV)",
     "BTN_AGGREGATE": "Aggréger",
     "BTN_AGGREGATE_HELP": "Permet de créer un produit aggrégé",
     "SPATIAL_AGGREGATION": "Créer une aggrégation spatiale",
     "BTN_PUBLISH": "Rendre public",
     "BTN_UNPUBLISH": "Rendre privé",
+    "BTN_OPEN_MAP": "Visualiser les données sur une carte",
     "TYPE": "Type d'extraction",
     "AGGREGATION": {
       "NEW_NAME": "Nouvelle aggregation / {{name}}",
@@ -1162,9 +1167,13 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
-        "STRATUM": "Strates :",
+        "STRATUM_DOTS": "Strates :",
+        "FORMAT_DOTS": "Documentation :",
+        "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
+        "FORMAT_PLACEHOLDER": "Documentation du format",
+        "FORMAT_PREVIEW": "Prévisualisation",
         "STRATA": {
-          "SHEET_NAME": "Table",
+          "SHEET_NAME": "Onglet",
           "TIME_COLUMN": "Temps",
           "SPACE_COLUMN": "Geometrie",
           "AGG_COLUMN": "Cumul",
@@ -1182,18 +1191,6 @@
         }
       }
     },
-    "COMMON": {
-      "VESSEL_FLAG_COUNTRY": "Pavillon",
-      "HARBOUR": "Port",
-      "PROJECT": "Projet",
-      "YEAR": "Année",
-      "QUARTER": "Trimestre",
-      "MONTH": "Mois",
-      "AREA": "Zone",
-      "STATISTICAL_RECTANGLE": "Rectangle statistique",
-      "SQUARE": "Carré 10'x10'",
-      "SUB_POLYGGON": "Sous-rectangle"
-    },
     "FILTER": {
       "TITLE": "Filtrer les données :",
       "CRITERION_NAME": "Critère de filtre",
@@ -1206,19 +1203,34 @@
       "NO_FILTER_PARENTHESIS": "(non filtrés)",
       "WITH_FILTER_PARENTHESIS": "(filtrés)"
     },
+    "HELP": {
+      "MODAL": {
+        "TITLE": "Aide en ligne > {{name}}",
+        "DESCRIPTION": "Description",
+        "FORMAT": "Format"
+      }
+    },
     "MAP": {
       "BTN_SELECT_TYPE": "Liste des cartes",
+      "BTN_SELECT_AGG": "Indicateur ?",
+      "BTN_ADD_TECH_GRAPH": "Ajouter un graphique",
       "BTN_EDIT": "Editer",
       "BTN_ANIMATION_PLAY": "Lancer l'animation",
       "BTN_ANIMATION_PAUSE": "Stopper l'animation",
+      "LAYER": "Couche",
+      "LAYERS": "Couches de données",
+      "BASE_LAYER": "Fond de carte",
+      "SHOW_GRATICULE": "Afficher le graticule",
       "FILTER": "Filtrage",
       "YEAR": "Année",
       "SPACE": "Géométrie",
-      "AGG_VALUE": "Valeur représentée",
-      "TECH_VALUE": "Technique",
+      "AGG_VALUE": "Indicateur",
+      "TECH_VALUE": "Série du graphique",
+      "DISPLAY_OPTIONS": "Options d'affichage'",
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
       "STATS": "Statistiques",
+      "TECH_CHART_TITLE": "Répartition par {{title}}",
       "LEGEND": "Légende",
       "LEGEND_FORM": {
         "TITLE": "Paramètres",
@@ -1226,49 +1238,67 @@
         "MIN": "Min :",
         "MAX": "Max :"
       },
+      "CHART_TYPE": {
+        "TITLE": "Type de graphique",
+        "PIE" : "Camenbert",
+        "BAR":  "Histogramme",
+        "DOUGHNUT": "Donut"
+      },
+      "CHART_SORT_BY": {
+        "TITLE": "Trier par",
+        "LABEL" : "Libellé",
+        "VALUE":  "Valeur"
+      },
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",
-        "HELP": "Voici la liste des cartes disponibles :"
-      },
-      "SHEET": {
-        "TR": "Marées",
-        "HH": "Opérations",
-        "SL": "Captures",
-        "HL": "Mensurations",
-        "CA": "Sex-Age",
-        "CL": "Débarquements",
-        "CE": "Effort",
-        "ST": "Tests de survie",
-        "RL": "Relachés"
+        "HELP": "Vo ici la liste des cartes disponibles :"
       }
     },
-    "SHEET": {
-      "TR": "Marées (TR)",
-      "HH": "Opérations (HH)",
-      "SL": "Captures (SL)",
-      "HL": "Mensurations (HL)",
-      "CA": "Sex-Age (CA)",
-      "CL": "Débarquements (CL)",
-      "CE": "Efforts (CE)",
-      "ST": "Tests de survie (ST)",
-      "RL": "Relachés (RL)"
-    },
     "CATEGORY": {
-      "PRODUCT": "Produit figé",
-      "LIVE": "Données brutes collectées"
+      "PRODUCT": "Produits",
+      "LIVE": "Temps réel"
+    },
+    "COLUMNS": {
+      "VESSEL_FLAG_COUNTRY": "Pavillon",
+      "LANDING_COUNTRY": "Pays de débarquement",
+      "RECORD_TYPE": "Type",
+      "HARBOUR": "Port",
+      "PROJECT": "Projet",
+      "YEAR": "Année",
+      "QUARTER": "Trimestre",
+      "MONTH": "Mois",
+      "AREA": "Zone",
+      "STATISTICAL_RECTANGLE": "Rectangle statistique",
+      "SQUARE": "Carré 10'x10'",
+      "SUB_POLYGON": "Sous-rectangle",
+      "SPECIES": "Espèce",
+      "OFFICIAL_LANDING_WEIGHT": "Poids débarqué officiel",
+      "COMMERCIAL_SIZE_CATEGORY": "Catégorie commerciale",
+      "COMMERCIAL_SIZE_CATEGORY_SCALE": "Type de catégorie commerciale",
+      "VESSEL_LENGTH_CATEGORY": "Classe de taille du navire",
+      "VESSEL_LENGTH_CLASS": "Classe de taille du navire",
+      "GEAR_TYPE": "Engin",
+      "LENGTH_CLASS": "Classe de taille",
+      "CATCH_CATEGORY": "Débarquement/Rejet",
+      "LANDING_CATEGORY": "Destination du débarquement",
+      "NUMBER_AT_LENGTH": "Nombre d'individu",
+      "INDIVIDUAL_SEX": "Sex individu",
+      "SEX": "Sex"
+    },
+    "SHEET": {
+      "TR": "Marées",
+      "HH": "Stations",
+      "SL": "Captures",
+      "HL": "Mensurations",
+      "CA": "Sex-Age",
+      "CL": "Débarquements",
+      "CE": "Efforts",
+      "ST": "Tests de survie",
+      "RL": "Relachés"
     },
     "PRODUCT": {
       "P01_RDB": {
-        "TITLE": "Appel à données CIEM (RDB v1.3)",
-        "SHEET": {
-          "TR": "Marées (TR)",
-          "HH": "Opérations (HH)",
-          "SL": "Captures (SL)",
-          "HL": "Mensurations (HL)",
-          "CA": "Sex-Age (CA)",
-          "CL": "Débarquements (CL)",
-          "CE": "Efforts (CE)"
-        }
+        "TITLE": "Appel à données CIEM (RDB v1.3)"
       }
     },
     "LIVE": {

@@ -181,8 +181,9 @@
     "HOME": "Home",
     "TESTING": "Developer mode",
     "TRIPS": "Trips",
+    "DOWNLOADS": "Downloads",
     "DATA_ENTRY_DIVIDER": "Data entry",
-    "EXTRACTION_DIVIDER": "Extractions",
+    "DATA_ACCESS_DIVIDER": "Data access",
     "OBSERVED_LOCATIONS": "Observations",
     "AUCTION_CONTROL": "Auction control",
     "ADMINISTRATION_DIVIDER": "Administration",
@@ -1160,7 +1161,9 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
+        "STRATUM": "Stratum:",
         "STRATA": {
+          "SHEET_NAME": "Sheet",
           "TIME_COLUMN": "Temporal",
           "SPACE_COLUMN": "Geometry",
           "AGG_COLUMN": "Agg column",
@@ -1181,10 +1184,14 @@
     "COMMON": {
       "VESSEL_FLAG_COUNTRY": "Vessel country flag",
       "HARBOUR": "Harbour",
-      "YEAR": "Year",
       "PROJECT": "Project",
+      "YEAR": "Year",
+      "QUARTER": "Quarter",
+      "MONTH": "Month",
       "AREA": "Area",
-      "STATISTICAL_RECTANGLE": "Statistical rectangle"
+      "STATISTICAL_RECTANGLE": "Statistical rectangle",
+      "SQUARE": "Square 10'x10'",
+      "SUB_POLYGGON": "Sub-polygon"
     },
     "FILTER": {
       "TITLE": "Filter criteria:",
@@ -1221,6 +1228,17 @@
       "SELECT_MODAL": {
         "TITLE": "Map list",
         "HELP": "Here is the list of available maps:"
+      },
+      "SHEET": {
+        "TR": "Trips",
+        "HH": "Fishing stations",
+        "SL": "Species list",
+        "HL": "Individual length",
+        "CA": "Sex-Age",
+        "CL": "Landings",
+        "CE": "Efforts",
+        "ST": "Survival tests",
+        "RL": "Releases"
       }
     },
     "SHEET": {

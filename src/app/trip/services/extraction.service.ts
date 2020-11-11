@@ -7,7 +7,7 @@ import {map} from "rxjs/operators";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {
-  AggregationType,
+  AggregationType, ExtractionCategories,
   ExtractionColumn,
   ExtractionFilter,
   ExtractionFilterCriterion,
@@ -16,15 +16,16 @@ import {
   StrataAreaType,
   StrataTimeType
 } from "./model/extraction.model";
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService, WatchQueryOptions} from "../../core/services/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "./trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
+import {firstNotNilPromise} from "../../shared/observables";
 
 
 export const ExtractionFragments = {
@@ -33,6 +34,8 @@ export const ExtractionFragments = {
     category
     label
     name
+    description
+    comments
     version
     sheetNames
     isSpatial
@@ -41,8 +44,7 @@ export const ExtractionFragments = {
       ...LightDepartmentFragment
     }
   }
-  ${Fragments.lightDepartment}
-  `,
+  ${Fragments.lightDepartment}`,
   aggregationType: gql`fragment AggregationTypeFragment on AggregationTypeVO {
     id
     category
@@ -51,6 +53,7 @@ export const ExtractionFragments = {
     version
     sheetNames
     description
+    creationDate
     updateDate
     comments
     isSpatial
@@ -66,11 +69,11 @@ export const ExtractionFragments = {
       aggFunction
       techColumnName
     }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
     recorderPerson {
       ...LightPersonFragment
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
     }
   }
   ${Fragments.lightDepartment}
@@ -93,18 +96,9 @@ export declare interface CustomAggregationStrata {
   aggColumnName?: string;
   aggFunction?: string;
 }
-//
-// export declare class ExtractionFilterCriterion {
-//   sheetName?: string;
-//   name?: string;
-//   operator: string;
-//   value?: string;
-//   values?: string[];
-//   endValue?: string;
-// }
 
 const LoadTypes: any = gql`
-  query ExtractionTypes{
+  query ExtractionTypes {
     extractionTypes {
       ...ExtractionTypeFragment
     }
@@ -173,6 +167,15 @@ const LoadAggregationGeoJsonQuery = gql`
       )
   }`;
 
+const LoadAggregationTechQuery = gql`
+  query AggregationTech(
+    $type: AggregationTypeVOInput,
+    $filter: ExtractionFilterVOInput,
+    $strata: AggregationStrataVOInput,
+    $sortBy: String, $sortDirection: String) {
+      aggregationTech(type: $type, filter: $filter, strata: $strata, sortBy: $sortBy, sortDirection: $sortDirection)
+  }`;
+
 const SaveAggregation: any = gql`
   mutation SaveAggregation($type: AggregationTypeVOInput, $filter: ExtractionFilterVOInput){
     saveAggregation(type: $type, filter: $filter){
@@ -225,22 +228,14 @@ export class ExtractionService extends BaseEntityService {
   /**
    * Load extraction types
    */
-  async loadTypes(): Promise<ExtractionType[]> {
-    if (this._debug) console.debug("[extraction-service] Loading extraction types...");
-
-    const data = await this.graphql.query<{ extractionTypes: ExtractionType[] }>({
-      query: LoadTypes,
-      variables: {},
-      error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"}
-    });
-
-    return (data && data.extractionTypes || []).map(ExtractionType.fromObject);
+  async loadExtractionTypes(): Promise<ExtractionType[]> {
+    return await firstNotNilPromise(this.watchExtractionTypes());
   }
 
   /**
-   * Load extraction types
+   * Watch extraction types
    */
-  watchExtractionTypes(): Observable<ExtractionType[]> {
+  watchExtractionTypes(opts?: { fetchPolicy?: WatchQueryFetchPolicy }): Observable<ExtractionType[]> {
     let now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading extraction types...");
 
@@ -249,7 +244,8 @@ export class ExtractionService extends BaseEntityService {
       query: LoadTypes,
       arrayFieldName: 'extractionTypes',
       variables: {},
-      error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"}
+      error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"},
+      ...opts
     })
       .pipe(
         map((data) => {
@@ -392,10 +388,10 @@ export class ExtractionService extends BaseEntityService {
   }
 
   /**
-   * Load spatial types
+   * Load aggregated spatial types
    */
   watchAggregationTypes(dataFilter?: AggregationTypeFilter,
-                        options?: { fetchPolicy?: FetchPolicy }
+                        options?: { fetchPolicy?: WatchQueryFetchPolicy }
   ): Observable<AggregationType[]> {
     if (this._debug) console.debug("[extraction-service] Loading geo types...");
 
@@ -466,6 +462,27 @@ export class ExtractionService extends BaseEntityService {
     });
 
     return (res && res.aggregationGeoJson as FeatureCollection) || null;
+  }
+
+  async loadAggregationTech(type: ExtractionType, strata: CustomAggregationStrata, filter: ExtractionFilter,
+                            options?: { fetchPolicy?: FetchPolicy; }): Promise<Map<string, any>> {
+    const variables: any = {
+      type: {
+        category: type.category,
+        label: type.label
+      },
+      strata: strata,
+      filter: filter
+    };
+
+    const res = await this.graphql.query<{ aggregationTech: Map<string, any> }>({
+      query: LoadAggregationTechQuery,
+      variables: variables,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_DATA_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_DATA_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || 'network-only'
+    });
+
+    return (res && res.aggregationTech as Map<string, any>) || null;
   }
 
   prepareFilter(source?: ExtractionFilter | any): ExtractionFilter {
@@ -559,8 +576,8 @@ export class ExtractionService extends BaseEntityService {
             if (this._debug) console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
           }
 
-          // Always force category, as sourceType could NOT be a live extraction
-          savedEntity.category = 'product';
+          // Always force category, as source type could NOT be a live extraction
+          savedEntity.category = ExtractionCategories.PRODUCT;
           savedEntity.isSpatial = entity.isSpatial;
 
           // Add to cached queries

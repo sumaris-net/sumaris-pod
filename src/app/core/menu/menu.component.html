@@ -105,11 +105,11 @@
         </ion-title>
 
         <ion-buttons slot="end">
-          <ion-button color="accent" (click)="toggleSplitPane($event)"
+          <button mat-icon-button color="accent" (click)="toggleSplitPane($event)"
                       class="hidden-xs hidden-sm hidden-md"
                       [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
-            <h2 slot="icon-only">{{splitPaneOpened ? '&#xab;' : '&#xbb;'}}</h2>
-          </ion-button>
+            <mat-icon><span>{{splitPaneOpened ? '&#xab;' : '&#xbb;'}}</span></mat-icon>
+          </button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>

@@ -1,4 +1,9 @@
-.strata-row.odd {
-  background-color: var(--ion-color-light, grey);
-  padding: 8px;
+.strata-row {
+  padding-top: 4px;
+  padding-left: 8px;
+
+  &.odd {
+    background-color: var(--ion-color-light, grey);
+  }
+
 }
