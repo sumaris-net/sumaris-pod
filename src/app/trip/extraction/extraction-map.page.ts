@@ -445,7 +445,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     }, {});
 
     const columnsMap = ExtractionUtils.dispatchColumns(columns);
-    console.debug("dispatched columns: ", columnsMap);
+    console.debug("[extraction-map] dispatched columns: ", columnsMap);
 
     this.$aggColumns.next(columnsMap.aggColumns);
     this.$techColumns.next(columnsMap.techColumns);
@@ -664,8 +664,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
       let entries = Object.entries(map);
 
+      const firstEntry = entries.length ? entries[0] : undefined;
+      // If label are number: always sort by value (ASC)
+      if (firstEntry && (firstEntry[0] !== 'string')) {
+        entries = entries.sort((a, b) => a[0] > b[0] ? -1 : 1);
+      }
       // Sort by label (ASC)
-      if (this.techChartOptions.sortByLabel) {
+      else if (this.techChartOptions.sortByLabel) {
         entries = entries.sort((a, b) => a[0] > b[0] ? 1 : -1);
       }
       // Sort by value (DESC)

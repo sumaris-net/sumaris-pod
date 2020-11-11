@@ -297,9 +297,14 @@ export class ExtractionUtils {
       || c.columnName.endsWith('_length')
       || c.columnName.endsWith('_value')));
 
-    const excludedFilterColumns = spatialColumns.concat(timeColumns);
-    const techColumns = columns.filter(c => !excludedFilterColumns.includes(c) && c.type === 'string');
-    const criteriaColumns = columns.filter(c => !excludedFilterColumns.includes(c));
+    const excludedFilterColumns = spatialColumns
+      .concat(timeColumns);
+
+    const techColumns = columns.filter(c => !excludedFilterColumns.includes(c)
+      && !IGNORED_COLUMNS.includes(c.columnName)
+      && (c.type === 'string' || (c.columnName.endsWith('_class'))));
+    const criteriaColumns = columns.filter(c => !excludedFilterColumns.includes(c)
+      && !IGNORED_COLUMNS.includes(c.columnName));
 
     return {
       timeColumns,
