@@ -9,7 +9,7 @@ import {
   ExtractionUtils
 } from "../services/model/extraction.model";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {mergeMap} from "rxjs/operators";
+import {first, mergeMap} from "rxjs/operators";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {TranslateService} from "@ngx-translate/core";
@@ -43,6 +43,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
 
   get sheetName(): string {
     return this.form.controls.sheetName.value;
+  }
+
+  set sheetName(value: string) {
+    this.form.get('sheetName').setValue(value);
   }
 
   markAsDirty(opts?: {onlySelf?: boolean}) {
@@ -92,6 +96,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     this.registerSubscription(
       this.route.queryParams
         .pipe(
+          first(),
           // Convert query params into a valid type
           mergeMap(async ({category, label, sheet}) => {
             const paramType = this.fromObject({category, label});

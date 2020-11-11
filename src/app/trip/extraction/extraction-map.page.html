@@ -20,38 +20,7 @@
   </button>
 </mat-menu>
 
-<!-- sheet menu -->
-<mat-menu #sheetNameMenu="matMenu"
-          yPosition="above" >
-  <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.LAYERS</mat-label>
-
-  <button mat-menu-item *ngFor="let item of $sheetNames | async" active
-          (click)="setSheetName(item)" >
-    <ion-icon *ngIf="form.controls.sheetName.value === item" name="checkmark"></ion-icon>
-    <ion-label>{{'EXTRACTION.MAP.SHEET.' + item | translate}}</ion-label>
-  </button>
-
-  <!-- Map options divider -->
-  <mat-divider></mat-divider>
-  <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
-
-  <!-- Change base layer -->
-  <button mat-menu-item [matMenuTriggerFor]="baseLayerMenu" translate>EXTRACTION.MAP.BASE_LAYER</button>
-  <mat-menu #baseLayerMenu="matMenu">
-    <button mat-menu-item *ngFor="let item of baseLayers" (click)="setBaseLayer(item.layer)">
-      <ion-icon *ngIf="baseLayer === item.layer" name="checkmark"></ion-icon>
-      {{item.title|translate}}
-    </button>
-  </mat-menu>
-
-  <!-- Show graticule -->
-  <button mat-menu-item (click)="toggleGraticule()">
-    <ion-icon *ngIf="showGraticule" name="checkmark"></ion-icon>
-    <span translate> EXTRACTION.MAP.SHOW_GRATICULE</span>
-  </button>
-</mat-menu>
-
-<!-- sheet menu -->
+<!-- Layer options menu -->
 <mat-menu #layerOptionsMenu="matMenu"
           yPosition="above" >
   <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
@@ -72,82 +41,64 @@
   </button>
 </mat-menu>
 
-<!-- years menu -->
-<mat-menu #yearMenu="matMenu" yPosition="above">
-  <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.YEAR</mat-label>
-
-  <button mat-menu-item *ngFor="let year of $years | async"
-          (click)="setYear(year)">
-    <ion-icon *ngIf="form.controls.year.value === year" name="checkmark"></ion-icon>
-    <ion-label>{{year}}</ion-label>
-  </button>
-</mat-menu>
-
-<!-- agg column menu -->
-<mat-menu #aggColumnMenu="matMenu" yPosition="above">
-  <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.AGG_VALUE</mat-label>
-
-  <button mat-menu-item *ngFor="let item of $aggColumns | async"
-          (click)="setAggStrata(item.columnName)">
-    <ion-icon *ngIf="aggColumnName === item.columnName" name="checkmark"></ion-icon>
-    <ion-label>{{item.name}}</ion-label>
-  </button>
-
-</mat-menu>
-
-<!-- tech column menu -->
+<!-- tech columns menu -->
 <mat-menu #techColumnMenu="matMenu" yPosition="above">
   <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.TECH_VALUE</mat-label>
 
   <button mat-menu-item *ngFor="let item of $techColumns | async"
           (click)="setTechStrata(item.columnName)">
     <ion-icon *ngIf="techColumnName === item.columnName" name="checkmark"></ion-icon>
-    <ion-label>{{getI18nColumnName(item.columnName)}}</ion-label>
+    <ion-label>{{columnNames[item.columnName]}}</ion-label>
   </button>
 
-  <!-- Chart options divider -->
-  <mat-divider></mat-divider>
+</mat-menu>
+
+<!-- Chart options menu -->
+<mat-menu #chartOptionsMenu="matMenu">
   <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
 
   <!-- Chart type sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartTypeMenu" translate>EXTRACTION.MAP.CHART_TYPE.TITLE</button>
-    <mat-menu #chartTypeMenu="matMenu">
-      <button mat-menu-item *ngFor="let value of chartTypes"
-              (click)="techChartType=value">
-        <ion-icon *ngIf="techChartType===value" name="checkmark"></ion-icon>
-        <ion-label>{{'EXTRACTION.MAP.CHART_TYPE.' + value | uppercase |translate}}</ion-label>
-      </button>
-    </mat-menu>
+  <mat-menu #chartTypeMenu="matMenu">
+    <button mat-menu-item *ngFor="let value of chartTypes"
+            (click)="setTechChartOption({type: value})">
+      <ion-icon *ngIf="techChartOptions.type===value" name="checkmark"></ion-icon>
+      <ion-label>{{'EXTRACTION.MAP.CHART_TYPE.' + value | uppercase |translate}}</ion-label>
+    </button>
+  </mat-menu>
 
   <!-- Chart sort sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartSortByMenu" translate>EXTRACTION.MAP.CHART_SORT_BY.TITLE</button>
   <mat-menu #chartSortByMenu="matMenu">
-    <button mat-menu-item (click)="toggleSortBy()">
-      <ion-icon *ngIf="techChartSortByLabel" name="checkmark"></ion-icon>
+    <button mat-menu-item (click)="setTechChartOption({sortByLabel: true})">
+      <ion-icon *ngIf="techChartOptions.sortByLabel" name="checkmark"></ion-icon>
       <span translate> EXTRACTION.MAP.CHART_SORT_BY.LABEL</span>
     </button>
-    <button mat-menu-item (click)="toggleSortBy()" translate>
-      <ion-icon *ngIf="!techChartSortByLabel" name="checkmark"></ion-icon>
+    <button mat-menu-item (click)="setTechChartOption({sortByLabel: false})" translate>
+      <ion-icon *ngIf="!techChartOptions.sortByLabel" name="checkmark"></ion-icon>
       <span translate> EXTRACTION.MAP.CHART_SORT_BY.VALUE</span>
     </button>
   </mat-menu>
+
+  <!-- Show all values -->
+  <button mat-menu-item
+          (click)="setTechChartOption({displayAllLabels: !techChartOptions.displayAllLabels})">
+    <ion-icon *ngIf="techChartOptions.displayAllLabels" name="checkmark"></ion-icon>
+    <ion-label translate>EXTRACTION.MAP.TECH_CHART_ALL_LABELS</ion-label>
+  </button>
 </mat-menu>
-
-
 
 <ion-content>
 
-  <!-- -->
-  <div class="bottom-left filter"
+    <!-- -->
+  <div class="bottom-left filter ng-hide"
        [class.expanded]="filterExpansionPanel.expanded"
-       [class.cdk-visually-hidden]="!type">
+       [@fadeInAnimation]="type">
 
     <mat-accordion [formGroup]="form.controls.strata">
 
       <!-- sheet selector -->
-      <mat-expansion-panel #sheetExpansionPanel
-                           *ngIf="$sheetNames | async; let sheetNames"
-                           [class.cdk-visually-hidden]="sheetNames | isArrayLength: {lessThan: 2}">
+      <mat-expansion-panel #sheetExpansionPanel>
         <mat-expansion-panel-header>
           <ion-toolbar color="transparent">
             <mat-icon slot="start" class="ion-color-primary">layers</mat-icon>
@@ -169,7 +120,7 @@
         </mat-expansion-panel-header>
 
         <ion-list>
-          <ion-item *ngFor="let item of sheetNames"
+          <ion-item *ngFor="let item of $sheetNames | async"
                     [class.selected]="sheetName===item"
                     tappable
                     (click)="setSheetName(item)">
@@ -185,21 +136,30 @@
             <mat-icon slot="start" class="ion-color-primary">bubble_chart</mat-icon>
             <ion-label>
               <ion-text color="medium" translate>EXTRACTION.MAP.AGG_VALUE</ion-text>
-              <ion-text color="primary" *ngIf="!aggExpansionPanel.expanded">
-                {{getI18nColumnName(aggColumnName)}}
+              <ion-text color="primary" *ngIf="!aggExpansionPanel.expanded && $aggColumns | async;">
+                {{columnNames[aggColumnName]}}
               </ion-text>
+
             </ion-label>
           </ion-toolbar>
         </mat-expansion-panel-header>
 
-        <ion-list>
-          <ion-item *ngFor="let item of $aggColumns | async"
+        <ion-list *ngIf="$aggColumns | async; let aggColumns; else loadingSpinner">
+          <ion-item *ngFor="let item of aggColumns"
                     [class.selected]="aggColumnName===item.columnName"
                     tappable
                     (click)="setAggStrata(item.columnName)">
-            <ion-label>{{item.name}}</ion-label>
+            <ion-label>{{columnNames[item.columnName]}}</ion-label>
+          </ion-item>
+          <ion-item *ngIf="aggColumns | isEmptyArray">
+            <ion-label color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-label>
           </ion-item>
         </ion-list>
+        <ng-template #loadingSpinner>
+          <div class="ion-text-center">
+            <ion-spinner></ion-spinner>
+          </div>
+        </ng-template>
       </mat-expansion-panel>
 
       <mat-expansion-panel #yearExpansionPanel
@@ -242,13 +202,6 @@
               -->
             </ion-label>
           </ion-toolbar>
-
-          <!-- no data or panel expanded
-          <ion-card-subtitle  padding-left>
-            <ion-label *ngIf="filterExpansionPanel.expanded" color="primary100"><span translate>EXTRACTION.FILTER.TITLE</span>&nbsp;</ion-label>
-            <ion-label color="danger" *ngIf="$noData|async" translate>COMMON.NO_RESULT</ion-label>
-          </ion-card-subtitle>-->
-
         </mat-expansion-panel-header>
 
         <div [class.cdk-visually-hidden]="!filterExpansionPanel.expanded">
@@ -263,7 +216,7 @@
                   <mat-form-field>
                     <mat-select [formControl]="spatialControl" [placeholder]="'EXTRACTION.MAP.SPACE'|translate">
                       <mat-option *ngFor="let column of $spatialColumns | async"
-                                  [value]="column.columnName">{{column.name}}</mat-option>
+                                  [value]="column.columnName">{{columnNames[column.columnName]}}</mat-option>
                     </mat-select>
                   </mat-form-field>
                 </ion-col>
@@ -292,8 +245,6 @@
         </div>
 
         <mat-action-row class="ion-no-padding">
-          <!-- animation buttons -->
-          <div *ngTemplateOutlet="animationButtons"></div>
 
           <span class="toolbar-spacer"></span>
 
@@ -345,38 +296,49 @@
     <ion-row>
       <ion-col class="ion-align-self-end">
 
-        <!-- Tech graph card -->
-        <ion-card *ngIf="$tech | async as tech; else noTech"
-                  color="light"
-                  class="chart-container no-margin-end"
-                  [class.chart-pie]="techChartType==='pie'"
-                  [class.chart-bar]="techChartType==='bar'"
-                  @fadeInOutAnimation>
-          <ion-card-header>
-            <ion-card-subtitle class="ion-text-center">
-              <ion-label [matMenuTriggerFor]="techColumnMenu"
-                         (click)="$event.stopPropagation()">
-                {{'EXTRACTION.MAP.TECH_CHART_TITLE' | translate: tech }}
-                <mat-icon class="ion-color-medium">arrow_drop_down</mat-icon>
-              </ion-label>
-            </ion-card-subtitle>
-          </ion-card-header>
-          <ion-card-content class="ion-text-center">
-            <canvas baseChart
-                    [data]="tech.data"
-                    [labels]="tech.labels"
-                    [chartType]="techChartType"
-                    [options]="techChartOptions"
-                    [legend]="techChartLegend"
-                    (chartClick)="onChartClick($event)">
-            </canvas>
+        <!-- chart -->
+        <ion-card *ngIf="$tech | async as tech; else addChartButton"
+                  color="light" class="chart no-margin-end"
+                  [class.chart-bar]="techChartOptions.type==='bar'">
+          <ion-toolbar color="transparent">
+            <ion-label [matMenuTriggerFor]="techColumnMenu"
+                       (click)="$event.stopPropagation()">
+              {{tech.title | translate: tech.titleParams }}
+              <mat-icon class="ion-color-medium">arrow_drop_down</mat-icon>
+            </ion-label>
+
+            <ion-buttons slot="end">
+              <button mat-icon-button class="ion-color-dark"
+                      [matTooltip]="'EXTRACTION.MAP.DISPLAY_OPTIONS'|translate"
+                      [matMenuTriggerFor]="chartOptionsMenu"
+                      (click)="$event.stopPropagation()">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <button mat-icon-button class="ion-color-medium"
+                      [matTooltip]="'COMMON.BTN_CLOSE'|translate"
+                      (click)="hideTechChart()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </ion-buttons>
+          </ion-toolbar>
+          <ion-card-content >
+            <!-- Tech graph card -->
+              <canvas baseChart
+                      [data]="tech.data"
+                      [labels]="tech.labels"
+                      [chartType]="techChartOptions.type"
+                      [options]="techChartOptions"
+                      [legend]="techChartOptions.legend"
+                      (chartClick)="onChartClick($event)">
+              </canvas>
           </ion-card-content>
         </ion-card>
 
-        <ng-template #noTech>
-          <ion-card *ngIf="($techColumns | async |isNotEmptyArray) && !techColumnName"
-                    color="light"
-                    class="no-margin-end">
+        <!-- add chart button -->
+        <ng-template #addChartButton>
+          <ion-card *ngIf="$techColumns | async | isNotEmptyArray"
+                    color="light" class="no-margin-end"
+                    [matMenuTriggerFor]="techColumnMenu">
             <ion-card-content class="ion-no-padding">
               <!-- tech column selector -->
               <button mat-stroked-button class="ion-color-medium"
@@ -389,6 +351,7 @@
             </ion-card-content>
           </ion-card>
         </ng-template>
+
       </ion-col>
 
       <ion-col size="auto" class="ion-align-self-end">

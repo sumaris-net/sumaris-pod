@@ -4,27 +4,35 @@ import {
   Component,
   NgZone,
   OnDestroy,
-  OnInit, QueryList,
-  ViewChild, ViewChildren
+  OnInit,
+  ViewChild
 } from "@angular/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {AggregationTypeFilter, CustomAggregationStrata, ExtractionService} from "../services/extraction.service";
 import {BehaviorSubject, Observable, Subject, Subscription, timer} from "rxjs";
-import {arraySize, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {
+  arraySize,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  toBoolean
+} from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {
   AggregationStrata,
   AggregationType,
   ExtractionColumn,
   ExtractionFilter,
-  ExtractionFilterCriterion, ExtractionType,
+  ExtractionFilterCriterion,
   ExtractionUtils
 } from "../services/model/extraction.model";
 import {Location} from "@angular/common";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
-import {CRS, DomUtil, LayerGroup} from 'leaflet';
+import {CRS, DomUtil} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -37,11 +45,8 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {AppFormUtils} from "../../core/core.module";
 import {MatExpansionPanel} from "@angular/material/expansion";
-import {MatTabGroup, MatTabNav} from "@angular/material/tabs";
-import {Label} from "ng2-charts";
+import {Label, SingleOrMultiDataSet} from "ng2-charts";
 import {ChartOptions, ChartType} from "chart.js";
-import {BatchForm} from "../batch/form/batch.form";
-import remove = DomUtil.remove;
 import {DEFAULT_CRITERION_OPERATOR} from "./extraction-data.page";
 
 declare interface LegendOptions {
@@ -50,6 +55,14 @@ declare interface LegendOptions {
   startColor: string;
   endColor: string;
 }
+declare type TechChartOptions = ChartOptions & {
+  legend: boolean;
+  type: ChartType
+  sortByLabel: boolean;
+  //sortByLabel?: boolean;
+  displayAllLabels?: boolean;
+}
+
 
 @Component({
   selector: 'app-extraction-map-page',
@@ -125,25 +138,23 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
 
   $details = new Subject<{ title: string; properties: { name: string; value: string }[]; }>();
-  $stats = new Subject<{ title: string; properties: { name: string; value: string }[] }>();
-  $tech = new Subject<{ title: string; labels: Label[]; data: number[] }>();
+  $tech = new Subject<{ title: string; titleParams?: any, labels: Label[]; data: SingleOrMultiDataSet }>();
   $years = new BehaviorSubject<number[]>(undefined);
 
-  techChartType: ChartType = 'bar';
-  techChartOptions: ChartOptions = {
+  techChartOptions: TechChartOptions = {
+    type: 'bar',
     responsive: true,
+    legend: false,
+    sortByLabel: true,
+    displayAllLabels: false,
   };
-  techChartLegend = false;
-  techChartSortByLabel = true;
   chartTypes: ChartType[] = ['pie', 'bar', 'doughnut'];
-
 
   formatNumberLocale: string;
   animation: Subscription;
 
   @ViewChild('filterExpansionPanel', { static: true }) filterExpansionPanel: MatExpansionPanel;
   @ViewChild('aggExpansionPanel', { static: true }) aggExpansionPanel: MatExpansionPanel;
-  @ViewChildren('mat-tab-nav-bar') sheetTabNav !: QueryList<MatTabNav>;
 
   get year(): number {
     return this.form.get('year').value;
@@ -251,16 +262,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     this.registerSubscription(
       this.onRefresh.pipe(
         // avoid multiple load)
-        filter(() => this.ready && !this.loading && isNotNil(this.type)),
+        filter(() => this.ready && isNotNil(this.type) && (!this.loading || !!this.animation)),
         switchMap(() => {
           console.debug('[extraction-map] Refreshing...');
-          this.$noData.next(false);
           return this.loadData();
         })
-      ).subscribe(() => {
-        this.markAsPristine();
-        this.$noData.next(!this.hasData);
-      }));
+      ).subscribe(() => this.markAsPristine()));
 
   }
 
@@ -329,12 +336,21 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     const changed = await super.setType(type, opts);
 
     if (changed) {
+
       // Update the title
       const typeName = this.getI18nTypeName(this.type);
       this.$title.next(typeName);
+
+      // Stop animation
+      this.stopAnimation();
+
+      // Update sheet names
+      this.updateSheetNames();
     }
     else {
-      this.updateForms(opts);
+      // Force refresh
+      await this.updateColumns(opts);
+      this.applyDefaultStrata(opts);
     }
 
     return changed;
@@ -344,20 +360,33 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     const changed = this.sheetName != sheetName;
 
     // Reset min/max of the custom legend (if exists)
-    if (changed && this.customLegendOptions) {
-      this.customLegendOptions.min = 0;
-      this.customLegendOptions.max = undefined;
+    if (changed) {
+      if (this.customLegendOptions) {
+        this.customLegendOptions.min = 0;
+        this.customLegendOptions.max = undefined;
+      }
+      this.stopAnimation();
+
+      this.$timeColumns.next(null);
+      this.$spatialColumns.next(null);
+      this.$aggColumns.next(null);
+      this.$techColumns.next(null);
+      this.hideTechChart();
     }
 
     super.setSheetName(sheetName, {
-      emitEvent: !this.loading,
+      emitEvent: false,
       ...opts
     });
 
     if (changed) {
-      this.updateForms(opts);
-
-      this.aggExpansionPanel.open();
+      this.applyDefaultStrata(opts);
+      this.updateColumns(opts)
+        .then(() => {
+          if (!this.loading && (!opts || opts.emitEvent !== false)) {
+            return this.loadData();
+          }
+        });
     }
   }
 
@@ -385,6 +414,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     }
   }
 
+  hideTechChart() {
+    this.$tech.next(null);
+  }
+
   getI18nSheetName(sheetName?: string, type?: AggregationType, self?: ExtractionAbstractPage<any>): string {
     const str = super.getI18nSheetName(sheetName, type, self);
     return str.replace(/\([A-Z]+\)$/, '');
@@ -392,14 +425,15 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
   /* -- protected method -- */
 
-  protected async updateForms(opts?: {
+  protected async updateColumns(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
   }) {
+    if (!this.type) return;
 
     // Update filter columns
     const sheetName = this.sheetName;
-    const columns = (await this.service.loadColumns(this.type, sheetName)) || [];
+    const columns = sheetName && (await this.service.loadColumns(this.type, sheetName)) || [];
 
     // Translate names
     this.translateColumns(columns);
@@ -422,18 +456,24 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     const yearColumn = (columns || []).find(c => c.columnName === 'year');
     const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
     this.$years.next(years);
+  }
 
+  protected updateSheetNames() {
     // Filter sheet name on existing stratum
-    let sheetNames = this.type.sheetNames;
+    let sheetNames = this.type && this.type.sheetNames || null;
     if (sheetNames && this.type.stratum) {
       sheetNames = this.type.stratum.map(s => s.sheetName)
         .filter(sheetName => isNotNil(sheetName) && sheetNames.includes(sheetName));
     }
-    this.$sheetNames.next(sheetNames || []);
+    this.$sheetNames.next(sheetNames);
+  }
 
-    // Apply default strata
-    const defaultStrata = (this.type.stratum || []).find(s => s.isDefault || s.sheetName === sheetName);
-    console.debug('DEFAULT STRATA: ', defaultStrata);
+  protected applyDefaultStrata(opts?: { emitEvent?: boolean; }) {
+    const sheetName = this.sheetName;
+    if (!this.type || !sheetName) return;
+
+    const defaultStrata = sheetName && (this.type.stratum || []).find(s => s.isDefault || s.sheetName === sheetName);
+    console.debug('[extraction-map] Applying default strata: ', defaultStrata);
 
     if (defaultStrata) {
       this.form.patchValue({
@@ -488,7 +528,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     this.$details.next(); // hide details
     this.error = null;
 
-    const animationStarted = !!this.animation;
+    const isAnimated = !!this.animation;
     const strata = this.getStrataValue();
     const filter = this.getFilterValue(strata);
     this.disable();
@@ -516,7 +556,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           offset, size,
           null, null,
           filter, {
-          fetchPolicy: animationStarted ? "cache-first" : undefined /*default*/
+          fetchPolicy: isAnimated ? "cache-first" : undefined /*default*/
           });
 
         const hasData = isNotNil(geoJson) && geoJson.features && geoJson.features.length || false;
@@ -569,8 +609,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         this.$layers.next([layer]);
         console.debug(`[extraction-map] ${total} geometries loaded in ${Date.now() - now}ms (${Math.floor(offset / size)} slices)`);
 
-        // Load tech data
-        this.loadTechData(this.type, strata, filter);
+        // Load tech data (wait end if animation is running)
+        const techDataPromise = this.loadTechData(this.type, strata, filter);
+        if (techDataPromise && isAnimated) await techDataPromise;
 
         // TODO fit to scale
         /*map.fitBounds(this.lalayersyer.getBounds(), {
@@ -586,32 +627,49 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.error = err && err.message || err;
       this.showLegend = false;
     } finally {
-      this.loading = false;
       this.showLegend = isNotNilOrBlank(strata.aggColumnName);
-      this.enable();
+      this.$noData.next(!this.hasData);
+      if (!isAnimated) {
+        this.loading = false;
+        this.enable();
+      }
     }
   }
 
-  async loadTechData(type: AggregationType, strata: CustomAggregationStrata, filter: ExtractionFilter) {
-    if (!strata || !strata.techColumnName || !strata.aggColumnName) return // skip;
+  async loadTechData(type?: AggregationType, strata?: CustomAggregationStrata, filter?: ExtractionFilter) {
+    type = type || this.type;
+    strata = type && (strata || this.getStrataValue());
+    filter = strata && (filter || this.getFilterValue(strata));
+
+    if (!type || !strata || !strata.techColumnName || !strata.aggColumnName) return // skip;
+
+    const isAnimated = !!this.animation;
+    const techColumnName = strata.techColumnName;
 
     try {
-      const map = await this.service.loadAggregationTech(type, strata, filter);
+      const map = await this.service.loadAggregationTech(type, strata, filter, {
+        fetchPolicy: isAnimated ? 'cache-first' : undefined /*default*/
+      });
 
-      if (this.animation) {
-        // Force all values
+      // Keep data without values for this year
+      if (this.techChartOptions.displayAllLabels) {
+        // Find the column
+        const column = this.$techColumns.getValue().find(c => c.columnName === techColumnName);
 
+        // Add missing values
+        (column.values || [])
+          .filter(key => isNil(map[key]))
+          .forEach(key => map[key] = 0);
       }
 
-
-      // Sort
       let entries = Object.entries(map);
-      if (this.techChartSortByLabel) {
-        // Sort label (ASC)
+
+      // Sort by label (ASC)
+      if (this.techChartOptions.sortByLabel) {
         entries = entries.sort((a, b) => a[0] > b[0] ? 1 : -1);
       }
+      // Sort by value (DESC)
       else {
-        // Sort number (DESC)
         entries = entries.sort((a, b) => a[1] > b[1] ? -1 : 1);
       }
 
@@ -621,9 +679,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       const labels = entries.map(item => item[0]);
 
       this.$tech.next({
-        title: this.getI18nColumnName(strata.techColumnName),
-        labels,
-        data
+        title: 'EXTRACTION.MAP.TECH_CHART_TITLE',
+        titleParams: {
+          aggColumnName: this.columnNames[strata.aggColumnName],
+          techColumnName: this.columnNames[strata.techColumnName]
+        },
+        labels: labels,
+        data: data
       });
     }
     catch(error) {
@@ -634,13 +696,15 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
   }
 
-  setYear(value: number, opts?: {emitEvent?: boolean; }) {
-    const changed = this.year !== value;
+  setYear(year: number, opts?: {emitEvent?: boolean; }) {
+    const changed = this.year !== year;
 
     // Skip if same and emitEvent not forced
     if (!changed && (!opts || opts.emitEvent === false)) return;
 
-    this.form.get('year').setValue(value);
+    this.form.patchValue({
+      year
+    }, opts);
 
     // Refresh
     if (!opts || opts.emitEvent !== false) {
@@ -744,7 +808,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       // If no data: loop
       if (!hasData) {
         this.filterExpansionPanel.open();
-        //this.openSelectTypeModal();
       }
     }
   }
@@ -765,10 +828,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     }
   }
 
-  refreshTabNav() {
-    (this.sheetTabNav || []).forEach(tabNav => tabNav._inkBar.show());
-  }
-
   toggleGraticule() {
 
     // Make sure value is correct
@@ -787,14 +846,16 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     }
   }
 
-  async toggleSortBy() {
-    if (this.loading) return; // Skip
-    this.techChartSortByLabel = !this.techChartSortByLabel;
+  setTechChartOption(value: Partial<TechChartOptions>, opts?: { emitEvent?: boolean; }) {
+    this.techChartOptions = {
+      ...this.techChartOptions,
+      ...value
+    };
 
-    const strata = this.getStrataValue();
-    const filter = this.getFilterValue(strata);
-
-    await this.loadTechData(this.type, strata, filter);
+    // Refresh (but skip if animation running)
+    if (!this.animation && (!opts || opts.emitEvent !== false)) {
+      this.loadTechData();
+    }
   }
 
   onChartClick({event, active}) {
@@ -856,13 +917,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     console.info("[extraction-map] Starting animation...");
     this.animation = isNotEmptyArray(years) && timer(500, 500)
       .pipe(
-        tap(index => {
-          const year = years[index % arraySize(years)];
-          console.info("[extraction-map] Rendering animation for year {" + year + "}...");
-          this.setYear(year, {emitEvent: true /*force refresh if same*/});
-        })
+        throttleTime(450)
       )
-      .subscribe();
+      .subscribe(index => {
+        const year = years[index % arraySize(years)];
+        console.info("[extraction-map] Rendering animation for year {" + year + "}...");
+        this.setYear(year, {emitEvent: true /*force refresh if same*/});
+      });
 
     this.animation.add(() => {
       console.info("[extraction-map] Animation stopped");
@@ -876,6 +937,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.unregisterSubscription(this.animation);
       this.animation.unsubscribe();
       this.animation = null;
+
+      if (this.disabled) {
+        this.enable();
+        this.loading = false;
+      }
     }
   }
 

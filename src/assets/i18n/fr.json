@@ -1230,7 +1230,8 @@
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
       "STATS": "Statistiques",
-      "TECH_CHART_TITLE": "Répartition par {{title}}",
+      "TECH_CHART_TITLE": "{{aggColumnName}} par {{techColumnName}}",
+      "TECH_CHART_ALL_LABELS": "Figer les libellés",
       "LEGEND": "Légende",
       "LEGEND_FORM": {
         "TITLE": "Paramètres",
@@ -1275,15 +1276,20 @@
       "OFFICIAL_LANDING_WEIGHT": "Poids débarqué officiel",
       "COMMERCIAL_SIZE_CATEGORY": "Catégorie commerciale",
       "COMMERCIAL_SIZE_CATEGORY_SCALE": "Type de catégorie commerciale",
-      "VESSEL_LENGTH_CATEGORY": "Classe de taille du navire",
-      "VESSEL_LENGTH_CLASS": "Classe de taille du navire",
+      "VESSEL_LENGTH_CATEGORY": "Longueur navire",
+      "VESSEL_LENGTH_CLASS": "Longueur navire",
       "GEAR_TYPE": "Engin",
       "LENGTH_CLASS": "Classe de taille",
       "CATCH_CATEGORY": "Débarquement/Rejet",
       "LANDING_CATEGORY": "Destination du débarquement",
       "NUMBER_AT_LENGTH": "Nombre d'individu",
       "INDIVIDUAL_SEX": "Sex individu",
-      "SEX": "Sex"
+      "SEX": "Sex",
+      "STATION_COUNT": "Nombre de station",
+      "VESSEL_COUNT": "Nombre de navires",
+      "FISHING_TIME": "Temps de pêche (h)",
+      "OFFICIAL_LANDINGS_VALUE": "Valeur débarquée (€)",
+      "OFFICIAL_LANDINGS_WEIGHT": "Poids débarquée (kg)"
     },
     "SHEET": {
       "TR": "Marées",

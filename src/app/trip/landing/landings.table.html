@@ -180,9 +180,7 @@
 </mat-table>
 
 <ion-item *ngIf="!(loadingSubject| async) && !resultsLength">
-  <ion-text color="danger" class="text-italic">
-    {{ 'COMMON.NO_RESULT' | translate }}
-  </ion-text>
+  <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
 </ion-item>
 
 <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!resultsLength">
