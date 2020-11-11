@@ -28,7 +28,7 @@
     <select alias="RECORD_TYPE" type="text">'CL'</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">VESSEL_FLAG_COUNTRY</select>
     <select alias="LANDING_COUNTRY" type="text">LANDING_COUNTRY</select>
-    <select alias="SPECIES" type="text">MIN(DECODE(TG.LABEL, NULL, SL.SPECIES, TG.LABEL || ' - ' || TG.NAME))</select>
+    <select alias="SPECIES" type="text">MIN(DECODE(TG.LABEL, NULL, CL.SPECIES, TG.LABEL || ' - ' || TG.NAME))</select>
     <select alias="LANDING_CATEGORY" type="text">LANDING_CATEGORY</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">COMMERCIAL_SIZE_CATEGORY_SCALE</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">COMMERCIAL_SIZE_CATEGORY</select>
