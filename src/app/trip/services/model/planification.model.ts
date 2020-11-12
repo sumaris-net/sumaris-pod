@@ -30,6 +30,7 @@ export class Planification extends DataEntity<Planification>  {
   taxonName: TaxonNameRef;
 
   // TODO : update correct types--
+  sampleRowCode : string;
   eotp: TaxonNameRef;
   laboratory: TaxonNameRef;
   fishingArea: TaxonNameRef;
@@ -47,6 +48,7 @@ export class Planification extends DataEntity<Planification>  {
     this.comment=null;
     this.taxonName = null;
     this.eotp = null;
+    this.sampleRowCode = null;
     this.laboratory = null;
     this.fishingArea = null;
     this.landingArea = null;
@@ -67,6 +69,7 @@ export class Planification extends DataEntity<Planification>  {
     target.taxonName = this.taxonName;
 
     target.eotp = this.eotp;
+    target.sampleRowCode = this.sampleRowCode;
     target.laboratory = this.laboratory;
     target.fishingArea = this.fishingArea;
     target.landingArea = this.landingArea;
@@ -82,6 +85,7 @@ export class Planification extends DataEntity<Planification>  {
     super.fromObject(source);
     this.year = fromDateISOString(source.year);
     this.comment = source.comment;
+    this.sampleRowCode = source.sampleRowCode;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
 
    // TODO : update correct types-------------------------------------------------------------------------
