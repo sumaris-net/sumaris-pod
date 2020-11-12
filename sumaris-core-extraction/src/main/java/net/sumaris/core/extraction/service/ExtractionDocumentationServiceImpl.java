@@ -110,7 +110,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
             File productFile = new File(configuration.getTempDirectory(), productFileName);
             boolean fileExists = productFile.exists();
 
-            ExtractionProductVO product = productService.get(type.getId(), ExtractionProductFetchOptions.MINIMAL);
+            ExtractionProductVO product = productService.get(type.getId(), ExtractionProductFetchOptions.DOCUMENTATION);
 
             // Remove old file if update need
             long lastUpdateDate = product.getUpdateDate() != null ? product.getUpdateDate().getTime() : 0l;

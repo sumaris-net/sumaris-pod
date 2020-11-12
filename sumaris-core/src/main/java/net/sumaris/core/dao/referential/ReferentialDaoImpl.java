@@ -24,39 +24,28 @@ package net.sumaris.core.dao.referential;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.grouping.Grouping;
-import net.sumaris.core.model.referential.grouping.GroupingClassification;
 import net.sumaris.core.model.referential.grouping.GroupingLevel;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.pmfm.*;
+import net.sumaris.core.model.referential.pmfm.Fraction;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
-import net.sumaris.core.model.referential.transcribing.TranscribingItem;
-import net.sumaris.core.model.technical.configuration.Software;
-import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
-import net.sumaris.core.model.technical.versionning.SystemVersion;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
@@ -165,7 +154,7 @@ public class ReferentialDaoImpl
     }
 
     protected  <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
-                                                                   ReferentialFilterVO filter,
+                                                                   IReferentialFilter filter,
                                                                    int offset,
                                                                    int size,
                                                                    String sortAttribute,
@@ -183,7 +172,7 @@ public class ReferentialDaoImpl
 
     @Override
     public List<ReferentialVO> findByFilter(final String entityName,
-                                            ReferentialFilterVO filter,
+                                            IReferentialFilter filter,
                                             int offset,
                                             int size,
                                             String sortAttribute,
@@ -200,7 +189,7 @@ public class ReferentialDaoImpl
     }
 
     @Override
-    public Long countByFilter(final String entityName, ReferentialFilterVO filter) {
+    public Long countByFilter(final String entityName, IReferentialFilter filter) {
         Preconditions.checkNotNull(entityName, "Missing entityName argument");
         Preconditions.checkNotNull(filter);
 
@@ -278,7 +267,7 @@ public class ReferentialDaoImpl
         }
 
         String levelEntityName = levelDescriptor.getPropertyType().getSimpleName();
-        return findByFilter(levelEntityName, ReferentialFilterVO.builder().build(), 0, 100, IItemReferentialEntity.Fields.NAME, SortDirection.ASC);
+        return findByFilter(levelEntityName, ReferentialFilterVO.builder().build(), 0, 1000, IItemReferentialEntity.Fields.NAME, SortDirection.ASC);
     }
 
     @Override
@@ -548,12 +537,12 @@ public class ReferentialDaoImpl
             .collect(Collectors.toList());
     }
 
-    private Specification<IReferentialEntity> toSpecification(ReferentialFilterVO filter) {
+    private Specification<IReferentialEntity> toSpecification(IReferentialFilter filter) {
         return null; // TODO
     }
 
     protected  <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
-                                             ReferentialFilterVO filter,
+                                             IReferentialFilter filter,
                                              String sortAttribute,
                                              SortDirection sortDirection) {
 
@@ -593,7 +582,7 @@ public class ReferentialDaoImpl
     }
 
     protected <T> TypedQuery<Long> createCountQuery(Class<T> entityClass,
-                                                    ReferentialFilterVO filter) {
+                                                    IReferentialFilter filter) {
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -607,7 +596,7 @@ public class ReferentialDaoImpl
                                                        Class<T> entityClass,
                                                        CriteriaQuery<R> query,
                                                        Root<T> entityRoot,
-                                                       ReferentialFilterVO filter
+                                                       IReferentialFilter filter
                                                        //QueryVisitor<R, T> queryVisitor
     ) {
         Integer levelId = filter.getLevelId();

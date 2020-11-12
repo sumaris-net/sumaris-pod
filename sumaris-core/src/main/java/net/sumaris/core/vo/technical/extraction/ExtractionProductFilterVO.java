@@ -36,6 +36,7 @@ import net.sumaris.core.vo.filter.IReferentialFilter;
 @AllArgsConstructor
 public class ExtractionProductFilterVO implements IReferentialFilter {
 
+    private Integer id;
     private String label;
     private String name;
 

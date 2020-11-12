@@ -134,13 +134,16 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
     @Override
     public boolean canRead(int productId) {
-       AggregationTypeVO type = aggregationService.get(productId, ExtractionProductFetchOptions.MINIMAL);
+       AggregationTypeVO type = aggregationService.get(productId, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
        return canRead(type);
     }
 
     @Override
     public boolean canWrite(int productId) throws UnauthorizedException {
-        AggregationTypeVO type = aggregationService.get(productId, ExtractionProductFetchOptions.MINIMAL);
+        AggregationTypeVO type = aggregationService.get(productId, ExtractionProductFetchOptions.builder()
+            .withRecorderDepartment(true)
+            .withRecorderPerson(true)
+        .build());
         return canWrite(type);
     }
 

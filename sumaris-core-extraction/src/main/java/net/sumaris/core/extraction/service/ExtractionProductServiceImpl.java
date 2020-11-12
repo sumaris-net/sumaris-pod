@@ -93,7 +93,7 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
     @Override
     public List<ExtractionTableColumnVO> getColumnsBySheetName(int id, String sheetName, ExtractionTableColumnFetchOptions fetchOptions) {
 
-        ExtractionProductVO source = self.get(id, ExtractionProductFetchOptions.MINIMAL);
+        ExtractionProductVO source = self.get(id, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
 
         // Try to find columns from the DB
         List<ExtractionTableColumnVO> columns = null;

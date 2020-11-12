@@ -201,7 +201,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         switch (type.getCategory()) {
             case PRODUCT:
                 ExtractionProductVO product = extractionProductRepository.getByLabel(type.getLabel(),
-                        ExtractionProductFetchOptions.MINIMAL_WITH_TABLES_AND_COLUMNS);
+                        ExtractionProductFetchOptions.TABLES_AND_COLUMNS);
                 Set<String> hiddenColumns = product.getTables().stream()
                         .map(ExtractionTableVO::getColumns)
                         .filter(Objects::nonNull)

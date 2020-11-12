@@ -24,7 +24,6 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import io.leangen.graphql.annotations.GraphQLArgument;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -120,7 +119,7 @@ public class AggregationServiceImpl implements AggregationService {
         switch (type.getCategory()) {
             case PRODUCT:
                 // Get the product VO
-                source = productService.getByLabel(type.getRawFormatLabel(), ExtractionProductFetchOptions.MINIMAL);
+                source = productService.getByLabel(type.getRawFormatLabel(), ExtractionProductFetchOptions.TABLES_AND_STRATUM);
                 // Execute, from product
                 return aggregate(source, filter, strata);
 
@@ -152,7 +151,7 @@ public class AggregationServiceImpl implements AggregationService {
         Preconditions.checkNotNull(type);
 
         ExtractionProductVO product = productService.getByLabel(type.getLabel(),
-                ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
+                ExtractionProductFetchOptions.TABLES);
 
         // Convert to context VO (need the next read() function)
         String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
@@ -201,7 +200,7 @@ public class AggregationServiceImpl implements AggregationService {
         filter = filter != null ? filter : new ExtractionFilterVO();
 
         ExtractionProductVO product = productService.getByLabel(type.getLabel(),
-                ExtractionProductFetchOptions.MINIMAL_WITH_TABLES);
+                ExtractionProductFetchOptions.TABLES);
 
         // Convert to context VO (need the next read() function)
         String sheetName = strata != null && strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();

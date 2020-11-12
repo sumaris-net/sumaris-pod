@@ -90,7 +90,15 @@ public class ExtractionProductRepositoryImpl
 
     @Override
     protected void toVO(ExtractionProduct source, ExtractionProductVO target, ExtractionProductFetchOptions fetchOptions, boolean copyIfNull) {
-        super.toVO(source, target, fetchOptions, copyIfNull);
+        target.setStatusId(source.getStatus().getId());
+
+        // Copy without/with documentation (can be very long)
+        if (fetchOptions == null || !fetchOptions.isWithDocumentation()) {
+            Beans.copyProperties(source, target, ExtractionProduct.Fields.DOCUMENTATION);
+        }
+        else {
+            Beans.copyProperties(source, target);
+        }
 
         // Tables
         if (fetchOptions == null || fetchOptions.isWithTables()) {

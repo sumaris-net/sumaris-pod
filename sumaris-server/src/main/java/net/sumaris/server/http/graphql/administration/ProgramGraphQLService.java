@@ -25,6 +25,7 @@ package net.sumaris.server.http.graphql.administration;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
@@ -36,6 +37,7 @@ import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
@@ -106,6 +108,14 @@ public class ProgramGraphQLService {
         }
         return programService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
+
+    @GraphQLQuery(name = "programsCount", description = "Get programs count")
+    @Transactional(readOnly = true)
+    public Long getProgramsCount(@GraphQLArgument(name = "filter") ProgramFilterVO filter) {
+        return referentialService.countByFilter(Program.class.getSimpleName(), filter);
+    }
+
+
 
     @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")
     public ReferentialVO getProgramTaxonGroupType(@GraphQLContext ProgramVO program) {

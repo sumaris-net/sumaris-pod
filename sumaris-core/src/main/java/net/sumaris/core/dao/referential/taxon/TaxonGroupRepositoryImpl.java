@@ -40,6 +40,7 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -61,7 +62,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class TaxonGroupRepositoryImpl
-    extends ReferentialRepositoryImpl<TaxonGroup, TaxonGroupVO, ReferentialFilterVO, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<TaxonGroup, TaxonGroupVO, IReferentialFilter, ReferentialFetchOptions>
     implements TaxonGroupSpecifications {
 
     private static final Logger log =
@@ -82,11 +83,11 @@ public class TaxonGroupRepositoryImpl
 
     @Override
     public List<TaxonGroupVO> findTargetSpeciesByFilter(
-        ReferentialFilterVO filter,
-        int offset,
-        int size,
-        String sortAttribute,
-        SortDirection sortDirection) {
+            IReferentialFilter filter,
+            int offset,
+            int size,
+            String sortAttribute,
+            SortDirection sortDirection) {
 
         Preconditions.checkNotNull(filter);
 
@@ -317,7 +318,7 @@ public class TaxonGroupRepositoryImpl
     }
 
     @Override
-    protected Specification<TaxonGroup> toSpecification(ReferentialFilterVO filter) {
+    protected Specification<TaxonGroup> toSpecification(IReferentialFilter filter) {
         Preconditions.checkNotNull(filter);
         Integer[] gearIds = filter.getLevelId() != null
             ? new Integer[]{filter.getLevelId()}

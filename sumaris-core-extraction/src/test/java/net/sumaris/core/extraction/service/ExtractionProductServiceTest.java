@@ -42,7 +42,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 
@@ -85,7 +84,7 @@ public class ExtractionProductServiceTest extends AbstractServiceTest {
     @Test
     public void getColumnsBySheetName() {
 
-        ExtractionProductVO source = service.getByLabel(fixtures.getRdbProductLabel(0), ExtractionProductFetchOptions.MINIMAL);
+        ExtractionProductVO source = service.getByLabel(fixtures.getRdbProductLabel(0), ExtractionProductFetchOptions.TABLES_AND_STRATUM);
         String sheetName = RdbSpecification.HH_SHEET_NAME;
 
         // Check columns

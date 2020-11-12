@@ -120,9 +120,10 @@ public class PersonRepositoryImpl
     public List<String> getEmailsByProfiles(List<Integer> userProfileIds, List<Integer> statusIds) {
 
         // Build filter
-        PersonFilterVO filter = new PersonFilterVO();
-        filter.setUserProfileIds(userProfileIds != null ? userProfileIds.toArray(new Integer[0]) : null);
-        filter.setStatusIds(statusIds != null ? statusIds.toArray(new Integer[0]) : null);
+        PersonFilterVO filter = PersonFilterVO.builder()
+                .userProfileIds(userProfileIds != null ? userProfileIds.toArray(new Integer[0]) : null)
+                .statusIds(statusIds != null ? statusIds.toArray(new Integer[0]) : null)
+                .build();
 
         return findAll(toSpecification(filter)).stream()
             .map(Person::getEmail)

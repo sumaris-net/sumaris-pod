@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 19/08/2020.
  */
 public class PmfmRepositoryImpl
-    extends ReferentialRepositoryImpl<Pmfm, PmfmVO, ReferentialFilterVO, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Pmfm, PmfmVO, IReferentialFilter, ReferentialFetchOptions>
     implements PmfmSpecifications {
 
     @Autowired
