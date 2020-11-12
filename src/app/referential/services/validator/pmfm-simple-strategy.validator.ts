@@ -21,11 +21,11 @@ export class PmfmSimpleStrategyValidatorService implements ValidatorService {
   getFormGroup(data?: PmfmStrategy): FormGroup {
     return this.formBuilder.group({
       id: [data && data.id || null],
-      pmfm: [data && data.pmfm || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      parameter: [data && data.pmfm.parameter || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      matrix: [data && data.pmfm.matrix || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      fraction: [data && data.pmfm.fraction || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      method: [data && data.pmfm.method || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      pmfm: [data && data.pmfm || null],
+      parameter: [data && data.pmfm.parameter || null],
+      matrix: [data && data.pmfm.matrix || null],
+      fraction: [data && data.pmfm.fraction || null],
+      method: [data && data.pmfm.method || null],
     });
   }
 }

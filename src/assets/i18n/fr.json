@@ -314,6 +314,13 @@
           "EXTERIOR_MARKING_NAME": "Marquage extérieur - Nom",
           "REGISTRATION_CODE_NAME": "Code d'immatriculation - Nom"
         }
+      },
+      "PMFM_STRATEGY": {
+        "NAME": "Stratégie > Paramètre PSFM",
+        "ATTRIBUTES": {
+          "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
+          "SHORT_COLUMN_TITLE": "PSFM"
+        }
       }
     },
     "ERROR": {
@@ -360,9 +367,9 @@
     "AGE": "Age",
     "YEAR": "Année",
     "WEIGHT": "Poids : ",
-    "SIZE": "Taille : ",
-    "MATURITY": "Maturité : ",
-    "CALCIFIED_TYPE": "Type de pièce calcifiée : ",
+    "SIZE": "Tailles : ",
+    "MATURITY": "Maturités : ",
+    "CALCIFIED_TYPE": "Types de pièces calcifiées : ",
     "SIZE_INCREMENT": "incrément de taille",
     "EFFORT"    : "Effort : ",
     "QUARTER_1" : "Trimestre 1" ,
@@ -1139,7 +1146,10 @@
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
-      "SIMPLE_STRATEGIES": "Simple strategies"
+      "SIMPLE_STRATEGIES": "Simple strategies",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
@@ -1156,6 +1166,8 @@
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
         "PMFM": "Paramètre collecté (PMFM)",
+        "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
+        "SHORT_COLUMN_TITLE": "PSFM",
         "PARAMETER": "Paramètre",
         "MATRIX": "Support",
         "FRACTION": "Fraction",
