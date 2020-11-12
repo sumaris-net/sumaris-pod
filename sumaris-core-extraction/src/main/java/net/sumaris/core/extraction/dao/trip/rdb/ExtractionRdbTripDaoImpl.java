@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.dao.trip.rdb;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -33,7 +34,8 @@ import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
-import net.sumaris.core.extraction.specification.RdbSpecification;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
@@ -74,7 +76,9 @@ import static org.nuiton.i18n.I18n.t;
  */
 @Repository("extractionRdbTripDao")
 @Lazy
-public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> extends ExtractionBaseDaoImpl implements ExtractionRdbTripDao {
+public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
+        extends ExtractionBaseDaoImpl
+        implements ExtractionRdbTripDao<C, F> {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionRdbTripDaoImpl.class);
 
@@ -103,17 +107,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
     protected ExtractionTableDao extractionTableDao;
 
     @Override
-    public C execute(ExtractionFilterVO filter) {
+    public <R extends C> R execute(F filter) {
         ExtractionTripFilterVO tripFilter = toTripFilterVO(filter);
 
         // Init context
-        C context = createNewContext();
+        R context = createNewContext();
         context.setTripFilter(tripFilter);
         context.setFilter(filter);
-        context.setFormatName(RdbSpecification.FORMAT);
-        context.setFormatVersion(RdbSpecification.VERSION_1_3);
         context.setId(System.currentTimeMillis());
-
+        context.setFormat(LiveFormatEnum.RDB);
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
@@ -123,7 +125,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting extraction #%s (raw data / trips)... %s", context.getFormatName(), context.getId(), filterInfo.toString()));
+            log.info(String.format("Starting extraction %s-%s (raw data / trips)... %s", context.getLabel(), context.getId(), filterInfo.toString()));
         }
 
         // Fill context table names
@@ -187,7 +189,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
     }
 
     @Override
-    public void clean(ExtractionRdbTripContextVO context) {
+    public void clean(C context) {
         Set<String> tableNames = ImmutableSet.<String>builder()
                 .addAll(context.getTableNames())
                 .addAll(context.getRawTableNames())
@@ -197,10 +199,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
         tableNames.stream()
             // Keep only tables with EXT_ prefix
-            .filter(tableName -> tableName != null && tableName.startsWith("EXT_"))
+            .filter(tableName -> tableName != null && tableName.startsWith(TABLE_NAME_PREFIX))
             .forEach(tableName -> {
                 try {
                     extractionTableDao.dropTable(tableName);
+                    databaseMetadata.clearCache(tableName);
                 }
                 catch (SumarisTechnicalException e) {
                     log.error(e.getMessage());
@@ -345,19 +348,19 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
         // Program tripFilter
         xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
-        xmlQuery.bind("progLabels", Daos.getSqlInValueFromStringCollection(context.getProgramLabels()));
+        xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
 
         // Location Filter
         xmlQuery.setGroup("locationFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
-        xmlQuery.bind("locationIds", Daos.getSqlInValueFromIntegerCollection(context.getLocationIds()));
+        xmlQuery.bind("locationIds", Daos.getSqlInNumbers(context.getLocationIds()));
 
         // Recorder Department tripFilter
         xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
-        xmlQuery.bind("recDepIds", Daos.getSqlInValueFromIntegerCollection(context.getRecorderDepartmentIds()));
+        xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
 
         // Vessel tripFilter
         xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
-        xmlQuery.bind("vesselIds", Daos.getSqlInValueFromIntegerCollection(context.getVesselIds()));
+        xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
 
         return xmlQuery;
     }
@@ -473,11 +476,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         return count;
     }
 
-
     protected XMLQuery createSpeciesListQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");
         xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
+
+        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
 
         return xmlQuery;
     }
@@ -538,12 +543,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatName());
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getLabel());
+        Preconditions.checkNotNull(context.getVersion());
 
         return String.format("%s/v%s/%s",
-                context.getFormatName().toLowerCase(),
-                context.getFormatVersion().replaceAll("[.]", "_"),
+                StringUtils.underscoreToChangeCase(context.getLabel()),
+                context.getVersion().replaceAll("[.]", "_"),
                 queryName);
     }
 

@@ -26,31 +26,31 @@ package net.sumaris.core.extraction.dao.technical.table;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.AggregationDao;
+import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
-import net.sumaris.core.util.ExtractionBeans;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
-import org.apache.commons.lang3.ArrayUtils;
+import net.sumaris.core.extraction.util.ExtractionProducts;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.dialect.Dialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,7 +75,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     @PostConstruct
     public void init() {
-        dropTableQuery = databaseMetadata.getDialect().getDropTableString("%s");
+        dropTableQuery = getDialect().getDropTableString("%s");
     }
 
     @Override
@@ -85,20 +85,21 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     @Override
     public ExtractionResultVO getTable(String tableName) {
-        return getTableRows(tableName, null, 0, 0, null, null);
+        return getRows(tableName, null, 0, 0, null, null);
     }
 
     @Override
-    public List<ExtractionProductColumnVO> getColumns(String tableName) {
+    public List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions) {
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
-        return toProductColumnVOs(table, table.getColumnNames());
+        Preconditions.checkNotNull(table, "Unknown table: " + tableName);
+        return toProductColumnVOs(table, table.getColumnNames(), fetchOptions);
     }
 
     @Override
-    public ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
-        Preconditions.checkNotNull(tableName);
+    public ExtractionResultVO getRows(@NonNull String tableName, ExtractionFilterVO filter,
+                                      int offset, int size, String sort, SortDirection direction) {
 
-        SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Preconditions.checkNotNull(table, "Unknown table: " + tableName);
 
         ExtractionResultVO result = new ExtractionResultVO();
@@ -109,7 +110,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 .collect(Collectors.toList());
 
         // Set columns metadata
-        List<ExtractionProductColumnVO> columns = toProductColumnVOs(table, columnNames);
+        List<ExtractionTableColumnVO> columns = toProductColumnVOs(table, columnNames, ExtractionTableColumnFetchOptions.FULL);
         result.setColumns(columns);
 
         String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
@@ -129,7 +130,8 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     @Override
     public void dropTable(String tableName) {
         Preconditions.checkNotNull(tableName);
-        Preconditions.checkArgument(tableName.toUpperCase().startsWith("EXT_"));
+        Preconditions.checkArgument(tableName.toUpperCase().startsWith(ExtractionDao.TABLE_NAME_PREFIX)
+            || tableName.toUpperCase().startsWith(AggregationDao.TABLE_NAME_PREFIX));
 
         log.debug(String.format("Dropping extraction table {%s}...", tableName));
         try {
@@ -142,12 +144,46 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     @Override
-    public ExtractionResultVO getTableGroupByRows(String tableName,
-                                                  ExtractionFilterVO filter,
-                                                  Set<String> groupByColumnNames,
-                                                  final Map<String, SQLAggregatedFunction> otherColumnNames,
-                                                  int offset, int size, String sort, SortDirection direction) {
+    public String createSequence(String tableName) {
         Preconditions.checkNotNull(tableName);
+        String upperTableName = tableName.toUpperCase();
+        Preconditions.checkArgument(upperTableName.startsWith(ExtractionDao.TABLE_NAME_PREFIX)
+                || upperTableName.startsWith(AggregationDao.TABLE_NAME_PREFIX));
+
+        // Make sue sequence name length is lower than 30 characters
+        if (upperTableName.length() + ExtractionDao.SEQUENCE_NAME_SUFFIX.length() > 30) {
+            upperTableName = upperTableName.substring(0, 30 - ExtractionDao.SEQUENCE_NAME_SUFFIX.length());
+        }
+        String sequenceName = upperTableName + ExtractionDao.SEQUENCE_NAME_SUFFIX;
+        try {
+            String sql = getDialect().getCreateSequenceStrings(sequenceName, 1, 1)[0];
+            getSession().createSQLQuery(sql).executeUpdate();
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(String.format("Cannot create sequence '%s': %s", sequenceName, e.getMessage()), e);
+        }
+        return sequenceName;
+    }
+
+    @Override
+    public void dropSequence(String sequenceName) {
+        Preconditions.checkNotNull(sequenceName);
+        Preconditions.checkArgument(sequenceName.startsWith(ExtractionDao.TABLE_NAME_PREFIX)
+                || sequenceName.startsWith(AggregationDao.TABLE_NAME_PREFIX));
+        Preconditions.checkArgument(sequenceName.endsWith(ExtractionDao.SEQUENCE_NAME_SUFFIX));
+        try {
+            String sql = getDialect().getDropSequenceStrings(sequenceName)[0];
+            getSession().createSQLQuery(sql).executeUpdate();
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(String.format("Cannot drop sequence '%s': %s", sequenceName, e.getMessage()), e);
+        }
+    }
+
+    @Override
+    public ExtractionResultVO getAggRows(@NonNull String tableName,
+                                         ExtractionFilterVO filter,
+                                         Set<String> groupByColumnNames,
+                                         final Map<String, SQLAggregatedFunction> otherColumnNames,
+                                         int offset, int size, String sort, SortDirection direction) {
 
         ExtractionResultVO result = new ExtractionResultVO();
 
@@ -161,7 +197,9 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         // Set columns metadata
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         if (table != null && table.getColumnsCount() > 0) {
-            List<ExtractionProductColumnVO> columns = toProductColumnVOs(table, columnNames);
+            List<ExtractionTableColumnVO> columns = toProductColumnVOs(table, columnNames,
+                    ExtractionTableColumnFetchOptions.MINIMAL // Not need rankOrder, when agg rows
+            );
             result.setColumns(columns);
 
             whereBuilder.append(SumarisTableMetadatas.getSqlWhereClause(table, filter));
@@ -224,6 +262,46 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         return result;
     }
 
+
+
+    @Override
+    public Map<String, Object> getTechRows(String tableName, ExtractionFilterVO filter,
+                                             String aggColumnName,
+                                             SQLAggregatedFunction aggFunction,
+                                             String techColumnName,
+                                             String sortColumn, SortDirection direction) {
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+        Preconditions.checkNotNull(table, "Unknown table: " + tableName);
+
+        final String tableAlias = table != null ? table.getAlias() : null;
+        String tableWithAlias = SumarisTableMetadatas.getAliasedTableName(tableAlias, tableName);
+        String aggColumnNameWithFunction = String.format("%s(COALESCE(%s, 0)) AGG_VALUE",
+                aggFunction.name().toLowerCase(),
+                SumarisTableMetadatas.getAliasedColumnName(tableAlias, aggColumnName));
+
+        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
+
+        direction = direction != null || StringUtils.isNotBlank(sortColumn) ? direction : SortDirection.DESC;
+        sortColumn = StringUtils.isNotBlank(sortColumn) ? SumarisTableMetadatas.getAliasedColumnName(tableAlias, sortColumn) : "AGG_VALUE";
+
+        String sql = SumarisTableMetadatas.getSelectGroupByQuery(
+                tableWithAlias,
+                ImmutableList.of(
+                        SumarisTableMetadatas.getAliasedColumnName(tableAlias, techColumnName),
+                        aggColumnNameWithFunction),
+                whereClause,
+                // Group by
+                ImmutableList.of(techColumnName),
+                // Sort by
+                ImmutableList.of(sortColumn),
+                direction);
+
+        return query(sql, Object[].class)
+                .stream()
+                .filter(row -> row[0] != null)
+                .collect(Collectors.toMap(row -> row[0].toString(), row -> row[1]));
+    }
+
     @Override
     public long getRowCount(String tableName) {
         Preconditions.checkNotNull(tableName);
@@ -233,6 +311,10 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     /* -- protected method -- */
+
+    protected Dialect getDialect() {
+        return databaseMetadata.getDialect();
+    }
 
     protected Number getRowCount(SumarisTableMetadata table, String whereClause) {
 
@@ -275,40 +357,30 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         return result;
     }
 
-    protected List<ExtractionProductColumnVO> toProductColumnVOs(SumarisTableMetadata table,
-                                                                 Collection<String> columnNames) {
-        List<ExtractionProductColumnVO> columns = columnNames.stream()
+    /**
+     * Read table metadata, to get column.
+     *
+     * /!\ Important: column order must be the unchanged !! Otherwise getTableGroupByRows() will not work well
+     *
+     * @param table
+     * @param columnNames
+     * @param fetchOptions
+     * @return
+     */
+    protected List<ExtractionTableColumnVO> toProductColumnVOs(SumarisTableMetadata table,
+                                                               Collection<String> columnNames,
+                                                               ExtractionTableColumnFetchOptions fetchOptions) {
+
+        List<ExtractionTableColumnVO> columns = columnNames.stream()
                 // Get column metadata
                 .map(table::getColumnMetadata)
                 .filter(Objects::nonNull)
                 // Transform in VO
-                .map(ExtractionBeans::toProductColumnVO)
+                .map(ExtractionProducts::toProductColumnVO)
                 .collect(Collectors.toList());
 
-        // Compute the rank order
-        String tableNameUppercase = table.getName().toUpperCase();
-
-        // Need for compatibility for SUMARiS DB
-        if (tableNameUppercase.startsWith("P01_ICES")) {
-            tableNameUppercase.replaceAll("P01_ICES_", "P01_RDB_");
-        }
-
-        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableNameUppercase);
-        if (ArrayUtils.isNotEmpty(orderedColumnNames)) {
-            int maxRankOrder = -1;
-            for (ExtractionProductColumnVO column : columns) {
-                int rankOrder = ArrayUtils.indexOf(orderedColumnNames, column.getName().toLowerCase());
-                if (rankOrder != -1) {
-                    column.setRankOrder(rankOrder + 1);
-                    maxRankOrder = Math.max(maxRankOrder, rankOrder + 1);
-                }
-            }
-            // Set rankOrder of unknown columns (e.g. new columns)
-            for (ExtractionProductColumnVO column : columns) {
-                if (column.getRankOrder() == null) {
-                    column.setRankOrder(++maxRankOrder);
-                }
-            }
+        if (fetchOptions.isWithRankOrder()) {
+            ExtractionTableColumnOrder.fillRankOrderByTableName(table.getName(), columns);
         }
 
         return columns;

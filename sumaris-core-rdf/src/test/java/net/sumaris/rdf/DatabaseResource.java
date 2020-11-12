@@ -38,53 +38,40 @@ import java.io.File;
  */
 public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 
-	public static final String MODULE_NAME = "sumaris-core-rdf";
-
-	private final DatabaseFixtures fixtures;
 
 	public static DatabaseResource readDb() {
-		return new DatabaseResource("", false);
-	}
-
-	public static DatabaseResource readDb(String configName) {
-		return new DatabaseResource(configName, false);
-	}
-
-	public static DatabaseResource writeDb() {
 		return new DatabaseResource("", true);
 	}
 
-	public static DatabaseResource writeDb(String configName) {
+	public static DatabaseResource readDb(String configName) {
 		return new DatabaseResource(configName, true);
 	}
 
-	protected DatabaseResource(String configName, boolean writeDb) {
-		super(configName, writeDb);
-		fixtures = new DatabaseFixtures();
+	public static DatabaseResource writeDb() {
+		return new DatabaseResource("", false);
 	}
 
-	public DatabaseFixtures getFixtures() {
-		return fixtures;
+	public static DatabaseResource writeDb(String configName) {
+		return new DatabaseResource(configName, false);
+	}
+
+	protected DatabaseResource(String configName, boolean readOnly) {
+		super(configName, readOnly);
 	}
 
 	@Override
-	public String getBuildEnvironment() {
-		return "hsqldb";
+	public String getDatasourcePlatform() {
+		return TestConfiguration.DATASOURCE_PLATFORM;
 	}
 
 	@Override
 	protected String getConfigFilesPrefix() {
-		return MODULE_NAME +"-test";
+		return TestConfiguration.CONFIG_FILE_PREFIX;
 	}
 
 	@Override
 	protected String getModuleDirectory() {
-		return MODULE_NAME;
-	}
-
-	@Override
-	protected String getI18nBundleName() {
-		return MODULE_NAME + "-i18n";
+		return TestConfiguration.MODULE_NAME;
 	}
 
 	@Override
@@ -95,13 +82,17 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 		initTripleStore();
 	}
 
+	protected String getRdfDirectory() {
+		return "target/rdf";
+	}
+
 	protected void initTripleStore() throws Throwable {
 		// Source dir, init by InitTests.main
-		File sourceDirectory = new File("target/rdf");
+		File sourceDirectory = new File(getRdfDirectory());
 		Assume.assumeTrue(String.format("No RDF dataset found at '%s'. Please run InitTests and retry", sourceDirectory.getPath()), sourceDirectory.exists() && sourceDirectory.isDirectory());
 
 		SumarisConfiguration config = SumarisConfiguration.getInstance();
-		if (isWriteDb()) {
+		if (canWrite()) {
 			File targetDirectory = getResourceDirectory("data/rdf");
 			config.getApplicationConfig().setOption(RdfConfigurationOption.RDF_DIRECTORY.getKey(), targetDirectory.getCanonicalPath());
 

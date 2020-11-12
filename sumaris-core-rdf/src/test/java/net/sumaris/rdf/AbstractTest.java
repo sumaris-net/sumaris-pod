@@ -29,12 +29,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Abstract class for unit test on services.
  */
+@ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {TestConfiguration.class})
 @TestPropertySource(locations="classpath:sumaris-core-rdf-test.properties")
@@ -48,11 +50,8 @@ public class AbstractTest {
 	@Autowired
 	protected RdfConfiguration config;
 
-	/* -- Internal method -- */
-
-	protected RdfConfiguration getConfig() {
-		return config;
-	}
+	@Autowired
+	protected DatabaseFixtures fixtures;
 
 
 }

@@ -21,8 +21,8 @@
         </i18n.bundleCsvFile>
         <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
 
-        <!-- Default implementation -->
-        <env>hsqldb</env>
+        <!-- Default datasource platform -->
+        <spring.datasource.platform>hsqldb</spring.datasource.platform>
     </properties>
 
     <dependencies>
@@ -210,7 +210,7 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
                 <property>
-                    <name>env</name>
+                    <name>spring.datasource.platform</name>
                     <value>hsqldb</value>
                 </property>
             </activation>

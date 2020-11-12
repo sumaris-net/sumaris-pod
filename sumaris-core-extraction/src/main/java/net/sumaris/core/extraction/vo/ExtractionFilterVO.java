@@ -23,12 +23,14 @@ package net.sumaris.core.extraction.vo;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 public class ExtractionFilterVO {
 
 

@@ -33,7 +33,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.crypto.ServerCryptoService;
-import net.sumaris.server.vo.security.AuthDataVO;
+import net.sumaris.server.util.security.AuthDataVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
@@ -203,7 +203,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Optional<PersonVO> getAuthenticatedUser() {
-        return getAuthPrincipal().map(user -> personRepository.findByPubkey(user.getPubkey()));
+        return getAuthPrincipal()
+                .map(AuthUser::getPubkey)
+                .filter(Objects::nonNull)
+                .map(personRepository::findByPubkey);
     }
 
     @Override

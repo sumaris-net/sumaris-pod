@@ -71,7 +71,7 @@ public class DepartmentServiceTest extends AbstractServiceTest {
         vo.setLabel("dep label");
         vo.setName("dep name");
         vo.setSiteUrl("http://www.sumaris.net");
-        vo.setStatusId(getConfig().getStatusIdValid());
+        vo.setStatusId(config.getStatusIdValid());
         service.save(vo);
 
         // find
@@ -85,7 +85,7 @@ public class DepartmentServiceTest extends AbstractServiceTest {
 
     @Test
     public void c_delete() {
-        service.delete(dbResource.getFixtures().getDepartmentId(1));
+        service.delete(fixtures.getDepartmentId(1));
     }
 
     @Test

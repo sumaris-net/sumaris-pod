@@ -24,7 +24,6 @@ package net.sumaris.importation;
  * #L%
  */
 
-import net.sumaris.importation.dao.DatabaseResource;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,13 +53,13 @@ public class InitTests extends net.sumaris.core.test.InitTests {
     }
 
     @Override
-    public String getTargetDbDirectory() {
-        return "target/db";
+    protected String getModuleName() {
+        return TestConfiguration.MODULE_NAME;
     }
 
     @Override
-    protected String getModuleName() {
-        return DatabaseResource.MODULE_NAME;
+    public String getTargetDbDirectory() {
+        return "target/db";
     }
 
     @Override

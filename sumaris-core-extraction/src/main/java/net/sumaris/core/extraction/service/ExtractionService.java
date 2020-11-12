@@ -23,7 +23,8 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
@@ -43,13 +44,15 @@ import java.util.List;
 @Transactional
 public interface ExtractionService {
 
+
+    @Transactional(readOnly = true)
+    ExtractionTypeVO getByFormat(IExtractionFormat type);
+
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> findByFilter(@Nullable ExtractionTypeFilterVO filter);
 
-    @Transactional
-    ExtractionContextVO execute(ExtractionTypeVO type, @Nullable ExtractionFilterVO filter);
+    ExtractionContextVO execute(IExtractionFormat format, @Nullable ExtractionFilterVO filter);
 
-    @Transactional
     ExtractionResultVO read(ExtractionContextVO context,
                             @Nullable ExtractionFilterVO filter,
                             int offset,
@@ -57,7 +60,6 @@ public interface ExtractionService {
                             String sort,
                             SortDirection direction) ;
 
-    @Transactional
     ExtractionResultVO executeAndRead(ExtractionTypeVO type,
                                       @Nullable ExtractionFilterVO filter,
                                       int offset,
@@ -69,8 +71,9 @@ public interface ExtractionService {
     File executeAndDump(ExtractionTypeVO type,
                         ExtractionFilterVO filter) throws IOException;
 
-    @Transactional
-    File executeAndDumpTrips(ExtractionRawFormatEnum format, ExtractionTripFilterVO filter);
+    File executeAndDumpTrips(LiveFormatEnum format, ExtractionTripFilterVO filter);
+
+    File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
     void clean(ExtractionContextVO context);
@@ -81,6 +84,5 @@ public interface ExtractionService {
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     ExtractionProductVO toProductVO(ExtractionContextVO context);
 
-    @Transactional
     ExtractionTypeVO save(ExtractionTypeVO type, ExtractionFilterVO filter);
 }

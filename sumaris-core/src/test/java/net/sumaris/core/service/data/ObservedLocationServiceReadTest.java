@@ -55,7 +55,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void findByFilterWithRecorderDepartment() {
-        int recorderDepId = dbResource.getFixtures().getDepartmentId(2);
+        int recorderDepId = fixtures.getDepartmentId(2);
         ObservedLocationFilterVO filter = ObservedLocationFilterVO.builder()
                 .recorderDepartmentId(recorderDepId)
                 .build();
@@ -70,7 +70,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void findByFilterWithRecorderPerson() {
-        int recorderPersonId = dbResource.getFixtures().getPersonId(1);
+        int recorderPersonId = fixtures.getPersonId(1);
         ObservedLocationFilterVO filter = ObservedLocationFilterVO.builder()
                 .recorderPersonId(recorderPersonId)
                 .build();

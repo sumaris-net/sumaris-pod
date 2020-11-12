@@ -48,7 +48,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void getGears() {
 
-        ProgramVO defaultProg =  dbResource.getFixtures().getDefaultProgram();
+        ProgramVO defaultProg =  fixtures.getDefaultProgram();
 
         List<ReferentialVO> results = service.getGears(defaultProg.getId());
         Assert.assertNotNull(results);
@@ -59,7 +59,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void getTaxonGroupStrategies() {
 
-        ProgramVO program =  dbResource.getFixtures().getAuctionProgram();
+        ProgramVO program =  fixtures.getAuctionProgram();
 
         List<TaxonGroupStrategyVO> results = service.getTaxonGroupStrategies(program.getId());
         Assert.assertNotNull(results);
@@ -82,7 +82,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void findPmfmStrategiesByProgramAndAcquisitionLevel() {
 
-        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByProgramAndAcquisitionLevel(dbResource.getFixtures().getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());
+        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByProgramAndAcquisitionLevel(fixtures.getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());
         Assert.assertNotNull(pmfmStrategies);
         Assert.assertEquals(24, pmfmStrategies.size());
 

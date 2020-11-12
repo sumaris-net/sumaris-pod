@@ -27,7 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -37,9 +37,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class AggregationResultVO extends ExtractionResultVO {
 
-    List<String> spaceStrata;
-    List<String> timeStrata;
-    List<String> aggStrata;
+    Set<String> spaceStrata;
+    Set<String> timeStrata;
+    Set<String> aggStrata;
 
     public AggregationResultVO() {
         super();

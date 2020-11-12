@@ -31,7 +31,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.AuthUser;
-import net.sumaris.server.vo.security.AuthDataVO;
+import net.sumaris.server.util.security.AuthDataVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;

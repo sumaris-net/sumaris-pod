@@ -42,7 +42,9 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public abstract class AggregationContextVO extends ExtractionContextVO {
+public class AggregationContextVO extends ExtractionContextVO {
+
+    AggregationStrataVO strata;
 
     boolean enableAnalyze = true;
 
@@ -83,5 +85,13 @@ public abstract class AggregationContextVO extends ExtractionContextVO {
 
     public Map<String, List<String>> getColumnValues(String tableName) {
         return columnValues.get(tableName);
+    }
+
+    public String getStrataSpaceColumnName() {
+        return strata != null ? strata.getSpatialColumnName() : null;
+    }
+
+    public String getStrataTimeColumnName() {
+        return strata != null ? strata.getTimeColumnName() : null;
     }
 }

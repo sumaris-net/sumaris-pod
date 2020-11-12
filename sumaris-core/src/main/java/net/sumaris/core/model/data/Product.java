@@ -139,7 +139,7 @@ public class Product
     /* -- Parent link -- */
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "operation_fk", nullable = false)
+    @JoinColumn(name = "operation_fk")
     private Operation operation;
 
     @ManyToOne(fetch = FetchType.LAZY)

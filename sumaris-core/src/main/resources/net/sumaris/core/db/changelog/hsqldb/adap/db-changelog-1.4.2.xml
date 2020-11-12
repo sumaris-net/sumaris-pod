@@ -452,7 +452,7 @@
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-                <sqlCheck expectedResult="0">select count(*) from (select max(id) MAX_ID from PARAMETER HAVING max(id) &lt; 400)</sqlCheck>
+                <sqlCheck expectedResult="0">select count(*) from (select max(id) MAX_ID from PARAMETER HAVING max(id) &gt;= 400)</sqlCheck>
             </and>
         </preConditions>
         <sql endDelimiter=";">
@@ -464,7 +464,7 @@
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-                <sqlCheck expectedResult="0">select count(*) from (select max(id) MAX_ID from PARAMETER HAVING max(id) &lt; 300)</sqlCheck>
+                <sqlCheck expectedResult="0">select count(*) from (select max(id) MAX_ID from PARAMETER HAVING max(id) &gt;= 300)</sqlCheck>
             </and>
         </preConditions>
         <sql endDelimiter=";">

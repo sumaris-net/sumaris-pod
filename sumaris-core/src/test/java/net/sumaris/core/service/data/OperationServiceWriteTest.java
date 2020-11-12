@@ -22,7 +22,6 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -62,11 +61,8 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
     private TripVO parent;
 
-    private DatabaseFixtures fixtures;
-
     @Before
     public void setUp() {
-        this.fixtures = dbResource.getFixtures();
         this.parent = tripService.get(fixtures.getTripId(0));
         Assume.assumeNotNull(this.parent);
     }

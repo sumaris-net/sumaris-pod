@@ -1340,7 +1340,7 @@ public class DataGraphQLService {
     }
 
     protected boolean canAccessNotSelfData() {
-        String minRole = config.getAuthNotSelfDataRole();
+        String minRole = config.getAuthRoleForNotSelfData();
         return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
     }
 

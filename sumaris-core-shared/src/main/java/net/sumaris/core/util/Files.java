@@ -42,6 +42,7 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -369,6 +370,10 @@ public class Files {
 	}
 
 	public static String readContent(InputStream source, Charset charset) throws IOException {
+		return new String(readAllBytes(source), charset);
+	}
+
+	public static byte[] readAllBytes(InputStream source) throws IOException {
 		Preconditions.checkNotNull(source);
 
 		try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -379,7 +384,7 @@ public class Files {
 				bos.write(buf, 0, len);
 			}
 			bos.flush();
-			return new String(bos.toByteArray(), charset);
+			return bos.toByteArray();
 		}
 	}
 
@@ -425,8 +430,18 @@ public class Files {
 		return com.google.common.io.Files.getNameWithoutExtension(srcFile.getName());
 	}
 
-	public static String getExtension(File srcFile) {
-		return com.google.common.io.Files.getFileExtension(srcFile.getName());
+	public static Optional<String> getExtension(File srcFile) {
+		return getExtension(srcFile.getName());
+	}
+
+	public static Optional<String> getExtension(String path) {
+		int extIndex = path.lastIndexOf('.');
+		if (extIndex > path.lastIndexOf('/') && extIndex < path.length() - 1) {
+			String extension = path.substring(extIndex+1).toLowerCase();
+			return Optional.of(extension);
+		}
+
+		return Optional.empty();
 	}
 
 	/**

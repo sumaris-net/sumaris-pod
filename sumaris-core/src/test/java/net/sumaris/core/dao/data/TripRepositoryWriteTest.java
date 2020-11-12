@@ -65,7 +65,7 @@ public class TripRepositoryWriteTest extends AbstractDaoTest{
     @Test
     public void findAllByRecorderPerson() {
         TripFilterVO filter = TripFilterVO.builder()
-                .recorderPersonId(dbResource.getFixtures().getPersonId(0))
+                .recorderPersonId(fixtures.getPersonId(0))
                 .build();
         List<TripVO> trips = repository.findAll(filter);
         Assert.assertNotNull(trips);
@@ -75,7 +75,7 @@ public class TripRepositoryWriteTest extends AbstractDaoTest{
     @Test
     public void findAllByRecorderDepartment() {
         TripFilterVO filter = TripFilterVO.builder()
-                .recorderDepartmentId(dbResource.getFixtures().getDepartmentId(0))
+                .recorderDepartmentId(fixtures.getDepartmentId(0))
                 .build();
         List<TripVO> trips = repository.findAll(filter);
         Assert.assertNotNull(trips);
@@ -85,7 +85,7 @@ public class TripRepositoryWriteTest extends AbstractDaoTest{
     @Test
 //    @Ignore
     public void deleteById() {
-        Integer id = dbResource.getFixtures().getTripId(0);
+        Integer id = fixtures.getTripId(0);
         repository.deleteById(id);
 
     }

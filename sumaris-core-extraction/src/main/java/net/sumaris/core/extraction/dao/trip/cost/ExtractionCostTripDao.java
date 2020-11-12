@@ -23,9 +23,12 @@ package net.sumaris.core.extraction.dao.trip.cost;
  */
 
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionCostTripDao extends ExtractionRdbTripDao {
+public interface ExtractionCostTripDao<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
+        extends ExtractionRdbTripDao<C, F> {
 }

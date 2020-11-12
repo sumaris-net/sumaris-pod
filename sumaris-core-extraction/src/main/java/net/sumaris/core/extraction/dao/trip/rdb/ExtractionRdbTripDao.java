@@ -23,16 +23,16 @@ package net.sumaris.core.extraction.dao.trip.rdb;
  */
 
 import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
-import net.sumaris.core.extraction.specification.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionRdbTripDao<C extends ExtractionRdbTripContextVO> extends ExtractionTripDao {
+public interface ExtractionRdbTripDao<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
+        extends ExtractionTripDao {
 
-    <R extends C> R execute(ExtractionFilterVO filter);
+    <R extends C> R execute(F filter);
 
     void clean(C context);
 }

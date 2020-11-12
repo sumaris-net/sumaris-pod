@@ -181,9 +181,9 @@ public class TrashServiceImpl implements TrashService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
-        boolean enable = event.getConfig().enableEntityTrash();
+        boolean enable = event.getConfiguration().enableEntityTrash();
         boolean changed = enable != this.enable;
-        this.trashDirectory = event.getConfig().getTrashDirectory();
+        this.trashDirectory = event.getConfiguration().getTrashDirectory();
         this.enable = enable;
 
         if (this.enable) {

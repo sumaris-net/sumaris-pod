@@ -66,7 +66,7 @@ function AppRdfExporter() {
         if (inputPackages) inputPackages.oninput = computeParams;
 
         uriDiv = document.getElementById("uriDiv");
-        paramsDiv = paramsDiv = document.getElementById("paramsDiv");
+        paramsDiv = document.getElementById("paramsDiv");
         outputTextarea = document.getElementById("outputTextarea");
         logDiv = document.getElementById("logDiv");
 

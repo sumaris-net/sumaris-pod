@@ -86,7 +86,7 @@ public class PmfmStrategyRepositoryImpl
     private ReferentialDao referentialDao;
 
     @Autowired
-    private SumarisConfiguration config;
+    private SumarisConfiguration configuration;
 
     @Autowired
     PmfmStrategyRepositoryImpl(EntityManager entityManager) {

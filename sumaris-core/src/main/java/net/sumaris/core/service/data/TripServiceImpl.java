@@ -109,7 +109,7 @@ public class TripServiceImpl implements TripService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        this.enableTrash = event.getConfig().enableEntityTrash();
+        this.enableTrash = event.getConfiguration().enableEntityTrash();
     }
 
     @Override
