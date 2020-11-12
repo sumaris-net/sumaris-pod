@@ -510,9 +510,11 @@
   <div *ngIf="ready"
        leaflet
        (leafletMapReady)="onMapReady($event)"
-       [leafletOptions]="options">
+       [leafletOptions]="mapOptions">
 
     <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
+
+    <!--<div [leafletLayer]="countriesLayer"></div>-->
   </div>
 
 

@@ -32,7 +32,7 @@ import {Location} from "@angular/common";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
-import {CRS, DomUtil} from 'leaflet';
+import {CRS, DomUtil, WMSParams} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -63,6 +63,25 @@ declare type TechChartOptions = ChartOptions & {
   displayAllLabels?: boolean;
 }
 
+const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">\n' +
+  '   <sld:NamedLayer>\n' +
+  '      <sld:Name>ESPACES_TERRESTRES_P</sld:Name>\n' +
+  '      <sld:UserStyle>\n' +
+  '         <sld:Name>pointSymbolizer</sld:Name>\n' +
+  '         <sld:Title>pointSymbolizer</sld:Title>\n' +
+  '         <sld:FeatureTypeStyle>\n' +
+  '            <sld:Rule>\n' +
+  '               <sld:PolygonSymbolizer>\n' +
+  '                  <sld:Fill>\n' +
+  '                     <sld:CssParameter name="fill">#666666</sld:CssParameter>\n' +
+  '                     <sld:CssParameter name="fill-opacity">1</sld:CssParameter>\n' +
+  '                  </sld:Fill>\n' +
+  '               </sld:PolygonSymbolizer>\n' +
+  '            </sld:Rule>\n' +
+  '         </sld:FeatureTypeStyle>\n' +
+  '      </sld:UserStyle>\n' +
+  '   </sld:NamedLayer>\n' +
+  '</sld:StyledLayerDescriptor>';
 
 @Component({
   selector: 'app-extraction-map-page',
@@ -73,74 +92,75 @@ declare type TechChartOptions = ChartOptions & {
 })
 export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> implements OnInit, OnDestroy {
 
+  ready = false;
+
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
     attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
   });
   sextantBaseLayer = L.tileLayer(
-    'https://sextant.ifremer.fr/geowebcache/service/wmts?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
-    {maxZoom: 18, attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"});
+    'https://sextant.ifremer.fr/geowebcache/service/wmts' +
+      '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
+    {
+      maxZoom: 18,
+      attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
+    });
+  countriesLayer = L.tileLayer.wms('http://www.ifremer.fr/services/wms/dcsmm', {
+    maxZoom: 18,
+    version: '1.3.0',
+    crs: CRS.EPSG3857,
+    format: "image/png",
+    transparent: true,
+    styles: "style_sld_body",
+    attribution: "<a href='https://www.ifremer.fr'>Ifremer</a>"
+  }).setParams({
+    layers: "ESPACES_TERRESTRES_P",
+    service: 'WMS',
+    sld_body: encodeURIComponent(BASE_LAYER_SLD_BODY.replace(/[ \t]+/, ' '))
+  } as WMSParams);
+
   sextantGraticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
     maxZoom: 18,
     version: '1.3.0',
-    crs: CRS.EPSG4326,
+    crs: CRS.EPSG3857,
     format: "image/png",
-    transparent: true
+    transparent: true,
+    attribution: "<a href='https://www.ifremer.fr'>Ifremer</a>"
   }).setParams({
     layers: "graticule_4326",
     service: 'WMS'
   });
-
-  ready = false;
-  options = {
+  mapOptions = {
     layers: [this.sextantBaseLayer],
     maxZoom: 10, // max zoom to sextant layer
     zoom: 5,
     center: L.latLng(46.879966, -10) // Atlantic centric
   };
-  baseLayer: L.Layer = this.sextantBaseLayer;
+  baseLayer: L.TileLayer = this.mapOptions.layers[0];
   baseLayers = [
     {title: 'Sextant (Ifremer)', layer: this.sextantBaseLayer},
     {title: 'Open Street Map', layer: this.osmBaseLayer}
   ];
+  map: L.Map;
+  $layers = new BehaviorSubject<L.GeoJSON<L.Polygon>[]>(null);
+  showGraticule = false;
 
-  data = {
-    total: 0,
-    min: 0,
-    max: 0
-  };
 
+  // -- Legend card --
   showLegend = false;
   legendForm: FormGroup;
   showLegendForm = false;
   customLegendOptions: Partial<LegendOptions> = undefined;
   legendStyle = {};
-
-  columnNames = {};
-  map: L.Map;
-  typesFilter: AggregationTypeFilter;
-  showGraticule = false;
-
-  $title = new BehaviorSubject<string>(undefined);
-  $layers = new BehaviorSubject<L.GeoJSON<L.Polygon>[]>(null);
   $legendItems = new BehaviorSubject<ColorScaleLegendItem[] | undefined>([]);
+
+  // -- Details card --
   $onOverFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
-  $noData = new BehaviorSubject<boolean>(false);
-
-  $sheetNames = new BehaviorSubject<String[]>(undefined);
-  $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $spatialColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $criteriaColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-
-
   $details = new Subject<{ title: string; properties: { name: string; value: string }[]; }>();
-  $tech = new Subject<{ title: string; titleParams?: any, labels: Label[]; data: SingleOrMultiDataSet }>();
-  $years = new BehaviorSubject<number[]>(undefined);
 
+  // -- Chart card
   techChartOptions: TechChartOptions = {
     type: 'bar',
     responsive: true,
@@ -150,6 +170,25 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   };
   chartTypes: ChartType[] = ['pie', 'bar', 'doughnut'];
 
+  // -- Data --
+  data = {
+    total: 0,
+    min: 0,
+    max: 0
+  };
+  $noData = new BehaviorSubject<boolean>(false);
+
+  columnNames = {}; // cache for i18n column name
+  typesFilter: AggregationTypeFilter;
+  $title = new BehaviorSubject<string>(undefined);
+  $sheetNames = new BehaviorSubject<String[]>(undefined);
+  $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $spatialColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $criteriaColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $tech = new Subject<{ title: string; titleParams?: any, labels: Label[]; data: SingleOrMultiDataSet }>();
+  $years = new BehaviorSubject<number[]>(undefined);
   formatNumberLocale: string;
   animation: Subscription;
 
@@ -268,7 +307,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           return this.loadData();
         })
       ).subscribe(() => this.markAsPristine()));
-
   }
 
   ngOnInit() {
@@ -332,7 +370,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     }
   }
 
-  async setType(type: AggregationType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
+  async setType(type: AggregationType, opts?: {
+    emitEvent?: boolean;
+    skipLocationChange?: boolean;
+    sheetName?: string;
+    stopAnimation?: boolean;
+  }): Promise<boolean> {
     const changed = await super.setType(type, opts);
 
     if (changed) {
@@ -342,7 +385,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.$title.next(typeName);
 
       // Stop animation
-      this.stopAnimation();
+      if (!opts || opts.stopAnimation !== false) {
+        this.stopAnimation();
+      }
 
       // Update sheet names
       this.updateSheetNames();
@@ -356,7 +401,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     return changed;
   }
 
-  setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
+  setSheetName(sheetName: string, opts?: {
+    emitEvent?: boolean;
+    skipLocationChange?: boolean;
+    stopAnimation?: boolean;
+  }) {
     const changed = this.sheetName != sheetName;
 
     // Reset min/max of the custom legend (if exists)
@@ -365,7 +414,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         this.customLegendOptions.min = 0;
         this.customLegendOptions.max = undefined;
       }
-      this.stopAnimation();
+
+      // Stop animation
+      if (!opts || opts.stopAnimation !== false) {
+        this.stopAnimation();
+      }
 
       this.$timeColumns.next(null);
       this.$spatialColumns.next(null);
@@ -701,20 +754,28 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
   }
 
-  setYear(year: number, opts?: {emitEvent?: boolean; }) {
+  setYear(year: number, opts?: {emitEvent?: boolean; stopAnimation?: boolean; }): boolean {
     const changed = this.year !== year;
 
-    // Skip if same and emitEvent not forced
-    if (!changed && (!opts || opts.emitEvent === false)) return;
+    // If changed or force with opts.emitEvent=true
+    if (changed || (opts && opts.emitEvent === true)) {
 
-    this.form.patchValue({
-      year
-    }, opts);
+      this.form.patchValue({
+        year
+      }, opts);
 
-    // Refresh
-    if (!opts || opts.emitEvent !== false) {
-      this.onRefresh.emit();
+      // Stop animation
+      if (!opts || opts.stopAnimation !== false) {
+        this.stopAnimation();
+      }
+
+      // Refresh
+      if (!opts || opts.emitEvent !== false) {
+        this.onRefresh.emit();
+      }
     }
+
+    return changed;
   }
 
   onRefreshClick(event?: UIEvent) {
@@ -894,17 +955,17 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   }
 
 
-  setBaseLayer(layer: L.Layer) {
+  setBaseLayer(layer: L.TileLayer) {
 
     if (this.map.hasLayer(layer)) return; // Skip
 
-    this.baseLayers.forEach(l => {
-      if (l.layer === layer) {
-        this.map.addLayer(l.layer);
+    this.baseLayers.forEach(item => {
+      if (item.layer === layer) {
+        this.map.addLayer(item.layer);
         this.baseLayer = layer;
       }
-      else {
-        this.map.removeLayer(l.layer);
+      else if (this.map.hasLayer(item.layer)){
+        this.map.removeLayer(item.layer);
       }
     });
   }
@@ -926,8 +987,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       )
       .subscribe(index => {
         const year = years[index % arraySize(years)];
-        console.info("[extraction-map] Rendering animation for year {" + year + "}...");
-        this.setYear(year, {emitEvent: true /*force refresh if same*/});
+        console.info(`[extraction-map] Rendering animation on year ${year}...`);
+        this.setYear(year, {
+          emitEvent: true, /*force refresh if same*/
+          stopAnimation: false
+        });
       });
 
     this.animation.add(() => {
