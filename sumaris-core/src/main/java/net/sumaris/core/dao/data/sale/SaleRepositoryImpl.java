@@ -108,7 +108,7 @@ public class SaleRepositoryImpl
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getSales()));
 
-        // Save each gears
+        // Save each entity
         List<SaleVO> result = sales.stream().map(source -> {
             source.setTripId(tripId);
             source.setProgram(parentProgram);

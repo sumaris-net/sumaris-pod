@@ -29,7 +29,6 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -278,7 +277,7 @@ public class PmfmStrategyRepositoryImpl
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getGearIds())) {
             target.getGears().clear();
             if (CollectionUtils.isNotEmpty(source.getGearIds())) {
-                target.getGears().addAll(loadAllAsSet(Gear.class, IEntity.Fields.ID, source.getGearIds(), true));
+                target.getGears().addAll(loadAllAsSet(Gear.class, source.getGearIds(), true));
             }
         }
 
@@ -286,7 +285,7 @@ public class PmfmStrategyRepositoryImpl
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
             target.getTaxonGroups().clear();
             if (CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
-                target.getTaxonGroups().addAll(loadAllAsSet(TaxonGroup.class, IEntity.Fields.ID, source.getTaxonGroupIds(), true));
+                target.getTaxonGroups().addAll(loadAllAsSet(TaxonGroup.class, source.getTaxonGroupIds(), true));
             }
         }
 
@@ -294,7 +293,7 @@ public class PmfmStrategyRepositoryImpl
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
             target.getReferenceTaxons().clear();
             if (CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
-                target.getReferenceTaxons().addAll(loadAllAsSet(ReferenceTaxon.class, IEntity.Fields.ID, source.getReferenceTaxonIds(), true));
+                target.getReferenceTaxons().addAll(loadAllAsSet(ReferenceTaxon.class, source.getReferenceTaxonIds(), true));
             }
         }
     }

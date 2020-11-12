@@ -57,7 +57,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
     @Test
     public void save() {
         TripVO vo = createTrip();
-        TripVO savedVO = service.save(vo, false, false);
+        TripVO savedVO = service.save(vo, null);
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
@@ -87,7 +87,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
         trip.setOperations(ImmutableList.of(operation));
 
-        TripVO savedVO = service.save(trip, true, false);
+        TripVO savedVO = service.save(trip, TripSaveOptions.builder().withOperation(true).build());
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
@@ -115,7 +115,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
     public void deleteAfterCreate() {
         TripVO savedVO = null;
         try {
-            savedVO = service.save(createTrip(), false, false);
+            savedVO = service.save(createTrip(), null);
             Assume.assumeNotNull(savedVO);
             Assume.assumeNotNull(savedVO.getId());
         }

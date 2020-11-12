@@ -10,18 +10,17 @@ package net.sumaris.core.dao.data.product;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-
 
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.user.PersonRepository;
@@ -32,8 +31,8 @@ import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.pmfm.MethodEnum;
@@ -47,7 +46,6 @@ import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.ProductFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -76,8 +74,6 @@ public class ProductRepositoryImpl
     private final MeasurementDao measurementDao;
 
     private final Map<String, Integer> pmfmIdByLabel;
-    private Integer measuredMethodId;
-    private Integer calculatedMethodId;
 
     @Autowired
     public ProductRepositoryImpl(EntityManager entityManager,
@@ -125,7 +121,7 @@ public class ProductRepositoryImpl
         // Weight and weight method
         target.setWeight(Daos.roundValue(source.getWeight()));
         if (source.getWeightMethod() != null) {
-            target.setWeightCalculated(source.getWeightMethod().getId().equals(getCalculatedMethodId()));
+            target.setWeightCalculated(source.getWeightMethod().getId().equals(MethodEnum.CALCULATED.getId()));
         }
 
         target.setDressingId(Optional.ofNullable(source.getDressing()).map(QualitativeValue::getId).orElse(null));
@@ -175,34 +171,34 @@ public class ProductRepositoryImpl
         // Weight method if weight exists
         if (source.getWeight() != null) {
             if (source.isWeightCalculated()) {
-                target.setWeightMethod(load(Method.class, getCalculatedMethodId()));
+                target.setWeightMethod(load(Method.class, MethodEnum.CALCULATED.getId()));
             } else {
-                target.setWeightMethod(load(Method.class, getMeasuredMethodId()));
+                target.setWeightMethod(load(Method.class, MethodEnum.MEASURED_BY_OBSERVER.getId()));
             }
         } else {
             target.setWeightMethod(null);
         }
 
         // Dressing
-        QualitativeValue dressing = extractMeasurementQualitativeValue(source, getPmfmIdByPmfmEnum(PmfmEnum.DRESSING));
+        QualitativeValue dressing = extractMeasurementQualitativeValue(source, PmfmEnum.DRESSING.getId());
         if (copyIfNull || dressing != null) {
             target.setDressing(dressing);
         }
 
         // Preservation
-        QualitativeValue preservation = extractMeasurementQualitativeValue(source, getPmfmIdByPmfmEnum(PmfmEnum.PRESERVATION));
+        QualitativeValue preservation = extractMeasurementQualitativeValue(source, PmfmEnum.PRESERVATION.getId());
         if (copyIfNull || preservation != null) {
             target.setPreservation(preservation);
         }
 
         // Size Category
-        QualitativeValue sizeCategory = extractMeasurementQualitativeValue(source, getPmfmIdByPmfmEnum(PmfmEnum.SIZE_CATEGORY));
+        QualitativeValue sizeCategory = extractMeasurementQualitativeValue(source, PmfmEnum.SIZE_CATEGORY.getId());
         if (copyIfNull || sizeCategory != null) {
             target.setSizeCategory(sizeCategory);
         }
 
         // Cost
-        Double cost = extractMeasurementNumericalValue(source, getPmfmIdByPmfmEnum(PmfmEnum.TOTAL_PRICE));
+        Double cost = extractMeasurementNumericalValue(source, PmfmEnum.TOTAL_PRICE.getId());
         if (copyIfNull || cost != null) {
             target.setCost(cost);
         }
@@ -301,17 +297,17 @@ public class ProductRepositoryImpl
         if (product.getMeasurementValues() == null)
             product.setMeasurementValues(new HashMap<>());
 
-        if (product.getDressingId() != null && getPmfmIdByPmfmEnum(PmfmEnum.DRESSING) != null) {
-            product.getMeasurementValues().put(getPmfmIdByPmfmEnum(PmfmEnum.DRESSING), product.getDressingId().toString());
+        if (product.getDressingId() != null) {
+            product.getMeasurementValues().put(PmfmEnum.DRESSING.getId(), product.getDressingId().toString());
         }
-        if (product.getPreservationId() != null && getPmfmIdByPmfmEnum(PmfmEnum.PRESERVATION) != null) {
-            product.getMeasurementValues().put(getPmfmIdByPmfmEnum(PmfmEnum.PRESERVATION), product.getPreservationId().toString());
+        if (product.getPreservationId() != null) {
+            product.getMeasurementValues().put(PmfmEnum.PRESERVATION.getId(), product.getPreservationId().toString());
         }
-        if (product.getSizeCategoryId() != null && getPmfmIdByPmfmEnum(PmfmEnum.SIZE_CATEGORY) != null) {
-            product.getMeasurementValues().put(getPmfmIdByPmfmEnum(PmfmEnum.SIZE_CATEGORY), product.getSizeCategoryId().toString());
+        if (product.getSizeCategoryId() != null) {
+            product.getMeasurementValues().put(PmfmEnum.SIZE_CATEGORY.getId(), product.getSizeCategoryId().toString());
         }
-        if (product.getCost() != null && getPmfmIdByPmfmEnum(PmfmEnum.TOTAL_PRICE) != null) {
-            product.getMeasurementValues().put(getPmfmIdByPmfmEnum(PmfmEnum.TOTAL_PRICE), product.getCost().toString());
+        if (product.getCost() != null) {
+            product.getMeasurementValues().put(PmfmEnum.TOTAL_PRICE.getId(), product.getCost().toString());
         }
 
         product.getMeasurementValues().putAll(measurementDao.getProductSortingMeasurementsMap(product.getId()));
@@ -320,20 +316,20 @@ public class ProductRepositoryImpl
         // Sale specific :
         if (product.getSaleId() != null) {
             // Get average price per packaging and set it to generic average price pmfm
-            String packagingId = product.getMeasurementValues().get(getPmfmIdByPmfmEnum(PmfmEnum.PACKAGING));
-            if (StringUtils.isNotBlank(packagingId) && getPmfmIdByPmfmEnum(PmfmEnum.AVERAGE_PACKAGING_PRICE) != null) {
+            String packagingId = product.getMeasurementValues().get(PmfmEnum.PACKAGING.getId());
+            if (StringUtils.isNotBlank(packagingId)) {
                 QualitativeValue packaging = load(QualitativeValue.class, Integer.valueOf(packagingId));
-                String avgPackagingPrice = product.getMeasurementValues().remove(getPmfmIdByLabel("AVERAGE_PRICE_" + packaging.getLabel()));
+                String avgPackagingPrice = product.getMeasurementValues().remove(getAveragePricePmfmIdByPackaging(packaging));
                 if (StringUtils.isNotBlank(avgPackagingPrice)) {
                     // put it as generic avg price
-                    product.getMeasurementValues().put(getPmfmIdByPmfmEnum(PmfmEnum.AVERAGE_PACKAGING_PRICE), avgPackagingPrice);
+                    product.getMeasurementValues().put(PmfmEnum.AVERAGE_PACKAGING_PRICE.getId(), avgPackagingPrice);
                 }
             }
 
             // Convert sale ratio as percentage
-            String ratioText = product.getMeasurementValues().get(getPmfmIdByPmfmEnum(PmfmEnum.SALE_RATIO));
+            String ratioText = product.getMeasurementValues().get(PmfmEnum.SALE_ESTIMATED_RATIO.getId());
             if (StringUtils.isNotBlank(ratioText)) {
-                product.getMeasurementValues().put(getPmfmIdByPmfmEnum(PmfmEnum.SALE_RATIO), Double.toString((Double.parseDouble(ratioText) * 100)));
+                product.getMeasurementValues().put(PmfmEnum.SALE_ESTIMATED_RATIO.getId(), Double.toString((Double.parseDouble(ratioText) * 100)));
             }
 
         }
@@ -367,26 +363,26 @@ public class ProductRepositoryImpl
                 if (product.getSaleId() != null) {
 
                     // Replace average price per packaging by packaging depending average price
-                    String packagingId = product.getMeasurementValues().get(getPmfmIdByPmfmEnum(PmfmEnum.PACKAGING));
-                    String averagePrice = product.getMeasurementValues().get(getPmfmIdByPmfmEnum(PmfmEnum.AVERAGE_PACKAGING_PRICE));
+                    String packagingId = product.getMeasurementValues().get(PmfmEnum.PACKAGING.getId());
+                    String averagePrice = product.getMeasurementValues().get(PmfmEnum.AVERAGE_PACKAGING_PRICE.getId());
                     if (StringUtils.isNotBlank(packagingId) && StringUtils.isNotBlank(averagePrice)) {
                         QualitativeValue packaging = load(QualitativeValue.class, Integer.valueOf(packagingId));
-                        Integer averagePriceForPackingPmfmId = getPmfmIdByLabel("AVERAGE_PRICE_" + packaging.getLabel());
+                        Integer averagePriceForPackingPmfmId = getAveragePricePmfmIdByPackaging(packaging);
                         if (averagePriceForPackingPmfmId != null) {
                             // put it as specified packaging avg price
-                            product.getMeasurementValues().put(averagePriceForPackingPmfmId, product.getMeasurementValues().remove(getPmfmIdByPmfmEnum(PmfmEnum.AVERAGE_PACKAGING_PRICE)));
+                            product.getMeasurementValues().put(averagePriceForPackingPmfmId, product.getMeasurementValues().remove(PmfmEnum.AVERAGE_PACKAGING_PRICE.getId()));
                         }
                     }
 
                     // Sale ratio must be converted from percentage
-                    String ratioText = product.getMeasurementValues().get(getPmfmIdByPmfmEnum(PmfmEnum.SALE_RATIO));
+                    String ratioText = product.getMeasurementValues().get(PmfmEnum.SALE_ESTIMATED_RATIO.getId());
                     if (StringUtils.isNotBlank(ratioText)) {
-                        product.getMeasurementValues().put(getPmfmIdByPmfmEnum(PmfmEnum.SALE_RATIO), Double.toString((Double.parseDouble(ratioText) / 100)));
+                        product.getMeasurementValues().put(PmfmEnum.SALE_ESTIMATED_RATIO.getId(), Double.toString((Double.parseDouble(ratioText) / 100)));
                     }
 
                     // If rank order is present on a batch (=packet) produce sale, add rank order as sale rank order measurement
                     if (product.getRankOrder() != null && product.getBatchId() != null) {
-                        product.getMeasurementValues().put(getPmfmIdByPmfmEnum(PmfmEnum.SALE_RANK_ORDER), product.getRankOrder().toString());
+                        product.getMeasurementValues().put(PmfmEnum.SALE_RANK_ORDER.getId(), product.getRankOrder().toString());
                     }
 
                 }
@@ -446,28 +442,13 @@ public class ProductRepositoryImpl
         return pmfmRepository.hasLabelSuffix(pmfmId, "WEIGHT");
     }
 
-    private Integer getPmfmIdByPmfmEnum(PmfmEnum pmfmEnum) {
-        return getPmfmIdByLabel(pmfmEnum.getLabel());
+    private Integer getAveragePricePmfmIdByPackaging(QualitativeValue packaging) {
+        String pmfmLabel = "AVERAGE_PRICE_" + packaging.getLabel();
+        pmfmIdByLabel.putIfAbsent(pmfmLabel,
+            pmfmRepository.findByLabel(pmfmLabel)
+                .map(PmfmVO::getId)
+                .orElseThrow(() -> new SumarisTechnicalException(String.format("Unable to find pmfm with label '%s'", pmfmLabel))));
+        return pmfmIdByLabel.get(pmfmLabel);
     }
 
-    private Integer getPmfmIdByLabel(@Nonnull String label) {
-        pmfmIdByLabel.putIfAbsent(label, pmfmRepository.findByLabel(label).map(PmfmVO::getId).orElse(null));
-        return pmfmIdByLabel.get(label);
-    }
-
-    public Integer getMeasuredMethodId() {
-        if (measuredMethodId == null) {
-            measuredMethodId = referentialDao.findByUniqueLabel(Method.class.getSimpleName(), MethodEnum.MEASURED_BY_OBSERVER.getLabel())
-                .map(ReferentialVO::getId).orElseThrow(IllegalStateException::new);
-        }
-        return measuredMethodId;
-    }
-
-    public Integer getCalculatedMethodId() {
-        if (calculatedMethodId == null) {
-            calculatedMethodId = referentialDao.findByUniqueLabel(Method.class.getSimpleName(), MethodEnum.CALCULATED.getLabel())
-                .map(ReferentialVO::getId).orElseThrow(IllegalStateException::new);
-        }
-        return calculatedMethodId;
-    }
 }
