@@ -787,6 +787,9 @@ mat-tab-group.mat-tab-group-header-pagination-hidden .mat-tab-header-pagination 
   display: none !important;
 }
 
+mat-tab-group.mat-tab-disabled-hidden .mat-tab-disabled {
+  display: none !important;
+}
 
 // --------------------------------------------------
 // Material menu
