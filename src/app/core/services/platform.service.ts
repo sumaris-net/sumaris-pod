@@ -227,8 +227,11 @@ export class PlatformService {
 
     this.accountService.onLogin.subscribe(account => {
       if (this.settings.settings.accountInheritance) {
-        if (account.settings && account.settings.locale && account.settings.locale !== this.translate.currentLang) {
-          this.translate.use(account.settings.locale);
+        const accountLocale = account.settings && account.settings.locale;
+        if (accountLocale && accountLocale !== this.settings.locale) {
+          this.settings.apply({
+            locale: accountLocale
+          })
         }
       }
     });

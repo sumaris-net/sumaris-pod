@@ -1,9 +1,9 @@
 import {Injectable, Injector} from "@angular/core";
 import {
+  EntitiesService,
   EntityService,
   EntityServiceLoadOptions,
-  LoadResult,
-  EntitiesService
+  LoadResult
 } from "../../shared/services/entity-service.class";
 import {Observable} from "rxjs";
 import {environment} from "../../../environments/environment";
@@ -18,7 +18,8 @@ import {
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil, toBoolean,
+  isNotNil,
+  toBoolean,
   toDateISOString
 } from "../../shared/functions";
 import {RootDataService} from "./root-data-service.class";
@@ -41,7 +42,6 @@ import {Moment} from "moment";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 
 
 export class LandingFilter {
@@ -579,7 +579,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       .filter(id => id < 0);
     if (isNotEmptyArray(localIds)) {
       if (this._debug) console.debug("[landing-service] Deleting landings locally... ids:", localIds);
-      await this.entities.deleteMany<Landing>(localIds, 'LandingVO');
+      await this.entities.deleteMany<Landing>(localIds, {entityName: Landing.TYPENAME});
     }
 
     const ids = entities && entities
@@ -667,12 +667,6 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
   executeImport(opts?: {
     maxProgression?: number;
   }): Observable<number> {
-    return undefined;
-  }
-
-  async downloadToLocal(id: number, opts?: {
-    withOperations?: boolean
-  }): Promise<Trip> {
     return undefined;
   }
 

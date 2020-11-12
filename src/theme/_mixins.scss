@@ -2,9 +2,13 @@
 //@use './ionic/ionic.functions.color';
 
 @mixin font-size($size) {
-  //font-size: $size;
   font-size: calculateRem($size);
 }
+
+@mixin font-size-important($size) {
+  font-size: calculateRem($size) !important;
+}
+
 
 @mixin font-roboto($size: false, $colour: false, $weight: false, $lh: false) {
   font-family: 'Roboto', Helvetica, Arial, sans-serif;
@@ -26,6 +30,12 @@
   }
 }
 
+@mixin color($color-name) {
+  $value: map-get($colors, $color-name);
+  $base: map-get($value, base);
+
+  color: var(--ion-color-#{$color-name}, $base);
+}
 
 /**
 * Define CSS theme colors
@@ -64,6 +74,15 @@
   --ion-color-#{$color-name}-tint: #{$tint};
 }
 
+@mixin set-color-each-ion-colors($element-name) {
+
+  @each $color-name, $value in $colors {
+    #{$element-name}.ion-color-#{$color-name} {
+      color: var(--ion-color-base);
+    }
+  }
+}
+
 @mixin css-variables-to-root() {
 
   @each $color-name,
@@ -80,4 +99,8 @@
 
   --ion-grid-column-padding: #{$ion-grid-column-padding};
   --ion-padding: #{$ion-padding};
+
+  --expansion-panel-padding: var(--ion-padding);
+  --expansion-panel-header-padding: var(--ion-padding);
+
 }

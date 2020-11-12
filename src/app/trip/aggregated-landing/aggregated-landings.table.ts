@@ -143,7 +143,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false;
-    this.pageSize = 1000; // Do not use paginator
+    this.pageSize = -1; // Do not use paginator
     this.mobile = this.settings.mobile;
 
     // default acquisition level

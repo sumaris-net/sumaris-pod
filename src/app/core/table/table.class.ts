@@ -17,7 +17,7 @@ import {
   catchError,
   debounceTime,
   distinctUntilChanged,
-  filter,
+  filter, map,
   mergeMap,
   startWith,
   switchMap,
@@ -83,6 +83,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   excludesColumns = new Array<String>();
   displayedColumns: string[];
   resultsLength: number;
+  visibleRowCount: number;
   loadingSubject = new BehaviorSubject<boolean>(true);
   error: string;
   isRateLimitReached = false;
@@ -371,12 +372,14 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       .subscribe(res => {
         if (res && res.data) {
           this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
-          this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + res.data.length);
+          this.visibleRowCount = res.data.length;
+          this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + this.visibleRowCount);
           if (this.debug) console.debug(`[table] ${res.data.length} rows loaded`);
         } else {
           //if (this.debug) console.debug('[table] NO rows loaded');
           this.isRateLimitReached = true;
           this.resultsLength = 0;
+          this.visibleRowCount = 0;
         }
         this.markAsUntouched();
         this.markAsPristine();
@@ -389,6 +392,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   ngAfterViewInit() {
     if (!this.table) console.warn(`[table] Missing <mat-table> in the HTML template! Component: ${this.constructor.name}`);
+
+    if (!this.displayedColumns) console.warn(`[table] Missing 'displayedColumns'. Did you call super.ngOnInit() in component ${this.constructor.name} ?`);
   }
 
   ngOnDestroy() {
@@ -442,12 +447,19 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
+  /* -- internal method -- */
+
   private applyFilter(filter: F, opts: { emitEvent: boolean; }) {
+    console.debug('[table] applyFilter', filter);
     this._filter = filter;
     if (opts.emitEvent) {
+      if (this.paginator && this.paginator.pageIndex > 0) {
+        this.paginator.pageIndex = 0;
+      }
       this.onRefresh.emit();
     }
   }
+
 
   protected listenDatasource(dataSource: EntitiesTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
@@ -542,6 +554,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     // If delete (if new row): update counter
     if (row.id === -1) {
       this.resultsLength--;
+      this.visibleRowCount--;
     }
   }
 
@@ -597,7 +610,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     // DEBUG
     //console.debug('isAllSelected. lengths', this.selection.selected.length, this.resultsLength);
 
-    return this.selection.selected.length === this.resultsLength;
+    return this.selection.selected.length === this.resultsLength ||
+      this.selection.selected.length === this.visibleRowCount;
   }
 
   /** Selects all rows if they are not all selected; otherwise clear selection. */
@@ -643,6 +657,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       const deleteCount = rowsToDelete.length;
       await this._dataSource.deleteAll(rowsToDelete);
       this.resultsLength -= deleteCount;
+      this.visibleRowCount -= deleteCount;
       this.selection.clear();
       this.editedRow = undefined;
       this.markAsDirty();
@@ -864,6 +879,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.onStartEditingRow.emit(this.editedRow);
     this._dirty = true;
     this.resultsLength++;
+    this.visibleRowCount++;
     this.markForCheck();
     return this.editedRow;
   }

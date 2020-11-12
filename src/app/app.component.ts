@@ -11,6 +11,8 @@ import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} fr
 import {AccountService} from "./core/services/account.service";
 import {LocalSettingsService} from "./core/services/local-settings.service";
 import {ReferentialRefService} from "./referential/services/referential-ref.service";
+import {MatIconRegistry} from "@angular/material/icon";
+import {DomSanitizer} from "@angular/platform-browser";
 
 @Component({
   selector: 'app-root',
@@ -28,7 +30,9 @@ export class AppComponent {
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
     private configService: ConfigService,
-    private settings: LocalSettingsService
+    private settings: LocalSettingsService,
+    private matIconRegistry: MatIconRegistry,
+    private domSanitizer: DomSanitizer
   ) {
 
     this.start();
@@ -46,6 +50,8 @@ export class AppComponent {
     this.addAccountFields();
 
     this.addSettingsFields();
+
+    this.addCustomSVGIcons();
 
     console.info('[app] Starting [OK]');
   }
@@ -215,5 +221,11 @@ export class AppComponent {
       ]});
   }
 
+  protected addCustomSVGIcons() {
+    this.matIconRegistry.addSvgIcon(
+      "fish",
+      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/fish.svg")
+    );
+  }
 }
 

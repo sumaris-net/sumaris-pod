@@ -1,7 +1,7 @@
 import {PredefinedColors} from "@ionic/core";
 import {isNil, isNotNil} from "../functions";
 
-declare type ColorName = PredefinedColors |
+export declare type ColorName = PredefinedColors |
   'white'
   | 'red'
   | 'green'
@@ -158,6 +158,13 @@ export class ColorScale {
   private _max: number;
   private _rangeSize: number;
   private _legendItems: ColorScaleLegendItem[];
+
+  get min(): number {
+    return this._min;
+  }
+  get max(): number {
+    return this._max;
+  }
 
   constructor(private colorArray: string[], options?: ColorScaleOptions) {
     options = options || {};

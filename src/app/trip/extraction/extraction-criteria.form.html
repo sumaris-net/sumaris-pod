@@ -2,11 +2,11 @@
       *ngIf="sheetCriteriaForm; let criteriaForm"
       class="form-container">
   <ion-grid [formArrayName]="sheetName">
-    <ng-container *ngFor="let criterionForm of criteriaForm.controls; let i=index">
-      <ion-row [formGroupName]="i">
+    <ng-container *ngFor="let criterionForm of criteriaForm.controls; index as i; odd as odd">
+      <ion-row [formGroupName]="i" class="strata-row" [class.odd]="odd">
 
         <!-- column name -->
-        <ion-col class="ion-no-padding">
+        <ion-col size="4" class="ion-no-padding">
           <mat-form-field>
             <mat-select formControlName="name"
                         [placeholder]="'EXTRACTION.FILTER.CRITERION_NAME'|translate"
@@ -18,7 +18,7 @@
         </ion-col>
 
         <!-- operator -->
-        <ion-col class="ion-no-padding" size="auto">
+        <ion-col size="1" class="ion-no-padding" size="auto">
           <mat-form-field class="operator">
             <mat-select formControlName="operator">
               <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name ||
@@ -29,7 +29,7 @@
         </ion-col>
 
         <!-- value -->
-        <ion-col class="ion-no-padding" [class.has-two-fields]="criterionForm.controls.operator.value === 'BETWEEN'">
+        <ion-col size="" class="ion-no-padding" [class.has-two-fields]="criterionForm.controls.operator.value === 'BETWEEN'">
           <ng-container *ngIf="getCriterionValueDefinition(i) | async as definition; else fakeDisabledField">
 
             <app-form-field [placeholder]="(criterionForm.controls.operator.value === 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate"
@@ -47,7 +47,7 @@
           </ng-container>
         </ion-col>
 
-        <ion-col class="ion-no-padding ion-align-self-center" size="2">
+        <ion-col size="auto" class="ion-no-padding ion-align-self-center">
           <button type="button" mat-icon-button color="light" [disabled]="disabled"
                   [title]="'COMMON.BTN_DELETE'|translate"
                   (click)="removeFilterCriterion($event, i)">

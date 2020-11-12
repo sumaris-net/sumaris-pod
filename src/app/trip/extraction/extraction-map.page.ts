@@ -1,8 +1,24 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from "@angular/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {AggregationTypeFilter, CustomAggregationStrata, ExtractionService} from "../services/extraction.service";
 import {BehaviorSubject, Observable, Subject, Subscription, timer} from "rxjs";
-import {arraySize, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {
+  arraySize,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  toBoolean
+} from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {
   AggregationStrata,
@@ -16,7 +32,7 @@ import {Location} from "@angular/common";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
-import {CRS, LayerGroup} from 'leaflet';
+import {CRS, DomUtil, WMSParams} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -29,7 +45,43 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {AppFormUtils} from "../../core/core.module";
 import {MatExpansionPanel} from "@angular/material/expansion";
+import {Label, SingleOrMultiDataSet} from "ng2-charts";
+import {ChartOptions, ChartType} from "chart.js";
+import {DEFAULT_CRITERION_OPERATOR} from "./extraction-data.page";
 
+declare interface LegendOptions {
+  min: number;
+  max: number;
+  startColor: string;
+  endColor: string;
+}
+declare type TechChartOptions = ChartOptions & {
+  legend: boolean;
+  type: ChartType
+  sortByLabel: boolean;
+  //sortByLabel?: boolean;
+  displayAllLabels?: boolean;
+}
+
+const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">\n' +
+  '   <sld:NamedLayer>\n' +
+  '      <sld:Name>ESPACES_TERRESTRES_P</sld:Name>\n' +
+  '      <sld:UserStyle>\n' +
+  '         <sld:Name>pointSymbolizer</sld:Name>\n' +
+  '         <sld:Title>pointSymbolizer</sld:Title>\n' +
+  '         <sld:FeatureTypeStyle>\n' +
+  '            <sld:Rule>\n' +
+  '               <sld:PolygonSymbolizer>\n' +
+  '                  <sld:Fill>\n' +
+  '                     <sld:CssParameter name="fill">#666666</sld:CssParameter>\n' +
+  '                     <sld:CssParameter name="fill-opacity">1</sld:CssParameter>\n' +
+  '                  </sld:Fill>\n' +
+  '               </sld:PolygonSymbolizer>\n' +
+  '            </sld:Rule>\n' +
+  '         </sld:FeatureTypeStyle>\n' +
+  '      </sld:UserStyle>\n' +
+  '   </sld:NamedLayer>\n' +
+  '</sld:StyledLayerDescriptor>';
 
 @Component({
   selector: 'app-extraction-map-page',
@@ -38,7 +90,9 @@ import {MatExpansionPanel} from "@angular/material/expansion";
   animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> implements OnInit {
+export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> implements OnInit, OnDestroy {
+
+  ready = false;
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -46,78 +100,111 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
   });
   sextantBaseLayer = L.tileLayer(
-    'https://sextant.ifremer.fr/geowebcache/service/wmts?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
-    {maxZoom: 18, attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"});
+    'https://sextant.ifremer.fr/geowebcache/service/wmts' +
+      '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
+    {
+      maxZoom: 18,
+      attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
+    });
+  countriesLayer = L.tileLayer.wms('http://www.ifremer.fr/services/wms/dcsmm', {
+    maxZoom: 18,
+    version: '1.3.0',
+    crs: CRS.EPSG3857,
+    format: "image/png",
+    transparent: true,
+    styles: "style_sld_body",
+    attribution: "<a href='https://www.ifremer.fr'>Ifremer</a>"
+  }).setParams({
+    layers: "ESPACES_TERRESTRES_P",
+    service: 'WMS',
+    sld_body: encodeURIComponent(BASE_LAYER_SLD_BODY.replace(/[ \t]+/, ' '))
+  } as WMSParams);
+
   sextantGraticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
     maxZoom: 18,
     version: '1.3.0',
-    crs: CRS.EPSG4326,
+    crs: CRS.EPSG3857,
     format: "image/png",
-    transparent: true
+    transparent: true,
+    attribution: "<a href='https://www.ifremer.fr'>Ifremer</a>"
   }).setParams({
     layers: "graticule_4326",
     service: 'WMS'
   });
-
-  ready = false;
-  options = {
+  mapOptions = {
     layers: [this.sextantBaseLayer],
     maxZoom: 10, // max zoom to sextant layer
     zoom: 5,
     center: L.latLng(46.879966, -10) // Atlantic centric
   };
-  layersControl = {
-    baseLayers: {
-      'Sextant (Ifremer)': this.sextantBaseLayer,
-      'Open Street Map': this.osmBaseLayer
-    },
-    overlays: {
-      'Graticule': this.sextantGraticuleLayer
-    }
+  baseLayer: L.TileLayer = this.mapOptions.layers[0];
+  baseLayers = [
+    {title: 'Sextant (Ifremer)', layer: this.sextantBaseLayer},
+    {title: 'Open Street Map', layer: this.osmBaseLayer}
+  ];
+  map: L.Map;
+  $layers = new BehaviorSubject<L.GeoJSON<L.Polygon>[]>(null);
+  showGraticule = false;
+
+
+  // -- Legend card --
+  showLegend = false;
+  legendForm: FormGroup;
+  showLegendForm = false;
+  customLegendOptions: Partial<LegendOptions> = undefined;
+  legendStyle = {};
+  $legendItems = new BehaviorSubject<ColorScaleLegendItem[] | undefined>([]);
+
+  // -- Details card --
+  $onOverFeature = new Subject<Feature>();
+  $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
+  $details = new Subject<{ title: string; properties: { name: string; value: string }[]; }>();
+
+  // -- Chart card
+  techChartOptions: TechChartOptions = {
+    type: 'bar',
+    responsive: true,
+    legend: false,
+    sortByLabel: true,
+    displayAllLabels: false,
   };
+  chartTypes: ChartType[] = ['pie', 'bar', 'doughnut'];
+
+  // -- Data --
   data = {
     total: 0,
     min: 0,
     max: 0
   };
-  showLegend = false;
-  legendForm: FormGroup;
-  showLegendForm = false;
-  columnNames = {};
-  map: L.Map;
+  $noData = new BehaviorSubject<boolean>(false);
+
+  columnNames = {}; // cache for i18n column name
   typesFilter: AggregationTypeFilter;
-
   $title = new BehaviorSubject<string>(undefined);
-  $layers = new BehaviorSubject<L.GeoJSON<L.Polygon>[]>(null);
-  $legendItems = new BehaviorSubject<ColorScaleLegendItem[] | undefined>([]);
-  $onOverFeature = new Subject<Feature>();
-  $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
-
+  $sheetNames = new BehaviorSubject<String[]>(undefined);
   $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $spaceColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $spatialColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $criteriaColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-
-
-  $details = new Subject<{ title: string; properties: { name: string; value: string }[]; }>();
-  $stats = new Subject<{ title: string; properties: { name: string; value: string }[] }>();
+  $tech = new Subject<{ title: string; titleParams?: any, labels: Label[]; data: SingleOrMultiDataSet }>();
   $years = new BehaviorSubject<number[]>(undefined);
-
+  formatNumberLocale: string;
   animation: Subscription;
 
-  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
-
-  get techStrata(): string {
-    return this.form.get('strata.techColumnName').value;
-  }
-
-  get aggStrata(): string {
-    return this.form.get('strata.aggColumnName').value;
-  }
+  @ViewChild('filterExpansionPanel', { static: true }) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild('aggExpansionPanel', { static: true }) aggExpansionPanel: MatExpansionPanel;
 
   get year(): number {
     return this.form.get('year').value;
+  }
+
+  get aggColumnName(): string {
+    return this.form.get('strata.aggColumnName').value;
+  }
+
+  get techColumnName(): string {
+    return this.form.get('strata.techColumnName').value;
   }
 
   get hasData(): boolean {
@@ -200,6 +287,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     });
 
     this.loading = false;
+    const account = this.accountService.account;
+    this.formatNumberLocale = account && account.settings.locale || 'en-US';
+    this.formatNumberLocale = this.formatNumberLocale.replace(/_/g, '-');
 
     this.platform.ready().then(() => {
       setTimeout(async () => {
@@ -211,15 +301,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     this.registerSubscription(
       this.onRefresh.pipe(
         // avoid multiple load)
-        filter(() => this.ready && !this.loading && isNotNil(this.type)),
+        filter(() => this.ready && isNotNil(this.type) && (!this.loading || !!this.animation)),
         switchMap(() => {
-          if (!this.ready || this.loading || isNil(this.type)) return; // avoid multiple load
           console.debug('[extraction-map] Refreshing...');
           return this.loadData();
         })
-      ).subscribe(() => this.markAsPristine())
-    );
-
+      ).subscribe(() => this.markAsPristine()));
   }
 
   ngOnInit() {
@@ -241,6 +328,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           debounceTime(250)
         ).subscribe(() => this.markForCheck())
     );
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
   }
 
   onMapReady(leafletMap: L.Map) {
@@ -279,49 +370,169 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     }
   }
 
-  async setType(type: AggregationType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
+  async setType(type: AggregationType, opts?: {
+    emitEvent?: boolean;
+    skipLocationChange?: boolean;
+    sheetName?: string;
+    stopAnimation?: boolean;
+  }): Promise<boolean> {
     const changed = await super.setType(type, opts);
 
     if (changed) {
+
       // Update the title
       const typeName = this.getI18nTypeName(this.type);
       this.$title.next(typeName);
 
-      // Update filter columns
-      const columns = (await this.service.loadColumns(this.type, this.sheetName)) || [];
-
-      // Translate names
-      this.translateColumns(columns);
-
-      // Convert to a map, by column name
-      this.columnNames = columns.reduce((res, c) => {
-        res[c.columnName] = c.name;
-        return res;
-      }, {});
-
-      const columnsMap = ExtractionUtils.dispatchColumns(columns, {excludeIfNoValue: true});
-
-      this.$aggColumns.next(columnsMap.aggColumns);
-      this.$techColumns.next(columnsMap.techColumns);
-      this.$spaceColumns.next(columnsMap.spaceColumns);
-      this.$timeColumns.next(columnsMap.timeColumns);
-      this.$criteriaColumns.next(columnsMap.criteriaColumns);
-
-
-      const yearColumn = (columns || []).find(c => c.columnName === 'year');
-      const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
-      this.$years.next(years);
-
-      // Apply default strata
-      const defaultStrata = (this.type.stratum || []).find(s => s.isDefault || s.label === 'default');
-      if (defaultStrata) {
-        this.form.patchValue({
-          strata: defaultStrata
-        }, opts);
+      // Stop animation
+      if (!opts || opts.stopAnimation !== false) {
+        this.stopAnimation();
       }
 
+      // Update sheet names
+      this.updateSheetNames();
     }
+    else {
+      // Force refresh
+      await this.updateColumns(opts);
+      this.applyDefaultStrata(opts);
+    }
+
     return changed;
+  }
+
+  setSheetName(sheetName: string, opts?: {
+    emitEvent?: boolean;
+    skipLocationChange?: boolean;
+    stopAnimation?: boolean;
+  }) {
+    const changed = this.sheetName != sheetName;
+
+    // Reset min/max of the custom legend (if exists)
+    if (changed) {
+      if (this.customLegendOptions) {
+        this.customLegendOptions.min = 0;
+        this.customLegendOptions.max = undefined;
+      }
+
+      // Stop animation
+      if (!opts || opts.stopAnimation !== false) {
+        this.stopAnimation();
+      }
+
+      this.$timeColumns.next(null);
+      this.$spatialColumns.next(null);
+      this.$aggColumns.next(null);
+      this.$techColumns.next(null);
+      this.hideTechChart();
+    }
+
+    super.setSheetName(sheetName, {
+      emitEvent: false,
+      ...opts
+    });
+
+    if (changed) {
+      this.applyDefaultStrata(opts);
+      this.updateColumns(opts)
+        .then(() => {
+          if (!this.loading && (!opts || opts.emitEvent !== false)) {
+            return this.loadData();
+          }
+        });
+    }
+  }
+
+  setAggStrata(aggColumnName: string, opts?: {emitEVent?: boolean; }) {
+    const changed = this.aggColumnName !== aggColumnName;
+
+    if (!changed) return; // Skip
+
+    this.form.get('strata').patchValue({
+      aggColumnName
+    }, opts);
+
+    if (!opts || opts.emitEVent !== false) {
+      this.onRefresh.emit();
+    }
+  }
+
+  setTechStrata(techColumnName: string, opts?: {emitEVent?: boolean; }) {
+    this.form.get('strata').patchValue({
+      techColumnName
+    }, opts);
+
+    if (!opts || opts.emitEVent !== false) {
+      this.onRefresh.emit();
+    }
+  }
+
+  hideTechChart() {
+    this.$tech.next(null);
+  }
+
+  getI18nSheetName(sheetName?: string, type?: AggregationType, self?: ExtractionAbstractPage<any>): string {
+    const str = super.getI18nSheetName(sheetName, type, self);
+    return str.replace(/\([A-Z]+\)$/, '');
+  }
+
+  /* -- protected method -- */
+
+  protected async updateColumns(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    if (!this.type) return;
+
+    // Update filter columns
+    const sheetName = this.sheetName;
+    const columns = sheetName && (await this.service.loadColumns(this.type, sheetName)) || [];
+
+    // Translate names
+    this.translateColumns(columns);
+
+    // Convert to a map, by column name
+    this.columnNames = columns.reduce((res, c) => {
+      res[c.columnName] = c.name;
+      return res;
+    }, {});
+
+    const columnsMap = ExtractionUtils.dispatchColumns(columns);
+    console.debug("[extraction-map] dispatched columns: ", columnsMap);
+
+    this.$aggColumns.next(columnsMap.aggColumns);
+    this.$techColumns.next(columnsMap.techColumns);
+    this.$spatialColumns.next(columnsMap.spatialColumns);
+    this.$timeColumns.next(ExtractionUtils.filterWithValues(columnsMap.timeColumns));
+    this.$criteriaColumns.next(ExtractionUtils.filterValuesMinSize(columnsMap.criteriaColumns, 2));
+
+    const yearColumn = (columns || []).find(c => c.columnName === 'year');
+    const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
+    this.$years.next(years);
+  }
+
+  protected updateSheetNames() {
+    // Filter sheet name on existing stratum
+    let sheetNames = this.type && this.type.sheetNames || null;
+    if (sheetNames && this.type.stratum) {
+      sheetNames = this.type.stratum.map(s => s.sheetName)
+        .filter(sheetName => isNotNil(sheetName) && sheetNames.includes(sheetName));
+    }
+    this.$sheetNames.next(sheetNames);
+  }
+
+  protected applyDefaultStrata(opts?: { emitEvent?: boolean; }) {
+    const sheetName = this.sheetName;
+    if (!this.type || !sheetName) return;
+
+    const defaultStrata = sheetName && (this.type.stratum || []).find(s => s.isDefault || s.sheetName === sheetName);
+    console.debug('[extraction-map] Applying default strata: ', defaultStrata);
+
+    if (defaultStrata) {
+      this.form.patchValue({
+        strata: defaultStrata
+      }, opts);
+    }
   }
 
   protected async tryLoadByYearIterations(
@@ -330,13 +541,14 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     endYear?: number
   ) {
 
+    type = type || this.type;
     startYear = isNotNil(startYear) ? startYear : new Date().getFullYear();
-    endYear = isNotNil(endYear) && endYear < startYear ? endYear : startYear - 3;
+    endYear = isNotNil(endYear) && endYear < startYear ? endYear : startYear - 10;
 
-    const strata: any = (type && type.stratum || []).find(s => s && s.isDefault) || {
-      spaceColumnName: 'square',
-      timeColumnName: 'year'
-    };
+    const sheetName = this.sheetName || (type && type.sheetNames && type.sheetNames[0]) || null;
+    const strata: any = (type && type.stratum || []).find(s => s && (s.isDefault || sheetName == s.sheetName));
+
+    if (!strata) return false; // Skip
 
     let year = startYear;
     let hasData = false;
@@ -353,7 +565,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
       hasData = this.hasData;
     }
-    while (!hasData && year > endYear);
+    while (!hasData && year >= endYear);
 
     return hasData;
   }
@@ -369,6 +581,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     this.$details.next(); // hide details
     this.error = null;
 
+    const isAnimated = !!this.animation;
     const strata = this.getStrataValue();
     const filter = this.getFilterValue(strata);
     this.disable();
@@ -395,7 +608,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           strata,
           offset, size,
           null, null,
-          filter);
+          filter, {
+          fetchPolicy: isAnimated ? "cache-first" : undefined /*default*/
+          });
 
         const hasData = isNotNil(geoJson) && geoJson.features && geoJson.features.length || false;
 
@@ -425,29 +640,31 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         this.$layers.next([]);
       } else {
 
-        // Create scale color (max 10 grades
-        this.legendForm.get('max').setValue(Math.max(10, Math.round(maxValue + 0.5)), {emitEvent: false});
-        const scale = this.createLegendScale();
+        // Prepare legend options
+        const legendOptions = {
+          ...this.legendForm.value,
+          ...this.customLegendOptions
+        }
+        if (!this.customLegendOptions || isNil(legendOptions.max)) {
+          legendOptions.max  = Math.max(10, Math.round(maxValue + 0.5));
+        }
+        this.legendForm.patchValue(legendOptions, {emitEvent: false});
+
+        // Create scale legend
+        const scale = this.createLegendScale(legendOptions);
         layer.setStyle(this.getFeatureStyleFn(scale, aggColumnName));
+        this.updateLegendStyle(scale);
 
+        // Remove existing layers
+        (this.$layers.getValue() || []).forEach(layer => layer.remove());
 
-        // Remove old data layer
-        Object.getOwnPropertyNames(this.layersControl.overlays)
-          .forEach((layerName, index) => {
-            if (index === 0) return; // Keep graticule layer
-            const existingLayer = this.layersControl.overlays[layerName] as LayerGroup<any>;
-            existingLayer.remove();
-            delete this.layersControl.overlays[layerName];
-          });
-
-        // Add new layer to layers control
-        const layerName = this.$title.getValue();
-        this.layersControl.overlays[layerName] = layer;
-
-        // Refresh layer
+        // Refresh layers
         this.$layers.next([layer]);
-
         console.debug(`[extraction-map] ${total} geometries loaded in ${Date.now() - now}ms (${Math.floor(offset / size)} slices)`);
+
+        // Load tech data (wait end if animation is running)
+        const techDataPromise = this.loadTechData(this.type, strata, filter);
+        if (techDataPromise && isAnimated) await techDataPromise;
 
         // TODO fit to scale
         /*map.fitBounds(this.lalayersyer.getBounds(), {
@@ -463,24 +680,107 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.error = err && err.message || err;
       this.showLegend = false;
     } finally {
-      this.loading = false;
       this.showLegend = isNotNilOrBlank(strata.aggColumnName);
-      this.enable();
+      this.$noData.next(!this.hasData);
+      if (!isAnimated) {
+        this.loading = false;
+        this.enable();
+      }
     }
   }
 
-  setYear(event: UIEvent, value) {
-    if (event && event.defaultPrevented) return; // skip
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
+  async loadTechData(type?: AggregationType, strata?: CustomAggregationStrata, filter?: ExtractionFilter) {
+    type = type || this.type;
+    strata = type && (strata || this.getStrataValue());
+    filter = strata && (filter || this.getFilterValue(strata));
+
+    if (!type || !strata || !strata.techColumnName || !strata.aggColumnName) return // skip;
+
+    const isAnimated = !!this.animation;
+    const techColumnName = strata.techColumnName;
+
+    try {
+      const map = await this.service.loadAggregationTech(type, strata, filter, {
+        fetchPolicy: isAnimated ? 'cache-first' : undefined /*default*/
+      });
+
+      // Keep data without values for this year
+      if (this.techChartOptions.displayAllLabels) {
+        // Find the column
+        const column = this.$techColumns.getValue().find(c => c.columnName === techColumnName);
+
+        // Add missing values
+        (column.values || [])
+          .filter(key => isNil(map[key]))
+          .forEach(key => map[key] = 0);
+      }
+
+      let entries = Object.entries(map);
+
+      const firstEntry = entries.length ? entries[0] : undefined;
+      // If label are number: always sort by value (ASC)
+      if (firstEntry && (firstEntry[0] !== 'string')) {
+        entries = entries.sort((a, b) => a[0] > b[0] ? -1 : 1);
+      }
+      // Sort by label (ASC)
+      else if (this.techChartOptions.sortByLabel) {
+        entries = entries.sort((a, b) => a[0] > b[0] ? 1 : -1);
+      }
+      // Sort by value (DESC)
+      else {
+        entries = entries.sort((a, b) => a[1] > b[1] ? -1 : 1);
+      }
+
+      // Round values
+      const data = entries.map(item => item[1])
+        .map(value => isNil(value) ? 0 : Math.round(value * 100) / 100);
+      const labels = entries.map(item => item[0]);
+
+      this.$tech.next({
+        title: 'EXTRACTION.MAP.TECH_CHART_TITLE',
+        titleParams: {
+          aggColumnName: this.columnNames[strata.aggColumnName],
+          techColumnName: this.columnNames[strata.techColumnName]
+        },
+        labels: labels,
+        data: data
+      });
+    }
+    catch(error) {
+      console.error("Cannot load tech values:", error);
+      // Reset tech, then continue
+      this.$tech.next(undefined);
     }
 
-    if (this.year === value) return; // same: skip
+  }
 
-    this.form.get('year').setValue(value);
+  setYear(year: number, opts?: {emitEvent?: boolean; stopAnimation?: boolean; }): boolean {
+    const changed = this.year !== year;
 
-    this.onRefresh.emit();
+    // If changed or force with opts.emitEvent=true
+    if (changed || (opts && opts.emitEvent === true)) {
+
+      this.form.patchValue({
+        year
+      }, opts);
+
+      // Stop animation
+      if (!opts || opts.stopAnimation !== false) {
+        this.stopAnimation();
+      }
+
+      // Refresh
+      if (!opts || opts.emitEvent !== false) {
+        this.onRefresh.emit();
+      }
+    }
+
+    return changed;
+  }
+
+  onRefreshClick(event?: UIEvent) {
+    this.stopAnimation();
+    this.onRefresh.emit(event);
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
@@ -499,7 +799,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           value: feature.properties[key]
         };
       });
-    const title = isNotNilOrBlank(strata.aggColumnName) ? `${this.columnNames[strata.aggColumnName]}: <b>${feature.properties[strata.aggColumnName]}</b>` : undefined;
+    const aggValue = this.formatNumber(feature.properties[strata.aggColumnName]);
+    feature.properties[strata.aggColumnName] = aggValue;
+
+    const title = isNotNilOrBlank(strata.aggColumnName) ? `${this.columnNames[strata.aggColumnName]}: <b>${aggValue}</b>` : undefined;
 
     // Emit events
     this.$details.next({title, properties});
@@ -535,6 +838,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
   applyLegendForm(event: UIEvent) {
     this.showLegendForm = false;
+    this.customLegendOptions = this.legendForm.value;
     this.onRefresh.emit();
   }
 
@@ -570,7 +874,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       // If no data: loop
       if (!hasData) {
         this.filterExpansionPanel.open();
-        //this.openSelectTypeModal();
       }
     }
   }
@@ -584,30 +887,132 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     }
     // Stop existing animation
     if (this.animation) {
-      this.animation.unsubscribe();
-      this.animation = null;
+      this.stopAnimation();
     }
     else {
-      const years = this.$years.getValue();
-      console.info("[extraction-map] Starting animation...");
-      this.animation = isNotEmptyArray(years) && timer(500, 500)
-        .pipe(
-          tap(index => {
-            const year = years[index % arraySize(years)];
-            console.info("[extraction-map] Rendering animation for year {" + year + "}...");
-            this.setYear(null, year);
-          })
-        )
-        .subscribe();
+      this.startAnimation();
+    }
+  }
 
-      this.animation.add(() => {
-        console.info("[extraction-map] Animation stopped");
-      });
+  toggleGraticule() {
+
+    // Make sure value is correct
+    this.showGraticule = this.showGraticule && this.map.hasLayer(this.sextantGraticuleLayer);
+
+    // Inverse value
+    this.showGraticule = !this.showGraticule;
+
+    // Add or remove layer
+    if (this.showGraticule) {
+      this.sextantGraticuleLayer.addTo(this.map);
+      this.showGraticule = true;
+    }
+    else {
+      this.map.removeLayer(this.sextantGraticuleLayer);
+    }
+  }
+
+  setTechChartOption(value: Partial<TechChartOptions>, opts?: { emitEvent?: boolean; }) {
+    this.techChartOptions = {
+      ...this.techChartOptions,
+      ...value
+    };
+
+    // Refresh (but skip if animation running)
+    if (!this.animation && (!opts || opts.emitEvent !== false)) {
+      this.loadTechData();
+    }
+  }
+
+  onChartClick({event, active}) {
+    if (!active) return; // Skip
+
+    // Retrieve clicked values
+    const values = active
+      .map(element => element && element._model && element._model.label)
+      .filter(isNotNil);
+    if (isEmptyArray(values)) return; // Skip if empty
+
+    const value = values[0];
+
+    const hasChanged = this.criteriaForm.addFilterCriterion({
+      name: this.techColumnName,
+      operator: DEFAULT_CRITERION_OPERATOR,
+      value: value,
+      sheetName: this.sheetName
+    }, {
+      appendValue: event.ctrlKey
+    });
+    if (!hasChanged) return; // Skip if already added
+
+    if (this.filterExpansionPanel && !this.filterExpansionPanel.expanded) {
+      this.filterExpansionPanel.open();
+    }
+
+    if (!event.ctrlKey) {
+      this.onRefresh.emit();
     }
   }
 
 
+  setBaseLayer(layer: L.TileLayer) {
+
+    if (this.map.hasLayer(layer)) return; // Skip
+
+    this.baseLayers.forEach(item => {
+      if (item.layer === layer) {
+        this.map.addLayer(item.layer);
+        this.baseLayer = layer;
+      }
+      else if (this.map.hasLayer(item.layer)){
+        this.map.removeLayer(item.layer);
+      }
+    });
+  }
+
+
   /* -- protected methods -- */
+
+  protected startAnimation() {
+    const years = this.$years.getValue();
+
+    // Pre loading data
+    console.info("[extraction-map] Preloading data for animation...");
+
+
+    console.info("[extraction-map] Starting animation...");
+    this.animation = isNotEmptyArray(years) && timer(500, 500)
+      .pipe(
+        throttleTime(450)
+      )
+      .subscribe(index => {
+        const year = years[index % arraySize(years)];
+        console.info(`[extraction-map] Rendering animation on year ${year}...`);
+        this.setYear(year, {
+          emitEvent: true, /*force refresh if same*/
+          stopAnimation: false
+        });
+      });
+
+    this.animation.add(() => {
+      console.info("[extraction-map] Animation stopped");
+    });
+
+    this.registerSubscription(this.animation);
+  }
+
+  protected stopAnimation() {
+    if (this.animation) {
+      this.unregisterSubscription(this.animation);
+      this.animation.unsubscribe();
+      this.animation = null;
+
+      if (this.disabled) {
+        this.enable();
+        this.loading = false;
+      }
+    }
+  }
 
   protected getFeatureStyleFn(scale: ColorScale, propertyName: string): L.StyleFunction<any> | null {
     if (isNil(propertyName)) return;
@@ -629,12 +1034,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     };
   }
 
-  protected createLegendScale(): ColorScale {
-    const json = this.legendForm.value;
-    const min = json.min || 0;
-    const max = json.max;
-    const startColor = Color.parseRgba(json.startColor);
-    const mainColor = Color.parseRgba(json.endColor);
+  protected createLegendScale(opts?: Partial<LegendOptions>): ColorScale {
+    opts = opts || this.legendForm.value;
+    const min = opts.min || 0;
+    const max = opts.max || 1000;
+    const startColor = Color.parseRgba(opts.startColor);
+    const mainColor = Color.parseRgba(opts.endColor);
     const endColor = Color.parseRgba('rgb(0,0,0)');
 
     // Create scale color (max 10 grades
@@ -654,6 +1059,16 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     return scale;
   }
 
+  protected updateLegendStyle(scale: ColorScale) {
+    const items = scale.legend.items;
+    const longerItemLabel = items.length > 2 && items[items.length - 2].label || '9999'; // Use N-2, because last item is shorter
+    let minWidth = Math.max(105, 36 /* start offset */ + longerItemLabel.length * 4.7 /* average width of a letter */ );
+    this.legendStyle = {
+      minWidth: `${minWidth || 150}px`,
+      maxWidth: '250px'
+    };
+
+  }
 
   protected getFilterValue(strata?: CustomAggregationStrata): ExtractionFilter {
 
@@ -697,5 +1112,17 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     const json = this.form.get('strata').value;
     delete json.__typename;
     return json as AggregationStrata;
+  }
+
+  protected formatNumber(value: number|string, columnName?: string): string|undefined {
+    if (isNil(value)) return undefined;
+    columnName = columnName || this.aggColumnName;
+    if (typeof value === 'string') {
+      value = parseFloat(value);
+    }
+    const symbol = columnName && columnName.endsWith('_weight') ? 'kg' : '';
+    return value.toLocaleString(this.formatNumberLocale, {
+      useGrouping: true,
+      maximumSignificantDigits: 2}) + ' ' + symbol;
   }
 }

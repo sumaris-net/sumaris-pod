@@ -8,12 +8,12 @@ import {SharedModule} from "../../shared/shared.module";
 
 const routes: Routes = [
   {
-    path: 'table',
+    path: 'data',
     pathMatch: 'full',
     component: ExtractionDataPage,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
-      profile: 'SUPERVISOR'
+      profile: 'GUEST'
     }
   },
   {
@@ -31,7 +31,6 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        //pathMatch: 'full',
         component: ExtractionMapPage,
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
@@ -39,7 +38,7 @@ const routes: Routes = [
         }
       }
     ]
-  },
+  }
 ];
 
 @NgModule({

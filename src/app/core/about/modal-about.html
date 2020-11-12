@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar color="light">
     <ion-buttons slot="end">
-      <ion-button (click)="cancel()" visible-xs visible-sm visible-mobile>
+      <ion-button (click)="close()" visible-xs visible-sm visible-mobile>
         {{'COMMON.BTN_CLOSE'|translate}}
       </ion-button>
     </ion-buttons>
@@ -110,7 +110,7 @@
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
       <ion-col size="auto">
-        <ion-button fill="solid" color="tertiary" (click)="cancel()">{{'COMMON.BTN_CLOSE'|translate}}</ion-button>
+        <ion-button fill="solid" color="tertiary" (click)="close()">{{'COMMON.BTN_CLOSE'|translate}}</ion-button>
       </ion-col>
     </ion-row>
   </ion-toolbar>

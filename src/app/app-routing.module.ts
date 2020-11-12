@@ -72,6 +72,9 @@ const routes: Routes = [
   {
     path: 'extraction',
     canActivate: [AuthGuardService],
+    data: {
+      profile: 'GUEST'
+    },
     loadChildren: () => import('./trip/extraction/extraction.module').then(m => m.ExtractionModule)
   },
 

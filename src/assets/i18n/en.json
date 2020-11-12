@@ -28,6 +28,7 @@
     "BTN_SEARCH": "Search",
     "BTN_NEXT": "Next",
     "BTN_NEXT_SHORT": "Next",
+    "BTN_PREVIEW": "Preview",
     "BTN_BACK": "Back",
     "BTN_SEND": "Send",
     "BTN_OPTIONS": "Options",
@@ -35,9 +36,13 @@
     "BTN_TABLE_EDIT": "Edit in the table",
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",
+    "BTN_HIDE": "Hide",
     "BTN_HIDE_MENU": "Hide menu",
     "BTN_SHOW_MENU": "Show menu",
     "BTN_SHOW_MORE": "Show more",
+    "BTN_SHOW_TRASH_DOTS": "Open the trash...",
+    "BTN_CLEAN_TRASH": "Clean the trash",
+    "BTN_RESTORE": "Restore",
     "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on ",
     "COMMENTS": "Comments",
@@ -134,6 +139,7 @@
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "User profile (min) to access other people data",
+      "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "User profile (min) to access to other people extractions",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -178,8 +184,9 @@
     "HOME": "Home",
     "TESTING": "Developer mode",
     "TRIPS": "Trips",
+    "DOWNLOADS": "Downloads",
     "DATA_ENTRY_DIVIDER": "Data entry",
-    "EXTRACTION_DIVIDER": "Extractions",
+    "DATA_ACCESS_DIVIDER": "Data access",
     "OBSERVED_LOCATIONS": "Observations",
     "AUCTION_CONTROL": "Auction control",
     "ADMINISTRATION_DIVIDER": "Administration",
@@ -396,6 +403,7 @@
       "QUALITY": "Status",
       "OBSERVERS": "Observers",
       "COMMENTS": "Comments",
+      "NO_LOCAL_RESULT": "No result (in NOT synchronized trips)",
       "FILTER": {
         "PROGRAM": "Data collection program",
         "START_DATE": "Start period",
@@ -410,6 +418,15 @@
         "DIRTY_HELP": "Not-synchronized trips",
         "READY_TO_SYNC_HELP": "Ready to sync trips",
         "SYNC_HELP": "Online trips"
+      }
+    },
+    "TRASH": {
+      "TITLE": "Trash",
+      "DELETION_DATE": "Deletion date",
+      "INFO": {
+        "ONE_TRIP_RESTORED": "Trip successfully restored!",
+        "MANY_TRIPS_RESTORED": "Trips successfully restored!",
+        "LOCAL_TRASH_CLEANED": "Local trash has been cleaned"
       }
     },
     "ERROR": {
@@ -471,7 +488,8 @@
         "TITLE": "New operation"
       },
       "EDIT": {
-        "TITLE": "Ope {{startDateTime}}",
+        "TITLE": "Ope #{{rankOrder}} <small>at {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "Ope {{startDateTime}}",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
@@ -1101,7 +1119,29 @@
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)"
     },
     "STRATEGY": {
-
+      "ACQUISITION_LEVELS": "Acquisition levels",
+      "LOCATIONS": "Locations",
+      "GEARS": "Gears",
+      "TAXON_GROUPS": "Commercial species",
+      "TAXON_NAMES": "Scientific species",
+      "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFM",
+      "BTN_REMOVE_TO_SELECTED_PMFM": "Remove from selected PMFM",
+      "NEW": {
+        "TITLE": "Nouvelle stratégie"
+      },
+      "PMFM_STRATEGY": {
+        "ACQUISITION_LEVEL": "Niveau d'acquisition",
+        "RANK_ORDER": "Ordre",
+        "PMFM": "Paramètre collecté (PMFM)",
+        "IS_MANDATORY": "Oblig ?",
+        "ACQUISITION_NUMBER": "Nb acquis.",
+        "MIN_VALUE": "Min",
+        "MAX_VALUE": "Max",
+        "DEFAULT_VALUE": "Valeur par défaut",
+        "TABLE": {
+          "TITLE": "Paramètres collectés"
+        }
+      }
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Error while loading program",
@@ -1117,6 +1157,7 @@
     "SPATIAL_AGGREGATION": "Create a spatial aggregation",
     "BTN_PUBLISH": "Publish",
     "BTN_UNPUBLISH": "Make private",
+    "BTN_OPEN_MAP": "View data on a map",
     "TYPE": "Extraction type",
     "AGGREGATION": {
       "NEW_NAME": "New aggregation / {{name}}",
@@ -1126,7 +1167,13 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
+        "STRATUM_DOTS": "Stratum :",
+        "FORMAT_DOTS": "Documentation :",
+        "MARKDOWN_HELP": "Use <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a> format",
+        "FORMAT_PLACEHOLDER": "Documentation",
+        "FORMAT_PREVIEW": "Preview",
         "STRATA": {
+          "SHEET_NAME": "Sheet",
           "TIME_COLUMN": "Temporal",
           "SPACE_COLUMN": "Geometry",
           "AGG_COLUMN": "Agg column",
@@ -1147,10 +1194,14 @@
     "COMMON": {
       "VESSEL_FLAG_COUNTRY": "Vessel country flag",
       "HARBOUR": "Harbour",
-      "YEAR": "Year",
       "PROJECT": "Project",
+      "YEAR": "Year",
+      "QUARTER": "Quarter",
+      "MONTH": "Month",
       "AREA": "Area",
-      "STATISTICAL_RECTANGLE": "Statistical rectangle"
+      "STATISTICAL_RECTANGLE": "Statistical rectangle",
+      "SQUARE": "Square 10'x10'",
+      "SUB_POLYGGON": "Sub-polygon"
     },
     "FILTER": {
       "TITLE": "Filter criteria:",
@@ -1164,19 +1215,34 @@
       "NO_FILTER_PARENTHESIS": "(no filter)",
       "WITH_FILTER_PARENTHESIS": "(filtered)"
     },
+    "HELP": {
+      "MODAL": {
+        "TITLE": "Help > {{name}}",
+        "DESCRIPTION": "Description",
+        "FORMAT": "Format"
+      }
+    },
     "MAP": {
       "BTN_SELECT_TYPE": "Map list",
+      "BTN_SELECT_AGG": "Indicator ?",
+      "BTN_ADD_TECH_GRAPH": "Add a chart",
       "BTN_EDIT": "Edit",
       "BTN_ANIMATION_PLAY": "Play animation",
       "BTN_ANIMATION_PAUSE": "Stop animation",
+      "LAYER": "Layer",
+      "LAYERS": "Data layers",
+      "BASE_LAYER": "Base layer",
+      "SHOW_GRATICULE": "Show graticule",
       "FILTER": "Filter",
       "YEAR": "Year",
       "SPACE": "Geomtery",
-      "AGG_VALUE": "Plotted value",
+      "AGG_VALUE": "Indicator",
       "TECH_VALUE": "Technical",
+      "DISPLAY_OPTIONS": "Display options",
       "QUARTER": "Quarter",
       "DETAILS": "Details",
-      "STATS": "Statistics",
+      "TECH_CHART_TITLE": "{{aggColumnName}} by {{techColumnName}}",
+      "TECH_CHART_ALL_LABELS": "Freeze labels",
       "LEGEND": "Legend",
       "LEGEND_FORM": {
         "TITLE": "Parameter",
@@ -1184,61 +1250,51 @@
         "MIN": "Min:",
         "MAX": "Max:"
       },
+      "CHART_TYPE": {
+        "TITLE": "Kind of chart",
+        "PIE" : "Pie",
+        "BAR":  "Histogram",
+        "DOUGHNUT": "Doughnut"
+      },
+      "CHART_SORT_BY": {
+        "TITLE": "Trier par",
+        "LABEL" : "Libellé",
+        "VALUE":  "Valeur"
+      },
       "SELECT_MODAL": {
         "TITLE": "Map list",
         "HELP": "Here is the list of available maps:"
       }
     },
+    "CATEGORY": {
+      "PRODUCT": "Products",
+      "LIVE": "Real time"
+    },
     "SHEET": {
       "TR": "Trips",
-      "HH": "Stations",
-      "SL": "Catch"
-    },
-    "CATEGORY": {
-      "PRODUCT": "Fixed product",
-      "LIVE": "Raw data collected"
+      "HH": "Fishing stations",
+      "SL": "Species list",
+      "HL": "Individual length",
+      "CA": "Sex-Age",
+      "CL": "Commercial landings",
+      "CE": "Efforts",
+      "ST": "Survival tests",
+      "RL": "Releases"
     },
     "PRODUCT": {
       "P01_RDB": {
-        "TITLE": "ICES Data call (RDB v1.3)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)",
-          "CA": "Sex-Age (CA)",
-          "CL": "Landings (CL)",
-          "CE": "Efforts (CE)"
-        }
+        "TITLE": "ICES Data call (RDB v1.3)"
       }
     },
     "LIVE": {
       "RDB": {
-        "TITLE": "Raw data (RDB v1.3)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)"
-        }
+        "TITLE": "Raw data (RDB v1.3)"
       },
       "COST": {
-        "TITLE": "Raw data (COST v1.4)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)"
-        }
+        "TITLE": "Raw data (COST v1.4)"
       },
       "FREE1": {
-        "TITLE": "Raw data (FREE v{{version}})",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)"
-        }
+        "TITLE": "Raw data (FREE v{{version}})"
       },
       "FREE2": {
         "TITLE": "Raw data (FREE2 v{{version}})",
@@ -1253,15 +1309,7 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Raw data (SUMARiS v1.0)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)",
-          "ST": "Survival tests (ST)",
-          "RL": "Releases (RL)"
-        }
+        "TITLE": "Raw data (SUMARiS v1.0)"
       }
     },
     "ERROR": {
@@ -1299,6 +1347,15 @@
     }
   },
   "SOCIAL": {
+    "USER_EVENT": {
+      "EVENT_TYPE": "Type",
+      "CREATION_DATE": "Date/Time",
+      "MESSAGE": "Message",
+      "BTN_COPY_TO_LOCAL": "Copy locally",
+      "INFO": {
+        "COPIED_LOCALLY": "Successfully copied"
+      }
+    },
     "EVENT_TYPE_ENUM": {
       "DEBUG_DATA": "Debug data",
       "INBOX_MESSAGE": "Inbox message"

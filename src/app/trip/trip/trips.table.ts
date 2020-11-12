@@ -36,9 +36,8 @@ import {SynchronizationStatus} from "../../data/services/model/root-data-entity.
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
-import {OperationService} from "../services/operation.service";
 import {UserEventService} from "../../social/services/user-event.service";
+import {TripTrashModal} from "./trash/trip-trash.modal";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -68,6 +67,9 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   hasOfflineMode = false;
 
   synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
+  displayedAttributes: {
+    [key: string]: string[]
+  };
 
   get synchronizationStatus(): SynchronizationStatus {
     return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
@@ -408,6 +410,25 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     finally {
       this.onRefresh.emit();
     }
+  }
+
+  async openTrashModal(event?: UIEvent) {
+    console.debug('[trips] Opening trash modal...');
+    const modal = await this.modalCtrl.create({
+      component: TripTrashModal,
+      componentProps: {
+        synchronizationStatus: this.filter.synchronizationStatus
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED
   }
 
   referentialToString = referentialToString;

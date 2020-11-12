@@ -1,27 +1,39 @@
-import {ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {AppForm, FormArrayHelper, StatusIds} from "../../core/core.module";
-import {AggregationStrata, AggregationType, ExtractionColumn} from "../services/model/extraction.model";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
+import {AppForm, EntityUtils, FormArrayHelper, isNil, StatusIds} from "../../core/core.module";
+import {
+  AggregationStrata,
+  AggregationType,
+  ExtractionColumn,
+  ExtractionUtils
+} from "../services/model/extraction.model";
+import {FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../referential/form/referential.form";
-import {BehaviorSubject} from "rxjs";
-import {arraySize} from "../../shared/functions";
+import {BehaviorSubject, Observable} from "rxjs";
+import {arraySize, isNotEmptyArray} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ExtractionService} from "../services/extraction.service";
+import {CommandMap} from "@ionic/cli/lib/namespace";
+import {debounceTime, tap} from "rxjs/operators";
+
+declare type ColumnMap = {[sheetName: string]: ExtractionColumn[] };
 
 @Component({
   selector: 'app-aggregation-type-form',
+  styleUrls: ['./aggregation-type.form.scss'],
   templateUrl: './aggregation-type.form.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AggregationTypeForm extends AppForm<AggregationType> implements OnInit {
 
-  $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $spaceColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $sheetNames = new BehaviorSubject<String[]>(undefined);
+  $timeColumns = new BehaviorSubject<ColumnMap>(undefined);
+  $spatialColumns = new BehaviorSubject<ColumnMap>(undefined);
+  $aggColumns = new BehaviorSubject<ColumnMap>(undefined);
+  $techColumns = new BehaviorSubject<ColumnMap>(undefined);
   aggFunctions = [
     {
       value: 'SUM',
@@ -33,10 +45,12 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     }
   ];
 
-  stratumHelper: FormArrayHelper<AggregationStrata>;
-
   form: FormGroup;
   stratumFormArray: FormArray;
+  stratumHelper: FormArrayHelper<AggregationStrata>;
+
+  showMarkdownPreview = false;
+  $markdownContent = new BehaviorSubject<string>(undefined);
 
   @Input()
   showError = true;
@@ -56,10 +70,16 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     this.setValue(value);
   }
 
+  get strataForms(): FormGroup[] {
+    return this.stratumFormArray.controls as FormGroup[];
+  }
+
   constructor(protected dateAdapter: DateAdapter<Moment>,
               protected formBuilder: FormBuilder,
               protected settings: LocalSettingsService,
-              protected validatorService: AggregationTypeValidatorService) {
+              protected validatorService: AggregationTypeValidatorService,
+              protected extractionService: ExtractionService,
+              protected cd: ChangeDetectorRef) {
     super(dateAdapter,
       validatorService.getFormGroup(),
       settings);
@@ -69,14 +89,50 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     this.stratumHelper = new FormArrayHelper<AggregationStrata>(
       this.stratumFormArray,
       (strata) => validatorService.getStrataFormGroup(strata),
-      (v1, v2) => (!v1 && !v2) || (v1 && v2 && v1.label === v2.label),
-      ReferentialUtils.isEmpty,
+      (v1, v2) => EntityUtils.equals(v1, v2, 'id') || v1.sheetName == v2.sheetName,
+      (strata) => !strata || isNil(strata.sheetName),
       {
         allowEmptyArray: false
       }
     );
 
+    this.registerSubscription(
+      this.form.get('comments').valueChanges
+        .pipe(
+          debounceTime(350)
+        )
+        .subscribe(md => this.$markdownContent.next(md))
+      );
+  }
 
+  async updateLists(type: AggregationType) {
+
+    // If spatial, load columns
+    if (type.isSpatial) {
+
+      const sheetNames = type.sheetNames || [];
+      this.$sheetNames.next(sheetNames);
+
+      const map: {[key: string]: ColumnMap} = {};
+      await Promise.all(sheetNames.map(sheetName => {
+        return this.extractionService.loadColumns(type, sheetName)
+          .then(columns => {
+            columns = columns || [];
+            const columnMap = ExtractionUtils.dispatchColumns(columns);
+            Object.keys(columnMap).forEach(key => {
+              const m: ColumnMap = map[key] ||  <ColumnMap>{};
+              m[sheetName] = columnMap[key];
+              map[key] = m;
+            });
+          })
+      }));
+
+      console.debug('[aggregation-type] Columns map:', map);
+      this.$timeColumns.next(map.timeColumns);
+      this.$spatialColumns.next(map.spatialColumns);
+      this.$aggColumns.next(map.aggColumns);
+      this.$techColumns.next(map.techColumns);
+    }
   }
 
   ngOnInit(): void {
@@ -103,6 +159,31 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
         label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.DISABLE'
       }
     ];
+
+    this.registerSubscription(
+      this.form.get('isSpatial').valueChanges
+        .subscribe(isSpatial => {
+          console.debug('TODO: spatial=' + isSpatial);
+           // Not need stratum
+           if (!isSpatial) {
+             this.stratumHelper.resize(0)
+             this.stratumHelper.allowEmptyArray = true;
+           }
+           else {
+             if (this.stratumHelper.size() == 0) {
+               this.stratumHelper.resize(1);
+             }
+             this.stratumHelper.allowEmptyArray = false;
+           }
+        })
+    )
+  }
+
+  toggleDocPreview() {
+    this.showMarkdownPreview = !this.showMarkdownPreview;
+    if (this.showMarkdownPreview) {
+      this.markForCheck();
+    }
   }
 
   /* -- protected -- */
@@ -121,5 +202,8 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     super.setValue(data, opts);
   }
 
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 
 }

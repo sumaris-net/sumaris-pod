@@ -281,8 +281,6 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     }
   }
 
-
-
   getI18nColumnName(columnName: string, self?: ExtractionCriteriaForm<any>): string {
     self = self || this;
     const type = self.type;
@@ -293,7 +291,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     if (message === key) {
 
       // Try to get common translation
-      key = `EXTRACTION.COMMON.${columnName.toUpperCase()}`;
+      key = `EXTRACTION.COLUMNS.${columnName.toUpperCase()}`;
       message = self.translate.instant(key);
 
       // Or split column name

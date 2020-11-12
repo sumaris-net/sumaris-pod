@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional} from '@angular/core';
 import {OperationValidatorService} from "../services/validator/operation.validator";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
@@ -26,6 +26,8 @@ import {BehaviorSubject} from "rxjs";
 import {distinctUntilChanged} from "rxjs/operators";
 import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {Geolocation} from "@ionic-native/geolocation/ngx";
+import {GeolocationOptions} from "@ionic-native/geolocation";
 
 @Component({
   selector: 'app-form-operation',
@@ -102,7 +104,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected platform: PlatformService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Optional() protected geolocation: Geolocation
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
@@ -174,21 +177,43 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   /**
    * Get the position by geo loc sensor
    */
-  getGeoCoordinates(): Promise<{ latitude: number; longitude: number; }> {
+  async getGeoCoordinates(options?: GeolocationOptions): Promise<{ latitude: number; longitude: number; }> {
+    options = {
+        maximumAge: 30000/*30s*/,
+        timeout: 10000/*10s*/,
+        enableHighAccuracy: true,
+        ...options
+      };
+
+    // Use ionic-native plugin
+    if (this.geolocation != null) {
+      try {
+        const res = await this.geolocation.getCurrentPosition(options);
+        return {
+          latitude: res.coords.latitude,
+          longitude: res.coords.longitude
+        };
+      }
+      catch(err) {
+        console.error(err);
+        throw err;
+      }
+    }
+
+    // Or fallback to navigator
     return new Promise<{ latitude: number; longitude: number; }>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
-        (position: Position) => {
+        (res: Position) => {
           resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
+            latitude: res.coords.latitude,
+            longitude: res.coords.longitude
           });
         },
         (err) => {
           console.error(err);
           reject(err);
         },
-        // Options
-        { maximumAge: 3000, timeout: 1000, enableHighAccuracy: false }
+        options
       );
     });
   }

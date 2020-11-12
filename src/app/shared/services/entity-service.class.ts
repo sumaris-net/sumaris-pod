@@ -26,6 +26,7 @@ export declare type FilterFnFactory<T, F> = (filter: F) => FilterFn<T>;
 
 export declare interface EntityServiceLoadOptions {
   fetchPolicy?: FetchPolicy;
+  trash?: boolean;
   [key: string]: any;
 }
 
@@ -45,6 +46,7 @@ export declare interface EntityService<T, O = EntityServiceLoadOptions> {
 
 export declare interface EntitiesServiceWatchOptions {
   fetchPolicy?: WatchQueryFetchPolicy;
+  trash?: boolean;
   [key: string]: any;
 }
 
@@ -72,6 +74,11 @@ export declare interface EntitiesService<T, F, O extends EntitiesServiceWatchOpt
 }
 
 export declare type LoadResultByPageFn<T> = (offset: number, size: number) => Promise<LoadResult<T>>;
+
+
+export interface IEntityFullService<T, F, O extends EntitiesServiceWatchOptions & EntityServiceLoadOptions>
+  extends EntityService<T, O>, EntitiesService<T, F, O>  {
+}
 
 export async function fetchAllPagesWithProgress<T>(
   loadPageFn: LoadResultByPageFn<T>,

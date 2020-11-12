@@ -96,7 +96,7 @@ export class PhysicalGearService extends BaseEntityService
     delete remoteFilter.excludeTripId;
     const variables: any = {
       offset: offset || 0,
-      size: size || 1000,
+      size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'rankOrder',
       sortDirection: sortDirection || 'desc',
       filter: remoteFilter
@@ -161,7 +161,7 @@ export class PhysicalGearService extends BaseEntityService
 
     const variables: any = {
       offset: offset || 0,
-      size: size || 1000,
+      size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'rankOrder',
       sortDirection: sortDirection || 'desc',
       filter: TripFilter.searchFilter<Trip>({

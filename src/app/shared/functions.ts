@@ -33,6 +33,13 @@ export function isNotNilString(obj: any | null | undefined): obj is string {
 export function arraySize<T>(obj: T[] | null | undefined): number {
   return isNotEmptyArray(obj) && obj.length || 0;
 }
+export function arrayGroupBy<T = any, K extends keyof T = any, M extends {[key: string]: T[]} = {[key: string]: T[]}>(obj: T[], key: keyof T): M{
+  if (isNil(obj)) return null;
+  return obj.reduce(function(rv: any, x) {
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {});
+}
 export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
   return obj === undefined ? null : obj;
 }

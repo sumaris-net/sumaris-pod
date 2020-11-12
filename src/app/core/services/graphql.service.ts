@@ -795,8 +795,14 @@ export class GraphqlService {
   private toAppError(err: any): any | undefined {
     const message = err && err.message || err;
     if (typeof message === "string" && message.trim().indexOf('{"code":') === 0) {
-      const error = JSON.parse(message);
-      return error && this.createAppErrorByCode(error.code) || error && error.message || err;
+      try {
+        const error = JSON.parse(message);
+        return error && this.createAppErrorByCode(error.code) || error && error.message || err;
+      }
+      catch (parseError) {
+        console.error("Unable to parse error as JSON: ", parseError);
+        return undefined;
+      }
     }
     return undefined;
   }

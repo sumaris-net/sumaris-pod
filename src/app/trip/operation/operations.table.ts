@@ -16,13 +16,11 @@ import {Location} from '@angular/common';
 import {OperationFilter, OperationService, OperationServiceWatchOptions} from "../services/operation.service";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {Operation, Trip} from "../services/model/trip.model";
+import {Operation} from "../services/model/trip.model";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {toBoolean} from "../../shared/functions";
 import {OperationsMap} from "./map/operations.map";
 import {AccountService} from "../../core/services/account.service";
-import {SortDirection} from "@angular/material/sort";
 
 
 @Component({
@@ -58,7 +56,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
-    protected referentialRefService: ReferentialRefService,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected accountService: AccountService,
@@ -103,7 +100,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.saveBeforeDelete = false;
     this.autoLoad = false; // waiting parent to be loaded
 
-    this.pageSize = 1000; // Do not use paginator
+    this.pageSize = -1; // Do not use paginator
     this.sortBy = this.mobile ? 'startDateTime' : 'endDateTime';
     this.sortDirection = this.mobile ? 'desc' : 'asc';
 
@@ -175,6 +172,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       component: OperationsMap,
       componentProps: {
         operations,
+        latLongPattern: this.latLongPattern,
         program: this.program
       },
       keyboardClose: true,

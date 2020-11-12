@@ -18,7 +18,7 @@ import {
 } from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Metier} from "../../../referential/services/model/taxon.model";
-import {isEmptyArray} from "../../../shared/functions";
+import {isEmptyArray, isNotEmptyArray} from "../../../shared/functions";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {IWithProductsEntity, Product} from "./product.model";
@@ -118,7 +118,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     return target;
   }
 
-  fromObject(source: any): Trip {
+  fromObject(source: any, opts?: any): Trip {
     super.fromObject(source);
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);
@@ -133,6 +133,18 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
+
+    if (source.operations) {
+      this.operations = source.operations
+        .map(Operation.fromObject)
+        .map((o:Operation) => {
+          o.tripId = this.id;
+          // Ling to trip's gear
+          o.physicalGear = o.physicalGear && (this.gears || []).find(g => o.physicalGear.equals(g));
+          return o;
+        });
+    }
+
     this.operationGroups = source.operationGroups && source.operationGroups.map(OperationGroup.fromObject) || [];
 
     // Remove fake dates (e.g. if returnDateTime = departureDateTime)

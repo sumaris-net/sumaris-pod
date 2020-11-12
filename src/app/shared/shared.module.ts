@@ -2,7 +2,7 @@ import {ModuleWithProviders, NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {SharedMaterialModule} from "./material/material.module";
 import {ReactiveFormsModule} from "@angular/forms";
-import {TranslateModule, TranslateService} from "@ngx-translate/core";
+import {TranslateLoader, TranslateModule, TranslateService} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
 import {DateFormatPipe} from "./pipes/date-format.pipe";
 import {DateFromNowPipe} from "./pipes/date-from-now.pipe";
@@ -11,7 +11,7 @@ import {TextMaskModule} from "angular2-text-mask";
 import {MatPaginatorIntl} from "@angular/material/paginator";
 import {MatPaginatorI18n} from "./material/paginator/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
-import {HTTP_INTERCEPTORS} from "@angular/common/http";
+import {HTTP_INTERCEPTORS, HttpClient} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {
   EntityService,
@@ -68,6 +68,7 @@ import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
+import {HttpTranslateLoaderFactory} from "./translate/http-translate-loader-factory";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -95,15 +96,18 @@ export {
     //HammerModule,
     IonicModule,
     ReactiveFormsModule,
+    TranslateModule,
+    ColorPickerModule,
+    TextMaskModule,
+    DragDropModule,
+    QuicklinkModule, // See https://web.dev/route-preloading-in-angular/
+
+    // Sub modules
+    SharedGestureModule,
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
-    TranslateModule,
-    TextMaskModule,
-    ColorPickerModule,
-    SharedHotkeysModule,
-    DragDropModule,
-    QuicklinkModule // See https://web.dev/route-preloading-in-angular/
+    SharedHotkeysModule
   ],
   declarations: [
     ToolbarComponent,
@@ -112,20 +116,27 @@ export {
     AppLoadingSpinner
   ],
   exports: [
+    CommonModule,
     IonicModule,
+    TranslateModule,
     ReactiveFormsModule,
+    ColorPickerModule,
+    TextMaskModule,
+    DragDropModule,
+    QuicklinkModule,
+
+    // Sub-modules
     SharedGestureModule,
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
     SharedHotkeysModule,
+
+    // Components
     ToolbarComponent,
     ModalToolbarComponent,
-    TranslateModule,
-    ColorPickerModule,
     AppFormField,
-    AppLoadingSpinner,
-    QuicklinkModule
+    AppLoadingSpinner
   ]
 })
 export class SharedModule {

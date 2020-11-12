@@ -37,6 +37,8 @@ import {SharedMatBooleanModule} from "./boolean/boolean.module";
 import {SharedMatNumpadModule} from "./numpad/numpad.module";
 import {InputElement} from "../inputs";
 import {SharedMatSwipeModule} from "./swipe/swipe.module";
+import {MatDividerModule} from "@angular/material/divider";
+import {MatTooltipModule} from "@angular/material/tooltip";
 
 export { fadeInAnimation, slideInOutAnimation, InputElement };
 
@@ -71,6 +73,8 @@ const modules: Array<Type<any> | any[]> = [
   OverlayModule,
   ScrollingModule,
   MatRippleModule,
+  MatDividerModule,
+  MatTooltipModule,
   // Custom components
   SharedMatAutocompleteModule,
   SharedMatLatLongModule,

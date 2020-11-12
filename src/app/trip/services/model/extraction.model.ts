@@ -3,9 +3,23 @@
 import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {Department} from "../../../core/services/model/department.model";
 import {Person} from "../../../core/services/model/person.model";
-import {arraySize, isNotEmptyArray, isNotNil, toBoolean} from "../../../shared/functions";
+import {
+  arraySize, fromDateISOString,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  toBoolean,
+  toDateISOString,
+  toNumber
+} from "../../../shared/functions";
 import {Moment} from "moment";
 import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from "../../../data/services/model/model.utils";
+
+export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
+export const ExtractionCategories = {
+  PRODUCT: 'PRODUCT',
+  LIVE: 'LIVE',
+}
 
 export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>> extends Entity<T> {
 
@@ -20,14 +34,18 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
     return res;
   }
 
-  category: 'product' | 'live';
+  category: string;
   label: string;
   name?: string;
   version?: string;
-  sheetNames?: string[];
+  sheetNames: string[];
   statusId: number;
   isSpatial: boolean;
+  docUrl: string;
+  description: string;
+  comments:  string;
 
+  recorderPerson: Person;
   recorderDepartment: Department;
 
   constructor() {
@@ -49,16 +67,21 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
     this.label = source.label;
     this.category = source.category;
     this.name = source.name;
+    this.description = source.description;
+    this.comments = source.comments;
     this.version = source.version;
     this.sheetNames = source.sheetNames;
     this.statusId = source.statusId;
     this.isSpatial = source.isSpatial;
+    this.docUrl = source.docUrl;
+    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson) || null;
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     return this;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
     const target = super.asObject(options);
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     return target;
   }
@@ -94,7 +117,7 @@ export class ExtractionRow extends Array<any> {
   }
 }
 
-export type StrataAreaType = 'area' | 'rect' | 'square';
+export type StrataAreaType = 'area' | 'statistical_rectangle' | 'sub_polygon' | 'square';
 export type StrataTimeType = 'year' | 'quarter' | 'month';
 
 export class AggregationType extends ExtractionType<AggregationType>
@@ -107,9 +130,10 @@ export class AggregationType extends ExtractionType<AggregationType>
     return res;
   }
 
-  description: string;
-  recorderPerson: Person;
+  documentation: string;
+  creationDate: Date | Moment;
   stratum: AggregationStrata[];
+
   columns: ExtractionColumn[];
 
   constructor() {
@@ -124,14 +148,8 @@ export class AggregationType extends ExtractionType<AggregationType>
   fromObject(source: any): AggregationType {
     super.fromObject(source);
 
-    this.label = source.label;
-    this.category = source.category;
-    this.name = source.name;
-    this.sheetNames = source.sheetNames;
-    this.statusId = source.statusId;
-    this.description = source.description;
-    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson) || null;
-
+    this.documentation = source.documentation;
+    this.creationDate = fromDateISOString(source.creationDate);
     this.stratum = isNotEmptyArray(source.stratum) && source.stratum.map(AggregationStrata.fromObject) || [];
 
     return this;
@@ -140,7 +158,7 @@ export class AggregationType extends ExtractionType<AggregationType>
   asObject(options?: EntityAsObjectOptions): any {
     const target = super.asObject(options);
 
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
+    target.creationDate = toDateISOString(this.creationDate);
     target.stratum = this.stratum && this.stratum.map(s => s.asObject(options)) || undefined;
     target.columns = this.columns && this.columns.map((c: any) => {
       const json = Object.assign({}, c);
@@ -160,15 +178,14 @@ export class AggregationStrata extends Entity<AggregationStrata> {
     return res;
   }
 
-  label: string;
   isDefault: boolean;
   sheetName: string;
 
-  spaceColumnName: StrataAreaType;
+  spatialColumnName: StrataAreaType;
   timeColumnName: StrataTimeType;
-  techColumnName?: string;
-  aggColumnName?: string;
-  aggFunction?: string;
+  aggColumnName: string;
+  aggFunction: string;
+  techColumnName: string;
 
   constructor() {
     super();
@@ -185,19 +202,19 @@ export class AggregationStrata extends Entity<AggregationStrata> {
 
   fromObject(source: any): AggregationStrata {
     super.fromObject(source);
-    this.label = source.label;
     this.sheetName = source.sheetName;
-    this.isDefault = isNotNil(source.isDefault) ? source.isDefault : ('default' === source.label);
-    this.spaceColumnName = source.spaceColumnName;
+    this.isDefault = toBoolean(source.isDefault, false);
+    this.spatialColumnName = source.spatialColumnName;
     this.timeColumnName = source.timeColumnName;
-    this.techColumnName = source.techColumnName;
     this.aggColumnName = source.aggColumnName;
     this.aggFunction = source.aggFunction;
+    this.techColumnName = source.techColumnName;
     return this;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
-    return super.asObject(options);
+    const target = super.asObject(options);
+    return target;
   }
 }
 
@@ -250,43 +267,48 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
   }
 }
 
-export const SPACE_STRATA_COLUMNS: string[] = ['rect', 'statistical_rectangle', 'square', 'area'];
-export const TIME_STRATA_COLUMNS:   string[] = ['year', 'quarter', 'month'];
+export const SPATIAL_COLUMNS: string[] = [
+  'area',
+  'statistical_rectangle',
+  'sub_polygon',
+  'square'];
+export const TIME_COLUMNS:   string[] = ['year', 'quarter', 'month'];
+export const IGNORED_COLUMNS:   string[] = ['record_type'];
 
 export class ExtractionUtils {
 
-  static dispatchColumns(columns: ExtractionColumn[], opts?: {
-    excludeIfNoValue?: boolean
-  }): {
+  static dispatchColumns(columns: ExtractionColumn[]): {
     timeColumns: ExtractionColumn[];
-    spaceColumns: ExtractionColumn[];
+    spatialColumns: ExtractionColumn[];
     aggColumns: ExtractionColumn[];
     techColumns: ExtractionColumn[];
     criteriaColumns: ExtractionColumn[];} {
 
-    const excludeIfNoValue = toBoolean(opts && opts.excludeIfNoValue, false);
-
-    const timeColumns = columns.filter(c => TIME_STRATA_COLUMNS.includes(c.columnName));
-    const spaceColumns = columns.filter(c => SPACE_STRATA_COLUMNS.includes(c.columnName)
-      // Exclude column if no value
-      && (!excludeIfNoValue || isNotEmptyArray(c.values)));
+    const timeColumns = columns.filter(c => TIME_COLUMNS.includes(c.columnName));
+    const spatialColumns = columns.filter(c => SPATIAL_COLUMNS.includes(c.columnName));
 
     // Aggregation columns (numeric columns)
     const aggColumns = columns.filter(c =>
       (!c.type || c.type === 'integer' || c.type === 'double')
       && (c.columnName.endsWith('_count')
+      || c.columnName.indexOf('_count_by_') != -1
       || c.columnName.endsWith('_time')
-      || c.columnName.endsWith('_weight')));
+      || c.columnName.endsWith('_weight')
+      || c.columnName.endsWith('_length')
+      || c.columnName.endsWith('_value')));
 
-    const excludedFilterColumns = spaceColumns.concat(timeColumns);
-    const techColumns = columns.filter(c => !excludedFilterColumns.includes(c) && c.type === 'string');
+    const excludedFilterColumns = spatialColumns
+      .concat(timeColumns);
+
+    const techColumns = columns.filter(c => !excludedFilterColumns.includes(c)
+      && !IGNORED_COLUMNS.includes(c.columnName)
+      && (c.type === 'string' || (c.columnName.endsWith('_class'))));
     const criteriaColumns = columns.filter(c => !excludedFilterColumns.includes(c)
-      // Exclude string column if only one value
-      && (c.type !== 'string' || !excludeIfNoValue || arraySize(c.values) > 1));
+      && !IGNORED_COLUMNS.includes(c.columnName));
 
     return {
       timeColumns,
-      spaceColumns,
+      spatialColumns,
       aggColumns,
       techColumns,
       criteriaColumns
@@ -311,6 +333,14 @@ export class ExtractionUtils {
       }, []).join(";");
     }
     return queryParams;
+  }
+
+  static filterWithValues(columns: ExtractionColumn[]) {
+    return this.filterValuesMinSize(columns, 1);
+  }
+
+  static filterValuesMinSize(columns: ExtractionColumn[], minSize: number) {
+    return (columns || []).filter(c => arraySize(c.values) >= minSize);
   }
 }
 

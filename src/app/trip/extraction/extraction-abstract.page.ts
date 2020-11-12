@@ -2,14 +2,14 @@ import {Directive, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {
-  AggregationType,
+  AggregationType, ExtractionCategories,
   ExtractionColumn,
   ExtractionFilter,
   ExtractionType,
   ExtractionUtils
 } from "../services/model/extraction.model";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {mergeMap} from "rxjs/operators";
+import {first, mergeMap} from "rxjs/operators";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {TranslateService} from "@ngx-translate/core";
@@ -43,6 +43,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
 
   get sheetName(): string {
     return this.form.controls.sheetName.value;
+  }
+
+  set sheetName(value: string) {
+    this.form.get('sheetName').setValue(value);
   }
 
   markAsDirty(opts?: {onlySelf?: boolean}) {
@@ -92,6 +96,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     this.registerSubscription(
       this.route.queryParams
         .pipe(
+          first(),
           // Convert query params into a valid type
           mergeMap(async ({category, label, sheet}) => {
             const paramType = this.fromObject({category, label});
@@ -137,36 +142,36 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     opts.emitEvent = isNotNil(opts.emitEvent) ? opts.emitEvent : true;
     opts.skipLocationChange = isNotNil(opts.skipLocationChange) ? opts.skipLocationChange : false;
 
-    // If empty or same: skip
-    if (!type || this.isEquals(type, this.type)) return false;
+    // If empty: skip
+    if (!type) return false;
 
-    // Replace by the full entity
-    type = (await firstNotNilPromise(this.$types)).find(t => this.isEquals(t, type));
-    if (!type) {
-      console.warn("[extraction-form] Type not found:", type);
-      return false;
+    // If same: skip
+    const typeChanged = !this.isEquals(type, this.type);
+    if (!typeChanged) {
+      type = this.type;
     }
+    else {
+      // Replace by the full entity
+      type = await this.getFullType(type);
+      if (!type) {
+        console.warn("[extraction-form] Type not found:", type);
+        return false;
+      }
+      console.debug(`[extraction-form] Set type to {${type.label}}`, type);
+      this.type = type;
+      this.criteriaForm.type = type;
 
-    console.debug(`[extraction-form] Set type to {${type.label}}`, type);
-    this.type = type;
-    this.criteriaForm.type = type;
+      // Check if user can edit (admin or supervisor in the rec department)
+      this.canEdit = this.canUserWrite(type);
 
-    // Check if user can edit (admin or supervisor in the rec department)
-    this.canEdit = this.canUserWrite(type);
-
-    // Select the given sheet, or the first one
-    const sheetName = opts.sheetName || (type.sheetNames && type.sheetNames[0]);
-    this.setSheetName(sheetName || null,
-      {
-        emitEvent: false,
-        skipLocationChange: true
-      });
-
-    // Reset criteria form
-    this.criteriaForm.reset();
-
-    // Enable form
-    this.criteriaForm.enable(opts);
+      // Select the given sheet, or the first one
+      const sheetName = opts.sheetName || (type.sheetNames && type.sheetNames[0]);
+      this.setSheetName(sheetName || null,
+        {
+          emitEvent: false,
+          skipLocationChange: true
+        });
+    }
 
     // Update the window location
     if (opts.skipLocationChange === false) {
@@ -178,7 +183,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
       this.onRefresh.emit();
     }
 
-    return true;
+    return typeChanged;
   }
 
 
@@ -267,6 +272,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     return undefined;
   }
 
+
   async save(event): Promise<any> {
     console.warn("Not allow to save extraction filter yet!");
 
@@ -286,6 +292,11 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   protected abstract fromObject(type?: any): T;
 
   protected abstract isEquals(t1: T, t2: T): boolean;
+
+  async getFullType(type: T) {
+    return (await firstNotNilPromise(this.$types))
+      .find(t => this.isEquals(t, type));
+  }
 
   protected getFilterValue(): ExtractionFilter {
     const res = {
@@ -319,7 +330,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   }
 
   protected canUserWrite(type: ExtractionType): boolean {
-    return type.category === "product" && (
+    return type.category === ExtractionCategories.PRODUCT && (
       this.accountService.isAdmin()
       || (this.accountService.isSupervisor() && this.accountService.canUserWriteDataForDepartment(type.recorderDepartment)));
   }
@@ -338,7 +349,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     // Try from generic translation
     key = `EXTRACTION.SHEET.${sheetName}`;
     message = self.translate.instant(key);
-    if (message !== key) return message;
+    if (message !== key) {
+      // Append sheet name
+      return (sheetName.length === 2) ? `${message} (${sheetName})` : message;
+    }
 
     // No translation found: replace underscore with space
     return sheetName.replace(/[_-]+/g, " ").toUpperCase();
@@ -349,21 +363,29 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
 
     const i19nPrefix = `EXTRACTION.TABLE.${this.type.category.toUpperCase()}.`;
     const names = columns.map(column => (column.name || column.columnName).toUpperCase());
+
     const i18nKeys = names.map(name => i19nPrefix + name)
-      .concat(names.map(name => `EXTRACTION.COMMON.${name}`));
+      .concat(names.map(name => `EXTRACTION.COLUMNS.${name}`));
+
     const i18nMap = this.translate.instant(i18nKeys);
     columns.forEach((column, i) => {
+
       let key = i18nKeys[i];
       column.name = i18nMap[key];
+
       // No I18n translation
       if (column.name === key) {
+
         // Try to get common translation
         key = i18nKeys[names.length + i];
         column.name = i18nMap[key];
 
+        // Or split column name
         if (column.name === key) {
-          // Or split column name, by replacing underscore by a space
+
+          // Replace underscore with space
           column.name = column.columnName.replace(/[_-]+/g, " ").toLowerCase();
+
           // First letter as upper case
           if (column.name.length > 1) column.name = capitalizeFirstLetter(column.name);
         }
@@ -372,7 +394,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
 
   }
 
-  getI18nColumnName(columnName: string) {
+  getI18nColumnName(columnName?: string) {
+    if (!columnName) return '';
     let key = `EXTRACTION.TABLE.${this.type.category.toUpperCase()}.${columnName.toUpperCase()}`;
     let message = this.translate.instant(key);
 
@@ -380,11 +403,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     if (message === key) {
 
       // Try to get common translation
-      key = `EXTRACTION.COMMON.${columnName.toUpperCase()}`;
+      key = `EXTRACTION.TABLE.COLUMNS.${columnName.toUpperCase()}`;
       message = this.translate.instant(key);
 
       // Or split column name
       if (message === key) {
+
         // Replace underscore with space
         message = columnName.replace(/[_-]+/g, " ").toUpperCase();
         if (message.length > 1) {

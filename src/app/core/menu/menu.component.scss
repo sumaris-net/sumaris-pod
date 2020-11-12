@@ -7,9 +7,9 @@ ion-menu {
   --ion-item-icon-color: var(--ion-color-primary-tint);
   --ion-item-text-color: var(--ion-color-primary-tint);
 
-  --ion-item-background-selected: var(--ion-color-secondary);
-  --ion-item-text-color-selected: var(--ion-color-secondary-contrast);
-  --ion-item-icon-color-selected: var(--ion-color-secondary-contrast);
+  --ion-item-background-selected: var(--ion-color-secondary100);
+  --ion-item-text-color-selected: var(--ion-color-secondary100-contrast);
+  --ion-item-icon-color-selected: var(--ion-color-secondary100-contrast);
 
   --ion-item-text-color-disable: var(--ion-color-medium);
   --ion-item-icon-color-disable: var(--ion-color-medium);
@@ -149,14 +149,13 @@ ion-menu {
         ion-label {
           color: var(--ion-item-text-color-selected) !important;
         }
-      }
 
-      ion-item.selected:hover {
-        --color-hover:  var(--ion-item-background-selected) !important;
-        --ion-item-icon-color-selected: var(--ion-item-icon-color) !important;
-        --ion-item-text-color-selected: var(--ion-item-text-color) !important;
+        &:hover {
+          --color-hover:  var(--ion-item-background-selected) !important;
+          --ion-item-icon-color-selected: var(--ion-item-icon-color) !important;
+          --ion-item-text-color-selected: var(--ion-item-text-color) !important;
+        }
       }
-
     }
   }
 
