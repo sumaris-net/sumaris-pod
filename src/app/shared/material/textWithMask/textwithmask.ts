@@ -51,7 +51,7 @@ const MASKS: {
   }
 } = {
   'sampleRawCode': {
-    'sampleRawCode': [' ', /\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '.', /\d/, /\d/, '"']
+    'sampleRawCode': ['2', '0', '2', '0', '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/]
   }
 };
 
@@ -150,9 +150,10 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
       console.error("Invalid attribute value. Expected: type: 'sampleRowCode or any other mask attribute' and latlongPattern: 'SampleRowCode  or any other mask attribute pattern'");
       this.type = 'sampleRowCode';
       //this.pattern = 'sampleRowCode';
-      this.mask = MASKS[this.type][this.pattern];
+      //this.mask = MASKS[this.type][this.pattern];
+      this.mask = MASKS['sampleRawCode']['sampleRawCode'];
     }
-    
+
     this.formatFn = formatSampleRowCode;
     this.formatFnOptions = {pattern: this.pattern};
 
@@ -163,7 +164,7 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
     );
     this.textMaskConfig = {mask: this.mask, keepCharPositions: true, placeholderChar: this.placeholderChar};
 
-    
+
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-latlong-field>.");
@@ -212,19 +213,15 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
   writeValue(obj: any): void {
     if (this.writing) return;
 
-    this.value = (typeof obj === "string") ? parseFloat(obj.replace(/,/g, '.')) : obj;
-    this.writing = true;
-    const strValue = this.formatFn(
-      this.value,
-      {
-        ...this.formatFnOptions,
-        placeholderChar: this.placeholderChar
-      });
-
-    // DEBUG
-    // console.debug("strValue: " + strValue)
-    // console.debug("sign: " + sign)
-
+    //this.value = (typeof obj === "string") ? parseFloat(obj.replace(/,/g, '.')) : obj;
+    //this.writing = true;
+    //const strValue = this.formatFn(
+     // this.value,
+     // {
+     //   ...this.formatFnOptions,
+     //   placeholderChar: this.placeholderChar
+     // });
+     const strValue = "undefined text with mask";
     this.textFormControl.patchValue(strValue, {emitEvent: false});
     this.writing = false;
     this.markForCheck();
@@ -342,13 +339,13 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
   onKeypress(event: KeyboardEvent) {
     // Number entered or one of the 4 direction up, down, left and right
     if ((event.which >= 48 && event.which <= 57) || (event.which >= 37 && event.which <= 40)) {
-      //console.debug('input number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+      console.debug('input number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
       // OK
     }
     // Decimal separator entered
     else if (event.key === '.' || event.key === ',') {
       // DEBUG
-      // console.debug('input decimal separator entered :' + event.code);
+       console.debug('input decimal separator entered :' + event.code);
 
       // Move caret after point
       moveInputCaretToSeparator(event, '.');
@@ -358,49 +355,7 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
       // Command entered (delete, backspace or one of the 4 direction up, down, left and right)
       if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8 || event.keyCode == 9) {
         // DEBUG
-        //console.debug('input command entered:' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-
-        // OK
-      }
-      // Sign entered ('+' or '-')
-      else if (event.keyCode === 43 || event.keyCode === 45) {
-        // DEBUG
-        // console.debug('input sign entered:' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-        const caretPosition = getCaretPosition(event.target);
-        if (this.pattern === 'SampleRowCode' && caretPosition > 0) {
-          const sign = event.key;
-          // Wait key apply
-          const value = this.inputElement.nativeElement.value;
-          if (value && !value.startsWith(sign)) {
-            const newValue = sign + (value.length > 1 ? value.substr(1) : '');
-
-            // DEBUG
-            // console.debug("sign entered. Updating input value to:", newValue);
-
-            this.inputElement.nativeElement.value = newValue;
-            selectInputRange(this.inputElement.nativeElement, caretPosition);
-          }
-          event.preventDefault();
-        }
-
-        // OK
-      }
-      // Direction char (capitalized)
-      else if (event.key === 'N' || event.key === 'S' || event.key === 'E' || event.key === 'W') {
-        // DEBUG
-        // console.debug('input direction entered:' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-
-        // OK
-      }
-      // Direction char
-      else if (event.key === 'n' || event.key === 's' || event.key === 'e' || event.key === 'w') {
-        // DEBUG
-        // console.debug('input direction entered:' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-
-        // Capitalize (with a delay, to be sure the key has been applied to input text)
-        setTimeout(() => {
-          this.inputElement.nativeElement.value = this.inputElement.nativeElement.value.toUpperCase();
-        }, 10);
+        console.debug('input command entered:' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
 
         // OK
       }

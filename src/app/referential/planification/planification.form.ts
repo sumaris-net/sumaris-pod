@@ -23,6 +23,7 @@ import { Program } from '../services/model/program.model';
 export class PlanificationForm extends AppForm<Planification> implements OnInit {
 
   protected formBuilder: FormBuilder;
+  private _sampleRowCode = new BehaviorSubject<string>(null);
   private _taxonNameSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _laboratoryubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _fishingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
