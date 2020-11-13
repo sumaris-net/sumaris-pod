@@ -104,10 +104,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   $selectedPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   $acquisitionLevels = new BehaviorSubject<IReferentialRef[]>(undefined);
   $pmfms = new BehaviorSubject<Pmfm[]>(undefined);
-  $pmfmsParameters = new BehaviorSubject<IReferentialRef[]>(undefined);
-  $pmfmsMatrix = new BehaviorSubject<Pmfm[]>(undefined);
-  $pmfmsFractions = new BehaviorSubject<Pmfm[]>(undefined);
-  $pmfmsMethods = new BehaviorSubject<Pmfm[]>(undefined);
   $gears = new BehaviorSubject<IReferentialRef[]>(undefined);
   $loadingReferential = new BehaviorSubject<boolean>(true);
   $qualitativeValues = new BehaviorSubject<IReferentialRef[]>(undefined);
@@ -308,7 +304,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('parameter', {
-        items: this.$pmfmsParameters,
+        items: this.$pmfms,
         attributes: pmfmParameterAttributes,
         columnSizes: pmfmParameterAttributes.map(attr => {
           switch(attr) {
@@ -333,7 +329,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('matrix', {
-        items: this.$pmfmsMatrix,
+        items: this.$pmfms,
         attributes: pmfmMatrixAttributes,
         columnSizes: pmfmMatrixAttributes.map(attr => {
           switch(attr) {
@@ -355,7 +351,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: true,
       autocomplete: this.registerAutocompleteField('fraction', {
-        items: this.$pmfmsFractions,
+        items: this.$pmfms,
         attributes: pmfmFractionAttributes,
         columnSizes: pmfmFractionAttributes.map(attr => {
           switch(attr) {
@@ -379,7 +375,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('method', {
-        items: this.$pmfmsMethods,
+        items: this.$pmfms,
         attributes: pmfmMethodAttributes,
         columnSizes: pmfmMethodAttributes.map(attr => {
           switch(attr) {
@@ -399,7 +395,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('fraction', {
-        items: this.$pmfmsMethods,
+        items: this.$pmfms,
         attributes: pmfmMethodAttributes,
         columnSizes: pmfmMethodAttributes.map(attr => {
           switch(attr) {
@@ -657,11 +653,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       await Promise.all([
         this.loadAcquisitionLevels(),
         this.loadPmfms(),
-        this.loadPmfmsParameters(),
-        this.loadPmfmsMatrix(),
-        this.loadPmfmsFractions(),
-        this.loadPmfmsMethods(),
-        //this.loadGears(),
       ]);
 
       console.debug("[pmfm-strategy-table] Loaded referential items");
@@ -690,44 +681,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$pmfms.next(res && res.data || [])
   }
 
-    protected async loadPmfmsMatrix() {
-        const res = await this.pmfmService.loadAllPmfmsMatrix(0, 1000, null, null, null,
-          {
-            withTotal: false,
-            withDetails: true
-          });
-        this.$pmfmsMatrix.next(res && res.data || [])
-      }
-
-      protected async loadPmfmsFractions() {
-        // FIXME CLT: Empty fraction list. We use methods instead
-          //const res = await this.pmfmService.loadAllPmfmsFractions(0, 1000, null, null, null,
-          const res = await this.pmfmService.loadAllPmfmsMethods(0, 1000, null, null, null,
-            {
-              withTotal: false,
-              withDetails: true
-            });
-          this.$pmfmsFractions.next(res && res.data || [])
-        }
-
-        protected async loadPmfmsMethods() {
-            const res = await this.pmfmService.loadAllPmfmsMethods(0, 1000, null, null, null,
-              {
-                withTotal: false,
-                withDetails: true
-              });
-            this.$pmfmsMethods.next(res && res.data || [])
-          }
-
-  protected async loadPmfmsParameters() {
-      const res = await this.referentialRefService.loadAll(0, 1000, null, null, {
-          entityName: 'Parameter'
-        },
-        {
-          withTotal: false
-        });
-      this.$pmfmsParameters.next(res && res.data || []);
-    }
+    
 
 
 
