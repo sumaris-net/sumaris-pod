@@ -513,6 +513,9 @@ export class BatchUtils {
         if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
           message += ' lengthTotal:' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';
         }
+        if (isNotNil(batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT])) {
+          message += ' weight:' + batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT] + 'kg';
+        }
       }
     }
 

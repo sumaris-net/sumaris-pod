@@ -349,7 +349,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Column: total weight
     data.weight = this.getWeight(data.measurementValues) || undefined;
-    measurementValues[i++] = data.weight && !data.weight.computed && data.weight.value || null;
+    measurementValues[i++] = toNumber(data.weight && !data.weight.computed && data.weight.value, null);
 
     // Column: individual count
     const individualCount = toNumber(data.individualCount, null);

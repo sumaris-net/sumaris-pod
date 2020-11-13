@@ -8,11 +8,27 @@ import {mergeMap} from "rxjs/operators";
 import {BatchTreeComponent} from "../batch-tree.component";
 import {MatAutocompleteConfigHolder} from "../../../shared/material/autocomplete/material.autocomplete";
 import {SharedValidators} from "../../../shared/validator/validators";
-import {BatchGroupUtils} from "../../services/model/batch-group.model";
 import {PmfmIds} from "../../../referential/services/model/model.enum";
-import {isEmptyArray, isNotNil} from "../../../shared/functions";
+import {isEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 import {EntitiesStorage} from "../../../core/services/entities-storage.service";
+
+function getSortingMeasValues(opts?: {
+  weight?: number;
+  discardOrLanding: 'LAN'|'DIS';
+}) {
+  opts = {
+    discardOrLanding: 'LAN',
+    ...opts
+  }
+  const res = {};
+
+  res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
+  if (isNotNil(opts.weight)) {
+    res[PmfmIds.BATCH_MEASURED_WEIGHT] = opts.weight;
+  }
+  return res;
+}
 
 function getIndivMeasValues(opts?: {
   length?: number;
@@ -41,7 +57,7 @@ const TREE_EXAMPLES: {[key: string]: any} = {
           children: [
             {
               label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
-              measurementValues: getIndivMeasValues({discardOrLanding: 'LAN'}),
+              measurementValues: getSortingMeasValues({discardOrLanding: 'LAN', weight: 100}),
               children: [
                 {
                   label: 'SORTING_BATCH#1.LAN.%',
@@ -69,7 +85,7 @@ const TREE_EXAMPLES: {[key: string]: any} = {
             },
             {
               label: 'SORTING_BATCH#1.DIS', rankOrder: 2,
-              measurementValues: getIndivMeasValues({discardOrLanding: 'DIS'}),
+              measurementValues: getSortingMeasValues({discardOrLanding: 'DIS', weight: 0}),
               children: [
                 {
                   label: 'SORTING_BATCH#1.DIS.%',
@@ -159,7 +175,7 @@ export class BatchTreeTestPage implements OnInit {
     });
     this.form.get('gear').valueChanges
       //.pipe(debounceTime(450))
-      .subscribe(g => this.gearIdSubject.next(g && g.id || null));
+      .subscribe(g => this.gearIdSubject.next(toNumber(g && g.id, null)));
 
 
     // Input example
