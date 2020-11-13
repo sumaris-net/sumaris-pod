@@ -22,19 +22,30 @@ package net.sumaris.core.dao.data.operation;
  * #L%
  */
 
+import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
+import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
+import net.sumaris.core.dao.data.fishingArea.FishingAreaSpecifications;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
+import net.sumaris.core.dao.data.sample.SampleRepository;
+import net.sumaris.core.dao.data.sample.SampleSpecifications;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.batch.BatchFilterVO;
+import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
+import net.sumaris.core.vo.filter.SampleFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +54,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -62,9 +75,51 @@ public class OperationRepositoryImpl
     @Autowired
     private MetierRepository metierRepository;
 
+    @Autowired
+    private MeasurementDao measurementDao;
+
+    @Autowired
+    private SampleRepository sampleRepository;
+
+    @Autowired
+    private FishingAreaRepository fishingAreaRepository;
+
+    @Autowired
+    private BatchRepository batchRepository;
+
     protected OperationRepositoryImpl(EntityManager entityManager) {
         super(Operation.class, OperationVO.class, entityManager);
         setLockForUpdate(true);
+    }
+
+    @Override
+    public List<OperationVO> findAllVO(Specification<Operation> spec, DataFetchOptions fetchOptions) {
+        // Standard load
+        if (!fetchOptions.isWithMeasurementValues()) {
+            return super.findAllVO(spec, fetchOptions);
+        }
+
+        List<OperationVO> result = super.findAllVO(spec, DataFetchOptions.builder()
+                .withChildrenEntities(fetchOptions.isWithChildrenEntities())
+                .withMeasurementValues(false) // Load just later
+                .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+                .withRecorderPerson(fetchOptions.isWithRecorderPerson())
+                .build());
+
+        // Load measurement in an optimize way
+        Collection<Integer> ids = Beans.collectIds(result);
+
+        Map<Integer, Map<Integer, String>> vum = measurementDao.getOperationsVesselUseMeasurementsMap(ids);
+        Map<Integer, Map<Integer, String>> gum = measurementDao.getOperationsGearUseMeasurementsMap(ids);
+
+        // Apply to operations
+        result.forEach(o -> {
+            int id = o.getId();
+            o.setMeasurementValues(vum.get(id));
+            o.setGearMeasurementValues(gum.get(id));
+        });
+
+        return result;
     }
 
     @Override
@@ -79,12 +134,47 @@ public class OperationRepositoryImpl
         // Physical gear
         if (source.getPhysicalGear() != null) {
             target.setPhysicalGearId(source.getPhysicalGear().getId());
-            target.setPhysicalGear(physicalGearRepository.toVO(source.getPhysicalGear(), DataFetchOptions.builder().withRecorderDepartment(false).build()));
+            target.setPhysicalGear(physicalGearRepository.toVO(source.getPhysicalGear(), DataFetchOptions.builder()
+                    .withRecorderDepartment(false)
+                    .withRecorderPerson(false)
+                    .build()));
         }
 
         // Métier
         if (source.getMetier() != null) {
             target.setMetier(metierRepository.toVO(source.getMetier()));
+        }
+
+        // Load children entities (not loaded by default)
+        Integer operationId = source.getId();
+        if (fetchOptions != null && fetchOptions.isWithChildrenEntities() && operationId != null) {
+
+            // Fishing Areas
+            target.setFishingAreas(fishingAreaRepository.findAllVO(fishingAreaRepository.hasOperationId(operationId)));
+
+            // Batches
+            target.setBatches(batchRepository.findAllVO(batchRepository.hasOperationId(operationId),
+                    BatchFetchOptions.builder()
+                        .withChildrenEntities(false) // Use flat list, not a tree
+                        .withRecorderDepartment(false)
+                        .withMeasurementValues(true)
+                        .build()));
+
+            // Samples
+            target.setSamples(sampleRepository.findAllVO(sampleRepository.hasOperationId(operationId),
+                    SampleFetchOptions.builder()
+                            .withChildrenEntities(false) // Use flat list, not a tree
+                            .withRecorderDepartment(false)
+                            .withMeasurementValues(true)
+                    .build()));
+
+
+        }
+
+        // Measurements
+        if (fetchOptions != null && fetchOptions.isWithMeasurementValues()) {
+            target.setMeasurements(measurementDao.getOperationVesselUseMeasurements(operationId));
+            target.setGearMeasurements(measurementDao.getOperationGearUseMeasurements(operationId));
         }
 
     }
@@ -182,8 +272,8 @@ public class OperationRepositoryImpl
     }
 
     @Override
-    protected Specification<Operation> toSpecification(OperationFilterVO filter) {
-        return super.toSpecification(filter)
+    protected Specification<Operation> toSpecification(OperationFilterVO filter, DataFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(hasTripId(filter.getTripId()));
     }
 }

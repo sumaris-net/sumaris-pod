@@ -93,8 +93,8 @@ public class DepartmentRepositoryImpl
     }
 
     @Override
-    protected Specification<Department> toSpecification(DepartmentFilterVO filter) {
-        return super.toSpecification(filter)
+    protected Specification<Department> toSpecification(DepartmentFilterVO filter, ReferentialFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(withLogo(filter.getWithLogo()));
     }
 

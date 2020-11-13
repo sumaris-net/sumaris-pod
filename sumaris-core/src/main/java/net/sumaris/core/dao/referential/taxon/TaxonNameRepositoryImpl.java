@@ -107,9 +107,9 @@ public class TaxonNameRepositoryImpl
     }
 
     @Override
-    protected Specification<TaxonName> toSpecification(TaxonNameFilterVO filter) {
+    protected Specification<TaxonName> toSpecification(TaxonNameFilterVO filter, ReferentialFetchOptions fetchOptions) {
 
-        return super.toSpecification(filter)
+        return super.toSpecification(filter, fetchOptions)
             .and(withTaxonGroupId(filter.getTaxonGroupId()))
             .and(withTaxonGroupIds(filter.getTaxonGroupIds()))
             .and(withSynonyms(filter.getWithSynonyms()))

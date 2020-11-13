@@ -26,8 +26,10 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +58,7 @@ public class TripRepositoryWriteTest extends AbstractDaoTest{
 
     @Test
     public void findAll() {
-        List<TripVO> trips = repository.findAll(0, 100, null, null, DataFetchOptions.builder().build())
+        List<TripVO> trips = repository.findAll(0, 100, null, null, DataFetchOptions.DEFAULT)
                 .stream().collect(Collectors.toList());
         Assert.assertNotNull(trips);
         Assert.assertTrue(trips.size() > 0);
@@ -79,16 +81,22 @@ public class TripRepositoryWriteTest extends AbstractDaoTest{
                 .build();
         List<TripVO> trips = repository.findAll(filter);
         Assert.assertNotNull(trips);
-        Assert.assertTrue(trips.size() > 0);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(trips));
     }
 
     @Test
-//    @Ignore
+    public void getWithChildren() {
+
+        Integer id = fixtures.getTripId(0);
+        TripVO trip = repository.get(id, DataFetchOptions.builder()
+            .withChildrenEntities(true).build());
+        Assert.assertNotNull(trip);
+    }
+
+    @Test
     public void deleteById() {
         Integer id = fixtures.getTripId(0);
         repository.deleteById(id);
-
     }
-
 
 }

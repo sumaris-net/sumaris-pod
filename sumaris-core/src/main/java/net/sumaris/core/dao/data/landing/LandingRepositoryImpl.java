@@ -66,8 +66,8 @@ public class LandingRepositoryImpl
     }
 
     @Override
-    public Specification<Landing> toSpecification(LandingFilterVO filter) {
-        return super.toSpecification(filter)
+    public Specification<Landing> toSpecification(LandingFilterVO filter, DataFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasTripId(filter.getTripId()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))

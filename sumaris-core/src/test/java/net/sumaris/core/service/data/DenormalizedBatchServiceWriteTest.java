@@ -26,6 +26,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.model.TreeNodeEntities;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;

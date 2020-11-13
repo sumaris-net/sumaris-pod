@@ -551,6 +551,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey());
     }
 
+    public void setEnableTrash(boolean enable) {
+        applicationConfig.setOption(SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey(), String.valueOf(enable));
+    }
+
     /**
      * <p>getDbName.</p>
      *

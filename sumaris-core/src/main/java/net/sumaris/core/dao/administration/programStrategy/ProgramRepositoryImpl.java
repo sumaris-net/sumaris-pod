@@ -99,8 +99,8 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    protected Specification<Program> toSpecification(ProgramFilterVO filter) {
-        return super.toSpecification(filter)
+    protected Specification<Program> toSpecification(ProgramFilterVO filter, ProgramFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(hasProperty(filter.getWithProperty()));
     }
 

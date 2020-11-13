@@ -48,8 +48,8 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 	}
 
 	@Override
-	public List<PhysicalGearVO> getAllByTripId(int tripId) {
-		return physicalGearRepository.findAllVO(physicalGearRepository.hasTripId(tripId));
+	public List<PhysicalGearVO> getAllByTripId(int tripId, DataFetchOptions options) {
+		return physicalGearRepository.findAllVO(physicalGearRepository.hasTripId(tripId), options);
 	}
 
 	@Override

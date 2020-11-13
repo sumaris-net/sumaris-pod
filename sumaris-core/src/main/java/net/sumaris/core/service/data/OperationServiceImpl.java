@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
@@ -36,6 +37,8 @@ import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -46,9 +49,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("operationService")
@@ -87,9 +88,15 @@ public class OperationServiceImpl implements OperationService {
 		this.enableTrash = event.getConfiguration().enableEntityTrash();
 	}
 
+
     @Override
-    public List<OperationVO> findAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return operationRepository.findAll(OperationFilterVO.builder().tripId(tripId).build(), offset, size, sortAttribute, sortDirection, null).getContent();
+    public List<OperationVO> getAllByTripId(int tripId, @NonNull DataFetchOptions fetchOptions) {
+        return operationRepository.findAllVO(operationRepository.hasTripId(tripId), fetchOptions);
+    }
+
+    @Override
+    public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        return operationRepository.findAll(OperationFilterVO.builder().tripId(tripId).build(), offset, size, sortAttribute, sortDirection, DataFetchOptions.builder().build()).getContent();
     }
 
     @Override

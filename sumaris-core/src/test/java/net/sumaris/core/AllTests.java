@@ -61,7 +61,7 @@ import org.junit.runners.Suite;
     UserTokenRepositoryWriteTest.class,
     UserSettingsRepositoryWriteTest.class,
     // DAO : data
-    BatchDaoWriteTest.class,
+    BatchRepositoryWriteTest.class,
     LandingRepositoryReadTest.class,
     SampleDaoWriteTest.class,
     TripRepositoryWriteTest.class,

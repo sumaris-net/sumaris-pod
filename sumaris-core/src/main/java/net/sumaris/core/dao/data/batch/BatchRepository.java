@@ -20,19 +20,24 @@
  * #L%
  */
 
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.batch;
 
+import net.sumaris.core.dao.data.DataRepository;
+import net.sumaris.core.dao.data.product.ProductSpecifications;
+import net.sumaris.core.model.data.Batch;
+import net.sumaris.core.model.data.Product;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.ProductVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
+import net.sumaris.core.vo.data.batch.BatchFilterVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.DenormalizedBatchVO;
+import net.sumaris.core.vo.filter.ProductFilterVO;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
-public interface DenormalizedBatchRepositoryExtend<V extends DenormalizedBatchVO> {
+public interface BatchRepository extends
+        DataRepository<Batch, BatchVO, BatchFilterVO, BatchFetchOptions>,
+        BatchSpecifications {
 
-    List<V> saveAllByOperationId(int operationId, @Nonnull List<V> sources);
 
-    List<V> saveAllBySaleId(int saleId, @Nonnull List<V> sources);
-
-    List<V> denormalized(BatchVO catchBatch);
 }

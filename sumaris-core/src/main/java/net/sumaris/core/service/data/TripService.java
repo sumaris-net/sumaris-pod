@@ -59,6 +59,9 @@ public interface TripService {
 	@Transactional(readOnly = true)
 	TripVO get(int id);
 
+	@Transactional(readOnly = true)
+	TripVO get(int id, DataFetchOptions fetchOptions);
+
 	void fillTripLandingLinks(TripVO target);
 
 	void fillTripsLandingLinks(List<TripVO> targets);

@@ -95,8 +95,8 @@ public class ProductRepositoryImpl
     }
 
     @Override
-    public Specification<Product> toSpecification(ProductFilterVO filter) {
-        return super.toSpecification(filter)
+    public Specification<Product> toSpecification(ProductFilterVO filter, DataFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(hasLandingId(filter.getLandingId()))
             .and(hasOperationId(filter.getOperationId()))
             .and(hasSaleId(filter.getSaleId()));

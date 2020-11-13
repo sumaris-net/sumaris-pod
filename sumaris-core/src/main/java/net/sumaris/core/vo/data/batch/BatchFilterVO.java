@@ -20,19 +20,26 @@
  * #L%
  */
 
-package net.sumaris.core.dao.data;
+package net.sumaris.core.vo.data.batch;
 
-import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.DenormalizedBatchVO;
+import lombok.Builder;
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.vo.filter.IDataFilter;
 
-import javax.annotation.Nonnull;
-import java.util.List;
+/**
+ * @author peck7 on 01/09/2020.
+ */
+@Data
+@FieldNameConstants
+@Builder
+public class BatchFilterVO implements IDataFilter {
 
-public interface DenormalizedBatchRepositoryExtend<V extends DenormalizedBatchVO> {
+    public static BatchFilterVO nullToEmpty(BatchFilterVO f) {
+        return f != null ? f : BatchFilterVO.builder().build();
+    }
 
-    List<V> saveAllByOperationId(int operationId, @Nonnull List<V> sources);
+    private Integer operationId;
+    private Integer recorderDepartmentId;
 
-    List<V> saveAllBySaleId(int saleId, @Nonnull List<V> sources);
-
-    List<V> denormalized(BatchVO catchBatch);
 }

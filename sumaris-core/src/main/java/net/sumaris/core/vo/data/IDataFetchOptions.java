@@ -1,8 +1,8 @@
-package net.sumaris.server.service.technical;
+package net.sumaris.core.vo.data;
 
 /*-
  * #%L
- * SUMARiS:: Server
+ * SUMARiS:: Core
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,22 +22,17 @@ package net.sumaris.server.service.technical;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.dao.technical.model.IValueObject;
-import org.reactivestreams.Publisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
 
-@Transactional(readOnly = true)
-public interface TrashService {
+public interface IDataFetchOptions extends IFetchOptions {
 
-    <V> Page<V> findAll(String entityName, Pageable pageable, Class<? extends V> clazz);
+    boolean isWithRecorderDepartment();
 
-    long count(String entityName);
+    boolean isWithObservers();
+
+    boolean isWithRecorderPerson();
+
+    boolean isWithChildrenEntities();
 
 }

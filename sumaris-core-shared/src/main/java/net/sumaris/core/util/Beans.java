@@ -315,6 +315,13 @@ public class Beans {
         return collection.stream().map(function).collect(Collectors.toList());
     }
 
+    public static <K, V> Map<K, V> mergeMap(Map<K, V> map1, Map<K, V> map2) {
+        if (MapUtils.isEmpty(map1)) return map2;
+        if (MapUtils.isEmpty(map2)) return map1;
+        return Stream.concat(map1.entrySet().stream(), map2.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
     public static <T> Comparator<T> naturalComparator(final String sortAttribute, final SortDirection sortDirection) {
         if (sortAttribute == null) {
             return naturalComparator("id", sortDirection);

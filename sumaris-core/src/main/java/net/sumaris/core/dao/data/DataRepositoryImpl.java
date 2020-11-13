@@ -30,6 +30,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.referential.QualityFlagEnum;
@@ -43,6 +44,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.IDataFilter;
@@ -69,7 +71,7 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
-public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends DataFetchOptions>
+public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends IDataFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
     implements DataRepository<E, V, F, O>, DataSpecifications<E> {
 
@@ -93,12 +95,12 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
     @Override
     public List<V> findAll(F filter) {
-        return findAll(toSpecification(filter)).stream().map(this::toVO).collect(Collectors.toList());
+        return findAll(filter, (O)null);
     }
 
     @Override
     public List<V> findAll(F filter, O fetchOptions) {
-        return findAll(toSpecification(filter)).stream()
+        return findAll(toSpecification(filter, fetchOptions)).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
     }
@@ -268,6 +270,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     }
 
     public V toVO(E source, O fetchOptions) {
+        if (source == null) return null;
         V target = createVO();
         toVO(source, target, fetchOptions, true);
         return target;
@@ -309,10 +312,13 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         }
     }
 
-    protected Specification<E> toSpecification(F filter) {
-        // default specification
-        return BindableSpecification
-            .where(hasRecorderDepartmentId(filter.getRecorderDepartmentId()));
+
+    protected final Specification<E> toSpecification(F filter) {
+        return toSpecification(filter, null);
+    }
+
+    protected Specification<E> toSpecification(F filter, O fetchOptions) {
+        return hasRecorderDepartmentId(filter.getRecorderDepartmentId());
     }
 
     /* -- protected methods -- */

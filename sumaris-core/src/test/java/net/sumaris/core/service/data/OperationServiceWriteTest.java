@@ -23,11 +23,11 @@ package net.sumaris.core.service.data;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
@@ -76,8 +76,8 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     }
 
     @Test
-    public void b_find() {
-        List<OperationVO> operations = service.findAllByTripId(parent.getId(), 0, 10, IEntity.Fields.ID, SortDirection.ASC);
+    public void b_getAll() {
+        List<OperationVO> operations = service.getAllByTripId(parent.getId(), null);
         Assert.assertNotNull(operations);
         Assert.assertEquals(3, operations.size());
 

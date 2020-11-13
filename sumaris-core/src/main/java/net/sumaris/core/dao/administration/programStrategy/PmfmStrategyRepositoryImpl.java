@@ -102,7 +102,7 @@ public class PmfmStrategyRepositoryImpl
     public List<PmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions) {
 
         return findAll(
-            toSpecification(StrategyRelatedFilterVO.builder().strategyId(strategyId).build()),
+            toSpecification(StrategyRelatedFilterVO.builder().strategyId(strategyId).build(), fetchOptions),
             Sort.by(PmfmStrategy.Fields.RANK_ORDER)
         )
             .stream()
@@ -115,7 +115,8 @@ public class PmfmStrategyRepositoryImpl
     public List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions) {
 
         return findAll(
-            toSpecification(StrategyRelatedFilterVO.builder().programId(programId).acquisitionLevelId(acquisitionLevelId).build()),
+            hasProgramId(programId)
+                    .and(hasAcquisitionLevelId(acquisitionLevelId)),
             Sort.by(PmfmStrategy.Fields.RANK_ORDER)
         )
             .stream()
@@ -124,7 +125,7 @@ public class PmfmStrategyRepositoryImpl
 
     }
 
-    protected Specification<PmfmStrategy> toSpecification(StrategyRelatedFilterVO filter) {
+    protected Specification<PmfmStrategy> toSpecification(StrategyRelatedFilterVO filter, StrategyFetchOptions fetchOptions) {
         return BindableSpecification.where(hasProgramId(filter.getProgramId()))
             .and(hasStrategyId(filter.getStrategyId()))
             .and(hasAcquisitionLevelId(filter.getAcquisitionLevelId()));

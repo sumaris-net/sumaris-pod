@@ -26,11 +26,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import lombok.NonNull;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -39,7 +42,6 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.SaleType;
@@ -68,6 +70,9 @@ import java.util.stream.Collectors;
 public class TripServiceImpl implements TripService {
 
     private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
+
+    @Autowired
+    private SumarisConfiguration configuration;
 
     @Autowired
     private TripRepository tripRepository;
@@ -105,13 +110,6 @@ public class TripServiceImpl implements TripService {
     @Autowired
     private FishingAreaService fishingAreaService;
 
-    private boolean enableTrash = false;
-
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
-        this.enableTrash = event.getConfiguration().enableEntityTrash();
-    }
-
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
         return findByFilter(null, offset, size, null, null, DataFetchOptions.builder().build());
@@ -134,9 +132,42 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripVO get(int tripId) {
-        //noinspection UnnecessaryBoxing
-        return tripRepository.get(Integer.valueOf(tripId));
+    public TripVO get(int id) {
+        return get(id, DataFetchOptions.builder().build());
+    }
+
+    @Override
+    public TripVO get(int id, @NonNull DataFetchOptions fetchOptions) {
+        TripVO target = tripRepository.get(id);
+
+        // Fetch children (disabled by default)
+        if (fetchOptions.isWithChildrenEntities()) {
+
+            target.setGears(physicalGearService.getAllByTripId(id, fetchOptions));
+            target.setSales(saleService.getAllByTripId(id, fetchOptions));
+
+            // Fill link to landing, if any
+            fillTripLandingLinks(target);
+
+            // Operation groups
+            if (target.getLanding() != null) {
+                target.setOperationGroups(operationGroupService.getAllByTripId(id, fetchOptions));
+                target.setMetiers(operationGroupService.getMetiersByTripId(id));
+            }
+
+            // Operations
+            else {
+                target.setOperations(operationService.getAllByTripId(id, fetchOptions));
+            }
+
+        }
+
+        // Measurements
+        if (fetchOptions.isWithMeasurementValues()) {
+            target.setMeasurements(measurementDao.getTripVesselUseMeasurements(id));
+        }
+
+        return target;
     }
 
     @Override
@@ -441,15 +472,9 @@ public class TripServiceImpl implements TripService {
     @Override
     public void delete(int id) {
 
-        TripVO deletedTrip = null;
-        if (enableTrash) {
-            deletedTrip = get(id);
-            deletedTrip.setOperations(operationService.findAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC));
-            deletedTrip.setOperationGroups(operationGroupService.getAllByTripId(id));
-            deletedTrip.setMetiers(operationGroupService.getMetiersByTripId(id));
-
-            // TODO: Add all measurement maybe with get(id, fullFetchOption)
-        }
+        IValueObject eventData = configuration.enableEntityTrash() ?
+                get(id, DataFetchOptions.builder().withChildrenEntities(true).build()) :
+                null;
 
         // Remove link LANDING->TRIP
         Landing landing = landingRepository.getByTripId(id);
@@ -461,8 +486,8 @@ public class TripServiceImpl implements TripService {
         // Apply deletion
         tripRepository.deleteById(id);
 
-        // Publish events
-        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), deletedTrip));
+        // Publish delete event
+        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), eventData));
     }
 
     @Override

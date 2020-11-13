@@ -82,8 +82,8 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    protected Specification<ExtractionProduct> toSpecification(ExtractionProductFilterVO filter) {
-        return super.toSpecification(filter)
+    protected Specification<ExtractionProduct> toSpecification(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(withRecorderPersonIdOrPublic(filter.getRecorderPersonId()))
             .and(withRecorderDepartmentId(filter.getRecorderDepartmentId()));
     }

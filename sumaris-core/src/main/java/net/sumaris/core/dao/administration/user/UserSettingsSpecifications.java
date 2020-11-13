@@ -24,11 +24,13 @@ package net.sumaris.core.dao.administration.user;
 
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
 
+import java.util.Optional;
+
 /**
  * @author peck7 on 20/08/2020.
  */
 public interface UserSettingsSpecifications {
 
-    UserSettingsVO getByIssuer(String issuer);
+    Optional<UserSettingsVO> findByIssuer(String issuer);
 
 }

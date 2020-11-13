@@ -32,6 +32,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
 import org.slf4j.Logger;
@@ -49,7 +50,7 @@ public abstract class RootDataRepositoryImpl<
     E extends IRootDataEntity<Integer>,
     V extends IRootDataVO<Integer>,
     F extends IRootDataFilter,
-    O extends DataFetchOptions
+    O extends IDataFetchOptions
     >
     extends DataRepositoryImpl<E, V, F, O>
     implements RootDataRepository<E, V, F, O> {
@@ -201,8 +202,8 @@ public abstract class RootDataRepositoryImpl<
     /* -- protected method -- */
 
     @Override
-    protected Specification<E> toSpecification(F filter) {
-        return super.toSpecification(filter)
+    protected Specification<E> toSpecification(F filter, O fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(hasRecorderPersonId(filter.getRecorderPersonId()))
             .and(hasProgramLabel(filter.getProgramLabel()));
     }

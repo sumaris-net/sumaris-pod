@@ -20,19 +20,34 @@
  * #L%
  */
 
-package net.sumaris.core.dao.data;
+package net.sumaris.core.vo.data.sample;
 
-import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.DenormalizedBatchVO;
+import lombok.Builder;
+import lombok.Data;
+import net.sumaris.core.vo.data.IDataFetchOptions;
 
-import javax.annotation.Nonnull;
-import java.util.List;
+@Data
+@Builder
+public class SampleFetchOptions implements IDataFetchOptions {
 
-public interface DenormalizedBatchRepositoryExtend<V extends DenormalizedBatchVO> {
+    public static final SampleFetchOptions DEFAULT = SampleFetchOptions.builder().build();
 
-    List<V> saveAllByOperationId(int operationId, @Nonnull List<V> sources);
+    @Builder.Default
+    private boolean withRecorderDepartment = false;
 
-    List<V> saveAllBySaleId(int saleId, @Nonnull List<V> sources);
+    @Builder.Default
+    private boolean withChildrenEntities = false;
 
-    List<V> denormalized(BatchVO catchBatch);
+    @Builder.Default
+    private boolean withMeasurementValues = false;
+
+    @Override
+    public boolean isWithObservers() {
+        return false;
+    }
+
+    @Override
+    public boolean isWithRecorderPerson() {
+        return false;
+    }
 }

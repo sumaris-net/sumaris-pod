@@ -34,6 +34,7 @@ import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,8 +109,16 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     }
 
     @Override
-    public List<OperationGroupVO> getAllByTripId(int tripId) {
-        return operationGroupRepository.findAll(OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build());
+    public List<OperationGroupVO> getAllByTripId(int tripId, DataFetchOptions fetchOptions) {
+        List<OperationGroupVO> result = operationGroupRepository.findAll(OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build(), fetchOptions);
+
+        if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
+            // Fetch packets (because it cannot be called from repo)
+            result.stream()
+                    .filter(o -> o.getId() != null)
+                    .forEach(o -> o.setPackets(packetService.getAllByOperationId(o.getId())));
+        }
+        return result;
     }
 
     @Override

@@ -1,10 +1,8 @@
-package net.sumaris.core.dao.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,137 +20,138 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+package net.sumaris.core.dao.data.batch;
+
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
+import net.sumaris.core.dao.data.DataRepositoryImpl;
+import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.IWithBatchesEntity;
 import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.data.BatchFetchOptions;
-import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
+import net.sumaris.core.vo.data.batch.BatchFilterVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Repository("batchDao")
-public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
+public class BatchRepositoryImpl
+        extends DataRepositoryImpl<Batch, BatchVO, BatchFilterVO, BatchFetchOptions>
+        implements BatchSpecifications {
 
     /**
      * Logger.
      */
-    protected static final Logger logger = LoggerFactory.getLogger(BatchDaoImpl.class);
+    protected static final Logger logger = LoggerFactory.getLogger(BatchRepositoryImpl.class);
     private static final boolean trace = logger.isTraceEnabled();
 
     private boolean enableSaveUsingHash;
 
-    @Autowired
-    private ReferentialDao referentialDao;
+    private final ReferentialDao referentialDao;
+    private final TaxonNameRepository taxonNameRepository;
+    private final MeasurementDao measurementDao;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private TaxonNameRepository taxonNameRepository;
 
-    @Autowired
-    private MeasurementDao measurementDao;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @PostConstruct
-    protected void init() {
-        this.enableSaveUsingHash = getConfig().enableBatchHashOptimization();
+    protected BatchRepositoryImpl(EntityManager entityManager,
+                                  ReferentialDao referentialDao,
+                                  TaxonNameRepository taxonNameRepository,
+                                  MeasurementDao measurementDao,
+                                  ProductRepository productRepository) {
+        super(Batch.class, BatchVO.class, entityManager);
+        this.referentialDao = referentialDao;
+        this.taxonNameRepository = taxonNameRepository;
+        this.measurementDao = measurementDao;
+        this.productRepository = productRepository;
     }
 
-    @Override
-    public List<BatchVO> getAllByOperationId(int operationId, BatchFetchOptions fetchOptions) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Batch> query = cb.createQuery(Batch.class);
-        Root<Batch> root = query.from(Batch.class);
-
-        query.select(root);
-
-        ParameterExpression<Integer> operationIdParam = cb.parameter(Integer.class);
-
-        query.where(cb.equal(root.get(Batch.Fields.OPERATION).get(Batch.Fields.ID), operationIdParam));
-
-        // Sort by rank order
-        query.orderBy(cb.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
-
-        return toBatchVOs(getEntityManager().createQuery(query)
-            .setParameter(operationIdParam, operationId).getResultStream(), fetchOptions);
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady() {
+        this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
     }
+
 
     @Override
     public BatchVO getCatchBatchByOperationId(int operationId, BatchFetchOptions fetchOptions) {
 
-        if (fetchOptions.isWithChildren()) {
+        if (fetchOptions.isWithChildrenEntities()) {
             // Return all batches as tree form
-            return toTree(getAllByOperationId(operationId, BatchFetchOptions.builder()
-                    .withMeasurementValues(fetchOptions.isWithMeasurementValues())
-                    .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-                    .withChildren(false)
-                    .build()
-            ));
+            return toTree(
+                    findAllVO(
+                            hasOperationId(operationId)
+                                    .and(addJoinFetch(fetchOptions)),
+                        BatchFetchOptions.builder()
+                            .withMeasurementValues(fetchOptions.isWithMeasurementValues())
+                            .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+                            .withChildrenEntities(false)
+                            .build()
+                    ));
         }
 
-        // create a query returning only root batch
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Batch> query = cb.createQuery(Batch.class);
-        Root<Batch> root = query.from(Batch.class);
-
-        query.select(root);
-
-        ParameterExpression<Integer> operationIdParam = cb.parameter(Integer.class);
-
-        query.where(
-            cb.equal(root.get(Batch.Fields.OPERATION).get(Batch.Fields.ID), operationIdParam),
-            cb.isNull(root.get(Batch.Fields.PARENT))
-        );
-
+        // Return the root batch only
         try {
-            return toBatchVO(getEntityManager().createQuery(query)
-                    .setParameter(operationIdParam, operationId)
-                    .getSingleResult(), fetchOptions);
+            return findOne(hasNoParent()
+                            .and(hasOperationId(operationId))
+                            .and(addJoinFetch(fetchOptions)))
+                    .map(source -> toVO(source, fetchOptions))
+                    .orElse(null);
         } catch (NoResultException e){
             return null;
         }
     }
 
     @Override
-    public BatchVO get(int id) {
-        return toBatchVO(getOne(Batch.class, id), BatchFetchOptions.builder().build());
+    public List<BatchVO> findAllVO(Specification<Batch> spec, BatchFetchOptions fetchOptions) {
+        // Standard load
+        if (!fetchOptions.isWithMeasurementValues()) {
+            return super.findAllVO(spec, fetchOptions);
+        }
+
+        // Load using and optimized way
+        List<BatchVO> result = super.findAllVO(spec,  BatchFetchOptions.builder()
+                .withMeasurementValues(false) // Will be just later, in an optimize way
+                .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+                .withChildrenEntities(fetchOptions.isWithChildrenEntities())
+                .build());
+
+        // Optimize measurement load
+        Collection<Integer> batchIds = Beans.collectIds(result);
+
+        Map<Integer, Map<Integer, String>> sm = measurementDao.getBatchesSortingMeasurementsMap(batchIds);
+        Map<Integer, Map<Integer, String>> qm = measurementDao.getBatchesQuantificationMeasurementsMap(batchIds);
+
+        result.forEach(b -> {
+            int batchId = b.getId();
+            b.setMeasurementValues(Beans.mergeMap(sm.get(batchId), qm.get(batchId)));
+        });
+
+        return result;
     }
+
 
     @Override
     public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
@@ -181,59 +180,11 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
     }
 
     @Override
-    public BatchVO save(BatchVO source) {
-        Preconditions.checkNotNull(source);
-
-        EntityManager entityManager = getEntityManager();
-        Batch entity = null;
-        if (source.getId() != null) {
-            entity = find(Batch.class, source.getId());
-        }
-        boolean isNew = (entity == null);
-        if (isNew) {
-            entity = new Batch();
-        }
-
-        if (!isNew) {
-            // Check update date
-            // FIXME: Client app: update entity from the save() result
-            //checkUpdateDateForUpdate(source, entity);
-
-            // Lock entityName
-            //lockForUpdate(entity);
-        }
-
+    protected void onBeforeSaveEntity(BatchVO source, Batch target, boolean isNew) {
         // Copy some fields from the trip
         copySomeFieldsFromOperation(source);
 
-        // VO -> Entity
-        batchVOToEntity(source, entity, true, false);
-
-        // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-        entity.setUpdateDate(newUpdateDate);
-
-        // Save entityName
-        if (isNew) {
-            entityManager.persist(entity);
-            source.setId(entity.getId());
-        } else {
-            entityManager.merge(entity);
-        }
-
-        // Update date
-        source.setUpdateDate(newUpdateDate);
-
-        entityManager.flush();
-        entityManager.clear();
-
-        return source;
-    }
-
-    @Override
-    public void delete(int id) {
-        if (trace) logger.trace(String.format("Deleting batch {id: %s}...", id));
-        delete(Batch.class, id);
+        super.onBeforeSaveEntity(source, target, isNew);
     }
 
     @Override
@@ -249,23 +200,39 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             return null;
         }
 
-        // Assume there is only 1 catch batch
-        if (sources.stream().filter(batch -> batch.getParentId() == null).count() > 1) {
-            logger.warn("Multiple catch batches in this source list, will return the first one.");
-        }
+        List<BatchVO> roots = sources.stream()
+                // Find the root catch
+                .filter(batch -> batch.getParentId() == null)
+                .collect(Collectors.toList());
 
-        BatchVO catchBatch = sources.stream().filter(batch -> batch.getParentId() == null).findFirst().orElse(null);
-        if (catchBatch == null) {
+        if (CollectionUtils.isEmpty(roots)) {
+            logger.warn("No catch batches found in this source list. Will return null.");
             return null;
         }
 
-        catchBatch.setChildren(findChildren(catchBatch.getId(), sources));
+        // Assume there is only 1 catch batch
+        if (CollectionUtils.size(roots) > 1) {
+            logger.warn("Multiple catch batches in this source list, will return the first one.");
+        }
 
-        return catchBatch;
+        // Get root
+        BatchVO rootBatch = roots.get(0);
+
+        // Fill children
+        fillRecursiveChildren(rootBatch, sources);
+
+        return rootBatch;
     }
 
-
     /* -- protected methods -- */
+
+    protected Specification<Batch> toSpecification(BatchFilterVO filter, BatchFetchOptions fetchOptions) {
+        // default specification
+        return super.toSpecification(filter, fetchOptions)
+                .and(hasOperationId(filter.getOperationId()))
+                .and(addJoinFetch(fetchOptions))
+                ;
+    }
 
     protected boolean saveAllByParent(IWithBatchesEntity<Integer, Batch> parent, List<BatchVO> sources) {
 
@@ -310,7 +277,9 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
 
                 // If skipped, all children are also skipped
                 if (skip) {
-                    getAllChildren(source).forEach(b -> sourcesIdsToSkip.add(b.getId()));
+                    streamRecursiveChildren(source)
+                            .map(BatchVO::getId)
+                            .forEach(sourcesIdsToSkip::add);
                 }
             }
             if (skip && trace) {
@@ -358,8 +327,8 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
                                     boolean enableBatchHashOptimization) {
         Preconditions.checkNotNull(source);
 
-        EntityManager entityManager = getEntityManager();
         if (entity == null && source.getId() != null) {
+            // do NOT use get, to allow batch tree to be saved, event if using bad ID
             entity = find(Batch.class, source.getId());
         }
         boolean isNew = (entity == null);
@@ -367,48 +336,37 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             entity = new Batch();
         }
 
-        if (!isNew && checkUpdateDate) {
+        if (!isNew) {
             // Check update date
-            Daos.checkUpdateDateForUpdate(source, entity);
+            if (checkUpdateDate) Daos.checkUpdateDateForUpdate(source, entity);
 
-            // Lock entityName
-            //lockForUpdate(entity);
+            // Always disabled, for optimized save
+            // if (isLockForUpdate()) lockForUpdate(entity);
+
         }
 
-        // Copy some fields from the trip
-        copySomeFieldsFromOperation(source);
+        onBeforeSaveEntity(source, entity, isNew);
 
         // VO -> Entity
-        boolean skipSave = batchVOToEntity(source, entity, true, !isNew && enableBatchHashOptimization);
+        boolean skipSave = toEntity(source, entity, true, !isNew && enableBatchHashOptimization);
 
         // Stop here (without change on the update_date)
         if (skipSave) return source;
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);
-        source.setUpdateDate(newUpdateDate);
 
         // Save entity
-        if (isNew) {
-            // Add new batch
-            entityManager.persist(entity);
-            source.setId(entity.getId());
-            if (trace) logger.trace(String.format("Adding batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
-        } else {
-            // Update existing batch
-            if (trace) logger.trace(String.format("Updating batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
-            entityManager.merge(entity);
-        }
+        Batch savedEntity = save(entity);
+
+        onAfterSaveEntity(source, savedEntity, isNew);
 
         return source;
     }
 
-    protected BatchVO toBatchVO(Batch source, BatchFetchOptions fetchOptions) {
 
-        if (source == null) return null;
-
-        BatchVO target = new BatchVO();
-
+    @Override
+    public void toVO(Batch source,  BatchVO target, BatchFetchOptions fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
 
         // Taxon group
@@ -446,13 +404,11 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
 
         // Measurement values (as map)
         if (fetchOptions.isWithMeasurementValues() && source.getId() != null) {
-            Map<Integer, String> map = Maps.newHashMap();
-            map.putAll(measurementDao.getBatchSortingMeasurementsMap(source.getId()));
-            map.putAll(measurementDao.getBatchQuantificationMeasurementsMap(source.getId()));
-            target.setMeasurementValues(map);
+            target.setMeasurementValues(Beans.mergeMap(
+                    measurementDao.toMeasurementsMap(source.getSortingMeasurements()),
+                    measurementDao.toMeasurementsMap(source.getQuantificationMeasurements())
+            ));
         }
-
-        return target;
     }
 
     protected void copySomeFieldsFromOperation(BatchVO target) {
@@ -462,24 +418,18 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
         target.setRecorderDepartment(operation.getRecorderDepartment());
     }
 
-    protected List<BatchVO> toBatchVOs(List<Batch> source, BatchFetchOptions fetchOptions) {
-        return this.toBatchVOs(source.stream(), fetchOptions);
-    }
-
-    protected List<BatchVO> toBatchVOs(Stream<Batch> source, BatchFetchOptions fetchOptions) {
-        return source.map(s -> this.toBatchVO(s, fetchOptions))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-    }
-
     /**
      * @param source
      * @param target
      * @param copyIfNull
      * @return true if can skip batch update (only if hash optimization have been enabled)
      */
-    protected boolean batchVOToEntity(BatchVO source, Batch target, boolean copyIfNull, boolean allowSkipSameHash) {
+    @Override
+    public void toEntity(BatchVO source, Batch target, boolean copyIfNull) {
+        toEntity(source, target, copyIfNull, target.getId() != null && enableSaveUsingHash);
+    }
 
+    protected boolean toEntity(BatchVO source, Batch target, boolean copyIfNull, boolean allowSkipSameHash) {
         // Get some parent ids
         Integer parentId = (source.getParent() != null ? source.getParent().getId() : source.getParentId());
         Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
@@ -521,9 +471,10 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             return true; // Skip
         }
 
-        Beans.copyProperties(source, target);
+        // Copy properties, and data stuff (program, qualityFlag, recorder, ...)
+        super.toEntity(source, target, copyIfNull);
 
-        // Hash
+        // Set the new hash
         target.setHash(newHash);
 
         // Operation
@@ -563,21 +514,23 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             }
         }
 
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            } else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
+        // Reference taxon (from taxon name)
+        if (copyIfNull || source.getTaxonName() != null) {
+            if (source.getTaxonName() == null || source.getTaxonName().getId() == null) {
+                target.setReferenceTaxon(null);
             }
-        }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
-            } else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
+            else {
+                if (source.getTaxonName().getReferenceTaxonId() != null) {
+                    target.setReferenceTaxon(load(ReferenceTaxon.class, source.getTaxonName().getReferenceTaxonId()));
+                } else {
+                    // Get the taxon name, then set reference taxon
+                    Integer referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(source.getTaxonName().getId());
+                    if (referenceTaxonId != null) {
+                        target.setReferenceTaxon(load(ReferenceTaxon.class, referenceTaxonId));
+                    } else {
+                        throw new DataIntegrityViolationException(String.format("Invalid batch: unknown taxon name {id:%s}", source.getTaxonName().getId()));
+                    }
+                }
             }
         }
 
@@ -600,19 +553,25 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
         source.setChildren(null);
     }
 
-    protected Stream<BatchVO> getAllChildren(BatchVO source) {
+    protected Stream<BatchVO> streamRecursiveChildren(BatchVO source) {
         if (CollectionUtils.isEmpty(source.getChildren())) {
             return Stream.empty();
         }
-        return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), getAllChildren(c)));
+        return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), streamRecursiveChildren(c)));
     }
 
-    protected List<BatchVO> findChildren(int parentId, List<BatchVO> sources) {
-        if (CollectionUtils.isEmpty(sources))
-            return null;
 
-        List<BatchVO> children = sources.stream().filter(batch -> Objects.equals(batch.getParentId(), parentId)).collect(Collectors.toList());
-        children.forEach(batch -> batch.setChildren(findChildren(batch.getId(), sources)));
+    protected void fillRecursiveChildren(BatchVO source, List<BatchVO> sources) {
+        source.setChildren(fillRecursiveChildren(source.getId(), sources));
+    }
+
+    protected List<BatchVO> fillRecursiveChildren(int parentId, List<BatchVO> sources) {
+        if (CollectionUtils.isEmpty(sources)) return null;
+
+        List<BatchVO> children = sources.stream()
+                .filter(batch -> Objects.equals(batch.getParentId(), parentId))
+                .collect(Collectors.toList());
+        children.forEach(batch -> batch.setChildren(fillRecursiveChildren(batch.getId(), sources)));
         return children;
     }
 

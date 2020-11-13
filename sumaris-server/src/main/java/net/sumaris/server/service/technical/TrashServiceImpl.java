@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -181,12 +182,12 @@ public class TrashServiceImpl implements TrashService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
-        boolean enable = event.getConfiguration().enableEntityTrash();
-        boolean changed = enable != this.enable;
         this.trashDirectory = event.getConfiguration().getTrashDirectory();
+        boolean enable = event.getConfiguration().enableEntityTrash() && this.trashDirectory != null;
+        boolean changed = enable != this.enable;
         this.enable = enable;
 
-        if (this.enable) {
+        if (enable) {
             try {
                 FileUtils.forceMkdir(this.trashDirectory);
                 checkTrashDirectory();
@@ -194,12 +195,12 @@ public class TrashServiceImpl implements TrashService {
             } catch (Exception e) {
                 log.error("Cannot enable trash service: " + e.getMessage());
                 this.enable = false;
+                event.getConfiguration().setEnableTrash(false);
             }
         }
         else if (changed) {
             log.info("Stopped trash service");
         }
-
     }
 
     @JmsListener(destination = "deleteTrip", containerFactory = "jmsListenerContainerFactory")
@@ -255,10 +256,15 @@ public class TrashServiceImpl implements TrashService {
             throw new SumarisTechnicalException("Invalid trash directory");
         }
         checkCanRead(trashDirectory);
+        checkCanWrite(trashDirectory);
     }
 
     protected void checkCanRead(File directory) {
-        if (!directory.canRead()) throw new SumarisTechnicalException("Cannot read directory: " + directory);
+        if (!directory.canRead()) throw new SumarisTechnicalException("Cannot read from directory: " + directory);
+    }
+
+    protected void checkCanWrite(File directory) {
+        if (!directory.canWrite()) throw new SumarisTechnicalException("Cannot write into directory: " + directory);
     }
 
     protected String getFilePrefix(IValueObject data) {

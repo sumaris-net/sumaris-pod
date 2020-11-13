@@ -244,7 +244,11 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
         }
     }
 
-    protected Specification<E> toSpecification(F filter) {
+    protected final Specification<E> toSpecification(F filter) {
+        return toSpecification(filter, null);
+    }
+
+    protected Specification<E> toSpecification(F filter, O fetchOptions) {
         // default specification
         return BindableSpecification
             .where(inStatusIds(filter))

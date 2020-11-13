@@ -25,7 +25,7 @@ package net.sumaris.core.service.data;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.model.TreeNodeEntities;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.vo.data.BatchVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.DenormalizedBatchVO;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Assert;

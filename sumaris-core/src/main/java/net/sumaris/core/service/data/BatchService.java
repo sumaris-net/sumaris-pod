@@ -23,8 +23,8 @@ package net.sumaris.core.service.data;
  */
 
 
-import net.sumaris.core.vo.data.BatchFetchOptions;
-import net.sumaris.core.vo.data.BatchVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +38,11 @@ import java.util.List;
 public interface BatchService {
 
 
+	/**
+	 * Return the flat list of all batches (without parent/children filled, by only the parentId)
+	 * @param operationId
+	 * @return
+	 */
 	@Transactional(readOnly = true)
 	List<BatchVO> getAllByOperationId(int operationId);
 

@@ -25,12 +25,18 @@ package net.sumaris.core.service.data;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
@@ -39,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class TripServiceWriteTest extends AbstractServiceTest{
 
@@ -53,6 +60,77 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
     @Autowired
     private PmfmService pmfmService;
+
+    @Test
+    public void getWithChildren() {
+
+        Integer id = 831; // fixtures.getTripId(0);
+        TripVO trip = service.get(id, DataFetchOptions.FULL_GRAPH);
+        Assert.assertNotNull(trip);
+
+        // PhysicalGear
+        {
+            Assert.assertTrue(CollectionUtils.isNotEmpty(trip.getGears()));
+
+            // Gear Measurement
+            Assert.assertTrue(trip.getGears()
+                    .stream()
+                    .map(PhysicalGearVO::getMeasurementValues)
+                    .anyMatch(MapUtils::isNotEmpty));
+
+        }
+
+
+        // Check operations
+        {
+            Assert.assertTrue(CollectionUtils.isNotEmpty(trip.getOperations()));
+
+
+           /* // Check samples
+            {
+                Assert.assertTrue(trip.getOperations()
+                        .stream().map(OperationVO::getSamples).anyMatch(CollectionUtils::isNotEmpty));
+
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getSamples)
+                        .flatMap(Beans::getStream)
+                        .map(SampleVO::getMeasurementValues)
+                        .anyMatch(MapUtils::isNotEmpty));
+
+                // Check batches parentId
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getSamples)
+                        .flatMap(Beans::getStream)
+                        .map(SampleVO::getParentId)
+                        .anyMatch(Objects::nonNull));
+            }*/
+
+            // Check batches
+            {
+                Assert.assertTrue(trip.getOperations()
+                        .stream().map(OperationVO::getBatches)
+                        .anyMatch(CollectionUtils::isNotEmpty));
+
+                // Check batches measurements
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getBatches)
+                        .flatMap(Beans::getStream)
+                        .map(BatchVO::getMeasurementValues)
+                        .anyMatch(MapUtils::isNotEmpty));
+
+                // Check batches parentId
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getBatches)
+                        .flatMap(Beans::getStream)
+                        .map(BatchVO::getParentId)
+                        .anyMatch(Objects::nonNull));
+            }
+        }
+    }
 
     @Test
     public void save() {
@@ -93,7 +171,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(savedVO.getId());
 
         // Reload and check
-        List<OperationVO> savedOperations = operationService.findAllByTripId(savedVO.getId(), 0, 1000, null, null);
+        List<OperationVO> savedOperations = operationService.getAllByTripId(savedVO.getId(), 0, 1000, null, null);
         Assert.assertNotNull(savedOperations);
         Assert.assertEquals(1, savedOperations.size());
 

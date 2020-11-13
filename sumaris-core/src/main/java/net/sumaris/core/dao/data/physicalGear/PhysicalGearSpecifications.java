@@ -38,7 +38,6 @@ import java.util.List;
 public interface PhysicalGearSpecifications extends RootDataSpecifications<PhysicalGear> {
 
     String VESSEL_ID_PARAM = "vesselId";
-    String TRIP_ID_PARAM = "tripId";
 
     default Specification<PhysicalGear> hasVesselId(Integer vesselId) {
         BindableSpecification<PhysicalGear> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -54,25 +53,25 @@ public interface PhysicalGearSpecifications extends RootDataSpecifications<Physi
 
     default Specification<PhysicalGear> hasTripId(Integer tripId) {
         BindableSpecification<PhysicalGear> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PhysicalGearVO.Fields.TRIP_ID);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(PhysicalGear.Fields.TRIP).get(IEntity.Fields.ID), param)
             );
         });
-        specification.addBind(TRIP_ID_PARAM, tripId);
+        specification.addBind(PhysicalGearVO.Fields.TRIP_ID, tripId);
         return specification;
     }
 
     default Specification<PhysicalGear> hasProgramLabel(String programLabel) {
         BindableSpecification<PhysicalGear> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROGRAM_LABEL_PARAM);
+            ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PhysicalGearVO.Fields.PROGRAM);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.PROGRAM).get(Program.Fields.LABEL), param)
             );
         });
-        specification.addBind(PROGRAM_LABEL_PARAM, programLabel);
+        specification.addBind(PhysicalGearVO.Fields.PROGRAM, programLabel);
         return specification;
     }
 

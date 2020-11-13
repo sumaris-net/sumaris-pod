@@ -24,16 +24,20 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.AbstractDaoTest;
-import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.data.BatchVO;
-import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
+import net.sumaris.core.vo.data.batch.BatchFilterVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.assertj.core.util.Lists;
 import org.junit.*;
 import org.slf4j.Logger;
@@ -41,12 +45,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Objects;
 
-public class BatchDaoWriteTest extends AbstractDaoTest {
+public class BatchRepositoryWriteTest extends AbstractDaoTest {
 
     /** Logger. */
     private static final Logger log =
-            LoggerFactory.getLogger(BatchDaoWriteTest.class);
+            LoggerFactory.getLogger(BatchRepositoryWriteTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -55,7 +60,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
     private OperationRepository operationRepository;
 
     @Autowired
-    private BatchDao dao;
+    private BatchRepository repository;
 
     private OperationVO parentOperation;
 
@@ -64,8 +69,30 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
         super.setUp();
         setCommitOnTearDown(false); // this is need because of delete test
 
-        parentOperation = operationRepository.get(1);
+        parentOperation = operationRepository.get(181617);
         Assume.assumeNotNull(parentOperation);
+    }
+
+    @Test
+    public void findAllWithMeasurements() {
+        List<BatchVO> batches = repository.findAll(BatchFilterVO.builder()
+                .operationId(parentOperation.getId()).build(),
+                BatchFetchOptions.builder()
+                        .withChildrenEntities(false)
+                        .withMeasurementValues(true)
+                        .build());
+
+        Assert.assertNotNull(batches);
+        Assert.assertTrue(batches.size() > 1);
+
+        batches.forEach(Assert::assertNotNull);
+
+        long batchWithMeasurementValuesCount = batches.stream()
+                .map(BatchVO::getMeasurementValues)
+                .filter(Objects::nonNull)
+                .filter(MapUtils::isNotEmpty)
+                .count();
+        Assert.assertTrue(batchWithMeasurementValuesCount > 0);
     }
 
     @Test
@@ -98,15 +125,15 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
 
         batch.setQuantificationMeasurements(ImmutableList.of(weightMeasurement));
 
-        BatchVO savedVO = dao.save(batch);
+        BatchVO savedVO = repository.save(batch);
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
     }
 
     @Test
-    public void delete() {
+    public void deleteById() {
         Integer id = fixtures.getBatchId(0);
-        dao.delete(id);
+        repository.deleteById(id);
     }
 
     @Test
@@ -166,7 +193,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
         }
 
         // Execute saveByOperationId()
-        List<BatchVO> savedResult = dao.saveByOperationId(parentOperation.getId(), batches);
+        List<BatchVO> savedResult = repository.saveByOperationId(parentOperation.getId(), batches);
         Assert.assertNotNull(savedResult);
         Assert.assertEquals(2, savedResult.size());
 

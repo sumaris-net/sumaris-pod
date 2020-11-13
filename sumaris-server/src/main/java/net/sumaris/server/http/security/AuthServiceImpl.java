@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.Attributes2GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.SimpleAttributes2GrantedAuthoritiesMapper;
@@ -50,6 +51,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -92,23 +95,13 @@ public class AuthServiceImpl implements AuthService {
         this.debug = log.isDebugEnabled();
     }
 
-    @PostConstruct
-    public void registerListeners() {
-        // Listen person update, to update the cache
-        personRepository.addListener(new PersonSpecifications.Listener() {
-            @Override
-            public void onSave(PersonVO person) {
-                if (!StringUtils.isNotBlank(person.getPubkey())) return;
-                List<String> tokens = accountService.getAllTokensByPubkey(person.getPubkey());
-                if (CollectionUtils.isEmpty(tokens)) return;
-                tokens.forEach(checkedTokens::remove);
-            }
+    @JmsListener(destination = "updatePerson", containerFactory = "jmsListenerContainerFactory")
+    protected void onPersonSaved(PersonVO person) throws IOException {
 
-            @Override
-            public void onDelete(int id) {
-                // Will be remove when cache expired
-            }
-        });
+        if (!StringUtils.isNotBlank(person.getPubkey())) return;
+        List<String> tokens = accountService.getAllTokensByPubkey(person.getPubkey());
+        if (CollectionUtils.isEmpty(tokens)) return;
+        tokens.forEach(checkedTokens::remove);
     }
 
     @Override
@@ -136,24 +129,27 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private AuthUser authenticate(AuthDataVO authData) {
+        String pubkey = authData != null ? authData.getPubkey() : null;
+
+        // Check pubkey is valid
+        if (!CryptoUtils.isValidPubkey(pubkey)) {
+            if (debug) log.debug("Authentication failed. Bad pubkey format: " + pubkey);
+            return null;
+        }
 
         // Check if pubkey can authenticate
         try {
-            if (authData.getPubkey().length() < 6) {
-                if (debug) log.debug("Authentication failed. Bad pubkey format: " + authData.getPubkey());
-                return null;
-            }
-            if (!canAuth(authData.getPubkey())) {
-                if (debug) log.debug("Authentication failed. User is not allowed to authenticate: " + authData.getPubkey());
+            if (!canAuth(pubkey)) {
+                if (debug) log.debug("Authentication failed. User is not allowed to authenticate: " + pubkey);
                 return null;
             }
         } catch (DataNotFoundException | DataRetrievalFailureException e) {
-            log.debug("Authentication failed. User not found: " + authData.getPubkey());
+            log.debug("Authentication failed. User not found: " + pubkey);
             return null;
         }
 
         // Token exists on database: check as new challenge response
-        boolean isStoredToken = accountService.isStoredToken(authData.asToken(), authData.getPubkey());
+        boolean isStoredToken = accountService.isStoredToken(authData.asToken(), pubkey);
         if (!isStoredToken) {
             log.debug("Unknown token. Check if response to new challenge...");
 
@@ -166,7 +162,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Check signature
-        if (!cryptoService.verify(authData.getChallenge(), authData.getSignature(), authData.getPubkey())) {
+        if (!cryptoService.verify(authData.getChallenge(), authData.getSignature(), pubkey)) {
             if (debug) log.debug("Authentication failed. Bad challenge signature in token: " + authData.toString());
             return null;
         }
@@ -177,7 +173,7 @@ public class AuthServiceImpl implements AuthService {
         challenges.remove(authData.getChallenge());
 
         // Get authorities
-        List<GrantedAuthority> authorities = getAuthorities(authData.getPubkey());
+        List<GrantedAuthority> authorities = getAuthorities(pubkey);
 
         // Create authenticated user
         AuthUser authUser = new AuthUser(authData, authorities);
@@ -189,14 +185,14 @@ public class AuthServiceImpl implements AuthService {
         if (!isStoredToken) {
             // Save this new token to database
             try {
-                accountService.addToken(token, authData.getPubkey());
+                accountService.addToken(token, pubkey);
             } catch (RuntimeException e) {
                 // Log then continue
                 log.error("Could not save auth token.", e);
             }
         }
 
-        if (debug) log.debug(String.format("Authentication succeed for user with pubkey {%s}", authData.getPubkey().substring(0, 6)));
+        if (debug) log.debug(String.format("Authentication succeed for user with pubkey {%s}", pubkey.substring(0, 6)));
 
         return authUser;
     }
@@ -206,7 +202,7 @@ public class AuthServiceImpl implements AuthService {
         return getAuthPrincipal()
                 .map(AuthUser::getPubkey)
                 .filter(Objects::nonNull)
-                .map(personRepository::findByPubkey);
+                .flatMap(personRepository::findByPubkey);
     }
 
     @Override
@@ -259,24 +255,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private boolean canAuth(final String pubkey) throws DataNotFoundException {
-        PersonVO person = personRepository.findByPubkey(pubkey);
-        if (person == null) {
-            throw new DataRetrievalFailureException(I18n.t("sumaris.error.account.notFound"));
-        }
+        PersonVO person = personRepository.findByPubkey(pubkey)
+                .orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.account.notFound")));
 
         // Cannot auth if user has been deleted or is disable
         StatusEnum status = StatusEnum.valueOf(person.getStatusId());
         if (StatusEnum.DISABLE.equals(status) || StatusEnum.DELETED.equals(status)) {
             return false;
         }
-
-        // TODO: check if necessary ?
-        /*
-        List<Integer> userProfileIds = accountService.getProfileIdsByPubkey(pubkey);
-        boolean result = CollectionUtils.containsAny(userProfileIds, AUTH_ACCEPTED_PROFILES);
-        if (debug) log.debug(String.format("User with pubkey {%s} %s authenticate, because he has this profiles: %s", pubkey.substring(0,6), (result ? "can" : "cannot"), userProfileIds));
-        return result;
-        */
 
         return true;
     }

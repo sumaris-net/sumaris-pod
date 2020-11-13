@@ -57,8 +57,8 @@ public class LocationRepositoryImpl
     }
 
     @Override
-    protected Specification<Location> toSpecification(ReferentialFilterVO filter) {
-        return super.toSpecification(filter)
+    protected Specification<Location> toSpecification(ReferentialFilterVO filter, ReferentialFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(inLevelIds(Location.Fields.LOCATION_LEVEL, filter));
     }
 

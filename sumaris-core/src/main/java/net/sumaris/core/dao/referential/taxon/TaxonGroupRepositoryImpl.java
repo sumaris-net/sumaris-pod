@@ -318,13 +318,13 @@ public class TaxonGroupRepositoryImpl
     }
 
     @Override
-    protected Specification<TaxonGroup> toSpecification(IReferentialFilter filter) {
+    protected Specification<TaxonGroup> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         Preconditions.checkNotNull(filter);
         Integer[] gearIds = filter.getLevelId() != null
             ? new Integer[]{filter.getLevelId()}
             : filter.getLevelIds();
 
-        return super.toSpecification(filter)
+        return super.toSpecification(filter, fetchOptions)
             .and(hasType(TaxonGroupTypeEnum.METIER_SPECIES.getId()))
             .and(inGearIds(gearIds));
 

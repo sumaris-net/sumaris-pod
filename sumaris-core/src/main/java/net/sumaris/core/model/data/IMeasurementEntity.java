@@ -36,6 +36,7 @@ public interface IMeasurementEntity extends IDataEntity<Integer> {
         String ALPHANUMERICAL_VALUE = "alphanumericalValue";
         String DIGIT_COUNT = "digitCount";
         String PRECISION_VALUE = "precisionValue";
+        String QUALITATIVE_VALUE = "qualitativeValue";
     }
 
     Double getNumericalValue();

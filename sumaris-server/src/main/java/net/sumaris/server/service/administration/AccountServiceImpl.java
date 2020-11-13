@@ -41,6 +41,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.vo.administration.user.AccountVO;
@@ -81,6 +82,9 @@ public class AccountServiceImpl implements AccountService {
 
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
+
+    @Autowired
+    private PersonService personService;
 
     @Autowired
     private PersonRepository personRepository;
@@ -166,15 +170,12 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountVO getByPubkey(String pubkey) {
 
-        PersonVO person = personRepository.findByPubkey(pubkey);
-        if (person == null) {
-            throw new DataRetrievalFailureException(I18n.t("sumaris.error.account.notFound"));
-        }
+        PersonVO person = personService.getByPubkey(pubkey);
 
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
 
-        UserSettingsVO settings = userSettingsRepository.getByIssuer(account.getPubkey());
+        UserSettingsVO settings = userSettingsRepository.findByIssuer(account.getPubkey()).orElse(null);
         account.setSettings(settings);
 
         return account;
@@ -248,10 +249,7 @@ public class AccountServiceImpl implements AccountService {
         Preconditions.checkNotNull(account.getId());
 
         // Get existing account
-        PersonVO existingPerson = personRepository.findById(account.getId().intValue());
-        if (existingPerson == null) {
-            throw new DataNotFoundException(I18n.t("sumaris.error.account.notFound"));
-        }
+        PersonVO existingPerson = personService.get(account.getId());
 
         // Check same email
         Preconditions.checkArgument(Objects.equals(existingPerson.getEmail(), account.getEmail()), "Email could not be changed by the user, but only by an administrator.");
@@ -260,7 +258,7 @@ public class AccountServiceImpl implements AccountService {
         account.setProfiles(existingPerson.getProfiles());
 
         // Do the save
-        account = (AccountVO) personRepository.save(account);
+        account = (AccountVO) personService.save(account);
 
         // Save settings
         UserSettingsVO settings = account.getSettings();
@@ -285,7 +283,7 @@ public class AccountServiceImpl implements AccountService {
         // Mark account as temporary
         PersonFilterVO filter = new PersonFilterVO();
         filter.setEmail(email.trim());
-        List<PersonVO> matches = personRepository.findByFilter(filter, 0, 2, null, null);
+        List<PersonVO> matches = personService.findByFilter(filter, 0, 2, null, null);
 
         PersonVO account = null;
         boolean valid = CollectionUtils.size(matches) == 1 && validSignatureHash.equals(signatureHash);
@@ -299,7 +297,7 @@ public class AccountServiceImpl implements AccountService {
                 account.setStatusId(config.getStatusIdValid());
 
                 // Save account
-                personRepository.save(account);
+                personService.save(account);
             }
         }
 
@@ -324,7 +322,7 @@ public class AccountServiceImpl implements AccountService {
         // Mark account as temporary
         PersonFilterVO filter = new PersonFilterVO();
         filter.setEmail(email.trim());
-        List<PersonVO> matches = personRepository.findByFilter(filter, 0, 2, null, null);
+        List<PersonVO> matches = personService.findByFilter(filter, 0, 2, null, null);
 
         PersonVO account;
         boolean valid = CollectionUtils.size(matches) == 1;
@@ -348,19 +346,18 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<Integer> getProfileIdsByPubkey(String pubkey) {
-        PersonVO person = personRepository.findByPubkey(pubkey);
-        if (person == null) {
-            throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
-        }
+        PersonVO person = personService.getByPubkey(pubkey);
         return Beans.getStream(person.getProfiles())
-                .map(UserProfileEnum::valueOf)
-                .map(up -> up.id)
-                .collect(Collectors.toList());
+                    .map(UserProfileEnum::valueOf)
+                    .map(UserProfileEnum::getId)
+                    .collect(Collectors.toList());
     }
 
     @Override
     public List<String> getAllTokensByPubkey(String pubkey) {
-        return userTokenRepository.findTokenByPubkey(pubkey).stream().map(UserTokenRepository.TokenOnly::getToken).collect(Collectors.toList());
+        return userTokenRepository.findTokenByPubkey(pubkey).stream()
+                .map(UserTokenRepository.TokenOnly::getToken)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -380,7 +377,7 @@ public class AccountServiceImpl implements AccountService {
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
 
-        UserSettingsVO settings = userSettingsRepository.getByIssuer(account.getPubkey());
+        UserSettingsVO settings = userSettingsRepository.findByIssuer(account.getPubkey()).orElse(null);
         account.setSettings(settings);
 
         return account;
