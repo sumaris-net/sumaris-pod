@@ -36,7 +36,8 @@
               "apollo-link-queue",
               "apollo-link-logger",
               "zen-observable",
-              "subscriptions-transport-ws"
+              "subscriptions-transport-ws",
+              "chart.js"
             ],
             "assets": [
               {

@@ -28,6 +28,7 @@ import {SortDirection} from "@angular/material/sort";
 
 export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];
+
 }
 
 export type TaxonNameRefFilter = Partial<ReferentialRefFilter> & {
@@ -95,7 +96,7 @@ export class ReferentialRefService extends BaseEntityService
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           filter?: ReferentialFilter,
+           filter?: ReferentialRefFilter,
            opts?: {
              [key: string]: any;
              fetchPolicy?: FetchPolicy;
@@ -115,7 +116,7 @@ export class ReferentialRefService extends BaseEntityService
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
+      filter: ReferentialRefFilter.asPodObject(filter)
     };
 
     let now = this._debug && Date.now();
@@ -194,7 +195,7 @@ export class ReferentialRefService extends BaseEntityService
         || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
         || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
+      filter: ReferentialRefFilter.asPodObject(filter)
     };
 
 

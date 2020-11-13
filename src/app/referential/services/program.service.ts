@@ -290,22 +290,26 @@ const LoadAllQuery: any = gql`
 `;
 
 const LoadAllWithTotalQuery: any = gql`
-  query ProgramsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
+  query ProgramsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String,
+        $filter: ProgramFilterVOInput
+  ){
     programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightProgramFragment
     }
-    referentialsCount(entityName: "Program")
+    programsCount(filter: $filter)
   }
   ${ProgramFragments.lightProgram}
 `;
 
 
 const LoadAllRefWithTotalQuery: any = gql`
-  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
+  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String,
+        $filter: ProgramFilterVOInput
+  ){
     programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ProgramRefFragment
     }
-    referentialsCount(entityName: "Program")
+    programsCount(filter: $filter)
   }
   ${ProgramFragments.programRef}
   ${ProgramFragments.strategyRef}
@@ -391,7 +395,7 @@ export class ProgramService extends BaseEntityService
     if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
 
     const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
-    return this.graphql.watchQuery<{ programs: any[], referentialsCount?: number }>({
+    return this.graphql.watchQuery<{ programs: any[], programsCount?: number }>({
       query,
       variables,
       error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
@@ -403,7 +407,7 @@ export class ProgramService extends BaseEntityService
             if (this._debug) console.debug(`[program-service] Programs loaded in ${Date.now() - now}ms`, data);
             return {
               data: data,
-              total: res.referentialsCount
+              total: res.programsCount
             };
           }
         )
@@ -442,7 +446,7 @@ export class ProgramService extends BaseEntityService
     const now = debug && Date.now();
     if (debug) console.debug("[program-service] Loading programs... using options:", variables);
 
-    let loadResult: { programs: any[], referentialsCount?: number };
+    let loadResult: { programs: any[], programsCount?: number };
 
     // Offline mode
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
@@ -450,20 +454,22 @@ export class ProgramService extends BaseEntityService
       loadResult = await this.entities.loadAll('ProgramVO',
         {
           ...variables,
-          filter: EntityUtils.searchTextFilter('label', dataFilter.searchText)
+          filter: ProgramFilter.searchFilter(dataFilter)
         }
       ).then(res => {
         return {
           programs: res && res.data,
-          referentialsCount: res && res.total
+          programsCount: res && res.total
         };
       });
     }
 
     // Online mode
     else {
-      const query = opts && opts.query || opts && opts.withTotal && LoadAllWithTotalQuery || LoadAllQuery;
-      loadResult = await this.graphql.query<{ programs: any[], referentialsCount?: number }>({
+      const query = opts && opts.query
+        || opts && opts.withTotal && LoadAllWithTotalQuery
+        || LoadAllQuery;
+      loadResult = await this.graphql.query<{ programs: any[], programsCount?: number }>({
         query,
         variables,
         error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
@@ -477,7 +483,7 @@ export class ProgramService extends BaseEntityService
     if (debug) console.debug(`[program-service] Programs loaded in ${Date.now() - now}ms`);
     return {
       data: data,
-      total: loadResult.referentialsCount
+      total: loadResult.programsCount
     };
 
   }
@@ -913,6 +919,7 @@ export class ProgramService extends BaseEntityService
                                     acquisitionLevels?: string[];
                                   }) {
 
+    // TODO: BLA - idea => why not use acquisitionLevels to filter programs ?
     const acquisitionLevels: string[] = opts && opts.acquisitionLevels || Object.keys(AcquisitionLevelCodes).map(key => AcquisitionLevelCodes[key]);
 
     const stepCount = 2;
@@ -934,7 +941,8 @@ export class ProgramService extends BaseEntityService
       const res = await fetchAllPagesWithProgress((offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', loadFilter, {
             debug: false,
-            query: LoadAllRefWithTotalQuery, // Need fragment ProgramRefFragment
+            query: LoadAllRefWithTotalQuery,
+            withTotal: true,
             fetchPolicy: "network-only",
             toEntity: false
           }),

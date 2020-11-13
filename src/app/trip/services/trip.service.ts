@@ -1170,7 +1170,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
         const target = Trip.fromObject(json);
 
         // Save
-        await this.save(target, {isLandedTrip: false, withOperation: true});
+        await this.save(target, {withLanding: false, withOperation: true});
 
         await this.entities.deleteFromTrash(source, {entityName: Trip.TYPENAME});
 
