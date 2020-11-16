@@ -21,6 +21,7 @@ export class AuthForm implements OnInit {
   form: FormGroup;
   error: string = null;
   canWorkOffline = false;
+  showPwd = false;
 
   public get value(): AuthData {
     return this.form.value;
