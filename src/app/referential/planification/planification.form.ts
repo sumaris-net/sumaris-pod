@@ -33,15 +33,16 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
 
   private eotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-    {id: '1', label: 'P1', name: 'Projet 1', statusId:1,entityName:"Eotp"},
-    {id: '2', label: 'P2', name: 'Projet 2', statusId:1,entityName:"Eotp"},
-    {id: '3', label: 'P3', name: 'Projet 3',statusId:1,entityName:"Eotp"},
+    {id: '1', label: 'P101-0001-01-DF', name: 'GRAND PORT MARITIME DE GUADELOUPE - FCT', statusId:1,entityName:"Eotp"},
+    {id: '2', label: 'P101-0002-01-RE', name: 'SOCLE HALIEUTIQUE - RE', statusId:1,entityName:"Eotp"},
+    {id: '3', label: 'P101-0003-01-RE', name: 'DCF- Recettes',statusId:1,entityName:"Eotp"},
+    {id: '4', label: 'P101-0005-01-DF', name: 'CONV TRIPARTITE AAMP-DPMA-IFR-FCT',statusId:1,entityName:"Eotp"},
+    {id: '5', label: 'P101-0006-01-DF', name: 'APP EMR DGEC - état des lieux - DF',statusId:1,entityName:"Eotp"}
   ];
 
   private FiltredEotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-    {id: '4', label: 'P4', name: 'Projet 4', statusId:1,entityName:"Eotp"},
-    {id: '5', label: 'P5', name: 'Projet 5', statusId:1,entityName:"Eotp"},
-    {id: '6', label: 'P6', name: 'Projet 6',statusId:1,entityName:"Eotp"},
+    {id: '3', label: 'P101-0003-01-RE', name: 'DCF- Recettes',statusId:1,entityName:"Eotp"},
+    {id: '5', label: 'P101-0006-01-DF', name: 'APP EMR DGEC - état des lieux - DF',statusId:1,entityName:"Eotp"}
   ];
 
   mobile: boolean;
@@ -225,7 +226,8 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
     protected async loadDepartmentsMethod(): Promise<ReferentialRef[]> {
       const res = await this.referentialRefService.loadAll(0, 200, null,null,
         {
-          entityName: "Department"
+          entityName: "Department",
+          searchText:"PDG"
         });
 
         console.log("data departement :"+res.data);
@@ -234,9 +236,10 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
      //TODO : Load filtred department Service : another service to implement
      protected async loadFiltredDepartmentsMethod(): Promise<ReferentialRef[]> {
-      const res = await this.referentialRefService.loadAll(0, 200, null,null,
+      const res = await this.referentialRefService.loadAll(0, 5, null,null,
         {
-          entityName: "Department"
+          entityName: "Department",
+          searchText:"PDG"
         });
         return res.data;
     }
@@ -269,8 +272,10 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
     const res = await this.referentialRefService.loadAll(0, 200, null,null,
       {
         entityName: "Location",
+        statusId : 0,
+        levelId : 111
         //statusId : 1,
-        levelId : 5
+        //levelId : 5
       });
 
     return res.data;
@@ -278,11 +283,13 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
    // TODO : Load fishingAreas Service : another service to implement
    protected async loadFiltredFishingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null,
+    const res = await this.referentialRefService.loadAll(0, 5, null,null,
       {
         entityName: "Location",
+        statusId : 0,
+        levelId : 111
         //statusId : 1,
-        levelId : 5
+        //levelId : 5
       });
 
     return res.data;
@@ -315,8 +322,9 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
     const res = await this.referentialRefService.loadAll(0, 200, null,null,
       {
         entityName: "Location",
-        //statusId : 1,
-        levelId : 2
+        statusId : 1,
+        levelId : 6
+        //levelId : 2
       });
 
     return res.data;
@@ -324,11 +332,12 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
  // TODO : Load filtred landing Service : another service to implement
   protected async loadFiltredLandingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null,
+    const res = await this.referentialRefService.loadAll(0, 5, null,null,
       {
         entityName: "Location",
-        //statusId : 1,
-        levelId : 2
+        statusId : 1,
+        levelId : 6
+        //levelId : 2
       });
 
     return res.data;
