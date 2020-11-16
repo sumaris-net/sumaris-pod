@@ -346,10 +346,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // PMFM.FRACTION
-    /*const pmfmFractionAttributes = ['fraction.name', 'fraction.description'];
+    const pmfmFractionAttributes = ['fraction.name'];
     this.registerFormField('fraction', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('fraction', {
         items: this.$pmfms,
         attributes: pmfmFractionAttributes,
@@ -357,15 +357,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           switch(attr) {
             case 'fraction.name':
               return 3;
-            case 'fraction.description':
-              return 4;
             default: return undefined;
           }
         }),
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
-    });*/
+    });
 
 
 
@@ -375,26 +373,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('method', {
-        items: this.$pmfms,
-        attributes: pmfmMethodAttributes,
-        columnSizes: pmfmMethodAttributes.map(attr => {
-          switch(attr) {
-            case 'method.name':
-              return 3;
-            case 'method.description':
-              return 4;
-            default: return undefined;
-          }
-        }),
-        showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
-      })
-    });
-
-    this.registerFormField('fraction', {
-      type: 'entity',
-      required: false,
-      autocomplete: this.registerAutocompleteField('fraction', {
         items: this.$pmfms,
         attributes: pmfmMethodAttributes,
         columnSizes: pmfmMethodAttributes.map(attr => {
