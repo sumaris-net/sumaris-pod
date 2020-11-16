@@ -90,6 +90,12 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
         entityName: 'TaxonName',
         statusId: StatusIds.ENABLE
       }),*/
+      /*attributes: ['id', 'name'],
+      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],*/
+      attributes: ['name'],
+      columnNames: [ 'REFERENTIAL.NAME'],
+      
+      columnSizes: [2,10],
       items: this._taxonNameSubject,
       mobile: this.mobile
     });
@@ -98,6 +104,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
       // laboratory combo ------------------------------------------------------------
       this.registerAutocompleteField('laboratory', {
+        columnSizes : [4,6],
         items: this._laboratoryubject,
         mobile: this.mobile
       });
@@ -119,7 +126,8 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       this.loadLandingAreas();
 
      // eotp combo -------------------------------------------------------------------
-     this.registerAutocompleteField('eotp', {
+     this.registerAutocompleteField('eotp', { 
+      columnSizes : [4,6],
       items: this._eotpSubject,
       mobile: this.mobile
     });
