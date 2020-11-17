@@ -237,6 +237,8 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
   implements EntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
              EntityService<Operation>{
 
+  static LIGHT_EXCLUDED_ATTRIBUTES = ["measurements", "samples", "batches"];
+
   loading = false;
 
   constructor(

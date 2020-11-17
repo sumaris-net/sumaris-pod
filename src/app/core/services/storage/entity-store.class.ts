@@ -48,7 +48,7 @@ export class EntityStore<T extends Entity<T>> {
     this._dirty = false;
     this._loaded = false;
     this._storageKey = ENTITIES_STORAGE_KEY + '#' + name;
-    this._mapToLightEntity = this.createLightEntityMapFn(this.options.detailedAttributes);
+    this._mapToLightEntity = this.options.storeById && this.createLightEntityMapFn(this.options.detailedAttributes);
     this.load = this._mapToLightEntity ? this.loadFull : this.loadLight;
   }
 
@@ -93,7 +93,7 @@ export class EntityStore<T extends Entity<T>> {
   }
 
   save(entity: T, opts? : {emitEvent?: boolean}): T {
-    let status = isNotNil(entity.id) ? this._statusById[+entity.id] : {index: undefined};
+    let status = isNotNil(entity.id) && this._statusById[+entity.id] || {index: undefined};
     const isNew = isNil(status.index);
     if (isNew) {
       if (isNil(entity.id)) {
@@ -222,8 +222,13 @@ export class EntityStore<T extends Entity<T>> {
     Object.values(this._statusById).forEach(s => s.dirty = false);
     this._dirty = false;
 
+    // Copy the list to saved
     const entities = this._entities.slice();
 
+    // Map dirty entities to light entities (after the previous copy)
+    if (this._mapToLightEntity) {
+      dirtyIndexes.forEach(index => this._entities[index] = this._mapToLightEntity(this._entities[index]));
+    }
 
     // If no entity found
     if (isEmptyArray(entities)) {
@@ -234,18 +239,20 @@ export class EntityStore<T extends Entity<T>> {
     else {
 
       // Save each entity into a unique key (advanced mode)
-      if (this.options.storeById === true) {
-        const dirtyEntities = dirtyIndexes.map(index => entities[index]);
-        await this.storage.set(this._storageKey + "#ids", dirtyEntities.map(e => e.id));
+      if (this.options.storeById) {
+        // Save ids
+        await this.storage.set(this._storageKey + "#ids", entities.map(e => e.id));
 
+        // Saved dirty entities
         await Promise.all(
-          dirtyEntities
-            .map(entity => {
+          dirtyIndexes
+            .map(index => {
+              const entity = entities[index];
               console.info(`[entity-storage] Persisting ${this.name}#${entity.id}...`);
-              return this.storage.set(this._storageKey + "#" + entity.id, entity)
+              return this.storage.set(this._storageKey + "#" + entity.id, entity);
             }));
 
-        console.info(`[entity-storage] Persisting ${dirtyEntities.length}/${entities.length} ${this.name}(s)...`);
+        console.info(`[entity-storage] Persisting ${dirtyIndexes.length}/${entities.length} ${this.name}(s)...`);
       }
 
       // Save all entities in a single key (default)

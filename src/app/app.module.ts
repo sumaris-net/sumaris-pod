@@ -1,6 +1,6 @@
 import "./vendor";
 
-import {APP_BASE_HREF, CommonModule} from "@angular/common";
+import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from "@angular/core";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
@@ -39,6 +39,8 @@ import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {SharedModule} from "./shared/shared.module";
 import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
 import {MarkdownModule, MarkedOptions} from "ngx-markdown";
+import {EntitiesStorageOptions, LOCAL_ENTITIES_STORAGE_OPTIONS} from "./core/services/storage/entities-storage.service";
+import {OperationService} from "./trip/services/operation.service";
 
 
 @NgModule({
@@ -187,6 +189,16 @@ import {MarkdownModule, MarkedOptions} from "ngx-markdown";
         },
         { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
       ]
+    },
+
+    // Entities options
+    { provide: LOCAL_ENTITIES_STORAGE_OPTIONS, useValue: <EntitiesStorageOptions>{
+        'OperationVO': {
+          onlyLocalEntities: true,
+          storeById: true,
+          detailedAttributes: OperationService.LIGHT_EXCLUDED_ATTRIBUTES
+        }
+      }
     },
 
     // Test pages

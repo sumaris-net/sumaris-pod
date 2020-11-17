@@ -1,5 +1,5 @@
 import {concat, defer, merge, Observable, Subject, Subscription, timer} from "rxjs";
-import {EventEmitter, Injectable} from "@angular/core";
+import {EventEmitter, Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../../environments/environment";
@@ -9,12 +9,18 @@ import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
 import {ENTITIES_STORAGE_KEY, EntityStore, EntityStoreOptions} from "./entity-store.class";
 
+
+export declare type EntitiesStorageOptions = {[name: string]: EntityStoreOptions<any> };
+
+export const LOCAL_ENTITIES_STORAGE_OPTIONS = new InjectionToken<EntitiesStorageOptions>('entitiesStorageOptions');
+
 @Injectable({providedIn: 'root'})
 export class EntitiesStorage {
 
   public static TRASH_PREFIX = "Trash#";
 
   private readonly _debug: boolean;
+  private readonly _options: EntitiesStorageOptions;
   private _started = false;
   private _startPromise: Promise<void>;
   private _subscription = new Subscription();
@@ -25,13 +31,6 @@ export class EntitiesStorage {
   private _dirty = false;
   private _saving = false;
 
-  private _entityStoreOptions: {[name: string]: EntityStoreOptions<any>} = {
-    'OperationVO': {
-      storeById: true,
-      onlyLocalEntities: true,
-      detailedAttributes: ['batches', 'samples', 'measurements', 'catchBatch']
-    }
-  }
 
   onStart = new Subject<void>();
 
@@ -41,8 +40,10 @@ export class EntitiesStorage {
 
   public constructor(
     private platform: Platform,
-    private storage: Storage
+    private storage: Storage,
+    @Optional() @Inject(LOCAL_ENTITIES_STORAGE_OPTIONS) options: EntitiesStorageOptions
   ) {
+    this._options = options || {};
 
     // For DEV only
     this._debug = !environment.production;
@@ -406,7 +407,7 @@ export class EntitiesStorage {
   }): EntityStore<T> {
     let store = this._stores[name];
     if (!store && (!opts || opts.create !== false)) {
-      const options = this._entityStoreOptions[name];
+      const options = this._options[name];
       if (this._debug) console.debug(`[entity-storage] Creating store ${name}`);
       store = new EntityStore<T>(name, this.storage, options);
       this._stores[name] = store;
