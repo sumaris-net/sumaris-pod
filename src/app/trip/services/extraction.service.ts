@@ -18,7 +18,7 @@ import {
 } from "./model/extraction.model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
-import {GraphqlService, WatchQueryOptions} from "../../core/services/graphql.service";
+import {GraphqlService, WatchQueryOptions} from "../../core/graphql/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "./trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";

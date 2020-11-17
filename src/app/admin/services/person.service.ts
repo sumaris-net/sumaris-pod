@@ -5,7 +5,7 @@ import {EntitiesService, LoadResult, SuggestService} from "../../shared/shared.m
 import {BaseEntityService, MutableWatchQueryOptions} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {fetchAllPagesWithProgress} from "../../shared/services/entity-service.class";

@@ -1,9 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
-import {ModalController} from '@ionic/angular';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, Optional} from '@angular/core';
+import {ModalController, Platform} from '@ionic/angular';
 import {Peer} from "../services/model/peer.model";
 import {Observable, Subject, Subscription} from "rxjs";
 import {fadeInAnimation} from "../../shared/material/material.animations";
 import {HttpClient} from "@angular/common/http";
+import {NetworkUtils, NodeInfo} from "../services/network.utils";
+import {HTTP} from "@ionic-native/http/ngx";
 
 @Component({
   selector: 'select-peer-modal',
@@ -17,6 +19,8 @@ export class SelectPeerModal implements OnDestroy {
   loading = true;
   $peers = new Subject<Peer[]>();
 
+  private readonly httpClient: HTTP | HttpClient;
+
   @Input() canCancel = true;
   @Input() allowSelectDownPeer = true;
 
@@ -28,10 +32,15 @@ export class SelectPeerModal implements OnDestroy {
 
 
   constructor(
-    private http: HttpClient,
+
     private viewCtrl: ModalController,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    platform: Platform,
+    http: HttpClient,
+    @Optional() nativeHttp: HTTP
   ) {
+
+    this.httpClient = platform.is('mobile') ? nativeHttp : http;
   }
 
   cancel() {
@@ -44,7 +53,7 @@ export class SelectPeerModal implements OnDestroy {
 
   selectPeer(item: Peer) {
     if (this.allowSelectDownPeer || item.reachable) {
-      console.debug("[select-peer-modal] User select the peer:", item);
+      console.debug(`[select-peer-modal] Selected peer: {url: '${item.url}'}`);
       this.viewCtrl.dismiss(item);
     }
   }
@@ -70,7 +79,6 @@ export class SelectPeerModal implements OnDestroy {
           return 0;
         });
 
-
         this.$peers.next(data);
         return peer;
       }));
@@ -92,16 +100,19 @@ export class SelectPeerModal implements OnDestroy {
   }
 
   protected async refreshPeer(peer: Peer): Promise<Peer> {
-    const uri = peer.url + '/api/node/info';
     try {
-      const summary: any = await this.http.get(uri).toPromise();
+      const summary: NodeInfo = await NetworkUtils.getNodeInfo(this.httpClient, peer.url);
       peer.status = 'UP';
       peer.softwareName = summary.softwareName;
       peer.softwareVersion = summary.softwareVersion;
       peer.label = summary.nodeLabel;
       peer.name = summary.nodeName;
     } catch (err) {
-      if (!this._subscription.closed) console.error(`[select-peer] Could not access to {${uri}}: ${err && err.statusText}`);
+      if (!this._subscription.closed)  {
+        if (err && err.message) {
+          console.error("[select-peer] " + err.message, err);
+        }
+      }
       peer.status = 'DOWN';
     }
     return peer;

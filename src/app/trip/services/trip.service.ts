@@ -20,7 +20,7 @@ import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
 import {WatchQueryFetchPolicy} from "apollo-client";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {RootDataService} from "./root-data-service.class";
 import {
@@ -1155,29 +1155,36 @@ export class TripService extends RootDataService<Trip, TripFilter>
     console.debug('[trip-service] Restoring trips...', entities);
     let result: Trip[] = [];
 
-    // Restore local entities
-    let localEntities = entities.filter(DataRootEntityUtils.isLocal);
-    if (isNotEmptyArray(localEntities)) {
+    // Restore (one by one)
+    result = await concatPromises(entities.map(source => async () => {
 
-      // Restore (one by one)
-      result = await concatPromises(entities.map(source => async () => {
+      const isLocal = DataRootEntityUtils.isLocal(source);
 
-        // Create a new entity (without local id)
-        const json = this.asObject(source, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
-        json.updateDate = null;
-        json.synchronizationStatus = SynchronizationStatusEnum.DIRTY; // To make sure it will be saved locally
+      // Remove id
+      if (!isLocal) {
+        source.id = null;
+      }
 
-        const target = Trip.fromObject(json);
+      // Create a new entity (without local id)
+      const json = this.asObject(source, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
+      json.updateDate = null;
+      json.synchronizationStatus = SynchronizationStatusEnum.DIRTY; // To make sure it will be saved locally
 
-        // Save
-        await this.save(target, {withLanding: false, withOperation: true});
+      const target = Trip.fromObject(json);
 
+      // Save
+      await this.save(target, {withLanding: false, withOperation: true});
+
+      // Remove from the local trash
+      if (isLocal) {
         await this.entities.deleteFromTrash(source, {entityName: Trip.TYPENAME});
+      }
+      else {
+        // TODO! BLA: delete form trash
+      }
 
-        return target;
-      }));
-    }
-
+      return target;
+    }));
 
     return result
   }
@@ -1260,54 +1267,28 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return this.$importationProgress;
   }
 
-  async copyToOffline(id: number, options?: TripServiceLoadOption): Promise<Trip> {
+  async copyToOffline(id: number, opts?: TripServiceLoadOption): Promise<Trip> {
 
     console.debug("[trip-service] Copy trip locally...");
 
-    const entity = await this.load(id, {...options, fetchPolicy: "network-only"});
+    const data = await this.load(id, {...opts, fetchPolicy: "network-only"});
 
-    // Remove ids
-    delete entity.id;
-    (entity.gears || []).forEach(g => g.id = undefined);
-    (entity.measurements || []).forEach(m => m.id = undefined);
-
-    // Make sure to fill id, with local ids
-    await this.fillOfflineDefaultProperties(entity);
-
-    const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
-
-    // Save the trip
-    const offlineTrip = await this.entities.save(json, {entityName: Trip.TYPENAME});
-
-    // Process operations
-    if (options && options.withOperation) {
-
-      // Load operations
-      const res = await firstNotNilPromise(this.operationService.watchAllByTrip({tripId: id}, {fetchPolicy: "network-only"}));
-
-      // Save operations locally
-      await Promise.all((res && res.data || []).map(op => {
-        op.id = undefined;
-        op.tripId = offlineTrip.id;
-        op.physicalGear.id = undefined;
-        (op.measurements || []).forEach(m => m.id = undefined);
-        (op.positions || []).forEach(p => p.id = undefined);
-        const cleanTreeIdsFn = (a: (Batch|Sample)[] ) => {
-          if (!a || isEmptyArray(a)) return;
-          a.forEach(v => {
-            if (!v) return; // Skip if empty
-            v.id = undefined;
-            cleanTreeIdsFn(v.children); // Loop
-          });
-        };
-        cleanTreeIdsFn([op.catchBatch]);
-        cleanTreeIdsFn(op.samples);
-
-        return this.operationService.save(op);
-      }));
+    // Add operations
+    if (!opts || opts.withOperation !== false) {
+      const res = await this.operationService.loadAllByTrip({tripId: id}, {
+        fetchPolicy: "network-only",
+        fullLoad: true
+      });
+      data.operations = res.data;
+      data.operations.forEach(o => {
+        o.id = null;
+        data.updateDate = null;
+      });
     }
 
-    return entity;
+    await this.restoreFromTrash([data]);
+
+    return data;
   }
 
   /* -- protected methods -- */

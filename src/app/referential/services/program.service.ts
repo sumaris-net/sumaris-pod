@@ -15,7 +15,7 @@ import {
 } from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {
   EntityService,
   EntityServiceLoadOptions,

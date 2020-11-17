@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Injector,
+  OnDestroy,
+  OnInit,
+  Optional
+} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {
   AppTable,
@@ -38,6 +46,9 @@ import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
+import {HttpClient} from "@angular/common/http";
+import {HttpUtils} from "../../shared/http/http.utils";
+import {HTTP} from "@ionic-native/http/ngx";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -54,6 +65,8 @@ export const TripsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
+
+  private http: HttpClient | HTTP;
 
   canEdit: boolean;
   canDelete: boolean;
@@ -93,7 +106,9 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    http: HttpClient,
+    @Optional() nativeHttp: HTTP
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
@@ -144,6 +159,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fix value, to be able to reuse it in the trip page
 
+    this.http = platform.mobile ? nativeHttp : http;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
 
@@ -330,6 +346,31 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.hasOfflineMode = this.hasOfflineMode || success;
       this.importing = false;
       this.markForCheck();
+    }
+  }
+
+  async downloadJsonFile(uri) {
+    uri = uri || 'http://server.e-is.pro/downloads/trip_833.json'
+    try {
+      let trip: any = await HttpUtils.getResource(this.http, uri);
+      if (typeof trip === 'string') {
+        trip = JSON.parse(trip);
+      }
+
+      console.info(`Importing Trip#${trip.id}...`);
+
+      await this.service.restoreFromTrash([trip]);
+      console.info(`Successfully restored 1 trip...`);
+
+      // Success toast
+      setTimeout(() => {
+        this.showToast({
+          type: "info",
+          message: 'TRIP.TRASH.INFO.ONE_TRIP_RESTORED' });
+      }, 200);
+
+    } catch (err) {
+      console.error(`[select-peer] Error on get request ${uri}: ${err && err.statusText}`);
     }
   }
 

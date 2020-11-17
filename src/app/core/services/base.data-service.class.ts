@@ -1,4 +1,4 @@
-import {GraphqlService, MutateQueryOptions, WatchQueryOptions} from "./graphql.service";
+import {GraphqlService, MutateQueryOptions, WatchQueryOptions} from "../graphql/graphql.service";
 import {Page} from "../../shared/services/entity-service.class";
 import {R} from "apollo-angular/types";
 import {Observable} from "rxjs";

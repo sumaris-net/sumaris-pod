@@ -6,7 +6,7 @@ import {Storage} from "@ionic/storage";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
 import {FetchPolicy} from "apollo-client";
-import {GraphqlService} from "./graphql.service";
+import {GraphqlService} from "../graphql/graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {filterNotNil} from "../../shared/observables";
 import {isNotEmptyArray, isNotNil} from "../../shared/functions";

@@ -13,7 +13,7 @@ import {sleep, toDateISOString} from "../../shared/functions";
 import {BaseEntityService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
-import {GraphqlService} from "./graphql.service";
+import {GraphqlService} from "../graphql/graphql.service";
 import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {NetworkService} from "./network.service";

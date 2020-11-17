@@ -26,7 +26,12 @@
            autocomplete="section-red new-password"
            [type]="showPwd ? 'text' : 'password'"
            required>
-    <button mat-icon-button matSuffix (click)="showPwd = !showPwd" [attr.aria-pressed]="showPwd">
+
+    <!-- Show pwd button -->
+    <button mat-icon-button matSuffix
+            *ngIf="mobile"
+            (click)="showPwd = !showPwd" [attr.aria-pressed]="showPwd"
+            tabindex="-1">
       <mat-icon>{{showPwd ? 'visibility' : 'visibility_off'}}</mat-icon>
     </button>
     <mat-error *ngIf="form.controls.password.hasError('required') && form.controls.password.touched" translate>ERROR.FIELD_REQUIRED</mat-error>

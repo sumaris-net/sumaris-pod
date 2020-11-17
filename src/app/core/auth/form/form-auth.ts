@@ -7,6 +7,7 @@ import {environment} from "../../../../environments/environment";
 import {NetworkService} from "../../services/network.service";
 import {LocalSettingsService} from "../../services/local-settings.service";
 import {slideUpDownAnimation} from "../../../shared/material/material.animations";
+import {PlatformService} from "../../services/platform.service";
 
 
 @Component({
@@ -18,6 +19,7 @@ import {slideUpDownAnimation} from "../../../shared/material/material.animations
 export class AuthForm implements OnInit {
 
   loading = false;
+  readonly mobile: boolean;
   form: FormGroup;
   error: string = null;
   canWorkOffline = false;
@@ -42,10 +44,11 @@ export class AuthForm implements OnInit {
   onSubmit: EventEmitter<AuthData> = new EventEmitter<AuthData>();
 
   constructor(
-    public formBuilder: FormBuilder,
-    public modalCtrl: ModalController,
-    public network: NetworkService,
-    public settings: LocalSettingsService
+    private platform: PlatformService,
+    private formBuilder: FormBuilder,
+    private settings: LocalSettingsService,
+    private modalCtrl: ModalController,
+    public network: NetworkService
   ) {
     this.form = formBuilder.group({
       username: [null, Validators.compose([Validators.required, Validators.email])],
@@ -53,6 +56,7 @@ export class AuthForm implements OnInit {
       offline: [network.offline]
     });
 
+    this.mobile = platform.mobile;
     this.canWorkOffline = this.settings.hasOfflineFeature();
   }
 

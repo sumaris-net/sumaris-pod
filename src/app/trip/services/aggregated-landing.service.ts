@@ -13,7 +13,7 @@ import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/entities-storage.service";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Beans} from "../../shared/functions";
 import gql from "graphql-tag";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";

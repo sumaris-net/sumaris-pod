@@ -6,7 +6,7 @@ import {LoadResult, EntitiesService} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {AccountService} from "../../core/services/account.service";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";

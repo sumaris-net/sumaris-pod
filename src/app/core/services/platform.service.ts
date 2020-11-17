@@ -97,9 +97,9 @@ export class PlatformService {
     this._startPromise = this.platform.ready()
       .then(() => {
 
-        this.configureCordovaPlugins();
-
         this._mobile = this.platform.is('mobile');
+
+        this.configureCordovaPlugins(this._mobile);
         this.touchUi = this._mobile || this.platform.is('tablet') || this.platform.is('phablet');
 
         // Force mobile in settings
@@ -165,10 +165,14 @@ export class PlatformService {
       window.open(url, target, features, replace);
     }
   }
+  /*
+  chooseFile(): Promise<> {
+
+  }*/
 
   /* -- protected methods -- */
 
-  protected configureCordovaPlugins() {
+  protected configureCordovaPlugins(mobile: boolean) {
     console.info("[platform] Configuring Cordova plugins...");
 
     this.statusBar.styleDefault();

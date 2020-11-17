@@ -15,7 +15,7 @@ import gql from "graphql-tag";
 import {Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {RootDataService} from "./root-data-service.class";
 import {DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {FormErrors} from "../../core/form/form.utils";

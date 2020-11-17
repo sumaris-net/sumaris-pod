@@ -11,7 +11,7 @@ import {
 import {BaseEntityService, Entity, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {environment} from "../../../environments/environment";
 import {Observable, of} from "rxjs";
 import {UserEvent, UserEventTypes} from "./model/user-event.model";

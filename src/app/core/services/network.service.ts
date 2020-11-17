@@ -5,12 +5,12 @@ import {Storage} from '@ionic/storage';
 import {environment} from "../../../environments/environment";
 import {Peer} from "./model/peer.model";
 import {LocalSettings} from "./model/settings.model";
-import {ModalController, ToastController} from "@ionic/angular";
+import {ModalController, Platform, ToastController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
 import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {isNotNilOrBlank, toBoolean, sleep, isNotEmptyArray} from "../../shared/functions";
 import {Connection, Network} from '@ionic-native/network/ngx';
 import {DOCUMENT} from "@angular/common";
@@ -18,14 +18,9 @@ import {CacheService} from "ionic-cache";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {distinctUntilChanged, filter, map} from "rxjs/operators";
 import {OverlayEventDetail} from "@ionic/core";
-
-export interface NodeInfo {
-  softwareName: string;
-  softwareVersion: string;
-  nodeLabel?: string;
-  nodeName?: string;
-}
-
+import {NodeInfo} from "./network.utils";
+import {HTTP} from "@ionic-native/http/ngx";
+import {HttpUtils} from "../../shared/http/http.utils";
 
 export type ConnectionType = 'none' | 'wifi' | 'ethernet' | 'cell' | 'unknown' ;
 
@@ -64,6 +59,7 @@ export class NetworkService {
   private _listeners: {
    [key: string]: ((data?: any) => Promise<void>)[]
   } = {};
+  private readonly httpClient: HTTP | HttpClient;
 
 
   onStart = new Subject<Peer>();
@@ -105,22 +101,28 @@ export class NetworkService {
 
   constructor(
     @Inject(DOCUMENT) private _document: HTMLDocument,
+    private platform: Platform,
     private modalCtrl: ModalController,
     private cryptoService: CryptoService,
     private storage: Storage,
-    private http: HttpClient,
     private splashScreen: SplashScreen,
     private settings: LocalSettingsService,
     private network: Network,
     private cache: CacheService,
+    http: HttpClient,
+    @Optional() nativeHttp: HTTP,
     @Optional() private translate: TranslateService,
     @Optional() private toastController: ToastController
   ) {
+    const useNativeHttp = this.platform.is('mobile');
+    console.info(`[network] Creating service {nativeHttp: ${useNativeHttp}`);
+    this.httpClient = useNativeHttp ? nativeHttp : http;
+
     this.resetData();
 
     // For DEV only
     this._debug = !environment.production;
-    if (this._debug) console.debug('[network] Creating service');
+
   }
 
   /**
@@ -385,13 +387,18 @@ export class NetworkService {
       await this.getNodeInfo(peer);
       return true;
     } catch (err) {
+      console.log(err);
       return false;
     }
   }
 
   getNodeInfo(peer: string | Peer): Promise<NodeInfo> {
-    const peerUrl = (peer instanceof Peer) ? peer.url : (peer as string);
-    return this.get(peerUrl + '/api/node/info');
+    let peerUrl = (peer instanceof Peer) ? peer.url : (peer as string);
+    // Remove trailing slash
+    if (peerUrl.endsWith('/')) {
+      peerUrl = peerUrl.substr(0, peerUrl.length -1);
+    }
+    return this.get(peerUrl + '/api/node/info', {});
   }
 
   /**
@@ -465,6 +472,47 @@ export class NetworkService {
       });
   }
 
+  protected async get<T>(path: string, opts?: {
+    headers?: HttpHeaders | {
+      [header: string]: string | string[];
+    };
+  }): Promise<T> {
+
+    let uri = path;
+
+    // If path is not an URI: prepend with peer URL
+    if (!uri.startsWith('http://') && !uri.startsWith('https://')) {
+      let peerUrl = (this.peer && this.peer.url);
+
+      // Remove trailing slash
+      if (peerUrl.endsWith('/')) {
+        peerUrl = peerUrl.substr(0, peerUrl.length -1 );
+      }
+
+      // Add first path
+      if (!path.startsWith('/')) {
+        path = '/' + path;
+      }
+
+      // Create the URI: concat peer URL and path
+      uri = peerUrl + path;
+    }
+
+    try {
+      // Execute the request
+      return HttpUtils.getResource(this.httpClient, uri, opts);
+    }
+    catch (err) {
+      if (err && err.message) {
+        console.error("[network] " + err.message, err);
+      }
+      else {
+        console.error(`[network] Error on get request ${uri}: ${err && err.statusText}`);
+      }
+      throw {code: err.status, message: "ERROR.UNKNOWN_NETWORK_ERROR"};
+    }
+  }
+
   /* -- Protected methods -- */
 
   protected onDeviceConnectionChanged(connectionType?: string) {
@@ -490,19 +538,7 @@ export class NetworkService {
     this._peer = null;
   }
 
-  protected async get<T>(uri: string): Promise<T> {
-    try {
-      return (await this.http.get(uri).toPromise()) as T;
-    } catch (err) {
-      if (err && err.message) {
-        console.error("[network] " + err.message);
-      }
-      else {
-        console.error(`[network] Error on get request ${uri}: ${err.status}`);
-      }
-      throw {code: err.status, message: "ERROR.UNKNOWN_NETWORK_ERROR"};
-    }
-  }
+
 
   /**
    * Get default peers, from environment

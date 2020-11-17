@@ -18,7 +18,7 @@ import {ReferentialRef, ReferentialUtils} from "../../core/services/model/refere
 import {FetchPolicy} from "apollo-client";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {fetchAllPagesWithProgress, FilterFn, SuggestService} from "../../shared/services/entity-service.class";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {TaxonNameRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";

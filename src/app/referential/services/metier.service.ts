@@ -6,7 +6,7 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {FetchPolicy} from "apollo-client";
 import {FilterFn, SuggestService} from "../../shared/services/entity-service.class";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Metier} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/entities-storage.service";

@@ -2,7 +2,7 @@ import {Injectable, InjectionToken} from "@angular/core";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {LoadResult, EntitiesService} from "../../shared/services/entity-service.class";
 import {PhysicalGear, Trip} from "./model/trip.model";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {EntitiesStorage} from "../../core/services/entities-storage.service";

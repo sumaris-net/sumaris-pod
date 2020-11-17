@@ -4,7 +4,7 @@ import {EntityService, EntityServiceLoadOptions, isNil, isNotNil} from "../../sh
 import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {environment} from "../../../environments/environment";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
