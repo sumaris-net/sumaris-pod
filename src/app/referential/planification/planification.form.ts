@@ -23,6 +23,7 @@ import { Program } from '../services/model/program.model';
 export class PlanificationForm extends AppForm<Planification> implements OnInit {
 
   protected formBuilder: FormBuilder;
+  private _sampleRowCode = new BehaviorSubject<string>(null);
   private _taxonNameSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _laboratoryubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _fishingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
@@ -360,14 +361,13 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
         }
 
         private calcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-          {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
-          {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"},
-          {id: '3', label: 'vertèbre', name: 'vertèbre',statusId:1,entityName:"calcifiedType"},
-          {id: '4', label: 'otolithe', name: 'otolithe',statusId:1,entityName:"calcifiedType"}
+          {id: '1', label: 'otolithe', name: 'otolithe', statusId:1,entityName:"calcifiedType"},
+          {id: '2', label: 'otolithe droite', name: 'otolithe droite', statusId:1,entityName:"calcifiedType"},
+          {id: '3', label: 'otolithe gauche', name: 'otolithe gauche',statusId:1,entityName:"calcifiedType"}
         ];
       private filteredcalcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-          {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
-          {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"}
+          {id: '1', label: 'otolithe', name: 'otolithe', statusId:1,entityName:"calcifiedType"},
+          {id: '2', label: 'otolithe droite', name: 'otolithe droite', statusId:1,entityName:"calcifiedType"}
         ];
        protected async loadCalcifiedType() {
         const calcifiedTypeControl = this.form.get('calcifiedType');

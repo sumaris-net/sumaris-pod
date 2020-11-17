@@ -35,6 +35,7 @@ import {SharedMatDateTimeModule} from "./datetime/datetime.module";
 import {SharedMatDurationModule} from "./duration/duration.module";
 import {SharedMatBooleanModule} from "./boolean/boolean.module";
 import {SharedMatNumpadModule} from "./numpad/numpad.module";
+import {SharedMatTextWithMaskModule} from "./textwithmask/textwithmask.module";
 import {InputElement} from "../inputs";
 import {SharedMatSwipeModule} from "./swipe/swipe.module";
 
@@ -78,7 +79,8 @@ const modules: Array<Type<any> | any[]> = [
   SharedMatDurationModule,
   SharedMatBooleanModule,
   SharedMatNumpadModule,
-  SharedMatSwipeModule
+  SharedMatSwipeModule,
+  SharedMatTextWithMaskModule
 ];
 
 @NgModule({

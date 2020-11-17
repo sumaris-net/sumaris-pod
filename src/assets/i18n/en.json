@@ -359,6 +359,8 @@
   "PLANIFICATION": {
     "CREATE_SAMPLING_PLAN" : "Creating a sampling plan line",
     "FISHING_AREA" :"Fishing area (s)",
+    "SAMPLE_ROW_CODE":"Sample row code",
+    "SAMPLE_ROW_TITLE":"Sample row code",
     "EOTP":"EOTP",
     "LABORATORY" :"Laboratory",
     "TARGET_SPECIE" :"Target specie",
