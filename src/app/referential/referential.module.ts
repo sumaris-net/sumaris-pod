@@ -18,6 +18,7 @@ import {ProgramPage} from "./program/program.page";
 import {ProgramValidatorService} from "./services/validator/program.validator";
 import {StrategyValidatorService} from "./services/validator/strategy.validator";
 import {StrategiesTable} from "./strategy/strategies.table";
+import {SimpleStrategiesTable} from "../referential/simpleStrategy/simpleStrategies/simpleStrategies.table";
 import {SoftwarePage} from "./software/software.page";
 import {VesselFeaturesHistoryComponent} from "./vessel/page/vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registration-history.component";
@@ -65,6 +66,7 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
     SimpleStrategyPage,
     StrategyForm,
     StrategiesTable,
+    SimpleStrategiesTable,
     PmfmStrategiesTable,
     SoftwarePage,
     VesselFeaturesHistoryComponent,

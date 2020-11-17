@@ -1103,6 +1103,7 @@
   "PROGRAM": {
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
+    "TAB_SIMPLE_STRATEGIES": "Simple stratégies",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Référentiel des espèces commerciales",
@@ -1147,6 +1148,7 @@
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
+      "SIMPLE_STRATEGIES": "Simple strategies",
       "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
       "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
       "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)"

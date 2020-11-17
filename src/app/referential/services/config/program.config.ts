@@ -236,7 +236,6 @@ export const ProgramProperties = Object.freeze({
   },
 
   /* -- Landed trip options -- */
-
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID: <FormFieldDefinition>{
     key: 'sumaris.landedTrip.fishingArea.locationLevel.id',
     label: 'CONFIGURATION.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID',
@@ -248,6 +247,14 @@ export const ProgramProperties = Object.freeze({
       }
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
+  },
+   
+  // simple strategies
+  SIMPLE_STRATEGIES: <FormFieldDefinition>{
+    key: "sumaris.simple.strategies.enable",
+    label: "PROGRAM.OPTIONS.SIMPLE_STRATEGIES",
+    defaultValue: "false",
+    type: 'boolean'
   },
 
 

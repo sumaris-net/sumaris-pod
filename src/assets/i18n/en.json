@@ -1089,6 +1089,7 @@
   "PROGRAM": {
     "TAB_GENERAL": "Details",
     "TAB_STRATEGIES": "Strategies",
+    "TAB_SIMPLE_STRATEGIES": "Simple strategies",
     "TAB_ACCESS_RIGHTS": "Access rights",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Referential for taxon groups",
@@ -1133,6 +1134,7 @@
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
+      "SIMPLE_STRATEGIES": "Simple strategies",
       "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
       "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
       "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)"
