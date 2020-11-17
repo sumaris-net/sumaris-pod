@@ -83,7 +83,6 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
   formatFnOptions: TextWithMaskFormatOptions;
   textMaskConfig: TextMaskConfig;
   textFormControl: FormControl;
-  signFormControl: FormControl;
   mask: Array<string | RegExp> | ((raw: string) => Array<string | RegExp>) | false;
   value: number;
   inputPlaceholder: string;
@@ -105,8 +104,6 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
   @Input() type: 'sampleRowCode';
 
   @Input("textWithMaskPattern") pattern: TextWithMaskPattern;
-
-  @Input() defaultSign: '-' | '+';
 
   @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;
 
@@ -147,7 +144,7 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
     this.pattern = this.pattern;
     this.mask = MASKS[this.type] && MASKS[this.type][this.pattern];
     if (!this.mask) {
-      console.error("Invalid attribute value. Expected: type: 'sampleRowCode or any other mask attribute' and latlongPattern: 'SampleRowCode  or any other mask attribute pattern'");
+      //console.error("Invalid attribute value. Expected: type: 'sampleRowCode or any other mask attribute' and pattern: 'SampleRowCode  or any other mask attribute pattern'");
       this.type = 'sampleRowCode';
       //this.pattern = 'sampleRowCode';
       //this.mask = MASKS[this.type][this.pattern];
@@ -179,11 +176,7 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
         //.pipe(debounceTime(250))
         .subscribe((value) => this.onFormChange(value))
     );
-    this._subscription.add(
-      this.signFormControl.valueChanges
-        //.pipe(debounceTime(250))
-        .subscribe((value) => this.onFormChange(this.textFormControl.value))
-    );
+
 
     // Listen status changes (when done outside the component  - e.g. when setErrors() is calling on the formControl)
     this._subscription.add(
@@ -243,10 +236,8 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
     this._disabled = isDisabled;
     if (isDisabled) {
       this.textFormControl.disable({onlySelf: true, emitEvent: false});
-      this.signFormControl.disable({onlySelf: true, emitEvent: false});
     } else {
       this.textFormControl.enable({onlySelf: true, emitEvent: false});
-      this.signFormControl.enable({onlySelf: true, emitEvent: false});
     }
     this.writing = false;
     this.disabling = false;
@@ -257,9 +248,9 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
     if (this.writing) return; // Skip if call by self
     this.writing = true;
 
-    if (this.textFormControl.invalid || this.signFormControl.invalid) {
+    if (this.textFormControl.invalid) {
       this.formControl.markAsPending();
-      this.formControl.setErrors({...this.textFormControl.errors, ...this.signFormControl.errors});
+      this.formControl.setErrors({...this.textFormControl.errors});
       this.writing = false;
       return;
     }
@@ -290,12 +281,9 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
 
     // Apply the default sign, when pattern is DD and field is empty
     if (isNil(this.value)) {
-      if (this.defaultSign) {
-        // Compute the text value, using the default sign
-        const defaultSign = this.defaultSign === '-' ? -1 : 1;
 
         if (this.pattern === 'SampleRowCode') {
-          let valueStr = this.formatFn(defaultSign, {...this.formatFnOptions, placeholderChar: this.placeholderChar})
+          let valueStr = this.formatFn(1, {...this.formatFnOptions, placeholderChar: this.placeholderChar})
           valueStr = valueStr && valueStr.replace('1', this.placeholderChar);
 
           // Wait end of focus animation (label should move to top)
@@ -307,10 +295,7 @@ export class MatTextWithMaskField implements OnInit, ControlValueAccessor, After
             const caretIndex = (this.type === 'sampleRowCode') ? 2 : 1;
             selectInputRange(event.target, caretIndex);
           }, 250);
-        }
-        else {
-          this.signFormControl.setValue(defaultSign);
-        }
+
       }
     }
 
