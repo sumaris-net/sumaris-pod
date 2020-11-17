@@ -95,7 +95,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],*/
       attributes: ['name'],
       columnNames: [ 'REFERENTIAL.NAME'],
-      
+
       columnSizes: [2,10],
       items: this._taxonNameSubject,
       mobile: this.mobile
@@ -127,7 +127,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
       this.loadLandingAreas();
 
      // eotp combo -------------------------------------------------------------------
-     this.registerAutocompleteField('eotp', { 
+     this.registerAutocompleteField('eotp', {
       columnSizes : [4,6],
       items: this._eotpSubject,
       mobile: this.mobile
@@ -136,6 +136,9 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
     // Calcified type combo ------------------------------------------------------------
       this.registerAutocompleteField('calcifiedType', {
+        attributes: ['name'],
+        columnNames: [ 'REFERENTIAL.NAME'],
+        columnSizes: [2,10],
         items: this._calcifiedTypeSubject,
         mobile: this.mobile
       });
@@ -361,13 +364,14 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
         }
 
         private calcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-          {id: '1', label: 'otolithe', name: 'otolithe', statusId:1,entityName:"calcifiedType"},
-          {id: '2', label: 'otolithe droite', name: 'otolithe droite', statusId:1,entityName:"calcifiedType"},
-          {id: '3', label: 'otolithe gauche', name: 'otolithe gauche',statusId:1,entityName:"calcifiedType"}
+          {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
+          {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"},
+          {id: '3', label: 'vertèbre', name: 'vertèbre',statusId:1,entityName:"calcifiedType"},
+          {id: '4', label: 'otolithe', name: 'otolithe',statusId:1,entityName:"calcifiedType"}
         ];
       private filteredcalcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-          {id: '1', label: 'otolithe', name: 'otolithe', statusId:1,entityName:"calcifiedType"},
-          {id: '2', label: 'otolithe droite', name: 'otolithe droite', statusId:1,entityName:"calcifiedType"}
+          {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
+          {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"}
         ];
        protected async loadCalcifiedType() {
         const calcifiedTypeControl = this.form.get('calcifiedType');
