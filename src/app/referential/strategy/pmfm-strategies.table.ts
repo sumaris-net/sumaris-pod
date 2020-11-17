@@ -651,7 +651,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   }
 
   protected async loadPmfms() {
-    const res = await this.pmfmService.loadAll(0, 1000, null, null, null,
+    const res = await this.pmfmService.loadAll(0, 10, null, null, null,
       {
         withTotal: false,
         withDetails: true
