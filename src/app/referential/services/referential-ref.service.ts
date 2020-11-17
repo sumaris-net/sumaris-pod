@@ -22,7 +22,7 @@ import {GraphqlService} from "../../core/graphql/graphql.service";
 import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {TaxonNameRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 
@@ -447,7 +447,7 @@ export class ReferentialRefService extends BaseEntityService
         .then((res) => {
           importedEntities.push(entityName);
           return this.entities.saveAll(res.data, {
-            entityName: entityName + 'VO'
+            entityName: entityName + 'VO', reset: true
           });
         })
         .catch(err => {

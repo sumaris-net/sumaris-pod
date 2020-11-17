@@ -10,10 +10,9 @@ import {CacheService} from "ionic-cache";
 import {AudioProvider} from "../../shared/audio/audio";
 
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
 import {Storage} from "@ionic/storage";
-import {EntitiesStorage} from "./entities-storage.service";
-import {concatPromises} from "../../shared/observables";
+import {EntitiesStorage} from "./storage/entities-storage.service";
 import {StorageUtils} from "../../shared/services/storage.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";

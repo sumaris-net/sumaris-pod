@@ -11,7 +11,7 @@ import {FetchPolicy} from "apollo-client";
 import {VesselFilter} from "./vessel-service";
 import {BehaviorSubject, Observable} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {VesselSnapshot} from "./model/vessel-snapshot.model";
 import {SortDirection} from "@angular/material/sort";

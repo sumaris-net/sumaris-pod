@@ -5,7 +5,7 @@ import {PhysicalGear, Trip} from "./model/trip.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {environment} from "../../../environments/environment";
 import {Moment} from "moment";
 import {EMPTY, Observable} from "rxjs";

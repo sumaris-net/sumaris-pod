@@ -8,6 +8,7 @@ import {BehaviorSubject, Observable} from "rxjs";
 import {ApolloClient} from "apollo-client";
 import {environment} from "../../../environments/environment";
 import {isNotNil} from "../../shared/functions";
+import {getMainDefinition} from "apollo-utilities";
 
 declare let window: any;
 const _global = typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : {});
@@ -88,6 +89,18 @@ function dataIdFromObjectDebug (object: Object): string {
 }
 
 export const dataIdFromObject = environment.production ? dataIdFromObjectProduction : dataIdFromObjectDebug;
+
+
+export function isMutationOperation(operation: Operation) {
+  const def = getMainDefinition(operation.query);
+  return def.kind === 'OperationDefinition' && def.operation === 'mutation';
+}
+
+export function isSubscriptionOperation(operation: Operation) {
+  const def = getMainDefinition(operation.query);
+  return def.kind === 'OperationDefinition' && def.operation === 'subscription';
+}
+
 
 export interface TrackedQuery {
   id: string;

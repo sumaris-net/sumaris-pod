@@ -11,7 +11,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {PmfmIds} from "../../../referential/services/model/model.enum";
 import {isEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
 import {EntityUtils} from "../../../core/services/model/entity.model";
-import {EntitiesStorage} from "../../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../../core/services/storage/entities-storage.service";
 
 function getSortingMeasValues(opts?: {
   weight?: number;

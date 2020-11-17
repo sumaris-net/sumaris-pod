@@ -25,7 +25,7 @@ import {SynchronizationStatus} from "../../data/services/model/root-data-entity.
 import {SortDirection} from "@angular/material/sort";
 import {Trip} from "./model/trip.model";
 import {TripFilter} from "./trip.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {NetworkService} from "../../core/services/network.service";
 
 

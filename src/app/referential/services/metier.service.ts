@@ -9,7 +9,7 @@ import {FilterFn, SuggestService} from "../../shared/services/entity-service.cla
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Metier} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Moment} from "moment";

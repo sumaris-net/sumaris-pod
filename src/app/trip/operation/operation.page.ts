@@ -501,7 +501,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       ? this.save(event)
       // If desktop mode: ask before save
       : this.saveIfDirtyAndConfirm(null, {
-        ...this.saveOptions,
         emitEvent: false /*do not update view*/
       });
     const canContinue = await savePromise;
@@ -689,9 +688,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     return json;
   }
 
-  async save(event, opts?: any): Promise<boolean> {
+  async save(event, opts?: OperationSaveOptions): Promise<boolean> {
     // Force to pass specific saved options to dataService.save()
-    return await super.save(event, {...opts, ...this.saveOptions});
+    return await super.save(event, {...this.saveOptions, ...opts});
+  }
+
+  async saveIfDirtyAndConfirm(event?: UIEvent, opts?: { emitEvent: boolean }): Promise<boolean> {
+    return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
   }
 
   protected canUserWrite(data: Operation): boolean {

@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {SaleValidatorService} from "../services/validator/sale.validator";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
@@ -14,7 +14,8 @@ import {StatusIds} from "../../core/services/model/model.enum";
 @Component({
   selector: 'form-sale',
   templateUrl: './sale.form.html',
-  styleUrls: ['./sale.form.scss']
+  styleUrls: ['./sale.form.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SaleForm extends AppForm<Sale> implements OnInit {
 
@@ -43,7 +44,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     protected saleValidatorService: SaleValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, saleValidatorService.getFormGroup(), settings);
   }
@@ -88,6 +90,10 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         entityName: 'SaleType'
       }
     });
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 
   referentialToString = referentialToString;

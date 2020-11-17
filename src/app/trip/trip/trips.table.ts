@@ -349,7 +349,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     }
   }
 
-  async downloadJsonFile(uri) {
+  async downloadJsonFile(uri?: string) {
     uri = uri || 'http://server.e-is.pro/downloads/trip_833.json'
     try {
       let trip: any = await HttpUtils.getResource(this.http, uri);

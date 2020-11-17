@@ -12,8 +12,14 @@ import {ConnectionType, NetworkService} from "../services/network.service";
 import {WebSocketLink} from "apollo-link-ws";
 import {ApolloLink} from "apollo-link";
 import {InMemoryCache} from "apollo-cache-inmemory";
-import {AppWebSocket, createTrackerLink, dataIdFromObject, restoreTrackedQueries} from "./graphql.utils";
-import {getMainDefinition} from 'apollo-utilities';
+import {
+  AppWebSocket,
+  createTrackerLink,
+  dataIdFromObject,
+  isMutationOperation,
+  isSubscriptionOperation,
+  restoreTrackedQueries
+} from "./graphql.utils";
 import {persistCache} from "apollo-cache-persist";
 import {Storage} from "@ionic/storage";
 import {RetryLink} from 'apollo-link-retry';
@@ -55,7 +61,7 @@ export class GraphqlService {
   private _started = false;
   private _startPromise: Promise<any>;
   private _subscription = new Subscription();
-  private _networkStatusChanged$: Observable<ConnectionType>;
+  private readonly _networkStatusChanged$: Observable<ConnectionType>;
 
   private httpParams: Options;
   private wsParams: WebSocketLink.Configuration;
@@ -554,6 +560,8 @@ export class GraphqlService {
   protected async initApollo() {
 
     const mobile = this.platform.is('mobile') || this.platform.is('mobileweb');
+    const enableTrackMutationQueries = !mobile;
+
     const peer = this.network.peer;
     if (!peer) throw Error("[graphql] Missing peer. Unable to start graphql service");
 
@@ -587,11 +595,6 @@ export class GraphqlService {
     if (!client) {
       console.debug("[apollo] Creating GraphQL client...");
 
-
-      // timeout link
-      // TODO BLA
-      //const timeoutLink = new ApolloLinkTimeout(environment.apolloTimeout || 500000);
-
       // Websocket link
       const wsLink = new WebSocketLink(this.wsParams);
 
@@ -616,34 +619,27 @@ export class GraphqlService {
       // Http link
       const httpLink = this.httpLink.create(this.httpParams);
 
-
       // Cache
       const cache = new InMemoryCache({
         dataIdFromObject
       });
 
-
-      let retryLinks: Array<ApolloLink>;
-
-      // Mobile: Add retry when failed, and persist cache
-      if (mobile) {
-        retryLinks = [retryLink];
-
-        // Add cache persistence
-        if (environment.persistCache) {
-          console.debug("[graphql] Starting persistence cache...");
-          await persistCache({
-            cache,
-            storage,
-            trigger: this.platform.is("android") ? "background" : "write",
-            debounce: 1000,
-            debug: true
-          });
-        }
+      // Add cache persistence
+      if (environment.persistCache) {
+        console.debug("[graphql] Starting persistence cache...");
+        await persistCache({
+          cache,
+          storage,
+          trigger: this.platform.is("android") ? "background" : "write",
+          debounce: 1000,
+          debug: true
+        });
       }
 
-      // Desktop: add queue buffer, when offline
-      else {
+      let mutationLinks: Array<ApolloLink>;
+
+      // Add queue to store tracked queries, when offline
+      if (enableTrackMutationQueries) {
         const serializingLink = new SerializingLink();
         const trackerLink = createTrackerLink({
           storage,
@@ -666,13 +662,22 @@ export class GraphqlService {
               queueLink.open();
             }
           }));
-        retryLinks = [
+        mutationLinks = [
           loggerLink,
           queueLink,
           trackerLink,
           queueLink,
           serializingLink,
-          retryLink
+          retryLink,
+          authLink,
+          httpLink
+        ];
+      }
+      else {
+        mutationLinks = [
+          retryLink,
+          authLink,
+          httpLink
         ];
       }
 
@@ -680,26 +685,13 @@ export class GraphqlService {
       this.apollo.create({
         link:
           ApolloLink.split(
-            ({query}) => {
-              const def = getMainDefinition(query);
-              return def.kind === 'OperationDefinition' && def.operation === 'mutation';
-            },
-
             // Handle mutations
-            ApolloLink.from([
-                ...retryLinks,
-                authLink,
-                //timeoutLink,
-                httpLink
-              ]),
+            isMutationOperation,
+            ApolloLink.from(mutationLinks),
 
             ApolloLink.split(
-              (operation) => {
-                const def = getMainDefinition(operation.query);
-                return def.kind === 'OperationDefinition' && def.operation === 'subscription';
-              },
-
               // Handle subscriptions
+              isSubscriptionOperation,
               wsLink,
 
               // Handle queries
@@ -718,7 +710,7 @@ export class GraphqlService {
     }
 
     // Enable tracked queries persistence
-    if ((environment.offline || this.platform.is('mobile')) && environment.persistCache) {
+    if (enableTrackMutationQueries && environment.persistCache) {
 
       try {
         await restoreTrackedQueries({

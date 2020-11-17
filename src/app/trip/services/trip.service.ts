@@ -31,7 +31,7 @@ import {
 } from "../../data/services/model/data-entity.model";
 import {NetworkService} from "../../core/services/network.service";
 import {concat, defer, Observable, of, timer} from "rxjs";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {Beans, isEmptyArray, KeysEnum} from "../../shared/functions";
 import {DataQualityService} from "../../data/services/base.service";
 import {OperationFilter, OperationService} from "./operation.service";

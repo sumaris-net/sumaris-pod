@@ -12,7 +12,7 @@ import {AggregatedLanding} from "./model/aggregated-landing.model";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Beans} from "../../shared/functions";
 import gql from "graphql-tag";

@@ -14,7 +14,7 @@ import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.table";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {PhysicalGear, Trip} from "../services/model/trip.model";
 import {SelectPhysicalGearModal} from "../physicalgear/select-physical-gear.modal";

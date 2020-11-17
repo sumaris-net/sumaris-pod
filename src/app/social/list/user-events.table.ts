@@ -12,7 +12,7 @@ import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {SortDirection} from "@angular/material/sort";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {Trip} from "../../trip/services/model/trip.model";
 import {PredefinedColors} from "@ionic/core";
 import {IEntity} from "../../core/services/model/entity.model";

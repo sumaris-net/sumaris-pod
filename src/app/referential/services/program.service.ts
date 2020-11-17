@@ -29,7 +29,7 @@ import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {
   NOT_MINIFY_OPTIONS,
   ReferentialAsObjectOptions,
@@ -957,7 +957,7 @@ export class ProgramService extends BaseEntityService
       progression.next(progression.getValue() + progressionStep);
 
       // Step 2. Saving locally
-      await this.entities.saveAll(res.data, {entityName: 'ProgramVO'});
+      await this.entities.saveAll(res.data, {entityName: 'ProgramVO', reset: true});
       progression.next(progression.getValue() + progressionStep);
 
       // Make sure to fill the progression at least once

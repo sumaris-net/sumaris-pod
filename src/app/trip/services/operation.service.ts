@@ -26,7 +26,7 @@ import {
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
@@ -673,6 +673,31 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
   /* -- protected methods -- */
 
+  /**
+   * Save an operation on the local storage
+   * @param data
+   */
+  protected async saveLocally(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
+    if (entity.tripId >= 0) throw new Error('Must be a local entity');
+
+    const now = Date.now();
+    if (this._debug) console.debug("[operation-service] Saving operation locally...");
+
+    // Fill default properties (as recorder department and person)
+    this.fillDefaultProperties(entity, opts);
+
+    // Make sure to fill id, with local ids
+    await this.fillOfflineDefaultProperties(entity);
+
+    const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
+    if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
+
+    // Save response locally
+    await this.entities.save(jsonLocal);
+
+    return entity;
+  }
+
   protected asObject(entity: Operation, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
     const copy: any = entity.asObject(opts);
@@ -718,7 +743,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     }
   }
 
-  fillRecorderDepartment(entity: DataEntity<Operation | VesselPosition | Measurement>, department?: Department) {
+  protected fillRecorderDepartment(entity: DataEntity<Operation | VesselPosition | Measurement>, department?: Department) {
     if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
 
       department = department || this.accountService.department;
