@@ -656,11 +656,14 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     try {
       const deleteCount = rowsToDelete.length;
       await this._dataSource.deleteAll(rowsToDelete);
-      this.resultsLength -= deleteCount;
-      this.visibleRowCount -= deleteCount;
+
+      // Not need to update manually, because watchALl().subscribe() will update this count
+      //this.resultsLength -= deleteCount;
+      //this.visibleRowCount -= deleteCount;
       this.selection.clear();
       this.editedRow = undefined;
-      this.markAsDirty();
+      this.markAsDirty({emitEvent: false /*markForCheck() is called just after*/});
+      this.markForCheck();
       return deleteCount;
     } catch (err) {
       this.error = err && err.message || err;
