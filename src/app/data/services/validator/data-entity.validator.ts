@@ -64,7 +64,7 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>, O exte
   protected fillDefaultOptions(opts?: O): O {
     opts = opts || {} as O;
 
-    opts.isOnFieldMode = toBoolean(opts.isOnFieldMode, this.settings && this.settings.isUsageMode('FIELD') || false);
+    opts.isOnFieldMode = toBoolean(opts.isOnFieldMode, this.settings ? this.settings.isOnFieldMode() : false);
 
     return opts;
   }

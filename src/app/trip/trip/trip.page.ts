@@ -133,6 +133,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
               });
           }
         }));
+
+    this.registerSubscription(
+      this.physicalGearTable.onConfirmEditCreateRow
+        .subscribe((_) => this.showOperationTable = true));
   }
 
   protected registerForms() {
@@ -192,16 +196,16 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   updateViewState(data: Trip) {
     super.updateViewState(data);
 
-    // If new data
-    if (this.isNewData) {
-      // Enable gears and operations tabs, if a program has been selected
-      this.showGearTable = ReferentialUtils.isNotEmpty(this.programSubject.getValue());
-      this.showOperationTable = false;
-    }
-    else {
-      this.showGearTable = true;
-      this.showOperationTable = true;
-    }
+    // Update tabs state (show/hide)
+    this.updateTabsState(data);
+  }
+
+  updateTabsState(data: Trip) {
+    // Enable gears tab if a program has been selected
+    this.showGearTable = !this.isNewData || ReferentialUtils.isNotEmpty(this.programSubject.getValue());
+
+    // ENable operation tab if has gears
+    this.showOperationTable = this.showGearTable && isNotEmptyArray(data.gears);
   }
 
   protected async setValue(data: Trip): Promise<void> {

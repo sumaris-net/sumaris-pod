@@ -1,13 +1,6 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {
-  EntitiesService,
-  EntityServiceLoadOptions,
-  isNil,
-  isNilOrBlank,
-  isNotEmptyArray,
-  LoadResult
-} from "../../shared/shared.module";
+import {EntitiesService, EntityServiceLoadOptions, isNil, isNilOrBlank, LoadResult} from "../../shared/shared.module";
 import {BaseEntityService, Entity, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -20,17 +13,11 @@ import {SortDirection} from "@angular/material/sort";
 import {EntitiesServiceWatchOptions, Page} from "../../shared/services/entity-service.class";
 import {map} from "rxjs/operators";
 import {isEmptyArray, toNumber} from "../../shared/functions";
-import {IEntity} from "../../core/services/model/entity.model";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {NetworkService} from "../../core/services/network.service";
-import {options} from "ionicons/icons";
-import {Trip} from "../../trip/services/model/trip.model";
-import {DataRootEntityUtils} from "../../data/services/model/root-data-entity.model";
-import {concatPromises} from "../../shared/observables";
-import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 
 export class UserEventFilter {
   issuer?: string;

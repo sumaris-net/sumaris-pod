@@ -46,7 +46,7 @@ import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {HttpUtils} from "../../shared/http/http.utils";
 import {HTTP} from "@ionic-native/http/ngx";
 
@@ -66,7 +66,6 @@ export const TripsPageSettingsEnum = {
 })
 export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
-  private http: HttpClient | HTTP;
 
   canEdit: boolean;
   canDelete: boolean;
@@ -107,8 +106,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
-    http: HttpClient,
-    @Optional() nativeHttp: HTTP
+    protected http: HttpClient
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
@@ -159,7 +157,6 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fix value, to be able to reuse it in the trip page
 
-    this.http = platform.mobile ? nativeHttp : http;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
 
@@ -349,29 +346,33 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     }
   }
 
-  async downloadJsonFile(uri?: string) {
+  async importFromFile(uri?: string) {
     uri = uri || 'http://server.e-is.pro/downloads/trip_833.json'
+
+    // Download the JSON file
+    let json: any;
     try {
-      let trip: any = await HttpUtils.getResource(this.http, uri);
-      if (typeof trip === 'string') {
-        trip = JSON.parse(trip);
-      }
-
-      console.info(`Importing Trip#${trip.id}...`);
-
-      await this.service.restoreFromTrash([trip]);
-      console.info(`Successfully restored 1 trip...`);
-
-      // Success toast
-      setTimeout(() => {
-        this.showToast({
-          type: "info",
-          message: 'TRIP.TRASH.INFO.ONE_TRIP_RESTORED' });
-      }, 200);
-
+      console.info(`Downloading file: ${uri}...`);
+      json = await this.http.get(uri).toPromise();
     } catch (err) {
       console.error(`[select-peer] Error on get request ${uri}: ${err && err.statusText}`);
     }
+    if (!json || typeof json !== 'object') return; // Skip
+
+    console.info(`Importing Trip#${json.id}...`);
+    const trip = Trip.fromObject(json);
+    await this.service.restoreFromTrash([trip]);
+
+    console.info(`Successfully restored 1 trip...`);
+
+    // Success toast
+    setTimeout(() => {
+      this.showToast({
+        type: "info",
+        message: 'TRIP.TRASH.INFO.ONE_TRIP_RESTORED' });
+    }, 200);
+
+
   }
 
   async setSynchronizationStatus(value: SynchronizationStatus) {

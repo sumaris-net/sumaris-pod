@@ -68,8 +68,9 @@
 
   <!-- Add local trip -->
   <button mat-menu-item *ngIf="debug && !offline"
-          (click)="downloadJsonFile()">
-    <ion-label>Import JSON file</ion-label>
+          (click)="importFromFile()">
+    <mat-icon>insert_drive_file</mat-icon>
+    <ion-label>Import file...</ion-label>
   </button>
 </mat-menu>
 
