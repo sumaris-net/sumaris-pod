@@ -45,12 +45,13 @@ import {ReferentialRefTable} from "./list/referential-ref.table";
 import {StrategyForm} from "./strategy/strategy.form";
 import {PmfmQvFormField} from "./pmfm/pmfm-qv.form-field.component";
 import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
-
+import {TextMaskModule} from "angular2-text-mask";
 
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule
+    CoreModule,
+    TextMaskModule
   ],
   declarations: [
     ReferentialsPage,

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {FormBuilder} from "@angular/forms";
+import {AbstractControl, ControlValueAccessor, FormBuilder} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {AppForm, ReferentialRef, IReferentialRef} from '../../core/core.module';
 import {StatusIds} from "../../core/services/model/model.enum";
@@ -10,6 +10,8 @@ import {BehaviorSubject} from "rxjs";
 import { Planification } from 'src/app/trip/services/model/planification.model';
 import { PlanificationValidatorService } from 'src/app/trip/services/validator/planification.validator';
 import { Program } from '../services/model/program.model';
+import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
+import { InputElement } from 'src/app/shared/shared.module';
 
 @Component({
   selector: 'form-planification',
@@ -20,7 +22,7 @@ import { Program } from '../services/model/program.model';
     {provide: PlanificationValidatorService}
   ],
 })
-export class PlanificationForm extends AppForm<Planification> implements OnInit {
+export class PlanificationForm extends AppForm<Planification> implements OnInit, ControlValueAccessor, InputElement {
 
   protected formBuilder: FormBuilder;
   private _sampleRowCode = new BehaviorSubject<string>(null);
@@ -69,6 +71,18 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
 
   @Input() program: Program;
 
+  sampleRowCode: string = '';
+
+  @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
+
+
+  sampleRowCodeModel: any;
+  public sampleRowCodeMask = {
+    guide: true,
+    showMask : true,
+    mask: [/\d/, /\d/, /\d/, /\d/, '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/]
+  };
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: PlanificationValidatorService,
@@ -77,6 +91,25 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit 
     protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
+  }
+  tabIndex?: number;
+  hidden?: boolean;
+  focus() {
+    throw new Error('Method not implemented.');
+  }
+  writeValue(value: any): void {
+     if (value !== this.sampleRowCode) {
+          this.sampleRowCode = value;
+        }
+  }
+  registerOnChange(fn: any): void {
+    throw new Error('Method not implemented.');
+  }
+  registerOnTouched(fn: any): void {
+    throw new Error('Method not implemented.');
+  }
+  setDisabledState?(isDisabled: boolean): void {
+    throw new Error('Method not implemented.');
   }
 
   ngOnInit() {
