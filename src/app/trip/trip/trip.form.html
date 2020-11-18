@@ -79,7 +79,7 @@
           [placeholder]="'TRIP.RETURN_LOCATION'|translate"
           formControlName="returnLocation"
           [config]="autocompleteFields.location"
-          [required]="usageMode|isOnField">
+          [required]="usageMode|isNotOnField">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
