@@ -217,15 +217,16 @@ export class EntityStore<T extends Entity<T>> {
       return this._entities.length;
     }
 
-    // get dirty index
-    const dirtyIndexes = Object.values(this._statusById).filter(s => s && s.dirty).map(s => s.index);
-    Object.values(this._statusById).forEach(s => s.dirty = false);
-    this._dirty = false;
-
-    // Copy the list to saved
+    // Copy some data, BEFORE to call markAsPristine() to allow parallel changes
+    const dirtyIndexes = Object.values(this._statusById)
+      .filter(s => s && s.dirty)
+      .map(s => s.index);
     const entities = this._entities.slice();
 
-    // Map dirty entities to light entities (after the previous copy)
+    // Mark all (entities and status) as pristine
+    this.markAsPristine({emitEvent: false});
+
+    // Map dirty entities to light entities (AFTER the previous copy)
     if (this._mapToLightEntity) {
       dirtyIndexes.forEach(index => this._entities[index] = this._mapToLightEntity(this._entities[index]));
     }
@@ -308,6 +309,19 @@ export class EntityStore<T extends Entity<T>> {
 
   markAsDirty(opts?: { emitEvent?: boolean; }) {
     this._dirty = true;
+
+    // Emit update event
+    if (!opts || opts.emitEvent !== false) {
+      this.emitEvent();
+    }
+  }
+
+  markAsPristine(opts?: { emitEvent?: boolean; }) {
+
+    Object.values(this._statusById)
+      .filter(isNotNil)
+      .forEach(s => s.dirty = false);
+    this._dirty = false;
 
     // Emit update event
     if (!opts || opts.emitEvent !== false) {
