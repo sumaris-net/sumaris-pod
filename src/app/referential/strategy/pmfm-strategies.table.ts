@@ -262,11 +262,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // Pmfm
-    // FIXME CLT Manage column header according to program parameter instead of application parameter.
-    //this.program;
-    //const pmfmColumnName = this.program.getProperty(ProgramProperties.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME);
-    //vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
-    const pmfmStrategyParameterColumnNameFormat = this.settings.getFieldDisplayAttributes('pmfmStrategyParameterColumnName');
+    // INFO CLT Manage column header according to displayed strategy and application parameter.
+    // Default pmfm column name according to displayed strategy when parameter isn't set in application settings.
+    const defaultPmfmColumnName: string = this.canDisplaySimpleStrategyValidators ? 'SHORT_COLUMN_TITLE' :'LONG_COLUMN_TITLE';
+    const pmfmStrategyParameterColumnNameFormat = this.settings.getFieldDisplayAttributes('pmfmStrategyParameterColumnName', [defaultPmfmColumnName]);
     const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
     const pmfmAttributes = basePmfmAttributes
       .map(attr => attr === 'name' ? 'parameter.name' : attr)
@@ -659,7 +658,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$pmfms.next(res && res.data || [])
   }
 
-    
+
 
 
 
