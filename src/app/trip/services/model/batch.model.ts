@@ -79,7 +79,7 @@ export class Batch<T extends Batch<any> = Batch<any>,
     if (!source) return null;
 
     // Convert entity into object, WITHOUT children (will be add later)
-    const target = source.asObject({...opts, withChildren: false});
+    const target = source.asObject ? source.asObject({...opts, withChildren: false}) : {...source, children: undefined};
 
     // Link target with the given parent
     const parent = opts && opts.parent;
