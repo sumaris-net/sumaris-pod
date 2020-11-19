@@ -1,5 +1,5 @@
 import {NgModule} from "@angular/core";
-import {CommonModule, KeyValuePipe} from "@angular/common";
+import {CommonModule} from "@angular/common";
 import {TranslateModule} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
 import {DateFormatPipe} from "./date-format.pipe";
@@ -10,7 +10,7 @@ import {NumberFormatPipe} from "./number-format.pipe";
 import {HighlightPipe} from "./highlight.pipe";
 import {FileSizePipe} from "./file-size.pipe";
 import {DurationPipe} from "./duration.pipe";
-import {MathAbsPipe} from "./math-abs.pipe";
+import {EvenPipe, MathAbsPipe, OddPipe} from "./math.pipes";
 import {ArrayLengthPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
 import {MapGetPipe} from "./maps.pipe";
 
@@ -33,6 +33,8 @@ import {MapGetPipe} from "./maps.pipe";
     NumberFormatPipe,
     FileSizePipe,
     MathAbsPipe,
+    OddPipe,
+    EvenPipe,
     NotEmptyArrayPipe,
     EmptyArrayPipe,
     ArrayLengthPipe,
@@ -50,6 +52,8 @@ import {MapGetPipe} from "./maps.pipe";
     NumberFormatPipe,
     FileSizePipe,
     MathAbsPipe,
+    OddPipe,
+    EvenPipe,
     NotEmptyArrayPipe,
     EmptyArrayPipe,
     ArrayLengthPipe,

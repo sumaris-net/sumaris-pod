@@ -141,25 +141,48 @@
         [formGroup]="measurementValuesForm">
 
     <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
-      <!-- If mobile, force 'button' style for qualitative value PMFMs -->
-      <app-pmfm-qv-field #inputField
-                         *ngIf="mobile && !pmfm.hidden && pmfm.isQualitative; else otherField"
-                         [pmfm]="pmfm"
-                         [style]="'button'"
-                         [sortAttribute]="['name']"
-                         [formControlName]="pmfm.pmfmId.toString()"
-                         [compact]="compact"
-                         [tabindex]="tabindex + 20 + i*2"
-                         (keyup.enter)="focusNextInput($event)">
-      </app-pmfm-qv-field>
+      <ng-container [ngSwitch]="pmfm.type">
 
-      <!-- NOT mobile and qualitative value -->
-      <ng-template #otherField>
+        <!-- qualitative value PMFM -->
+        <ng-container *ngSwitchCase="'qualitative_value'">
+          <!-- If mobile, force 'button' style -->
+          <app-pmfm-qv-field #inputField
+                             *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
+                             [pmfm]="pmfm"
+                             [style]="'button'"
+                             [sortAttribute]="['name']"
+                             [formControlName]="pmfm.pmfmId.toString()"
+                             [compact]="compact"
+                             [tabindex]="tabindex + 20 + i*2"
+                             (keyup.enter)="focusNextInput($event)">
+          </app-pmfm-qv-field>
+        </ng-container>
+
+        <!-- qualitative value PMFM -->
+        <ng-container *ngSwitchCase="'boolean'">
+          <!-- If mobile, force 'button' style -->
+          <mat-boolean-field #inputField
+                             *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
+                             [style]="'button'"
+                             [formControlName]="pmfm.pmfmId.toString()"
+                             [compact]="compact"
+                             [tabindex]="tabindex + 20 + i*2"
+                             (keyup.enter)="focusNextInput($event)">
+          </mat-boolean-field>
+        </ng-container>
+
+        <ng-container *ngSwitchDefault>
+          <ng-template [ngTemplateOutlet]="defaultPmfmField"></ng-template>
+        </ng-container>
+
+      </ng-container>
+
+      <ng-template #defaultPmfmField>
         <app-pmfm-field #inputField
                         [pmfm]="pmfm"
                         [hidden]="pmfm.hidden"
                         [formControlName]="pmfm.pmfmId.toString()"
-                        [compact]="compact"
+                        [compact]="mobile"
                         (keyup.enter)="focusNextInputOrSubmit($event, last)"
                         [tabindex]="tabindex + 20 + i*2">
         </app-pmfm-field>
@@ -196,7 +219,7 @@
             {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}
           </mat-error>
 
-          <!-- checkbox, when compact -->
+          <!-- checkbox (to manually set the individual count, otherwise it increment one by one) -->
           <mat-checkbox matSuffix [formControl]="enableIndividualCountControl"
                         labelPosition="after"
                         tabindex="-1">

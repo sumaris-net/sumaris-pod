@@ -10,11 +10,10 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, referentialToString, EntitiesService} from "../../core/core.module";
+import {EntitiesService, environment} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PhysicalGearModal} from "./physical-gear.modal";
 import {PhysicalGear} from "../services/model/trip.model";
 import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearFilter} from "../services/physicalgear.service";
@@ -157,9 +156,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     return (data instanceof PhysicalGear) ? data : undefined;
   }
-
-  referentialToString = referentialToString;
-  measurementValueToString = MeasurementValuesUtils.valueToString;
 
   /* -- protected methods -- */
 

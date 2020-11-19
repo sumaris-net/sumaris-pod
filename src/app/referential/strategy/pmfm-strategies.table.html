@@ -106,7 +106,7 @@
                         [compact]="true">
         </app-pmfm-field>
         <ng-template #pmfmReadonly>
-          {{pmfmValueToString(row.currentData.defaultValue, row.currentData.pmfm)}}
+          <ion-text [innerHTML]="row.currentData.defaultValue | pmfmValueToString: {pmfm: row.currentData.pmfm}"></ion-text>
         </ng-template>
       </ng-container>
     </mat-cell>

@@ -1,12 +1,5 @@
 import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
 import {CoreModule} from '../core/core.module';
-import {VesselService} from './services/vessel-service';
-import {VesselValidatorService} from './services/validator/vessel.validator';
-import {ReferentialRefService} from './services/referential-ref.service';
-import {ReferentialService} from './services/referential.service';
-import {ReferentialValidatorService} from './services/validator/referential.validator';
-import {ProgramService} from './services/program.service';
 import {VesselForm} from "./vessel/form/form-vessel";
 import {VesselPage} from "./vessel/page/vessel.page";
 import {VesselsTable} from "./vessel/list/vessels.table";
@@ -15,27 +8,15 @@ import {ReferentialsPage} from './list/referentials';
 
 import {ReferentialForm} from "./form/referential.form";
 import {ProgramPage} from "./program/program.page";
-import {ProgramValidatorService} from "./services/validator/program.validator";
-import {StrategyValidatorService} from "./services/validator/strategy.validator";
 import {StrategiesTable} from "./strategy/strategies.table";
 import {SoftwarePage} from "./software/software.page";
 import {VesselFeaturesHistoryComponent} from "./vessel/page/vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registration-history.component";
-import {VesselFeaturesValidatorService} from "./services/validator/vessel-features.validator";
-import {VesselRegistrationValidatorService} from "./services/validator/vessel-registration.validator";
-import {SoftwareValidatorService} from "./services/validator/software.validator";
-import {SoftwareService} from "./services/software.service";
 import {VesselsPage} from "./vessel/list/vessels.page";
-import {PmfmService} from "./services/pmfm.service";
-import {ParameterService} from "./services/parameter.service";
-import {PmfmValidatorService} from "./services/validator/pmfm.validator";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {ParameterPage} from "./pmfm/parameter.page";
-import {ParameterValidatorService} from "./services/validator/parameter.validator";
 import {ReferentialTable} from "./list/referential.table";
-import {ReferentialRoutingModule} from "./referential-routing.module";
 import {PmfmStrategiesTable} from "./strategy/pmfm-strategies.table";
-import {PmfmStrategyValidatorService} from "./services/validator/pmfm-strategy.validator";
 import {SelectReferentialModal} from "./list/select-referential.modal";
 import {ReferentialRefTable} from "./list/referential-ref.table";
 import {StrategyForm} from "./strategy/strategy.form";
@@ -43,7 +24,7 @@ import {PmfmQvFormField} from "./pmfm/pmfm-qv.form-field.component";
 import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
 import {ReferentialToStringPipe} from "./services/pipes/referential-to-string.pipe";
 import {TranslateModule} from "@ngx-translate/core";
-import {SharedModule} from "../shared/shared.module";
+import {IsComputedPmfmPipe, IsDatePmfmPipe, PmfmNamePipe, PmfmValueToStringPipe} from "./pipes/pmfms.pipe";
 
 
 @NgModule({
@@ -54,6 +35,10 @@ import {SharedModule} from "../shared/shared.module";
   declarations: [
     // Pipes
     ReferentialToStringPipe,
+    PmfmNamePipe,
+    PmfmValueToStringPipe,
+    IsDatePmfmPipe,
+    IsComputedPmfmPipe,
 
     // Components
     ReferentialsPage,
@@ -83,6 +68,10 @@ import {SharedModule} from "../shared/shared.module";
 
     // Pipes
     ReferentialToStringPipe,
+    PmfmNamePipe,
+    PmfmValueToStringPipe,
+    IsDatePmfmPipe,
+    IsComputedPmfmPipe,
 
     // Components
     ReferentialsPage,

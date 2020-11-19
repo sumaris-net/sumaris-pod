@@ -11,8 +11,7 @@ import {
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {BatchGroup} from "./batch-group.model";
-import {SubBatch} from "./subbatch.model";
+import {PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -239,7 +238,7 @@ export class BatchUtils {
     if (!parent) return null;
     opts = opts || {taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name']};
     if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.pmfmId])) {
-      return MeasurementValuesUtils.valueToString(parent.measurementValues[opts.pmfm.pmfmId], opts.pmfm);
+      return PmfmValueUtils.valueToString(parent.measurementValues[opts.pmfm.pmfmId], {pmfm: opts.pmfm});
     }
     const hasTaxonGroup = ReferentialUtils.isNotEmpty(parent.taxonGroup);
     const hasTaxonName = ReferentialUtils.isNotEmpty(parent.taxonName);

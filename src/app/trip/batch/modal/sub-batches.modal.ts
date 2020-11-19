@@ -397,6 +397,4 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     }, 1500);
   }
 
-  measurementValueToString = MeasurementValuesUtils.valueToString;
-
 }

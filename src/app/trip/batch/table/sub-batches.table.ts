@@ -509,12 +509,12 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   protected mapPmfms(pmfms: PmfmStrategy[]) {
 
     if (this._qvPmfm) {
-      // Remove QV pmfms
+      // Make sure QV Pmfm is required (need to link with parent batch)
       const index = pmfms.findIndex(pmfm => pmfm.pmfmId === this._qvPmfm.pmfmId);
       if (index !== -1) {
         // Replace original pmfm by a clone, with hidden=true
         const qvPmfm = this._qvPmfm.clone();
-        qvPmfm.hidden = true;
+        qvPmfm.hidden = false;
         qvPmfm.required = true;
 
         pmfms[index] = qvPmfm;
@@ -524,17 +524,15 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     // Exclude weight Pmfm
     pmfms = pmfms.filter(ps => !ps.isWeight);
 
+    // Filter on parents taxon groups
     const parentTaxonGroupIds = (this._availableParents || []).map(parent => parent.taxonGroup && parent.taxonGroup.id)
       .filter(isNotNil);
     if (isNotEmptyArray(parentTaxonGroupIds)) {
       pmfms = pmfms.map(pmfm => {
-        const hidden = isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.findIndex(id => parentTaxonGroupIds.includes(id)) === -1;
-        if (hidden) {
-          pmfm = pmfm.clone();
+        if (isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.findIndex(id => parentTaxonGroupIds.includes(id)) === -1) {
+          pmfm = pmfm.clone(); // Keep original
           pmfm.hidden = true;
-        }
-        else {
-          pmfm.hidden = false;
+          pmfm.required = false;
         }
         return pmfm;
       });

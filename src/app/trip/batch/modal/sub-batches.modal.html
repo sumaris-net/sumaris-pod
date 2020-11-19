@@ -53,6 +53,7 @@
         <app-sub-batch-form #form
                             [debug]="debug"
                             [program]="program"
+                            [acquisitionLevel]="acquisitionLevel"
                             [parentGroup]="parentGroup"
                             [pmfms]="$pmfms|async"
                             [qvPmfm]="qvPmfm"
@@ -93,24 +94,21 @@
 
           <!-- parent -->
           <ng-container matColumnDef="parentGroup">
-            <mat-header-cell *matHeaderCellDef >
-              <ion-label>{{ (displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
-                  'TRIP.BATCH.TABLE.PARENT_GROUP') | translate }}</ion-label>
+            <mat-header-cell *matHeaderCellDef [hidden]="!showParentGroup">
+              <ion-label>{{ (displayParentPmfm | pmfmName ) || ('TRIP.BATCH.TABLE.PARENT_GROUP' | translate) }}</ion-label>
             </mat-header-cell>
-            <mat-cell *matCellDef="let row">
-              {{ autocompleteFields.parentGroup.displayWith(row.currentData.parentGroup) }}
+            <mat-cell *matCellDef="let row" [hidden]="!showParentGroup">
+              <ion-text>{{ autocompleteFields.parentGroup.displayWith(row.currentData.parentGroup) }}</ion-text>
             </mat-cell>
           </ng-container>
 
           <!-- QV Pmfm columns -->
           <ng-container *ngIf="qvPmfm" [matColumnDef]="qvPmfm.pmfmId.toString()">
-            <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="qvPmfm.isDate">
-              <ion-label>{{getPmfmColumnHeader(qvPmfm)}}
-                <small *ngIf="qvPmfm.hasUnit"><br />({{qvPmfm.unitLabel}})</small>
-              </ion-label>
+            <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
+              <ion-label [innerHTML]="qvPmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
             </mat-header-cell>
-            <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="qvPmfm.isDate">
-              <span [innerHTML]="measurementValueToString(row.currentData.measurementValues[qvPmfm.pmfmId], qvPmfm)"></span>
+            <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
+              <ion-text>{{row.currentData.measurementValues[qvPmfm.pmfmId] | pmfmValueToString: {pmfm: qvPmfm} }}</ion-text>
             </mat-cell>
           </ng-container>
 
@@ -120,20 +118,19 @@
               <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row">
-              {{autocompleteFields.taxonName?.displayWith(row.currentData.taxonName) }}
+              <ion-text>{{autocompleteFields.taxonName?.displayWith(row.currentData.taxonName) }}</ion-text>
             </mat-cell>
           </ng-container>
 
           <!-- Pmfms columns -->
           <ng-container *ngFor="let pmfm of $pmfms | async">
             <ng-container *ngIf="pmfm.pmfmId !== qvPmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
-              <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm.isDate" >
-                <ion-label>{{getPmfmColumnHeader(pmfm)}}
-                  <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unitLabel}})</small>
-                </ion-label>
+              <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm|isDatePmfm" >
+                <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
               </mat-header-cell>
-              <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate" class="mat-column-pmfm">
-                <span [innerHTML]="measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm)"></span>
+              <mat-cell *matCellDef="let row" class="mat-column-pmfm"
+                        [class.mat-cell-date-time]="pmfm|isDatePmfm">
+                <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.pmfmId] | pmfmValueToString: { pmfm: pmfm, html: true }"></ion-text>
               </mat-cell>
             </ng-container>
           </ng-container>

@@ -61,16 +61,16 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static valueToString(value: any, pmfm: PmfmStrategy | Pmfm, propertyNames?: string[]): string | undefined {
-    if (isNil(value) || !pmfm) return null;
-    switch (pmfm.type) {
+  static valueToString(value: any, opts: { pmfm: PmfmStrategy | Pmfm, propertyNames?: string[]; html?: boolean; } ): string | undefined {
+    if (isNil(value) || !opts || !opts.pmfm) return null;
+    switch (opts.pmfm.type) {
       case "qualitative_value":
         if (value && typeof value !== "object") {
           const qvId = parseInt(value);
-          value = (pmfm.qualitativeValues || (pmfm instanceof Pmfm && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
+          value = opts.pmfm && (opts.pmfm.qualitativeValues || (opts.pmfm instanceof Pmfm && opts.pmfm.parameter && opts.pmfm.parameter.qualitativeValues) || [])
             .find(qv => qv.id === qvId) || null;
         }
-        return value && ((propertyNames && joinPropertiesPath(value, propertyNames)) || value.name || value.label) || null;
+        return value && ((opts.propertyNames && joinPropertiesPath(value, opts.propertyNames)) || value.name || value.label) || null;
       case "integer":
       case "double":
         return isNotNil(value) ? value : null;
@@ -82,7 +82,7 @@ export abstract class PmfmValueUtils {
         return (value === "true" || value === true || value === 1) ? '&#x2714;' /*checkmark*/ :
           ((value === "false" || value === false || value === 0) ? '' : null); /*empty*/
       default:
-        throw new Error("Unknown pmfm's type: " + pmfm.type);
+        throw new Error("Unknown pmfm's type: " + opts.pmfm.type);
     }
   }
 

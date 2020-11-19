@@ -10,7 +10,7 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
+import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {isNilOrBlank, isNotNil} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -22,7 +22,7 @@ import {SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
-import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
@@ -285,8 +285,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Override by subclasses
   }
 
-  referentialToString = referentialToString;
-  getPmfmColumnHeader = getPmfmName;
 
   public markForCheck() {
     this.cd.markForCheck();

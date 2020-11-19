@@ -668,7 +668,6 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       .pipe(
         map(res => {
           const existingOperation = (res && res.data ||[]).find(o => o.id === source.id);
-          console.log('rankOrderOnPeriod=' + existingOperation && existingOperation.rankOrderOnPeriod);
           return existingOperation ? existingOperation.rankOrderOnPeriod : null;
         })
       );

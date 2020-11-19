@@ -4,7 +4,6 @@ import {
   Component,
   ElementRef,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   QueryList,
@@ -27,7 +26,8 @@ import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../../refere
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BehaviorSubject, combineLatest} from "rxjs";
 import {
-  getPropertyByPath, isEmptyArray,
+  getPropertyByPath,
+  isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotNil,
@@ -45,6 +45,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
+import {TranslateService} from "@ngx-translate/core";
 
 
 @Component({
@@ -176,7 +177,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService,
     protected platform: PlatformService,
-    protected zone: NgZone,
+    protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
@@ -187,7 +188,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateControls: (form) => this.onUpdateControls(form)
       });
-
     // Remove required label/rankOrder
     this.form.controls.label.setValidators(null);
     this.form.controls.rankOrder.setValidators(null);
@@ -242,7 +242,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
       items: this.$taxonNames,
       mobile: this.mobile
     });
-
 
     // Fill taxon names, from the parent changes
     if (this.showTaxonName){
@@ -343,7 +342,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.registerSubscription(
       parentControl.valueChanges
         .pipe(
-          filter(parentGroup => parentGroup && (!this.data.parentGroup || this.data.parentGroup.id !== parentGroup))
+          filter(parentGroup => parentGroup && (!this.data.parentGroup || this.data.parentGroup.id !== parentGroup.id))
         )
         .subscribe(parentGroup => {
 
@@ -560,13 +559,15 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
       }
     }
 
+    // If there is a parent: filter on parent's taxon group
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
-    if (isNil(parentTaxonGroupId)) return pmfms;
+    if (isNotNil(parentTaxonGroupId)) {
+      pmfms = pmfms
+        .filter(pmfm => isEmptyArray(pmfm.taxonGroupIds)
+          || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
+    }
 
-    // Filter on parent's taxon group
-    return pmfms
-      .filter(pmfm => isEmptyArray(pmfm.taxonGroupIds)
-      || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
+    return pmfms;
   }
 
   protected onUpdateControls(form: FormGroup) {

@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityUtils, environment, joinPropertiesPath, referentialToString} from "../../core/core.module";
+import {EntityUtils, environment, joinPropertiesPath} from "../../core/core.module";
 import {PmfmIds} from "../../referential/services/model/model.enum";
 import {SubSampleValidatorService} from "../services/validator/sub-sample.validator";
 import {isNil, isNotNil} from "../../shared/functions";
@@ -8,10 +8,10 @@ import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {filterNotNil, firstFalsePromise} from "../../shared/observables";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {Sample} from "../services/model/sample.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SortDirection} from "@angular/material/sort";
+import {PmfmValueUtils} from "../../referential/services/model/pmfm-value.model";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -136,11 +136,10 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
             this.autocompleteFields.parent.columnSizes = [4].concat(displayAttributes.map(attr =>
               // If label then col size = 2
               attr.endsWith('label') ? 2 : undefined));
-            this.autocompleteFields.parent.columnNames = [this.getPmfmColumnHeader(this.displayParentPmfm)];
+            this.autocompleteFields.parent.columnNames = [getPmfmName(this.displayParentPmfm)];
             this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
-              && MeasurementValuesUtils.valueToString(
-                obj.measurementValues[this.displayParentPmfm.pmfmId],
-                this.displayParentPmfm) || undefined;
+              && PmfmValueUtils.valueToString(obj.measurementValues[this.displayParentPmfm.pmfmId], {pmfm: this.displayParentPmfm})
+              || undefined;
           } else {
             this.autocompleteFields.parent.attributes = displayAttributes;
             this.autocompleteFields.parent.columnSizes = undefined; // use defaults
@@ -310,7 +309,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     return this._availableSortedParents.filter(p => p.rankOrder.toString().startsWith(value));
   }
 
-  referentialToString = referentialToString;
 
   protected markForCheck() {
     this.cd.markForCheck();

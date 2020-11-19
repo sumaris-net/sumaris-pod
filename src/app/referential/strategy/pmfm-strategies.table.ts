@@ -13,18 +13,12 @@ import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmService} from "../services/pmfm.service";
 import {Pmfm} from "../services/model/pmfm.model";
-import {
-  IReferentialRef,
-  ReferentialRef,
-  referentialToString,
-  ReferentialUtils
-} from "../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {Program} from "../services/model/program.model";
-import {SelectionChange} from "@angular/cdk/collections";
 
 export class PmfmStrategyFilter {
 
@@ -437,10 +431,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   protected startEditingRow() {
     console.log("TODO start edit")
   }
-
-  filterNumberInput = filterNumberInput;
-  referentialToString = referentialToString;
-  pmfmValueToString = PmfmValueUtils.valueToString;
 
   protected markForCheck() {
     this.cd.markForCheck();

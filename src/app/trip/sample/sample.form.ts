@@ -6,7 +6,7 @@ import {MeasurementsValidatorService} from "../services/validator/measurement.va
 import {FormBuilder} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {IReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {IReferentialRef} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -110,7 +110,6 @@ export class SampleForm extends MeasurementValuesForm<Sample>
       });
   }
 
-  referentialToString = referentialToString;
   selectInputContent = AppFormUtils.selectInputContent;
 
   protected markForCheck() {

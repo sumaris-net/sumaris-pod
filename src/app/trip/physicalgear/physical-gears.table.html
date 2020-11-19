@@ -62,25 +62,21 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ng-container *ngIf="row.currentData.gear">
-        <span class="visible-sm visible-xs" [title]="row.currentData.gear.label + ' - ' + row.currentData.gear.name">
+        <ion-text [title]="row.currentData.gear | referentialToString">
           {{row.currentData.gear.label}}
-        </span>
-        <span class="hidden-sm hidden-xs" [title]="row.currentData.gear.label + ' - ' + row.currentData.gear.name">
-          {{row.currentData.gear.label}} - {{row.currentData.gear.name}}
-        </span>
+          <span class="hidden-sm hidden-xs"> - {{row.currentData.gear.name}}</span>
+        </ion-text>
       </ng-container>
     </mat-cell>
   </ng-container>
 
   <!-- Pmfms columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-      <ion-label>{{getPmfmColumnHeader(pmfm)}}
-        <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unitLabel}})</small>
-      </ion-label>
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+      <ion-label [innerHTML]="pmfm|pmfmName: {withUnit: true, html: true}"></ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
-      {{measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm) }}
+    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm">
+      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.pmfmId] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
     </mat-cell>
   </ng-container>
 

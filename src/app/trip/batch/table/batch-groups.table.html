@@ -58,8 +58,8 @@
   <!-- Dynamic columns -->
   <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef" [matColumnDef]="col.key">
     <mat-header-cell *matHeaderCellDef class="qv"
-                     [class.even]="isQvEven(col)"
-                     [class.odd]="isQvOdd(col)"
+                     [class.even]="col.qvIndex | even"
+                     [class.odd]="col.qvIndex | odd"
                      [class.hidden-mobile]="col.rankOrder % 5 !== 0"
                      [class.show]="col.rankOrder % 5 === 0">
       <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="col.rankOrder % 5 === 0">
@@ -279,7 +279,7 @@
 
       <mat-cell *matCellDef="let row">
         <ion-label>
-          {{ referentialToString(row.currentData.taxonGroup, autocompleteFields.taxonGroup.attributes) }}
+          {{ row.currentData.taxonGroup | referentialToString: autocompleteFields.taxonGroup.attributes }}
         </ion-label>
       </mat-cell>
     </ng-container>
@@ -291,7 +291,7 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" >
         <ion-label>
-          {{ referentialToString(row.currentData.taxonName, autocompleteFields.taxonName.attributes) }}
+          {{ row.currentData.taxonName | referentialToString: autocompleteFields.taxonName.attributes }}
         </ion-label>
       </mat-cell>
 
@@ -315,8 +315,8 @@
 
       <mat-cell *matCellDef="let row"
                 [class.total]="col.rankOrder % 5 < 2"
-                [class.odd]="isQvOdd(col)"
-                [class.even]="isQvEven(col)"
+                [class.odd]="col.qvIndex | odd"
+                [class.even]="col.qvIndex | even"
                 [class.hidden-xs]="col.rankOrder % 5 !== 0"
                 [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
                 [class.mat-cell-computed]="col.computed"
