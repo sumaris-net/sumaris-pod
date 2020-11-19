@@ -65,4 +65,6 @@ public class TrashGraphQLService {
         Page<String> page = service.findAll(entityName, pageable, String.class);
         return page.hasContent() ? page.getContent() : ImmutableList.of();
     }
+
+    // TODO: add delete from trash
 }

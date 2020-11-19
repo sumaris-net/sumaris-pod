@@ -243,6 +243,24 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
+     * <p>find the ActiveMQ broker username (or null if no auth).</p>
+     *
+     * @return a {@link Integer}
+     */
+    public String getActiveMQBrokerUserName() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_USERNAME.getKey());
+    }
+
+    /**
+     * <p>find the ActiveMQ broker username (or null if no auth).</p>
+     *
+     * @return a {@link Integer}
+     */
+    public String getActiveMQBrokerPassword() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_PASSWORD.getKey());
+    }
+
+    /**
      * <p>Is ActiveMQ enabled ?</p>
      *
      * @return a {@link Boolean}

@@ -333,13 +333,13 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "deleteTrip", description = "Delete a trip")
     @IsUser
     public void deleteTrip(@GraphQLArgument(name = "id") int id) {
-        tripService.delete(id);
+        tripService.asyncDelete(id);
     }
 
     @GraphQLMutation(name = "deleteTrips", description = "Delete many trips")
     @IsUser
     public void deleteTrips(@GraphQLArgument(name = "ids") List<Integer> ids) {
-        tripService.delete(ids);
+        tripService.asyncDelete(ids);
     }
 
     @GraphQLSubscription(name = "updateTrip", description = "Subscribe to changes on a trip")

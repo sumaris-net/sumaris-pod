@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import net.sumaris.core.config.SumarisConfigurationOption;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -80,9 +80,7 @@ public class TrashServiceImpl implements TrashService {
     }
 
     @Override
-    public <V> Page<V> findAll(String entityName, Pageable pageable, Class<? extends V> clazz) {
-        Preconditions.checkNotNull(entityName);
-        Preconditions.checkNotNull(pageable);
+    public <V> Page<V> findAll(@NonNull String entityName, @NonNull Pageable pageable, Class<? extends V> clazz) {
 
         // Make sure sort attribute is updateDate
         // This is because we don't want to deserialize all files, then sort, but we prefer sort on file date,
@@ -242,8 +240,8 @@ public class TrashServiceImpl implements TrashService {
                 .toString();
         File file = new File(directory, filename);
 
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Add %s#%s to trash {%s/%s}", entityName, data.getId(), entityName, filename));
+        if (log.isInfoEnabled()) {
+            log.info("Add {}#{} to trash {path: '{}/{}'}", entityName, data.getId(), entityName, filename);
         }
 
         try (FileWriter writer = new FileWriter(file)) {

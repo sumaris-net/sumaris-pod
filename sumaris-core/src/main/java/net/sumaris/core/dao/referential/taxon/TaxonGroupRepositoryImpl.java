@@ -57,6 +57,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -118,11 +119,12 @@ public class TaxonGroupRepositoryImpl
         final EntityManager em = getEntityManager();
 
         // Get existing hierarchy
-        final Multimap<Integer, Integer> existingLinkToRemove = ArrayListMultimap.create();
+        final Multimap<Integer, Integer> existingLinksToRemove = ArrayListMultimap.create();
+        final Multimap<Integer, Integer> newLinks = ArrayListMultimap.create();
         CriteriaQuery<TaxonGroupHierarchy> query = em.getCriteriaBuilder().createQuery(TaxonGroupHierarchy.class);
         query.from(TaxonGroupHierarchy.class);
         em.createQuery(query).getResultStream()
-            .forEach(th -> existingLinkToRemove.put(th.getParentTaxonGroup().getId(), th.getChildTaxonGroup().getId()));
+            .forEach(th -> existingLinksToRemove.put(th.getParentTaxonGroup().getId(), th.getChildTaxonGroup().getId()));
 
         final MutableInt insertCounter = new MutableInt();
 
@@ -131,22 +133,33 @@ public class TaxonGroupRepositoryImpl
             .forEach(tg -> {
                 Integer childId = tg.getId();
                 // Link to himself
-                if (!existingLinkToRemove.remove(childId, childId)) {
+                if (!existingLinksToRemove.remove(childId, childId)
+                        && !newLinks.containsEntry(childId, childId)) {
                     TaxonGroupHierarchy tgh = new TaxonGroupHierarchy();
                     tgh.setParentTaxonGroup(load(TaxonGroup.class, childId));
                     tgh.setChildTaxonGroup(load(TaxonGroup.class, childId));
                     em.persist(tgh);
                     insertCounter.increment();
+                    newLinks.put(childId, childId);
+                    if (log.isDebugEnabled()) log.debug(String.format("Adding TAXON_GROUP_HISTORY: TaxonGroup#%s -> himself",
+                            childId,
+                            childId));
                 }
 
                 TaxonGroup parent = tg.getParentTaxonGroup();
                 while (parent != null) {
-                    if (!existingLinkToRemove.remove(parent.getId(), childId)) {
+                    Integer parentId = parent.getId();
+                    if (!existingLinksToRemove.remove(parentId, childId)
+                            && !newLinks.containsEntry(parentId, childId)) {
                         TaxonGroupHierarchy tgh = new TaxonGroupHierarchy();
-                        tgh.setParentTaxonGroup(load(TaxonGroup.class, parent.getId()));
+                        tgh.setParentTaxonGroup(load(TaxonGroup.class, parentId));
                         tgh.setChildTaxonGroup(load(TaxonGroup.class, childId));
                         em.persist(tgh);
                         insertCounter.increment();
+                        newLinks.put(parentId, childId);
+                        if (log.isDebugEnabled()) log.debug(String.format("Adding TAXON_GROUP_HISTORY: Parent(TaxonGroup#%s) -> Child(TaxonGroup#%s)",
+                                parentId,
+                                childId));
                     }
                     parent = parent.getParentTaxonGroup();
                 }
@@ -157,8 +170,8 @@ public class TaxonGroupRepositoryImpl
 
         // Remove unused values
         final MutableInt deleteCounter = new MutableInt();
-        if (!existingLinkToRemove.isEmpty()) {
-            existingLinkToRemove.entries().forEach(entry -> {
+        if (!existingLinksToRemove.isEmpty()) {
+            existingLinksToRemove.entries().forEach(entry -> {
                 int deletedRowCount = em.createQuery("delete from TaxonGroupHierarchy where parentTaxonGroup.id=:parentId and childTaxonGroup.id=:childId")
                     .setParameter("parentId", entry.getKey())
                     .setParameter("childId", entry.getValue())
@@ -176,12 +189,13 @@ public class TaxonGroupRepositoryImpl
         final EntityManager em = getEntityManager();
 
         // Get existing hierarchy
-        final Multimap<Integer, Integer> existingLinkToRemove = ArrayListMultimap.create();
+        final Multimap<Integer, Integer> existingLinksToRemove = ArrayListMultimap.create();
+        final Multimap<Integer, Integer> newLinks = ArrayListMultimap.create();
         {
             CriteriaQuery<TaxonGroup2TaxonHierarchy> query = em.getCriteriaBuilder().createQuery(TaxonGroup2TaxonHierarchy.class);
             query.from(TaxonGroup2TaxonHierarchy.class);
             em.createQuery(query).getResultStream()
-                .forEach(th -> existingLinkToRemove.put(th.getParentTaxonGroup().getId(), th.getChildReferenceTaxon().getId()));
+                .forEach(th -> existingLinksToRemove.put(th.getParentTaxonGroup().getId(), th.getChildReferenceTaxon().getId()));
         }
 
         // Get all taxon group
@@ -192,9 +206,10 @@ public class TaxonGroupRepositoryImpl
             em.createQuery(query).getResultStream()
                 .forEach(history -> {
                     Integer parentId = history.getTaxonGroup().getId();
-                    Integer childId = history.getReferenceTaxon().getId();
+                    Integer directChildId = history.getReferenceTaxon().getId();
                     // Direct link
-                    if (!existingLinkToRemove.remove(parentId, childId)) {
+                    if (!existingLinksToRemove.remove(parentId, directChildId)
+                            && !newLinks.containsEntry(parentId, directChildId)) {
                         TaxonGroup2TaxonHierarchy hierarchy = new TaxonGroup2TaxonHierarchy();
                         hierarchy.setParentTaxonGroup(history.getTaxonGroup());
                         hierarchy.setChildReferenceTaxon(history.getReferenceTaxon());
@@ -203,15 +218,22 @@ public class TaxonGroupRepositoryImpl
                         hierarchy.setIsInherited(false);
                         em.persist(hierarchy);
                         insertCounter.increment();
+                        newLinks.put(parentId, directChildId);
+                        if (log.isDebugEnabled()) log.debug(String.format("Adding TAXON_GROUP2TAXON_HISTORY: Parent(TaxonGroup#%s) -> Child(ReferenceTaxon#%s) at %s",
+                                parentId,
+                                directChildId,
+                                DateFormat.getDateInstance().format(history.getStartDate())));
                     }
 
-                    TaxonNameVO parent = taxonNameRepository.findTaxonNameReferent(childId)
-                            .orElseThrow(() -> new SumarisTechnicalException("Cannot find taxon name for referenceTaxonId=" + childId));
+                    TaxonNameVO parent = taxonNameRepository.findTaxonNameReferent(directChildId)
+                            .orElseThrow(() -> new SumarisTechnicalException("Cannot find taxon name for referenceTaxonId=" + directChildId));
                     List<TaxonName> children = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(parent.getId()));
                     while (CollectionUtils.isNotEmpty(children)) {
                         children.forEach(child -> {
+                            // Inherited link
                             Integer inheritedChildId = child.getReferenceTaxon().getId();
-                            if (!existingLinkToRemove.remove(parentId, inheritedChildId)) {
+                            if (!existingLinksToRemove.remove(parentId, inheritedChildId)
+                                    && !newLinks.containsEntry(parentId, inheritedChildId)) {
                                 TaxonGroup2TaxonHierarchy hierarchy = new TaxonGroup2TaxonHierarchy();
                                 hierarchy.setParentTaxonGroup(history.getTaxonGroup());
                                 hierarchy.setChildReferenceTaxon(child.getReferenceTaxon());
@@ -220,6 +242,11 @@ public class TaxonGroupRepositoryImpl
                                 hierarchy.setIsInherited(true); // Mark has inherited
                                 em.persist(hierarchy);
                                 insertCounter.increment();
+                                newLinks.put(parentId, inheritedChildId);
+                                if (log.isDebugEnabled()) log.debug(String.format("Adding TAXON_GROUP2TAXON_HISTORY (inherited): Parent(TaxonGroup#%s) -> Child(ReferenceTaxon#%s) at %s",
+                                        parentId,
+                                        inheritedChildId,
+                                        DateFormat.getDateInstance().format(history.getStartDate())));
                             }
                         });
                         children = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(
@@ -235,8 +262,8 @@ public class TaxonGroupRepositoryImpl
 
         // Remove unused values
         final MutableInt deleteCounter = new MutableInt();
-        if (!existingLinkToRemove.isEmpty()) {
-            existingLinkToRemove.entries().forEach(entry -> {
+        if (!existingLinksToRemove.isEmpty()) {
+            existingLinksToRemove.entries().forEach(entry -> {
                 int nbRow = em.createQuery("delete from TaxonGroup2TaxonHierarchy where parentTaxonGroup.id=:parentId and childReferenceTaxon.id=:childId")
                     .setParameter("parentId", entry.getKey())
                     .setParameter("childId", entry.getValue())

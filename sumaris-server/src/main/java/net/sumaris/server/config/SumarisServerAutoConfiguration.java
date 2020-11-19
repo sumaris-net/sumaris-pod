@@ -23,6 +23,7 @@
 package net.sumaris.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.sumaris.core.util.StringUtils;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
@@ -50,8 +52,10 @@ public class SumarisServerAutoConfiguration {
     @Bean
     public JmsListenerContainerFactory<?> jmsListenerContainerFactory(
             ConnectionFactory connectionFactory,
-            DefaultJmsListenerContainerFactoryConfigurer configurer) {
+            DefaultJmsListenerContainerFactoryConfigurer configurer,
+            TaskExecutor taskExecutor) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setTaskExecutor(taskExecutor);
         factory.setErrorHandler(t -> log.error("An error has occurred in the JMS transaction: " + t.getMessage(), t));
         configurer.configure(factory, connectionFactory);
         return factory;
@@ -75,10 +79,20 @@ public class SumarisServerAutoConfiguration {
     )
     @ConditionalOnClass(name = "org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter")
     public ConnectionFactory connectionFactory(SumarisServerConfiguration config) {
-        log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s', store: 'KahaDB'}...", config.getActiveMQBrokerURL()));
+        String url = config.getActiveMQBrokerURL();
+        String userName = config.getActiveMQBrokerUserName();
+        String password = config.getActiveMQBrokerPassword();
 
-        // Enable persistence, with file storage
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(config.getActiveMQBrokerURL());
-        return connectionFactory;
+        // Use username/pwd constructor
+        if (StringUtils.isNotBlank(userName)) {
+            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s', userName: '%s', password: '******'}...", config.getActiveMQBrokerURL(), userName));
+            return new ActiveMQConnectionFactory(userName, password, url);
+        }
+
+        // Use URL only constructor
+        else {
+            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s'}...", config.getActiveMQBrokerURL()));
+            return new ActiveMQConnectionFactory(url);
+        }
     }
 }

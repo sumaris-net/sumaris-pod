@@ -160,6 +160,16 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.spring.activemq.broker-url.description"),
             "vm://embedded?broker.persistent=true",
             String.class),
+    ACTIVEMQ_BROKER_USERNAME(
+            "spring.activemq.broker-username",
+            n("sumaris.config.option.spring.activemq.broker-username.description"),
+            "",
+            String.class),
+    ACTIVEMQ_BROKER_PASSWORD(
+            "spring.activemq.broker-password",
+            n("sumaris.config.option.spring.activemq.broker-username.description"),
+            "",
+            String.class),
 
     SITE_FAVICON(
             "sumaris.favicon",

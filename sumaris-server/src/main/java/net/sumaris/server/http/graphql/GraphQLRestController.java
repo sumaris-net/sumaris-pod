@@ -31,10 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -57,9 +54,15 @@ public class GraphQLRestController {
         log.info(String.format("Starting GraphQL endpoint {%s}...", GraphQLPaths.BASE_PATH));
     }
 
-
-
-    @PostMapping(value = GraphQLPaths.BASE_PATH, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = GraphQLPaths.BASE_PATH,
+            consumes = {
+                MediaType.APPLICATION_JSON_VALUE,
+                MediaType.APPLICATION_JSON_UTF8_VALUE
+            },
+            produces = {
+                MediaType.APPLICATION_JSON_VALUE,
+                MediaType.APPLICATION_JSON_UTF8_VALUE
+            })
     @ResponseBody
     public Map<String, Object> indexFromAnnotated(@RequestBody Map<String, Object> request, HttpServletRequest rawRequest) {
         ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
