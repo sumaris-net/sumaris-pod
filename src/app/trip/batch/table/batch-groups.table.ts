@@ -690,7 +690,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         program: this.program,
         acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
         usageMode: this.usageMode,
-        showParentGroup: true,
+        showParentGroup,
         parentGroup: parentGroup,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,

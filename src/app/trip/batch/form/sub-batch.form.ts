@@ -244,9 +244,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     });
 
 
-    //  Manage parent changes
-    if (this.showParentGroup){
-
+    // Fill taxon names, from the parent changes
+    if (this.showTaxonName){
       // Mobile
       if (this.mobile) {
 
@@ -255,19 +254,13 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
           // Compute taxon names when parent has changed
           parentControl.valueChanges
-            // Compute taxon names when parent has changed
             .pipe(
               filter(parent => isNotNilOrBlank(parent) && isNotNilOrBlank(parent.label) && currentParenLabel !== parent.label),
               tap(parent => currentParenLabel = parent.label),
               mergeMap((_) => this.suggestTaxonNames())
             )
-            .subscribe(taxonNames => {
-              // Update taxon names
-              this.$taxonNames.next(taxonNames);
-
-              // Update pmfms (it can depends on the selected parent's taxon group)
-              this.refreshPmfms();
-            });
+            // Update taxon names
+            .subscribe(taxonNames => this.$taxonNames.next(taxonNames));
 
           // Update taxonName when need
           let lastTaxonName: TaxonNameRef;
@@ -327,21 +320,40 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
             .subscribe((taxonNames) => {
               // Update taxon names
               this.$taxonNames.next(taxonNames);
+
+              // Is only one value
               if (taxonNames.length === 1) {
-                taxonNameControl.patchValue(taxonNames[0], {emitEVent: false});
+                const defaultTaxonName = taxonNames[0];
+                // Set the field
+                taxonNameControl.patchValue(defaultTaxonName, {emitEVent: false});
+                // Remember for next form reset
+                this.data.taxonName = defaultTaxonName;
               }
               else {
                 taxonNameControl.reset(null, {emitEVent: false});
+                // Remember for next form reset
+                this.data.taxonName = undefined;
               }
 
-              // Set selected parent as default
-              this.data.parentGroup = parentControl.value;
-
-              // Update pmfms (it can depends on the selected parent's taxon group)
-              this.refreshPmfms();
             }));
       }
     }
+
+    // Compute taxon names when parent has changed
+    this.registerSubscription(
+      parentControl.valueChanges
+        .pipe(
+          filter(parentGroup => parentGroup && (!this.data.parentGroup || this.data.parentGroup.id !== parentGroup))
+        )
+        .subscribe(parentGroup => {
+
+          // Remember for next form reset
+          this.data.parentGroup = parentGroup;
+
+          // Update pmfms (it can depends on the selected parent's taxon group)
+          this.refreshPmfms();
+        }));
+
 
     this.registerSubscription(
       this.enableIndividualCountControl.valueChanges

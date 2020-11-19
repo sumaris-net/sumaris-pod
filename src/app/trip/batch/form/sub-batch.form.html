@@ -208,7 +208,7 @@
 
         <ion-button color="tertiary" class="ion-float-end"
                     [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || invalid"
+                    [disabled]="loading && !valid"
                     (click)="doSubmit($event)"
                     (keyup.enter)="doSubmit($event)"
                     [tabindex]="tabindex + 101">
