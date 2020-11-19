@@ -37,9 +37,10 @@ const noop = () => {
 export class MatBooleanField implements OnInit, ControlValueAccessor, InputElement {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
-  private _value: boolean;
   private _writing = false;
-  private _tabindex: number;
+
+  _value: boolean;
+  _tabindex: number;
 
   showRadio = false;
 
@@ -59,6 +60,14 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
 
   @Input() compact = false;
 
+  @Input() style: 'radio' | 'checkbox' | 'button';
+
+  @Output('keyup.enter')
+  onPressEnter: EventEmitter<any> = new EventEmitter<any>();
+
+  @Output()
+  onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+
   @Input() set tabindex(value: number) {
     if (this._tabindex !== value) {
       this._tabindex = value;
@@ -69,9 +78,6 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
   get tabindex(): number {
     return this._tabindex;
   }
-
-  @Output()
-  onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
   get value(): any {
     return this._value;
@@ -103,10 +109,12 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-boolean-field>.");
 
+    this.style = this.style || (this.compact ? 'checkbox' : 'radio');
+
     this.updateTabIndex();
   }
 
-  writeValue(value: any): void {
+  writeValue(value: any, event?: UIEvent): void {
     if (this._writing) return;
 
     this._writing = true;
@@ -118,6 +126,13 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
       }
     }
     this._writing = false;
+
+    if (this.style === 'button' && event) {
+      if (value !== this.formControl.value) {
+        this.formControl.patchValue(value, {emitEvent: false});
+      }
+      if (event) this.onPressEnter.emit(event);
+    }
 
     this.markForCheck();
   }

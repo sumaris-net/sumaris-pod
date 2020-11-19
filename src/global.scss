@@ -635,6 +635,11 @@ mat-table {
       padding-top: 0.4em;
     }
 
+    .mat-boolean-field-button.mat-form-field-appearance-legacy .mat-form-field-infix,
+    .mat-boolean-field-button .mat-form-field-infix {
+      // Increase top border (because of button height)
+      padding-top: 0.4em;
+    }
 
   }
 

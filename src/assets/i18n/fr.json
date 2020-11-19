@@ -140,6 +140,7 @@
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux données des autres",
       "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux extractions des autres",
+      "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
@@ -1286,9 +1287,9 @@
       "SEX": "Sex",
       "STATION_COUNT": "Nombre de station",
       "VESSEL_COUNT": "Nombre de navires",
-      "FISHING_TIME": "Temps de pêche (h)",
-      "OFFICIAL_LANDINGS_VALUE": "Valeur débarquée (€)",
-      "OFFICIAL_LANDINGS_WEIGHT": "Poids débarquée (kg)"
+      "FISHING_TIME": "Temps de pêche (h. dec)",
+      "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",
+      "OFFICIAL_LANDINGS_WEIGHT": "Poids officiel débarqué (kg)"
     },
     "SHEET": {
       "TR": "Marées",
@@ -1423,7 +1424,7 @@
     "UNKNOWN_NETWORK_ERROR": "Erreur de communication avec le serveur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "BAD_UPDATE_DATE": "Sauvegarde impossible (modification concurrente détectée).",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
-    "DATA_NO_FOUND": "Donnée non trouvée.",
+    "DATA_NOT_FOUND": "Donnée non trouvée",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_CONFIG_ERROR": "Erreur du chargement de la configuration",

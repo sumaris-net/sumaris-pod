@@ -146,7 +146,7 @@
         <!-- qualitative value PMFM -->
         <ng-container *ngSwitchCase="'qualitative_value'">
           <!-- If mobile, force 'button' style -->
-          <app-pmfm-qv-field #inputField
+          <app-pmfm-qv-field
                              *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
                              [pmfm]="pmfm"
                              [style]="'button'"
@@ -154,27 +154,27 @@
                              [formControlName]="pmfm.pmfmId.toString()"
                              [compact]="compact"
                              [tabindex]="tabindex + 20 + i*2"
-                             (keyup.enter)="focusNextInput($event)">
+                             (keyup.enter)="focusNextInputOrSubmit($event, last)">
           </app-pmfm-qv-field>
         </ng-container>
 
         <!-- qualitative value PMFM -->
         <ng-container *ngSwitchCase="'boolean'">
           <!-- If mobile, force 'button' style -->
-          <mat-boolean-field #inputField
+          <mat-boolean-field
                              *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
                              [style]="'button'"
+                             [placeholder]="pmfm|pmfmName"
                              [formControlName]="pmfm.pmfmId.toString()"
                              [compact]="compact"
                              [tabindex]="tabindex + 20 + i*2"
-                             (keyup.enter)="focusNextInput($event)">
+                             (keyup.enter)="focusNextInputOrSubmit($event, last)">
           </mat-boolean-field>
         </ng-container>
 
-        <ng-container *ngSwitchDefault>
-          <ng-template [ngTemplateOutlet]="defaultPmfmField"></ng-template>
+        <!-- other PMFM types -->
+        <ng-container *ngSwitchDefault [ngTemplateOutlet]="defaultPmfmField">
         </ng-container>
-
       </ng-container>
 
       <ng-template #defaultPmfmField>
