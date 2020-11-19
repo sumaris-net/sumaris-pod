@@ -242,7 +242,7 @@ export class EntityStore<T extends Entity<T>> {
       // Save each entity into a unique key (advanced mode)
       if (this.options.storeById) {
         // Save ids
-        await this.storage.set(this._storageKey + "#ids", entities.map(e => e.id));
+        await this.storage.set(this._storageKey + "#ids", entities.filter(isNotNil).map(e => e.id));
 
         // Saved dirty entities
         await Promise.all(

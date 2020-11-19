@@ -23,7 +23,7 @@ import {FormGroup} from "@angular/forms";
 import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
-import {ServerErrorCodes} from "../services/errors";
+import {ErrorCodes, ServerErrorCodes} from "../services/errors";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;
@@ -205,6 +205,7 @@ export abstract class AppEntityEditor<
     else {
       try {
         const data = await this.dataService.load(id, opts);
+        if (!data) throw {code: ErrorCodes.DATA_NOT_FOUND_ERROR, message: 'ERROR.DATA_NO_FOUND'};
         this._usageMode = this.computeUsageMode(data);
         await this.onEntityLoaded(data, opts);
         this.updateView(data, opts);

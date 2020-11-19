@@ -1423,6 +1423,7 @@
     "UNKNOWN_NETWORK_ERROR": "Erreur de communication avec le serveur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "BAD_UPDATE_DATE": "Sauvegarde impossible (modification concurrente détectée).",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
+    "DATA_NO_FOUND": "Donnée non trouvée.",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_CONFIG_ERROR": "Erreur du chargement de la configuration",

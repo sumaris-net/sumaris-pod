@@ -82,8 +82,7 @@ export class Configuration extends Software<Configuration> {
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
-    if (this.partners)
-      target.partners = (this.partners || []).map(p => p.asObject(options));
+    target.partners = this.partners && this.partners.map(p => p.asObject(options)) || undefined;
     return target;
   }
 
@@ -92,8 +91,7 @@ export class Configuration extends Software<Configuration> {
     this.smallLogo = source.smallLogo;
     this.largeLogo = source.largeLogo;
     this.backgroundImages = source.backgroundImages;
-    if (source.partners)
-      this.partners = (source.partners || []).map(Department.fromObject);
+    this.partners = source.partners && source.partners.map(Department.fromObject) || undefined;
   }
 
   getPropertyAsBoolean(definition: FormFieldDefinition): boolean {

@@ -363,6 +363,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       // Load locally
       if (id < 0) {
         json = await this.entities.load<Operation>(id, Operation.TYPENAME);
+        if (!json) throw {code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR"};
       }
 
       // Load from pod

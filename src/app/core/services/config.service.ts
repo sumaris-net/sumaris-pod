@@ -474,7 +474,7 @@ export class ConfigService extends SoftwareService<Configuration> {
       {
         now = this._debug && Date.now();
         if (this._debug) console.debug("[config] Saving config into local storage...");
-        await this.storage.set(CONFIGURATION_STORAGE_KEY, data);
+        await this.storage.set(CONFIGURATION_STORAGE_KEY, data.asObject());
         if (this._debug) console.debug(`[config] Saving config into local storage [OK] in ${Date.now() - now}ms`);
       }
     }

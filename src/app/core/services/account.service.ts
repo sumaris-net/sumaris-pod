@@ -733,9 +733,6 @@ export class AccountService extends BaseEntityService {
         pubkey && this.storage.remove(ACCOUNT_STORAGE_KEY + '#' + pubkey) || Promise.resolve(),
         this.storage.remove(SECKEY_STORAGE_KEY)
       ]);
-
-      // Clean page history, in local settings
-      await this.settings.clearPageHistory();
     }
 
     // Offline features enable: need to keep some data
@@ -750,6 +747,9 @@ export class AccountService extends BaseEntityService {
         this.storage.remove(SECKEY_STORAGE_KEY)
       ]);
     }
+
+    // Clean page history, in local settings
+    await this.settings.clearPageHistory();
 
     // Notify observers
     this.onLogout.next();

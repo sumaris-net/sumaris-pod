@@ -23,6 +23,7 @@ export const ErrorCodes = {
 
   // DATA errors (load error)
   LOAD_PERSONS_ERROR: 100,
+  DATA_NOT_FOUND_ERROR: 104,
 
   TABLE_INVALID_ROW_ERROR: 350,
   TABLE_READ_ONLY: 351,

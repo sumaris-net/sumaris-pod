@@ -101,7 +101,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.measurementsDataService.pmfms = pmfms;
   }
 
-
   @Input() set dataService(value: EntitiesService<T, F>) {
     this.measurementsDataService.delegate = value;
     if (!this.loading) {
@@ -233,6 +232,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     const pmfmColumnNames = pmfms
       //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
+      .filter(p => !p.hidden)
       .map(p => p.pmfmId.toString());
 
     const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));

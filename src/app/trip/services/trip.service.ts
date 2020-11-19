@@ -568,6 +568,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       // If local entity
       if (id < 0) {
         json = await this.entities.load<Trip>(id, Trip.TYPENAME);
+        if (!json) throw {code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR"};
 
         if (opts && opts.withOperation) {
           json.operations = await this.entities.loadAll<Operation>('OperationVO', {
@@ -720,12 +721,10 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[trip-service] Using minify object, to send:", json);
 
-    // Select mutation
+    const variables = {
+      trip: json, tripSaveOption: {withLanding, withOperation, withOperationGroup}
+    };
     const mutation = (withLanding) ? SaveLandedTripQuery : SaveTripQuery;
-    // Build save options: provided or default
-    const variables = {trip: json, tripSaveOption: options || {withLanding, withOperation, withOperationGroup}};
-    // console.debug(variables);
-
     await this.graphql.mutate<{ saveTrip: any, saveLandedTrip: any }>({
        mutation,
        variables,
@@ -815,7 +814,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       entity = await this.save(entity, {
         withLanding: false,
         withOperation: true,
-        enableOptimisticResponse: false // Optimistice response not need
+        enableOptimisticResponse: false // Optimistic response not need
       });
 
       if (isNil(entity.id) || entity.id < 0) {
@@ -1369,7 +1368,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
   }
 
-  copyIdAndUpdateDate(source: Trip | undefined, target: Trip, options?: TripServiceSaveOption) {
+  copyIdAndUpdateDate(source: Trip | undefined, target: Trip, opts?: TripServiceSaveOption) {
     if (!source) return;
 
     // Update (id and updateDate), and control validation
@@ -1377,7 +1376,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     // Update parent link
     target.observedLocationId = source.observedLocationId;
-    if (options.withLanding && source.landing && target.landing) {
+    if (opts && opts.withLanding && source.landing && target.landing) {
       EntityUtils.copyIdAndUpdateDate(source.landing, target.landing);
     }
 
@@ -1387,7 +1386,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       DataRootEntityUtils.copyControlAndValidationDate(source.sale, target.sale);
 
       // For a landedTrip with operationGroups, copy directly sale's product, a reload must be done after service call
-      if (options && options.withLanding && source.sale.products) {
+      if (opts && opts.withLanding && source.sale.products) {
         target.sale.products = source.sale.products;
       }
     }
@@ -1425,7 +1424,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     }
 
     // Update operation groups
-    if (source.operationGroups && target.operationGroups && options && options.withOperationGroup) {
+    if (source.operationGroups && target.operationGroups && opts && opts.withOperationGroup) {
       target.operationGroups.forEach(targetOperationGroup => {
         const sourceOperationGroup = source.operationGroups.find(json => targetOperationGroup.equals(json));
         EntityUtils.copyIdAndUpdateDate(sourceOperationGroup, targetOperationGroup);
