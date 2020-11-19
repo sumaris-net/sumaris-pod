@@ -102,7 +102,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           }
           this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
           this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
-          this.operationTable.showMap = program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+          this.operationTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
           if (this.isNewData) {
             // If new data, enable gears tab
