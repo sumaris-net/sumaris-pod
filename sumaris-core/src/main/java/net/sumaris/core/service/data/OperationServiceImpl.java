@@ -148,16 +148,17 @@ public class OperationServiceImpl implements OperationService {
 
     @Override
     public void delete(int id) {
-		// Construct the delete event
+		// Construct the event data
 		// (should be done before deletion, to be able to get the VO)
-		EntityDeleteEvent event = new EntityDeleteEvent(id, Operation.class.getSimpleName(), enableTrash ? get(id) : null);
+        OperationVO eventData = enableTrash ? get(id) : null;
 
 		// Apply deletion
 		operationRepository.deleteById(id);
 
 		// Emit the event
-		publisher.publishEvent(event);
 
+        EntityDeleteEvent event = new EntityDeleteEvent(id, Operation.class.getSimpleName(), eventData);
+        publisher.publishEvent(event);
     }
 
     @Override

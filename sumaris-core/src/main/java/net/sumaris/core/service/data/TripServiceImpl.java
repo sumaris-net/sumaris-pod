@@ -33,10 +33,6 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.event.config.ConfigurationEvent;
-import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
@@ -60,7 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -109,6 +105,12 @@ public class TripServiceImpl implements TripService {
 
     @Autowired
     private FishingAreaService fishingAreaService;
+
+    @Autowired(required = false)
+    private TaskExecutor taskExecutor;
+
+    @Autowired
+    private TripService self;
 
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
@@ -471,8 +473,10 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public void delete(int id) {
+        boolean enableTrash = configuration.enableEntityTrash();
+        log.info("Delete Trip#{} {trash: {}}", id, enableTrash);
 
-        IValueObject eventData = configuration.enableEntityTrash() ?
+        TripVO eventData = enableTrash ?
                 get(id, DataFetchOptions.builder().withChildrenEntities(true).build()) :
                 null;
 
@@ -491,11 +495,50 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
+    public void asyncDelete(int id) {
+        if (taskExecutor == null) {
+            delete(id);
+        } else {
+            // Delete async
+            taskExecutor.execute(() -> {
+                try {
+                    Thread.sleep(2000); // Wait 2 s
+
+                    // Call self, to be sure to have a transaction
+                    self.delete(id);
+                } catch (Exception e) {
+                    log.warn(String.format("Error while deleting trip {id: %s}: %s", id, e.getMessage()), e);
+                }
+            });
+        }
+    }
+
+
+    @Override
     public void delete(List<Integer> ids) {
         Preconditions.checkNotNull(ids);
         ids.stream()
-            .filter(Objects::nonNull)
-            .forEach(this::delete);
+                .filter(Objects::nonNull)
+                .forEach(this::delete);
+    }
+
+    @Override
+    public void asyncDelete(List<Integer> ids) {
+        if (taskExecutor == null) {
+            delete(ids);
+        } else {
+            // Delete async
+            taskExecutor.execute(() -> {
+                try {
+                    Thread.sleep(2000); // Wait 2 s
+
+                    // Call self, to be sure to have a transaction
+                    self.delete(ids);
+                } catch (Exception e) {
+                    log.warn(String.format("Error while deleting trip {ids: %s}: %s", ids, e.getMessage()), e);
+                }
+            });
+        }
     }
 
     @Override
@@ -539,6 +582,7 @@ public class TripServiceImpl implements TripService {
     }
 
     /* protected methods */
+
 
     void fillDefaultProperties(TripVO parent, SaleVO sale) {
         if (sale == null) return;

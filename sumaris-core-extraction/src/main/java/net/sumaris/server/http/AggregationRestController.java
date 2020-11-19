@@ -72,7 +72,8 @@ public class AggregationRestController {
                     },
                     method = RequestMethod.GET,
                     produces = {
-                        MediaType.APPLICATION_JSON_UTF8_VALUE
+                        MediaType.APPLICATION_JSON_UTF8_VALUE,
+                        MediaType.APPLICATION_JSON_VALUE
                 })
     public FeatureCollection getGeoAggregation(@PathVariable(name = "label") String label,
                                                @PathVariable(name = "space", required = false) String spaceStrata,

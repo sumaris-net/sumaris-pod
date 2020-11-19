@@ -25,7 +25,6 @@ package net.sumaris.core.service.data;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
@@ -33,7 +32,6 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -186,7 +184,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void delete() {
-        service.delete(fixtures.getTripId(0));
+        service.asyncDelete(fixtures.getTripId(0));
     }
 
     @Test
@@ -201,7 +199,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
             Assume.assumeNoException(e);
         }
 
-        service.delete(savedVO.getId());
+        service.asyncDelete(savedVO.getId());
     }
 
     /* -- Protected -- */

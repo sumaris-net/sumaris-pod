@@ -70,11 +70,17 @@ public interface TripService {
 
 	List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions);
 
-	void delete(int id);
+	void asyncDelete(int id);
 
+	void asyncDelete(List<Integer> ids);
+
+	@Transactional(timeout = -1)
 	void delete(List<Integer> ids);
 
-    TripVO control(TripVO trip);
+	@Transactional(timeout = -1)
+	void delete(int id);
+
+	TripVO control(TripVO trip);
 
 	TripVO validate(TripVO trip);
 
