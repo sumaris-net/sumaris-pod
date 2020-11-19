@@ -7,18 +7,19 @@
       </ion-button>
     </ion-buttons>
 
-    <ion-title>
-      {{$title | async}}
+    <ion-title [innerHTML]="$title|async">
     </ion-title>
 
     <ion-buttons slot="end" >
-      <ion-spinner *ngIf="loading"></ion-spinner>
+      <ion-spinner *ngIf="loading; else closeButton"></ion-spinner>
 
-      <ion-button *ngIf="!loading" (click)="close($event)"
-                  [disabled]="invalid"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-      </ion-button>
+      <ng-template #closeButton>
+        <ion-button (click)="close($event)"
+                    [disabled]="invalid"
+                    visible-xs visible-sm visible-mobile>
+          <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+        </ion-button>
+      </ng-template>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

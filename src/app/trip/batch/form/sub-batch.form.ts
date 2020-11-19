@@ -27,7 +27,7 @@ import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../../refere
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BehaviorSubject, combineLatest} from "rxjs";
 import {
-  getPropertyByPath,
+  getPropertyByPath, isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotNil,
@@ -68,7 +68,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   freezeQvPmfmControl: AbstractControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
-
 
   @Input() tabindex: number;
 
@@ -160,6 +159,11 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     return this.form.controls.parentGroup.value;
   }
 
+  @Input()
+  set parentGroup(value: any) {
+    this.form.controls.parentGroup.setValue(value);
+  }
+
   @ViewChildren(PmfmFormField) measurementFormFields: QueryList<PmfmFormField>;
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
 
@@ -240,86 +244,103 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     });
 
 
-    // Mobile
-    if (this.mobile) {
+    //  Manage parent changes
+    if (this.showParentGroup){
 
-      this.ready().then(() => {
-        let currentParenLabel;
+      // Mobile
+      if (this.mobile) {
 
-        // Compute taxon names when parent has changed
-        parentControl.valueChanges
+        this.ready().then(() => {
+          let currentParenLabel;
+
           // Compute taxon names when parent has changed
-          .pipe(
-            filter(parent => isNotNilOrBlank(parent) && isNotNilOrBlank(parent.label) && currentParenLabel !== parent.label),
-            tap(parent => currentParenLabel = parent.label),
-            mergeMap((_) => this.suggestTaxonNames())
-          )
-          .subscribe(items => this.$taxonNames.next(items));
-
-        // Update taxonName when need
-        let lastTaxonName: TaxonNameRef;
-        this.registerSubscription(
-          combineLatest([
-            this.$taxonNames,
-            taxonNameControl.valueChanges.pipe(
-              tap(v => lastTaxonName = v)
-            )
-          ])
+          parentControl.valueChanges
+            // Compute taxon names when parent has changed
             .pipe(
-              filter(([items, value]) => isNotNil(items))
+              filter(parent => isNotNilOrBlank(parent) && isNotNilOrBlank(parent.label) && currentParenLabel !== parent.label),
+              tap(parent => currentParenLabel = parent.label),
+              mergeMap((_) => this.suggestTaxonNames())
             )
-            .subscribe(([items, value]) => {
-              let newTaxonName: TaxonNameRef;
-              let index = -1;
-              // Compute index in list, and get value
-              if (items && items.length === 1) {
-                index = 0;
-              }
-              else if (ReferentialUtils.isNotEmpty(lastTaxonName)) {
-                index = items.findIndex(v => TaxonNameRef.equalsOrSameReferenceTaxon(v, lastTaxonName));
-              }
-              newTaxonName = (index !== -1) ? items[index] : null;
+            .subscribe(taxonNames => {
+              // Update taxon names
+              this.$taxonNames.next(taxonNames);
 
-              // Apply to form, if need
-              if (!ReferentialUtils.equals(lastTaxonName, newTaxonName)) {
-                taxonNameControl.setValue(newTaxonName, {emitEvent: false});
-                lastTaxonName = newTaxonName;
-                this.markAsDirty();
+              // Update pmfms (it can depends on the selected parent's taxon group)
+              this.refreshPmfms();
+            });
+
+          // Update taxonName when need
+          let lastTaxonName: TaxonNameRef;
+          this.registerSubscription(
+            combineLatest([
+              this.$taxonNames,
+              taxonNameControl.valueChanges.pipe(
+                tap(v => lastTaxonName = v)
+              )
+            ])
+              .pipe(
+                filter(([items, value]) => isNotNil(items))
+              )
+              .subscribe(([items, value]) => {
+                let newTaxonName: TaxonNameRef;
+                let index = -1;
+                // Compute index in list, and get value
+                if (items && items.length === 1) {
+                  index = 0;
+                }
+                else if (ReferentialUtils.isNotEmpty(lastTaxonName)) {
+                  index = items.findIndex(v => TaxonNameRef.equalsOrSameReferenceTaxon(v, lastTaxonName));
+                }
+                newTaxonName = (index !== -1) ? items[index] : null;
+
+                // Apply to form, if need
+                if (!ReferentialUtils.equals(lastTaxonName, newTaxonName)) {
+                  taxonNameControl.setValue(newTaxonName, {emitEvent: false});
+                  lastTaxonName = newTaxonName;
+                  this.markAsDirty();
+                }
+
+                // Apply to button index, if need
+                if (this.selectedTaxonNameIndex !== index) {
+                  this.selectedTaxonNameIndex = index;
+                  this.markForCheck();
+                }
+              }));
+        });
+      }
+
+      // Desktop
+      else {
+
+        // Reset taxon name combo when parent changed
+        this.registerSubscription(
+          parentControl.valueChanges
+            .pipe(
+              // Warn: skip the first trigger (ignore set value)
+              skip(1),
+              debounceTime(250),
+              // Ignore changes if parent is not an entity (WARN: we use 'label' because id can be null, when not saved yet)
+              filter(parent => this.form.enabled && EntityUtils.isNotEmpty(parent, 'label')),
+              distinctUntilChanged(Batch.equals),
+              mergeMap(() => this.suggestTaxonNames())
+            )
+            .subscribe((taxonNames) => {
+              // Update taxon names
+              this.$taxonNames.next(taxonNames);
+              if (taxonNames.length === 1) {
+                taxonNameControl.patchValue(taxonNames[0], {emitEVent: false});
+              }
+              else {
+                taxonNameControl.reset(null, {emitEVent: false});
               }
 
-              // Apply to button index, if need
-              if (this.selectedTaxonNameIndex !== index) {
-                this.selectedTaxonNameIndex = index;
-                this.markForCheck();
-              }
+              // Set selected parent as default
+              this.data.parentGroup = parentControl.value;
+
+              // Update pmfms (it can depends on the selected parent's taxon group)
+              this.refreshPmfms();
             }));
-      });
-    }
-
-    // Desktop
-    else {
-
-      // Reset taxon name combo when parent changed
-      this.registerSubscription(
-        parentControl.valueChanges
-          .pipe(
-            // Warn: skip the first trigger (ignore set value)
-            skip(1),
-            debounceTime(250),
-            // Ignore changes if parent is not an entity (WARN: we use 'label' because id can be null, when not saved yet)
-            filter(parent => this.form.enabled && EntityUtils.isNotEmpty(parent, 'label')),
-            distinctUntilChanged(Batch.equals),
-            mergeMap(() => this.suggestTaxonNames())
-          )
-          .subscribe((taxonNames) => {
-            this.$taxonNames.next(taxonNames);
-            if (taxonNames.length === 1) {
-              taxonNameControl.patchValue(taxonNames[0], {emitEVent: false});
-            }
-            else {
-              taxonNameControl.reset(null, {emitEVent: false});
-            }
-          }));
+      }
     }
 
     this.registerSubscription(
@@ -527,7 +548,13 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
       }
     }
 
-    return pmfms;
+    const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
+    if (isNil(parentTaxonGroupId)) return pmfms;
+
+    // Filter on parent's taxon group
+    return pmfms
+      .filter(pmfm => isEmptyArray(pmfm.taxonGroupIds)
+      || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }
 
   protected onUpdateControls(form: FormGroup) {

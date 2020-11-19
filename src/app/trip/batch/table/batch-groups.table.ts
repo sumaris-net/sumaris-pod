@@ -654,7 +654,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
   }
 
-  async openSubBatchesModal(selectedParent?: BatchGroup, opts?: {
+  async openSubBatchesModal(parentGroup?: BatchGroup, opts?: {
     showParent?: boolean;
   }): Promise<SubBatch[] | undefined> {
 
@@ -690,10 +690,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         program: this.program,
         acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
         usageMode: this.usageMode,
-        selectedParent: selectedParent,
+        showParentGroup: true,
+        parentGroup: parentGroup,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
-        showParentGroup,
         // Scientific species is required, if not set in root batches
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
