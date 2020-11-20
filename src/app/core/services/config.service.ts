@@ -3,20 +3,24 @@ import gql from "graphql-tag";
 import {Configuration} from "./model/config.model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
-import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, of, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../graphql/graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {filterNotNil} from "../../shared/observables";
-import {isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
 import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {ConfigOptions} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
-import {LocationLevelIds, TaxonGroupIds} from "../../referential/services/model/model.enum";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {VersionUtils} from "../../shared/version/versions";
+import {ToastController} from "@ionic/angular";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {TranslateService} from "@ngx-translate/core";
+import {filter, map} from "rxjs/operators";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -93,6 +97,7 @@ const CacheStatistics: any = gql`
 
 export const APP_CONFIG_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('defaultOptions');
 
+
 @Injectable({
   providedIn: 'root',
   deps: [APP_CONFIG_OPTIONS]
@@ -112,9 +117,11 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   get config(): Observable<Configuration> {
     // If first call: start loading
-    if (!this._started) this.start();
+    if (!this._started) {
+      this.start();
+    }
 
-    return filterNotNil(this.$data);
+    return this.$data.pipe(filter(isNotNil));
   }
 
   constructor(
@@ -123,6 +130,8 @@ export class ConfigService extends SoftwareService<Configuration> {
     protected network: NetworkService,
     protected platform: PlatformService,
     protected file: FileService,
+    protected toastController: ToastController,
+    protected translate: TranslateService,
     @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
   ) {
     super(graphql);
@@ -342,8 +351,10 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   private async loadOrRestoreLocally() {
     let data;
+    let wasJustLoaded = false;
     try {
       data = await this.loadDefault({ fetchPolicy: "network-only" });
+      wasJustLoaded = true;
     } catch (err) {
       // Log, then continue
       console.error(err && err.message || err, err);
@@ -367,6 +378,11 @@ export class ConfigService extends SoftwareService<Configuration> {
 
     // Override enumerations
     this.updateModelEnumerations(data);
+
+    // CHeck compatible version
+    if (wasJustLoaded) {
+
+    }
 
     this.$data.next(data);
 
@@ -495,6 +511,9 @@ export class ConfigService extends SoftwareService<Configuration> {
     //TaxonGroupIds.FAO =
   }
 
+  protected async showToast(opts: ShowToastOptions) {
+    await Toasts.show(this.toastController, this.translate, opts);
+  }
 }
 
 

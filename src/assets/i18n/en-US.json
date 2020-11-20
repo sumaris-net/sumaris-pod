@@ -223,7 +223,7 @@
     "BTN_DISCONNECT": "Disconnect this account",
     "BTN_MY_ACCOUNT": "My account",
     "BTN_REGISTER": "Register",
-    "DOWNLOAD_APP_TITLE": "{{appName}} for {{platform}}",
+    "DOWNLOAD_APP_TITLE": "{{name}} for {{platform}}",
     "DOWNLOAD_APP_HELP": "Free download.",
     "SHOW_AT": "Show at"
   },

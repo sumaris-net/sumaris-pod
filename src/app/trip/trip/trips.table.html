@@ -76,6 +76,15 @@
 
 
 <ion-content class="ion-no-padding">
+
+  <!-- Network status (+ Install and upgrade link) -->
+  <app-network-status-card
+    [isLogin]="accountService.account|isLogin"
+    [showInstallButton]="false"
+    [showUpgradeWarning]="true"
+    [showOfflineWarning]="false">
+  </app-network-status-card>
+
   <mat-toolbar>
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">

@@ -1,5 +1,6 @@
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
 import {HTTP} from "@ionic-native/http/ngx";
+import {environment} from "../../../environments/environment";
 
 export interface NodeInfo {
   softwareName: string;
@@ -28,11 +29,9 @@ export async function getResource<T>(http: HttpClient | HTTP,
 
   // Add headers
   opts = {
-    /*headers: new HttpHeaders()
-      .set('Content-Type', 'application/json;charset=UTF-8')
-      .set('Access-Control-Allow-Headers', 'Content-Type')
-      .set('Access-Control-Allow-Methods', 'GET')
-      .set('Access-Control-Allow-Origin', '*'),*/
+    headers: new HttpHeaders(),
+      //.append('X-App-Name', environment.name)
+      //.append('X-App-Version', environment.version),
     ...opts
   };
 

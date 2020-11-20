@@ -6,10 +6,13 @@ import {fadeInAnimation} from "../../shared/material/material.animations";
 import {HttpClient} from "@angular/common/http";
 import {NetworkUtils, NodeInfo} from "../services/network.utils";
 import {HTTP} from "@ionic-native/http/ngx";
+import {VersionUtils} from "../../shared/version/versions";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'select-peer-modal',
   templateUrl: 'select-peer.modal.html',
+  styleUrls: [ './select-peer.modal.scss' ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInAnimation]
 })
@@ -18,6 +21,7 @@ export class SelectPeerModal implements OnDestroy {
   private _subscription = new Subscription();
   loading = true;
   $peers = new Subject<Peer[]>();
+  peerMinVersion = environment.peerMinVersion;
 
   private readonly httpClient: HTTP | HttpClient;
 
@@ -51,10 +55,10 @@ export class SelectPeerModal implements OnDestroy {
     this._subscription.unsubscribe();
   }
 
-  selectPeer(item: Peer) {
-    if (this.allowSelectDownPeer || item.reachable) {
-      console.debug(`[select-peer-modal] Selected peer: {url: '${item.url}'}`);
-      this.viewCtrl.dismiss(item);
+  selectPeer(peer: Peer) {
+    if (this.allowSelectDownPeer || (peer.reachable && this.isCompatible(peer))) {
+      console.debug(`[select-peer-modal] Selected peer: {url: '${peer.url}'}`);
+      this.viewCtrl.dismiss(peer);
     }
   }
 
@@ -97,6 +101,14 @@ export class SelectPeerModal implements OnDestroy {
     }
     this.loading = false;
     this.cd.markForCheck();
+  }
+
+  /**
+   *  Check the min pod version, defined by the app
+   * @param peer
+   */
+  isCompatible(peer: Peer): boolean {
+    return !this.peerMinVersion || (peer && peer.softwareVersion && VersionUtils.isCompatible(this.peerMinVersion, peer.softwareVersion));
   }
 
   protected async refreshPeer(peer: Peer): Promise<Peer> {

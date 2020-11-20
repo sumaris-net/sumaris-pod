@@ -7,118 +7,51 @@
 
 <!-- change locale menu -->
 <mat-menu #matmenu="matMenu">
-  <button mat-menu-item (click)="changeLanguage('en')">
-    <ion-label>
-      English
-    </ion-label>
-  </button>
-  <button mat-menu-item (click)="changeLanguage('fr')">
-    <ion-label>
-      Français
-    </ion-label>
+  <button *ngFor="let item of locales"
+          mat-menu-item
+          (click)="changeLanguage(item.id)">
+    <ion-label>{{item.name}}</ion-label>
   </button>
 </mat-menu>
 
-<ion-content [ngStyle]="contentStyle"
-             no-padding-xs>
-    <!-- loading spinner -->
-    <div class="loading-page" [class.cdk-visually-hidden]="!loading">
-      <div class="spinner" *ngIf="loading && showSpinner">
-        <p>Loading...</p>
-        <div class="sk-cube1 sk-cube"></div>
-        <div class="sk-cube2 sk-cube"></div>
-        <div class="sk-cube4 sk-cube"></div>
-        <div class="sk-cube3 sk-cube"></div>
-      </div>
+<ion-content [ngStyle]="contentStyle" no-padding-xs>
+
+  <!-- loading spinner -->
+  <div class="loading-page" [class.cdk-visually-hidden]="!loading">
+    <div class="spinner" *ngIf="loading && showSpinner">
+      <p>Loading...</p>
+      <div class="sk-cube1 sk-cube"></div>
+      <div class="sk-cube2 sk-cube"></div>
+      <div class="sk-cube4 sk-cube"></div>
+      <div class="sk-cube3 sk-cube"></div>
     </div>
+  </div>
 
-    <!-- Desktop: translucent top toolbar -->
-    <div hidden-xs hidden-sm hidden-mobile>
-      <ion-toolbar translucent>
-        <ion-buttons slot="start">
-          <ion-menu-toggle>
-            <ion-button color="light" fill="clear">
-              <ion-icon slot="icon-only" name="menu"></ion-icon>
-            </ion-button>
-          </ion-menu-toggle>
-        </ion-buttons>
-
-        <ion-buttons slot="end">
-          <!-- change locale button -->
-          <ion-button color="secondary" fill="solid" [matMenuTriggerFor]="matmenu">
-            <ion-label>&nbsp;{{ currentLocaleCode | uppercase }}</ion-label>
-            <mat-icon slot="end">arrow_drop_down</mat-icon>
+  <!-- Desktop: translucent top toolbar -->
+  <div hidden-xs hidden-sm hidden-mobile>
+    <ion-toolbar translucent>
+      <ion-buttons slot="start">
+        <ion-menu-toggle>
+          <ion-button color="light" fill="clear">
+            <ion-icon slot="icon-only" name="menu"></ion-icon>
           </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </div>
+        </ion-menu-toggle>
+      </ion-buttons>
 
-  <!-- Install the App infos -->
-  <ion-card *ngIf="!loading && !offline && appInstallUrl"
-            color="secondary"
-            class="ion-no-margin"
-            @slideUpDownAnimation>
-    <ion-card-content class="ion-no-padding">
-      <ion-grid>
-        <ion-row>
-          <ion-col>
-            <ion-text class="ion-text-wrap">
-              <b [innerHTML]="'HOME.DOWNLOAD_APP_TITLE'| translate: {appName: appInstallName, platform: appPlatformName}"></b><br/>
-              <small [innerHTML]="'HOME.DOWNLOAD_APP_HELP'|translate"></small>
-            </ion-text>
-          </ion-col>
-          <ion-col size="auto">
-            <!-- Display App download link -->
-            <ion-button color="tertiary" class="ion-float-end"
-                        (click)="downloadApp($event)">
-              <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
-            </ion-button>
-          </ion-col>
-        </ion-row>
+      <ion-buttons slot="end">
+        <!-- change locale button -->
+        <ion-button color="secondary" fill="solid" [matMenuTriggerFor]="matmenu">
+          <ion-label>&nbsp;{{ currentLocaleCode | uppercase }}</ion-label>
+          <mat-icon slot="end">arrow_drop_down</mat-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </div>
 
-      </ion-grid>
-
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Offline mode card-->
-  <ion-card *ngIf="!loading && offline || waitingNetwork"
-            color="accent"
-            class="main ion-no-margin"
-            @slideUpDownAnimation>
-    <ion-card-content class="ion-no-padding">
-      <ion-grid>
-        <ion-row>
-          <ion-col>
-            <ion-text class="ion-text-wrap" *ngIf="!waitingNetwork; else waitingNetworkText">
-              <b *ngIf="isLogin; else notLogin"  [innerHTML]="'NETWORK.INFO.OFFLINE_OR_UNAUTHORIZED'| translate"></b>
-              <ng-template #notLogin>
-                <b [innerHTML]="'NETWORK.INFO.OFFLINE'| translate"></b>
-              </ng-template>
-              <br/>
-              <small [innerHTML]="'NETWORK.INFO.OFFLINE_HELP'|translate"></small>
-            </ion-text>
-            <ng-template #waitingNetworkText>
-              <ion-text class="ion-text-wrap" [innerHTML]="'NETWORK.INFO.RETRY_TO_CONNECT'| translate"></ion-text>
-            </ng-template>
-          </ion-col>
-          <ion-col size="auto">
-            <!-- Retry button -->
-            <ion-button *ngIf="!waitingNetwork; else waitingSpinner" color="tertiary" class="ion-float-end"
-                        (click)="tryOnline()">
-              <span translate>NETWORK.BTN_CHECK_ALIVE</span>
-            </ion-button>
-
-            <!-- Waiting spinner -->
-            <ng-template #waitingSpinner>
-              <ion-spinner *ngIf="waitingNetwork" color="light"></ion-spinner>
-            </ng-template>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-
-    </ion-card-content>
-  </ion-card>
+  <!-- Network status (+ Install and upgrade link) -->
+  <app-network-status-card [isLogin]="isLogin"
+                           showInstallButton="true">
+  </app-network-status-card>
 
   <!-- Welcome card -->
   <ion-card *ngIf="!loading"
@@ -188,7 +121,7 @@
         </ion-button>
 
         <p hidden-xs hidden-sm hidden-mobile>
-          <ion-text [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></ion-text>
+          <ion-text [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: accountName }"></ion-text>
           <br/>
           <ion-text>
             <a href="#" (click)="logout($event)">

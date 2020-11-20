@@ -96,7 +96,6 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected location: Location,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
-    protected accountService: AccountService,
     protected service: TripService,
     protected userEventService: UserEventService,
     protected personService: PersonService,
@@ -106,7 +105,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
-    protected http: HttpClient
+    protected http: HttpClient,
+    public accountService: AccountService
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,

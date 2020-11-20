@@ -107,7 +107,10 @@ export class MenuComponent implements OnInit {
 
   public loading = true;
   public isLogin = false;
-  public account: Account;
+  accountName: string;
+  accountAvatar: string;
+  accountEmail: string;
+
   public splitPaneOpened: boolean;
 
   @Input() logo: String;
@@ -183,7 +186,9 @@ export class MenuComponent implements OnInit {
 
   async onLogin(account: Account) {
     console.info('[menu] Update using logged account');
-    this.account = account;
+    this.accountAvatar = account.avatar;
+    this.accountName = account.displayName;
+    this.accountEmail = account.email;
     this.isLogin = true;
     await this.refreshMenuItems();
 
@@ -198,7 +203,9 @@ export class MenuComponent implements OnInit {
     this.isLogin = false;
     //this.splitPaneOpened = false;
     //this.splitPane.when = false;
-    this.account = null;
+    this.accountAvatar = null;
+    this.accountEmail = null;
+    this.accountName = null;
     await this.refreshMenuItems();
 
     // Wait the end of fadeout, to reset the account

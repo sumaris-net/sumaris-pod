@@ -123,7 +123,8 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
     this.withContent = toBoolean(this.withContent, false);
 
-    const pubkey = this.accountService.account.pubkey;
+    const account = this.accountService.account;
+    const pubkey = account && account.pubkey;
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = this.isAdmin || pubkey === this.recipient;
     this.canDelete = this.canEdit;

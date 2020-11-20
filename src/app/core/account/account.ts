@@ -154,8 +154,10 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.saving = true;
     this.error = undefined;
 
-    const json = Object.assign(this.accountService.account.asObject(), this.form.value);
-    const newAccount = Account.fromObject(json);
+    const newAccount = Account.fromObject({
+      ...(this.accountService.account.asObject()),
+      ...(this.form.value)
+    });
 
     console.debug("[account] Saving account...", newAccount);
     try {

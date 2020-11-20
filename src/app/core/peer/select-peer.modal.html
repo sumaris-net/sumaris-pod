@@ -57,7 +57,16 @@
           <ion-col class="ion-no-padding">
             <ion-label class="ion-text-wrap ion-text-center" color="medium">
               <h3>{{peer.softwareName}}</h3>
-              <h4><small>v{{peer.softwareVersion}}</small></h4>
+              <h4 *ngIf="!peerMinVersion || isCompatible(peer); else invalidVersion">
+                <small>v{{peer.softwareVersion}}</small>
+              </h4>
+              <ng-template #invalidVersion>
+                <ion-text color="danger" [matTooltip]="'NETWORK.PEER.SELECT_MODAL.NOT_COMPATIBLE_HELP'|translate: {version: peerMinVersion} ">
+                  <h4 class="ion-color-danger">
+                    <small><mat-icon>warning</mat-icon>v{{peer.softwareVersion}}</small>
+                  </h4>
+                </ion-text>
+              </ng-template>
             </ion-label>
           </ion-col>
         </ion-row>

@@ -59,6 +59,8 @@ import {AppListForm} from "./form/list.form";
 import {PlatformService} from "./services/platform.service";
 import {IsNotOnFieldModePipe, IsOnFieldModePipe} from "./services/pipes/usage-mode.pipes";
 import {PersonToStringPipe} from "./services/pipes/person-to-string.pipe";
+import {NetworkStatusCard} from "./peer/network-status-card.component";
+import {AccountToStringPipe, IsLoginAccountPipe} from "./services/pipes/account.pipes";
 
 export {
   environment,
@@ -117,6 +119,8 @@ export {
     IsOnFieldModePipe,
     IsNotOnFieldModePipe,
     PersonToStringPipe,
+    IsLoginAccountPipe,
+    AccountToStringPipe,
 
     // Home and menu
     HomePage,
@@ -134,6 +138,7 @@ export {
 
     // Network
     SelectPeerModal,
+    NetworkStatusCard,
 
     // Other components
     TableSelectColumnsComponent,
@@ -152,6 +157,8 @@ export {
     IsOnFieldModePipe,
     IsNotOnFieldModePipe,
     PersonToStringPipe,
+    IsLoginAccountPipe,
+    AccountToStringPipe,
 
     // Components
     HomePage,
@@ -163,7 +170,8 @@ export {
     MenuComponent,
     AboutModal,
     AppPropertiesForm,
-    AppListForm
+    AppListForm,
+    NetworkStatusCard,
   ]
 })
 export class CoreModule {

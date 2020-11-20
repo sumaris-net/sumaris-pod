@@ -7,7 +7,7 @@ import {Peer} from "./model/peer.model";
 import {LocalSettings} from "./model/settings.model";
 import {ModalController, Platform, ToastController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
-import {BehaviorSubject, Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Subject, Subscription, timer} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
@@ -16,11 +16,16 @@ import {Connection, Network} from '@ionic-native/network/ngx';
 import {DOCUMENT} from "@angular/common";
 import {CacheService} from "ionic-cache";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
-import {distinctUntilChanged, filter, map} from "rxjs/operators";
+import {distinctUntilChanged, filter, map, mergeMap, tap} from "rxjs/operators";
 import {OverlayEventDetail} from "@ionic/core";
 import {NodeInfo} from "./network.utils";
 import {HTTP} from "@ionic-native/http/ngx";
 import {HttpUtils} from "../../shared/http/http.utils";
+import {Configuration} from "./model/config.model";
+import {ConfigOptions} from "./config/core.config";
+import {VersionUtils} from "../../shared/version/versions";
+import {Browser} from "leaflet";
+import mobile = Browser.mobile;
 
 export type ConnectionType = 'none' | 'wifi' | 'ethernet' | 'cell' | 'unknown' ;
 
@@ -46,13 +51,28 @@ export function getConnectionType(type: number) {
 
 export declare type NetworkEventType = 'start'|'peerChanged'|'statusChanged'|'resetCache'|'beforeTryOnlineFinish';
 
+const NetworkRefreshTimerPeriod = {
+    MOBILE:  1000 * 60 * 10 /* every 10 min */,
+    DESKTOP: 1000 * 60 * 5 /* every 5 min */
+};
+
+/* -- DEV only (to debug refresh timer)
+const NetworkRefreshTimerPeriod = {
+    MOBILE:  1000,
+    DESKTOP: 1000
+}*/
+
 @Injectable({providedIn: 'root'})
 export class NetworkService {
 
   private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<any>;
+  private readonly _mobile: boolean;
   private _subscription = new Subscription();
+  private _timerSubscription: Subscription;
+  private readonly _timerRefreshPeriod: number;
+  private readonly _timerRefreshCondition: () => boolean;
   private _peer: Peer;
   private _deviceConnectionType: ConnectionType;
   private _forceOffline: boolean;
@@ -114,9 +134,20 @@ export class NetworkService {
     @Optional() private translate: TranslateService,
     @Optional() private toastController: ToastController
   ) {
-    const useNativeHttp = this.platform.is('mobile');
+    this._mobile = this.platform.is('mobile');
+
+    const useNativeHttp = this.platform.is('cordova');
     console.info(`[network] Creating service {nativeHttp: ${useNativeHttp}`);
     this.httpClient = useNativeHttp ? nativeHttp : http;
+
+    if (this._mobile) {
+      this._timerRefreshPeriod = NetworkRefreshTimerPeriod.MOBILE;
+      this._timerRefreshCondition = () => this.online; // Check only when online, and stop when offline
+    }
+    else {
+      this._timerRefreshPeriod = NetworkRefreshTimerPeriod.DESKTOP;
+      this._timerRefreshCondition = () => true; // Always check
+    }
 
     this.resetData();
 
@@ -184,9 +215,12 @@ export class NetworkService {
       // Wait settings starts, then save peer in settings
       .then(() => this.settings.ready())
       .then(() => this.settings.apply({peerUrl: this._peer.url}))
-      .then(() => this.onDeviceConnectionChanged(this.network.type));
+      .then(() => this.onDeviceConnectionChanged(this.network.type))
 
-    // Listen for network changes
+      // Start the refresh timer
+      .then(() => this.startRefreshTimer());
+
+    // Listen for device network changes
     this._subscription.add(this.network.onDisconnect().subscribe(() => this.onDeviceConnectionChanged('none')));
     this._subscription.add(this.network.onConnect().subscribe(() => this.onDeviceConnectionChanged(this.network.type)));
 
@@ -203,6 +237,11 @@ export class NetworkService {
     this.resetData();
     this._started = false;
     this._startPromise = undefined;
+
+    // Stop timer if cannot refresh anymore
+    if (this._timerRefreshCondition() == false) {
+      this.stopRefreshTimer();
+    }
 
     this._subscription.unsubscribe();
     this._subscription = new Subscription();
@@ -244,8 +283,10 @@ export class NetworkService {
       if (!settings.peerUrl) return false; // No peer define. Skip
 
       const peer = Peer.parseUrl(settings.peerUrl);
-      const alive = await this.checkPeerAlive(peer);
-      if (alive) {
+      const peerInfo = await this.checkPeerAlive(peer);
+      const peerAliveAndCompatible = peerInfo && await this.checkPeerCompatible(peerInfo);
+      if (peerAliveAndCompatible) {
+
         // Disable the offline mode
         this.setForceOffline(false);
 
@@ -301,16 +342,20 @@ export class NetworkService {
 
       const toastResult = await this.showToast({
         message: (opts && opts.message || "ERROR.NETWORK_REQUIRED"),
-        type: 'error',
+        type: 'warning',
         showCloseButton: true,
+        duration: 100000,
         buttons: [
           // reconnect button
-          {role: 'connect', text: this.translate.instant('NETWORK.BTN_CHECK_ALIVE')}
+          {
+            role: 'refresh',
+            text: this.translate.instant('NETWORK.BTN_CHECK_ALIVE')
+          }
         ]
       });
 
       // User don't click reconnect: return
-      if (!toastResult || toastResult.role !== 'connect') return false;
+      if (!toastResult || toastResult.role !== 'refresh') return false;
 
       // if network state changed to online: exit here
       if (this.online) return true;
@@ -378,21 +423,114 @@ export class NetworkService {
   }
 
   /**
-   * Check if the peer is alive
-   * @param email
+   * Refresh network state, using a ping to pod
    */
-  async checkPeerAlive(peer?: string | Peer): Promise<boolean> {
-    peer = peer || this.peer;
-    try {
-      await this.getNodeInfo(peer);
-      return true;
-    } catch (err) {
-      console.log(err);
-      return false;
+  async refreshPeerState(opts?: {
+      displayToast?: boolean; // Display a toast ?
+    }) {
+
+  }
+
+  /**
+   * Stop to network state
+   * @protected
+   */
+  protected stopRefreshTimer() {
+    if (this._timerSubscription) {
+      this._timerSubscription.unsubscribe();
+      this._timerSubscription = undefined;
     }
   }
 
-  getNodeInfo(peer: string | Peer): Promise<NodeInfo> {
+  /**
+   * Refresh the network state
+   * @protected
+   */
+  protected startRefreshTimer(){
+    if (this._timerSubscription) return; // Already running: skip
+
+    console.info(`[network] Starting refresh timer, every ${this._timerRefreshPeriod}ms...`);
+
+    let lastInfo: NodeInfo;
+    this._timerSubscription = timer(this._timerRefreshPeriod, this._timerRefreshPeriod)
+      .pipe(
+        // Skip some timer event (see constructor)
+        filter(this._timerRefreshCondition),
+
+        // Checkin if peer alive
+        tap(() =>  console.debug("[network] Checking connection to pod...")),
+        mergeMap(() => this.checkPeerAlive(this.peer)),
+
+        // Filter to keep only changes
+        filter(info => !!info !== !!lastInfo),
+        tap(info => lastInfo = info),
+
+        // Check compatibility
+        mergeMap((info) => this.checkPeerCompatible(info, {displayToast: true})),
+      )
+      .subscribe(alive => {
+          if (alive && this.offline) {
+            this.setForceOffline(false);
+
+            // Restart the service (to force re auth)
+            this.restart();
+          }
+          else if (!alive && this.online){
+            this.setForceOffline(true);
+
+            // Stop the service
+            this.stop();
+          }
+        });
+
+    this._timerSubscription.add(() => console.debug("[network] Refresh timer stopped"));
+  }
+
+  /**
+   * Check if the peer is alive
+   * @param email
+   */
+  async checkPeerAlive(peer?: string | Peer, opts?: { checkCompatible?: boolean; displayToast?: boolean; } ): Promise<NodeInfo> {
+    peer = peer || this.peer;
+    if (!peer) {
+      const settings: LocalSettings = await this.settings.ready();
+      if (!settings.peerUrl) return undefined; // No peer define. Skip
+      peer = Peer.parseUrl(settings.peerUrl);
+    }
+
+    try {
+      return await this.getNodeInfo(peer);
+    } catch (err) {
+      console.debug("[network] Cannot get /api/node/info from peer");
+      return undefined;
+    }
+  }
+
+  async checkPeerCompatible(peerInfo: NodeInfo, opts?: { displayToast?: boolean; }): Promise<boolean> {
+    if (!environment.peerMinVersion) return true; // Skip compatibility check
+
+    // Check the min pod version, defined by the app
+    const isCompatible = peerInfo && peerInfo.softwareVersion && VersionUtils.isCompatible(environment.peerMinVersion, peerInfo.softwareVersion);
+
+    // Display toast, if not compatible
+    if (!isCompatible && (!opts || opts.displayToast !== false)) {
+      await this.showToast({
+        type: 'error',
+        message: 'NETWORK.ERROR.NOT_COMPATIBLE_PEER',
+        messageParams: {
+          version: environment.peerMinVersion
+        },
+        showCloseButton: true
+      });
+    }
+    return isCompatible;
+  }
+
+  getNodeInfo(peer?: string | Peer): Promise<NodeInfo> {
+    peer = peer || this.peer;
+
+    if (!peer) return undefined;
+
     let peerUrl = (peer instanceof Peer) ? peer.url : (peer as string);
     // Remove trailing slash
     if (peerUrl.endsWith('/')) {
@@ -405,7 +543,7 @@ export class NetworkService {
    * Allow to force offline mode
    */
   setForceOffline(value?: boolean, opts?: {
-    displayToast?: boolean; // Display a toast ?
+    displayToast?: boolean; // Display a toast, when offline ?
   }) {
     value = toBoolean(value, true);
     if (this._forceOffline !== value) {
@@ -465,6 +603,7 @@ export class NetworkService {
 
           // Wait observers clean their caches, if need
           return setTimeout(() => {/*empty*/}, 500);
+          return setTimeout(() => {/*empty*/}, 500);
         }
       })
       .then(() => {
@@ -513,6 +652,7 @@ export class NetworkService {
     }
   }
 
+
   /* -- Protected methods -- */
 
   protected onDeviceConnectionChanged(connectionType?: string) {
@@ -526,9 +666,13 @@ export class NetworkService {
         console.info(`[network] Connection changed to {${this._deviceConnectionType}}`);
         this.onNetworkStatusChanges.next(this._deviceConnectionType);
 
+        // Change to offline
         if (this._deviceConnectionType === 'none') {
           // Alert the user
           this.showToast({message: 'NETWORK.INFO.OFFLINE'});
+
+          // Stop the network service
+          this.stop();
         }
       }
     }

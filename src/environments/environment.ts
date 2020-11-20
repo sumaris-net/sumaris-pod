@@ -25,6 +25,8 @@ export const environment: Environment = Object.freeze({
   // TODO: make this works
   //offline: true,
 
+  peerMinVersion: '1.4.6',
+
   defaultPeers: [
     {
       host: 'localhost',

@@ -12,11 +12,15 @@ export const environment: Environment = Object.freeze({
   apolloFetchPolicy: "cache-first",
   mock: false,
 
+  // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
+  peerMinVersion: '1.4.6',
+
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
 
   // FIXME: enable cache
   persistCache: false,
+
 
   // Leave null,
   defaultPeer: null,
@@ -29,6 +33,10 @@ export const environment: Environment = Object.freeze({
     },
     {
       host: 'adap.pecheursdebretagne.eu',
+      port: 443
+    },
+    {
+      host: 'server.e-is.pro',
       port: 443
     },
     {

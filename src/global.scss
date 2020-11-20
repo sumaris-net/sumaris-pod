@@ -1005,21 +1005,22 @@ ion-toast {
   --background:  var(--ion-color-dark);
   --color: var(--ion-color-dark-contrast);
   --button-color: var(--ion-color-secondary);
-}
-ion-toast.secondary {
-  --background: var(--ion-color-secondary);
-  --color: var(--ion-color-secondary-contrast);
-  --button-color: var(--ion-color-tertiary);
-}
-ion-toast.accent {
-  --background: var(--ion-color-accent);
-  --color: var(--ion-color-accent-contrast);
-  --button-color: var(--ion-color-tertiary);
-}
-ion-toast.danger {
-  --background: var(--ion-color-danger);
-  --color: var(--ion-color-danger-contrast);
-  --button-color: var(--ion-color-tertiary);
+
+  &.secondary {
+    --background: var(--ion-color-secondary);
+    --color: var(--ion-color-secondary-contrast);
+    --button-color: var(--ion-color-tertiary);
+  }
+  &.accent {
+    --background: var(--ion-color-accent);
+    --color: var(--ion-color-accent-contrast);
+    --button-color: var(--ion-color-primary);
+  }
+  &.danger {
+    --background: var(--ion-color-danger);
+    --color: var(--ion-color-danger-contrast);
+    --button-color: var(--ion-color-primary);
+  }
 }
 
 // --------------------------------------------------

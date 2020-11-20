@@ -31,6 +31,7 @@ import {EntityUtils, IEntity} from "../services/model/entity.model";
 import {DataProxy} from 'apollo-cache';
 import {isNotNil, toNumber} from "../../shared/functions";
 import {Resolvers} from "apollo-client/core/types";
+import {HttpHeaders} from "@angular/common/http";
 
 export interface WatchQueryOptions<V> {
   query: any,
@@ -602,14 +603,16 @@ export class GraphqlService {
       const retryLink = new RetryLink();
       const authLink = new ApolloLink((operation, forward) => {
 
+        const headers = new HttpHeaders()
+          .append('Authorization', this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : '')
+          //.append('X-App-Name', environment.name)
+          //.append('X-App-Version', environment.version)
+        ;
+
         // Use the setContext method to set the HTTP headers.
         operation.setContext({
           ...operation.getContext(),
-          ...{
-            headers: {
-              authorization: this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : ''
-            }
-          }
+          ...{headers}
         });
 
         // Call the next link in the middleware chain.
@@ -758,12 +761,20 @@ export class GraphqlService {
   }
 
   private toApolloError<T>(err: any, defaultError?: any): ApolloQueryResult<T> {
-    let error = (err.networkError && (this.toAppError(err.networkError) || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR))) ||
-      (err.graphQLErrors && err.graphQLErrors.length && this.toAppError(err.graphQLErrors[0])) ||
-      this.toAppError(err) ||
-      this.toAppError(err.originalError) ||
-      (err.graphQLErrors && err.graphQLErrors[0]) ||
-      err;
+    console.log("TODO toApolloError", err);
+    let error =
+      // If network error: try to convert to App (read as JSON), or create an UNKNOWN_NETWORK_ERROR
+      (err.networkError &&
+        (err.networkError.error && this.toAppError(err.networkError.error))
+        || this.toAppError(err.networkError)
+        || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR)
+      )
+      // If graphQL: try to convert the first error found
+      || (err.graphQLErrors && err.graphQLErrors.length && this.toAppError(err.graphQLErrors[0]))
+      || this.toAppError(err)
+      || this.toAppError(err.originalError)
+      || (err.graphQLErrors && err.graphQLErrors[0])
+      || err;
     console.error("[graphql] " + (error && error.message || error), error.stack || '');
     if (error && error.code === ErrorCodes.UNKNOWN_NETWORK_ERROR && err.networkError && err.networkError.message) {
       console.error("[graphql] original error: " + err.networkError.message);
@@ -786,7 +797,10 @@ export class GraphqlService {
     if (message) return {
       code: errorCode,
       message: this.getI18nErrorMessageByCode(errorCode)
-    };
+    }
+    else {
+      console.debug('TODO: errorCode=' + errorCode);
+    }
     return undefined;
   }
 
@@ -802,22 +816,26 @@ export class GraphqlService {
         return "ERROR.BAD_UPDATE_DATE";
       case ServerErrorCodes.DATA_LOCKED:
         return "ERROR.DATA_LOCKED";
+      case ServerErrorCodes.BAD_APP_VERSION:
+        return "ERROR.BAD_APP_VERSION";
     }
 
     return undefined;
   }
 
   private toAppError(err: any): any | undefined {
+    let error = err;
     const message = err && err.message || err;
     if (typeof message === "string" && message.trim().indexOf('{"code":') === 0) {
       try {
-        const error = JSON.parse(message);
-        return error && this.createAppErrorByCode(error.code) || error && error.message || err;
+        error = JSON.parse(err.message);
       }
       catch (parseError) {
         console.error("Unable to parse error as JSON: ", parseError);
-        return undefined;
       }
+    }
+    if (error && error.code) {
+      return this.createAppErrorByCode(error.code) || error && error.message || error;
     }
     return undefined;
   }

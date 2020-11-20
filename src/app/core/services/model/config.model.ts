@@ -118,4 +118,6 @@ export class Configuration extends Software<Configuration> {
   getProperty<T = string>(definition: FormFieldDefinition): T {
     return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
   }
+
+
 }
