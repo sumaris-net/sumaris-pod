@@ -6,18 +6,16 @@ import {
   ExtractionColumn,
   ExtractionUtils
 } from "../services/model/extraction.model";
-import {FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
+import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../referential/form/referential.form";
-import {BehaviorSubject, Observable} from "rxjs";
-import {arraySize, isNotEmptyArray} from "../../shared/functions";
+import {BehaviorSubject} from "rxjs";
+import {arraySize} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {ExtractionService} from "../services/extraction.service";
-import {CommandMap} from "@ionic/cli/lib/namespace";
-import {debounceTime, tap} from "rxjs/operators";
+import {debounceTime} from "rxjs/operators";
 
 declare type ColumnMap = {[sheetName: string]: ExtractionColumn[] };
 
@@ -163,7 +161,6 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     this.registerSubscription(
       this.form.get('isSpatial').valueChanges
         .subscribe(isSpatial => {
-          console.debug('TODO: spatial=' + isSpatial);
            // Not need stratum
            if (!isSpatial) {
              this.stratumHelper.resize(0)

@@ -359,8 +359,6 @@ export class LocalSettingsService {
   async clearPageHistory() {
     // Reset all page history
     await this.applyProperty('pageHistory', [], {persistImmediate: true});
-
-    console.log("TODO: clean history");
   }
 
   /* -- Protected methods -- */

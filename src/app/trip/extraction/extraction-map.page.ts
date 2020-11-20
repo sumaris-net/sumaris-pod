@@ -718,7 +718,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         entries = entries
           .map(entry => [parseFloat(entry[0]), entry[1] ])
           .sort((a, b) => a[0] - b[0]);
-        console.log("TODO sort ", entries);
       }
       // Sort by label (ASC)
       else if (this.techChartOptions.sortByLabel) {
