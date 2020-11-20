@@ -69,7 +69,7 @@ public class BatchRepositoryWriteTest extends AbstractDaoTest {
         super.setUp();
         setCommitOnTearDown(false); // this is need because of delete test
 
-        parentOperation = operationRepository.get(1);
+        parentOperation = operationRepository.get(2); // SUMARiS OPE -> catch haul
         Assume.assumeNotNull(parentOperation);
     }
 

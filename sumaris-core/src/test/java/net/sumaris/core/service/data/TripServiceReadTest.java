@@ -24,9 +24,16 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -35,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class TripServiceReadTest extends AbstractServiceTest{
 
@@ -106,6 +114,78 @@ public class TripServiceReadTest extends AbstractServiceTest{
             .recorderPersonId(2)
             .build(),
             2);
+    }
+
+
+    @Test
+    public void getWithChildren() {
+
+        Integer id = fixtures.getTripId(0);
+        TripVO trip = service.get(id, DataFetchOptions.FULL_GRAPH);
+        Assert.assertNotNull(trip);
+
+        // PhysicalGear
+        {
+            Assert.assertTrue(CollectionUtils.isNotEmpty(trip.getGears()));
+
+            // Gear Measurement
+            Assert.assertTrue(trip.getGears()
+                    .stream()
+                    .map(PhysicalGearVO::getMeasurementValues)
+                    .anyMatch(MapUtils::isNotEmpty));
+
+        }
+
+
+        // Check operations
+        {
+            Assert.assertTrue(CollectionUtils.isNotEmpty(trip.getOperations()));
+
+
+           /* // Check samples
+            {
+                Assert.assertTrue(trip.getOperations()
+                        .stream().map(OperationVO::getSamples).anyMatch(CollectionUtils::isNotEmpty));
+
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getSamples)
+                        .flatMap(Beans::getStream)
+                        .map(SampleVO::getMeasurementValues)
+                        .anyMatch(MapUtils::isNotEmpty));
+
+                // Check batches parentId
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getSamples)
+                        .flatMap(Beans::getStream)
+                        .map(SampleVO::getParentId)
+                        .anyMatch(Objects::nonNull));
+            }*/
+
+            // Check batches
+            {
+                Assert.assertTrue(trip.getOperations()
+                        .stream().map(OperationVO::getBatches)
+                        .anyMatch(CollectionUtils::isNotEmpty));
+
+                // Check batches measurements
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getBatches)
+                        .flatMap(Beans::getStream)
+                        .map(BatchVO::getMeasurementValues)
+                        .anyMatch(MapUtils::isNotEmpty));
+
+                // Check batches parentId
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getBatches)
+                        .flatMap(Beans::getStream)
+                        .map(BatchVO::getParentId)
+                        .anyMatch(Objects::nonNull));
+            }
+        }
     }
 
     private void assertFindResultCount(TripFilterVO filter, int expectedSize) {
