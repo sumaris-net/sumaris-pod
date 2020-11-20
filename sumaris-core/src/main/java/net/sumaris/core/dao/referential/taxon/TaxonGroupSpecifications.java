@@ -29,6 +29,7 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
@@ -69,7 +70,7 @@ public interface TaxonGroupSpecifications
     long countTaxonGroupHierarchy();
 
     List<TaxonGroupVO> findTargetSpeciesByFilter(
-            ReferentialFilterVO filter,
+            IReferentialFilter filter,
             int offset,
             int size,
             String sortAttribute,

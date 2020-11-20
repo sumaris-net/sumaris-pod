@@ -22,7 +22,7 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
-import net.sumaris.core.extraction.dao.DatabaseResource;
+import net.sumaris.core.extraction.DatabaseResource;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;

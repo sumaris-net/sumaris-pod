@@ -27,7 +27,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
-import net.sumaris.core.extraction.vo.ExtractionContextVO;
+import net.sumaris.core.extraction.vo.AggregationContextVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +42,7 @@ import java.util.List;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @EqualsAndHashCode(callSuper = true)
-public class ExtractionTripContextVO extends ExtractionContextVO {
+public class ExtractionTripContextVO extends AggregationContextVO {
 
     TripFilterVO tripFilter;
 

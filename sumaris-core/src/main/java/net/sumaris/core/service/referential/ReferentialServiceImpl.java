@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -81,20 +82,20 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
-	public List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
 		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
 				sortDirection);
 	}
 
 	@Override
-	public List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size) {
+	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size) {
 		return findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
 				IItemReferentialEntity.Fields.LABEL,
 				SortDirection.ASC);
 	}
 
 	@Override
-	public Long countByFilter(String entityName, ReferentialFilterVO filter) {
+	public Long countByFilter(String entityName, IReferentialFilter filter) {
 		Preconditions.checkNotNull(entityName);
 		if (filter == null) {
 			return count(entityName);

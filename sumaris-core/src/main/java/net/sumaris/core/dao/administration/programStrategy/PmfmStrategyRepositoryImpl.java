@@ -29,7 +29,6 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -86,7 +85,7 @@ public class PmfmStrategyRepositoryImpl
     private ReferentialDao referentialDao;
 
     @Autowired
-    private SumarisConfiguration config;
+    private SumarisConfiguration configuration;
 
     @Autowired
     PmfmStrategyRepositoryImpl(EntityManager entityManager) {
@@ -103,7 +102,7 @@ public class PmfmStrategyRepositoryImpl
     public List<PmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions) {
 
         return findAll(
-            toSpecification(StrategyRelatedFilterVO.builder().strategyId(strategyId).build()),
+            toSpecification(StrategyRelatedFilterVO.builder().strategyId(strategyId).build(), fetchOptions),
             Sort.by(PmfmStrategy.Fields.RANK_ORDER)
         )
             .stream()
@@ -116,7 +115,8 @@ public class PmfmStrategyRepositoryImpl
     public List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions) {
 
         return findAll(
-            toSpecification(StrategyRelatedFilterVO.builder().programId(programId).acquisitionLevelId(acquisitionLevelId).build()),
+            hasProgramId(programId)
+                    .and(hasAcquisitionLevelId(acquisitionLevelId)),
             Sort.by(PmfmStrategy.Fields.RANK_ORDER)
         )
             .stream()
@@ -125,7 +125,7 @@ public class PmfmStrategyRepositoryImpl
 
     }
 
-    protected Specification<PmfmStrategy> toSpecification(StrategyRelatedFilterVO filter) {
+    protected Specification<PmfmStrategy> toSpecification(StrategyRelatedFilterVO filter, StrategyFetchOptions fetchOptions) {
         return BindableSpecification.where(hasProgramId(filter.getProgramId()))
             .and(hasStrategyId(filter.getStrategyId()))
             .and(hasAcquisitionLevelId(filter.getAcquisitionLevelId()));
@@ -278,7 +278,7 @@ public class PmfmStrategyRepositoryImpl
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getGearIds())) {
             target.getGears().clear();
             if (CollectionUtils.isNotEmpty(source.getGearIds())) {
-                target.getGears().addAll(loadAllAsSet(Gear.class, IEntity.Fields.ID, source.getGearIds(), true));
+                target.getGears().addAll(loadAllAsSet(Gear.class, source.getGearIds(), true));
             }
         }
 
@@ -286,7 +286,7 @@ public class PmfmStrategyRepositoryImpl
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
             target.getTaxonGroups().clear();
             if (CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
-                target.getTaxonGroups().addAll(loadAllAsSet(TaxonGroup.class, IEntity.Fields.ID, source.getTaxonGroupIds(), true));
+                target.getTaxonGroups().addAll(loadAllAsSet(TaxonGroup.class, source.getTaxonGroupIds(), true));
             }
         }
 
@@ -294,7 +294,7 @@ public class PmfmStrategyRepositoryImpl
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
             target.getReferenceTaxons().clear();
             if (CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
-                target.getReferenceTaxons().addAll(loadAllAsSet(ReferenceTaxon.class, IEntity.Fields.ID, source.getReferenceTaxonIds(), true));
+                target.getReferenceTaxons().addAll(loadAllAsSet(ReferenceTaxon.class, source.getReferenceTaxonIds(), true));
             }
         }
     }

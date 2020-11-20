@@ -26,6 +26,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.model.TreeNodeEntities;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
@@ -48,7 +49,7 @@ public class DenormalizedBatchServiceWriteTest extends AbstractServiceTest{
     @Test
     public void saveAllByOperationId() {
 
-        int operationId = dbResource.getFixtures().getOperationId(1);
+        int operationId = fixtures.getOperationId(1);
         List<BatchVO> batches = batchService.getAllByOperationId(operationId);
         BatchVO catchBatch = TreeNodeEntities.listAsTree(batches, BatchVO::getParentId);
         Assume.assumeNotNull(catchBatch);

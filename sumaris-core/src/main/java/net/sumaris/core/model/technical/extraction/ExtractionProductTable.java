@@ -28,6 +28,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -76,6 +77,9 @@ public class ExtractionProductTable implements IItemReferentialEntity {
     @Column(name = "is_spatial")
     private Boolean isSpatial;
 
+    @Column(name = "rank_order")
+    private Integer rankOrder;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_fk", nullable = false)
     @EqualsAndHashCode.Exclude
@@ -83,6 +87,8 @@ public class ExtractionProductTable implements IItemReferentialEntity {
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductColumn.class, mappedBy = ExtractionProductColumn.Fields.TABLE)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OrderBy(ExtractionProductColumn.Fields.RANK_ORDER + " ASC")
+    @SortNatural
     private List<ExtractionProductColumn> columns;
 
 }

@@ -29,6 +29,10 @@ import java.io.Serializable;
  */
 public interface IReferentialFilter extends Serializable {
 
+    Integer getId();
+
+    void setId(Integer id);
+
     String getLabel();
 
     void setLabel(String label);

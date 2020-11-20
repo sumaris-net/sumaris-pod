@@ -68,8 +68,8 @@ public class PhysicalGearRepositoryImpl
     }
 
     @Override
-    public Specification<PhysicalGear> toSpecification(PhysicalGearFilterVO filter) {
-        return super.toSpecification(filter)
+    public Specification<PhysicalGear> toSpecification(PhysicalGearFilterVO filter, DataFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(hasVesselId(filter.getVesselId()))
             .and(hasTripId(filter.getTripId()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
@@ -97,6 +97,12 @@ public class PhysicalGearRepositoryImpl
             } else {
                 target.setTripId(trip.getId());
             }
+        }
+
+        // Fetch children
+        if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
+            // Measurements values
+            target.setMeasurementValues(measurementDao.getPhysicalGearMeasurementsMap(source.getId()));
         }
     }
 

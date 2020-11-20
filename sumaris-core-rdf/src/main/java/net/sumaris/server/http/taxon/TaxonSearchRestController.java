@@ -63,13 +63,6 @@ public class TaxonSearchRestController {
 
     private static final Logger log = LoggerFactory.getLogger(TaxonSearchRestController.class);
 
-    @Resource
-    private RdfSchemaService schemaExportService;
-
-    @Resource
-    private RdfConfiguration config;
-
-
     @PostConstruct
     public void init() {
         log.info("Starting Taxon endpoint {{}}...", SEARCH_PATH);
@@ -84,6 +77,7 @@ public class TaxonSearchRestController {
                     RdfMediaType.APPLICATION_XML_VALUE,
                     RdfMediaType.APPLICATION_RDF_JSON_VALUE,
                     RdfMediaType.APPLICATION_JSON_VALUE,
+                    RdfMediaType.APPLICATION_JSON_UTF8_VALUE,
                     RdfMediaType.APPLICATION_JSON_LD_VALUE,
                     RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
                     RdfMediaType.APPLICATION_N_QUADS_VALUE,

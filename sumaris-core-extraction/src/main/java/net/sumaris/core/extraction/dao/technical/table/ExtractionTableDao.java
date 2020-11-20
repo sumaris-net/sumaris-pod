@@ -25,7 +25,8 @@ package net.sumaris.core.extraction.dao.technical.table;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 
 import java.util.List;
 import java.util.Map;
@@ -49,16 +50,33 @@ public interface ExtractionTableDao {
 
     long getRowCount(String tableName);
 
-    List<ExtractionProductColumnVO> getColumns(String tableName);
+    List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions);
 
-    ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction);
+    ExtractionResultVO getRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction);
 
-    ExtractionResultVO getTableGroupByRows(String tableName,
-                                           ExtractionFilterVO filter,
-                                           Set<String> groupByColumnNames,
-                                           Map<String, SQLAggregatedFunction> otherColumnNames,
-                                           int offset, int size, String sort, SortDirection direction);
+    ExtractionResultVO getAggRows(String tableName,
+                                  ExtractionFilterVO filter,
+                                  Set<String> groupByColumnNames,
+                                  Map<String, SQLAggregatedFunction> otherColumnNames,
+                                  int offset, int size, String sort, SortDirection direction);
+
+    Map<String, Object> getTechRows(String tableName,
+                                              ExtractionFilterVO filter,
+                                              String aggColumnName,
+                                              SQLAggregatedFunction aggFunction,
+                                              String techColumnName,
+                                              String sort, SortDirection direction);
 
     void dropTable(String tableName);
+
+    /**
+     * Create a sequence for a table.
+     *
+     * @param tableName
+     * @return the sequence name
+     */
+    String createSequence(String tableName);
+
+    void dropSequence(String sequenceName);
 
 }

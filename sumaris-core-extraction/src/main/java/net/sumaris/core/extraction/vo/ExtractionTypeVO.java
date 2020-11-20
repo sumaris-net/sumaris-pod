@@ -23,33 +23,50 @@ package net.sumaris.core.extraction.vo;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import net.sumaris.core.extraction.utils.ExtractionRawFormatEnum;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldNameConstants
 public class ExtractionTypeVO implements IValueObject<Integer>,
-        IWithRecorderDepartmentEntity<Integer, DepartmentVO> {
+        IExtractionFormat,
+        IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
+        IWithRecorderPersonEntity<Integer, PersonVO> {
 
-    public static final String PROPERTY_SHEET_NAMES = "sheetNames";
-
-    private Integer id;
-    private String category;
-    private String label;
-    private String name;
-    private String version;
-    private String[] sheetNames;
-    private Integer statusId;
-    private Boolean isSpatial;
+    Integer id;
+    ExtractionCategoryEnum category;
+    String label;
+    String name;
+    String version;
+    String description;
+    String comments;
+    String docUrl;
+    String[] sheetNames;
+    Integer statusId;
+    Boolean isSpatial;
 
     @JsonIgnore
-    private ExtractionRawFormatEnum rawFormat;
+    LiveFormatEnum liveFormat;
 
-    private DepartmentVO recorderDepartment;
+    PersonVO recorderPerson;
+    DepartmentVO recorderDepartment;
 
-    public String getFormat() {
-        return getLabel() != null ? getLabel().split("-")[0] : null;
+    @JsonIgnore
+    public boolean isPublic() {
+        return statusId == StatusEnum.ENABLE.getId();
     }
 }

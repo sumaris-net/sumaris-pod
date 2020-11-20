@@ -50,7 +50,7 @@ import net.sumaris.core.model.technical.configuration.Software;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
 import net.sumaris.core.model.technical.versionning.SystemVersion;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -134,13 +134,13 @@ public interface ReferentialDao {
     ReferentialVO getLevelById(String entityName, int levelId);
 
     List<ReferentialVO> findByFilter(String entityName,
-                                     ReferentialFilterVO filter,
+                                     IReferentialFilter filter,
                                      int offset,
                                      int size,
                                      String sortAttribute,
                                      SortDirection sortDirection);
 
-    Long countByFilter(final String entityName, ReferentialFilterVO filter);
+    Long countByFilter(final String entityName, IReferentialFilter filter);
 
     Optional<ReferentialVO> findByUniqueLabel(String entityName, String label);
 

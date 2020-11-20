@@ -22,15 +22,17 @@ package net.sumaris.core.dao.data.fishingArea;
  * #L%
  */
 
+import net.sumaris.core.model.data.FishingArea;
 import net.sumaris.core.vo.data.FishingAreaVO;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
 public interface FishingAreaSpecifications {
 
-    List<FishingAreaVO> getAllVOByOperationId(Integer operationId);
+    List<FishingAreaVO> getAllVOByOperationId(int operationId);
 
     List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas);
 
-
+    List<FishingAreaVO> findAllVO(Specification<FishingArea> spec);
 }

@@ -27,8 +27,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.MediaTypes;
+import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.security.IDownloadController;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,7 +55,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 @Controller
-public class DownloadController {
+public class DownloadController implements IDownloadController {
 
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(DownloadController.class);
@@ -107,7 +109,8 @@ public class DownloadController {
         if (targetFile.exists()) {
             int counter = 1;
             String baseName = Files.getNameWithoutExtension(sourceFile);
-            String extension = Files.getExtension(sourceFile);
+            String extension = Files.getExtension(sourceFile)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid argument 'sourcePath': missing file extension"));
             do {
                 targetFile = new File(userDirectory, String.format("%s-%s.%s",
                         baseName,
@@ -141,7 +144,8 @@ public class DownloadController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        MediaType mediaType = MediaTypes.getMediaTypeForFileName(this.servletContext, filename);
+        MediaType mediaType = MediaTypes.getMediaTypeForFileName(this.servletContext, filename)
+                .orElse(MediaType.APPLICATION_OCTET_STREAM);
 
         File file = new File(configuration.getDownloadDirectory(), filename);
         if (!file.exists()) {
@@ -181,6 +185,6 @@ public class DownloadController {
         Preconditions.checkNotNull(path);
         Preconditions.checkArgument(path.trim().length() > 0);
         // Avoid '../' in the filename
-        return path != null ? path.trim().replaceAll("[.][.]/?", "") : null;
+        return path.trim().replaceAll("[.][.]/?", "");
     }
 }

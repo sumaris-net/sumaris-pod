@@ -26,6 +26,7 @@ import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
@@ -49,6 +50,5 @@ public interface OperationSpecifications
         specification.addBind(TRIP_ID_PARAM, tripId);
         return specification;
     }
-
 
 }

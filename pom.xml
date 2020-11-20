@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.4.5</version>
+  <version>1.4.6</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -108,10 +108,7 @@
     <commonBeanutilsVersion>1.9.4</commonBeanutilsVersion>
     <opencsv.version>2.4.3</opencsv.version>
 
-    <!-- /!\ error with 5.3.10 -->
-    <!--     (and 5.4 has API changes !) -->
-    <hibernate.version>5.4.12.Final</hibernate.version>
-
+    <hibernate.version>5.4.18.Final</hibernate.version>
     <hibernate-tools.version>5.3.11.Final</hibernate-tools.version>
     <hibernate-search.version>5.10.4.Final</hibernate-search.version>
     <hibernate-spatial.version>5.4.12.Final</hibernate-spatial.version>
@@ -184,7 +181,7 @@
     <goals>deploy</goals>
     <arguments>-DperformFullRelease -Denv=hsqldb</arguments>
     <preparationGoals>verify</preparationGoals>
-		<gitflowPluginVersion>1.14.0</gitflowPluginVersion>
+	<gitflowPluginVersion>1.14.0</gitflowPluginVersion>
 
     <!-- Last JRE version to use -->
     <jreVersion>1.8.77</jreVersion>
@@ -1599,7 +1596,7 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <build>
-        <defaultGoal>package</defaultGoal>
+        <defaultGoal>compile</defaultGoal>
         <plugins>
           <plugin>
             <artifactId>maven-enforcer-plugin</artifactId>
@@ -1642,6 +1639,7 @@
                 <configuration>
                   <mainClass>${exec.mainClass}</mainClass>
                   <classpathScope>${exec.classpathScope}</classpathScope>
+                  <arguments>${exec.args}</arguments>
                 </configuration>
               </execution>
             </executions>
@@ -1652,6 +1650,7 @@
       <properties>
         <exec.mainClass>${maven.jar.main.class}</exec.mainClass>
         <exec.classpathScope>runtime</exec.classpathScope>
+        <exec.args></exec.args>
         <sumaris.log.file>${project.build.directory}/exec.log</sumaris.log.file>
       </properties>
     </profile>

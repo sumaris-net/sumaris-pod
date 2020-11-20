@@ -22,16 +22,28 @@ package net.sumaris.core.extraction.dao.technical;
  * #L%
  */
 
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.DatabaseType;
+import net.sumaris.core.extraction.DatabaseResource;
 import net.sumaris.core.util.Dates;
 import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 public class DaosTest {
+
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
     @Test
     public void getSqlToDate() {
@@ -40,5 +52,84 @@ public class DaosTest {
         String sql = Daos.getSqlToDate(date);
         Assert.assertNotNull(sql);
         Assert.assertEquals("TO_DATE('2019-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')", sql);
+    }
+
+    @Test
+    public void getSelectHashCodeString() throws Exception {
+
+        SumarisConfiguration config = SumarisConfiguration.getInstance();
+        DatabaseType dbType = Daos.getDatabaseType(config.getJdbcURL());
+        Assume.assumeNotNull(dbType);
+
+        // Get the string
+        String hashCodeString = Daos.getSelectHashCodeString(dbType, "%s");
+        Assert.assertNotNull(hashCodeString);
+
+        try (Connection conn = Daos.createConnection(config.getConnectionProperties())) {
+
+
+            // Test not empty value
+            {
+                final String[] expressions = new String[] {
+                        "aaaaaa",
+                        "test ex",
+                        "abcdef",
+                        "abcdefg",
+                        "abcdefgh",
+                        "abcdefghi",
+                        "abcdefghijkl",
+                        "abcdefghijklmnopqrs",
+                        "abcdefghijklmnopqrstuvxyz",
+                        "abcdefghijklmnopqrstuvxyz".toUpperCase(),
+                        "0123456789",
+                        "#{[|^@]}ễ²¡÷×¿“~´\"éç'@^\\´& ",
+                };
+                for (String expression: expressions) {
+                    Integer result = getDaoHashCode(conn, expression);
+                    Assert.assertNotNull(result);
+
+                    // Hsqldb function is equivalent to Java String.hashCode()
+                    if (dbType == DatabaseType.hsqldb) {
+                        Assert.assertEquals(String.format("Invalid hashCode for expresion '%s'. Expected: %s, Actual: %s", expression,
+                                expression.hashCode(), result.intValue()),
+                                expression.hashCode(), result.intValue());
+                    }
+                }
+            }
+
+            // Test empty value
+            {
+                Integer result = getDaoHashCode(conn, "");
+                Assert.assertNotNull(result);
+                Assert.assertEquals(0, result.intValue());
+            }
+
+            // Test null value
+            Assert.assertNull(getDaoHashCode(conn,null));
+        }
+    }
+
+    /* -- protected method -- */
+
+    protected Integer getDaoHashCode(Connection conn, String expression) throws SQLException {
+
+        DatabaseType dbType = Daos.getDatabaseType(conn.getMetaData().getURL());
+        Assume.assumeNotNull(dbType);
+
+        // Get the string
+        String hashCodeString = Daos.getSelectHashCodeString(dbType, "%s");
+        Assert.assertNotNull(hashCodeString);
+
+        String quotedExpression = expression == null ? "null" : "'" + expression.replaceAll("'", "''") + "'";
+        String sql = "SELECT "
+                + String.format(hashCodeString, quotedExpression)
+                + " HASH FROM status WHERE id=0";
+
+        try (PreparedStatement ps = Daos.prepareQuery(conn, sql)) {
+            ResultSet rs = ps.executeQuery();
+            Assert.assertTrue(rs.next());
+            Integer result = rs.getObject("HASH", Integer.class);
+            return result;
+        }
     }
 }

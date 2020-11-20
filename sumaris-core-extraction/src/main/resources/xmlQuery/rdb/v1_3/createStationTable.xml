@@ -47,7 +47,7 @@
     <select alias="POS_END_LAT" type="number">P_END.LATITUDE</select>
     <select alias="POS_END_LON" type="number">P_END.LONGITUDE</select>
 
-    <select alias="AREA" type="text">null</select>
+    <select alias="AREA" type="text">null</select><!-- TODO get it by LOCATION_HIERARCHY -->
     <select alias="STATISTICAL_RECTANGLE" type="text">F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)</select>
 
     <!-- TODO: check if 10'x10' codification is OK

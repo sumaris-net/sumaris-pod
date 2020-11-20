@@ -26,20 +26,18 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import lombok.NonNull;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.event.config.ConfigurationEvent;
-import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.SaleType;
@@ -58,7 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -68,6 +66,9 @@ import java.util.stream.Collectors;
 public class TripServiceImpl implements TripService {
 
     private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
+
+    @Autowired
+    private SumarisConfiguration configuration;
 
     @Autowired
     private TripRepository tripRepository;
@@ -105,12 +106,11 @@ public class TripServiceImpl implements TripService {
     @Autowired
     private FishingAreaService fishingAreaService;
 
-    private boolean enableTrash = false;
+    @Autowired(required = false)
+    private TaskExecutor taskExecutor;
 
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
-        this.enableTrash = event.getConfig().enableEntityTrash();
-    }
+    @Autowired
+    private TripService self;
 
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
@@ -134,9 +134,42 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripVO get(int tripId) {
-        //noinspection UnnecessaryBoxing
-        return tripRepository.get(Integer.valueOf(tripId));
+    public TripVO get(int id) {
+        return get(id, DataFetchOptions.builder().build());
+    }
+
+    @Override
+    public TripVO get(int id, @NonNull DataFetchOptions fetchOptions) {
+        TripVO target = tripRepository.get(id);
+
+        // Fetch children (disabled by default)
+        if (fetchOptions.isWithChildrenEntities()) {
+
+            target.setGears(physicalGearService.getAllByTripId(id, fetchOptions));
+            target.setSales(saleService.getAllByTripId(id, fetchOptions));
+
+            // Fill link to landing, if any
+            fillTripLandingLinks(target);
+
+            // Operation groups
+            if (target.getLanding() != null) {
+                target.setOperationGroups(operationGroupService.getAllByTripId(id, fetchOptions));
+                target.setMetiers(operationGroupService.getMetiersByTripId(id));
+            }
+
+            // Operations
+            else {
+                target.setOperations(operationService.getAllByTripId(id, fetchOptions));
+            }
+
+        }
+
+        // Measurements
+        if (fetchOptions.isWithMeasurementValues()) {
+            target.setMeasurements(measurementDao.getTripVesselUseMeasurements(id));
+        }
+
+        return target;
     }
 
     @Override
@@ -145,8 +178,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(target.getId());
         Landing landing = landingRepository.getByTripId(target.getId());
         if (landing != null) {
-            target.setLandingId(landing.getId());
-            target.setLandingRankOrder(landing.getRankOrderOnVessel());
+            target.setLanding(landingRepository.toVO(landing, DataFetchOptions.builder().withRecorderDepartment(false).withObservers(false).build()));
             if (landing.getObservedLocation() != null) {
                 target.setObservedLocationId(landing.getObservedLocation().getId());
             }
@@ -167,8 +199,7 @@ public class TripServiceImpl implements TripService {
             Collection<LandingVO> tripLandings = landingsByTripId.get(target.getId());
             LandingVO tripLanding = CollectionUtils.size(tripLandings) == 1 ? tripLandings.iterator().next() : null;
             if (tripLanding != null) {
-                target.setLandingId(tripLanding.getId());
-                target.setLandingRankOrder(tripLanding.getRankOrderOnVessel());
+                target.setLanding(tripLanding);
                 if (tripLanding.getObservedLocation() != null) {
                     target.setObservedLocationId(tripLanding.getObservedLocation().getId());
                 }
@@ -177,7 +208,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripVO save(final TripVO source, boolean withOperation, boolean withOperationGroup) {
+    public TripVO save(final TripVO source, TripSaveOptions saveOptions) {
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getProgram(), "Missing program");
         Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
@@ -189,6 +220,9 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(source.getVesselSnapshot(), "Missing vesselSnapshot");
         Preconditions.checkNotNull(source.getVesselSnapshot().getId(), "Missing vesselSnapshot.id");
         Preconditions.checkArgument(Objects.isNull(source.getSale()) || CollectionUtils.isEmpty(source.getSales()), "Must not have both 'sales' and 'sale' attributes");
+
+        // Init save options with default values if not provided
+        final TripSaveOptions finalSaveOptions = Optional.ofNullable(saveOptions).orElse(TripSaveOptions.builder().build());
 
         // Reset control date
         source.setControlDate(null);
@@ -204,7 +238,7 @@ public class TripServiceImpl implements TripService {
         TripVO result = tripRepository.save(source);
 
         // Save or update parent entity
-        saveParent(result);
+        saveParent(result, finalSaveOptions);
 
         // Save measurements
         if (source.getMeasurementValues() != null) {
@@ -229,7 +263,7 @@ public class TripServiceImpl implements TripService {
         List<PhysicalGearVO> physicalGears = Beans.getList(source.getGears());
         physicalGears.forEach(physicalGear -> {
             fillDefaultProperties(result, physicalGear);
-            if (withOperationGroup) {
+            if (finalSaveOptions.getWithOperationGroup()) {
                 fillPhysicalGearMeasurementsFromOperationGroups(physicalGear, source.getOperationGroups());
             }
         });
@@ -237,7 +271,7 @@ public class TripServiceImpl implements TripService {
         result.setGears(physicalGears);
 
         // Save operations (only if asked)
-        if (withOperation) {
+        if (finalSaveOptions.getWithOperation()) {
             List<OperationVO> operations = Beans.getList(source.getOperations());
             fillOperationPhysicalGears(operations, physicalGears);
             operations = operationService.saveAllByTripId(result.getId(), operations);
@@ -245,7 +279,7 @@ public class TripServiceImpl implements TripService {
         }
 
         // Save operation groups (only if asked)
-        if (withOperationGroup) {
+        if (finalSaveOptions.getWithOperationGroup()) {
             List<OperationGroupVO> operationGroups = Beans.getList(source.getOperationGroups());
             fillOperationGroupPhysicalGears(operationGroups, physicalGears);
             operationGroups = operationGroupService.saveAllByTripId(result.getId(), operationGroups);
@@ -335,57 +369,59 @@ public class TripServiceImpl implements TripService {
         });
     }
 
-    private void saveParent(TripVO trip) {
+    private void saveParent(TripVO trip, TripSaveOptions saveOptions) {
 
-        // Landing
-        boolean createLanding = false;
-        if (trip.getLandingId() != null) {
+        if (saveOptions.getWithLanding()) {
+            // Landing
+            Preconditions.checkNotNull(trip.getLanding(), "The Landing object must be created first");
+            boolean createLanding = false;
+            if (trip.getLanding().getId() != null) {
 
-            // update update_date on landing
-            LandingVO landing = landingRepository.get(trip.getLandingId());
+                // update update_date on landing
+                LandingVO landing = landingRepository.get(trip.getLanding().getId());
 
-            if (landing.getTripId() == null) {
-                landing.setTripId(trip.getId());
-            }
-            landing.setDateTime(trip.getReturnDateTime());
-            landing.setObservers(Beans.getSet(trip.getObservers()));
-
-            landingRepository.save(landing);
-
-        } else {
-
-            // a landing have to be created
-            createLanding = true;
-
-        }
-
-        // ObservedLocation
-        if (trip.getObservedLocationId() != null) {
-
-            // update update_date on observed_location
-            ObservedLocationVO observedLocation = observedLocationRepository.get(trip.getObservedLocationId());
-            observedLocationRepository.save(observedLocation);
-
-            if (createLanding) {
-
-                LandingVO landing = new LandingVO();
-
-                landing.setObservedLocationId(observedLocation.getId());
-                landing.setTripId(trip.getId());
-                landing.setProgram(observedLocation.getProgram());
-                landing.setLocation(observedLocation.getLocation());
-                landing.setVesselSnapshot(trip.getVesselSnapshot());
-                landing.setRankOrderOnVessel(trip.getLandingRankOrder());
+                if (landing.getTripId() == null) {
+                    landing.setTripId(trip.getId());
+                }
                 landing.setDateTime(trip.getReturnDateTime());
                 landing.setObservers(Beans.getSet(trip.getObservers()));
-                landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
 
-                LandingVO savedLanding = landingRepository.save(landing);
-                trip.setLandingId(savedLanding.getId());
+                landingRepository.save(landing);
+
+            } else {
+
+                // a landing have to be created
+                createLanding = true;
+
             }
 
-        }
+            // ObservedLocation
+            if (trip.getObservedLocationId() != null) {
 
+                // update update_date on observed_location
+                ObservedLocationVO observedLocation = observedLocationRepository.get(trip.getObservedLocationId());
+                observedLocationRepository.save(observedLocation);
+
+                if (createLanding) {
+
+                    LandingVO landing = new LandingVO();
+
+                    landing.setObservedLocationId(observedLocation.getId());
+                    landing.setTripId(trip.getId());
+                    landing.setProgram(observedLocation.getProgram());
+                    landing.setLocation(observedLocation.getLocation());
+                    landing.setVesselSnapshot(trip.getVesselSnapshot());
+                    landing.setRankOrderOnVessel(trip.getLanding().getRankOrderOnVessel());
+                    landing.setDateTime(trip.getReturnDateTime());
+                    landing.setObservers(Beans.getSet(trip.getObservers()));
+                    landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
+
+                    LandingVO savedLanding = landingRepository.save(landing);
+                    trip.setLanding(savedLanding);
+                }
+
+            }
+        }
     }
 
     private void fillPhysicalGearMeasurementsFromOperationGroups(PhysicalGearVO physicalGear, List<OperationGroupVO> operationGroups) {
@@ -427,26 +463,22 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public List<TripVO> save(List<TripVO> trips, boolean withOperation, boolean withOperationGroup) {
+    public List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions) {
         Preconditions.checkNotNull(trips);
 
         return trips.stream()
-            .map(t -> save(t, withOperation, withOperationGroup))
+            .map(t -> save(t, saveOptions))
             .collect(Collectors.toList());
     }
 
     @Override
     public void delete(int id) {
+        boolean enableTrash = configuration.enableEntityTrash();
+        log.info("Delete Trip#{} {trash: {}}", id, enableTrash);
 
-        TripVO deletedTrip = null;
-        if (enableTrash) {
-            deletedTrip = get(id);
-            deletedTrip.setOperations(operationService.findAllByTripId(id, 0, 1000, Operation.Fields.FISHING_START_DATE_TIME, SortDirection.ASC));
-            deletedTrip.setOperationGroups(operationGroupService.getAllByTripId(id));
-            deletedTrip.setMetiers(operationGroupService.getMetiersByTripId(id));
-
-            // TODO: Add all measurement maybe with get(id, fullFetchOption)
-        }
+        TripVO eventData = enableTrash ?
+                get(id, DataFetchOptions.builder().withChildrenEntities(true).build()) :
+                null;
 
         // Remove link LANDING->TRIP
         Landing landing = landingRepository.getByTripId(id);
@@ -458,16 +490,55 @@ public class TripServiceImpl implements TripService {
         // Apply deletion
         tripRepository.deleteById(id);
 
-        // Publish events
-        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), deletedTrip));
+        // Publish delete event
+        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), eventData));
     }
+
+    @Override
+    public void asyncDelete(int id) {
+        if (taskExecutor == null) {
+            delete(id);
+        } else {
+            // Delete async
+            taskExecutor.execute(() -> {
+                try {
+                    Thread.sleep(2000); // Wait 2 s
+
+                    // Call self, to be sure to have a transaction
+                    self.delete(id);
+                } catch (Exception e) {
+                    log.warn(String.format("Error while deleting trip {id: %s}: %s", id, e.getMessage()), e);
+                }
+            });
+        }
+    }
+
 
     @Override
     public void delete(List<Integer> ids) {
         Preconditions.checkNotNull(ids);
         ids.stream()
-            .filter(Objects::nonNull)
-            .forEach(this::delete);
+                .filter(Objects::nonNull)
+                .forEach(this::delete);
+    }
+
+    @Override
+    public void asyncDelete(List<Integer> ids) {
+        if (taskExecutor == null) {
+            delete(ids);
+        } else {
+            // Delete async
+            taskExecutor.execute(() -> {
+                try {
+                    Thread.sleep(2000); // Wait 2 s
+
+                    // Call self, to be sure to have a transaction
+                    self.delete(ids);
+                } catch (Exception e) {
+                    log.warn(String.format("Error while deleting trip {ids: %s}: %s", ids, e.getMessage()), e);
+                }
+            });
+        }
     }
 
     @Override
@@ -511,6 +582,7 @@ public class TripServiceImpl implements TripService {
     }
 
     /* protected methods */
+
 
     void fillDefaultProperties(TripVO parent, SaleVO sale) {
         if (sale == null) return;

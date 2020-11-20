@@ -25,6 +25,8 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;

@@ -42,7 +42,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -84,7 +84,7 @@ public class LandingServiceImpl implements LandingService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
-        this.enableTrash = event.getConfig().enableEntityTrash();
+        this.enableTrash = event.getConfiguration().enableEntityTrash();
     }
 
     @Override

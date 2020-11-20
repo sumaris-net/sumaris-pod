@@ -28,7 +28,9 @@ import net.sumaris.core.util.Dates;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Useful method around DAO and entities.
@@ -46,22 +48,54 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
      * @param strings a {@link Collection} object.
      * @return concatenated strings
      */
-    public static String getSqlInValueFromStringCollection(Collection<String> strings) {
+    public static String getSqlInEscapedStrings(Collection<String> strings) {
         if (strings == null) return "";
-        return Joiner.on(',').skipNulls().join(strings.stream().filter(Objects::nonNull).map(s -> "'" + s + "'").collect(Collectors.toSet()));
+        return strings.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("','", "'", "'"));
+    }
+
+    /**
+     * Concat single quoted strings with ',' character, without parenthesis
+     *
+     * @param strings a {@link String[]} object.
+     * @return concatenated strings
+     */
+    public static String getSqlInEscapedStrings(String[] strings) {
+        if (strings == null) return "";
+        return Stream.of(strings)
+                .filter(Objects::nonNull)
+                .map(str -> str.replaceAll("'", "''")) // Escape quote character
+                .collect(Collectors.joining("','", "'", "'"));
     }
 
     /**
      * Concat integers with ',' character, without parenthesis
      *
-     * @param integers a {@link Collection} object.
+     * @param numbers a {@link Collection} object of numbers (Integer, Double, ...).
      * @return concatenated integers
      */
-    public static String getSqlInValueFromIntegerCollection(Collection<Integer> integers) {
-        if (integers == null) return "";
-        return Joiner.on(',').skipNulls().join(integers.stream().filter(Objects::nonNull).collect(Collectors.toSet()));
+    public static String getSqlInNumbers(Collection<? extends Object> numbers) {
+        if (numbers == null) return "";
+        return numbers.stream()
+                .filter(Objects::nonNull)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
     }
 
+    /**
+     * Concat integers with ',' character, without parenthesis
+     *
+     * @param numbers a {@link Object[]} object of numbers (Integer, Double, ...).
+     * @return concatenated integers
+     */
+    public static String getSqlInNumbers(Object[] numbers) {
+        if (numbers == null) return "";
+        return Stream.of(numbers)
+                .filter(Objects::nonNull)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+    }
 
     public static String getSqlToDate(Date date) {
         if (date == null) return null;

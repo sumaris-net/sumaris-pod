@@ -23,11 +23,13 @@
 package net.sumaris.core.extraction.dao.trip.free2;
 
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.free2.ExtractionFree2ContextVO;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionFree2TripDao<C extends ExtractionFree2ContextVO> extends ExtractionRdbTripDao<C> {
+public interface ExtractionFree2TripDao<C extends ExtractionFree2ContextVO, F extends ExtractionFilterVO>
+        extends ExtractionRdbTripDao<C, F> {
 
 }

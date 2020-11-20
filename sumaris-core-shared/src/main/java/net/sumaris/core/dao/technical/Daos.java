@@ -37,8 +37,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.hibernate.Session;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
@@ -46,12 +44,13 @@ import org.hibernate.dialect.Dialect;
 import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.Versions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
-import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
@@ -86,10 +85,14 @@ import static org.nuiton.i18n.I18n.t;
  */
 public class Daos {
 
+
+
     private final static String JDBC_URL_PREFIX = "jdbc:";
-    private final static String JDBC_URL_PREFIX_HSQLDB = JDBC_URL_PREFIX + "hsqldb:";
-    private final static String JDBC_URL_PREFIX_ORACLE = JDBC_URL_PREFIX + "oracle:";
+    private final static String JDBC_URL_PREFIX_HSQLDB = JDBC_URL_PREFIX + DatabaseType.hsqldb.name() + ":";
     private final static String JDBC_URL_PREFIX_HSQLDB_FILE = JDBC_URL_PREFIX_HSQLDB + "file:";
+
+    private final static String JDBC_URL_PREFIX_ORACLE = JDBC_URL_PREFIX + DatabaseType.oracle.name() + ":";
+    private final static String JDBC_URL_PREFIX_POSTGRESQL = JDBC_URL_PREFIX + DatabaseType.postgresql.name() + ":";
 
 
     /**
@@ -390,6 +393,18 @@ public class Daos {
         catch(SQLException e) {
             throw new SumarisTechnicalException(e);
         }
+    }
+
+
+    /**
+     * <p>isPgsqlDatabase.</p>
+     *
+     * @param jdbcUrl a {@link String} object.
+     * @return a boolean.
+     */
+    public static boolean isPostgresqlDatabase(String jdbcUrl) {
+        Preconditions.checkNotNull(jdbcUrl);
+        return jdbcUrl.startsWith(JDBC_URL_PREFIX_POSTGRESQL);
     }
 
     /**
@@ -1500,7 +1515,7 @@ public class Daos {
     /**
      * <p>getDatabaseCurrentTimestamp.</p>
      *
-     * @param connection a {@link Connection} object.
+     * @param dataSource a {@link DataSource} object.
      * @param dialect    a {@link Dialect} object.
      * @return a {@link Timestamp} object.
      * @throws SQLException if any.
@@ -1720,5 +1735,40 @@ public class Daos {
         }
 
         return result;
+    }
+
+    /**
+     * Return the datatype (e.g. 'hsqldb', 'oracle', 'postgresql') from a jdbc URL
+     * @param jdbcUrl
+     * @return
+     */
+    public static DatabaseType getDatabaseType(String jdbcUrl) {
+        Preconditions.checkNotNull(jdbcUrl);
+        Preconditions.checkArgument(jdbcUrl.startsWith(JDBC_URL_PREFIX), "Invalid JDBC URL. Must starts with 'jdbc:'");
+        String[] urlParts = jdbcUrl.split(":");
+        Preconditions.checkArgument(urlParts.length > 2, "Invalid JDBC URL. Must starts with 'jdbc:<type>:<connection>'");
+        String dbms = urlParts[1];
+        return DatabaseType.valueOf(dbms.toLowerCase());
+    }
+
+    public static String getSelectHashCodeString(DatabaseType databaseType, String expr) {
+        switch (databaseType) {
+            case oracle:
+                return String.format("ORA_HASH(%s)", expr);
+            case hsqldb:
+                return String.format("F_HASH_CODE(%s)", expr);
+            default:
+                    throw new SumarisTechnicalException("Daos.getSelectHashCodeString() not implemented for DBMS: " + databaseType.name());
+        }
+    }
+
+    public static String getHashCodeString(DatabaseType databaseType, String expr) {
+        switch (databaseType) {
+            case oracle:
+            case hsqldb:
+                return "CALL " + getSelectHashCodeString(databaseType, expr);
+            default:
+                throw new SumarisTechnicalException("Daos.getHashCodeString() not implemented for DBMS: " + databaseType.name());
+        }
     }
 }

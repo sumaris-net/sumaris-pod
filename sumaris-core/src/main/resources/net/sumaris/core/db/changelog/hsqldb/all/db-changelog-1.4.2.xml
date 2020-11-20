@@ -30,6 +30,20 @@
   <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
   <property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
+
+  <changeSet id="benoit.lavenier@e-is.pro" author="1600856443393-301-1" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">select count(*) from (select max(id) MAX_ID from QUALITY_FLAG HAVING max(id) &gt;= 2)</sqlCheck>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      ALTER SEQUENCE QUALITY_FLAG_SEQ RESTART WITH 2;
+      commit;
+    </sql>
+  </changeSet>
+
   <!-- Add missing quality flags  -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-301">
     <preConditions onFail="MARK_RAN">

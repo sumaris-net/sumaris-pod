@@ -65,7 +65,7 @@ public class LandingServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void delete() {
-        service.delete(dbResource.getFixtures().getLandingId(0));
+        service.delete(fixtures.getLandingId(0));
     }
 
     @Test
@@ -87,29 +87,29 @@ public class LandingServiceWriteTest extends AbstractServiceTest{
 
     protected LandingVO createLanding() {
         LandingVO vo = new LandingVO();
-        vo.setProgram(dbResource.getFixtures().getDefaultProgram());
+        vo.setProgram(fixtures.getDefaultProgram());
         vo.setDateTime(new Date());
         vo.setCreationDate(new Date());
 
         LocationVO location = new LocationVO();
-        location.setId(dbResource.getFixtures().getLocationPortId(0));
+        location.setId(fixtures.getLocationPortId(0));
         vo.setLocation(location);
 
         // Vessel
         VesselSnapshotVO vessel = new VesselSnapshotVO();
-        vessel.setId(dbResource.getFixtures().getVesselId(0));
+        vessel.setId(fixtures.getVesselId(0));
         vo.setVesselSnapshot(vessel);
 
         // Department
         DepartmentVO recorderDepartment = new DepartmentVO();
-        recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
         vo.setRecorderDepartment(recorderDepartment);
 
         // Observers
         PersonVO observer1 = new PersonVO();
-        observer1.setId(dbResource.getFixtures().getPersonId(0));
+        observer1.setId(fixtures.getPersonId(0));
         PersonVO observer2 = new PersonVO();
-        observer2.setId(dbResource.getFixtures().getPersonId(1));
+        observer2.setId(fixtures.getPersonId(1));
         vo.setObservers(ImmutableSet.of(observer1, observer2));
 
         // Measurement

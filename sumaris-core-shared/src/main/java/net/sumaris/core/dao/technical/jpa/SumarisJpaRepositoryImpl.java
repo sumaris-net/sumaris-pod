@@ -23,7 +23,6 @@ package net.sumaris.core.dao.technical.jpa;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
@@ -54,10 +53,7 @@ import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -81,7 +77,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     private DataSource dataSource;
 
     @Autowired
-    private SumarisConfiguration config;
+    private SumarisConfiguration configuration;
 
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         this(domainClass, null, entityManager);
@@ -113,7 +109,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     public SumarisConfiguration getConfig() {
-        return config;
+        return configuration;
     }
 
     @Override
@@ -297,21 +293,19 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @param <C>                 a C object.
      * @return a list of T object.
      */
-    @SuppressWarnings("unchecked")
     protected <C> Set<C> loadAllAsSet(Class<C> clazz,
                                       String identifierAttribute,
                                       Collection<? extends Serializable> identifiers,
                                       boolean failedIfMissing) {
 
-        return loadAllAsSet(clazz, IEntity.Fields.ID, identifiers, failedIfMissing);
+        return new HashSet<>(loadAll(clazz, identifierAttribute, identifiers, failedIfMissing));
     }
 
     protected <C> Set<C> loadAllAsSet(Class<C> clazz,
                                       Collection<? extends Serializable> identifiers,
                                       boolean failedIfMissing) {
 
-        List<C> result = loadAll(clazz, identifiers, failedIfMissing);
-        return Sets.newHashSet(result);
+        return new HashSet<>(loadAll(clazz, identifiers, failedIfMissing));
     }
 
     /**
@@ -348,8 +342,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      *
      * @param clazz a {@link Class} object.
      * @param id    a {@link Serializable} object.
-     * @param <T>   a T object.
-     * @return a T object.
+     * @param <C>   a C object.
+     * @return a C object.
      */
     protected <C> C getOne(Class<? extends C> clazz, Serializable id) throws DataNotFoundException {
         C entity = this.entityManager.find(clazz, id); // Can be null

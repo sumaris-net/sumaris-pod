@@ -23,6 +23,7 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
@@ -31,8 +32,13 @@ import net.sumaris.core.dao.technical.SoftwareDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.util.crypto.MD5Util;
@@ -49,6 +55,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -74,8 +81,6 @@ public class PersonRepositoryImpl
     private static final Logger log =
         LoggerFactory.getLogger(PersonRepositoryImpl.class);
 
-    private final List<Listener> listeners = new CopyOnWriteArrayList<>();
-
     @Autowired
     protected DepartmentRepository departmentRepository;
 
@@ -85,20 +90,23 @@ public class PersonRepositoryImpl
     @Autowired
     private SoftwareDao softwareDao;
 
+    @Autowired
+    private ApplicationEventPublisher publisher;
+
     protected PersonRepositoryImpl(EntityManager entityManager) {
         super(Person.class, PersonVO.class, entityManager);
     }
 
     @Override
     @Cacheable(cacheNames = CacheNames.PERSON_BY_ID, key = "#id", unless="#result==null")
-    public PersonVO findById(int id) {
-        return super.findById(id).map(this::toVO).orElse(null);
+    public Optional<PersonVO> findById(int id) {
+        return super.findById(id).map(this::toVO);
     }
 
     @Override
     @Cacheable(cacheNames = CacheNames.PERSON_BY_PUBKEY, key = "#pubkey", unless="#result==null")
-    public PersonVO findByPubkey(String pubkey) {
-        return findAll(BindableSpecification.where(hasPubkey(pubkey))).stream().findFirst().map(this::toVO).orElse(null);
+    public Optional<PersonVO> findByPubkey(@NonNull String pubkey) {
+        return findAll(hasPubkey(pubkey)).stream().findFirst().map(this::toVO);
     }
 
     @Override
@@ -120,21 +128,15 @@ public class PersonRepositoryImpl
     public List<String> getEmailsByProfiles(List<Integer> userProfileIds, List<Integer> statusIds) {
 
         // Build filter
-        PersonFilterVO filter = new PersonFilterVO();
-        filter.setUserProfileIds(userProfileIds != null ? userProfileIds.toArray(new Integer[0]) : null);
-        filter.setStatusIds(statusIds != null ? statusIds.toArray(new Integer[0]) : null);
+        PersonFilterVO filter = PersonFilterVO.builder()
+                .userProfileIds(userProfileIds != null ? userProfileIds.toArray(new Integer[0]) : null)
+                .statusIds(statusIds != null ? statusIds.toArray(new Integer[0]) : null)
+                .build();
 
         return findAll(toSpecification(filter)).stream()
             .map(Person::getEmail)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-    }
-
-    @Override
-    public void addListener(Listener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
     }
 
     // not used
@@ -173,8 +175,15 @@ public class PersonRepositoryImpl
         super.toVO(source, target, copyIfNull);
 
         // Department
-        DepartmentVO department = departmentRepository.get(source.getDepartment().getId());
-        target.setDepartment(department);
+        if (source.getDepartment() == null || source.getDepartment().getId() == null) {
+            if (copyIfNull) {
+                target.setDepartment(null);
+            }
+        }
+        else {
+            DepartmentVO department = departmentRepository.get(source.getDepartment().getId());
+            target.setDepartment(department);
+        }
 
         // Status
         target.setStatusId(source.getStatus().getId());
@@ -244,10 +253,16 @@ public class PersonRepositoryImpl
     @Override
     protected void onAfterSaveEntity(PersonVO vo, Person savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
-        if (isNew)
+        if (isNew) {
             vo.setCreationDate(savedEntity.getCreationDate());
+        }
 
-        emitSaveEvent(vo);
+        // Publish event
+        if (isNew) {
+            publisher.publishEvent(new EntityInsertEvent(vo.getId(), Person.class.getSimpleName(), vo));
+        } else {
+            publisher.publishEvent(new EntityUpdateEvent(vo.getId(), Person.class.getSimpleName(), vo));
+        }
     }
 
     @Override
@@ -313,7 +328,8 @@ public class PersonRepositoryImpl
 
         super.deleteById(id);
 
-        emitDeleteEvent(id);
+        // Emit delete person event
+        publisher.publishEvent(new EntityDeleteEvent(id, Person.class.getSimpleName(), null));
     }
 
     /**
@@ -335,28 +351,6 @@ public class PersonRepositoryImpl
             }
         });
         return translateMap;
-    }
-
-    private void emitSaveEvent(final PersonVO person) {
-        listeners.forEach(l -> {
-            try {
-                l.onSave(person);
-            } catch (Throwable t) {
-                log.error("Person listener (onSave) error: " + t.getMessage(), t);
-                // Continue, to avoid transaction cancellation
-            }
-        });
-    }
-
-    private void emitDeleteEvent(final int id) {
-        listeners.forEach(l -> {
-            try {
-                l.onDelete(id);
-            } catch (Throwable t) {
-                log.error("Person listener (onDelete) error: " + t.getMessage(), t);
-                // Continue, to avoid transaction cancellation
-            }
-        });
     }
 
 }

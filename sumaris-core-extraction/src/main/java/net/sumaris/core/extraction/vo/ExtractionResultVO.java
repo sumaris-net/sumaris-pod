@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ import java.util.List;
 public class ExtractionResultVO {
 
     ExtractionTypeVO type;
-    List<ExtractionProductColumnVO> columns;
+    List<ExtractionTableColumnVO> columns;
     List<String[]> rows;
     Number total;
 

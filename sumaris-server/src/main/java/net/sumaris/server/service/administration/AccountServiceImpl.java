@@ -22,12 +22,14 @@ package net.sumaris.server.service.administration;
  * #L%
  */
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import it.ozimov.springboot.mail.service.EmailService;
+import lombok.NonNull;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.administration.user.UserSettingsRepository;
 import net.sumaris.core.dao.administration.user.UserTokenRepository;
@@ -39,8 +41,9 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
-import net.sumaris.core.service.ServiceLocator;
+import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -65,11 +68,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -82,7 +83,8 @@ public class AccountServiceImpl implements AccountService {
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
-    private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
+    @Autowired
+    private PersonService personService;
 
     @Autowired
     private PersonRepository personRepository;
@@ -112,18 +114,12 @@ public class AccountServiceImpl implements AccountService {
 
     private boolean emailEnable = false; // Will be update after config ready
 
-    @Autowired
-    public AccountServiceImpl(SumarisServerConfiguration config, EmailService emailService) {
-        this.config = config;
+    @Autowired(
+            required = false
+    )
+    public AccountServiceImpl(@NonNull SumarisServerConfiguration serverConfiguration, EmailService emailService) {
+        this.config = serverConfiguration;
         this.emailService = emailService;
-        if (this.emailService != null) {
-            log.warn("sumaris.server.email.started", config.getMailHost(), config.getMailPort());
-        }
-        else {
-            log.debug(I18n.t("sumaris.error.email.service",
-                    SumarisServerConfigurationOption.MAIL_HOST.getKey(),
-                    SumarisServerConfigurationOption.MAIL_PORT.getKey()));
-        }
     }
 
     @PostConstruct
@@ -136,7 +132,7 @@ public class AccountServiceImpl implements AccountService {
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
 
-        boolean emailEnable = (emailService != null);
+        boolean emailEnable = (emailService != null && config.enableMailService());
 
         // Get mail 'from'
         String mailFrom = config.getMailFrom();
@@ -166,7 +162,7 @@ public class AccountServiceImpl implements AccountService {
             if (!emailEnable) {
                 log.warn("/!\\ Email service disabled! (see previous errors)");
             } else {
-                log.info("sumaris.server.email.started", config.getMailHost(), config.getMailPort());
+                log.info(I18n.t("sumaris.server.email.started", config.getMailHost(), config.getMailPort()));
             }
         }
     }
@@ -174,15 +170,12 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountVO getByPubkey(String pubkey) {
 
-        PersonVO person = personRepository.findByPubkey(pubkey);
-        if (person == null) {
-            throw new DataRetrievalFailureException(I18n.t("sumaris.error.account.notFound"));
-        }
+        PersonVO person = personService.getByPubkey(pubkey);
 
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
 
-        UserSettingsVO settings = userSettingsRepository.getByIssuer(account.getPubkey());
+        UserSettingsVO settings = userSettingsRepository.findByIssuer(account.getPubkey()).orElse(null);
         account.setSettings(settings);
 
         return account;
@@ -243,7 +236,7 @@ public class AccountServiceImpl implements AccountService {
         // Send confirmation Email
         sendConfirmationLinkByEmail(
                 account.getEmail(),
-                getLocale(account.getSettings().getLocale()));
+                I18nUtil.toI18nLocale(account.getSettings().getLocale()));
 
         return savedAccount;
     }
@@ -256,10 +249,7 @@ public class AccountServiceImpl implements AccountService {
         Preconditions.checkNotNull(account.getId());
 
         // Get existing account
-        PersonVO existingPerson = personRepository.findById(account.getId().intValue());
-        if (existingPerson == null) {
-            throw new DataNotFoundException(I18n.t("sumaris.error.account.notFound"));
-        }
+        PersonVO existingPerson = personService.get(account.getId());
 
         // Check same email
         Preconditions.checkArgument(Objects.equals(existingPerson.getEmail(), account.getEmail()), "Email could not be changed by the user, but only by an administrator.");
@@ -268,7 +258,7 @@ public class AccountServiceImpl implements AccountService {
         account.setProfiles(existingPerson.getProfiles());
 
         // Do the save
-        account = (AccountVO) personRepository.save(account);
+        account = (AccountVO) personService.save(account);
 
         // Save settings
         UserSettingsVO settings = account.getSettings();
@@ -293,7 +283,7 @@ public class AccountServiceImpl implements AccountService {
         // Mark account as temporary
         PersonFilterVO filter = new PersonFilterVO();
         filter.setEmail(email.trim());
-        List<PersonVO> matches = personRepository.findByFilter(filter, 0, 2, null, null);
+        List<PersonVO> matches = personService.findByFilter(filter, 0, 2, null, null);
 
         PersonVO account = null;
         boolean valid = CollectionUtils.size(matches) == 1 && validSignatureHash.equals(signatureHash);
@@ -307,7 +297,7 @@ public class AccountServiceImpl implements AccountService {
                 account.setStatusId(config.getStatusIdValid());
 
                 // Save account
-                personRepository.save(account);
+                personService.save(account);
             }
         }
 
@@ -332,7 +322,7 @@ public class AccountServiceImpl implements AccountService {
         // Mark account as temporary
         PersonFilterVO filter = new PersonFilterVO();
         filter.setEmail(email.trim());
-        List<PersonVO> matches = personRepository.findByFilter(filter, 0, 2, null, null);
+        List<PersonVO> matches = personService.findByFilter(filter, 0, 2, null, null);
 
         PersonVO account;
         boolean valid = CollectionUtils.size(matches) == 1;
@@ -343,7 +333,7 @@ public class AccountServiceImpl implements AccountService {
 
             if (valid) {
                 // Sent the confirmation email
-                sendConfirmationLinkByEmail(email, getLocale(locale));
+                sendConfirmationLinkByEmail(email, I18nUtil.toI18nLocale(locale));
             }
         }
 
@@ -356,19 +346,18 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<Integer> getProfileIdsByPubkey(String pubkey) {
-        PersonVO person = personRepository.findByPubkey(pubkey);
-        if (person == null) {
-            throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
-        }
+        PersonVO person = personService.getByPubkey(pubkey);
         return Beans.getStream(person.getProfiles())
-                .map(UserProfileEnum::valueOf)
-                .map(up -> up.id)
-                .collect(Collectors.toList());
+                    .map(UserProfileEnum::valueOf)
+                    .map(UserProfileEnum::getId)
+                    .collect(Collectors.toList());
     }
 
     @Override
     public List<String> getAllTokensByPubkey(String pubkey) {
-        return userTokenRepository.findTokenByPubkey(pubkey).stream().map(UserTokenRepository.TokenOnly::getToken).collect(Collectors.toList());
+        return userTokenRepository.findTokenByPubkey(pubkey).stream()
+                .map(UserTokenRepository.TokenOnly::getToken)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -388,7 +377,7 @@ public class AccountServiceImpl implements AccountService {
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
 
-        UserSettingsVO settings = userSettingsRepository.getByIssuer(account.getPubkey());
+        UserSettingsVO settings = userSettingsRepository.findByIssuer(account.getPubkey()).orElse(null);
         account.setSettings(settings);
 
         return account;
@@ -452,7 +441,10 @@ public class AccountServiceImpl implements AccountService {
      * @param locale
      */
     private void sendConfirmationLinkByEmail(String toAddress, Locale locale) {
-        if (!this.emailEnable) return; // Skip if disable
+        if (!this.emailEnable) {
+            log.warn(I18n.t("sumaris.error.account.register.sentConfirmation.skipped"));
+            return; // Skip if disable
+        }
 
         try {
 
@@ -472,7 +464,7 @@ public class AccountServiceImpl implements AccountService {
                             this.serverUrl,
                             confirmationLinkURL,
                             config.getAppName()))
-                    .encoding(CHARSET_UTF8.name())
+                    .encoding(Charsets.UTF_8.name())
                     .build();
 
             emailService.send(email);
@@ -480,13 +472,6 @@ public class AccountServiceImpl implements AccountService {
         catch(AddressException e) {
             throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
         }
-    }
-
-    private Locale getLocale(String localeStr) {
-        if (localeStr.toLowerCase().startsWith("fr")) {
-            return Locale.FRANCE;
-        }
-        return Locale.UK;
     }
 
     protected void sendRegistrationToAdmins(PersonVO confirmedAccount) {
@@ -499,13 +484,13 @@ public class AccountServiceImpl implements AccountService {
                     ImmutableList.of(StatusEnum.ENABLE.getId())
             );
 
-            // No admin: log on server
-            if (CollectionUtils.isEmpty(adminEmails) || this.mailFromAddress == null) {
+            // No admin: log then skip
+            if (CollectionUtils.isEmpty(adminEmails)) {
                 log.warn("New account registered, but no admin to validate it !");
                 return;
             }
 
-            // No from address: could not send email
+            // No from address: log then skip
             if (this.mailFromAddress == null) {
                 log.warn("New account registered, but no from address configured to send to administrators!!");
                 return;
@@ -528,7 +513,7 @@ public class AccountServiceImpl implements AccountService {
                             this.serverUrl + "/admin/users",
                             config.getAppName()
                             ))
-                    .encoding(CHARSET_UTF8.name())
+                    .encoding(Charsets.UTF_8.name())
                     .build();
 
             emailService.send(email);

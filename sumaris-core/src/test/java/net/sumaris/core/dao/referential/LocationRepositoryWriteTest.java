@@ -44,7 +44,6 @@ public class LocationRepositoryWriteTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
-//    public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle");
 
     @Override
     public void setUp() throws Exception {

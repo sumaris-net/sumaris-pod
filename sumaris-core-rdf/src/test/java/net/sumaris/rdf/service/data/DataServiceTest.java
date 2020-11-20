@@ -48,7 +48,7 @@ public class DataServiceTest extends AbstractTest {
     @Test
     @Ignore
     public void getRemoteModel() {
-        String ontologyUrl = dbResource.getFixtures().getRemoteOntologyUrl();
+        String ontologyUrl = fixtures.getRemoteOntologyUrl();
         OntModel remoteModel = service.getRemoteModel(ontologyUrl);
         Assert.assertNotNull(remoteModel);
     }
@@ -56,8 +56,8 @@ public class DataServiceTest extends AbstractTest {
     @Test
     @Ignore
     public void testSynchro() {
-        String ontologyUrl = dbResource.getFixtures().getRemoteOntologyUrl();
-        String ontologyIri = dbResource.getFixtures().getRemoteOntologyIri();
+        String ontologyUrl = fixtures.getRemoteOntologyUrl();
+        String ontologyIri = fixtures.getRemoteOntologyIri();
         Model mappedModel = service.importFromRemote(ontologyUrl, ontologyIri, ModelVocabulary.REFERENTIAL, "net.sumaris.core.model.referential");
         Assert.assertNotNull(mappedModel);
     }

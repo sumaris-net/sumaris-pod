@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,10 +44,10 @@ public interface OperationGroupService {
     List<MetierVO> getMetiersByTripId(int tripId);
 
     @Transactional(readOnly = true)
-    List<OperationGroupVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<OperationGroupVO> getAllByTripId(int tripId, DataFetchOptions options);
 
     @Transactional(readOnly = true)
-    List<OperationGroupVO> getAllByTripId(int tripId);
+    List<OperationGroupVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
     @Transactional(readOnly = true)
     OperationGroupVO get(int id);

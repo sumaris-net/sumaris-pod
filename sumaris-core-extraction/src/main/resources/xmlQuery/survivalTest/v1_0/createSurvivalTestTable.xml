@@ -72,8 +72,8 @@
     <select alias="INDIVIDUAL_ID" type="hidden">T.ID</select> <!-- hidden column -->
 
     <!-- SURVIVAL TEST -->
-    <select alias="SPECIE_CODE" type="number">TN.LABEL</select>
-    <select alias="SPECIE_NAME" type="number">TN.NAME</select>
+    <select alias="SPECIES_CODE" type="number">TN.LABEL</select>
+    <select alias="SPECIES_NAME" type="number">TN.NAME</select>
     <select alias="SCORING_DATE" type="number">T.SAMPLE_DATE</select>
     <select alias="PICKING_TIME" type="text">MAX(DECODE(T.PMFM_LABEL, 'PICKING_TIME', T.ALPHA_VALUE))</select>
     <select alias="VITALITY_SCORE" type="text">MAX(DECODE(T.PMFM_LABEL, 'VITALITY_SCORE', T.ALPHA_VALUE))</select>
@@ -108,7 +108,7 @@
 
     <groupby>
       RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER,
-      INDIVIDUAL_ID, SPECIE_CODE, SPECIE_NAME, SCORING_DATE
+      INDIVIDUAL_ID, SPECIES_CODE, SPECIES_NAME, SCORING_DATE
     </groupby>
   </query>
 

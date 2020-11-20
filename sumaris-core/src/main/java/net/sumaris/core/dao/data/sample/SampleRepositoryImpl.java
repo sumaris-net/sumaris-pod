@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data.sample;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
@@ -32,7 +33,6 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.referential.pmfm.Matrix;
 import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
@@ -40,8 +40,8 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.data.sample.SampleFetchOptions;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.SampleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -64,7 +64,7 @@ import java.util.stream.Stream;
  * @author peck7 on 01/09/2020.
  */
 public class SampleRepositoryImpl
-    extends RootDataRepositoryImpl<Sample, SampleVO, SampleFilterVO, DataFetchOptions>
+    extends RootDataRepositoryImpl<Sample, SampleVO, SampleFilterVO, SampleFetchOptions>
     implements SampleSpecifications {
 
     private static final Logger log = LoggerFactory.getLogger(SampleRepositoryImpl.class);
@@ -74,31 +74,36 @@ public class SampleRepositoryImpl
     private ReferentialDao referentialDao;
 
     @Autowired
+    private MeasurementDao measurementDao;
+
+    @Autowired
     private TaxonNameRepository taxonNameRepository;
 
     private boolean enableSaveUsingHash;
 
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady() {
-        this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
-    }
-
-    protected SampleRepositoryImpl(EntityManager entityManager) {
+    @Autowired
+    public SampleRepositoryImpl(EntityManager entityManager) {
         super(Sample.class, SampleVO.class, entityManager);
 
         // FIXME: Client app: update entity from the save() result
         setCheckUpdateDate(false); // for default save()
     }
 
-    @Override
-    protected Specification<Sample> toSpecification(SampleFilterVO filter) {
-        return super.toSpecification(filter)
-            .and(hasOperationId(filter.getOperationId()))
-            .and(hasLandingId(filter.getLandingId()));
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady() {
+        this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
     }
 
     @Override
-    public void toVO(Sample source, SampleVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    protected Specification<Sample> toSpecification(SampleFilterVO filter, SampleFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
+            .and(hasOperationId(filter.getOperationId()))
+            .and(hasLandingId(filter.getLandingId()))
+            .and(addJoinFetch(fetchOptions));
+    }
+
+    @Override
+    public void toVO(Sample source, SampleVO target, SampleFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Matrix
@@ -145,11 +150,16 @@ public class SampleRepositoryImpl
             target.setBatchId(source.getBatch().getId());
         }
 
+        // Fetch children
+        Integer sampleId = source.getId();
+        if (fetchOptions != null && fetchOptions.isWithMeasurementValues() && sampleId != null) {
+            target.setMeasurementValues(measurementDao.toMeasurementsMap(source.getMeasurements()));
+        }
     }
 
     @Override
     public void toEntity(SampleVO source, Sample target, boolean copyIfNull) {
-        toEntity(source, target, copyIfNull, false);
+        toEntity(source, target, copyIfNull, target.getId() != null && enableSaveUsingHash);
     }
 
     protected boolean toEntity(SampleVO source, Sample target, boolean copyIfNull, boolean allowSkipSameHash) {
@@ -211,7 +221,7 @@ public class SampleRepositoryImpl
         // Copy properties, and data stuff (program, qualityFlag, recorder, ...)
         super.toEntity(source, target, copyIfNull);
 
-        // Hash
+        // Set the new Hash
         target.setHash(newHash);
 
         // Operation

@@ -131,8 +131,12 @@ public class DatasetService {
 
         // If auto import, load dataset
         if (config.isRdfImportEnable()) {
-            boolean isDatasetEmpty = containsTypes(this.dataset, W3NS.Org.Organization, DWC.Voc.TaxonName);
-            if (isDatasetEmpty) this.scheduleLoadDataset();
+            if (!containsAllTypes(this.dataset, W3NS.Org.Organization, DWC.Voc.TaxonName)) {
+                this.scheduleLoadDataset();
+            }
+            else {
+                log.debug("Triple store already loaded. To force reload: remove directory {{}} then restart pod", config.getRdfTdb2Directory().getAbsoluteFile());
+            }
         }
         else {
             log.debug("Triple store will not be loaded, because configuration option '{}' set to false.", RdfConfigurationOption.RDF_DATA_IMPORT_ENABLED.getKey());
@@ -265,10 +269,15 @@ public class DatasetService {
         if (enableTdb2) {
 
             // Connect or create the TDB2 dataset
-            File tdbDir = new File(config.getRdfDirectory(), "tdb");
-            log.info("Starting {TDB2} triple store at {{}}...", tdbDir);
+            File tdb2Dir = config.getRdfTdb2Directory();
+            log.info("Starting {TDB2} triple store at {{}}...", tdb2Dir);
 
-            Location location = Location.create(tdbDir.getAbsolutePath());
+            // Check access write
+            if (tdb2Dir.exists() && (!tdb2Dir.canRead() || tdb2Dir.canWrite())){
+                throw new SumarisTechnicalException("Missing write/read access to directory: " + tdb2Dir.getAbsolutePath());
+            }
+
+            Location location = Location.create(tdb2Dir.getAbsolutePath());
             this.dataset = TDB2Factory.connectDataset(location);
         }
         else {
@@ -368,7 +377,7 @@ public class DatasetService {
         try {
             if (!cacheFile.exists() && !tempFile.exists()) {
                 long now = System.currentTimeMillis();
-                log.info("Downloading {}...", baseUri);
+                log.info("Downloading data from {{}}...", baseUri);
 
                 // Write each model received
                 try (FileOutputStream fos = new FileOutputStream(tempFile); BufferedOutputStream bos = new BufferedOutputStream(fos)) {
@@ -376,10 +385,11 @@ public class DatasetService {
                     fos.flush();
                 }
 
-                log.info("Successfully downloaded {{}} in {}ms", baseUri, System.currentTimeMillis() - now);
+                log.info("Data from {{}} downloaded successfully, in {}ms", baseUri, System.currentTimeMillis() - now);
             }
             else {
-                log.debug("Already downloaded {}.", baseUri);
+                log.debug("Data from {{}} already exists. Skip download", baseUri);
+                // TODO download changes, using dcterms:modified ?
             }
         } catch (Exception e) {
             // Try to continue
@@ -388,7 +398,7 @@ public class DatasetService {
             }
             else {
                 tempFile.delete();
-                throw new SumarisTechnicalException(String.format("Error while downloaded {%s}: %s", baseUri, e.getMessage()), e);
+                throw new SumarisTechnicalException(String.format("Error while downloaded data from {{%s}}: %s", baseUri, e.getMessage()), e);
             }
         }
 
@@ -451,7 +461,15 @@ public class DatasetService {
         }
     }
 
-    protected boolean containsTypes(Dataset dataset, org.apache.jena.rdf.model.Resource... types) {
+    protected boolean containsAllTypes(Dataset dataset, org.apache.jena.rdf.model.Resource... types) {
+        long existingTypeCount = Stream.of(types)
+            .filter(type -> containsOneOfTypes(dataset, type))
+            .count();
+
+        return existingTypeCount == types.length;
+    }
+
+    protected boolean containsOneOfTypes(Dataset dataset, org.apache.jena.rdf.model.Resource... types) {
         String queryString = "PREFIX rdf: <" + RDF.getURI() + ">\n" +
                 "SELECT (COUNT(?s) as ?count)\n" +
                 "WHERE\n" +
@@ -460,15 +478,15 @@ public class DatasetService {
 
         if (ArrayUtils.isNotEmpty(types)) {
             queryString += "  FILTER(\n" +
-              " ?type = <" + Stream.of(types)
+                    " ?type = <" + Stream.of(types)
                     .map(org.apache.jena.rdf.model.Resource::getURI)
                     .collect(Collectors.joining("> || ?type = <")) + ">\n" +
-              ")\n";
+                    ")\n";
         }
 
         queryString += "}\n" +
                 "GROUP BY ?s";
-        return countQuery(dataset, queryString) == 0;
+        return countQuery(dataset, queryString) > 0;
     }
 
     protected long countQuery(Dataset dataset, String queryString) {

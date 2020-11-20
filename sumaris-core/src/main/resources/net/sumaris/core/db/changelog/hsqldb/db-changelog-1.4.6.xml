@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.4.6.xml">
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-1">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product_table" columnName="rank_order"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product_table">
+      <column name="rank_order" type="int"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-2" failOnError="false">
+    <dropNotNullConstraint tableName="product" columnName="operation_fk"/>
+  </changeSet>
+
+  <!-- Rename on p01_rdb_species_list -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-3">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="p01_rdb_species_list" columnName="comm_size_cat_scale"/>
+        <not><columnExists tableName="p01_rdb_species_list" columnName="commercial_size_category_scale"/></not>
+      </and>
+    </preConditions>
+    <renameColumn tableName="p01_rdb_species_list" oldColumnName="comm_size_cat_scale" newColumnName="commercial_size_category_scale"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-4">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="p01_rdb_species_list" columnName="comm_size_cat"/>
+        <not><columnExists tableName="p01_rdb_species_list" columnName="commercial_size_category"/></not>
+      </and>
+    </preConditions>
+    <renameColumn tableName="p01_rdb_species_list" oldColumnName="comm_size_cat" newColumnName="commercial_size_category"/>
+  </changeSet>
+
+  <!-- Rename on p01_rdb_species_length -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-5">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="p01_rdb_species_length" columnName="comm_size_cat_scale"/>
+        <not><columnExists tableName="p01_rdb_species_length" columnName="commercial_size_category_scale"/></not>
+      </and>
+    </preConditions>
+    <renameColumn tableName="p01_rdb_species_length" oldColumnName="comm_size_cat_scale" newColumnName="commercial_size_category_scale"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-6">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="p01_rdb_species_length" columnName="comm_size_cat"/>
+        <not><columnExists tableName="p01_rdb_species_length" columnName="commercial_size_category"/></not>
+      </and>
+    </preConditions>
+    <renameColumn tableName="p01_rdb_species_length" oldColumnName="comm_size_cat" newColumnName="commercial_size_category"/>
+  </changeSet>
+
+  <!-- Rename on p01_rdb_landing -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-7">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="p01_rdb_landing" columnName="comm_size_cat_scale"/>
+        <not><columnExists tableName="p01_rdb_landing" columnName="commercial_size_category_scale"/></not>
+      </and>
+    </preConditions>
+    <renameColumn tableName="p01_rdb_landing" oldColumnName="comm_size_cat_scale" newColumnName="commercial_size_category_scale"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-8">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="p01_rdb_landing" columnName="comm_size_cat"/>
+        <not><columnExists tableName="p01_rdb_landing" columnName="commercial_size_category"/></not>
+      </and>
+    </preConditions>
+    <renameColumn tableName="p01_rdb_landing" oldColumnName="comm_size_cat" newColumnName="commercial_size_category"/>
+  </changeSet>
+
+  <!-- Rename on p01_rdb_trip -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-9">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="p01_rdb_trip" columnName="number_hauls"/>
+        <not><columnExists tableName="p01_rdb_trip" columnName="number_of_sets"/></not>
+      </and>
+    </preConditions>
+    <renameColumn tableName="p01_rdb_trip" oldColumnName="number_hauls" newColumnName="number_of_sets"/>
+  </changeSet>
+
+  <!-- Rename on p01_rdb_landing -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-10">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <columnExists tableName="p01_rdb_landing" columnName="vessel_length_cat"/>
+        <not><columnExists tableName="p01_rdb_landing" columnName="vessel_length_category"/></not>
+      </and>
+    </preConditions>
+    <renameColumn tableName="p01_rdb_landing" oldColumnName="vessel_length_cat" newColumnName="vessel_length_category"/>
+  </changeSet>
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-12" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product" columnName="format"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="format" type="VARCHAR(50)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-13" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product" columnName="version"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="version" type="VARCHAR(10)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-14" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product" columnName="documentation"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="documentation" type="LONGVARCHAR"/>
+    </addColumn>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='1.4.6'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">1.4.6</column>
+      <column name="DESCRIPTION">
+        - Add column EXTRACTION_TABLE.RANK_ORDER
+        - Make PRODUCT.OPERATION_FK nullable
+        - Rename a column of P01 product
+        - Add columns to EXTRACTION_PRODUCT
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+        - Add column EXTRACTION_TABLE.RANK_ORDER
+        - Make PRODUCT.OPERATION_FK nullable
+        - Rename a column of P01 product
+        - Add columns FORMAT, VERSION, DOCUMENTATION to EXTRACTION_PRODUCT
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

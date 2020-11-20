@@ -37,6 +37,69 @@
 --
 
 
+-- --------------------------------------------------------------------------
+--
+-- SPLIT function - usefull to generate 'create synonym' order
+--   -> see file 'create-other-users-synonyms.sql' for more details
+--
+-- --------------------------------------------------------------------------
+create or replace type split_tbl as table of varchar2(32767);
+//
+
+CREATE OR REPLACE FUNCTION "SPLIT"
+(
+    p_list varchar2,
+    p_del varchar2 := ',',
+    p_nb_limit INTEGER := -1
+) return split_tbl pipelined
+is
+--$ ********************************************************************
+--$
+--$  MOD : SPLIT
+--$  ROL : Split value, to be used in a join query.
+--$        For instance, the query: 'SELECT T.COLUMN_VALUE from table(split ('VALUE1,VALUE2', ',')) T'
+--$        will return:
+--$          /--------------\
+--$          | COLUMN_VALUE |
+--$          |--------------|
+--$          |    VALUE1    |
+--$          |    VALUE2    |
+--$          \--------------/
+--$
+--$  param :
+--$    - p_list: List of value
+--$    - p_del: the delimiter
+--$    - p_nb_limit: maximum number of values to split, or -1 for 'no limit'
+--$
+--$  return : the rectangle label
+--$
+--$  example : select SIH2_ADAGIO_DBA.F_TO_RECTANGLE(47.6, -5.05) from DUAL; -- 24E4
+--$            select SIH2_ADAGIO_DBA.F_TO_RECTANGLE(42.27, 5.4) from DUAL; -- M24C2
+--$
+--$ History :
+--$  16/05/19 BL Creation (used by extraction - e.g. ICES RDB and COST formats)
+--$
+--$ ********************************************************************
+    l_idx     pls_integer;
+    l_counter pls_integer;
+    l_list    varchar2(32767) := p_list;
+begin
+    l_counter := 0;
+    loop
+        l_counter := l_counter + 1;
+        l_idx := instr(l_list,p_del);
+        if l_idx > 0 and (p_nb_limit = -1 or l_counter < p_nb_limit) then
+            pipe row(substr(l_list,1,l_idx-1));
+            l_list := substr(l_list,l_idx+length(p_del));
+        else
+            pipe row(l_list);
+            exit;
+        end if;
+    end loop;
+    return;
+end SPLIT;
+//
+
 create or replace FUNCTION F_TO_RECTANGLE
 (
   LAT IN number,

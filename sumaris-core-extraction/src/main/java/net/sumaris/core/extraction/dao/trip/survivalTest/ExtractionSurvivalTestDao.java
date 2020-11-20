@@ -29,7 +29,8 @@ import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestCo
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionSurvivalTestDao<C extends ExtractionSurvivalTestContextVO> extends ExtractionTripDao {
+public interface ExtractionSurvivalTestDao<C extends ExtractionSurvivalTestContextVO, F extends ExtractionFilterVO>
+        extends ExtractionTripDao {
 
-    <R extends C> R execute(ExtractionFilterVO genericFilter);
+    <R extends C> R execute(F filter);
 }

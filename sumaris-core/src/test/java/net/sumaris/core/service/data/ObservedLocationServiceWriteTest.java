@@ -67,7 +67,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void delete() {
-        service.delete(dbResource.getFixtures().getObservedLocationId(0));
+        service.delete(fixtures.getObservedLocationId(0));
     }
 
     @Test
@@ -89,24 +89,24 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
 
     protected ObservedLocationVO createObservedLocation() {
         ObservedLocationVO vo = new ObservedLocationVO();
-        vo.setProgram(dbResource.getFixtures().getDefaultProgram());
+        vo.setProgram(fixtures.getDefaultProgram());
         vo.setStartDateTime(new Date());
 
         LocationVO departureLocation = new LocationVO();
-        departureLocation.setId(dbResource.getFixtures().getLocationPortId(0));
+        departureLocation.setId(fixtures.getLocationPortId(0));
         vo.setLocation(departureLocation);
 
         vo.setCreationDate(new Date());
 
         DepartmentVO recorderDepartment = new DepartmentVO();
-        recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
         vo.setRecorderDepartment(recorderDepartment);
 
         // Observers
         PersonVO observer1 = new PersonVO();
-        observer1.setId(dbResource.getFixtures().getPersonId(0));
+        observer1.setId(fixtures.getPersonId(0));
         PersonVO observer2 = new PersonVO();
-        observer2.setId(dbResource.getFixtures().getPersonId(1));
+        observer2.setId(fixtures.getPersonId(1));
         vo.setObservers(ImmutableSet.of(observer1, observer2));
 
         // Measurement

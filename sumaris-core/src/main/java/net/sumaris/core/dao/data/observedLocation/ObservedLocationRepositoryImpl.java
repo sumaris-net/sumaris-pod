@@ -61,8 +61,8 @@ public class ObservedLocationRepositoryImpl
     }
 
     @Override
-    protected Specification<ObservedLocation> toSpecification(ObservedLocationFilterVO filter) {
-        return super.toSpecification(filter)
+    protected Specification<ObservedLocation> toSpecification(ObservedLocationFilterVO filter, DataFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(hasLocationId(filter.getLocationId()))
             .and(withStartDate(filter.getStartDate()))
             .and(withEndDate(filter.getEndDate()));

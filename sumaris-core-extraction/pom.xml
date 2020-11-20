@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>net.sumaris</groupId>
 		<artifactId>sumaris-pod</artifactId>
-		<version>1.4.5</version>
+		<version>1.4.6</version>
 	</parent>
 
 	<artifactId>sumaris-core-extraction</artifactId>
@@ -32,6 +32,25 @@
 			<groupId>net.sumaris</groupId>
 			<artifactId>sumaris-core</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.grundid.opendatalab</groupId>
+			<artifactId>geojson-jackson</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>

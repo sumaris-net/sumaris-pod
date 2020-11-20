@@ -33,7 +33,7 @@ import net.sumaris.core.dao.schema.DatabaseSchemaDaoImpl;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
-import org.apache.commons.io.FileUtils;
+import net.sumaris.core.util.I18nUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -49,9 +49,6 @@ import org.dbunit.ext.oracle.Oracle10DataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
 import org.junit.Assume;
 import org.junit.rules.ExternalResource;
-import org.nuiton.i18n.I18n;
-import org.nuiton.i18n.init.DefaultI18nInitializer;
-import org.nuiton.i18n.init.UserI18nInitializer;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -60,7 +57,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -147,35 +143,23 @@ public class InitTests extends ExternalResource {
     protected String[] getConfigArgs() {
         return new String[]{
                 "--option", SumarisConfigurationOption.DB_DIRECTORY.getKey(), getTargetDbDirectory(),
-                "--option", SumarisConfigurationOption.JDBC_URL.getKey(), SumarisConfigurationOption.JDBC_URL.getDefaultValue()
+                "--option", SumarisConfigurationOption.JDBC_URL.getKey(), SumarisConfigurationOption.JDBC_URL.getDefaultValue(),
+                "--option", SumarisConfigurationOption.SEQUENCE_START_WITH.getKey(), String.valueOf(1000)
         };
     }
 
-    protected SumarisConfiguration createConfig() {
-
-        SumarisConfiguration config = new SumarisConfiguration(getModuleName() + "-test.properties",
-                getConfigArgs()
-        );
-        SumarisConfiguration.setInstance(config);
-        config.getApplicationConfig().setOption(SumarisConfigurationOption.SEQUENCE_START_WITH.getKey(), String.valueOf(1000));
-        return config;
-
-    }
-
     protected void initServiceLocator() {
-
         ServiceLocator.init(null);
     }
 
     @Override
     protected void before() throws Throwable {
 
-        config = createConfig();
-        Assume.assumeNotNull(config);
+        config = TestConfiguration.createConfiguration(getConfigFileName(), getConfigArgs());
+
+        I18nUtil.init(config, getI18nBundleName());
 
         initServiceLocator();
-
-        initI18n();
 
         boolean isFileDatabase = Daos.isFileDatabase(config.getJdbcURL());
         boolean needSchemaUpdate = true;
@@ -351,33 +335,8 @@ public class InitTests extends ExternalResource {
 
 	/* -- internal methods -- */
 
-    protected void initI18n() throws IOException {
-        SumarisConfiguration config = SumarisConfiguration.getInstance();
-
-        // --------------------------------------------------------------------//
-        // init i18n
-        // --------------------------------------------------------------------//
-        File i18nDirectory = new File(config.getDataDirectory(), "i18n");
-        if (i18nDirectory.exists()) {
-            // clean i18n cache
-            FileUtils.cleanDirectory(i18nDirectory);
-        }
-
-        FileUtils.forceMkdir(i18nDirectory);
-
-        if (log.isDebugEnabled()) {
-            log.debug("I18N directory: " + i18nDirectory);
-        }
-
-        Locale i18nLocale = config.getI18nLocale();
-
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Starts i18n with locale [%s] at [%s]",
-                    i18nLocale, i18nDirectory));
-        }
-        I18n.init(new UserI18nInitializer(
-                        i18nDirectory, new DefaultI18nInitializer(getI18nBundleName())),
-                i18nLocale);
+    protected String getConfigFileName() {
+        return getModuleName() + "-test.properties";
     }
 
     protected String getI18nBundleName() {

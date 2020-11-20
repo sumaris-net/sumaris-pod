@@ -26,6 +26,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
 
 /**
@@ -33,6 +34,7 @@ import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldNameConstants
 @EqualsAndHashCode(callSuper = true)
 public class AggregationStrataVO extends ExtractionProductStrataVO {
 

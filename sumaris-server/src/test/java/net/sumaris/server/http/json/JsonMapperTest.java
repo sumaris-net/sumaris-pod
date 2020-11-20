@@ -25,8 +25,6 @@ package net.sumaris.server.http.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.server.ServerTestConfiguration;
-import net.sumaris.server.service.AbstractServiceTest;
 import org.geojson.Feature;
 import org.geojson.FeatureCollection;
 import org.geojson.Point;
@@ -45,7 +43,7 @@ import java.util.HashMap;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {JsonMapperConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-server-test.properties")
+@TestPropertySource(locations="classpath:sumaris-server-test.properties")
 public class JsonMapperTest {
 
     @Autowired
