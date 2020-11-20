@@ -187,6 +187,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
     @Test
     public void saveThenRead() {
         AggregationTypeVO type = createAggType(ExtractionCategoryEnum.LIVE, LiveFormatEnum.SURVIVAL_TEST);
+        type.setLabel(ExtractionProducts.getProductLabel(LiveFormatEnum.SURVIVAL_TEST, System.currentTimeMillis()));
 
         // Save
         AggregationTypeVO savedType = service.save(type, null);
@@ -247,7 +248,12 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
         AggregationTypeVO type = new AggregationTypeVO();
         type.setCategory(category);
-        type.setLabel(ExtractionProducts.getProductLabel(format.getLabel(), System.currentTimeMillis()));
+        if (category == ExtractionCategoryEnum.PRODUCT) {
+            type.setLabel(ExtractionProducts.getProductLabel(format, System.currentTimeMillis()));
+        }
+        else {
+            type.setLabel(format.getLabel());
+        }
         type.setName(String.format("Aggregation on %s (%s) data", format.getLabel(), category.name()));
         type.setStatusId(StatusEnum.TEMPORARY.getId());
 
