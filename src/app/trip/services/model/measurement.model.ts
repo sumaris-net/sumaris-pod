@@ -245,10 +245,9 @@ export class MeasurementValuesUtils {
       || !pmfms.find(pmfm => !MeasurementValuesUtils.valueEquals(m1[pmfm.pmfmId], m2[pmfm.pmfmId]));
   }
 
-  static valueToString(value: any, pmfm: PmfmStrategy, propertyNames?: string[]): string | undefined {
-    return PmfmValueUtils.valueToString(value, pmfm, propertyNames);
+  static valueToString(value: any, opts: {pmfm: Pmfm|PmfmStrategy; propertyNames?: string[]; htmls?: boolean; }): string | undefined {
+    return PmfmValueUtils.valueToString(value, opts);
   }
-
 
   static normalizeValueToModel(value: PmfmValue, pmfm: PmfmStrategy): string {
     return PmfmValueUtils.toModelValue(value, pmfm);

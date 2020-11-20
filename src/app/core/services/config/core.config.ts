@@ -73,6 +73,11 @@ export const ConfigOptions = Object.freeze({
         label: 'CONFIGURATION.OPTIONS.TESTING',
         type: 'boolean'
     },
+    APP_MIN_VERSION: <FormFieldDefinition>{
+      key: 'sumaris.app.version.min',
+      label: 'CONFIGURATION.OPTIONS.APP_MIN_VERSION',
+      type: 'string'
+    },
     VESSEL_DEFAULT_STATUS: <FormFieldDefinition>{
         key: 'sumaris.vessel.status.default',
         label: 'CONFIGURATION.OPTIONS.VESSEL.DEFAULT_NEW_VESSEL_STATUS',

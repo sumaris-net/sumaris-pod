@@ -65,10 +65,26 @@
     <mat-icon>signal_wifi_off</mat-icon>
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
+
+  <!-- Add local trip -->
+  <button mat-menu-item *ngIf="debug && !offline"
+          (click)="importFromFile()">
+    <mat-icon>insert_drive_file</mat-icon>
+    <ion-label>Import file...</ion-label>
+  </button>
 </mat-menu>
 
 
 <ion-content class="ion-no-padding">
+
+  <!-- Network status (+ Install and upgrade link) -->
+  <app-network-status-card
+    [isLogin]="accountService.account|isLogin"
+    [showInstallButton]="false"
+    [showUpgradeWarning]="true"
+    [showOfflineWarning]="false">
+  </app-network-status-card>
+
   <mat-toolbar>
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -263,8 +279,9 @@
 
     <ng-container matColumnDef="select">
       <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
-        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-          [indeterminate]="selection.hasValue() && !isAllSelected()">
+        <mat-checkbox (change)="$event ? masterToggle() : null"
+                      [checked]="selection.hasValue() && isAllSelected()"
+                      [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">

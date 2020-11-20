@@ -10,15 +10,7 @@ import {
 import {PlatformService} from "../../core/services/platform.service";
 import {AggregationTypeFilter, CustomAggregationStrata, ExtractionService} from "../services/extraction.service";
 import {BehaviorSubject, Observable, Subject, Subscription, timer} from "rxjs";
-import {
-  arraySize,
-  isEmptyArray,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  toBoolean
-} from "../../shared/functions";
+import {arraySize, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, isNumber} from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {
   AggregationStrata,
@@ -32,7 +24,7 @@ import {Location} from "@angular/common";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
-import {CRS, DomUtil, WMSParams} from 'leaflet';
+import {CRS, WMSParams} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -117,7 +109,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   }).setParams({
     layers: "ESPACES_TERRESTRES_P",
     service: 'WMS',
-    sld_body: encodeURIComponent(BASE_LAYER_SLD_BODY.replace(/[ \t]+/, ' '))
+    sld_body: encodeURIComponent(BASE_LAYER_SLD_BODY.replace(/[ \t\n]+/, ' '))
   } as WMSParams);
 
   sextantGraticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
@@ -715,12 +707,17 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           .forEach(key => map[key] = 0);
       }
 
-      let entries = Object.entries(map);
+      let entries: any[][] = Object.entries(map);
 
       const firstEntry = entries.length ? entries[0] : undefined;
       // If label are number: always sort by value (ASC)
-      if (firstEntry && (firstEntry[0] !== 'string')) {
-        entries = entries.sort((a, b) => a[0] > b[0] ? -1 : 1);
+      if (firstEntry && isNumber(firstEntry[0])) {
+        entries.forEach(e => {
+          e[0] = parseFloat(e[0]);
+        });
+        entries = entries
+          .map(entry => [parseFloat(entry[0]), entry[1] ])
+          .sort((a, b) => a[0] - b[0]);
       }
       // Sort by label (ASC)
       else if (this.techChartOptions.sortByLabel) {
@@ -728,7 +725,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       }
       // Sort by value (DESC)
       else {
-        entries = entries.sort((a, b) => a[1] > b[1] ? -1 : 1);
+        entries = entries.sort((a, b) => a[1] > b[1] ? -1 : (a[1] === b[1] ? 0 : 1));
       }
 
       // Round values

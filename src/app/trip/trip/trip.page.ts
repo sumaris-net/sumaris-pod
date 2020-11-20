@@ -14,7 +14,7 @@ import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.table";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {PhysicalGear, Trip} from "../services/model/trip.model";
 import {SelectPhysicalGearModal} from "../physicalgear/select-physical-gear.modal";
@@ -102,7 +102,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           }
           this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
           this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
-          this.operationTable.showMap = program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+          this.operationTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
           if (this.isNewData) {
             // If new data, enable gears tab
@@ -133,6 +133,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
               });
           }
         }));
+
+    this.registerSubscription(
+      this.physicalGearTable.onConfirmEditCreateRow
+        .subscribe((_) => this.showOperationTable = true));
   }
 
   protected registerForms() {
@@ -192,16 +196,16 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   updateViewState(data: Trip) {
     super.updateViewState(data);
 
-    // If new data
-    if (this.isNewData) {
-      // Enable gears and operations tabs, if a program has been selected
-      this.showGearTable = ReferentialUtils.isNotEmpty(this.programSubject.getValue());
-      this.showOperationTable = false;
-    }
-    else {
-      this.showGearTable = true;
-      this.showOperationTable = true;
-    }
+    // Update tabs state (show/hide)
+    this.updateTabsState(data);
+  }
+
+  updateTabsState(data: Trip) {
+    // Enable gears tab if a program has been selected
+    this.showGearTable = !this.isNewData || ReferentialUtils.isNotEmpty(this.programSubject.getValue());
+
+    // ENable operation tab if has gears
+    this.showOperationTable = this.showGearTable && isNotEmptyArray(data.gears);
   }
 
   protected async setValue(data: Trip): Promise<void> {

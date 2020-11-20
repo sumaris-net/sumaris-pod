@@ -203,7 +203,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return this.formControl.value;
   }
 
-  writeValue(obj: any): void {
+  writeValue(obj: any, event?: UIEvent): void {
     if (obj !== this.formControl.value) {
       this.formControl.patchValue(obj, {emitEvent: false});
       this._onChangeCallback(obj);
@@ -215,6 +215,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this.selectedIndex = index;
         this.markForCheck();
       }
+      if (event) this.onPressEnter.emit(event);
     }
   }
 

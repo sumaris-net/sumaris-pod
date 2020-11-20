@@ -13,8 +13,8 @@
           <ion-row>
             <ion-col size="4">
               <button type="button" mat-flat-button
-                      class="user-avatar" [class.primary]="!account?.avatar"
-                      [style.background-image]="'url('+(account?.avatar||'./assets/img/person.png')+')'"
+                      class="user-avatar" [class.primary]="!accountAvatar"
+                      [style.background-image]="'url('+(accountAvatar||'./assets/img/person.png')+')'"
                       [routerLink]="['/account']"
                       routerDirection="root"
                       routerLinkActive="ion-color-primary"
@@ -28,16 +28,16 @@
           </ion-row>
           <ion-row class="ion-no-padding">
 
-            <button type="button" mat-button
+            <button mat-button type="button"
                     [routerLink]="['/account']"
                     routerDirection="root"
                     routerLinkActive="ion-color-primary"
                     (click)="menuClose()">
               <ion-label color="primary" class="ion-text-wrap ion-text-start">
                 <h3 class="no-margin username">
-                  <b>{{account?.firstName}} {{account?.lastName}}</b>
+                  <b>{{accountName}}</b>
                 </h3>
-                <h4>{{account?.email}}</h4>
+                <h4>{{accountEmail}}</h4>
               </ion-label>
             </button>
 

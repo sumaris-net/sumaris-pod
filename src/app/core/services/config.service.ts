@@ -3,20 +3,24 @@ import gql from "graphql-tag";
 import {Configuration} from "./model/config.model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
-import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, of, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
 import {FetchPolicy} from "apollo-client";
-import {GraphqlService} from "./graphql.service";
+import {GraphqlService} from "../graphql/graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {filterNotNil} from "../../shared/observables";
-import {isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
 import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {ConfigOptions} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
-import {LocationLevelIds, TaxonGroupIds} from "../../referential/services/model/model.enum";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {VersionUtils} from "../../shared/version/versions";
+import {ToastController} from "@ionic/angular";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {TranslateService} from "@ngx-translate/core";
+import {filter, map} from "rxjs/operators";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -93,6 +97,7 @@ const CacheStatistics: any = gql`
 
 export const APP_CONFIG_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('defaultOptions');
 
+
 @Injectable({
   providedIn: 'root',
   deps: [APP_CONFIG_OPTIONS]
@@ -112,9 +117,11 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   get config(): Observable<Configuration> {
     // If first call: start loading
-    if (!this._started) this.start();
+    if (!this._started) {
+      this.start();
+    }
 
-    return filterNotNil(this.$data);
+    return this.$data.pipe(filter(isNotNil));
   }
 
   constructor(
@@ -123,6 +130,8 @@ export class ConfigService extends SoftwareService<Configuration> {
     protected network: NetworkService,
     protected platform: PlatformService,
     protected file: FileService,
+    protected toastController: ToastController,
+    protected translate: TranslateService,
     @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
   ) {
     super(graphql);
@@ -342,8 +351,10 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   private async loadOrRestoreLocally() {
     let data;
+    let wasJustLoaded = false;
     try {
       data = await this.loadDefault({ fetchPolicy: "network-only" });
+      wasJustLoaded = true;
     } catch (err) {
       // Log, then continue
       console.error(err && err.message || err, err);
@@ -351,7 +362,7 @@ export class ConfigService extends SoftwareService<Configuration> {
 
     // Save it into local storage, for next startup
     if (data) {
-      setTimeout(() => this.saveLocally(data), 1000);
+      setTimeout(() => this.storeLocally(data), 1000);
     }
 
     // If not loaded remotely: try to restore it
@@ -368,6 +379,11 @@ export class ConfigService extends SoftwareService<Configuration> {
     // Override enumerations
     this.updateModelEnumerations(data);
 
+    // CHeck compatible version
+    if (wasJustLoaded) {
+
+    }
+
     this.$data.next(data);
 
   }
@@ -377,17 +393,20 @@ export class ConfigService extends SoftwareService<Configuration> {
 
     // Try to load from local storage
     const value: any = await this.storage.get(CONFIGURATION_STORAGE_KEY);
-    if (value && typeof value === "string") {
-      try {
-        console.debug("[config] Restoring configuration from local storage...");
-
-        const json = JSON.parse(value);
-        data = Configuration.fromObject(json as any);
-
-        console.debug("[config] Restoring configuration [OK]");
-      } catch (err) {
-        console.error(`Failed to restore config from local storage: ${err && err.message || err}`, err);
+    if (value) {
+      console.debug("[config] Restoring configuration from local storage...");
+      if (typeof value === "string") {
+        try {
+          data = Configuration.fromObject(JSON.parse(value));
+        } catch (err) {
+          console.error(`Failed to parse config found in local storage: ${err && err.message || err}`, err);
+        }
       }
+      else if (typeof value === "object") {
+        data = Configuration.fromObject(value);
+      }
+
+      console.debug("[config] Restoring configuration [OK]");
     }
 
     // Or load default value, from the environment
@@ -399,7 +418,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     return data;
   }
 
-  private async saveLocally(data?: Configuration) {
+  private async storeLocally(data?: Configuration) {
     // Nothing to store : reset
     if (!data) {
       await this.storage.remove(CONFIGURATION_STORAGE_KEY);
@@ -467,12 +486,11 @@ export class ConfigService extends SoftwareService<Configuration> {
         }
       }
 
-      // Saving config (as string)
+      // Saving config to storage
       {
         now = this._debug && Date.now();
         if (this._debug) console.debug("[config] Saving config into local storage...");
-        const jsonStr = JSON.stringify(data);
-        await this.storage.set(CONFIGURATION_STORAGE_KEY, jsonStr);
+        await this.storage.set(CONFIGURATION_STORAGE_KEY, data.asObject());
         if (this._debug) console.debug(`[config] Saving config into local storage [OK] in ${Date.now() - now}ms`);
       }
     }
@@ -493,6 +511,9 @@ export class ConfigService extends SoftwareService<Configuration> {
     //TaxonGroupIds.FAO =
   }
 
+  protected async showToast(opts: ShowToastOptions) {
+    await Toasts.show(this.toastController, this.translate, opts);
+  }
 }
 
 

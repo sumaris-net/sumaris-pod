@@ -23,6 +23,7 @@ export const ErrorCodes = {
 
   // DATA errors (load error)
   LOAD_PERSONS_ERROR: 100,
+  DATA_NOT_FOUND_ERROR: 104,
 
   TABLE_INVALID_ROW_ERROR: 350,
   TABLE_READ_ONLY: 351,
@@ -40,8 +41,16 @@ export const ServerErrorCodes = {
   UNAUTHORIZED: 401, // not authenticated
   FORBIDDEN: 403, // authenticated but no access right
   NOT_FOUND: 404,
+
+  // sumaris-core-shared errors
   INTERNAL_SERVER_ERROR: 500,
   DATA_LOCKED: 520,
   BAD_UPDATE_DATE: 521,
-  DENY_DELETION: 522
+  DENY_DELETION: 522,
+
+  // sumaris-server errors
+  INVALID_EMAIL_CONFIRMATION: 550,
+  INVALID_QUERY_VARIABLES: 551,
+  ACCOUNT_ALREADY_EXISTS: 552,
+  BAD_APP_VERSION: 553
 };

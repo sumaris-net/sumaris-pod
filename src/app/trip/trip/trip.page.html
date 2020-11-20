@@ -140,9 +140,9 @@
         </ion-item>
 
         <app-physicalgears-table #physicalGearsTable
-                              [debug]="debug"
-                              [program]="programSubject|async"
-                              (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
+                                 [program]="programSubject|async"
+                                 [debug]="debug"
+                                 (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
         </app-physicalgears-table>
 
       </div>

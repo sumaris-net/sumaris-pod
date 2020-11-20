@@ -140,6 +140,7 @@
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux données des autres",
       "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux extractions des autres",
+      "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
@@ -222,8 +223,6 @@
     "BTN_DISCONNECT": "Déconnecter ce compte",
     "BTN_MY_ACCOUNT": "Mon compte",
     "BTN_REGISTER": "S'inscrire",
-    "DOWNLOAD_APP_TITLE": "{{appName}} pour {{platform}}",
-    "DOWNLOAD_APP_HELP": "Téléchargement gratuit.",
     "SHOW_AT": "Consulté le "
   },
   "AUTH": {
@@ -287,8 +286,8 @@
     "LOCALE": "Langue",
     "LAT_LONG_FORMAT": "Format latitude/longitude",
     "NETWORK_DIVIDER": "Paramètres réseau",
-    "PEER_URL": "Addresse du noeud réseau",
-    "BTN_CHANGE_PEER": "Voir les noeuds disponibles",
+    "PEER_URL": "Addresse du nœud réseau",
+    "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Nettoyer les données en cache",
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
@@ -323,7 +322,7 @@
       }
     },
     "ERROR": {
-      "PEER_NOT_REACHABLE": "Noeud injoignable"
+      "PEER_NOT_REACHABLE": "nœud injoignable"
     }
   },
   "USER": {
@@ -1286,9 +1285,9 @@
       "SEX": "Sex",
       "STATION_COUNT": "Nombre de station",
       "VESSEL_COUNT": "Nombre de navires",
-      "FISHING_TIME": "Temps de pêche (h)",
-      "OFFICIAL_LANDINGS_VALUE": "Valeur débarquée (€)",
-      "OFFICIAL_LANDINGS_WEIGHT": "Poids débarquée (kg)"
+      "FISHING_TIME": "Temps de pêche (h. dec)",
+      "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",
+      "OFFICIAL_LANDINGS_WEIGHT": "Poids officiel débarqué (kg)"
     },
     "SHEET": {
       "TR": "Marées",
@@ -1345,10 +1344,11 @@
     "BTN_INIT_OFFLINE_MODE": "Activer le mode hors-ligne",
     "BTN_UPDATE_OFFLINE_MODE": "Mettre à jour le mode hors-ligne",
     "PEER": {
-      "OFFLINE": "Noeud injoignable",
+      "OFFLINE": "Nœud injoignable",
       "SELECT_MODAL": {
-        "TITLE": "Noeud réseau",
-        "HELP": "Veuillez choisir un noeud réseau auquel vous connecter :"
+        "TITLE": "Nœud réseau",
+        "HELP": "Veuillez choisir un nœud réseau auquel vous connecter :",
+        "NOT_COMPATIBLE_HELP": "Version requise : v{{version}} ou +"
       }
     },
     "SYNCHRONIZATION_STATUS": {
@@ -1364,6 +1364,9 @@
       "ONLINE": "Connexion réseau <b>établie avec succès<b> !",
       "OFFLINE_HELP": "L'application fonctionne en <b>mode hors-ligne</b>.",
       "RETRY_TO_CONNECT": "<i>Tentative de <b>connexion au réseau...</b></i>"
+    },
+    "ERROR": {
+      "NOT_COMPATIBLE_PEER": "L'application fonctionne en <b>mode hors-ligne</b>, car le nœud réseau <b>utilise une version obsolète</b>.<br/><small>Si le problème persiste, veuillez <b>contactez votre administrateur</b> ou utilisez un nœud v{{version}} ou supérieur.</small>"
     }
   },
   "SOCIAL": {
@@ -1423,6 +1426,7 @@
     "UNKNOWN_NETWORK_ERROR": "Erreur de communication avec le serveur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "BAD_UPDATE_DATE": "Sauvegarde impossible (modification concurrente détectée).",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
+    "DATA_NOT_FOUND": "Donnée non trouvée",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_CONFIG_ERROR": "Erreur du chargement de la configuration",
@@ -1442,7 +1446,8 @@
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
     "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
     "COPY_STORAGE_ERROR": "Erreur de copie des données",
-    "DATA_MIGRATION_FAILED": "Echec de la migration de données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+    "DATA_MIGRATION_FAILED": "Echec de la migration de données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "BAD_APP_VERSION": "Veuillez mettre à jour l'application. La récupération et l'envoi de données avec la version actuelle risque de ne pas fonctionner.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1459,6 +1464,11 @@
     "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur.",
     "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur.",
     "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",
-    "DATA_MIGRATION_SUCCEED": "Restauration de données <b>terminée avec succès</b> !"
+    "DATA_MIGRATION_SUCCEED": "Restauration de données <b>terminée avec succès</b> !",
+    "DOWNLOAD_APP_TITLE": "{{name}} pour {{platform}}",
+    "DOWNLOAD_APP_HELP": "Téléchargement gratuit.",
+    "UPDATE_APP": "<b>Veuillez mettre à jour {{name}}</b>",
+    "UPDATE_APP_TO_VERSION": "<b>Veuillez mettre à jour {{name}}</b> (en v{{version}} ou +)",
+    "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>."
   }
 }

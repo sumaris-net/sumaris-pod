@@ -161,20 +161,27 @@ export class LocalSettingsService {
     return this.data && isNotNil(this.data[key]) && this.data[key] || defaultValue;
   }
 
-  async apply(settings: Partial<LocalSettings>) {
+  async apply(settings: Partial<LocalSettings>, opts?: { emitEvent?: boolean; persistImmediate?: boolean; }) {
     this.data = { ...this.data, ...settings};
 
     // Save locally
-    this.persistLocally();
+    if (opts && opts.persistImmediate) {
+      await this.persistLocally(true);
+    }
+    else {
+      this.persistLocally(); // No AWAIT
+    }
 
     // Emit event
-    this.onChange.next(this.data);
+    if (!opts || opts.emitEvent !== false) {
+      this.onChange.next(this.data);
+    }
   }
 
-  async applyProperty(key: keyof LocalSettings, value: any) {
+  async applyProperty(key: keyof LocalSettings, value: any, opts?: { emitEvent?: boolean; persistImmediate?: boolean; }) {
     const changes = {};
     changes[key] = value;
-    await this.apply(changes);
+    await this.apply(changes, opts);
   }
 
   getPageSettings<T = any>(pageId: string, propertyName?: string): T {
@@ -334,7 +341,7 @@ export class LocalSettingsService {
     }
   }
 
-  async removeHistory(path: string, opts?: {emitEvent?: boolean;}) {
+  async removeHistory(path: string, opts?: {emitEvent?: boolean; }) {
     const index = this.data.pageHistory.findIndex(p => p.path === path);
     if (index === -1) return; // skip if not found
 
@@ -351,7 +358,7 @@ export class LocalSettingsService {
 
   async clearPageHistory() {
     // Reset all page history
-    await this.applyProperty('pageHistory', []);
+    await this.applyProperty('pageHistory', [], {persistImmediate: true});
   }
 
   /* -- Protected methods -- */

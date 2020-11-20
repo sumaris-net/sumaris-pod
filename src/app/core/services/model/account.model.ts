@@ -1,5 +1,5 @@
 import {UserSettings} from "./settings.model";
-import {Person} from "./person.model";
+import {Person, personToString} from "./person.model";
 import {EntityAsObjectOptions} from "./entity.model";
 
 /**
@@ -50,5 +50,15 @@ export class Account extends Person<Account> {
     return person;
   }
 
+  get displayName(): string {
+    return accountToString(this);
+  }
+
 }
 
+
+export function accountToString(data: Account): string {
+  return data &&
+    ((data.firstName && (data.firstName + " ") || "") +
+      (data.lastName || "")) || "";
+}

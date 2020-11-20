@@ -1,0 +1,108 @@
+
+
+<!-- Offline mode card-->
+<ion-card *ngIf="showOfflineWarning && (!loading && offline || waitingNetwork)"
+          color="accent"
+          class="main ion-no-margin"
+          @slideUpDownAnimation>
+  <ion-card-content class="ion-no-padding">
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <ion-text class="ion-text-wrap" *ngIf="!waitingNetwork; else waitingNetworkText">
+            <h4>
+            <b *ngIf="isLogin; else notLogin"  [innerHTML]="'NETWORK.INFO.OFFLINE_OR_UNAUTHORIZED'| translate"></b>
+            <ng-template #notLogin>
+              <b [innerHTML]="'NETWORK.INFO.OFFLINE'| translate"></b>
+            </ng-template>
+            </h4>
+            <h3>
+              <small [innerHTML]="'NETWORK.INFO.OFFLINE_HELP'|translate"></small>
+            </h3>
+          </ion-text>
+          <ng-template #waitingNetworkText>
+            <ion-text class="ion-text-wrap" [innerHTML]="'NETWORK.INFO.RETRY_TO_CONNECT'| translate"></ion-text>
+          </ng-template>
+        </ion-col>
+        <ion-col size="auto">
+
+          <!-- Retry button -->
+          <ion-button *ngIf="!waitingNetwork; else waitingSpinner" color="tertiary" class="ion-float-end"
+                      (click)="tryOnline()">
+            <span translate>NETWORK.BTN_CHECK_ALIVE</span>
+          </ion-button>
+
+          <!-- Waiting spinner -->
+          <ng-template #waitingSpinner>
+            <ion-spinner *ngIf="waitingNetwork" color="light"></ion-spinner>
+          </ng-template>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </ion-card-content>
+</ion-card>
+
+<!-- Upgrade links -->
+<ion-card *ngIf="showUpgradeWarning && !loading && !offline && updateLinks"
+          color="accent"
+          class="ion-no-margin"
+          @slideUpDownAnimation>
+  <ion-card-content class="ion-no-padding">
+    <ion-grid>
+      <ion-row *ngFor="let link of updateLinks; last as last">
+        <ion-col>
+          <ion-text class="ion-text-wrap">
+            <h3>
+              <span *ngIf="link.version" [innerHTML]="'INFO.UPDATE_APP_TO_VERSION'| translate: link"></span>
+              <span *ngIf="!link.version" [innerHTML]="'INFO.UPDATE_APP'| translate: link"></span>
+            </h3>
+            <h4>
+              <small *ngIf="last" [innerHTML]="'INFO.UPDATE_APP_HELP'|translate"></small>
+            </h4>
+          </ion-text>
+        </ion-col>
+
+        <ion-col size="auto">
+
+          <!-- Download app link -->
+          <ion-button color="tertiary" class="ion-float-end"
+                      (click)="downloadApp($event, link)">
+            <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+
+    </ion-grid>
+
+  </ion-card-content>
+</ion-card>
+
+<!-- Install links -->
+<ion-card *ngIf="showInstallButton && !loading && !offline && installLinks"
+          color="secondary"
+          class="ion-no-margin"
+          @slideUpDownAnimation>
+  <ion-card-content class="ion-no-padding">
+    <ion-grid>
+      <ion-row *ngFor="let link of installLinks; last as last">
+        <ion-col>
+          <ion-text class="ion-text-wrap">
+            <h3 [innerHTML]="'INFO.DOWNLOAD_APP_TITLE'| translate: {name: link.name, platform: getPlatformName(link.platform) }"></h3>
+            <h4><small *ngIf="last" [innerHTML]="'INFO.DOWNLOAD_APP_HELP'|translate"></small></h4>
+          </ion-text>
+        </ion-col>
+        <ion-col size="auto">
+          <!-- Display App download link -->
+          <ion-button color="tertiary" class="ion-float-end"
+                      (click)="downloadApp($event, link)">
+            <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+
+    </ion-grid>
+
+  </ion-card-content>
+</ion-card>
+

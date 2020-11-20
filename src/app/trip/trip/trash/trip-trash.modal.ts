@@ -16,7 +16,7 @@ import {TableElement} from "@e-is/ngx-material-table";
 import {SynchronizationStatus, SynchronizationStatusEnum} from "../../../data/services/model/root-data-entity.model";
 import {isEmptyArray, isNotNil} from "../../../shared/functions";
 import {OperationService} from "../../services/operation.service";
-import {EntitiesStorage} from "../../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../../core/services/storage/entities-storage.service";
 
 @Component({
   selector: 'app-trip-trash-modal',

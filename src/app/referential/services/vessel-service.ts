@@ -22,7 +22,7 @@ import {Moment} from "moment";
 
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {FetchPolicy} from "apollo-client";
 import {isEmptyArray} from "../../shared/functions";
@@ -30,7 +30,7 @@ import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/enti
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
 import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {Vessel} from "./model/vessel.model";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {Person} from "../../core/services/model/person.model";

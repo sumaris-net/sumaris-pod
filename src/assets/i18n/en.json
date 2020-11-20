@@ -140,6 +140,7 @@
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "User profile (min) to access other people data",
       "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "User profile (min) to access to other people extractions",
+      "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -222,8 +223,6 @@
     "BTN_DISCONNECT": "Disconnect this account",
     "BTN_MY_ACCOUNT": "My account",
     "BTN_REGISTER": "Register",
-    "DOWNLOAD_APP_TITLE": "{{appName}} for {{platform}}",
-    "DOWNLOAD_APP_HELP": "Free download.",
     "SHOW_AT": "Show at"
   },
   "AUTH": {
@@ -287,8 +286,8 @@
     "LOCALE": "Language",
     "LAT_LONG_FORMAT": "Latitude/longitude format",
     "NETWORK_DIVIDER": "Network settings",
-    "PEER_URL": "Network peer address",
-    "BTN_CHANGE_PEER": "See available peers",
+    "PEER_URL": "Network node address",
+    "BTN_CHANGE_PEER": "See available nodes",
     "BTN_SHOW_MORE_HELP": "Show more parameters",
     "BTN_CLEAR_CACHE": "Clear data cache",
     "OFFLINE_MODE": "Force offline mode? (experimental)",
@@ -323,7 +322,7 @@
       }
     },
     "ERROR": {
-      "PEER_NOT_REACHABLE": "Unreachable peer"
+      "PEER_NOT_REACHABLE": "Unreachable node"
     }
   },
   "USER": {
@@ -1191,18 +1190,6 @@
         }
       }
     },
-    "COMMON": {
-      "VESSEL_FLAG_COUNTRY": "Vessel country flag",
-      "HARBOUR": "Harbour",
-      "PROJECT": "Project",
-      "YEAR": "Year",
-      "QUARTER": "Quarter",
-      "MONTH": "Month",
-      "AREA": "Area",
-      "STATISTICAL_RECTANGLE": "Statistical rectangle",
-      "SQUARE": "Square 10'x10'",
-      "SUB_POLYGGON": "Sub-polygon"
-    },
     "FILTER": {
       "TITLE": "Filter criteria:",
       "CRITERION_NAME": "Column",
@@ -1270,6 +1257,38 @@
       "PRODUCT": "Products",
       "LIVE": "Real time"
     },
+    "COLUMNS": {
+      "VESSEL_FLAG_COUNTRY": "Vessel country flag",
+      "LANDING_COUNTRY": "Landing country",
+      "RECORD_TYPE": "Type",
+      "HARBOUR": "Harbour",
+      "PROJECT": "Project",
+      "YEAR": "Year",
+      "QUARTER": "Quarter",
+      "MONTH": "Month",
+      "AREA": "Area",
+      "STATISTICAL_RECTANGLE": "Statistical rectangle",
+      "SQUARE": "Square 10'x10'",
+      "SUB_POLYGON": "Sub-polygon",
+      "SPECIES": "Species",
+      "OFFICIAL_LANDING_WEIGHT": "Officiel landing weight",
+      "COMMERCIAL_SIZE_CATEGORY": "Commercial size category",
+      "COMMERCIAL_SIZE_CATEGORY_SCALE": "Commercial size category scale",
+      "VESSEL_LENGTH_CATEGORY": "Vessel length category",
+      "VESSEL_LENGTH_CLASS": "Vessel length category",
+      "GEAR_TYPE": "Gear",
+      "LENGTH_CLASS": "Length class",
+      "CATCH_CATEGORY": "Catch category",
+      "LANDING_CATEGORY": "Landing category",
+      "NUMBER_AT_LENGTH": "Number at length",
+      "INDIVIDUAL_SEX": "Individual sex",
+      "SEX": "Sex",
+      "STATION_COUNT": "Number of station",
+      "VESSEL_COUNT": "Number of vessels",
+      "FISHING_TIME": "Fishing time (h)",
+      "OFFICIAL_LANDINGS_VALUE": "Officiel landings value (€)",
+      "OFFICIAL_LANDINGS_WEIGHT": "Officiel landings weight (kg)"
+    },
     "SHEET": {
       "TR": "Trips",
       "HH": "Fishing stations",
@@ -1325,10 +1344,11 @@
     "BTN_INIT_OFFLINE_MODE": "Enable offline mode",
     "BTN_UPDATE_OFFLINE_MODE": "Update offline mode",
     "PEER": {
-      "OFFLINE": "Unreachable peer",
+      "OFFLINE": "Unreachable node",
       "SELECT_MODAL": {
-        "TITLE": "Network peer",
-        "HELP": "Please choose a network peer to connect to:"
+        "TITLE": "Network node",
+        "HELP": "Please choose a network node to connect to:",
+        "NOT_COMPATIBLE_HELP": "Required version: v{{version}} or +"
       }
     },
     "SYNCHRONIZATION_STATUS": {
@@ -1344,6 +1364,9 @@
       "ONLINE": "Sucesfully connected to the network!",
       "OFFLINE_HELP": "The application works in <b>offline mode</b>.",
       "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>"
+    },
+    "ERROR": {
+      "NOT_COMPATIBLE_PEER": "The application works in <b>offline mode</b>, because the node <b>use a too old version</b>.<br/><small>If the problem persists, please <b>contact your administrator</b>, or select a node v{{version}} or superior.</small>"
     }
   },
   "SOCIAL": {
@@ -1403,6 +1426,7 @@
     "UNKNOWN_NETWORK_ERROR": "Error communicating with the server.<small><br/>If the problem persists, please contact your administrator.</small>",
     "BAD_UPDATE_DATE": "Unable to save.<small><br/>Concurrent change detected. Please reload this page and retry.</small>",
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
+    "DATA_NOT_FOUND": "Data not found",
     "LOAD_ACCOUNT_ERROR": "Error loading user account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_CONFIG_ERROR": "Error while loading configuration",
@@ -1422,7 +1446,8 @@
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
     "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode.",
     "COPY_STORAGE_ERROR": "Error during data copy",
-    "DATA_MIGRATION_FAILED": "Faile to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>"
+    "DATA_MIGRATION_FAILED": "Faile to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "BAD_APP_VERSION": "Please update the app. Retrieving and sending data with the current version may not work."
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1439,6 +1464,11 @@
     "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server.",
     "DEBUG_DATA_SEND": "Help request sent to administrator",
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
-    "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!"
+    "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!",
+    "DOWNLOAD_APP_TITLE": "{{name}} for {{platform}}",
+    "DOWNLOAD_APP_HELP": "Free download.",
+    "UPDATE_APP": "<b>Please upgrade {{name}}</b>",
+    "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
+    "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.."
   }
 }

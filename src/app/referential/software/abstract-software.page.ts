@@ -148,16 +148,16 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
   }
 
   protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
-    await this.prepareDataPropertiesToFOrm(data);
+    await this.prepareDataPropertiesToForm(data);
     await super.onEntityLoaded(data, options);
   }
 
   protected async onEntitySaved(data: T): Promise<void> {
-    await this.prepareDataPropertiesToFOrm(data);
+    await this.prepareDataPropertiesToForm(data);
     await super.onEntitySaved(data);
   }
 
-  async prepareDataPropertiesToFOrm(data: T | null) {
+  async prepareDataPropertiesToForm(data: T | null) {
 
     return Promise.all(Object.keys(data.properties)
       .map(key => this.propertyDefinitionsByKey[key])
@@ -173,7 +173,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
         else {
           filter.searchAttribute = joinAttribute;
         }
-        // Fetch entity, ad a referential
+        // Fetch entity, as a referential
         return this.referentialRefService.suggest(value, filter)
           .then(matches => {
             data.properties[option.key] = (matches && matches[0] || {id: value,  label: '??'}) as any;

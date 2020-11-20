@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {EMPTY, Observable} from "rxjs";
-import {filter, first, map, tap, throttleTime} from "rxjs/operators";
+import {filter, first, map} from "rxjs/operators";
 import {
   EntitiesService,
   EntityService,
@@ -14,7 +14,7 @@ import {
 import {BaseEntityService, Department, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {isEmptyArray, isNilOrBlank} from "../../shared/functions";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {NetworkService} from "../../core/services/network.service";
@@ -26,8 +26,8 @@ import {
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
-import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from "./model/trip.model";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
+import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
@@ -38,8 +38,7 @@ import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entit
 import {QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {concatPromises, firstNotNilPromise} from "../../shared/observables";
-import {DataRootEntityUtils} from "../../data/services/model/root-data-entity.model";
-import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {FetchPolicy} from "apollo-client";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -162,13 +161,21 @@ export class OperationFilter {
   excludeId?: number;
 }
 
-const LoadAllQuery: any = gql`
+const LoadAllLightQuery: any = gql`
   query Operations($filter: OperationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightOperationFragment
     }
   }
   ${OperationFragments.lightOperation}
+`;
+const LoadAllFullQuery: any = gql`
+  query Operations($filter: OperationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...OperationFragment
+    }
+  }
+  ${OperationFragments.operation}
 `;
 const LoadQuery: any = gql`
   query Operation($id: Int!) {
@@ -221,13 +228,16 @@ export declare interface OperationServiceWatchOptions extends
   OperationFromObjectOptions, EntitiesServiceWatchOptions {
 
   computeRankOrder?: boolean;
-
+  fullLoad?: boolean;
+  fetchPolicy?: FetchPolicy;
 }
 
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseEntityService<Operation, OperationFilter>
   implements EntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
              EntityService<Operation>{
+
+  static LIGHT_EXCLUDED_ATTRIBUTES = ["measurements", "samples", "batches"];
 
   loading = false;
 
@@ -306,9 +316,10 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     let now = this._debug && Date.now();
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
 
+    const query = (!opts || opts.fullLoad !== true) ? LoadAllLightQuery : LoadAllFullQuery;
     return this.mutableWatchQuery<{operations: any[], operationsCount: number}>({
       queryName: 'LoadAll',
-      query: LoadAllQuery,
+      query: query,
       arrayFieldName: 'operations',
       totalFieldName: 'operationsCount',
       insertFilterFn: OperationFilter.searchFilter<Operation>(dataFilter),
@@ -352,6 +363,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       // Load locally
       if (id < 0) {
         json = await this.entities.load<Operation>(id, Operation.TYPENAME);
+        if (!json) throw {code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR"};
       }
 
       // Load from pod
@@ -411,7 +423,8 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
   /**
    * Save many operations
-   * @param data
+   * @param entities
+   * @param opts
    */
   async saveAll(entities: Operation[], opts?: OperationSaveOptions): Promise<Operation[]> {
     if (isEmptyArray(entities)) return entities;
@@ -500,7 +513,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
             // Insert into cached queries
             if (isNew) {
               this.insertIntoMutableCachedQuery(proxy, {
-                query: LoadAllQuery,
+                query: LoadAllFullQuery,
                 data: savedEntity
               });
             }
@@ -552,7 +565,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
         update: (proxy) => {
           // Remove from cached queries
           this.removeFromMutableCachedQueryByIds(proxy, {
-            query: LoadAllQuery, ids: remoteIds
+            query: LoadAllFullQuery, ids: remoteIds
           });
 
           if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
@@ -648,20 +661,44 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
    * @param source
    * @param opts
    */
-  watchRankOrder(source: Operation, opts?: { fetchPolicy?: WatchQueryFetchPolicy; }): Observable<number> {
+  watchRankOrder(source: Operation, opts?: OperationServiceWatchOptions): Observable<number> {
     console.debug(`[operation-service] Loading rankOrder of operation #${source.id}...`);
     const tripId = isNotNil(source.tripId) ? source.tripId : source.trip && source.trip.id;
     return this.watchAllByTrip({tripId}, opts)
       .pipe(
         map(res => {
           const existingOperation = (res && res.data ||[]).find(o => o.id === source.id);
-          console.log('rankOrderOnPeriod=' + existingOperation && existingOperation.rankOrderOnPeriod);
           return existingOperation ? existingOperation.rankOrderOnPeriod : null;
         })
       );
   }
 
   /* -- protected methods -- */
+
+  /**
+   * Save an operation on the local storage
+   * @param data
+   */
+  protected async saveLocally(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
+    if (entity.tripId >= 0) throw new Error('Must be a local entity');
+
+    const now = Date.now();
+    if (this._debug) console.debug("[operation-service] Saving operation locally...");
+
+    // Fill default properties (as recorder department and person)
+    this.fillDefaultProperties(entity, opts);
+
+    // Make sure to fill id, with local ids
+    await this.fillOfflineDefaultProperties(entity);
+
+    const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
+    if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
+
+    // Save response locally
+    await this.entities.save(jsonLocal);
+
+    return entity;
+  }
 
   protected asObject(entity: Operation, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
@@ -708,7 +745,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     }
   }
 
-  fillRecorderDepartment(entity: DataEntity<Operation | VesselPosition | Measurement>, department?: Department) {
+  protected fillRecorderDepartment(entity: DataEntity<Operation | VesselPosition | Measurement>, department?: Department) {
     if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
 
       department = department || this.accountService.department;
@@ -735,10 +772,12 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     // Fill all batches id
     const batches = entity.catchBatch && EntityUtils.treeToArray(entity.catchBatch) || [];
-    await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
-    if (this._debug) {
-      console.debug("[Operation-service] Preparing batches to be saved locally:")
-      BatchUtils.logTree(entity.catchBatch);
+    if (isNotEmptyArray(batches)) {
+      await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
+      if (this._debug) {
+        console.debug("[Operation-service] Preparing batches to be saved locally:");
+        BatchUtils.logTree(entity.catchBatch);
+      }
     }
   }
 

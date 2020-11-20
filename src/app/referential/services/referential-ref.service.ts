@@ -18,16 +18,17 @@ import {ReferentialRef, ReferentialUtils} from "../../core/services/model/refere
 import {FetchPolicy} from "apollo-client";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {fetchAllPagesWithProgress, FilterFn, SuggestService} from "../../shared/services/entity-service.class";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {TaxonNameRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 
 export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];
+
 }
 
 export type TaxonNameRefFilter = Partial<ReferentialRefFilter> & {
@@ -95,7 +96,7 @@ export class ReferentialRefService extends BaseEntityService
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           filter?: ReferentialFilter,
+           filter?: ReferentialRefFilter,
            opts?: {
              [key: string]: any;
              fetchPolicy?: FetchPolicy;
@@ -115,7 +116,7 @@ export class ReferentialRefService extends BaseEntityService
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
+      filter: ReferentialRefFilter.asPodObject(filter)
     };
 
     let now = this._debug && Date.now();
@@ -194,7 +195,7 @@ export class ReferentialRefService extends BaseEntityService
         || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
         || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
+      filter: ReferentialRefFilter.asPodObject(filter)
     };
 
 
@@ -446,7 +447,7 @@ export class ReferentialRefService extends BaseEntityService
         .then((res) => {
           importedEntities.push(entityName);
           return this.entities.saveAll(res.data, {
-            entityName: entityName + 'VO'
+            entityName: entityName + 'VO', reset: true
           });
         })
         .catch(err => {

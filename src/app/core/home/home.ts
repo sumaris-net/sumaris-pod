@@ -11,21 +11,20 @@ import {ModalController, ToastController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
-import {Account} from '../services/model/account.model';
+import {Account, accountToString} from '../services/model/account.model';
 import {Configuration} from '../services/model/config.model';
 import {Department} from '../services/model/department.model';
-import {HistoryPageReference, LocalSettings} from '../services/model/settings.model';
+import {HistoryPageReference, Locales, LocalSettings} from '../services/model/settings.model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
-import {sleep, fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
+import {fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {debounceTime, distinctUntilChanged, map, startWith, tap} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, map, startWith} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
 import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {MenuItem, MenuItems} from "../menu/menu.component";
-import {ConfigOptions} from "../services/config/core.config";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 
 export function getRandomImage(files: String[]) {
@@ -53,7 +52,7 @@ export class HomePage implements OnDestroy {
   loading = true;
   waitingNetwork = false;
   showSpinner = true;
-  displayName: String = '';
+  accountName: String = '';
   isLogin: boolean;
   $partners = new BehaviorSubject<Department[]>(null);
   loadingBanner = true;
@@ -63,11 +62,10 @@ export class HomePage implements OnDestroy {
   isWeb: boolean;
   contentStyle: any;
   pageHistory: HistoryPageReference[] = [];
-  appPlatformName: string;
-  appInstallName: string;
-  appInstallUrl: string;
   offline: boolean;
   $filteredButtons = new BehaviorSubject<MenuItem[]>(undefined);
+
+  locales = Locales;
 
   get currentLocaleCode(): string {
     return this.loading ? '' :
@@ -126,15 +124,6 @@ export class HomePage implements OnDestroy {
     return page && page.path;
   }
 
-  downloadApp(event: UIEvent) {
-    event.preventDefault();
-
-    if (this.appInstallUrl) {
-      console.info(`[home] Opening App download link: ${this.appInstallUrl}`);
-      this.platform.open(this.appInstallUrl, '_system', 'location=yes');
-      return false;
-    }
-  }
 
   tryOnline() {
     this.waitingNetwork = true;
@@ -244,13 +233,10 @@ export class HomePage implements OnDestroy {
     // If first load, hide the loading indicator
     if (this.loading) {
       setTimeout(() => {
-        this.computeInstallAppUrl(config);
-
         this.loading = false;
         this.markForCheck();
       }, 500); // Add a delay, for animation
     }
-
   }
 
   protected onSettingsChanged(settings: LocalSettings) {
@@ -263,18 +249,17 @@ export class HomePage implements OnDestroy {
   }
 
   protected onLogin(account: Account) {
+    if (!account) return; // Skip
     //console.debug('[home] Logged account: ', account);
     this.isLogin = true;
-    this.displayName = account &&
-      ((account.firstName && (account.firstName + " ") || "") +
-        (account.lastName || "")) || "";
+    this.accountName = accountToString(account);
     this.refreshButtons();
     this.markForCheck();
   }
 
   protected onLogout() {
     this.isLogin = false;
-    this.displayName = "";
+    this.accountName = "";
     this.pageHistory = [];
     this.refreshButtons();
     this.markForCheck();
@@ -299,38 +284,6 @@ export class HomePage implements OnDestroy {
       });
 
     this.$filteredButtons.next(filteredButtons);
-  }
-
-
-  protected async computeInstallAppUrl(config: Configuration) {
-    if (this.appInstallUrl) return; // Already computed: skip
-
-    await this.network.ready();
-
-    // If mobile web: show "download app" button
-    if (this.platform.is('mobileweb')) {
-
-      // Android
-      if (this.platform.is('android')) {
-
-        setTimeout(() => {
-          this.appPlatformName = 'Android';
-          const appInstallUrl = config.properties[ConfigOptions.ANDROID_INSTALL_URL.key];
-          if (isNotNilOrBlank(appInstallUrl)) {
-            this.appInstallUrl = appInstallUrl;
-            this.appInstallName = this.appName;
-          }
-          else {
-            this.appInstallName = environment.defaultAppName || 'SUMARiS';
-            this.appInstallUrl =  environment.defaultAndroidInstallUrl || null;
-          }
-          this.markForCheck();
-        }, 1000); // Add a delay, for animation
-      }
-
-      // TODO: other mobile platforms (iOS, etc.)
-      // else if (...)
-    }
   }
 
   protected markForCheck() {

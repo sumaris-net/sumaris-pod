@@ -236,7 +236,7 @@ export function propertiesPathComparator<T = any>(keys: string[], defaultValues?
 
 export function sort<T>(array: T[], attribute: string): T[] {
   return array
-    .slice(0) // copy
+    .slice() // copy
     .sort((a, b) => {
       const valueA = a[attribute];
       const valueB = b[attribute];
@@ -244,7 +244,10 @@ export function sort<T>(array: T[], attribute: string): T[] {
     });
 }
 
-
+const NUMBER_REGEXP = /^[-]?\d+(.\d+)?$/;
+export function isNumber(value: string): boolean {
+  return isNotNil(value) && NUMBER_REGEXP.test(value);
+}
 
 export function getPropertyByPath(obj: any, path: string, defaultValue?: any): any {
   if (isNil(obj)) return undefined;

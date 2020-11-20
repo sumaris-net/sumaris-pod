@@ -63,8 +63,7 @@
   <!-- parent -->
   <ng-container matColumnDef="parent">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label>{{ (displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
-        'TRIP.SAMPLE.TABLE.PARENT') | translate }}</ion-label>
+      <ion-label>{{ (displayParentPmfm | pmfmName) || ('TRIP.SAMPLE.TABLE.PARENT' | translate) }}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-autocomplete-field floatLabel="never" class="min-width-medium"
@@ -80,12 +79,10 @@
 
   <!-- Pmfms columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-      <ion-label>{{getPmfmColumnHeader(pmfm)}}
-        <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unitLabel}})</small>
-      </ion-label>
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+      <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
+    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm">
       <app-pmfm-field floatLabel="never"
                                   [readonly]="!row.editing"
                                   [pmfm]="pmfm"

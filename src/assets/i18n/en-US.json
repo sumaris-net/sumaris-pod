@@ -140,6 +140,7 @@
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "User profile (min) to access other people data",
       "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "User profile (min) to access to other people extractions",
+      "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -222,7 +223,7 @@
     "BTN_DISCONNECT": "Disconnect this account",
     "BTN_MY_ACCOUNT": "My account",
     "BTN_REGISTER": "Register",
-    "DOWNLOAD_APP_TITLE": "{{appName}} for {{platform}}",
+    "DOWNLOAD_APP_TITLE": "{{name}} for {{platform}}",
     "DOWNLOAD_APP_HELP": "Free download.",
     "SHOW_AT": "Show at"
   },
@@ -1191,18 +1192,6 @@
         }
       }
     },
-    "COMMON": {
-      "VESSEL_FLAG_COUNTRY": "Vessel country flag",
-      "HARBOUR": "Harbour",
-      "PROJECT": "Project",
-      "YEAR": "Year",
-      "QUARTER": "Quarter",
-      "MONTH": "Month",
-      "AREA": "Area",
-      "STATISTICAL_RECTANGLE": "Statistical rectangle",
-      "SQUARE": "Square 10'x10'",
-      "SUB_POLYGGON": "Sub-polygon"
-    },
     "FILTER": {
       "TITLE": "Filter criteria:",
       "CRITERION_NAME": "Column",
@@ -1269,6 +1258,38 @@
     "CATEGORY": {
       "PRODUCT": "Products",
       "LIVE": "Real time"
+    },
+    "COLUMNS": {
+      "VESSEL_FLAG_COUNTRY": "Vessel country flag",
+      "LANDING_COUNTRY": "Landing country",
+      "RECORD_TYPE": "Type",
+      "HARBOUR": "Harbour",
+      "PROJECT": "Project",
+      "YEAR": "Year",
+      "QUARTER": "Quarter",
+      "MONTH": "Month",
+      "AREA": "Area",
+      "STATISTICAL_RECTANGLE": "Statistical rectangle",
+      "SQUARE": "Square 10'x10'",
+      "SUB_POLYGON": "Sub-polygon",
+      "SPECIES": "Species",
+      "OFFICIAL_LANDING_WEIGHT": "Officiel landing weight",
+      "COMMERCIAL_SIZE_CATEGORY": "Commercial size category",
+      "COMMERCIAL_SIZE_CATEGORY_SCALE": "Commercial size category scale",
+      "VESSEL_LENGTH_CATEGORY": "Vessel length category",
+      "VESSEL_LENGTH_CLASS": "Vessel length category",
+      "GEAR_TYPE": "Gear",
+      "LENGTH_CLASS": "Length class",
+      "CATCH_CATEGORY": "Catch category",
+      "LANDING_CATEGORY": "Landing category",
+      "NUMBER_AT_LENGTH": "Number at length",
+      "INDIVIDUAL_SEX": "Individual sex",
+      "SEX": "Sex",
+      "STATION_COUNT": "Number of station",
+      "VESSEL_COUNT": "Number of vessels",
+      "FISHING_TIME": "Fishing time (h)",
+      "OFFICIAL_LANDINGS_VALUE": "Officiel landings value (€)",
+      "OFFICIAL_LANDINGS_WEIGHT": "Officiel landings weight (kg)"
     },
     "SHEET": {
       "TR": "Trips",
@@ -1403,6 +1424,7 @@
     "UNKNOWN_NETWORK_ERROR": "Error communicating with the server.<small><br/>If the problem persists, please contact your administrator.</small>",
     "BAD_UPDATE_DATE": "Unable to save.<small><br/>Concurrent change detected. Please reload this page and retry.</small>",
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
+    "DATA_NOT_FOUND": "Data not found",
     "LOAD_ACCOUNT_ERROR": "Error loading user account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_CONFIG_ERROR": "Error while loading configuration",

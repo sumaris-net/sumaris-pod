@@ -10,7 +10,7 @@ import {
 import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {environment} from "../../../environments/environment";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {Pmfm} from "./model/pmfm.model";

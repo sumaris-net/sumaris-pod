@@ -2,18 +2,24 @@ import {Observable, of, Subject, Subscription} from "rxjs";
 import {Apollo} from "apollo-angular";
 import {ApolloClient, ApolloQueryResult, FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
-import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
+import {ErrorCodes, ServerErrorCodes, ServiceError} from "../services/errors";
 import {catchError, distinctUntilChanged, filter, first, map, mergeMap, throttleTime} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
 import {Injectable} from "@angular/core";
 import {HttpLink, Options} from "apollo-angular-link-http";
-import {ConnectionType, NetworkService} from "./network.service";
+import {ConnectionType, NetworkService} from "../services/network.service";
 import {WebSocketLink} from "apollo-link-ws";
 import {ApolloLink} from "apollo-link";
 import {InMemoryCache} from "apollo-cache-inmemory";
-import {AppWebSocket, createTrackerLink, dataIdFromObject, restoreTrackedQueries} from "../graphql/graphql.utils";
-import {getMainDefinition} from 'apollo-utilities';
+import {
+  AppWebSocket,
+  createTrackerLink,
+  dataIdFromObject,
+  isMutationOperation,
+  isSubscriptionOperation,
+  restoreTrackedQueries
+} from "./graphql.utils";
 import {persistCache} from "apollo-cache-persist";
 import {Storage} from "@ionic/storage";
 import {RetryLink} from 'apollo-link-retry';
@@ -21,11 +27,11 @@ import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
-import {EntityUtils, IEntity} from "./model/entity.model";
+import {EntityUtils, IEntity} from "../services/model/entity.model";
 import {DataProxy} from 'apollo-cache';
 import {isNotNil, toNumber} from "../../shared/functions";
 import {Resolvers} from "apollo-client/core/types";
-import {SubscriptionClient} from "subscriptions-transport-ws";
+import {HttpHeaders} from "@angular/common/http";
 
 export interface WatchQueryOptions<V> {
   query: any,
@@ -41,6 +47,7 @@ export interface MutateQueryOptions<T, V = R> {
   context?: {
     serializationKey?: string;
     tracked?: boolean;
+    timeout?: number;
   };
   optimisticResponse?: T;
   offlineResponse?: T | ((context: any) => Promise<T>);
@@ -55,7 +62,7 @@ export class GraphqlService {
   private _started = false;
   private _startPromise: Promise<any>;
   private _subscription = new Subscription();
-  private _networkStatusChanged$: Observable<ConnectionType>;
+  private readonly _networkStatusChanged$: Observable<ConnectionType>;
 
   private httpParams: Options;
   private wsParams: WebSocketLink.Configuration;
@@ -553,6 +560,9 @@ export class GraphqlService {
 
   protected async initApollo() {
 
+    const mobile = this.platform.is('mobile') || this.platform.is('mobileweb');
+    const enableTrackMutationQueries = !mobile;
+
     const peer = this.network.peer;
     if (!peer) throw Error("[graphql] Missing peer. Unable to start graphql service");
 
@@ -589,41 +599,20 @@ export class GraphqlService {
       // Websocket link
       const wsLink = new WebSocketLink(this.wsParams);
 
-      // Creating a mutation queue
-      const queueLink = new QueueLink();
-      this._subscription.add(this._networkStatusChanged$
-        .subscribe(type => {
-          // Network is offline: start buffering into queue
-          if (type === 'none') {
-            console.info("[graphql] offline mode: enable mutations buffer");
-            queueLink.close();
-          }
-          // Network is online
-          else {
-            console.info("[graphql] online mode: disable mutations buffer");
-            queueLink.open();
-          }
-        }));
-
-      const serializingLink = new SerializingLink();
+      // Retry when failed link
       const retryLink = new RetryLink();
-      const trackerLink = createTrackerLink({
-        storage,
-        onNetworkStatusChange: this._networkStatusChanged$,
-        debounce: 1000,
-        debug: true
-      });
-
       const authLink = new ApolloLink((operation, forward) => {
+
+        const headers = new HttpHeaders()
+          .append('Authorization', this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : '')
+          //.append('X-App-Name', environment.name)
+          //.append('X-App-Version', environment.version)
+        ;
 
         // Use the setContext method to set the HTTP headers.
         operation.setContext({
           ...operation.getContext(),
-          ...{
-            headers: {
-              authorization: this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : ''
-            }
-          }
+          ...{headers}
         });
 
         // Call the next link in the middleware chain.
@@ -633,12 +622,13 @@ export class GraphqlService {
       // Http link
       const httpLink = this.httpLink.create(this.httpParams);
 
+      // Cache
       const cache = new InMemoryCache({
         dataIdFromObject
       });
 
-      // Enable cache persistence
-      if ((environment.offline || this.platform.is('mobile')) && environment.persistCache) {
+      // Add cache persistence
+      if (environment.persistCache) {
         console.debug("[graphql] Starting persistence cache...");
         await persistCache({
           cache,
@@ -649,38 +639,66 @@ export class GraphqlService {
         });
       }
 
+      let mutationLinks: Array<ApolloLink>;
+
+      // Add queue to store tracked queries, when offline
+      if (enableTrackMutationQueries) {
+        const serializingLink = new SerializingLink();
+        const trackerLink = createTrackerLink({
+          storage,
+          onNetworkStatusChange: this._networkStatusChanged$,
+          debounce: 1000,
+          debug: true
+        });
+        // Creating a mutation queue
+        const queueLink = new QueueLink();
+        this._subscription.add(this._networkStatusChanged$
+          .subscribe(type => {
+            // Network is offline: start buffering into queue
+            if (type === 'none') {
+              console.info("[graphql] offline mode: enable mutations buffer");
+              queueLink.close();
+            }
+            // Network is online
+            else {
+              console.info("[graphql] online mode: disable mutations buffer");
+              queueLink.open();
+            }
+          }));
+        mutationLinks = [
+          loggerLink,
+          queueLink,
+          trackerLink,
+          queueLink,
+          serializingLink,
+          retryLink,
+          authLink,
+          httpLink
+        ];
+      }
+      else {
+        mutationLinks = [
+          retryLink,
+          authLink,
+          httpLink
+        ];
+      }
+
       // create Apollo
       this.apollo.create({
         link:
           ApolloLink.split(
-            ({query}) => {
-              const def = getMainDefinition(query);
-              return def.kind === 'OperationDefinition' && def.operation === 'mutation';
-            },
-
-            // Handle mutations (with offline queue)
-            ApolloLink.from([
-              loggerLink,
-              trackerLink,
-              queueLink,
-              serializingLink,
-              retryLink,
-              authLink,
-              httpLink
-            ]),
+            // Handle mutations
+            isMutationOperation,
+            ApolloLink.from(mutationLinks),
 
             ApolloLink.split(
-              (operation) => {
-                const def = getMainDefinition(operation.query);
-                return def.kind === 'OperationDefinition' && def.operation === 'subscription';
-              },
-
               // Handle subscriptions
+              isSubscriptionOperation,
               wsLink,
 
               // Handle queries
               ApolloLink.from([
-                //loggerLink,
                 retryLink,
                 authLink,
                 httpLink
@@ -695,7 +713,7 @@ export class GraphqlService {
     }
 
     // Enable tracked queries persistence
-    if ((environment.offline || this.platform.is('mobile')) && environment.persistCache) {
+    if (enableTrackMutationQueries && environment.persistCache) {
 
       try {
         await restoreTrackedQueries({
@@ -743,12 +761,19 @@ export class GraphqlService {
   }
 
   private toApolloError<T>(err: any, defaultError?: any): ApolloQueryResult<T> {
-    let error = (err.networkError && (this.toAppError(err.networkError) || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR))) ||
-      (err.graphQLErrors && err.graphQLErrors.length && this.toAppError(err.graphQLErrors[0])) ||
-      this.toAppError(err) ||
-      this.toAppError(err.originalError) ||
-      (err.graphQLErrors && err.graphQLErrors[0]) ||
-      err;
+    let error =
+      // If network error: try to convert to App (read as JSON), or create an UNKNOWN_NETWORK_ERROR
+      (err.networkError &&
+        (err.networkError.error && this.toAppError(err.networkError.error))
+        || this.toAppError(err.networkError)
+        || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR)
+      )
+      // If graphQL: try to convert the first error found
+      || (err.graphQLErrors && err.graphQLErrors.length && this.toAppError(err.graphQLErrors[0]))
+      || this.toAppError(err)
+      || this.toAppError(err.originalError)
+      || (err.graphQLErrors && err.graphQLErrors[0])
+      || err;
     console.error("[graphql] " + (error && error.message || error), error.stack || '');
     if (error && error.code === ErrorCodes.UNKNOWN_NETWORK_ERROR && err.networkError && err.networkError.message) {
       console.error("[graphql] original error: " + err.networkError.message);
@@ -771,7 +796,10 @@ export class GraphqlService {
     if (message) return {
       code: errorCode,
       message: this.getI18nErrorMessageByCode(errorCode)
-    };
+    }
+    else {
+      console.debug('TODO: errorCode=' + errorCode);
+    }
     return undefined;
   }
 
@@ -787,22 +815,26 @@ export class GraphqlService {
         return "ERROR.BAD_UPDATE_DATE";
       case ServerErrorCodes.DATA_LOCKED:
         return "ERROR.DATA_LOCKED";
+      case ServerErrorCodes.BAD_APP_VERSION:
+        return "ERROR.BAD_APP_VERSION";
     }
 
     return undefined;
   }
 
   private toAppError(err: any): any | undefined {
+    let error = err;
     const message = err && err.message || err;
     if (typeof message === "string" && message.trim().indexOf('{"code":') === 0) {
       try {
-        const error = JSON.parse(message);
-        return error && this.createAppErrorByCode(error.code) || error && error.message || err;
+        error = JSON.parse(err.message);
       }
       catch (parseError) {
         console.error("Unable to parse error as JSON: ", parseError);
-        return undefined;
       }
+    }
+    if (error && error.code) {
+      return this.createAppErrorByCode(error.code) || error && error.message || error;
     }
     return undefined;
   }

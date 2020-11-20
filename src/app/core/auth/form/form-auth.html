@@ -8,8 +8,11 @@
 
   <!-- Username -->
   <mat-form-field>
-    <input matInput [appAutofocus]="true" [autofocusDelay]="500" [placeholder]="'USER.EMAIL'|translate" formControlName="username"
-      autocomplete="off">
+    <input matInput [appAutofocus]="true" [autofocusDelay]="500"
+           [placeholder]="'USER.EMAIL'|translate"
+           formControlName="username"
+           autocomplete="off"
+           required>
     <mat-error *ngIf="form.controls.username.hasError('required') && form.controls.username.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="form.controls.username.hasError('email') && form.controls.username.dirty">
       <span>{{'ERROR.FIELD_NOT_VALID_EMAIL' | translate }}</span>
@@ -18,8 +21,19 @@
 
   <!-- Password -->
   <mat-form-field>
-    <input matInput [placeholder]="'USER.PASSWORD'|translate" formControlName="password" autocomplete="off"
-      type="password">
+    <input matInput [placeholder]="'USER.PASSWORD'|translate"
+           formControlName="password"
+           autocomplete="section-red new-password"
+           [type]="showPwd ? 'text' : 'password'"
+           required>
+
+    <!-- Show pwd button -->
+    <button mat-icon-button matSuffix
+            *ngIf="mobile"
+            (click)="showPwd = !showPwd" [attr.aria-pressed]="showPwd"
+            tabindex="-1">
+      <mat-icon>{{showPwd ? 'visibility' : 'visibility_off'}}</mat-icon>
+    </button>
     <mat-error *ngIf="form.controls.password.hasError('required') && form.controls.password.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
   </mat-form-field>
 

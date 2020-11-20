@@ -13,7 +13,7 @@ import {sleep, toDateISOString} from "../../shared/functions";
 import {BaseEntityService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
-import {GraphqlService} from "./graphql.service";
+import {GraphqlService} from "../graphql/graphql.service";
 import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {NetworkService} from "./network.service";
@@ -184,9 +184,9 @@ export class AccountService extends BaseEntityService {
   private _started = false;
   private _$additionalFields = new BehaviorSubject<FormFieldDefinition[]>([]);
 
-  public onLogin = new Subject<Account>();
-  public onLogout = new Subject<any>();
-  public onAuthTokenChange = new Subject<string | undefined>();
+  onLogin = new Subject<Account>();
+  onLogout = new Subject<any>();
+  onAuthTokenChange = new Subject<string | undefined>();
 
   get account(): Account {
     return this.data.loaded ? this.data.account : undefined;
@@ -293,20 +293,20 @@ export class AccountService extends BaseEntityService {
     return this.start();
   }
 
-  public ready(): Promise<void> {
+  ready(): Promise<void> {
     if (this._started) return Promise.resolve();
     return this.start();
   }
 
-  public isLogin(): boolean {
+  isLogin(): boolean {
     return !!(this.data.pubkey && this.data.loaded);
   }
 
-  public isAuth(): boolean {
+  isAuth(): boolean {
     return !!(this.data.pubkey && this.data.keypair && this.data.keypair.secretKey);
   }
 
-  public hasMinProfile(label: UserProfileLabel): boolean {
+  hasMinProfile(label: UserProfileLabel): boolean {
     // should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
       (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY)) {
@@ -315,7 +315,7 @@ export class AccountService extends BaseEntityService {
     return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, label);
   }
 
-  public hasExactProfile(label: UserProfileLabel): boolean {
+  hasExactProfile(label: UserProfileLabel): boolean {
     // should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
       (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
@@ -323,21 +323,21 @@ export class AccountService extends BaseEntityService {
     return !!this.data.account.profiles.find(profile => profile === label);
   }
 
-  public hasProfileAndIsEnable(label: UserProfileLabel): boolean {
+  hasProfileAndIsEnable(label: UserProfileLabel): boolean {
     // should be login, and status ENABLE
     if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId != StatusIds.ENABLE) return false;
     return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, label);
   }
 
-  public isAdmin(): boolean {
+  isAdmin(): boolean {
     return this.hasProfileAndIsEnable('ADMIN');
   }
 
-  public isSupervisor(): boolean {
+  isSupervisor(): boolean {
     return this.hasProfileAndIsEnable('SUPERVISOR');
   }
 
-  public isUser(): boolean {
+  isUser(): boolean {
     return this.hasProfileAndIsEnable('USER');
   }
 
@@ -345,11 +345,11 @@ export class AccountService extends BaseEntityService {
    * @deprecated
    * @param mode
    */
-  public isUsageMode(mode: UsageMode): boolean {
+  isUsageMode(mode: UsageMode): boolean {
     return this.settings.isUsageMode(mode);
   }
 
-  public isOnlyGuest(): boolean {
+  isOnlyGuest(): boolean {
     // Should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
       (this.data.account.statusId !== StatusIds.ENABLE && this.data.account.statusId !== StatusIds.TEMPORARY))
@@ -358,7 +358,7 @@ export class AccountService extends BaseEntityService {
     return !PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, 'USER');
   }
 
-  public canUserWriteDataForDepartment(recorderDepartment: Referential | any): boolean {
+  canUserWriteDataForDepartment(recorderDepartment: Referential | any): boolean {
     if (ReferentialUtils.isEmpty(recorderDepartment)) {
       if (!this.isAdmin())
         console.warn("Unable to check if user has right: invalid recorderDepartment", recorderDepartment);
@@ -380,7 +380,7 @@ export class AccountService extends BaseEntityService {
     return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, 'SUPERVISOR');
   }
 
-  public async register(data: RegisterData): Promise<Account> {
+  async register(data: RegisterData): Promise<Account> {
     if (this.isLogin()) {
       throw new Error("User already login. Please logout before register.");
     }
@@ -733,9 +733,6 @@ export class AccountService extends BaseEntityService {
         pubkey && this.storage.remove(ACCOUNT_STORAGE_KEY + '#' + pubkey) || Promise.resolve(),
         this.storage.remove(SECKEY_STORAGE_KEY)
       ]);
-
-      // Clean page history, in local settings
-      await this.settings.clearPageHistory();
     }
 
     // Offline features enable: need to keep some data
@@ -750,6 +747,9 @@ export class AccountService extends BaseEntityService {
         this.storage.remove(SECKEY_STORAGE_KEY)
       ]);
     }
+
+    // Clean page history, in local settings
+    await this.settings.clearPageHistory();
 
     // Notify observers
     this.onLogout.next();

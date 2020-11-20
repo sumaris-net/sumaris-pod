@@ -18,7 +18,7 @@ import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
 import {TripService, TripServiceSaveOption} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {isEmptyArray} from "../../shared/functions";

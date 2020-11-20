@@ -43,7 +43,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
   @Input() tripId: number;
 
-  @Input() showMap: boolean; // false by default
+  @Input() showMap: boolean;
 
   @Input() program: string;
 
@@ -164,7 +164,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
 
 
-  async openMapModal(event: UIEvent) {
+  async openMapModal(event?: UIEvent) {
+
     const operations = (await this.dataSource.getRows())
       .map(row => row.currentData);
 

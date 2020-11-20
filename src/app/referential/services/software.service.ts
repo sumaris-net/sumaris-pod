@@ -6,7 +6,7 @@ import {ErrorCodes} from "./errors";
 import {isNotNil} from "../../shared/functions";
 import {EntityService, EntityServiceLoadOptions} from "../../shared/shared.module";
 import {Software} from "../../core/services/model/config.model";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 
 /* ------------------------------------

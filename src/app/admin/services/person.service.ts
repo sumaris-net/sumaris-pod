@@ -5,12 +5,12 @@ import {EntitiesService, LoadResult, SuggestService} from "../../shared/shared.m
 import {BaseEntityService, MutableWatchQueryOptions} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {fetchAllPagesWithProgress} from "../../shared/services/entity-service.class";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {environment} from "../../../environments/environment";
 import {Beans, KeysEnum, toNumber} from "../../shared/functions";
 import {Person} from "../../core/services/model/person.model";
@@ -340,7 +340,7 @@ export class PersonService extends BaseEntityService<Person, PersonFilter>
         maxProgression
       )
         // Save result locally
-        .then(res => this.entities.saveAll(res.data, {entityName: 'PersonVO'}))
+        .then(res => this.entities.saveAll(res.data, {entityName: 'PersonVO', reset: true}))
         .then(res => {
           console.info(`[person-service] Successfully import persons in ${Date.now() - now}ms`);
           progression.complete();

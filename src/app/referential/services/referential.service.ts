@@ -8,7 +8,7 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 
 import {FetchPolicy, MutationUpdaterFn} from "apollo-client";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";
 import {Beans, KeysEnum, toNumber} from "../../shared/functions";

@@ -9,13 +9,14 @@ import {AppMeasurementsTableOptions} from "../../measurement/measurements.table.
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {AppFormUtils, EntityUtils, isNil} from "../../../core/core.module";
 import {Animation, ModalController} from "@ionic/angular";
-import {isNotNilOrBlank, toBoolean} from "../../../shared/functions";
+import {isEmptyArray, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
 import {AudioProvider} from "../../../shared/audio/audio";
 import {Alerts} from "../../../shared/alerts";
 import {Subject} from "rxjs";
 import {createAnimation} from "@ionic/core";
 import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -45,7 +46,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   private _initialMaxRankOrder: number;
   private _previousMaxRankOrder: number;
-  private _selectedParent: BatchGroup;
   private _hiddenData: SubBatch[];
   private _rowAnimation: Animation;
   private isOnFieldMode: boolean;
@@ -59,6 +59,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   @Input()
   showParentGroup: boolean;
+
+  @Input()
+  parentGroup: BatchGroup;
 
   @Input() set disabled(value: boolean) {
     if (value) {
@@ -85,9 +88,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return this.form && this.form.invalid;
   }
 
-  set selectedParent(parent: BatchGroup) {
-    this._selectedParent = parent;
-  }
 
   constructor(
     protected injector: Injector,
@@ -135,9 +135,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     if (this.form) {
       // Reset the form, using default value
       let defaultBatch: SubBatch;
-      if (this._selectedParent) {
+      if (this.parentGroup) {
         defaultBatch = new SubBatch();
-        defaultBatch.parentGroup = this._selectedParent;
+        defaultBatch.parentGroup = this.parentGroup;
       }
       await this.resetForm(defaultBatch);
 
@@ -169,6 +169,17 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
         color: 'var(--ion-color-accent-contrast)',
         background: 'var(--ion-color-accent)'
       });
+  }
+
+  protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+    pmfms = super.mapPmfms(pmfms);
+
+    const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
+    if (isNil(parentTaxonGroupId)) return pmfms;
+
+    // Filter using parent's taxon group
+    return pmfms.filter(pmfm => isEmptyArray(pmfm.taxonGroupIds) ||
+      pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }
 
   async cancel(event?: UIEvent) {
@@ -253,8 +264,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   protected async computeTitle() {
 
     let titlePrefix;
-    if (!this.showParentGroup && this._selectedParent) {
-      const label = BatchUtils.parentToString(this._selectedParent);
+    if (!this.showParentGroup && this.parentGroup) {
+      const label = BatchUtils.parentToString(this.parentGroup);
       titlePrefix = await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', {label}).toPromise();
     }
     else {
@@ -265,10 +276,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   protected async onParentChange(parent?: BatchGroup) {
     // Skip if same parent
-    if (Batch.equals(this._selectedParent, parent)) return;
+    if (Batch.equals(this.parentGroup, parent)) return;
 
     // Store the new parent, in order apply filter in onLoadData()
-    this._selectedParent = isNotNilOrBlank(parent) ? parent : undefined;
+    this.parentGroup = isNotNilOrBlank(parent) ? parent : undefined;
 
     // If pending changes, save new rows
     if (this._dirty) {
@@ -282,12 +293,15 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     // Call refresh on datasource, to force a data reload (will apply filter calling onLoadData())
     this.onRefresh.emit();
+
+    // TODO BLA: refresh PMFM
+
   }
 
   protected onLoadData(data: SubBatch[]): SubBatch[] {
 
     // Filter by parent group
-    if (data && this._selectedParent) {
+    if (data && this.parentGroup) {
       const showIndividualCount = this.showIndividualCount; // Read once the getter value
 
       const hiddenData = [];
@@ -297,7 +311,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
         // Filter on individual count = 1 when individual count is hide
         // AND same parent
         if ( (showIndividualCount || b.individualCount === 1)
-          && Batch.equals(this._selectedParent, b.parentGroup)) {
+          && Batch.equals(this.parentGroup, b.parentGroup)) {
           return res.concat(b);
         }
         hiddenData.push(b);
@@ -358,7 +372,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   /**
    * When a row has been edited, play a beep and highlight the row (during few seconds)
    * @param row
-   * @pram times duration of hightligh
+   * @pram times duration of highlight
    */
   protected onRowChanged(row: TableElement<SubBatch>) {
 
@@ -382,7 +396,5 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       this.markForCheck();
     }, 1500);
   }
-
-  measurementValueToString = MeasurementValuesUtils.valueToString;
 
 }

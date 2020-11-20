@@ -35,7 +35,7 @@ import {WatchQueryFetchPolicy} from "apollo-client";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {FormErrors} from "../../core/form/form.utils";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {Trip} from "./model/trip.model";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {Moment} from "moment";

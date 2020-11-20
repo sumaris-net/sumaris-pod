@@ -5,7 +5,6 @@ export class Environment {
   version: string;
   production: boolean;
   baseUrl: string;
-  apolloFetchPolicy?:  FetchPolicy;
   mock?: boolean;
   listenRemoteChanges?: boolean;
 
@@ -15,11 +14,17 @@ export class Environment {
   // A list of peers, to select as peer, in settings
   defaultPeers?: { host: string; port: number; useSsl?: boolean; path?: string; }[];
 
+  // Min compatible version for the peer
+  peerMinVersion?: string;
+
   // Enable cache persistence ?
   persistCache?: boolean;
 
-  // Force offline mode ? For DEV only
+  // Force offline mode ? /!\ For DEV only
   offline?: boolean;
+
+  // Apollo (graphQL) config
+  apolloFetchPolicy?:  FetchPolicy;
 
   // Default values
   defaultLocale: string;

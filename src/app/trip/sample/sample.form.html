@@ -59,7 +59,7 @@
       <ion-col *ngFor="let pmfm of $pmfms | async; index as i;"
                size="12"
                class="ion-no-padding pmfm-{{pmfm.pmfmId}}"
-               [class.computed]="pmfm.isComputed">
+               [class.computed]="pmfm|isComputedPmfm">
 
         <!-- qualitative value (force 'button' style, on mobile)-->
         <ng-container *ngIf="pmfm.isQualitative; else otherField">
@@ -76,12 +76,12 @@
         <!-- NOT qualitative value -->
         <ng-template #otherField>
           <app-pmfm-field #matInput
-                                      [pmfm]="pmfm"
-                                      [hidden]="pmfm.hidden"
-                                      [floatLabel]="pmfm.isComputed ? 'always' : 'auto'"
-                                      [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
-                                      [compact]="compact"
-                                      [tabindex]="tabindex+2 + i*2">
+                          [pmfm]="pmfm"
+                          [hidden]="pmfm.hidden"
+                          [floatLabel]="(pmfm|isComputedPmfm) ? 'always' : 'auto'"
+                          [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
+                          [compact]="compact"
+                          [tabindex]="tabindex+2 + i*2">
           </app-pmfm-field>
         </ng-template>
 

@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Injector,
+  OnDestroy,
+  OnInit,
+  Optional
+} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {
   AppTable,
@@ -38,6 +46,9 @@ import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
+import {HttpUtils} from "../../shared/http/http.utils";
+import {HTTP} from "@ionic-native/http/ngx";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -54,6 +65,7 @@ export const TripsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
+
 
   canEdit: boolean;
   canDelete: boolean;
@@ -84,7 +96,6 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected location: Location,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
-    protected accountService: AccountService,
     protected service: TripService,
     protected userEventService: UserEventService,
     protected personService: PersonService,
@@ -93,7 +104,9 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected http: HttpClient,
+    public accountService: AccountService
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
@@ -331,6 +344,35 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.importing = false;
       this.markForCheck();
     }
+  }
+
+  async importFromFile(uri?: string) {
+    uri = uri || 'http://server.e-is.pro/downloads/trip_833.json'
+
+    // Download the JSON file
+    let json: any;
+    try {
+      console.info(`Downloading file: ${uri}...`);
+      json = await this.http.get(uri).toPromise();
+    } catch (err) {
+      console.error(`[select-peer] Error on get request ${uri}: ${err && err.statusText}`);
+    }
+    if (!json || typeof json !== 'object') return; // Skip
+
+    console.info(`Importing Trip#${json.id}...`);
+    const trip = Trip.fromObject(json);
+    await this.service.restoreFromTrash([trip]);
+
+    console.info(`Successfully restored 1 trip...`);
+
+    // Success toast
+    setTimeout(() => {
+      this.showToast({
+        type: "info",
+        message: 'TRIP.TRASH.INFO.ONE_TRIP_RESTORED' });
+    }, 200);
+
+
   }
 
   async setSynchronizationStatus(value: SynchronizationStatus) {

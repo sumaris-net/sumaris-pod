@@ -99,6 +99,9 @@
             <mat-error *ngIf="form.controls.peerUrl.hasError('peerAlive')"
                        translate>SETTINGS.ERROR.PEER_NOT_REACHABLE
             </mat-error>
+            <mat-error *ngIf="form.controls.peerUrl.hasError('peerNotCompatible')"
+                       translate>SETTINGS.ERROR.PEER_NOT_COMPATIBLE
+            </mat-error>
           </mat-form-field>
 
           <!-- Offline mode (if mobile) -->

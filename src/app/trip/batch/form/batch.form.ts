@@ -437,7 +437,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.$allPmfms.next(pmfms);
 
     // Exclude hidden and weight PMFMs
-    return pmfms.filter(p => !PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label) && !p.hidden);
+    return pmfms.filter(p => !p.isWeight && !p.hidden);
   }
 
   protected async onUpdateControls(form?: FormGroup): Promise<void> {

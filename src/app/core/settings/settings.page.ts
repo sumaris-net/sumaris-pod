@@ -183,10 +183,10 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     // Remove all empty controls
     this.propertiesFormHelper.removeAllEmpty();
 
-    if (this.form.invalid) {
+    /*if (this.form.invalid) {
       AppFormUtils.logFormErrors(this.form);
       return;
-    }
+    }*/
 
     console.debug("[settings] Saving local settings...");
 
@@ -302,7 +302,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     const json = await this.getJsonValueToSave();
 
     // Override properties from account
-    if (json.accountInheritance && this.accountService.isLogin()) {
+    if (json.accountInheritance && this.isLogin) {
       const account = this.accountService.account;
       const userSettings = account && account.settings;
       console.debug(`[settings] Applying account inheritance {locale: '${userSettings.locale}', latLongFormat: '${userSettings.latLongFormat}'}...`);
