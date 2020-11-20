@@ -761,7 +761,6 @@ export class GraphqlService {
   }
 
   private toApolloError<T>(err: any, defaultError?: any): ApolloQueryResult<T> {
-    console.log("TODO toApolloError", err);
     let error =
       // If network error: try to convert to App (read as JSON), or create an UNKNOWN_NETWORK_ERROR
       (err.networkError &&

@@ -521,21 +521,23 @@
 </ion-content>
 
 <ng-template #animationButtons>
-  <ng-container *ngIf="$years|async as years">
+  <ng-container *ngIf="$years|async | isArrayLength: {greaterThan: 1} as years">
     <!-- play button -->
     <button mat-icon-button
-            *ngIf="!animation && years.length > 1"
+            *ngIf="!animation; else pauseButton"
             (click)="toggleAnimation($event)"
             [title]="'EXTRACTION.MAP.BTN_ANIMATION_PLAY'|translate">
       <mat-icon>play_arrow</mat-icon>
     </button>
 
-    <!-- pause button -->
-    <button mat-icon-button
-            *ngIf="animation"
-            (click)="toggleAnimation($event)"
-            [title]="'EXTRACTION.MAP.BTN_ANIMATION_PAUSE'|translate">
-      <mat-icon>pause</mat-icon>
-    </button>
+    <ng-template #pauseButton>
+      <!-- pause button -->
+      <button mat-icon-button
+              (click)="toggleAnimation($event)"
+              [title]="'EXTRACTION.MAP.BTN_ANIMATION_PAUSE'|translate">
+        <mat-icon>pause</mat-icon>
+      </button>
+    </ng-template>
+
   </ng-container>
 </ng-template>
