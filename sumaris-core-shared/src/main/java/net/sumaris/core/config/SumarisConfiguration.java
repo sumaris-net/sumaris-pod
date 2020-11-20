@@ -39,6 +39,7 @@ import org.nuiton.i18n.I18n;
 import org.nuiton.i18n.init.DefaultI18nInitializer;
 import org.nuiton.i18n.init.UserI18nInitializer;
 import org.nuiton.version.Version;
+import org.nuiton.version.VersionBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -678,7 +679,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      * @return a {@link Version} object.
      */
     public Version getVersion() {
-        return applicationConfig.getOptionAsVersion(SumarisConfigurationOption.VERSION.getKey());
+        return VersionBuilder.create(applicationConfig.getOptionAsVersion(SumarisConfigurationOption.VERSION.getKey())).build();
     }
 
     /**

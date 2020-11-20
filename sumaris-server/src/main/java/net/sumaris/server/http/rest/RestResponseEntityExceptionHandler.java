@@ -28,6 +28,7 @@ import com.google.common.base.Joiner;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.DenyDeletionException;
+import net.sumaris.server.exception.BadAppVersionException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.ErrorHelper;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
@@ -59,7 +60,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
      * Transform an exception on bad update_dt, into a HTTP error 500 + a body response with the exact error code.
      */
     @ExceptionHandler(value = {InvalidEmailConfirmationException.class })
-    protected ResponseEntity<Object> handleAnyException(RuntimeException ex, WebRequest request) {
+    protected ResponseEntity<Object> handleInvalidEmailException(RuntimeException ex, WebRequest request) {
         String message = ErrorHelper.toJsonErrorString(ErrorCodes.INVALID_EMAIL_CONFIRMATION, ex.getMessage());
         if (log.isDebugEnabled()) {
             log.debug(message);
@@ -94,10 +95,22 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     }
 
     /**
+     * Transform an exception on bad update_dt, into a HTTP error 500 + a body response with the exact error code.
+     */
+    @ExceptionHandler(value = {BadAppVersionException.class })
+    protected ResponseEntity<Object> handleBadAppVersionException(RuntimeException ex, WebRequest request) {
+        String message = ErrorHelper.toJsonErrorString(ErrorCodes.BAD_APP_VERSION, ex.getMessage());
+        if (log.isDebugEnabled()) {
+            log.debug(message);
+        }
+        return handleExceptionInternal(ex, message, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+    }
+
+    /**
      * Transform an exception on delete data, into a HTTP error 500 + a body response with the exact error code.
      */
     @ExceptionHandler(value = {DenyDeletionException.class })
-    protected ResponseEntity<Object> handleDeleteForbidden(RuntimeException ex, WebRequest request) {
+    protected ResponseEntity<Object> handleDenyDeletionException(RuntimeException ex, WebRequest request) {
         String message = ErrorHelper.toJsonErrorString(ErrorCodes.DENY_DELETION, ex.getMessage());
         if (log.isDebugEnabled()) {
             log.debug(message);

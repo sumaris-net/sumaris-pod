@@ -24,6 +24,7 @@ package net.sumaris.server.config;
 
 import net.sumaris.core.util.Beans;
 import org.nuiton.config.ConfigOptionDef;
+import org.nuiton.version.Version;
 
 import java.io.File;
 
@@ -136,6 +137,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             false),
 
     AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS(ExtractionWebConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS),
+
+    APP_MIN_VERSION(
+            "sumaris.app.version.min",
+            n("sumaris.config.option.sumaris.app.version.min.description"),
+            "1.4.6",
+            Version.class,
+            false),
 
     DOWNLOAD_DIRECTORY(
             "sumaris.download.directory",

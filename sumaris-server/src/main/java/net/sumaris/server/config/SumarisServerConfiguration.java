@@ -26,22 +26,14 @@ package net.sumaris.server.config;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.util.I18nUtil;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.nuiton.config.ApplicationConfig;
+import org.nuiton.version.VersionBuilder;
+import org.nuiton.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.nuiton.config.ApplicationConfig;
-import org.nuiton.i18n.I18n;
-import org.nuiton.i18n.init.DefaultI18nInitializer;
-import org.nuiton.i18n.init.UserI18nInitializer;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.io.File;
-import java.io.IOException;
-import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -267,6 +259,26 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public boolean enableActiveMQ() {
         return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.ACTIVEMQ_ENABLED.getKey());
+    }
+
+    /**
+     * <p>getAppMinVersion.</p>
+     *
+     * @return a {@link String} object.
+     */
+    public Version getAppMinVersion() {
+        String versionStr = applicationConfig.getOption(SumarisServerConfigurationOption.APP_MIN_VERSION.getKey());
+        if (StringUtils.isBlank(versionStr)) return null;
+
+        try {
+            return VersionBuilder.create(versionStr).build();
+        }
+        catch(Exception e) {
+            logger.error(String.format("Unable to parse value '%s' for config option '%s': %s",
+                    versionStr, SumarisServerConfigurationOption.APP_MIN_VERSION.getKey(), e.getMessage()));
+            return null;
+        }
+
     }
 
     /* -- Internal methods -- */
