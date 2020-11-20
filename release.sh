@@ -42,7 +42,7 @@ echo "Prepare release [OK]"
 echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
-mvn clean deploy -DperformRelease -DskipTests -Denv=hsqldb
+mvn clean deploy -DperformRelease -DskipTests -Dspring.datasource.platform=hsqldb
 [[ $? -ne 0 ]] && exit 1
 
 echo "**********************************"

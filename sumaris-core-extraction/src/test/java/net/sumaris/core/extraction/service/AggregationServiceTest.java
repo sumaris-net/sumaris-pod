@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.service;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.extraction.DatabaseResource;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
+import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
@@ -35,6 +36,7 @@ import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,15 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
     @Autowired
     private AggregationService service;
+
+    private String yearRawData;
+    private String yearRdbProduct;
+
+    @Before
+    public void setUp() throws Exception {
+        yearRawData = String.valueOf(fixtures.getYearRawData());
+        yearRdbProduct = String.valueOf(fixtures.getYearRdbProduct());
+    }
 
     @Test
     public void aggregateLiveRdb() throws IOException {
@@ -88,7 +99,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
         AggregationTypeVO type = new AggregationTypeVO();
         type.setCategory(ExtractionCategoryEnum.PRODUCT);
-        type.setLabel("p01_rdb");
+        type.setLabel(fixtures.getRdbProductLabel(0));
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
@@ -145,11 +156,11 @@ public class AggregationServiceTest extends AbstractServiceTest {
         filter.setSheetName(AggRdbSpecification.SL_SHEET_NAME);
 
         ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO() ;
+        filter.setCriteria(ImmutableList.of(criterion));
         criterion.setSheetName(AggRdbSpecification.HH_SHEET_NAME);
         criterion.setName(AggRdbSpecification.COLUMN_YEAR);
-        criterion.setOperator(ExtractionFilterOperatorEnum.EQUALS.getSymbol());
-        criterion.setValue("2018");
-        filter.setCriteria(ImmutableList.of(criterion));
+        criterion.setOperator("=");
+        criterion.setValue(yearRawData);
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSheetName(AggRdbSpecification.SL_SHEET_NAME);
@@ -176,6 +187,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
     @Test
     public void saveThenRead() {
         AggregationTypeVO type = createAggType(ExtractionCategoryEnum.LIVE, LiveFormatEnum.SURVIVAL_TEST);
+        type.setLabel(ExtractionProducts.getProductLabel(LiveFormatEnum.SURVIVAL_TEST, System.currentTimeMillis()));
 
         // Save
         AggregationTypeVO savedType = service.save(type, null);
@@ -186,11 +198,11 @@ public class AggregationServiceTest extends AbstractServiceTest {
         filter.setSheetName(AggRdbSpecification.HH_SHEET_NAME);
 
         ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO() ;
+        filter.setCriteria(ImmutableList.of(criterion));
         criterion.setSheetName(AggRdbSpecification.HH_SHEET_NAME);
         criterion.setName(AggRdbSpecification.COLUMN_YEAR);
         criterion.setOperator("=");
-        criterion.setValue("2018");
-        filter.setCriteria(ImmutableList.of(criterion));
+        criterion.setValue(yearRawData);
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpatialColumnName("area");
@@ -221,7 +233,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         criterion.setSheetName(RdbSpecification.HH_SHEET_NAME);
         criterion.setName(RdbSpecification.COLUMN_YEAR);
         criterion.setOperator("=");
-        criterion.setValue("2018");
+        criterion.setValue(yearRdbProduct);
         filter.setCriteria(ImmutableList.of(criterion));
 
 
@@ -236,7 +248,12 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
         AggregationTypeVO type = new AggregationTypeVO();
         type.setCategory(category);
-        type.setLabel(format.getLabel());
+        if (category == ExtractionCategoryEnum.PRODUCT) {
+            type.setLabel(ExtractionProducts.getProductLabel(format, System.currentTimeMillis()));
+        }
+        else {
+            type.setLabel(format.getLabel());
+        }
         type.setName(String.format("Aggregation on %s (%s) data", format.getLabel(), category.name()));
         type.setStatusId(StatusEnum.TEMPORARY.getId());
 
