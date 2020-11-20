@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -179,6 +180,14 @@ public class PmfmRepositoryImpl
         }
 
         target.setQualitativeValues(entities);
+    }
+
+    @Override
+    protected Specification<Pmfm> toSpecification(ReferentialFilterVO filter) {
+
+        return super.toSpecification(filter)
+                .and(inLevelIds(Pmfm.Fields.PARAMETER, filter))
+                .and(inLevelLabels(Pmfm.Fields.PARAMETER, filter));
     }
 
     @Override
