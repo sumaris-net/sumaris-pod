@@ -21,7 +21,6 @@ export const environment: Environment = Object.freeze({
   // FIXME: enable cache
   persistCache: false,
 
-
   // Leave null,
   defaultPeer: null,
 
@@ -33,10 +32,6 @@ export const environment: Environment = Object.freeze({
     },
     {
       host: 'adap.pecheursdebretagne.eu',
-      port: 443
-    },
-    {
-      host: 'server.e-is.pro',
       port: 443
     },
     {
