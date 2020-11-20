@@ -23,14 +23,19 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Create aggregation tables, from a data extraction.
@@ -41,10 +46,14 @@ import java.util.List;
 public interface AggregationService {
 
     @Transactional(readOnly = true)
+    AggregationTypeVO getByFormat(IExtractionFormat format);
+
+    @Transactional(readOnly = true)
     List<AggregationTypeVO> findByFilter(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     AggregationTypeVO get(int id, ExtractionProductFetchOptions fetchOptions);
+
 
     /**
      * Do an aggregate
@@ -53,7 +62,8 @@ public interface AggregationService {
      */
     @Transactional
     AggregationContextVO execute(AggregationTypeVO type,
-                                 @Nullable ExtractionFilterVO filter);
+                                 @Nullable ExtractionFilterVO filter,
+                                 @Nullable AggregationStrataVO strata);
 
     @Transactional(readOnly = true)
     AggregationResultVO read(AggregationTypeVO type,
@@ -67,8 +77,16 @@ public interface AggregationService {
                              @Nullable AggregationStrataVO strata,
                              int offset, int size, String sort, SortDirection direction);
 
-    @Transactional(readOnly = true)
-    List<ExtractionProductColumnVO> getColumnsBySheetName(AggregationTypeVO type, String sheetName);
+    Map<String, Object> readTech(AggregationTypeVO format,
+                                 ExtractionFilterVO filter,
+                                 AggregationStrataVO strata,
+                                 String sort,
+                                 SortDirection direction);
+
+    @Transactional(rollbackFor = IOException.class)
+    File executeAndDump(AggregationTypeVO type,
+                        @Nullable ExtractionFilterVO filter,
+                        @Nullable AggregationStrataVO strata);
 
     @Transactional
     AggregationResultVO executeAndRead(AggregationTypeVO type,
@@ -81,6 +99,9 @@ public interface AggregationService {
     @Transactional
     AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
 
-    @Transactional
-    void delete(int id);
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
+    void clean(AggregationContextVO context);
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    void asyncClean(AggregationContextVO context);
 }

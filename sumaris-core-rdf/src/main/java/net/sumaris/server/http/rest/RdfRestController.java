@@ -226,6 +226,7 @@ public class RdfRestController {
                     MediaType.APPLICATION_XML_VALUE,
                     RdfMediaType.APPLICATION_RDF_XML_VALUE,
                     MediaType.APPLICATION_JSON_VALUE,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE,
                     RdfMediaType.APPLICATION_RDF_JSON_VALUE,
                     RdfMediaType.APPLICATION_JSON_LD_VALUE,
                     RdfMediaType.APPLICATION_N_TRIPLES_VALUE,

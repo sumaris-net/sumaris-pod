@@ -29,6 +29,7 @@ import net.sumaris.core.dao.data.sale.SaleRepository;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SaleMeasurement;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.data.SaleVO;
@@ -57,13 +58,18 @@ public class SaleServiceImpl implements SaleService {
 	protected ProductService productService;
 
 	@Override
-	public List<SaleVO> getAllByTripId(int tripId) {
-		return saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build());
+	public List<SaleVO> getAllByTripId(int tripId, DataFetchOptions fetchOptions) {
+		return saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build(), fetchOptions);
 	}
 
 	@Override
 	public SaleVO get(int saleId) {
-		return saleRepository.get(saleId);
+		return get(saleId, null);
+	}
+
+	@Override
+	public SaleVO get(int saleId, DataFetchOptions fetchOptions) {
+		return saleRepository.get(saleId, fetchOptions);
 	}
 
 	@Override

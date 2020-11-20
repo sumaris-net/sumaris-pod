@@ -23,63 +23,83 @@ package net.sumaris.core.test;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.util.I18nUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import javax.annotation.Resource;
 import javax.sql.DataSource;
 
 /**
  * @author peck7 on 17/12/2018.
  *
  */
-@org.springframework.boot.test.context.TestConfiguration
+@org.springframework.boot.test.context.TestConfiguration()
 public abstract class TestConfiguration {
 
     /** Logger. */
     private static final Logger log =
             LoggerFactory.getLogger(TestConfiguration.class);
 
-    protected static SumarisConfiguration initConfiguration(String configFileName) {
-        SumarisConfiguration config = SumarisConfiguration.getInstance();
-        if (config == null) {
-            log.info(String.format("Configuration file: %s", configFileName));
-            config = new SumarisConfiguration(configFileName);
-            SumarisConfiguration.setInstance(config);
-        }
+    public static SumarisConfiguration createConfiguration(@NonNull String configFileName,
+                                                           String... args) {
+        log.info(String.format("Configuration file: %s", configFileName));
+        SumarisConfiguration config = new SumarisConfiguration(configFileName, args);
+        SumarisConfiguration.setInstance(config);
         return config;
     }
 
     @Bean
-    public DataSource dataSource(SumarisConfiguration config) {
+    public SumarisConfiguration configuration() {
+        // If exists, use existing config (from DatabaseResource)
+        SumarisConfiguration config = SumarisConfiguration.getInstance();
+        if (config == null) {
+            return createConfiguration(getConfigFileName(), getConfigArgs());
+        }
 
-        Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcDriver()), "Missing jdbc driver in configuration");
-        Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcURL()), "Missing jdbc driver in configuration");
-        Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcUsername()), "Missing jdbc username in configuration");
+        I18nUtil.init(config, getI18nBundleName());
+
+        return config;
+    }
+
+
+    @Bean
+    public DataSource dataSource(SumarisConfiguration testConfiguration) {
+
+        Preconditions.checkArgument(StringUtils.isNotBlank(testConfiguration.getJdbcDriver()), "Missing jdbc driver in configuration");
+        Preconditions.checkArgument(StringUtils.isNotBlank(testConfiguration.getJdbcURL()), "Missing jdbc driver in configuration");
+        Preconditions.checkArgument(StringUtils.isNotBlank(testConfiguration.getJdbcUsername()), "Missing jdbc username in configuration");
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("Database URL: %s", config.getJdbcURL()));
-            log.debug(String.format("Database username: %s", config.getJdbcUsername()));
+            log.debug(String.format("Database URL: %s", testConfiguration.getJdbcURL()));
+            log.debug(String.format("Database username: %s", testConfiguration.getJdbcUsername()));
         }
 
         // Driver datasource
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(config.getJdbcDriver());
-        dataSource.setUrl(config.getJdbcURL());
-        dataSource.setUsername(config.getJdbcUsername());
-        dataSource.setPassword(config.getJdbcPassword());
+        dataSource.setDriverClassName(testConfiguration.getJdbcDriver());
+        dataSource.setUrl(testConfiguration.getJdbcURL());
+        dataSource.setUsername(testConfiguration.getJdbcUsername());
+        dataSource.setPassword(testConfiguration.getJdbcPassword());
 
-        if (StringUtils.isNotBlank(config.getJdbcSchema())) {
-            dataSource.setSchema(config.getJdbcSchema());
+        if (StringUtils.isNotBlank(testConfiguration.getJdbcSchema())) {
+            dataSource.setSchema(testConfiguration.getJdbcSchema());
         }
-        if (StringUtils.isNotBlank(config.getJdbcCatalog())) {
-            dataSource.setCatalog(config.getJdbcCatalog());
+        if (StringUtils.isNotBlank(testConfiguration.getJdbcCatalog())) {
+            dataSource.setCatalog(testConfiguration.getJdbcCatalog());
         }
         return dataSource;
     }
 
+    protected abstract String getConfigFileName();
+    protected abstract String getI18nBundleName();
+
+    protected String[] getConfigArgs() {
+        return null;
+    }
 }

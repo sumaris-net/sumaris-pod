@@ -29,6 +29,7 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.springframework.data.jpa.domain.Specification;
@@ -103,7 +104,7 @@ public interface MetierSpecifications
     }
 
     List<MetierVO> findByFilter(
-            ReferentialFilterVO filter,
+            IReferentialFilter filter,
             int offset,
             int size,
             String sortAttribute,

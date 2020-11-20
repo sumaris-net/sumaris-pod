@@ -27,10 +27,14 @@ import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
@@ -39,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class TripServiceWriteTest extends AbstractServiceTest{
 
@@ -53,6 +58,77 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
     @Autowired
     private PmfmService pmfmService;
+
+    @Test
+    public void getWithChildren() {
+
+        Integer id = 831; // fixtures.getTripId(0);
+        TripVO trip = service.get(id, DataFetchOptions.FULL_GRAPH);
+        Assert.assertNotNull(trip);
+
+        // PhysicalGear
+        {
+            Assert.assertTrue(CollectionUtils.isNotEmpty(trip.getGears()));
+
+            // Gear Measurement
+            Assert.assertTrue(trip.getGears()
+                    .stream()
+                    .map(PhysicalGearVO::getMeasurementValues)
+                    .anyMatch(MapUtils::isNotEmpty));
+
+        }
+
+
+        // Check operations
+        {
+            Assert.assertTrue(CollectionUtils.isNotEmpty(trip.getOperations()));
+
+
+           /* // Check samples
+            {
+                Assert.assertTrue(trip.getOperations()
+                        .stream().map(OperationVO::getSamples).anyMatch(CollectionUtils::isNotEmpty));
+
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getSamples)
+                        .flatMap(Beans::getStream)
+                        .map(SampleVO::getMeasurementValues)
+                        .anyMatch(MapUtils::isNotEmpty));
+
+                // Check batches parentId
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getSamples)
+                        .flatMap(Beans::getStream)
+                        .map(SampleVO::getParentId)
+                        .anyMatch(Objects::nonNull));
+            }*/
+
+            // Check batches
+            {
+                Assert.assertTrue(trip.getOperations()
+                        .stream().map(OperationVO::getBatches)
+                        .anyMatch(CollectionUtils::isNotEmpty));
+
+                // Check batches measurements
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getBatches)
+                        .flatMap(Beans::getStream)
+                        .map(BatchVO::getMeasurementValues)
+                        .anyMatch(MapUtils::isNotEmpty));
+
+                // Check batches parentId
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .map(OperationVO::getBatches)
+                        .flatMap(Beans::getStream)
+                        .map(BatchVO::getParentId)
+                        .anyMatch(Objects::nonNull));
+            }
+        }
+    }
 
     @Test
     public void save() {
@@ -93,7 +169,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(savedVO.getId());
 
         // Reload and check
-        List<OperationVO> savedOperations = operationService.findAllByTripId(savedVO.getId(), 0, 1000, null, null);
+        List<OperationVO> savedOperations = operationService.getAllByTripId(savedVO.getId(), 0, 1000, null, null);
         Assert.assertNotNull(savedOperations);
         Assert.assertEquals(1, savedOperations.size());
 
@@ -108,7 +184,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void delete() {
-        service.delete(dbResource.getFixtures().getTripId(0));
+        service.asyncDelete(fixtures.getTripId(0));
     }
 
     @Test
@@ -123,46 +199,46 @@ public class TripServiceWriteTest extends AbstractServiceTest{
             Assume.assumeNoException(e);
         }
 
-        service.delete(savedVO.getId());
+        service.asyncDelete(savedVO.getId());
     }
 
     /* -- Protected -- */
 
     protected TripVO createTrip() {
         TripVO vo = new TripVO();
-        vo.setProgram(dbResource.getFixtures().getDefaultProgram());
+        vo.setProgram(fixtures.getDefaultProgram());
         vo.setDepartureDateTime(new Date());
         vo.setReturnDateTime(new Date());
 
         VesselSnapshotVO vessel = new VesselSnapshotVO();
-        vessel.setId(dbResource.getFixtures().getVesselId(0));
+        vessel.setId(fixtures.getVesselId(0));
         vo.setVesselSnapshot(vessel);
 
         LocationVO departureLocation = new LocationVO();
-        departureLocation.setId(dbResource.getFixtures().getLocationPortId(0));
+        departureLocation.setId(fixtures.getLocationPortId(0));
         vo.setDepartureLocation(departureLocation);
 
         LocationVO returnLocation = new LocationVO();
-        returnLocation.setId(dbResource.getFixtures().getLocationPortId(0));
+        returnLocation.setId(fixtures.getLocationPortId(0));
         vo.setReturnLocation(returnLocation);
 
         vo.setCreationDate(new Date());
 
         DepartmentVO recorderDepartment = new DepartmentVO();
-        recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
         vo.setRecorderDepartment(recorderDepartment);
 
         // Observers
         PersonVO observer1 = new PersonVO();
-        observer1.setId(dbResource.getFixtures().getPersonId(0));
+        observer1.setId(fixtures.getPersonId(0));
         PersonVO observer2 = new PersonVO();
-        observer2.setId(dbResource.getFixtures().getPersonId(1));
+        observer2.setId(fixtures.getPersonId(1));
         vo.setObservers(ImmutableSet.of(observer1, observer2));
 
         // Physical gear
         PhysicalGearVO gear = new PhysicalGearVO();
         gear.setRankOrder(1);
-        gear.setGear(createReferentialVO(dbResource.getFixtures().getGearId(0)));
+        gear.setGear(createReferentialVO(fixtures.getGearId(0)));
         gear.setRecorderDepartment(recorderDepartment);
         vo.setGears(ImmutableList.of(gear));
 
@@ -170,7 +246,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
     }
 
     protected OperationVO createOperation(TripVO parent) {
-        return DataTestUtils.createOperation(dbResource.getFixtures(), pmfmService, parent);
+        return DataTestUtils.createOperation(fixtures, pmfmService, parent);
     }
 
 }

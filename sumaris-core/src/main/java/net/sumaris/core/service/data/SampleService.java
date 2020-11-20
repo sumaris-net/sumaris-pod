@@ -23,7 +23,8 @@ package net.sumaris.core.service.data;
  */
 
 
-import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.data.sample.SampleFetchOptions;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -38,6 +39,9 @@ public interface SampleService {
 
 	@Transactional(readOnly = true)
 	List<SampleVO> getAllByOperationId(int operationId);
+
+	@Transactional(readOnly = true)
+	List<SampleVO> getAllByOperationId(int operationId, SampleFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<SampleVO> getAllByLandingId(int landingId);

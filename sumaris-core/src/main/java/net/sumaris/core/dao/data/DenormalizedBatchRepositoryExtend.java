@@ -22,7 +22,7 @@
 
 package net.sumaris.core.dao.data;
 
-import net.sumaris.core.vo.data.BatchVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.DenormalizedBatchVO;
 
 import javax.annotation.Nonnull;

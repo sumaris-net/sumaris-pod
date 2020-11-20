@@ -173,8 +173,8 @@ public class SaleRepositoryImpl
     }
 
     @Override
-    protected Specification<Sale> toSpecification(SaleFilterVO filter) {
-        return super.toSpecification(filter)
+    protected Specification<Sale> toSpecification(SaleFilterVO filter, DataFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(hasTripId(filter.getTripId()));
     }
 

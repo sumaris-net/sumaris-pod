@@ -49,4 +49,5 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
         specification.addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
         return specification;
     }
+
 }

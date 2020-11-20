@@ -25,7 +25,8 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import net.sumaris.core.dao.data.BatchDao;
+import lombok.NonNull;
+import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.Batch;
@@ -34,8 +35,9 @@ import net.sumaris.core.model.data.BatchSortingMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.data.BatchFetchOptions;
-import net.sumaris.core.vo.data.BatchVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
+import net.sumaris.core.vo.data.batch.BatchFilterVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import org.slf4j.Logger;
@@ -55,7 +57,7 @@ public class BatchServiceImpl implements BatchService {
 	private static final Logger log = LoggerFactory.getLogger(BatchServiceImpl.class);
 
 	@Autowired
-	protected BatchDao batchDao;
+	protected BatchRepository batchRepository;
 
 	@Autowired
 	protected MeasurementDao measurementDao;
@@ -68,23 +70,25 @@ public class BatchServiceImpl implements BatchService {
 
 	@Override
 	public List<BatchVO> getAllByOperationId(int operationId) {
-		return batchDao.getAllByOperationId(operationId, BatchFetchOptions.builder().build());
+		return getAllByOperationId(operationId, BatchFetchOptions.DEFAULT);
 	}
 
 	@Override
-	public List<BatchVO> getAllByOperationId(int operationId, BatchFetchOptions fetchOptions) {
-		return batchDao.getAllByOperationId(operationId, fetchOptions);
+	public List<BatchVO> getAllByOperationId(int operationId, @NonNull BatchFetchOptions fetchOptions) {
+		return batchRepository.findAll(BatchFilterVO.builder()
+						.operationId(operationId).build(),
+				fetchOptions);
 	}
 
 	@Override
-	public BatchVO get(int saleId) {
-		return batchDao.get(saleId);
+	public BatchVO get(int id) {
+		return batchRepository.get(id);
 	}
 
 	@Override
 	public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
 
-		List<BatchVO> result = batchDao.saveByOperationId(operationId, sources);
+		List<BatchVO> result = batchRepository.saveByOperationId(operationId, sources);
 
 		// Save measurements
 		result.forEach(savedBatch -> {
@@ -148,7 +152,7 @@ public class BatchServiceImpl implements BatchService {
 		Preconditions.checkNotNull(batch.getRecorderDepartment(), "Missing batch.recorderDepartment");
 		Preconditions.checkNotNull(batch.getRecorderDepartment().getId(), "Missing batch.recorderDepartment.id");
 
-		return batchDao.save(batch);
+		return batchRepository.save(batch);
 	}
 
 	@Override
@@ -162,12 +166,11 @@ public class BatchServiceImpl implements BatchService {
 
 	@Override
 	public void delete(int id) {
-		batchDao.delete(id);
+		batchRepository.deleteById(id);
 	}
 
 	@Override
-	public void delete(List<Integer> ids) {
-		Preconditions.checkNotNull(ids);
+	public void delete(@NonNull List<Integer> ids) {
 		ids.stream()
 				.filter(Objects::nonNull)
 				.forEach(this::delete);
@@ -175,7 +178,7 @@ public class BatchServiceImpl implements BatchService {
 
 	@Override
 	public List<BatchVO> toFlatList(final BatchVO catchBatch) {
-		return batchDao.toFlatList(catchBatch);
+		return batchRepository.toFlatList(catchBatch);
 	}
 
 

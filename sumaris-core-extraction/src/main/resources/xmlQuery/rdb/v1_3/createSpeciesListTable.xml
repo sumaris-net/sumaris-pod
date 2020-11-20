@@ -26,32 +26,36 @@
 
     <!-- PK (inherited) -->
     <select alias="RECORD_TYPE" type="text">'SL'</select>
-    <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
-    <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
-    <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
-    <select alias="YEAR" type="number">S.YEAR</select>
-    <select alias="PROJECT" type="text">S.PROJECT</select>
-    <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
-    <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
-    <select alias="SPECIES" type="text">S.SPECIES</select>
-    <select alias="CATCH_CATEGORY" type="text">S.CATCH_CATEGORY</select>
-    <select alias="LANDING_CATEGORY" type="text">S.LANDING_CATEGORY</select>
-    <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">S.COMMERCIAL_SIZE_CATEGORY_SCALE</select>
-    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">S.COMMERCIAL_SIZE_CATEGORY</select>
-    <select alias="SUBSAMPLING_CATEGORY" type="text">S.SUBSAMPLING_CATEGORY</select>
-    <select alias="SEX" type="text">S.SEX</select><!-- always define in the HL table -->
+    <select alias="SAMPLING_TYPE" type="text">SL.SAMPLING_TYPE</select>
+    <select alias="LANDING_COUNTRY" type="text">SL.LANDING_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">SL.VESSEL_FLAG_COUNTRY</select>
+    <select alias="YEAR" type="number">SL.YEAR</select>
+    <select alias="PROJECT" type="text">SL.PROJECT</select>
+    <select alias="TRIP_CODE" type="number">SL.TRIP_CODE</select>
+    <select alias="STATION_NUMBER" type="number">SL.STATION_NUMBER</select>
+    <select alias="SPECIES" type="text">SL.SPECIES</select>
+    <select alias="CATCH_CATEGORY" type="text">SL.CATCH_CATEGORY</select>
+    <select alias="LANDING_CATEGORY" type="text">SL.LANDING_CATEGORY</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">SL.COMMERCIAL_SIZE_CATEGORY_SCALE</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">SL.COMMERCIAL_SIZE_CATEGORY</select>
+    <select alias="SUBSAMPLING_CATEGORY" type="text">SL.SUBSAMPLING_CATEGORY</select>
+    <select alias="SEX" type="text">SL.SEX</select><!-- always define in the HL table -->
 
     <!-- other fields -->
-    <select alias="WEIGHT" type="number">CAST(SUM(S.WEIGHT) * 1000 AS INTEGER)</select>
-    <select alias="SUBSAMPLE_WEIGHT" type="number">CAST(SUM(S.SUBSAMPLE_WEIGHT) * 1000 AS INTEGER)</select>
-    <select alias="LENGTH_CODE" type="text">S.LENGTH_CODE</select>
+    <select alias="WEIGHT" type="number">CAST(SUM(SL.WEIGHT) * 1000 AS INTEGER)</select>
+    <select alias="SUBSAMPLING_WEIGHT" type="number">CAST(SUM(SL.SUBSAMPLING_WEIGHT) * 1000 AS INTEGER)</select>
+    <select alias="LENGTH_CODE" type="text">SL.LENGTH_CODE</select>
 
-    <from alias="S">&amp;rawSpeciesListTableName</from>
+    <!-- need to link other tables -->
+    <select alias="SAMPLE_IDS" group="hsqldb" type="hidden">ARRAY_AGG(SL.SAMPLE_ID)</select>
+    <select alias="SAMPLE_IDS" group="oracle" type="hidden">LISTAGG(SL.SAMPLE_ID, ',')</select>
+
+    <from alias="SL">&amp;rawSpeciesListTableName</from>
 
     <where>1=1</where>
 
     <groupby>
-      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
+      SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
       CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY,
       SEX, LENGTH_CODE
     </groupby>

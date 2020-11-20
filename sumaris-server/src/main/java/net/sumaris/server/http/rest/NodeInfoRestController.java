@@ -24,10 +24,9 @@ package net.sumaris.server.http.rest;
 
 
 import net.sumaris.core.service.technical.ConfigurationService;
-import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.vo.node.NodeSummaryVO;
+import net.sumaris.server.util.node.NodeSummaryVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,8 +46,9 @@ public class NodeInfoRestController {
     private ConfigurationService configurationService;
 
     @ResponseBody
-    @RequestMapping(value = RestPaths.NODE_INFO_PATH, method = RequestMethod.GET,
+    @GetMapping(value = RestPaths.NODE_INFO_PATH,
             produces = {
+                MediaType.APPLICATION_JSON_VALUE,
                 MediaType.APPLICATION_JSON_UTF8_VALUE
         })
     public NodeSummaryVO getNodeSummary() {

@@ -68,7 +68,7 @@ is
 --$
 --$  param :
 --$    - p_list: List of value
---$    - p_del: the delemiter
+--$    - p_del: the delimiter
 --$    - p_nb_limit: maximum number of values to split, or -1 for 'no limit'
 --$
 --$  return : the rectangle label
@@ -80,10 +80,9 @@ is
 --$  16/05/19 BL Creation (used by extraction - e.g. ICES RDB and COST formats)
 --$
 --$ ********************************************************************
-    l_idx    pls_integer;
-    l_counter  pls_integer;
+    l_idx     pls_integer;
+    l_counter pls_integer;
     l_list    varchar2(32767) := p_list;
-    l_value    varchar2(32767);
 begin
     l_counter := 0;
     loop
@@ -322,4 +321,3 @@ BEGIN
     raise_application_error(-20001,'An error was encountered - '||SQLCODE||' -ERROR- '||SQLERRM);
 END;
 //
-

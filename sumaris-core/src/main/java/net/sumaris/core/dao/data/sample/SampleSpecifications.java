@@ -25,10 +25,14 @@ package net.sumaris.core.dao.data.sample;
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.Sample;
-import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
+import net.sumaris.core.vo.data.sample.SampleFetchOptions;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.List;
 
@@ -37,33 +41,38 @@ import java.util.List;
  */
 public interface SampleSpecifications extends RootDataSpecifications<Sample> {
 
-    String OPERATION_ID_PARAM = "operationId";
-    String LANDING_ID_PARAM = "landingId";
-
     default Specification<Sample> hasOperationId(Integer operationId) {
+        if (operationId == null) return null;
         BindableSpecification<Sample> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, OPERATION_ID_PARAM);
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, SampleVO.Fields.OPERATION_ID);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(Sample.Fields.OPERATION).get(IEntity.Fields.ID), param)
             );
         });
-        specification.addBind(OPERATION_ID_PARAM, operationId);
+        specification.addBind(SampleVO.Fields.OPERATION_ID, operationId);
         return specification;
     }
 
     default Specification<Sample> hasLandingId(Integer landingId) {
+        if (landingId == null) return null;
         BindableSpecification<Sample> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LANDING_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Sample.Fields.LANDING).get(IEntity.Fields.ID), param)
-            );
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, SampleVO.Fields.LANDING_ID);
+            return criteriaBuilder.equal(root.get(Sample.Fields.LANDING).get(IEntity.Fields.ID), param);
         });
-        specification.addBind(LANDING_ID_PARAM, landingId);
+        specification.addBind(SampleVO.Fields.LANDING_ID, landingId);
         return specification;
+    }
+
+    default Specification<Sample> addJoinFetch(SampleFetchOptions fetchOptions) {
+        if (fetchOptions == null || !fetchOptions.isWithMeasurementValues()) return null;
+
+        return Specification.where((root, query, criteriaBuilder) -> {
+            root.fetch(Sample.Fields.MEASUREMENTS, JoinType.LEFT);
+            return null;
+        });
     }
 
     List<SampleVO> saveByOperationId(int operationId, List<SampleVO> samples);

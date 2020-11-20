@@ -34,5 +34,6 @@ public interface ErrorCodes extends net.sumaris.core.exception.ErrorCodes {
     int INVALID_EMAIL_CONFIRMATION = 550;
     int INVALID_QUERY_VARIABLES = 551;
     int ACCOUNT_ALREADY_EXISTS = 552;
+    int BAD_APP_VERSION = 553;
 
 }

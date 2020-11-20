@@ -22,7 +22,7 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
-import net.sumaris.server.vo.security.AuthDataVO;
+import net.sumaris.server.util.security.AuthDataVO;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -51,16 +51,16 @@ public class AuthUser implements UserDetails {
 
     @Override
     public String getPassword() {
-        return authData.asToken();
+        return authData != null ? authData.asToken() : null;
     }
 
     @Override
     public String getUsername() {
-        return authData.getPubkey();
+        return authData != null ? authData.getPubkey() : null;
     }
 
     public String getPubkey() {
-        return authData.getPubkey();
+        return authData != null ? authData.getPubkey() : null;
     }
 
     @Override

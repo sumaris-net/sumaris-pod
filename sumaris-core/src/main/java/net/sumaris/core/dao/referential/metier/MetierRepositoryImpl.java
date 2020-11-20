@@ -35,8 +35,8 @@ import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MetierRepositoryImpl
-    extends ReferentialRepositoryImpl<Metier, MetierVO, ReferentialFilterVO, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>
     implements MetierSpecifications {
 
     private static final Logger log = LoggerFactory.getLogger(MetierRepositoryImpl.class);
@@ -70,11 +70,11 @@ public class MetierRepositoryImpl
 
     @Override
     public List<MetierVO> findByFilter(
-        ReferentialFilterVO filter,
-        int offset,
-        int size,
-        String sortAttribute,
-        SortDirection sortDirection) {
+            IReferentialFilter filter,
+            int offset,
+            int size,
+            String sortAttribute,
+            SortDirection sortDirection) {
 
         Preconditions.checkNotNull(filter);
 
@@ -137,9 +137,8 @@ public class MetierRepositoryImpl
     }
 
     @Override
-    protected Specification<Metier> toSpecification(ReferentialFilterVO filter) {
-
-        return super.toSpecification(filter)
+    protected Specification<Metier> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
                 .and(inLevelIds(Metier.Fields.GEAR, filter))
                 .and(alreadyPracticedMetier(filter));
     }
@@ -147,14 +146,14 @@ public class MetierRepositoryImpl
     /* -- protected method -- */
 
 
-    private Specification<Metier> alreadyPracticedMetier(ReferentialFilterVO filter) {
+    private Specification<Metier> alreadyPracticedMetier(IReferentialFilter filter) {
         if (!(filter instanceof MetierFilterVO)) return null;
         MetierFilterVO metierFilter = (MetierFilterVO) filter;
 
         return alreadyPracticedMetier(metierFilter.getVesselId());
     }
 
-    private TypedQuery<Metier> createQueryByFilter(ReferentialFilterVO filter, Pageable pageable) {
+    private TypedQuery<Metier> createQueryByFilter(IReferentialFilter filter, Pageable pageable) {
         Preconditions.checkNotNull(filter);
 
         TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, pageable);

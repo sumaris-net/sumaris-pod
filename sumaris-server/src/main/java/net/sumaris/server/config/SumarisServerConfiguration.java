@@ -26,21 +26,14 @@ package net.sumaris.server.config;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.nuiton.config.ApplicationConfig;
+import org.nuiton.version.VersionBuilder;
+import org.nuiton.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.nuiton.config.ApplicationConfig;
-import org.nuiton.i18n.I18n;
-import org.nuiton.i18n.init.DefaultI18nInitializer;
-import org.nuiton.i18n.init.UserI18nInitializer;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.io.File;
-import java.io.IOException;
-import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -48,13 +41,6 @@ import java.util.TimeZone;
  *
  */
 public class SumarisServerConfiguration extends SumarisConfiguration {
-
-    public static final String CONFIG_FILE_NAME = "application.properties";
-
-    private static final String CONFIG_FILE_ENV_PROPERTY = "spring.config.location";
-
-    private static final String CONFIG_FILE_JNDI_NAME = "java:comp/env/" + CONFIG_FILE_NAME;
-
 
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(SumarisServerConfiguration.class);
@@ -64,8 +50,8 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>initDefault.</p>
      */
-    public static void initDefault() {
-        instance = new SumarisServerConfiguration(getWebConfigFile(), args);
+    public static void initDefault(String configFileName) {
+        instance = new SumarisServerConfiguration(configFileName, args);
         setInstance(instance);
     }
 
@@ -75,9 +61,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      * @return a {@link SumarisServerConfiguration} object.
      */
     public static SumarisServerConfiguration getInstance() {
-        if (instance == null) {
-            initDefault();
-        }
         return instance;
     }
 
@@ -98,23 +81,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public SumarisServerConfiguration(String file, String... args) {
         super(file, args);
-
-        // Init i18n
-        try {
-            initI18n();
-        } catch (IOException e) {
-            throw new SumarisTechnicalException("i18n initialization failed", e);
-        }
-
-        // Init directories
-        try {
-            initDirectories();
-        } catch (IOException e) {
-            throw new SumarisTechnicalException("Directories initialization failed", e);
-        }
-
-        // Init active MQ
-        initActiveMQ();
     }
 
     /** {@inheritDoc} */
@@ -123,8 +89,12 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         super.overrideExternalModulesDefaultOptions(applicationConfig);
     }
 
-    public String getAuthNotSelfDataRole() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.AUTH_NOT_SELF_DATA_ROLE.getKey());
+    public String getAuthRoleForNotSelfData() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.AUTH_ROLE_NOT_SELF_DATA_ACCESS.getKey());
+    }
+
+    public String getAuthRoleForNotSelfExtraction() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS.getKey());
     }
 
     /**
@@ -177,6 +147,28 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public String getRegistrationConfirmUrlPattern() {
         return applicationConfig.getOption(SumarisServerConfigurationOption.REGISTRATION_CONFIRM_URL.getKey());
+    }
+
+    public boolean enableMailService() {
+        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.EMAIL_ENABLED.getKey());
+    }
+
+    /**
+     * <p>Get mail host?</p>
+     *
+     * @return a {@link Boolean}
+     */
+    public String getMailHost() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.MAIL_HOST.getKey());
+    }
+
+    /**
+     * <p>Get mail host?</p>
+     *
+     * @return a {@link Boolean}
+     */
+    public int getMailPort() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.MAIL_PORT.getKey());
     }
 
     /**
@@ -243,20 +235,21 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
-     * <p>Get mail host?</p>
+     * <p>find the ActiveMQ broker username (or null if no auth).</p>
      *
-     * @return a {@link Boolean}
+     * @return a {@link Integer}
      */
-    public String getMailHost() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.MAIL_HOST.getKey());
+    public String getActiveMQBrokerUserName() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_USERNAME.getKey());
     }
+
     /**
-     * <p>Get mail host?</p>
+     * <p>find the ActiveMQ broker username (or null if no auth).</p>
      *
-     * @return a {@link Boolean}
+     * @return a {@link Integer}
      */
-    public int getMailPort() {
-        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.MAIL_PORT.getKey());
+    public String getActiveMQBrokerPassword() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_PASSWORD.getKey());
     }
 
     /**
@@ -264,117 +257,34 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      *
      * @return a {@link Boolean}
      */
-    public boolean isActiveMQEnable() {
-        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.ACTIVEMQ_ENABLE.getKey());
+    public boolean enableActiveMQ() {
+        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.ACTIVEMQ_ENABLED.getKey());
+    }
+
+    /**
+     * <p>getAppMinVersion.</p>
+     *
+     * @return a {@link String} object.
+     */
+    public Version getAppMinVersion() {
+        String versionStr = applicationConfig.getOption(SumarisServerConfigurationOption.APP_MIN_VERSION.getKey());
+        if (StringUtils.isBlank(versionStr)) return null;
+
+        try {
+            return VersionBuilder.create(versionStr).build();
+        }
+        catch(Exception e) {
+            logger.error(String.format("Unable to parse value '%s' for config option '%s': %s",
+                    versionStr, SumarisServerConfigurationOption.APP_MIN_VERSION.getKey(), e.getMessage()));
+            return null;
+        }
+
     }
 
     /* -- Internal methods -- */
 
-    /**
-     * <p>getWebConfigFile.</p>
-     *
-     * @return a {@link String} object.
-     */
-    protected static String getWebConfigFile() {
-        // Could override config file id (useful for dev)
-        String configFile = CONFIG_FILE_NAME;
-        if (System.getProperty(CONFIG_FILE_ENV_PROPERTY) != null) {
-            configFile = System.getProperty(CONFIG_FILE_ENV_PROPERTY);
-            configFile = configFile.replaceAll("\\\\", "/");
-        }
-        else {
-            try {
-                InitialContext ic = new InitialContext();
-                String jndiPathToConfFile = (String) ic.lookup(CONFIG_FILE_JNDI_NAME);
-                if (StringUtils.isNotBlank(jndiPathToConfFile)) {
-                    configFile = jndiPathToConfFile;
-                }
-            } catch (NamingException e) {
-                log.debug(String.format("Error while reading JNDI initial context. Skip configuration path override, from context [%s]", CONFIG_FILE_JNDI_NAME));
-            }
-        }
 
-        return configFile;
-    }
 
-    /**
-     * <p>initI18n.</p>
-     *
-     * @throws IOException if any.
-     */
-    protected void initI18n() throws IOException {
-
-        // --------------------------------------------------------------------//
-        // initConfig i18n
-        // --------------------------------------------------------------------//
-        File i18nDirectory = new File(getDataDirectory(), "i18n");
-        if (i18nDirectory.exists()) {
-            // clean i18n cache
-            FileUtils.cleanDirectory(i18nDirectory);
-        }
-
-        FileUtils.forceMkdir(i18nDirectory);
-
-        if (log.isDebugEnabled()) {
-            log.debug("I18N directory: " + i18nDirectory);
-        }
-
-        Locale i18nLocale = getI18nLocale();
-
-        I18n.init(new UserI18nInitializer(
-            i18nDirectory, new DefaultI18nInitializer(getI18nBundleName())),
-            i18nLocale);
-        if (log.isInfoEnabled()) {
-            log.info(I18n.t("sumaris.server.init.i18n",
-                    i18nLocale, i18nDirectory));
-        }
-    }
-
-    /**
-     * <p>initDirectories.</p>
-     *
-     * @throws IOException if any.
-     */
-    protected void initDirectories() throws IOException {
-
-        // log the data directory used
-        log.info(I18n.t("sumaris.server.init.data.directory", getDataDirectory()));
-
-        // Data directory
-        FileUtils.forceMkdir(getDataDirectory());
-
-        // DB attachment directory
-        FileUtils.forceMkdir(getDbAttachmentDirectory());
-
-        // DB backup directory
-        FileUtils.forceMkdir(getDbBackupDirectory());
-
-        // Download directory
-        FileUtils.forceMkdir(getDownloadDirectory());
-
-        // Upload directory
-        FileUtils.forceMkdir(getUploadDirectory());
-
-        // Trash directory
-        FileUtils.forceMkdir(getTrashDirectory());
-
-        // temp directory
-        File tempDirectory = getTempDirectory();
-        if (tempDirectory.exists()) {
-            // clean temp files
-            FileUtils.cleanDirectory(tempDirectory);
-        }
-
-    }
-
-    /**
-     * <p>getI18nBundleName.</p>
-     *
-     * @return a {@link String} object.
-     */
-    protected static String getI18nBundleName() {
-        return "sumaris-core-server-i18n";
-    }
 
     /**
      * Initialization default timezone, from configuration (mantis #34754)
@@ -399,9 +309,5 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         }
     }
 
-    protected void initActiveMQ() {
-        // Init active MQ data directory
-        System.setProperty("org.apache.activemq.default.directory.prefix", getDataDirectory().getPath() + File.separator);
-    }
 
 }

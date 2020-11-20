@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.4.6.xml">
+
+  <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+  <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+  <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+  <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance ! Do not include this changelog file in the master file">
+    <or>
+      <!-- Test if database is empty -->
+      <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+      <!-- OR if expected production database -->
+      <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+    </or>
+  </preConditions>
+
+  <!-- Fix too many gears -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-400">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <not><sqlCheck expectedResult="2">SELECT count(*) FROM gear where status_fk=1 and gear_classification_fk=1</sqlCheck></not>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      update GEAR set STATUS_FK=0 where label not in ('OTT', 'OTB');
+      commit;
+    </sql>
+  </changeSet>
+
+  <!-- Add IS_DEAD and SEX to PMFM_STRATEGY, for Pocheteaux  -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-401" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="2">SELECT count(*) FROM PMFM_STRATEGY where acquisition_level_fk=6 and STRATEGY_FK=10</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="296"/>
+      <column name="STRATEGY_FK" valueNumeric="10"/>
+      <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='SEX')"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="6"/>
+      <column name="RANK_ORDER" valueNumeric="2"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="298"/>
+      <column name="STRATEGY_FK" valueNumeric="10"/>
+      <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='IS_DEAD')"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="6"/>
+      <column name="RANK_ORDER" valueNumeric="3"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="296"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 and LABEL='RJB_1')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="296"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 and LABEL='RJB_2')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="298"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 and LABEL='RJB_1')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="298"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 and LABEL='RJB_2')"/>
+    </insert>
+    <sql endDelimiter=";">
+      update PMFM_STRATEGY set RANK_ORDER=4 where ID=295;
+      update STRATEGY set UPDATE_DATE=current_timestamp where ID=10;
+      commit;
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

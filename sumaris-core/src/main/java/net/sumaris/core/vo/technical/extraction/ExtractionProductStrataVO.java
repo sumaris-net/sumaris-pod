@@ -52,12 +52,17 @@ public class ExtractionProductStrataVO implements IReferentialVO {
     ExtractionProductVO product;
     Integer productId;
 
-    String sheetName;
-
     String timeColumnName;
-    String spaceColumnName;
+    String spatialColumnName;
     String aggColumnName;
+    String aggFunction;
     String techColumnName;
 
-    String aggFunction;
+    public String getSheetName() {
+        return label;
+    }
+
+    public void setSheetName(String sheetName) {
+        this.label = sheetName;
+    }
 }

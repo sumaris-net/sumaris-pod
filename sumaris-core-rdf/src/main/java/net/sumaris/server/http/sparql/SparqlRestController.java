@@ -104,6 +104,7 @@ public class SparqlRestController {
                     SparqlMediaType.APPLICATION_XML_VALUE,
                     SparqlMediaType.APPLICATION_SPARQL_RESULT_XML_VALUE,
                     SparqlMediaType.APPLICATION_JSON_VALUE,
+                    SparqlMediaType.APPLICATION_JSON_UTF8_VALUE,
                     SparqlMediaType.APPLICATION_SPARQL_RESULT_JSON_VALUE,
                     SparqlMediaType.TEXT_CSV_VALUE,
                     SparqlMediaType.APPLICATION_SPARQL_RESULT_CSV_VALUE,

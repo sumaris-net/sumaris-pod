@@ -32,8 +32,8 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
-import net.sumaris.server.http.graphql.extraction.AggregationGraphQLService;
-import net.sumaris.server.http.graphql.extraction.ExtractionGraphQLService;
+import net.sumaris.server.graphql.AggregationGraphQLService;
+import net.sumaris.server.graphql.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.referential.PmfmGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
@@ -84,10 +84,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     @Autowired
     private PmfmGraphQLService pmfmService;
 
-    @Autowired
+    @Autowired(required = false)
     private ExtractionGraphQLService extractionGraphQLService;
 
-    @Autowired
+    @Autowired(required = false)
     private AggregationGraphQLService aggregationGraphQLService;
 
     @Autowired
@@ -101,7 +101,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         log.info("Generating GraphQL schema (using SPQR)...");
 
-        return new GraphQLSchemaGenerator()
+        GraphQLSchemaGenerator generator = new GraphQLSchemaGenerator()
                 .withResolverBuilders(new AnnotatedResolverBuilder())
 
                 // Auth and technical
@@ -118,9 +118,6 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 // Data
                 .withOperationsFromSingleton(dataService, DataGraphQLService.class)
 
-                // Extraction
-                .withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class)
-                .withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class)
 
                 // Social
                 .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
@@ -131,8 +128,13 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
                 .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
                         .withPrototype(objectMapper)
-                        .build())
-                .generate();
+                        .build());
+
+        // Add optional services
+        if (extractionGraphQLService != null) generator.withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class);
+        if (aggregationGraphQLService != null) generator.withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class);
+
+        return generator.generate();
     }
 
     @Bean

@@ -22,6 +22,7 @@ package net.sumaris.core.service;
  * #L%
  */
 
+import net.sumaris.core.Application;
 import net.sumaris.core.TestConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -44,6 +45,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
 @EnableJpaRepositories(value = "net.sumaris.core.dao", considerNestedRepositories = true)
-public class ServiceTestConfiguration extends TestConfiguration{
+public class ServiceTestConfiguration extends TestConfiguration {
 
 }

@@ -25,6 +25,7 @@ package net.sumaris.core.service;
 
 import com.google.common.io.CharStreams;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -36,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -51,6 +53,7 @@ import java.util.Properties;
 /**
  * Abstract class for unit test on services.
  */
+@ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
 @TestPropertySource(locations="classpath:sumaris-core-test.properties")
@@ -64,11 +67,10 @@ public class AbstractServiceTest {
 	@Autowired
 	protected SumarisConfiguration config;
 
-	/* -- Internal method -- */
+	@Autowired
+	protected DatabaseFixtures fixtures;
 
-	protected SumarisConfiguration getConfig() {
-		return config;
-	}
+	/* -- Internal method -- */
 
 	/**
 	 * Delete all existing observations and linked data

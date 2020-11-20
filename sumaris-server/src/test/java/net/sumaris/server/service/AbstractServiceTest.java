@@ -22,17 +22,19 @@ package net.sumaris.server.service;
  * #L%
  */
 
-import net.sumaris.server.ServerTestConfiguration;
+import net.sumaris.server.TestConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+@ActiveProfiles("test")
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ServerTestConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-server-test.properties")
+@SpringBootTest(classes = {TestConfiguration.class})
+@TestPropertySource(locations="classpath:sumaris-server-test.properties")
 public abstract class AbstractServiceTest {
 
     @Autowired

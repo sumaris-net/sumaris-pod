@@ -24,12 +24,13 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
 import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
-public interface RootDataRepository<E extends IRootDataEntity<Integer>, V extends IRootDataVO<Integer>, F extends IRootDataFilter, O extends DataFetchOptions>
+public interface RootDataRepository<E extends IRootDataEntity<Integer>, V extends IRootDataVO<Integer>, F extends IRootDataFilter, O extends IDataFetchOptions>
     extends DataRepository<E, V, F, O>, RootDataSpecifications<E> {
 
     V validate(V vo);

@@ -23,9 +23,15 @@
 package net.sumaris.server;
 
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.ApplicationUtils;
+import net.sumaris.core.util.I18nUtil;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -52,10 +58,17 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.io.File;
+import java.io.IOException;
+
 @SpringBootApplication(
         scanBasePackages = {
                 "net.sumaris.core",
                 "net.sumaris.rdf",
+                // TODO: rename c-ore-extraction into extraction
+                //"net.sumaris.extraction",
                 "net.sumaris.server"
         },
         exclude = {
@@ -84,11 +97,9 @@ public class Application extends SpringBootServletInitializer {
      */
     protected static final Logger log =
             LoggerFactory.getLogger(Application.class);
-
-    @Bean
-    public static SumarisServerConfiguration sumarisConfiguration() {
-        return SumarisServerConfiguration.getInstance();
-    }
+    public static final String CONFIG_FILE_NAME = "application.properties";
+    private static final String CONFIG_FILE_ENV_PROPERTY = "spring.config.location";
+    private static final String CONFIG_FILE_JNDI_NAME = "java:comp/env/" + CONFIG_FILE_NAME;
 
     public static void main(String[] args) {
         SumarisServerConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(args));
@@ -96,6 +107,23 @@ public class Application extends SpringBootServletInitializer {
 
         // Init service locator
         ServiceLocator.init(appContext);
+    }
+
+    @Bean
+    public static SumarisServerConfiguration configuration() {
+        SumarisServerConfiguration.initDefault(getConfigFile());
+        SumarisServerConfiguration config = SumarisServerConfiguration.getInstance();
+
+        // Init I18n
+        I18nUtil.init(config, getI18nBundleName());
+
+        // Init directories
+        initDirectories(config);
+
+        // Init active MQ
+        initActiveMQ(config);
+
+        return config;
     }
 
     @Override
@@ -171,4 +199,88 @@ public class Application extends SpringBootServletInitializer {
         return executor;
     }
 
+    /* -- Internal method -- */
+
+    /**
+     * <p>getWebConfigFile.</p>
+     *
+     * @return a {@link String} object.
+     */
+    protected static String getConfigFile() {
+        // Could override config file id (useful for dev)
+        String configFile = CONFIG_FILE_NAME;
+        if (System.getProperty(CONFIG_FILE_ENV_PROPERTY) != null) {
+            configFile = System.getProperty(CONFIG_FILE_ENV_PROPERTY);
+            configFile = configFile.replaceAll("\\\\", "/");
+        }
+        else {
+            try {
+                InitialContext ic = new InitialContext();
+                String jndiPathToConfFile = (String) ic.lookup(CONFIG_FILE_JNDI_NAME);
+                if (StringUtils.isNotBlank(jndiPathToConfFile)) {
+                    configFile = jndiPathToConfFile;
+                }
+            } catch (NamingException e) {
+                log.debug(String.format("Error while reading JNDI initial context. Skip configuration path override, from context [%s]", CONFIG_FILE_JNDI_NAME));
+            }
+        }
+
+        return configFile;
+    }
+
+
+    /**
+     * <p>initDirectories.</p>
+     */
+    protected static void initDirectories(SumarisServerConfiguration config) {
+
+        try {
+
+            // log the data directory used
+            log.info(I18n.t("sumaris.server.init.data.directory", config.getDataDirectory()));
+
+            // Data directory
+            FileUtils.forceMkdir(config.getDataDirectory());
+
+            // DB attachment directory
+            FileUtils.forceMkdir(config.getDbAttachmentDirectory());
+
+            // DB backup directory
+            FileUtils.forceMkdir(config.getDbBackupDirectory());
+
+            // Download directory
+            FileUtils.forceMkdir(config.getDownloadDirectory());
+
+            // Upload directory
+            FileUtils.forceMkdir(config.getUploadDirectory());
+
+            // Trash directory
+            FileUtils.forceMkdir(config.getTrashDirectory());
+
+            // temp directory
+            File tempDirectory = config.getTempDirectory();
+            if (tempDirectory.exists()) {
+                // clean temp files
+                FileUtils.cleanDirectory(tempDirectory);
+            }
+        } catch (IOException e) {
+            throw new SumarisTechnicalException("Directories initialization failed", e);
+        }
+
+    }
+
+
+    protected static void initActiveMQ(SumarisConfiguration config) {
+        // Init active MQ data directory
+        System.setProperty("org.apache.activemq.default.directory.prefix", config.getDataDirectory().getPath() + File.separator);
+    }
+
+    /**
+     * <p>getI18nBundleName.</p>
+     *
+     * @return a {@link String} object.
+     */
+    protected static String getI18nBundleName() {
+        return "sumaris-server-i18n";
+    }
 }

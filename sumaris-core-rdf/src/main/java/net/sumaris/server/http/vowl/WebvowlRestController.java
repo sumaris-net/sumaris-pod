@@ -87,6 +87,7 @@ public class WebvowlRestController {
     @GetMapping(value = CONVERT_PATH,
             produces = {
                     RdfMediaType.APPLICATION_JSON_VALUE,
+                    RdfMediaType.APPLICATION_JSON_UTF8_VALUE,
                     RdfMediaType.APPLICATION_X_JAVASCRIPT_VALUE,
                     RdfMediaType.APPLICATION_WEBVOWL_VALUE
             })
@@ -136,6 +137,7 @@ public class WebvowlRestController {
     @PostMapping(value = CONVERT_PATH,
             produces = {
                 RdfMediaType.APPLICATION_JSON_VALUE,
+                RdfMediaType.APPLICATION_JSON_UTF8_VALUE,
                 RdfMediaType.APPLICATION_X_JAVASCRIPT_VALUE,
                 RdfMediaType.APPLICATION_WEBVOWL_VALUE
         })

@@ -39,4 +39,5 @@ public interface TrashService {
     <V> Page<V> findAll(String entityName, Pageable pageable, Class<? extends V> clazz);
 
     long count(String entityName);
+
 }

@@ -24,8 +24,9 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.batch.BatchRepository;
+import net.sumaris.core.dao.data.batch.BatchSpecifications;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -39,10 +40,13 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.PacketCompositionVO;
+import net.sumaris.core.vo.data.PacketVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -55,19 +59,17 @@ import java.util.stream.Collectors;
 @Service("packetService")
 public class PacketServiceImpl implements PacketService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PacketServiceImpl.class);
     private Integer calculatedWeightPmfmId;
     private Integer measuredWeightPmfmId;
     private Integer estimatedRatioPmfmId;
     private Integer sortingPmfmId;
-    private static final String RATIO_SEPARATOR = " ";
 
-    private final BatchDao batchDao;
+    private final BatchRepository batchRepository;
     private final MeasurementDao measurementDao;
     private final ReferentialDao referentialDao;
 
-    public PacketServiceImpl(BatchDao batchDao, MeasurementDao measurementDao, ReferentialDao referentialDao) {
-        this.batchDao = batchDao;
+    public PacketServiceImpl(BatchRepository batchRepository, MeasurementDao measurementDao, ReferentialDao referentialDao) {
+        this.batchRepository = batchRepository;
         this.measurementDao = measurementDao;
         this.referentialDao = referentialDao;
     }
@@ -84,8 +86,8 @@ public class PacketServiceImpl implements PacketService {
     @Override
     public List<PacketVO> getAllByOperationId(int operationId) {
 
-        BatchVO catchBatch = batchDao.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
-            .withChildren(true)
+        BatchVO catchBatch = batchRepository.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
+            .withChildrenEntities(true)
             .build());
         if (catchBatch == null)
             return null;
@@ -102,8 +104,8 @@ public class PacketServiceImpl implements PacketService {
         List<BatchVO> batches = new ArrayList<>();
 
         // Get catch batch
-        BatchVO catchBatch = batchDao.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
-            .withChildren(false)
+        BatchVO catchBatch = batchRepository.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
+            .withChildrenEntities(false)
             .withMeasurementValues(false)
             .build());
 
@@ -119,7 +121,7 @@ public class PacketServiceImpl implements PacketService {
                 // Create new root batch
                 catchBatch = new BatchVO();
                 catchBatch.setRankOrder(0);
-                catchBatch.setLabel(BatchDao.DEFAULT_ROOT_BATCH_LABEL);
+                catchBatch.setLabel(BatchSpecifications.DEFAULT_ROOT_BATCH_LABEL);
                 catchBatch.setOperationId(operationId);
             }
 
@@ -128,7 +130,7 @@ public class PacketServiceImpl implements PacketService {
             if (sources.isEmpty()) {
 
                 // Root batch exists but no packet to save = delete this batch
-                batchDao.saveByOperationId(operationId, batches);
+                batchRepository.saveByOperationId(operationId, batches);
                 return sources;
 
             }
@@ -143,7 +145,7 @@ public class PacketServiceImpl implements PacketService {
         batches.forEach(batch -> fillDefaultProperties(sources.get(0), batch));
 
         // Save Batches
-        List<BatchVO> savedBatches = batchDao.saveByOperationId(operationId, batches);
+        List<BatchVO> savedBatches = batchRepository.saveByOperationId(operationId, batches);
 
         // Save measurements
         savedBatches.forEach(savedBatch -> {
@@ -167,7 +169,7 @@ public class PacketServiceImpl implements PacketService {
         });
 
         // Return optimistic version of saved beans
-        return toPackets(batchDao.toTree(savedBatches));
+        return toPackets(batchRepository.toTree(savedBatches));
         // Or load completely
 //        return getAllByOperationId(operationId);
     }
@@ -463,7 +465,7 @@ public class PacketServiceImpl implements PacketService {
         // sampled weights
         target.setSampledWeights(
             qms.stream()
-                .filter(m -> !m.getIsReferenceQuantification() && m.getPmfm().getId().equals(measuredWeightPmfmId) && m.getSubgroupNumber() != null)
+                .filter(m -> !m.getIsReferenceQuantification() && Objects.equals(m.getPmfm().getId(), measuredWeightPmfmId) && m.getSubgroupNumber() != null)
                 .map(BatchQuantificationMeasurement::getNumericalValue)
                 .map(Daos::roundValue)
                 .collect(Collectors.toList())

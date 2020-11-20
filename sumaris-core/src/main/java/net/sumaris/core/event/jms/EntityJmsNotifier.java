@@ -29,7 +29,7 @@ import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -37,19 +37,20 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 
 @Component
-@ConditionalOnBean(JmsTemplate.class)
 public class EntityJmsNotifier {
     private static final Logger log = LoggerFactory.getLogger(EntityJmsNotifier.class);
 
-    @Resource
+    // WARN: @ConditionOnBean over this class is not working well, that why we use required=false
+    @Autowired(required = false)
     private JmsTemplate jmsTemplate;
 
     @PostConstruct
     protected void init() {
-        log.info("Starting JMS notifier, for entity events...");
+        if (jmsTemplate != null) {
+            log.info("Starting JMS notifier, for entity events...");
+        }
     }
 
     @Async
@@ -57,6 +58,8 @@ public class EntityJmsNotifier {
             value = {EntityInsertEvent.class, EntityUpdateEvent.class, EntityDeleteEvent.class},
             phase = TransactionPhase.AFTER_COMMIT)
     public void onEntityEvent(IEntityEvent event) {
+        if (jmsTemplate == null) return; // Skip
+
         Preconditions.checkNotNull(event);
         Preconditions.checkNotNull(event.getOperation());
         Preconditions.checkNotNull(event.getEntityName());

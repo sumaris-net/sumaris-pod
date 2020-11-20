@@ -29,12 +29,17 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ArgumentsParserException;
+import org.nuiton.i18n.I18n;
+import org.nuiton.i18n.init.DefaultI18nInitializer;
+import org.nuiton.i18n.init.UserI18nInitializer;
 import org.nuiton.version.Version;
+import org.nuiton.version.VersionBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -55,7 +60,6 @@ import static org.nuiton.i18n.I18n.t;
  *
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-@Configuration
 public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     /** Logger. */
     private static final Logger log = LoggerFactory.getLogger(SumarisConfiguration.class);
@@ -128,6 +132,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         this.applicationConfig = new ApplicationConfig();
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
+
+
+        System.setProperty("logging.level.Hibernate Types", "error");
 
         // find all config providers
         Set<ApplicationConfigProvider> providers =
@@ -291,6 +298,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         }
 
     }
+
+
 
     /**
      * <p>Getter for the field <code>configFile</code>.</p>
@@ -543,6 +552,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey());
     }
 
+    public void setEnableTrash(boolean enable) {
+        applicationConfig.setOption(SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey(), String.valueOf(enable));
+    }
+
     /**
      * <p>getDbName.</p>
      *
@@ -666,7 +679,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      * @return a {@link Version} object.
      */
     public Version getVersion() {
-        return applicationConfig.getOptionAsVersion(SumarisConfigurationOption.VERSION.getKey());
+        return VersionBuilder.create(applicationConfig.getOptionAsVersion(SumarisConfigurationOption.VERSION.getKey())).build();
     }
 
     /**

@@ -46,7 +46,7 @@ public class LandingServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void get() {
-        LandingVO vo = service.get(dbResource.getFixtures().getLandingId(0));
+        LandingVO vo = service.get(fixtures.getLandingId(0));
         Assert.assertNotNull(vo);
 
         // Check observers

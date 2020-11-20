@@ -35,7 +35,7 @@ import java.util.List;
  */
 public enum DatabaseTableEnum {
 
-	// ICES format tables (v1)
+	// ICES RDB format tables (v1.3)
 	P01_RDB_LANDING, // CL
 	P01_RDB_TRIP, // TR
 	P01_RDB_STATION, // HH

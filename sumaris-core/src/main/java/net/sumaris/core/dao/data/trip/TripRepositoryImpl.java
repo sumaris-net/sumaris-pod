@@ -62,8 +62,8 @@ public class TripRepositoryImpl
     }
 
     @Override
-    public Specification<Trip> toSpecification(TripFilterVO filter) {
-        return super.toSpecification(filter)
+    public Specification<Trip> toSpecification(TripFilterVO filter, DataFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(hasVesselId(filter.getVesselId()));
@@ -79,6 +79,7 @@ public class TripRepositoryImpl
 
         // Parent link
         // TODO scientificCruise
+
     }
 
     @Override

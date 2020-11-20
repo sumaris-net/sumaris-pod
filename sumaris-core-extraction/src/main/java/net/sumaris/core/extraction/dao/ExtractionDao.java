@@ -27,4 +27,5 @@ package net.sumaris.core.extraction.dao;
  */
 public interface ExtractionDao {
     String TABLE_NAME_PREFIX = "EXT_";
+    String SEQUENCE_NAME_SUFFIX = "_SEQ";
 }

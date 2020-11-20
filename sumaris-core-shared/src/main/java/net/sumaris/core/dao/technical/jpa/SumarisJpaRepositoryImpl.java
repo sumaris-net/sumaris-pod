@@ -77,7 +77,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     private DataSource dataSource;
 
     @Autowired
-    private SumarisConfiguration config;
+    private SumarisConfiguration configuration;
 
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         this(domainClass, null, entityManager);
@@ -109,7 +109,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     public SumarisConfiguration getConfig() {
-        return config;
+        return configuration;
     }
 
     @Override
