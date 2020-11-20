@@ -62,7 +62,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
     @Test
     public void getWithChildren() {
 
-        Integer id = 831; // fixtures.getTripId(0);
+        Integer id = fixtures.getTripId(0);
         TripVO trip = service.get(id, DataFetchOptions.FULL_GRAPH);
         Assert.assertNotNull(trip);
 
