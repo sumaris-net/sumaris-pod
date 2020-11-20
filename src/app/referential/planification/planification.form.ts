@@ -266,35 +266,42 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   }
 
   // Calcified Type ---------------------------------------------------------------------------------------------
-      private calcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-        {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
-        {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"},
-        {id: '3', label: 'vertèbre', name: 'vertèbre',statusId:1,entityName:"calcifiedType"},
-        {id: '4', label: 'otolithe', name: 'otolithe',statusId:1,entityName:"calcifiedType"}
-      ];
-    private filteredcalcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-        {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
-        {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"}
-      ];
-      protected async loadCalcifiedType() {
-      const calcifiedTypeControl = this.form.get('calcifiedType');
 
-
-      calcifiedTypeControl.enable();
-        // Refresh filtred departments
-        if (this.enableCalcifiedTypeFilter) {
-          //const calcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
-          // Mocked data
-          const calcifiedTypes = this.filteredcalcifiedTypesList;
-          this._calcifiedTypeSubject.next(calcifiedTypes);
-        } else {
-          // Refresh filtred departments
-          //const calcifiedTypes = await this.loadCalcifiedTypesMethod();
-          // Mocked data
-            const calcifiedTypes = this.calcifiedTypesList;
-            this._calcifiedTypeSubject.next(calcifiedTypes);
-        }
+  protected async loadCalcifiedType() {
+    const calcifiedTypeControl = this.form.get('calcifiedType');
+    calcifiedTypeControl.enable();
+      // Refresh filtred departments
+      if (this.enableCalcifiedTypeFilter) {
+       const allcalcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
+       this._calcifiedTypeSubject.next(allcalcifiedTypes);
+      } else {
+        // TODO Refresh filtred departments
+         const filtredCalcifiedTypes =await  this.loadCalcifiedTypesMethod();
+         this._calcifiedTypeSubject.next(filtredCalcifiedTypes);
+      }
+  }
+     // Load CalcifiedTypes Service
+     protected async loadCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
+      const res = await this.referentialRefService.loadAll(0, 200, null,null,
+        {
+          entityName: 'Fraction',
+          searchAttribute: "description",
+          searchText: "individu"
+        });
+      return res.data;
     }
+
+     //TODO : Load filtred CalcifiedTypes Service : another service to implement
+     protected async loadFilteredCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
+      const res = await this.referentialRefService.loadAll(0, 1, null,null,
+        {
+          entityName: 'Fraction',
+          searchAttribute: "description",
+          searchText: "individu" 
+        });
+        return res.data;
+    }
+  // EOTP  ---------------------------------------------------------------------------------------------------
 
   protected  loadEotps() {
     const eotpAreaControl = this.form.get('eotp');
@@ -311,7 +318,6 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
       this._eotpSubject.next(eotps);
     }
   }
- //--------------------------------------------------------------------------------------------------------------------
 
 
 }
