@@ -61,8 +61,17 @@ public class DatabaseFixtures {
 		switch (index) {
 			case 0:
 			default:
-				return "rdb-01";
+				return "RDB-01";
 		}
+	}
+
+	public int getYearRawData() {
+		return 2018;
+	}
+
+
+	public int getYearRdbProduct() {
+		return 2012;
 	}
 
 }

@@ -119,7 +119,7 @@ public class AggregationServiceImpl implements AggregationService {
         switch (type.getCategory()) {
             case PRODUCT:
                 // Get the product VO
-                source = productService.getByLabel(type.getRawFormatLabel(), ExtractionProductFetchOptions.TABLES_AND_STRATUM);
+                source = productService.getByLabel(type.getLabel(), ExtractionProductFetchOptions.TABLES_AND_STRATUM);
                 // Execute, from product
                 return aggregate(source, filter, strata);
 
