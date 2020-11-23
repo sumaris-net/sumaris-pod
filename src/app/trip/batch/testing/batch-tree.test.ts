@@ -241,7 +241,7 @@ export class BatchTreeTestPage implements OnInit {
     batches.forEach(b => {
       b.parentId = b.parent && b.parent.id;
       delete b.parent;
-    })
+    });
 
     // Convert into Batch tree
     const catchBatch = Batch.fromObjectArrayAsTree(batches)

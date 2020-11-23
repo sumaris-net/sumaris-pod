@@ -208,7 +208,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   confirmCreate(row: TableElement<T>) {
     if (!super.confirmCreate(row)) return false;
     if (row.editing && row.validator) {
-      console.warn('[table-datasource] Row has editing=true after confirmCreate! Force set to false');
+      console.warn('[table-datasource] Row still has {editing: true} after confirmCreate()! Force editing to false');
       row.validator.disable({onlySelf: true, emitEvent: false});
     }
     return true;
@@ -217,7 +217,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   confirmEdit(row: TableElement<T>): boolean {
     if (!super.confirmEdit(row)) return false;
     if (row.editing && row.validator) {
-      console.warn('[table-datasource] Row has editing=true after confirmCreate! Force set to false');
+      console.warn('[table-datasource] Row still has {editing: true} after confirmCreate()! Force editing to false');
       row.validator.disable({onlySelf: true, emitEvent: false});
     }
     return true;

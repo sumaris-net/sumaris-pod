@@ -120,15 +120,18 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
         this.editor.setError({message: 'QUALITY.ERROR.INVALID_FORM'});
         this.editor.markAsTouched();
       }
-
+      else {
+        // Emit event (refresh component with the new data)
+        if (!opts || opts.emitEvent !== false) {
+          this.updateView(data);
+        }
+        else {
+          this.data = data;
+        }
+      }
     }
     finally {
       this._controlling = false;
-
-      // Emit event (refresh component with the new data)
-      if (!opts || opts.emitEvent !== false) {
-        this.updateView(this.editor.data);
-      }
     }
 
     return valid;
@@ -151,7 +154,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
 
     try {
       console.debug("[quality] Terminate entity input...");
-      const data = await this.service.terminate(this.data);
+      const data = await this.service.terminate(this.editor.data);
 
       // Emit event (refresh editor -> will refresh component also)
       if (!opts || opts.emitEvent !== false) {

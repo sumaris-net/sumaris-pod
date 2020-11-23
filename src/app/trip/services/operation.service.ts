@@ -440,6 +440,12 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
    */
   async save(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
 
+    // If parent is a local entity: force a local save
+    // Save response locally
+    if (entity.tripId < 0) {
+      return await this.saveLocally(entity, opts);
+    }
+
     const now = Date.now();
     if (this._debug) console.debug("[operation-service] Saving operation...");
 
@@ -448,20 +454,6 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
-
-    // If parent is a local entity: force a local save
-    if (entity.tripId < 0) {
-      // Make sure to fill id, with local ids
-      await this.fillOfflineDefaultProperties(entity);
-
-      const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
-      if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
-
-      // Save response locally
-      await this.entities.save(jsonLocal);
-
-      return entity;
-    }
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
@@ -628,7 +620,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     return this.entities.watchAll<Operation>(Operation.TYPENAME, {
       ...variables,
       filter: OperationFilter.searchFilter<Operation>(dataFilter)
-    })
+    }, {fullLoad: opts && opts.fullLoad})
       .pipe(map(res => {
         const data = (res && res.data || []).map(source => Operation.fromObject(source, opts));
 
@@ -691,7 +683,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity);
 
-    const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
+    const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false, sampleAsTree: false});
     if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
 
     // Save response locally
@@ -700,7 +692,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     return entity;
   }
 
-  protected asObject(entity: Operation, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; }): any {
+  protected asObject(entity: Operation, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; sampleAsTree?: boolean; }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
     const copy: any = entity.asObject(opts);
 
@@ -768,7 +760,6 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     // Fill all sample id
     const samples = entity.samples && EntityUtils.listOfTreeToArray(entity.samples) || [];
     await EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues('SampleVO', count));
-    entity.samples = samples;
 
     // Fill all batches id
     const batches = entity.catchBatch && EntityUtils.treeToArray(entity.catchBatch) || [];

@@ -308,11 +308,15 @@ mat-option:not(:last-child) {
 
 .mat-select-panel {
   --min-width: 200px;
+  --max-width: 100%;
   min-width: var(--min-width) !important;
+  max-width: var(--max-width) !important;
 }
 .mat-autocomplete-panel {
   --min-width: 250px;
+  --max-width: 100%;
   min-width: var(--min-width) !important;
+  max-width: var(--max-width) !important;
 }
 
 .mat-autocomplete-panel-medium-size .mat-autocomplete-panel,

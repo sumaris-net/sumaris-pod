@@ -1,7 +1,8 @@
 <mat-toolbar>
   <button mat-icon-button
           hidden-xs hidden-sm hidden-mobile
-          *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate"
+          *ngIf="!selection.hasValue() && enabled"
+          [title]="'COMMON.BTN_ADD'|translate"
           (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
@@ -76,7 +77,7 @@
           <mat-header-cell *matHeaderCellDef mat-sort-header>
             <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
           </mat-header-cell>
-          <mat-cell *matCellDef="let row"><ion-label>{{ row.currentData?.rankOrder }}</ion-label></mat-cell>
+          <mat-cell *matCellDef="let row"><ion-label>{{row.currentData?.rankOrder}}</ion-label></mat-cell>
         </ng-container>
 
         <!-- parent -->
@@ -170,7 +171,7 @@
           </mat-header-cell>
           <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
             <mat-form-field floatLabel="never">
-              <input matInput [formControl]="row.validator.controls['comments']"
+              <input matInput [formControl]="row.validator.controls.comments"
                      [placeholder]="'REFERENTIAL.COMMENTS'|translate"
                      [readonly]="!row.editing">
             </mat-form-field>
@@ -204,7 +205,7 @@
           </mat-cell>
         </ng-container>
 
-        <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
         <mat-row *matRowDef="let row; columns: displayedColumns;"
                  [class.mat-row-error]="row.validator.invalid"
                  [class.mat-row-dirty]="row.validator.dirty"
@@ -244,11 +245,3 @@
     </ion-col>
   </ion-row>
 </ion-grid>
-
-<!--<ion-fab vertical="bottom" horizontal="end"-->
-<!--         *ngIf="enabled && mobile">-->
-<!--  <ion-fab-button color="tertiary" (click)="addRow()">-->
-<!--    <ion-icon name="add"></ion-icon>-->
-<!--  </ion-fab-button>-->
-<!--</ion-fab>-->
-

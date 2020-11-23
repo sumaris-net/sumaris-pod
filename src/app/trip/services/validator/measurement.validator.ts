@@ -98,10 +98,6 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       .forEach(controlName => form.removeControl(controlName));
   }
 
-  getPmfmValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[], opts?: O): ValidatorFn {
-    return PmfmValidators.create(pmfm, validatorFns, opts);
-  }
-
   /* -- -- */
   protected fillDefaultOptions(opts?: O): O {
     opts = opts || {} as O;

@@ -142,14 +142,10 @@ import {OperationService} from "./trip/services/operation.service";
           titleProperty: 'sumaris.observedLocation.name'
         },
 
-        // Data access (guest only)
-        {title: 'MENU.DATA_ACCESS_DIVIDER', exactProfile: 'GUEST'},
-        {title: 'MENU.DOWNLOADS', path: '/extraction', icon: 'cloud-download', exactProfile: 'GUEST'},
-
         // Data extraction
-        {title: 'MENU.DATA_ACCESS_DIVIDER', profile: 'USER'},
-        {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', profile: 'USER'},
-        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', profile: 'USER'},
+        {title: 'MENU.DATA_ACCESS_DIVIDER', profile: 'GUEST'},
+        {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', profile: 'GUEST'},
+        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', profile: 'GUEST'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},

@@ -664,10 +664,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Define a function to add new parent
     const onNewParentClick = showParentGroup ? async () => {
-      const newBatch = await this.openDetailModal();
-      if (!newBatch) return undefined;
-      await this.addEntityToTable(newBatch);
-      return newBatch;
+      const newParent = await this.openDetailModal();
+      if (newParent) {
+        await this.addEntityToTable(newParent, {confirmCreate: false});
+      }
+      return newParent;
     } : undefined;
 
     // Define available parent, as an observable (if new parent can added)

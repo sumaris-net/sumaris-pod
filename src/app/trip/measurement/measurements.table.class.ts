@@ -346,7 +346,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    *
    * @param data the entity to insert.
    */
-  protected async addEntityToTable(data: T): Promise<TableElement<T>> {
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
     if (!data) throw new Error("Missing data to add");
     if (this.debug) console.debug("[measurement-table] Adding new entity", data);
 
@@ -382,11 +382,16 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       row.currentData = data;
     }
 
-    this.confirmEditCreate(null, row);
-    this.markAsDirty();
+    // Confirm the created row
+    if (!opts || opts.confirmCreate !== false) {
+      this.confirmEditCreate(null, row);
+      this.editedRow = null;
+    }
+    else {
+      this.editedRow = row;
+    }
 
-    // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
-    this.editedRow = row;
+    this.markAsDirty();
 
     return row;
   }
@@ -400,7 +405,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    * @param data the input entity
    * @param row the row to update
    */
-  protected async updateEntityToTable(data: T, row: TableElement<T>): Promise<TableElement<T>> {
+  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
     if (!data || !row) throw new Error("Missing data, or table row to update");
     if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
 
@@ -415,11 +420,16 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       row.currentData = data;
     }
 
-    this.confirmEditCreate(null, row);
-    this.markAsDirty();
+    // Confirm the created row
+    if (!opts || opts.confirmCreate !== false) {
+      this.confirmEditCreate(null, row);
+      this.editedRow = null;
+    }
+    else {
+      this.editedRow = row;
+    }
 
-    // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
-    this.editedRow = row;
+    this.markAsDirty();
 
     return row;
   }

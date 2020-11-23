@@ -3,7 +3,7 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {EntityUtils, environment, joinPropertiesPath} from "../../core/core.module";
 import {PmfmIds} from "../../referential/services/model/model.enum";
 import {SubSampleValidatorService} from "../services/validator/sub-sample.validator";
-import {isNil, isNotNil} from "../../shared/functions";
+import {isNil, isNotNil, toNumber} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -85,10 +85,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
       Sample,
       new InMemoryEntitiesService<Sample, SubSampleFilter>(Sample, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
-        onLoad: (data) => {
-          this.linkDataToParent(data);
-          return data;
-        },
+        onLoad: (data) => this.onLoadData(data),
         equals: Sample.equals
       }),
       injector.get(ValidatorService),
@@ -151,36 +148,36 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   }
 
   async autoFillTable() {
+    // Wait table is ready
+    await this.onReady();
+
     // Wait table is loaded
     if (this.loading) {
       await firstFalsePromise(this.loadingSubject);
     }
-    if (this.disabled || !this.confirmEditCreate()) return; // Skip when disabled or still editing a row
+
+    // Skip when disabled or still editing a row
+    if (this.disabled || !this.confirmEditCreate()) {
+      console.warn("[sub-samples-table] Skipping autofill, as table is disabled or still editing a row");
+      return;
+    }
 
     this.markAsLoading();
 
     try {
-      const rows = await this.dataSource.getRows();
-      const existingSamples = rows.map(r => r.currentData);
+      console.debug("[sub-sample-table] Auto fill table");
 
-      let rankOrder = await this.getMaxRankOrder();
-      const newSamples = await Promise.all(this._availableParents
-        .filter(p => !existingSamples.find(s => s.parent && s.parent.id === p.id))
-        .map(async p => {
+      // Read existing rows
+      const existingSamples = (await this.dataSource.getRows() || []).map(r => r.currentData);
+
+      const parents = this._availableParents
+        .filter(p => !existingSamples.find(s => Sample.equals(s.parent, p)));
+
+      // Create new row for each parent
+      for (const parent of parents) {
           const sample = new Sample();
-
-          // Set default value
-          sample.parent = p;
-          sample.rankOrder = ++rankOrder;
-
-          // Make sure the entity is well initialized
-          await this.onNewEntity(sample);
-
-          return sample;
-        }));
-
-      for (const sample of newSamples) {
-        await this.addEntityToTable(sample);
+          sample.parent = parent;
+          await this.addEntityToTable(sample);
       }
 
     } catch (err) {
@@ -192,12 +189,16 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     }
   }
 
-
-  /* -- protected methods -- */
-
-  protected setValue(data: Sample[]) {
+  /**
+   * Allow to set value
+   * @param data
+   * @param opts
+   */
+  setValue(data: Sample[]) {
     this.memoryDataService.value = data;
   }
+
+  /* -- protected methods -- */
 
   protected getValue(): Sample[] {
     return this.memoryDataService.value;
@@ -231,9 +232,10 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     if (!this._availableParents || !data) return;
 
     data.forEach(s => {
-      const parentId = s.parentId || (s.parent && s.parent.id);
-      const parentLabel = (s.parent && s.parent.label);
-      s.parent = this._availableParents.find(p => (isNotNil(parentId) && p.id === parentId) || (parentLabel && p.label === parentLabel)) || null;
+      s.parent = this._availableParents.find(p => Sample.equals(p, {
+        id: toNumber(s.parentId, s.parent && s.parent.id),
+        label: s.parent && s.parent.label
+      }));
       if (!s.parent) console.warn("[sub-samples-table] linkDataToParent() - Could not found parent for sub-sample:", s);
     });
   }
@@ -292,6 +294,11 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   protected sortData(data: Sample[], sortBy?: string, sortDirection?: SortDirection): Sample[] {
     sortBy = (sortBy !== 'parent') && sortBy || 'parent.rankOrder'; // Replace parent by its rankOrder
     return this.memoryDataService.sort(data, sortBy, sortDirection);
+  }
+
+  protected onLoadData(data: Sample[]): Sample[] {
+    this.linkDataToParent(data);
+    return data;
   }
 
   protected async suggestParent(value: any): Promise<any[]> {

@@ -276,8 +276,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       .then(() => this.setLoading(false));
   }
 
-  async openModal($event: MouseEvent, row: TableElement<AggregatedLanding>, date?: Moment) {
-    this.onEditRow($event, row);
+  async openModal(event: MouseEvent|undefined, row: TableElement<AggregatedLanding>, date?: Moment) {
+    this.onEditRow(event, row);
     const modal = await this.modalCtrl.create({
       component: AggregatedLandingModal,
       componentProps: {
