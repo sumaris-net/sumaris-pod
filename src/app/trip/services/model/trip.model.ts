@@ -1,24 +1,24 @@
 import {
-    EntityUtils,
-    fromDateISOString,
-    isNotNil,
-    Person,
-    ReferentialRef,
-    toDateISOString
+  EntityUtils,
+  fromDateISOString,
+  isNotNil,
+  Person,
+  ReferentialRef,
+  toDateISOString
 } from "../../../core/core.module";
 import {Moment} from "moment/moment";
 import {DataEntity, DataEntityAsObjectOptions,} from "../../../data/services/model/data-entity.model";
 import {
-    IEntityWithMeasurement,
-    Measurement,
-    MeasurementFormValues,
-    MeasurementModelValues,
-    MeasurementUtils,
-    MeasurementValuesUtils
+  IEntityWithMeasurement,
+  Measurement,
+  MeasurementFormValues,
+  MeasurementModelValues,
+  MeasurementUtils,
+  MeasurementValuesUtils
 } from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Metier} from "../../../referential/services/model/taxon.model";
-import {isEmptyArray, isNotEmptyArray} from "../../../shared/functions";
+import {isEmptyArray} from "../../../shared/functions";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {IWithProductsEntity, Product} from "./product.model";

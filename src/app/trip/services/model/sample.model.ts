@@ -12,6 +12,7 @@ import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "
 import {ITreeItemEntity} from "../../../core/services/model/entity.model";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
+import {isNotEmptyArray} from "../../../shared/functions";
 
 
 export class Sample extends RootDataEntity<Sample>
@@ -36,9 +37,7 @@ export class Sample extends RootDataEntity<Sample>
                            opts?: DataEntityAsObjectOptions & {
                              parent?: any;
                            }): any[] {
-    return (sources || [])
-      // Select root parents
-      .filter(source => isNil(source.parent) && isNil(source.parentId))
+    return sources && sources
       // Reduce to array
       .reduce((res, source) => {
         // Convert entity into object, WITHOUT children (will be add later)
@@ -54,9 +53,12 @@ export class Sample extends RootDataEntity<Sample>
           delete target.parent; // not need
         }
 
-        return res.concat(target)
-          .concat(...this.treeAsObjectArray(source.children || [], {...opts, parent: target}));
-      }, []);
+        if (isNotEmptyArray(source.children)) {
+          return res.concat(target)
+            .concat(...this.treeAsObjectArray(source.children, {...opts, parent: target}));
+        }
+        return res.concat(target);
+      }, []) || undefined;
   }
 
   static equals(s1: Sample | any, s2: Sample | any): boolean {

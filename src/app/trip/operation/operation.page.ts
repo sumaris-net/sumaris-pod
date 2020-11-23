@@ -3,8 +3,7 @@ import {OperationSaveOptions, OperationService} from '../services/operation.serv
 import {OperationForm} from './operation.form';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppEntityEditor, AppTableUtils, EntityUtils, environment, LoadResult} from '../../core/core.module';
-import {CatchBatchForm} from '../catch/catch.form';
+import {AppEntityEditor, EntityUtils, environment} from '../../core/core.module';
 import {ReferentialUtils} from '../../core/services/model/referential.model';
 import {HistoryPageReference, UsageMode} from '../../core/services/model/settings.model';
 import {
@@ -14,36 +13,22 @@ import {
   isNotEmptyArray,
   isNotNil
 } from '../../shared/shared.module';
-import {BehaviorSubject, Observable, Subject, Subscription} from 'rxjs';
+import {BehaviorSubject, Subject, Subscription} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
-import {
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-  first,
-  map,
-  mergeMap,
-  startWith,
-  switchMap,
-  tap
-} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
 import * as moment from "moment";
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
 import {Program} from "../../referential/services/model/program.model";
-import {SubBatchesTable} from "../batch/table/sub-batches.table";
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
-import {BatchGroupsTable} from "../batch/table/batch-groups.table";
-import {Batch, BatchUtils} from "../services/model/batch.model";
+import {Batch} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
-import {filterNotNil, firstNotNil, firstNotNilPromise, firstTruePromise} from "../../shared/observables";
+import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
-import {BatchGroup} from "../services/model/batch-group.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
 import {ProgramService} from "../../referential/services/program.service";
-import {TranslateService} from "@ngx-translate/core";
 import {IEntity} from "../../core/services/model/entity.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {BatchTreeComponent} from "../batch/batch-tree.component";
