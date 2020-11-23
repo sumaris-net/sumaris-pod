@@ -141,7 +141,7 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     APP_MIN_VERSION(
             "sumaris.app.version.min",
             n("sumaris.config.option.sumaris.app.version.min.description"),
-            "1.4.6",
+            "1.5.0",
             Version.class,
             false),
 
