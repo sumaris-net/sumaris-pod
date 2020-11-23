@@ -76,7 +76,7 @@ echo "* Pushing changes to upstream..."
 echo "**********************************"
 git commit -a -m "Release $version\n$release_description"
 git status
-mvn gitflow:release-finish -DfetchRemote=false
+mvn gitflow:release-finish
 [[ $? -ne 0 ]] && exit 1
 
 # Remove release branch
