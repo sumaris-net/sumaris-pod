@@ -314,7 +314,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
                 .pipe(
                   debounceTime(400),
                   startWith<any, any>(tripProgressControl.value),
-                  filter(isNotNil),
+                  filter(isNotNilOrBlank),
                   distinctUntilChanged()
                 )
                 .subscribe(value => {
