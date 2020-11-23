@@ -67,6 +67,6 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
 
     @JsonIgnore
     public boolean isPublic() {
-        return statusId == StatusEnum.ENABLE.getId();
+        return statusId != null && statusId.intValue() == StatusEnum.ENABLE.getId();
     }
 }
