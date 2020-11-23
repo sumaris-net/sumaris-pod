@@ -115,6 +115,10 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     const currentYear = new Date ();
     this.form.get('year').setValue(currentYear);
 
+    // Initialize sample row code
+    const initSampleRowCode = "2020-BIO-1234";
+    this.form.controls['sampleRowCode'].setValue(initSampleRowCode);
+
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggest(value, {
