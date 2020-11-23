@@ -179,7 +179,7 @@
     <!-- release config -->
     <autoVersionSubmodules>true</autoVersionSubmodules>
     <goals>deploy</goals>
-    <arguments>-DperformFullRelease -Denv=hsqldb</arguments>
+    <arguments>-DperformFullRelease -Dspring.datasource.platform=hsqldb</arguments>
     <preparationGoals>verify</preparationGoals>
 	<gitflowPluginVersion>1.14.0</gitflowPluginVersion>
 
