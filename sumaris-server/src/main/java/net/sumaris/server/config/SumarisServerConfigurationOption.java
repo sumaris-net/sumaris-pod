@@ -132,7 +132,7 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     AUTH_ROLE_NOT_SELF_DATA_ACCESS(
             "sumaris.auth.notSelfDataAccess.role",
             n("sumaris.config.option.auth.notSelfDataAccess.role.description"),
-            null, // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
+            "ROLE_ADMIN", // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
             String.class,
             false),
 
@@ -141,7 +141,7 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     APP_MIN_VERSION(
             "sumaris.app.version.min",
             n("sumaris.config.option.sumaris.app.version.min.description"),
-            "1.4.6",
+            "1.5.0",
             Version.class,
             false),
 

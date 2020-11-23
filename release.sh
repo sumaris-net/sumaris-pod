@@ -80,11 +80,10 @@ mvn gitflow:release-finish
 [[ $? -ne 0 ]] && exit 1
 
 # Remove release branch
-# TODO BLA
-# git branch -d
-# Pause (if propagation is need between hosted git server and github)
-#sleep 10s
-#echo "Push changes to upstream [OK]"
+git branch -d "release/$version"
+
+
+echo "Push changes to upstream [OK]"
 
 echo "----------------------------------"
 echo "RELEASE finished !"
