@@ -1,15 +1,14 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
 import {
+  EntitiesService,
   EntityService,
   EntityServiceLoadOptions,
   fromDateISOString,
   isNil,
-  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  EntitiesService,
   toBoolean,
   toDateISOString
 } from "../../shared/shared.module";
@@ -39,13 +38,11 @@ import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {concatPromises, firstNotNilPromise} from "../../shared/observables";
+import {concatPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./validator/trip.validator";
 import {FormErrors} from "../../core/form/form.utils";
 import {Operation, PhysicalGear, Trip} from "./model/trip.model";
-import {Batch} from "./model/batch.model";
-import {Sample} from "./model/sample.model";
 import {
   DataRootEntityUtils,
   SynchronizationStatus,
@@ -55,13 +52,7 @@ import {fillRankOrder, IWithRecorderDepartmentEntity} from "../../data/services/
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
-import {ObservedLocationFilter, ObservedLocationFilterKeys} from "./observed-location.service";
 import {UserEventService} from "../../social/services/user-event.service";
-import {UserEvent} from "../../social/services/model/user-event.model";
-import {showError} from "../../shared/alerts";
-import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
-import {tar} from "@ionic/cli/lib/utils/archive";
-import {Landing} from "./model/landing.model";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -513,9 +504,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offline) {
       $loadResult = this.entities.watchAll<Trip>(Trip.TYPENAME, {
-        ...variables,
-        filter: TripFilter.searchFilter<Trip>(dataFilter)
-      })
+          ...variables,
+          filter: TripFilter.searchFilter<Trip>(dataFilter)
+        })
         .pipe(
           map(res => {
             return {trips: res && res.data, tripsCount: res && res.total};
@@ -804,10 +795,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
     entity.id = undefined;
 
     // Fill operations
-    const res = await this.entities.loadAll<Operation>('OperationVO', {
-      filter: OperationFilter.searchFilter<Operation>({tripId: localId})
-    });
-    entity.operations = (res && res.data || []).map(ope => Operation.fromObject(ope));
+    const res = await this.operationService.loadAllByTrip( {tripId: localId},
+      {fullLoad: true, rankOrderOnPeriod: false});
+    entity.operations = res && res.data || [];
 
     try {
       // todo comment synchroniser un landedTrip ?
@@ -1099,10 +1089,12 @@ export class TripService extends RootDataService<Trip, TripFilter>
       await concatPromises(localEntities.map(entity => async () => {
 
         // Load trip's operations
-        const res = await this.operationService.loadAllByTrip({tripId: entity.id});
+        const res = await this.operationService.loadAllByTrip({tripId: entity.id},
+          {fullLoad: true, computeRankOrder: false});
         const operations = res && res.data;
 
         await this.entities.delete(entity, {entityName: Trip.TYPENAME});
+
         if (isNotNil(operations)) {
           await this.operationService.deleteAll(operations, {trash: false});
         }

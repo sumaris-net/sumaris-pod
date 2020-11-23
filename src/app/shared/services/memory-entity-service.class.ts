@@ -17,7 +17,6 @@ export interface InMemoryEntitiesServiceOptions<T, F> {
 
 export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements EntitiesService<T, F> {
 
-  private _onDataChange = new Subject();
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
 
   private readonly _sortFn: (data: T[], sortBy?: string, sortDirection?: SortDirection) => T[];

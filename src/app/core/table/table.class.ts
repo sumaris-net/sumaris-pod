@@ -671,9 +671,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
+  onEditRow(event: MouseEvent|undefined, row: TableElement<T>): boolean {
     if (!this._enabled) return false;
-    if (this.editedRow === row || event.defaultPrevented) return;
+    if (this.editedRow === row) return true; // Already the edited row
+    if (event && event.defaultPrevented) return false;
 
     if (!this.confirmEditCreate()) {
       return false;
@@ -689,8 +690,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<T>): boolean {
-    if (row.id === -1 || row.editing) return true;
-    if (event && event.defaultPrevented || this.loading) return false;
+    if (row.id === -1 || row.editing) return true; // Already in edition
+    if (event && event.defaultPrevented || this.loading) return false; // Cancelled by event
 
     // Open the detail page (if not inline editing)
     if (!this.inlineEdition) {

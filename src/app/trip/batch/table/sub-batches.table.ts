@@ -403,11 +403,12 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       taxonNameAttributes: taxonNameAttributes
     };
     if (this.showTaxonNameColumn) {
-      this.autocompleteFields.parentGroup.attributes = ['rankOrder'].concat(taxonGroupAttributes.map(attr => 'taxonGroup.' + attr));
+      this.autocompleteFields.parentGroup.attributes = ['rankOrder']
+          .concat(taxonGroupAttributes.map(attr => 'taxonGroup.' + attr));
     }
     else {
       this.autocompleteFields.parentGroup.attributes = ['taxonGroup.' + taxonGroupAttributes[0]]
-        .concat(taxonNameAttributes.map(attr => 'taxonName.' + attr));
+          .concat(taxonNameAttributes.map(attr => 'taxonName.' + attr));
     }
     this.autocompleteFields.parentGroup.displayWith = (value) => BatchUtils.parentToString(value, parentToStringOptions);
   }
@@ -459,7 +460,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     if (this.form.disabled) {
       this.form.enable(opts);
     }
-
 
     if (opts && opts.focusFirstEmpty === true) {
       setTimeout(() => {
@@ -632,7 +632,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
         }
         this.markAsDirty();
 
-        // restore the edited row (link in super.addEntityToTable() )
+        // restore as edited row
         this.editedRow = row;
 
         return row;
@@ -640,12 +640,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
 
     // The batch does not exists: add it tp the table
-    const res = await super.addEntityToTable(newBatch);
-
-    // Remove editedRow (should not be keep here)
-    this.editedRow = null;
-
-    return res;
+    return await super.addEntityToTable(newBatch);
   }
 
   async setAvailableParents(parents: BatchGroup[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean; }) {
@@ -790,7 +785,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   selectInputContent = selectInputContent;
-  referentialToString = referentialToString;
 
   protected markForCheck() {
     this.cd.markForCheck();

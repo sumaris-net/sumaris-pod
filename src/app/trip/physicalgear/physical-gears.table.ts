@@ -119,6 +119,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     if (updatedGear) {
       await this.updateEntityToTable(updatedGear, row);
     }
+    else {
+      this.editedRow = null;
+    }
     return true;
   }
 

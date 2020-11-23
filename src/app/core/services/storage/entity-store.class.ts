@@ -1,8 +1,8 @@
 import {BehaviorSubject, Observable} from "rxjs";
 import {Storage} from "@ionic/storage";
-import {map} from "rxjs/operators";
+import {map, mergeMap} from "rxjs/operators";
 import {Entity, EntityUtils} from "../model/entity.model";
-import {isEmptyArray, isNil, isNotNil} from "../../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
 import {concatPromises} from "../../../shared/observables";
 
@@ -14,14 +14,18 @@ export interface EntityStoreOptions<T extends Entity<T>>  {
   detailedAttributes?: (keyof T)[];
 }
 
+export declare interface EntityStorageLoadOptions {
+  fullLoad?: boolean;
+}
+
 declare type EntityStatusMap = { [key: number]: {index: number; dirty?: boolean; } };
 
-export class EntityStore<T extends Entity<T>> {
+export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions = EntityStorageLoadOptions> {
 
   private readonly _storageKey: string;
   private readonly _onChange = new BehaviorSubject(true);
   private readonly _mapToLightEntity: (T) => T;
-  private _entities: T[];
+  private _cache: T[];
   private _statusById: EntityStatusMap;
   private _sequence: number;
   private _dirty = false;
@@ -29,15 +33,14 @@ export class EntityStore<T extends Entity<T>> {
 
   readonly options: EntityStoreOptions<T>;
 
-  get entities(): T[] {
-    return this._entities;
+  get cache(): T[] {
+    return this._cache;
   }
 
   get dirty(): boolean {
     return this._dirty;
   }
 
-  load: (id: number) => Promise<T>;
 
   constructor(
     protected readonly name: string,
@@ -49,7 +52,6 @@ export class EntityStore<T extends Entity<T>> {
     this._loaded = false;
     this._storageKey = ENTITIES_STORAGE_KEY + '#' + name;
     this._mapToLightEntity = this.options.storeById && this.createLightEntityMapFn(this.options.detailedAttributes);
-    this.load = this._mapToLightEntity ? this.loadFull : this.loadLight;
   }
 
   nextValue(): number {
@@ -62,34 +64,76 @@ export class EntityStore<T extends Entity<T>> {
     return this._sequence;
   }
 
-  watchAll(opts?: {
+
+  async load(id: number, opts?: EntityStorageLoadOptions): Promise<T> {
+    if (this._mapToLightEntity && (!opts || opts.fullLoad !== false)) {
+      return this.loadFullEntity(id, opts);
+    }
+    return this.loadCachedEntity(id);
+  }
+
+  /**
+   * Watch a set of entities
+   * @param variables
+   * @param opts
+   */
+  watchAll(variables: {
             offset?: number;
             size?: number;
             sortBy?: string;
             sortDirection?: string;
             filter?: (T) => boolean;
-          }): Observable<LoadResult<T>> {
+          }, opts?: O): Observable<LoadResult<T>> {
 
+    // If need full entities, but use light entities in the entities array
+    if (this._mapToLightEntity && (opts && opts.fullLoad === true)) {
+      console.warn("[entity-store] WARN: Watching full entities, splited by id in entity store. This can be long! Please make sure you need full entities here.")
+      return this._onChange
+        .pipe(
+          // Apply filter on cache
+          map((_) => this.reduceAndSort(this._cache, variables)),
+
+          // Then convert into full entities (using parallel jobs - /!\ can use lot of memory)
+          mergeMap((res) => Promise.all((res.data || [])
+            .map(e => this.loadFullEntity(e.id, opts))).then(data => {
+              return {
+                data,
+                total: res.total
+              }
+            })
+          )
+        );
+    }
+
+    // Load using entities array
     return this._onChange
       .pipe(
-        map((_) => this.reduceAndSort(this._entities, opts))
+        map((_) => this.reduceAndSort(this._cache, variables))
       );
   }
 
   /**
    * WIll apply a filter, then a sort, then a page slice
-   * @param data
+   * @param variables
    * @param opts
    */
-  async loadAll(opts?: {
+  async loadAll(variables: {
     offset?: number;
     size?: number;
     sortBy?: string;
     sortDirection?: string;
     filter?: (T) => boolean;
-  }): Promise<LoadResult<T>> {
+  }, opts?: O): Promise<LoadResult<T>> {
 
-    return this.reduceAndSort(this._entities, opts);
+    let res = this.reduceAndSort(this._cache, variables);
+
+    // If store by ID: make sure to full the full entities
+    if (this._mapToLightEntity && isNotEmptyArray(res.data) && (opts && opts.fullLoad === true)) {
+      // Load full entities, one by one
+      res.data = await concatPromises((res.data || []).map(e => () => this.load(e.id)));
+    }
+
+    return res ;
   }
 
   save(entity: T, opts? : {emitEvent?: boolean}): T {
@@ -110,10 +154,10 @@ export class EntityStore<T extends Entity<T>> {
       }
 
       this._statusById[+entity.id] = status;
-      status.index = this._entities.push(entity) - 1;
+      status.index = this._cache.push(entity) - 1;
     }
     else {
-      this._entities[status.index] = entity;
+      this._cache[status.index] = entity;
     }
 
     // Mark entity as dirty
@@ -138,7 +182,7 @@ export class EntityStore<T extends Entity<T>> {
     console.info(`[entity-storage] Saving ${entities.length} ${this.name}(s)`);
 
     // First save
-    if (isEmptyArray(this._entities) || (opts && opts.reset)) {
+    if (isEmptyArray(this._cache) || (opts && opts.reset)) {
       this.setEntities(entities, {emitEvent: false});
     }
     else {
@@ -153,7 +197,7 @@ export class EntityStore<T extends Entity<T>> {
       this.emitEvent();
     }
 
-    return result || this._entities.slice();
+    return result || this._cache.slice();
   }
 
   delete(id: number, opts?: { emitEvent?: boolean; }): T | undefined {
@@ -161,11 +205,15 @@ export class EntityStore<T extends Entity<T>> {
     const index = status ? status.index : undefined;
     if (isNil(index)) return undefined;
 
-    const entity = this._entities[index];
+    const entity = this._cache[index];
     if (!entity) return undefined;
 
-    this._entities[index] = undefined;
+    this._cache[index] = undefined;
     this._statusById[+entity.id] = undefined;
+
+    if (this.options.storeById) {
+      this.storage.remove(this._storageKey + "#" + id);
+    }
 
     // Mark as dirty
     this._dirty = true;
@@ -197,7 +245,7 @@ export class EntityStore<T extends Entity<T>> {
   }
 
   reset(opts? : {emitEvent?: boolean}) {
-    this._entities = [];
+    this._cache = [];
     this._sequence = 0;
     this._statusById = {};
 
@@ -214,21 +262,21 @@ export class EntityStore<T extends Entity<T>> {
     // Skip is not dirty
     if (!this._dirty) {
       console.debug(`[entity-storage] Persisting ${this.name} not need. Skip`);
-      return this._entities.length;
+      return this._cache.length;
     }
 
     // Copy some data, BEFORE to call markAsPristine() to allow parallel changes
     const dirtyIndexes = Object.values(this._statusById)
       .filter(s => s && s.dirty)
       .map(s => s.index);
-    const entities = this._entities.slice();
+    const entities = this._cache.slice();
 
     // Mark all (entities and status) as pristine
     this.markAsPristine({emitEvent: false});
 
     // Map dirty entities to light entities (AFTER the previous copy)
     if (this._mapToLightEntity) {
-      dirtyIndexes.forEach(index => this._entities[index] = this._mapToLightEntity(this._entities[index]));
+      dirtyIndexes.forEach(index => this._cache[index] = this._mapToLightEntity(this._cache[index]));
     }
 
     // If no entity found
@@ -304,7 +352,7 @@ export class EntityStore<T extends Entity<T>> {
       this.emitEvent();
     }
 
-    return this._entities.length;
+    return this._cache.length;
   }
 
   markAsDirty(opts?: { emitEvent?: boolean; }) {
@@ -331,14 +379,14 @@ export class EntityStore<T extends Entity<T>> {
 
   /* -- protected methods -- */
 
-  private async loadLight(id: number): Promise<T> {
+  private async loadCachedEntity(id: number, opts?: EntityStorageLoadOptions): Promise<T> {
     const status = this._statusById[+id];
     const index = status && status.index;
     if (isNil(index)) return undefined; // not exists
-    return this._entities[index];
+    return this._cache[index];
   }
 
-  private async loadFull(id: number): Promise<T> {
+  private async loadFullEntity(id: number, opts?: EntityStorageLoadOptions): Promise<T> {
     const status = this._statusById[+id];
     const index = status && status.index;
     if (isNil(index)) return undefined; // not exists
@@ -349,7 +397,7 @@ export class EntityStore<T extends Entity<T>> {
       return await this.storage.get(this._storageKey + '#' + id);
     }
 
-    return this._entities[index];
+    return this._cache[index];
   }
 
   private setEntities(entities: T[], opts?: {emitEvent?: boolean; }) {
@@ -360,12 +408,12 @@ export class EntityStore<T extends Entity<T>> {
         // Filter NOT nil
         : entities.filter(isNotNil)) || [];
 
-    this._entities = entities;
+    this._cache = entities;
 
     // Update the sequence with min(id) of all temporary ids
-    this._sequence = this._entities.reduce((res, item) => item.id < 0 ? Math.min(res, item.id) : res, 0);
+    this._sequence = this._cache.reduce((res, item) => item.id < 0 ? Math.min(res, item.id) : res, 0);
 
-    this._statusById = this._entities.reduce((res, item, index) => {
+    this._statusById = this._cache.reduce((res, item, index) => {
       res[item.id] = {
         index,
         dirty: false
@@ -385,16 +433,16 @@ export class EntityStore<T extends Entity<T>> {
   /**
    * WIll apply a filter, then a sort, then a page slice
    * @param data
-   * @param opts
+   * @param variables
    */
   private reduceAndSort(data: T[],
-                          opts?: {
-                            offset?: number;
-                            size?: number;
-                            sortBy?: string;
-                            sortDirection?: string;
-                            filter?: (T) => boolean;
-                          }): LoadResult<T> {
+                        variables: {
+                          offset?: number;
+                          size?: number;
+                          sortBy?: string;
+                          sortDirection?: string;
+                          filter?: (T) => boolean;
+                        }): LoadResult<T> {
     if (!data || !data.length) {
       return {data: [], total: 0};
     }
@@ -402,45 +450,45 @@ export class EntityStore<T extends Entity<T>> {
     // Remove nil values
     data = data.filter(isNotNil);
 
-    if (!opts) {
+    if (!variables) {
       // Return all (but copy and filter array)
       return {data, total: data.length};
     }
 
     // Apply the filter, if any
-    if (opts.filter) {
-      data = data.filter(opts.filter);
+    if (variables.filter) {
+      data = data.filter(variables.filter);
     }
 
     // Compute the total length
     const total = data.length;
 
     // If page size=0 (e.g. only need total)
-    if (opts.size === 0) return {data: [], total};
+    if (variables.size === 0) return {data: [], total};
 
     // Sort by
-    if (data.length && opts.sortBy) {
-      EntityUtils.sort(data, opts.sortBy, opts.sortDirection);
+    if (data.length && variables.sortBy) {
+      EntityUtils.sort(data, variables.sortBy, variables.sortDirection);
     }
 
     // Slice in a page (using offset and size)
-    if (opts.offset > 0) {
+    if (variables.offset > 0) {
 
       // Offset after the end: no result
-      if (opts.offset >= data.length || opts.size === 0) {
+      if (variables.offset >= data.length || variables.size === 0) {
         data = [];
       }
       else {
-        data = (opts.size > 0 && ((opts.offset + opts.size) < data.length)) ?
+        data = (variables.size > 0 && ((variables.offset + variables.size) < data.length)) ?
           // Slice using limit to size
-          data.slice(opts.offset, (opts.offset + opts.size) - 1) :
+          data.slice(variables.offset, (variables.offset + variables.size) - 1) :
           // Slice without limit
-          data.slice(opts.offset);
+          data.slice(variables.offset);
       }
     }
-    else if (opts.size > 0){
-      data = data.slice(0, opts.size - 1);
-    } else if (opts.size < 0){
+    else if (variables.size > 0){
+      data = data.slice(0, variables.size - 1);
+    } else if (variables.size < 0){
       // Force to keep all data
     }
 

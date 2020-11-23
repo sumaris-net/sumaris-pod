@@ -355,8 +355,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     // Highlight the row, few seconds
     if (updatedRow) this.onRowChanged(updatedRow);
 
-    // Clean editedRow
-    this.editedRow = null;
 
     return updatedRow;
   }

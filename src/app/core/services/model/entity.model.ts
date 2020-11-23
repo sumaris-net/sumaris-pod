@@ -10,7 +10,6 @@ import {
 } from "../../../shared/functions";
 import {FormFieldValue} from "../../../shared/form/field.model";
 import {FilterFn} from "../../../shared/services/entity-service.class";
-import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 
 
 export declare interface Cloneable<T> {

@@ -62,7 +62,7 @@ rel|pre)
     sed -i "s/version\": \"$current\"/version\": \"$2\"/g" package.json
     currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+((a|b)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
     sed -i "s/ version=\"$currentConfigXmlVersion\"/ version=\"$2\"/g" config.xml
-      sed -i "s/ android-versionCode=\"$currentAndroid\"/ android-versionCode=\"$3\"/g" config.xml
+    sed -i "s/ android-versionCode=\"$currentAndroid\"/ android-versionCode=\"$3\"/g" config.xml
 
     # Change version in file: 'src/assets/manifest.json'
     currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
