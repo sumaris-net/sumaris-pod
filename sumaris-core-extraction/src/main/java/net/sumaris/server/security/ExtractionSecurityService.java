@@ -27,6 +27,7 @@ import net.sumaris.core.exception.ForbiddenException;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,8 +37,8 @@ import java.util.Optional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public interface ExtractionSecurityService {
 
-    default void checkReadAccess(ExtractionTypeVO type) throws ForbiddenException {
-        if (!canRead(type)) {
+    default void checkReadAccess(IExtractionFormat format) throws ForbiddenException {
+        if (!canRead(format)) {
             throw new ForbiddenException("Access forbidden");
         }
     }
@@ -62,7 +63,7 @@ public interface ExtractionSecurityService {
 
     boolean canReadAll();
 
-    boolean canRead(ExtractionTypeVO type) throws UnauthorizedException;
+    boolean canRead(IExtractionFormat format) throws UnauthorizedException;
 
     boolean canRead(int productId) throws UnauthorizedException;
 

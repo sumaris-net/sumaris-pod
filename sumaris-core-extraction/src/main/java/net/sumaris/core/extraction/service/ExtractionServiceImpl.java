@@ -449,7 +449,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     /* -- protected -- */
 
     protected List<ExtractionTypeVO> getAllTypes() {
-        return findByFilter(new ExtractionTypeFilterVO());
+        return findByFilter(null);
     }
 
     protected List<ExtractionTypeVO> getProductExtractionTypes(ExtractionTypeFilterVO filter) {
