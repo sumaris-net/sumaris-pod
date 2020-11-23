@@ -29,11 +29,13 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.extraction.service.AggregationService;
-import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.extraction.vo.AggregationTypeVO;
+import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.util.*;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.server.config.ExtractionWebConfigurationOption;
@@ -44,7 +46,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author benoit.lavenier@e-is.pro
@@ -72,21 +75,22 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
         this.minRoleForNotSelfDataAccess = configuration.getApplicationConfig().getOption(ExtractionWebConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS.getKey());
     }
 
-
     @Override
     public boolean canReadAll() {
         return StringUtils.isBlank(minRoleForNotSelfDataAccess) || authService.hasAuthority(minRoleForNotSelfDataAccess);
     }
 
     @Override
-    public boolean canRead(@NonNull ExtractionTypeVO type) {
+    public boolean canRead(@NonNull IExtractionFormat format) {
 
         // User can read all extraction
         if (canReadAll()) return true; // OK if can read all
 
-        if (type.getCategory() != null && type.getCategory() == ExtractionCategoryEnum.LIVE) {
+        if (format.getCategory() != null && format.getCategory() == ExtractionCategoryEnum.LIVE) {
             return false; // KO: Live extraction not allowed, when cannot read all data
         }
+
+        ExtractionTypeVO type = aggregationService.getByFormat(format);
 
         if (type.isPublic()) return true; // OK if public
 

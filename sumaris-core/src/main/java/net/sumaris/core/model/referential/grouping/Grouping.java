@@ -46,8 +46,8 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @Entity
-@Table(name = "grouping",
-        uniqueConstraints = @UniqueConstraint(name="grouping_unique_c", columnNames = {"label", "grouping_level_fk"}))
+@Table(name = "\"grouping\"",
+       uniqueConstraints = @UniqueConstraint(name="grouping_unique_c", columnNames = {"label", "grouping_level_fk"}))
 public class Grouping implements IItemReferentialEntity,
         IWithValidityStatusEntity<Integer, ValidityStatus> {
 
