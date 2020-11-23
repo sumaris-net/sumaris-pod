@@ -13,7 +13,7 @@ export const environment: Environment = Object.freeze({
   mock: false,
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '1.4.6',
+  peerMinVersion: '1.5.0',
 
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
