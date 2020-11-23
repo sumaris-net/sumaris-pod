@@ -11,36 +11,44 @@ stages:
 build_test:
     stage: build
     tags: 
-        - emso-runner
+        - sih_public_runner
     script:
         - echo "Test compilation in progress"
-        - mvn -P dev clean install -DskipTests
+        - mvn clean 
+        - mvn install -pl sumaris-core
     environment:
         name: test
     artifacts:
         paths:
             - web-services/target/*.war
+    only:
+        - develop-ifremer   
     when: always
+
 
 build_val:
     stage: build
     tags: 
-        - emso-runner
+        - sih_public_runner
     script:
         - echo "Validation compilation in progress"
-        - mvn -P val -s ./settings.xml clean install -DskipTests
+        - mvn clean 
+        - mvn -s ./settings.xml install -pl sumaris-core
     environment:
         name: validation
     artifacts:
         paths:
             - web-services/target/*.war
+    only:
+        - develop-ifremer   
     when: manual
+
 
 
 sonarqube:
     stage: test
     tags: 
-        - emso-runner
+        - sih_public_runner
     variables:
       SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
       SONAR_HOST_URL: "http://visi-common-sonar:9000"
@@ -56,12 +64,15 @@ sonarqube:
         -Dsonar.sourceEncoding=UTF-8
         -Dsonar.java.binaries=.
         -Dsonar.java.libraries=.
+    only:
+        - develop-ifremer  
     when: manual
+ 
 
 pages:
     stage: docs
     tags:
-        - emso-runner
+        - sih_public_runner
     image: python:3.7-alpine
     before_script:
         - apk --update --upgrade add gcc musl-dev jpeg-dev zlib-dev libffi-dev cairo-dev pango-dev gdk-pixbuf-dev
@@ -74,12 +85,15 @@ pages:
     artifacts:
         paths:
             - public
+    only:
+        - develop-ifremer
     when: manual
+   
 
 package:
     stage: prepare
     tags: 
-        - emso-runner
+        - sih_public_runner
     before_script:
         - git checkout -B "$CI_BUILD_REF_NAME"
         - git config --global user.email "lbruvryl@ifremer.fr"
@@ -96,14 +110,14 @@ package:
         reports:
             dotenv: variables.env
     only:
-        - develop
+        - develop-ifremer
     allow_failure: false
     when: manual
 
 release:
     stage: release
     tags: 
-        - emso-runner
+        - sih_public_runner
     image: registry.gitlab.com/gitlab-org/release-cli:latest
     needs:
         - job: package
@@ -115,14 +129,15 @@ release:
         description: "Created using the release-cli $EXTRA_DESCRIPTION"
         tag_name: "emso-charts-$TAG"
         ref: "$CI_COMMIT_SHA"
-
+    only:
+        - develop-ifremer   
 deploy:
     stage: deploy
     tags: 
-        - emso-runner
+        - sih_public_runner
     script:
         - echo "Deploy in progress"
         - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=emso-charts -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
     only: 
-        - develop
+        - develop-ifremer
     when: manual
