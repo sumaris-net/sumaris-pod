@@ -14,8 +14,7 @@ build_test:
         - sih_public_runner
     script:
         - echo "Test compilation in progress"
-        - mvn clean 
-        - mvn install -pl sumaris-core
+        - mvn clean install -DskipTests
     environment:
         name: test
     artifacts:
@@ -33,7 +32,7 @@ build_val:
     script:
         - echo "Validation compilation in progress"
         - mvn clean 
-        - mvn -s ./settings.xml install -pl sumaris-core
+        - mvn -s ./settings.xml clean install -DskipTests
     environment:
         name: validation
     artifacts:
