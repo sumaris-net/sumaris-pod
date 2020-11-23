@@ -1,11 +1,17 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ModalController} from '@ionic/angular';
-import {Subscription, timer} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {Configuration} from '../services/model/config.model';
 import {ConfigService} from '../services/config.service';
-import {fadeInAnimation, isNotEmptyArray, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
+import {
+  fadeInAnimation,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNilOrBlank,
+  slideUpDownAnimation
+} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
-import {distinctUntilChanged, filter, map, mergeMap, tap} from "rxjs/operators";
+import {distinctUntilChanged, map} from "rxjs/operators";
 import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {ConfigOptions} from "../services/config/core.config";
@@ -69,11 +75,13 @@ export class NetworkStatusCard implements OnInit, OnDestroy {
         .subscribe(config => {
           console.info("[network-status] Checking if upgrade  or install is need...");
 
+          const installLinks = this.getAllInstallLinks(config);
+
           // Check for upgrade
-          this.updateLinks = this.getCompatibleUpgradeLinks(config);
+          this.updateLinks = this.getCompatibleUpgradeLinks(installLinks, config);
 
           // Check for install links (if no upgrade need)
-          this.installLinks = !this.updateLinks && this.getCompatibleInstallLinks(config);
+          this.installLinks = !this.updateLinks && this.getCompatibleInstallLinks(installLinks);
 
           setTimeout(() => {
             this.loading = false;
@@ -140,20 +148,20 @@ export class NetworkStatusCard implements OnInit, OnDestroy {
 
   /* -- protected method  -- */
 
-  private getCompatibleInstallLinks(config: Configuration): InstallAppLink[] {
-    const links = this.getAllInstallLinks(config)
+  private getCompatibleInstallLinks(installLinks: InstallAppLink[]): InstallAppLink[] {
+    const links = installLinks
       .filter(link => this.platform.is('mobileweb') || (!link.platform ||  this.platform.is(link.platform)));
 
     return isNotEmptyArray(links) ? links : undefined;
   }
 
-  private getCompatibleUpgradeLinks(config: Configuration): InstallAppLink[] {
+  private getCompatibleUpgradeLinks(installLinks: InstallAppLink[], config: Configuration): InstallAppLink[] {
     const appMinVersion = config.getProperty(ConfigOptions.APP_MIN_VERSION);
 
     const needUpgrade = appMinVersion && !VersionUtils.isCompatible(appMinVersion, environment.version);
     if (!needUpgrade) return undefined;
 
-    const upgradeLinks = this.getAllInstallLinks(config)
+    const upgradeLinks = installLinks
       .filter(link => this.platform.is('mobileweb') || (link.platform &&  this.platform.is(link.platform)));
 
     // Use min version as default version
@@ -172,7 +180,7 @@ export class NetworkStatusCard implements OnInit, OnDestroy {
       let url = config.getProperty(ConfigOptions.ANDROID_INSTALL_URL);
       const name: string = isNotNilOrBlank(url) && config.label || environment.defaultAppName || 'SUMARiS';
       let version;
-      if (isNotNilOrBlank(url)) {
+      if (isNilOrBlank(url)) {
         url = environment.defaultAndroidInstallUrl || null;
       }
       result.push({ name, url, platform: 'android', version });
