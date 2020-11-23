@@ -14,7 +14,7 @@ build_test:
         - sih_public_runner
     script:
         - echo "Test compilation in progress"
-        - mvn -P dev clean install -DskipTests
+        - mvn clean install -DskipTests
     environment:
         name: test
     artifacts:
@@ -31,7 +31,7 @@ build_val:
         - sih_public_runner
     script:
         - echo "Validation compilation in progress"
-        - mvn -P val -s ./settings.xml clean install -DskipTests
+        - mvn -s ./settings.xml clean install -DskipTests
     environment:
         name: validation
     artifacts:
