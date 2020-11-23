@@ -100,9 +100,9 @@ package:
         - echo "TAG=$RELEASE_VERSION" >> variables.env
     script:
         - echo "Release in progress"
-        - mvn -P prod release:clean -Dslf4jJclScope=provided
-        - mvn -P prod -s ./settings.xml release:prepare --batch-mode -Dtag=emso-charts-$RELEASE_VERSION -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion=$NEW_DEV_VERSION -DscmCommentPrefix="[ci skip] to "
-        - mvn -P prod -s ./settings.xml release:perform -Dslf4jJclScope=provided -X -DscmCommentPrefix="[ci skip] to "
+        - mvn release:clean -Dslf4jJclScope=provided
+        - mvn -s ./settings.xml release:prepare --batch-mode -Dtag=imagine-pod-$RELEASE_VERSION -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion=$NEW_DEV_VERSION -DscmCommentPrefix="[ci skip] to "
+        - mvn -s ./settings.xml release:perform -Dslf4jJclScope=provided -X -DscmCommentPrefix="[ci skip] to "
     artifacts:
         paths:
             - web-services/target/*.war
@@ -122,11 +122,11 @@ release:
         - job: package
           artifacts: true
     script:
-        - echo "running release for emso-charts-$TAG"
+        - echo "running release for imagine-pod-$TAG"
     release:
-        name: "Release emso-charts-$TAG"
+        name: "Release imagine-pod-$TAG"
         description: "Created using the release-cli $EXTRA_DESCRIPTION"
-        tag_name: "emso-charts-$TAG"
+        tag_name: "imagine-pod-$TAG"
         ref: "$CI_COMMIT_SHA"
     only:
         - develop-ifremer   
@@ -136,7 +136,7 @@ deploy:
         - sih_public_runner
     script:
         - echo "Deploy in progress"
-        - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=emso-charts -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
+        - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
     only: 
         - develop-ifremer
     when: manual
