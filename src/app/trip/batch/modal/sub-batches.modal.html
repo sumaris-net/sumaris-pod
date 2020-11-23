@@ -179,12 +179,11 @@
             </mat-cell>
           </ng-container>
 
-          <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
-
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
           <mat-row *matRowDef="let row; columns: displayedColumns;"
                    class="mat-row-small mat-small"
                    [class.mat-row-dirty]="isNewRow(row)"
-                   [class.mat-row-selected]="this.selection.isSelected(row)"
+                   [class.mat-row-selected]="selection.isSelected(row)"
                    [matMenuTriggerFor]="rowActionsMenu"
                    (click)="selectRow($event, row)"
           ></mat-row>

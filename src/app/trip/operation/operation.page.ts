@@ -673,6 +673,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
           return sample;
         });
+      console.log(data.samples);
 
     } else {
       data.samples = undefined;

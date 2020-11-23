@@ -6,16 +6,19 @@ import {environment} from "../../../../environments/environment";
 import {catchError, switchMap, throttleTime} from "rxjs/operators";
 import {Entity} from "../model/entity.model";
 import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
-import {LoadResult} from "../../../shared/services/entity-service.class";
-import {ENTITIES_STORAGE_KEY, EntityStore, EntityStoreOptions} from "./entity-store.class";
+import {EntityService, EntityServiceLoadOptions, LoadResult} from "../../../shared/services/entity-service.class";
+import {ENTITIES_STORAGE_KEY, EntityStorageLoadOptions, EntityStore, EntityStoreOptions} from "./entity-store.class";
 
 
 export declare type EntitiesStorageOptions = {[name: string]: EntityStoreOptions<any> };
 
+
 export const LOCAL_ENTITIES_STORAGE_OPTIONS = new InjectionToken<EntitiesStorageOptions>('entitiesStorageOptions');
 
 @Injectable({providedIn: 'root'})
-export class EntitiesStorage {
+export class EntitiesStorage
+  // TODO: implements EntityService<T, EntitiesStorageLoadOption>
+  {
 
   public static TRASH_PREFIX = "Trash#";
 
@@ -51,33 +54,35 @@ export class EntitiesStorage {
   }
 
   watchAll<T extends Entity<T>>(entityName: string,
-                                opts?: {
+                                variables: {
                                   offset?: number;
                                   size?: number;
                                   sortBy?: string;
                                   sortDirection?: string;
                                   trash?: boolean;
                                   filter?: (T) => boolean;
-                                }): Observable<LoadResult<T>> {
+                                },
+                                opts?: EntityStorageLoadOptions): Observable<LoadResult<T>> {
     // Make sure store is ready
     if (!this._started) {
       return defer(() => this.ready())
-        .pipe(switchMap(() => this.watchAll<T>(entityName, opts))); // Loop
+        .pipe(switchMap(() => this.watchAll<T>(entityName, variables, opts))); // Loop
     }
 
-    const storeName = opts && opts.trash ? (EntitiesStorage.TRASH_PREFIX + entityName) : entityName;
+    const storeName = variables && variables.trash ? (EntitiesStorage.TRASH_PREFIX + entityName) : entityName;
     return this.getEntityStore<T>(storeName, {create: true})
-      .watchAll(opts);
+      .watchAll(variables);
   }
 
   async loadAll<T extends Entity<T>>(entityName: string,
-                                     opts?: {
+                                     variables?: {
                                        offset?: number;
                                        size?: number;
                                        sortBy?: string;
                                        sortDirection?: string;
                                        filter?: (T) => boolean;
-                                    }): Promise<LoadResult<T>> {
+                                     },
+                                     opts?: EntityStorageLoadOptions): Promise<LoadResult<T>> {
 
     // Make sure store is ready
     if (!this._started) await this.ready();
@@ -87,14 +92,14 @@ export class EntitiesStorage {
     const entityStore = this.getEntityStore<T>(entityName, {create: false});
     if (!entityStore) return {data: [], total: 0}; // No store for this entity name
 
-    return entityStore.loadAll(opts);
+    return entityStore.loadAll(variables, opts);
   }
 
-  async load<T extends Entity<T>>(id: number, entityName: string): Promise<T> {
+  async load<T extends Entity<T>>(id: number, entityName: string, opts?: EntityStorageLoadOptions): Promise<T> {
     await this.ready();
     const entityStore = this.getEntityStore<T>(entityName, {create: false});
     if (!entityStore) return undefined;
-    return entityStore.load(id);
+    return entityStore.load(id, opts);
   }
 
   async nextValue(entityOrName: string | any): Promise<number> {

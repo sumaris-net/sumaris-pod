@@ -191,7 +191,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.updateEntityToTable(updatedData, row);
+      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
     }
     else {
       this.editedRow = null;

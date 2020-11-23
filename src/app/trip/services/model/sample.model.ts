@@ -1,4 +1,4 @@
-import {fromDateISOString, isNotNil, referentialToString, toDateISOString} from "../../../core/core.module";
+import {fromDateISOString, isNil, isNotNil, referentialToString, toDateISOString} from "../../../core/core.module";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {
   NOT_MINIFY_OPTIONS,
@@ -25,6 +25,40 @@ export class Sample extends RootDataEntity<Sample>
     return res;
   }
 
+  /**
+   * Transform a samples tree, into a array of object.
+   * Parent & children links are removed, to keep only a parentId
+   * @param source
+   * @param opts
+   * @throw Error if a sample has no id
+   */
+  static treeAsObjectArray(sources: Sample[],
+                           opts?: DataEntityAsObjectOptions & {
+                             parent?: any;
+                           }): any[] {
+    return (sources || [])
+      // Select root parents
+      .filter(source => isNil(source.parent) && isNil(source.parentId))
+      // Reduce to array
+      .reduce((res, source) => {
+        // Convert entity into object, WITHOUT children (will be add later)
+        const target = source.asObject ? source.asObject({...opts, withChildren: false}) : {...source, children: undefined};
+
+        // Link target with the given parent
+        const parent = opts && opts.parent;
+        if (parent) {
+          if (isNil(parent.id)) {
+            throw new Error(`Cannot convert sample tree into array: No id found for sample ${parent.label}!`);
+          }
+          target.parentId = parent.id;
+          delete target.parent; // not need
+        }
+
+        return res.concat(target)
+          .concat(...this.treeAsObjectArray(source.children || [], {...opts, parent: target}));
+      }, []);
+  }
+
   static equals(s1: Sample | any, s2: Sample | any): boolean {
     return s1 && s2 && s1.id === s2.id
       || (s1.rankOrder === s2.rankOrder
@@ -35,6 +69,7 @@ export class Sample extends RootDataEntity<Sample>
         // Warn: compare using the parent ID is too complicated
       );
   }
+
 
   label: string;
   rankOrder: number;

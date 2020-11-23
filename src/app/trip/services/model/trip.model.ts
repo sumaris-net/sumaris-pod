@@ -311,6 +311,7 @@ export class VesselPosition extends DataEntity<VesselPosition> {
 
 export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
+  sampleAsTree?: boolean;
 }
 export interface OperationFromObjectOptions {
   withSamples?: boolean;
@@ -413,7 +414,18 @@ export class Operation extends DataEntity<Operation, OperationAsObjectOptions, O
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
 
     // Samples
-    target.samples = this.samples && this.samples.map(s => s.asObject({...opts, withChildren: true})) || undefined;
+    {
+      // Serialize samples into a tree (will keep only children arrays, and removed parentId and parent)
+      if (!opts || opts.sampleAsTree !== false) {
+        target.samples = this.samples && this.samples
+          .filter(s => isNotNil(s.parentId) && isNotNil(s.parent))
+          .map(s => s.asObject({...opts, withChildren: true})) || undefined;
+      }
+      else {
+        // Serialize as samples array (this will fill parentId, and remove children and parent properties)
+        target.samples = Sample.treeAsObjectArray(this.samples, opts);
+      }
+    }
 
     // Batch
     if (target.catchBatch) {
