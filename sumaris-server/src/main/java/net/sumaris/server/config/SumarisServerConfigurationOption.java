@@ -132,7 +132,7 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     AUTH_ROLE_NOT_SELF_DATA_ACCESS(
             "sumaris.auth.notSelfDataAccess.role",
             n("sumaris.config.option.auth.notSelfDataAccess.role.description"),
-            null, // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
+            "ROLE_ADMIN", // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
             String.class,
             false),
 
