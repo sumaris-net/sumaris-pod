@@ -8,41 +8,37 @@ stages:
     - release
     - deploy
 
-build_test:
+build:
     stage: build
     tags: 
         - sih_public_runner
     script:
         - echo "Test compilation in progress"
-        - mvn clean install -DskipTests
+        - mvn -s ./settings.xml clean install -DskipTests
     environment:
         name: test
     artifacts:
         paths:
             - web-services/target/*.war
     only:
-        - develop-ifremer   
+        - develop
     when: always
 
-
-build_val:
+build_branch:
     stage: build
-    tags: 
+    tags:
         - sih_public_runner
     script:
-        - echo "Validation compilation in progress"
-        - mvn clean 
+        - echo "Test compilation in progress"
         - mvn -s ./settings.xml clean install -DskipTests
     environment:
-        name: validation
+        name: test
     artifacts:
         paths:
             - web-services/target/*.war
     only:
-        - develop-ifremer   
+        - $CI_BUILD_REF_NAME
     when: manual
-
-
 
 sonarqube:
     stage: test
