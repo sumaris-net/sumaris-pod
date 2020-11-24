@@ -45,7 +45,7 @@ export class PmfmValidators {
       validatorFns.push(SharedValidators.entity);
     }
 
-    return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : undefined);
+    return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : null);
   }
 }
 
