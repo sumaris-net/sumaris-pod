@@ -8,6 +8,10 @@ import {NetworkService} from "../../services/network.service";
 import {LocalSettingsService} from "../../services/local-settings.service";
 import {slideUpDownAnimation} from "../../../shared/material/material.animations";
 import {PlatformService} from "../../services/platform.service";
+import {DateAdapter} from "@angular/material/core";
+import {Moment} from "moment";
+import {debounceTime, throttleTime} from "rxjs/operators";
+import {AppForm} from "../../form/form.class";
 
 
 @Component({
@@ -16,26 +20,12 @@ import {PlatformService} from "../../services/platform.service";
   styleUrls: ['./form-auth.scss'],
   animations: [slideUpDownAnimation]
 })
-export class AuthForm implements OnInit {
+export class AuthForm extends AppForm<AuthData> implements OnInit {
 
   loading = false;
   readonly mobile: boolean;
-  form: FormGroup;
-  error: string = null;
   canWorkOffline = false;
   showPwd = false;
-
-  public get value(): AuthData {
-    return this.form.value;
-  }
-
-  public get valid(): boolean {
-    return this.form.valid;
-  }
-
-  public get invalid(): boolean {
-    return this.form.invalid;
-  }
 
   @Output()
   onCancel: EventEmitter<any> = new EventEmitter<any>();
@@ -43,24 +33,33 @@ export class AuthForm implements OnInit {
   @Output()
   onSubmit: EventEmitter<AuthData> = new EventEmitter<AuthData>();
 
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+    this.showPwd = false; // Hide pwd when disable (e.g. when submitted)
+  }
+
   constructor(
-    private platform: PlatformService,
-    private formBuilder: FormBuilder,
-    private settings: LocalSettingsService,
+    platform: PlatformService,
+    dateAdapter: DateAdapter<Moment>,
+    formBuilder: FormBuilder,
+    settings: LocalSettingsService,
     private modalCtrl: ModalController,
     public network: NetworkService
   ) {
-    this.form = formBuilder.group({
+    super(dateAdapter,
+      formBuilder.group({
       username: [null, Validators.compose([Validators.required, Validators.email])],
       password: [null, Validators.required],
       offline: [network.offline]
-    });
+    }), settings);
 
     this.mobile = platform.mobile;
     this.canWorkOffline = this.settings.hasOfflineFeature();
+    this._enable = true;
   }
 
   ngOnInit() {
+    super.ngOnInit();
     // For DEV only
     if (environment.production === false) {
       this.form.patchValue({
@@ -84,13 +83,15 @@ export class AuthForm implements OnInit {
 
     this.loading = true;
     const data = this.form.value;
-    this.error = null;
-    this.onSubmit
-      .subscribe(res => {
-        setTimeout(() => {
+    this.showPwd = false; // Hide password
+    this.error = null; // Reset error
+
+    this.registerSubscription(
+      this.onSubmit
+        .pipe(debounceTime(500))
+        .subscribe(res => {
           this.loading = false;
-        }, 500);
-      });
+        }));
 
     setTimeout(() => this.onSubmit.emit({
       username: data.username,

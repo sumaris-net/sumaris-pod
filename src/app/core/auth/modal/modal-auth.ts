@@ -23,20 +23,34 @@ export class AuthModal {
   }
 
   async doSubmit(): Promise<any> {
-    if (!this.form.valid) return;
+    if (this.form.disabled) return;
+    if (!this.form.valid) {
+      this.form.markAsTouched();
+      return;
+    }
     this.loading = true;
 
     try {
       const data = this.form.value;
+
+      // Disable the form
+      this.form.disable();
+
       const account = await this.accountService.login(data);
       return this.viewCtrl.dismiss(account);
     }
     catch (err) {
       this.loading = false;
       this.form.error = err && err.message || err;
+
+      // Enable the form
+      this.form.enable();
+
+      // Reset form error on next changes
       firstNotNilPromise(this.form.form.valueChanges).then(() => {
         this.form.error = null;
       });
+
       return;
     }
   }

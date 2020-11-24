@@ -46,7 +46,8 @@
                autocomplete="section-red new-password"
                [type]="showPwd ? 'text' : 'password'"
                required>
-        <button mat-icon-button matSuffix
+        <button matSuffix mat-icon-button
+                type="button"
                 (click)="showPwd = !showPwd"
                 tabindex="-1">
           <mat-icon>{{showPwd ? 'visibility_off' : 'visibility'}}</mat-icon>

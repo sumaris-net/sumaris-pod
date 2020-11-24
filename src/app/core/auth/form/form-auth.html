@@ -29,7 +29,8 @@
            required>
 
     <!-- Show pwd button -->
-    <button mat-icon-button matSuffix
+    <button matSuffix type="button"
+            mat-icon-button
             *ngIf="mobile"
             (click)="showPwd = !showPwd"
             tabindex="-1">
