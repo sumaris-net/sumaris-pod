@@ -308,7 +308,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
                     commentControl.setValidators(Validators.required);
                     commentControl.markAsTouched({onlySelf: true});
                   } else {
-                    commentControl.setValidators([]);
+                    commentControl.setValidators(null);
                   }
                   commentControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
                 })

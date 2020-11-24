@@ -147,11 +147,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
 
     this.form.setValue({...json, ...{features: { ...json.features, id: null, startDate: null, endDate: null}}});
 
-    this.form.get("features.startDate").setValidators(Validators.compose([
+    this.form.get("features.startDate").setValidators([
       Validators.required,
       SharedValidators.dateIsAfter(this.previousVessel.features.startDate,
         this.dateAdapter.format(this.previousVessel.features.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
-    ]));
+    ]);
     this.form.enable();
 
     this.form.get("registration").disable();
@@ -193,11 +193,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
       }
     });
 
-    this.form.get("registration.startDate").setValidators(Validators.compose([
+    this.form.get("registration.startDate").setValidators([
       Validators.required,
       SharedValidators.dateIsAfter(this.previousVessel.registration.startDate,
         this.dateAdapter.format(this.previousVessel.registration.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
-    ]));
+    ]);
     this.form.enable();
 
     this.form.get("features").disable();

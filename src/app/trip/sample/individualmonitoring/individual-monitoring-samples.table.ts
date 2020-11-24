@@ -59,11 +59,11 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
                   if (controls[PmfmIds.DEATH_TIME]) {
                     controls[PmfmIds.DEATH_TIME].disable();
                     controls[PmfmIds.DEATH_TIME].setValue(null);
-                    controls[PmfmIds.DEATH_TIME].setValidators([]);
+                    controls[PmfmIds.DEATH_TIME].setValidators(null);
                   }
                   if (controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS]) {
                     controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValue(null);
-                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators([]);
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators(null);
                     controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
                   }
                 }

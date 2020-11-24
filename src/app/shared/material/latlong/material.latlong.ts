@@ -195,10 +195,16 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-latlong-field>.");
 
-    this.formControl.setValidators(Validators.compose([
-      this.formControl.validator,
-      this.type === 'latitude' ? SharedValidators.latitude : SharedValidators.longitude
-    ]));
+    const existingValidators = this.formControl.validator;
+    if (existingValidators) {
+      this.formControl.setValidators([
+        existingValidators,
+        this.type === 'latitude' ? SharedValidators.latitude : SharedValidators.longitude
+      ]);
+    }
+    else {
+      this.formControl.setValidators(this.type === 'latitude' ? SharedValidators.latitude : SharedValidators.longitude);
+    }
 
     this._subscription.add(
       this.textFormControl.valueChanges

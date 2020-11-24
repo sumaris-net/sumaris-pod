@@ -51,7 +51,7 @@ export class TypedExpenseValidatorService extends MeasurementsValidatorService<M
       }
     }
     if (additionalValidators.length) {
-      form.setValidators(Validators.compose(this.getDefaultValidators().concat(additionalValidators)));
+      form.setValidators(this.getDefaultValidators().concat(...additionalValidators));
     }
   }
 

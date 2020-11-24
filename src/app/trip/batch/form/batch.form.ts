@@ -481,9 +481,9 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
       // If sampling weight is required, make batch weight required also
       if (this._requiredSampleWeight) {
-        this.weightForm.setValidators(Validators.compose([
+        this.weightForm.setValidators(
           SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
-        ]));
+        );
       }
 
       // If sampling weight is required, make batch weight required also

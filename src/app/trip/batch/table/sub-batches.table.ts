@@ -244,7 +244,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
             if (controls[PmfmIds.DISCARD_REASON]) {
               controls[PmfmIds.DISCARD_REASON].disable();
               controls[PmfmIds.DISCARD_REASON].setValue(null);
-              controls[PmfmIds.DISCARD_REASON].setValidators([]);
+              controls[PmfmIds.DISCARD_REASON].setValidators(null);
             }
           }
         });
@@ -276,7 +276,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
               }
               else {
                 control.disable();
-                control.setValidators([]);
+                control.setValidators(null);
                 control.setValue(null);
               }
             }

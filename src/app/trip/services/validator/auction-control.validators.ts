@@ -12,7 +12,7 @@ export class AuctionControlValidators {
                              opts?: { markForCheck: () => void }): Subscription {
 
     // Label: remove 'required', and add integer
-    form.get('label').setValidators([Validators.pattern(/^[0-9]*$/)]);
+    form.get('label').setValidators(Validators.pattern(/^[0-9]*$/));
 
     // Disable computed pmfms
     AppFormUtils.disableControls(form,

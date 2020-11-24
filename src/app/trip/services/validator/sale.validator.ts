@@ -68,8 +68,8 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
     opts = this.fillDefaultOptions(opts);
 
     if (opts && opts.required === true) {
-      form.controls['vesselSnapshot'].setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
-      form.controls['saleType'].setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
+      form.controls['vesselSnapshot'].setValidators([Validators.required, SharedValidators.entity]);
+      form.controls['saleType'].setValidators([Validators.required, SharedValidators.entity]);
     }
     else {
       form.controls['vesselSnapshot'].setValidators(SharedValidators.entity);
