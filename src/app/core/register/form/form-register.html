@@ -3,7 +3,7 @@
   <!-- Step 1: Username -->
   <mat-step [stepControl]="forms[0]" *ngIf="forms[0].controls; let controls">
 
-    <form [formGroup]="forms[0]" class="form-container ion-padding" (keyup.enter)="slideNext()">
+    <form [formGroup]="forms[0]" class="form-container ion-padding" (keyup.enter)="slideNext($event)">
       <ng-template matStepLabel>{{'REGISTER.STEP_EMAIL'|translate}}</ng-template>
 
       <!-- Email -->
@@ -35,7 +35,7 @@
   <!-- Step 2: Password -->
   <mat-step [stepControl]="forms[1]" *ngIf="forms[1].controls; let controls">
 
-    <form [formGroup]="forms[1]" class="form-container ion-padding" (keyup.enter)="slideNext()">
+    <form [formGroup]="forms[1]" class="form-container ion-padding" (keyup.enter)="slideNext($event)">
 
       <ng-template matStepLabel>{{'REGISTER.STEP_PASSWORD'|translate}}</ng-template>
 
@@ -47,7 +47,7 @@
                [type]="showPwd ? 'text' : 'password'"
                required>
         <button mat-icon-button matSuffix
-                (click)="showPwd = !$event.defaultPrevented && !showPwd"
+                (click)="showPwd = !showPwd"
                 tabindex="-1">
           <mat-icon>{{showPwd ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
@@ -65,7 +65,7 @@
                [type]="showConfirmPwd ? 'text' : 'password'"
                required>
         <button mat-icon-button matSuffix
-                (click)="showConfirmPwd = !$event.defaultPrevented && !showConfirmPwd"
+                (click)="showConfirmPwd = !showConfirmPwd"
                 tabindex="-1">
           <mat-icon>{{showConfirmPwd ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>

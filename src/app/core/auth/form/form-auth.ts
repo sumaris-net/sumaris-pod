@@ -75,12 +75,12 @@ export class AuthForm implements OnInit {
   }
 
   doSubmit(event?: UIEvent) {
-    if (this.form.invalid || this.loading) return;
-
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
+
+    if (this.form.invalid || this.loading) return;
 
     this.loading = true;
     const data = this.form.value;

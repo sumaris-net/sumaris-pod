@@ -31,7 +31,7 @@
     <!-- Show pwd button -->
     <button mat-icon-button matSuffix
             *ngIf="mobile"
-            (click)="showPwd = $event.defaultPrevented && !showPwd"
+            (click)="showPwd = !showPwd"
             tabindex="-1">
       <mat-icon>{{showPwd ? 'visibility_off' : 'visibility'}}</mat-icon>
     </button>
