@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HammerGestureConfig } from "@angular/platform-browser";
-
+import * as Hammer from 'hammerjs';
 
 /**
  * @hidden
@@ -12,17 +12,18 @@ export class AppGestureConfig extends HammerGestureConfig {
 
   // Override HammerJS default settings
   overrides = <any>{
-    'press': {
+    press: {
       time: 500 // Increase need for double tap (default: 251 ms)
     },
-    'pinch': {
+    pinch: {
       enable: false
     },
-    'rotate': {
+    rotate: {
       enable: false
     },
     // see https://hammerjs.github.io/recognizer-swipe/
-    'swipe': {
+    swipe: {
+      //direction: Hammer.DIRECTION_ALL,
       threshold: 30,  // Minimal distance required before recognizing.
       velocity: 0.4  //Minimal velocity required before recognizing, unit is in px per ms.
     }

@@ -330,6 +330,10 @@ export function remove<T>(array: T[], predicate: (pmfm: T) => boolean): T {
 
 export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
+export function capitalizeFirstLetter(value: string) {
+  if (!value || value.length === 0) return value;
+  return value.substr(0,1).toUpperCase() + value.substr(1);
+}
 export function uncapitalizeFirstLetter(value: string) {
   if (!value || value.length === 0) return value;
   return value.substr(0,1).toLowerCase() + value.substr(1);

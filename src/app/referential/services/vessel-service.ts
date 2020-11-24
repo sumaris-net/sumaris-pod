@@ -24,7 +24,7 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy} from "@apollo/client/core";
 import {isEmptyArray} from "../../shared/functions";
 import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";

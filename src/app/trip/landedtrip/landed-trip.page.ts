@@ -618,7 +618,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
    * @param queryParams
    */
   protected async updateRoute(data: Trip, queryParams: any): Promise<boolean> {
-    return await this.router.navigateByUrl(`${this.defaultBackHref}/trip/${data.id}`, {
+    const commands = this.defaultBackHref.split('/').concat(['trip', data.id.toString()]);
+    return await this.router.navigate(commands, {
       replaceUrl: true,
       queryParams: this.queryParams
     });

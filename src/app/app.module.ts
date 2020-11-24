@@ -1,7 +1,7 @@
 import "./vendor";
 
 import {APP_BASE_HREF} from "@angular/common";
-import {BrowserModule} from "@angular/platform-browser";
+import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from "@angular/core";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {DATE_ISO_PATTERN} from "./core/constants";
@@ -15,10 +15,8 @@ import {Vibration} from '@ionic-native/vibration/ngx';
 import {AppComponent} from "./app.component";
 import {AppRoutingModule} from "./app-routing.module";
 import {CoreModule} from "./core/core.module";
-
 import {environment} from "../environments/environment";
 import {HttpClient, HttpClientModule} from "@angular/common/http";
-import {HTTP} from "@ionic-native/http/ngx";
 import {Camera} from "@ionic-native/camera/ngx";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
@@ -41,6 +39,7 @@ import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-load
 import {MarkdownModule, MarkedOptions} from "ngx-markdown";
 import {EntitiesStorageOptions, LOCAL_ENTITIES_STORAGE_OPTIONS} from "./core/services/storage/entities-storage.service";
 import {OperationService} from "./trip/services/operation.service";
+import {AppGestureConfig} from "./shared/gesture/gesture-config";
 
 
 @NgModule({
@@ -82,6 +81,7 @@ import {OperationService} from "./trip/services/operation.service";
     // functional modules
     CoreModule.forRoot(),
     SharedModule.forRoot(),
+    HammerModule,
     AppRoutingModule
   ],
   providers: [
@@ -89,7 +89,6 @@ import {OperationService} from "./trip/services/operation.service";
     SplashScreen,
     Keyboard,
     Camera,
-    HTTP,
     Network,
     NativeAudio,
     Vibration,
@@ -113,6 +112,9 @@ import {OperationService} from "./trip/services/operation.service";
       }
     },
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
+
+    // Configure hammer gesture
+    {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
 
     { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: {
         pageHistoryMaxSize: 3

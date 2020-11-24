@@ -7,7 +7,7 @@ import {BaseEntityService, EntityUtils, Referential} from "../../core/core.modul
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 
-import {FetchPolicy, MutationUpdaterFn} from "apollo-client";
+import {FetchPolicy, MutationUpdaterFn} from "@apollo/client/core";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";

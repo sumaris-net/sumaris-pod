@@ -1,11 +1,10 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, Optional} from '@angular/core';
-import {ModalController, Platform} from '@ionic/angular';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
+import {ModalController} from '@ionic/angular';
 import {Peer} from "../services/model/peer.model";
 import {Observable, Subject, Subscription} from "rxjs";
 import {fadeInAnimation} from "../../shared/material/material.animations";
 import {HttpClient} from "@angular/common/http";
 import {NetworkUtils, NodeInfo} from "../services/network.utils";
-import {HTTP} from "@ionic-native/http/ngx";
 import {VersionUtils} from "../../shared/version/versions";
 import {environment} from "../../../environments/environment";
 
@@ -23,28 +22,21 @@ export class SelectPeerModal implements OnDestroy {
   $peers = new Subject<Peer[]>();
   peerMinVersion = environment.peerMinVersion;
 
-  private readonly httpClient: HTTP | HttpClient;
-
   @Input() canCancel = true;
   @Input() allowSelectDownPeer = true;
-
-  set peers(peers: Observable<Peer[]>) {
-    this._subscription.add(
-      peers.subscribe(res => this.refreshPeers(res))
-    );
-  }
-
 
   constructor(
 
     private viewCtrl: ModalController,
     private cd: ChangeDetectorRef,
-    platform: Platform,
-    http: HttpClient,
-    @Optional() nativeHttp: HTTP
+    private http: HttpClient
   ) {
+  }
 
-    this.httpClient = platform.is('mobile') ? nativeHttp : http;
+  set peers(peers: Observable<Peer[]>) {
+    this._subscription.add(
+      peers.subscribe(res => this.refreshPeers(res))
+    );
   }
 
   cancel() {
@@ -113,7 +105,7 @@ export class SelectPeerModal implements OnDestroy {
 
   protected async refreshPeer(peer: Peer): Promise<Peer> {
     try {
-      const summary: NodeInfo = await NetworkUtils.getNodeInfo(this.httpClient, peer.url);
+      const summary: NodeInfo = await NetworkUtils.getNodeInfo(this.http, peer.url);
       peer.status = 'UP';
       peer.softwareName = summary.softwareName;
       peer.softwareVersion = summary.softwareVersion;

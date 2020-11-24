@@ -31,7 +31,7 @@ import {
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
-import {WatchQueryFetchPolicy} from "apollo-client";
+import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {FormErrors} from "../../core/form/form.utils";
 import {NetworkService} from "../../core/services/network.service";

@@ -11,7 +11,7 @@ import {BehaviorSubject, Subject, Subscription, timer} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
-import {isNotNilOrBlank, toBoolean, sleep, isNotEmptyArray} from "../../shared/functions";
+import {isNotEmptyArray, isNotNilOrBlank, sleep, toBoolean} from "../../shared/functions";
 import {Connection, Network} from '@ionic-native/network/ngx';
 import {DOCUMENT} from "@angular/common";
 import {CacheService} from "ionic-cache";
@@ -19,13 +19,8 @@ import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {distinctUntilChanged, filter, map, mergeMap, tap} from "rxjs/operators";
 import {OverlayEventDetail} from "@ionic/core";
 import {NodeInfo} from "./network.utils";
-import {HTTP} from "@ionic-native/http/ngx";
 import {HttpUtils} from "../../shared/http/http.utils";
-import {Configuration} from "./model/config.model";
-import {ConfigOptions} from "./config/core.config";
 import {VersionUtils} from "../../shared/version/versions";
-import {Browser} from "leaflet";
-import mobile = Browser.mobile;
 
 export type ConnectionType = 'none' | 'wifi' | 'ethernet' | 'cell' | 'unknown' ;
 
@@ -79,7 +74,6 @@ export class NetworkService {
   private _listeners: {
    [key: string]: ((data?: any) => Promise<void>)[]
   } = {};
-  private readonly httpClient: HTTP | HttpClient;
 
 
   onStart = new Subject<Peer>();
@@ -129,16 +123,11 @@ export class NetworkService {
     private settings: LocalSettingsService,
     private network: Network,
     private cache: CacheService,
-    http: HttpClient,
-    @Optional() nativeHttp: HTTP,
+    private http: HttpClient,
     @Optional() private translate: TranslateService,
     @Optional() private toastController: ToastController
   ) {
     this._mobile = this.platform.is('mobile');
-
-    const useNativeHttp = this.platform.is('cordova');
-    console.info(`[network] Creating service {nativeHttp: ${useNativeHttp}`);
-    this.httpClient = useNativeHttp ? nativeHttp : http;
 
     if (this._mobile) {
       this._timerRefreshPeriod = NetworkRefreshTimerPeriod.MOBILE;
@@ -536,7 +525,7 @@ export class NetworkService {
     if (peerUrl.endsWith('/')) {
       peerUrl = peerUrl.substr(0, peerUrl.length -1);
     }
-    return this.get(peerUrl + '/api/node/info', {});
+    return this.get(peerUrl + '/api/node/info');
   }
 
   /**
@@ -639,7 +628,7 @@ export class NetworkService {
 
     try {
       // Execute the request
-      return HttpUtils.getResource(this.httpClient, uri, opts);
+      return HttpUtils.getResource(this.http, uri, opts);
     }
     catch (err) {
       if (err && err.message) {

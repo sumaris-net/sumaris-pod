@@ -14,6 +14,7 @@ import {
 } from "../../../shared/functions";
 import {Moment} from "moment";
 import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from "../../../data/services/model/model.utils";
+import {tar} from "@ionic/cli/lib/utils/archive";
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
@@ -92,13 +93,35 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
 }
 
 export class ExtractionResult {
+
+  static fromObject(source: any): ExtractionResult {
+    if (!source || source instanceof ExtractionResult) return source;
+    const target = new ExtractionResult();
+    target.fromObject(source);
+    return target;
+  }
+
   columns: ExtractionColumn[];
   rows: ExtractionRow[];
   total: number;
+
+  fromObject(source: any): ExtractionResult {
+    this.total = source.total;
+    this.columns = source.columns && source.columns.map(ExtractionColumn.fromObject) || null;
+    this.rows = source.rows && source.rows.slice() || null;
+    return this;
+  }
 }
 
 
 export class ExtractionColumn {
+  static fromObject(source: any): ExtractionColumn {
+    if (!source || source instanceof ExtractionColumn) return source;
+    const target = new ExtractionColumn();
+    target.fromObject(source);
+    return target;
+  }
+
   id: number;
   creationDate: Moment;
   index?: number;
@@ -109,11 +132,25 @@ export class ExtractionColumn {
   description?: String;
   rankOrder: number;
   values?: string[];
+
+  fromObject(source: any): ExtractionColumn {
+    this.id = source.id;
+    this.creationDate = source.creationDate;
+    this.index = source.index;
+    this.label = source.label;
+    this.name = source.name;
+    this.columnName = source.columnName;
+    this.type = source.type;
+    this.description = source.description;
+    this.rankOrder = source.rankOrder;
+    this.values = source.values && source.values.slice();
+    return this;
+  }
 }
 
 export class ExtractionRow extends Array<any> {
-  constructor() {
-    super();
+  constructor(...items: any[]) {
+    super(...items);
   }
 }
 

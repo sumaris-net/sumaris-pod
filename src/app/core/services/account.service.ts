@@ -7,7 +7,7 @@ import {UsageMode, UserSettings} from "./model/settings.model";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import gql from "graphql-tag";
 import {Storage} from '@ionic/storage';
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy} from "@apollo/client/core";
 
 import {sleep, toDateISOString} from "../../shared/functions";
 import {BaseEntityService} from "./base.data-service.class";

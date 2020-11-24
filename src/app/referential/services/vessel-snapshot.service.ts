@@ -7,7 +7,7 @@ import {ErrorCodes} from "./errors";
 import {fetchAllPagesWithProgress, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy} from "@apollo/client/core";
 import {VesselFilter} from "./vessel-service";
 import {BehaviorSubject, Observable} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";

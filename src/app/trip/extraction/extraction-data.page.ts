@@ -329,15 +329,17 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     if (!this.type || !this.type.isSpatial) return; // Skip
 
     if (event) {
-      event.stopPropagation();
       event.preventDefault();
     }
 
-    // open the map
-    this.router.navigateByUrl('/extraction/map', {
-      relativeTo: this.route,
-      queryParams: {...this.queryParams, ...this.getFilterAsQueryParams()}
-    });
+    return setTimeout(() => {
+      // open the map
+      return this.router.navigate(['../map'],
+        {
+          relativeTo: this.route,
+          queryParams: {...this.queryParams, ...this.getFilterAsQueryParams()}
+        });
+    }, 200);
   }
 
   async openAggregationType(type?: ExtractionType) {
@@ -436,13 +438,15 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
   /* -- private method -- */
 
   private async updateTitle() {
-    const key = `EXTRACTION.CATEGORY.${this.type.category.toUpperCase()}`;
-    const title = await this.translate.get(key).toPromise();
-    if (title === key) {
-      console.warn("Missing i18n key '" + key + "'");
-      this.$title.next("");
-    } else {
-      this.$title.next(title);
+
+    const categoryKey = `EXTRACTION.CATEGORY.${this.type.category.toUpperCase()}`;
+    const categoryName = await this.translate.get(categoryKey).toPromise();
+    if (categoryName === categoryKey) {
+      console.warn("Missing i18n key '" + categoryKey + "'");
+      this.$title.next(this.type.name);
+    }
+    else {
+      this.$title.next(`<small>${categoryName}<br/></small>${this.type.name}`);
     }
   }
 

@@ -155,7 +155,11 @@ export class RegisterForm implements OnInit {
     return this.stepper.previous();
   }
 
-  slideNext() {
+  slideNext(event?: UIEvent) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     return this.stepper.next();
   }
 

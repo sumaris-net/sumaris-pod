@@ -5,7 +5,7 @@ import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
 import {BehaviorSubject, Observable, of, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../graphql/graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
@@ -452,6 +452,7 @@ export class ConfigService extends SoftwareService<Configuration> {
           // WARN: it's NOT necessary to convert AL image, but only one, for smaller memory footprint
           const index = data.backgroundImages.findIndex((img) => img && img.startsWith('http'));
           if (index !== -1) {
+            data.backgroundImages = data.backgroundImages.slice(); // Copy
             jobs.push(
               this.file.getImage(data.backgroundImages[index], options)
                 .then(dataUrl => data.backgroundImages[index] = dataUrl));

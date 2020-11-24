@@ -38,7 +38,7 @@ import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entit
 import {QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {concatPromises, firstNotNilPromise} from "../../shared/observables";
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy} from "@apollo/client/core";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {

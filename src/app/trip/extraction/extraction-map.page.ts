@@ -40,6 +40,7 @@ import {MatExpansionPanel} from "@angular/material/expansion";
 import {Label, SingleOrMultiDataSet} from "ng2-charts";
 import {ChartOptions, ChartType} from "chart.js";
 import {DEFAULT_CRITERION_OPERATOR} from "./extraction-data.page";
+import {DurationPipe} from "../../shared/pipes/duration.pipe";
 
 declare interface LegendOptions {
   min: number;
@@ -54,6 +55,8 @@ declare type TechChartOptions = ChartOptions & {
   //sortByLabel?: boolean;
   displayAllLabels?: boolean;
 }
+
+const REGEXP_NAME_WITH_UNIT = /^([^(]+)(?: \(([^)]+)\))?$/
 
 const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">\n' +
   '   <sld:NamedLayer>\n' +
@@ -150,7 +153,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   // -- Details card --
   $onOverFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
-  $details = new Subject<{ title: string; properties: { name: string; value: string }[]; }>();
+  $details = new Subject<{ title: string; value?: string;  otherValue?: string; properties: { name: string; value: string }[]; }>();
 
   // -- Chart card
   techChartOptions: TechChartOptions = {
@@ -248,6 +251,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     protected formBuilder: FormBuilder,
     protected platform: PlatformService,
     protected zone: NgZone,
+    protected durationPipe: DurationPipe,
     protected aggregationStrataValidator: AggregationTypeValidatorService,
     protected cd: ChangeDetectorRef
   ) {
@@ -309,7 +313,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     this.registerSubscription(
       this.$onOverFeature
         .pipe(
-          throttleTime(200),
+          throttleTime(300),
           tap(feature => this.openFeatureDetails(feature))
         ).subscribe());
 
@@ -373,8 +377,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     if (changed) {
 
       // Update the title
-      const typeName = this.getI18nTypeName(this.type);
-      this.$title.next(typeName);
+      this.updateTile()
 
       // Stop animation
       if (!opts || opts.stopAnimation !== false) {
@@ -466,6 +469,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   getI18nSheetName(sheetName?: string, type?: AggregationType, self?: ExtractionAbstractPage<any>): string {
     const str = super.getI18nSheetName(sheetName, type, self);
     return str.replace(/\([A-Z]+\)$/, '');
+  }
+
+  protected async updateTile() {
+    const typeName = this.getI18nTypeName(this.type);
+    const prefix = await this.translate.get('EXTRACTION.MAP.TITLE_PREFIX').toPromise();
+
+    this.$title.next(`<small>${prefix}<br/></small>${typeName}`);
   }
 
   /* -- protected method -- */
@@ -796,13 +806,39 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           value: feature.properties[key]
         };
       });
-    const aggValue = this.formatNumber(feature.properties[strata.aggColumnName]);
-    feature.properties[strata.aggColumnName] = aggValue;
+    let sourceValue = feature.properties[strata.aggColumnName];
+    let value = this.floatToLocaleString(sourceValue);
 
-    const title = isNotNilOrBlank(strata.aggColumnName) ? `${this.columnNames[strata.aggColumnName]}: <b>${aggValue}</b>` : undefined;
+    let title = isNotNilOrBlank(strata.aggColumnName) ? this.columnNames[strata.aggColumnName] : undefined;
+    const matches = REGEXP_NAME_WITH_UNIT.exec(title);
+    let otherValue: string;
+    if (matches) {
+      title = matches[1];
+      let unit = matches[2];
+      unit = unit || (strata.aggColumnName.endsWith('_weight') ? 'kg' : undefined);
+      if (unit) {
+        // Append unit to value
+        if (value) value += ` ${unit}`;
+
+        // Try to compute other value, using unit
+        switch (unit) {
+          case 'hours':
+          case 'h.dec':
+          case 'h. dec':
+            // Days
+            otherValue = this.durationPipe.transform(parseFloat(sourceValue), 'hours');
+            break;
+          case 'kg':
+            // Tons
+            otherValue = this.floatToLocaleString(parseFloat(sourceValue) / 1000) + ' t';
+            break;
+          default:
+        }
+      }
+    }
 
     // Emit events
-    this.$details.next({title, properties});
+    this.$details.next({title, value, otherValue, properties});
     this.$selectedFeature.next(feature);
   }
 
@@ -1111,15 +1147,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     return json as AggregationStrata;
   }
 
-  protected formatNumber(value: number|string, columnName?: string): string|undefined {
+  protected floatToLocaleString(value: number|string): string|undefined {
     if (isNil(value)) return undefined;
-    columnName = columnName || this.aggColumnName;
     if (typeof value === 'string') {
       value = parseFloat(value);
     }
-    const symbol = columnName && columnName.endsWith('_weight') ? 'kg' : '';
     return value.toLocaleString(this.formatNumberLocale, {
       useGrouping: true,
-      maximumSignificantDigits: 2}) + ' ' + symbol;
+      maximumFractionDigits: 2});
   }
 }

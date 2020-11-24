@@ -1209,6 +1209,9 @@
         "FORMAT": "Format"
       }
     },
+    "TABLE": {
+      "BTN_SELECT_TYPE": "Liste des extractions"
+    },
     "MAP": {
       "BTN_SELECT_TYPE": "Liste des cartes",
       "BTN_SELECT_AGG": "Indicateur ?",
@@ -1216,6 +1219,7 @@
       "BTN_EDIT": "Editer",
       "BTN_ANIMATION_PLAY": "Lancer l'animation",
       "BTN_ANIMATION_PAUSE": "Stopper l'animation",
+      "TITLE_PREFIX": "Carte",
       "LAYER": "Couche",
       "LAYERS": "Couches de données",
       "BASE_LAYER": "Fond de carte",

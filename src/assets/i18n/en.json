@@ -1209,13 +1209,17 @@
         "FORMAT": "Format"
       }
     },
+    "TABLE": {
+      "BTN_SELECT_TYPE": "List of datasets"
+    },
     "MAP": {
-      "BTN_SELECT_TYPE": "Map list",
+      "BTN_SELECT_TYPE": "List of maps",
       "BTN_SELECT_AGG": "Indicator ?",
       "BTN_ADD_TECH_GRAPH": "Add a chart",
       "BTN_EDIT": "Edit",
       "BTN_ANIMATION_PLAY": "Play animation",
       "BTN_ANIMATION_PAUSE": "Stop animation",
+      "TITLE_PREFIX": "Map",
       "LAYER": "Layer",
       "LAYERS": "Data layers",
       "BASE_LAYER": "Base layer",

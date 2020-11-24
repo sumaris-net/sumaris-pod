@@ -1,4 +1,14 @@
 <app-toolbar [title]="$title | async" color="primary">
+
+  <ion-buttons slot="end">
+    <ion-button [matMenuTriggerFor]="selectTypeMenu"
+                *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+                color="accent" fill="solid">
+      <ion-label translate>EXTRACTION.TABLE.BTN_SELECT_TYPE</ion-label>
+      <mat-icon slot="end">arrow_drop_down</mat-icon>
+    </ion-button>
+    &nbsp;
+  </ion-buttons>
 </app-toolbar>
 
 <!-- Types menu -->
@@ -49,16 +59,8 @@
 
   <mat-toolbar>
     <mat-toolbar-row>
-      <ion-button size="small" color="secondary" *ngIf="type" [matMenuTriggerFor]="selectTypeMenu">
-        <div slot="start">
-          <ion-icon name="globe" *ngIf="type.isSpatial" ></ion-icon>
-          <ion-icon name="eye-off" *ngIf="type.statusId==2"></ion-icon>&nbsp;
-        </div>
-        <ion-label class="ion-text-wrap">{{type.name}}</ion-label>
-        <mat-icon slot="end">arrow_drop_down</mat-icon>
-      </ion-button>
 
-      <!-- Show description -->
+      <!-- Help button -->
       <button mat-icon-button
               *ngIf="type?.description"
               [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"

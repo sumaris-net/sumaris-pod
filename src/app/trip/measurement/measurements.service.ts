@@ -117,7 +117,8 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
               map((res) => {
 
                 // Prepare measurement values for reactive form
-                (res && res.data || []).forEach(entity => MeasurementValuesUtils.normalizeEntityToForm(entity, pmfms));
+                res.data = (res.data || []).slice();
+                res.data.forEach(entity => MeasurementValuesUtils.normalizeEntityToForm(entity, pmfms));
 
                 // Apply sort on pmfm
                 if (sortPmfm) {
