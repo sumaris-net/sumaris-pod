@@ -10,3 +10,5 @@ SUMARiS
 ## License
 
 Free software, distributed under a [GPL v3 license](./src/site/markdown/LICENSE.md).
+
+test
