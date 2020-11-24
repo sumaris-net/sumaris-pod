@@ -358,11 +358,11 @@
 
   "PLANIFICATION": {
     "CREATE_SAMPLING_PLAN" : "Création d'une ligne de plan d'échantillonnage",
-    "FISHING_AREA" :"Zone (s) de pêche",
+    "FISHING_AREA" :"Zone (s) de pêche ",
     "SAMPLE_ROW_CODE":"Code de la ligne",
     "SAMPLE_ROW_TITLE":"Code de la ligne",
     "EOTP":"EOTP",
-    "LABORATORY" :"Laboratoire (s)",
+    "LABORATORY" :"Laboratoire (s) ",
     "TARGET_SPECIE" :"Espèce cible",
     "LANDING_PORT" :"Port de débarquement",
     "SEX": "Sexe",

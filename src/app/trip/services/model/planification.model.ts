@@ -28,16 +28,16 @@ export class Planification extends DataEntity<Planification>  {
   year : Moment;
   comment : string;
   taxonName: TaxonNameRef;
-
-  // TODO : update correct types--
   sampleRowCode : string;
+  //update with correct type ---
   eotp: TaxonNameRef;
-  laboratory: TaxonNameRef;
-  fishingArea: TaxonNameRef;
   landingArea: TaxonNameRef;
+  //----------------------------
+  laboratories: ReferentialRef [];
+  fishingAreas: ReferentialRef [];
   sex : boolean;
   age : boolean;
-  calcifiedType: TaxonNameRef;
+  calcifiedTypes: ReferentialRef[];
   //-------------------------------
 
 
@@ -49,12 +49,12 @@ export class Planification extends DataEntity<Planification>  {
     this.taxonName = null;
     this.eotp = null;
     this.sampleRowCode = null;
-    this.laboratory = null;
-    this.fishingArea = null;
+    this.laboratories =  [];
+    this.fishingAreas = [];
     this.landingArea = null;
     this.sex = null;
     this.age =null;
-    this.calcifiedType = null;
+    this.calcifiedTypes = [];
   }
 
   clone(): Planification {
@@ -67,13 +67,19 @@ export class Planification extends DataEntity<Planification>  {
     target.year = toDateISOString(this.year);
     target.comment = this.comment;
     target.taxonName = this.taxonName;
-
     target.eotp = this.eotp;
     target.sampleRowCode = this.sampleRowCode;
-    target.laboratory = this.laboratory;
-    target.fishingArea = this.fishingArea;
+
+    target.laboratories = this.laboratories && this.laboratories.filter(isNotNil).map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
+    if (isEmptyArray(target.laboratories)) delete target.laboratories; // Clean is empty, for compat with previous version
+
+    target.fishingAreas = this.fishingAreas && this.fishingAreas.filter(isNotNil).map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
+    if (isEmptyArray(target.fishingAreas)) delete target.fishingAreas; // Clean is empty, for compat with previous version
+
     target.landingArea = this.landingArea;
-    target.calcifiedType = this.calcifiedType;
+
+    target.calcifiedTypes = this.calcifiedTypes && this.calcifiedTypes.filter(isNotNil).map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
+    if (isEmptyArray(target.calcifiedTypes)) delete target.calcifiedTypes; // Clean is empty, for compat with previous version
 
     target.sex = this.sex;
     target.age = this.age;
@@ -90,10 +96,10 @@ export class Planification extends DataEntity<Planification>  {
 
    // TODO : update correct types-------------------------------------------------------------------------
     this.eotp = source.eotp && TaxonNameRef.fromObject(source.eotp) || undefined;
-    this.laboratory = source.laboratory && TaxonNameRef.fromObject(source.laboratory) || undefined;
-    this.fishingArea = source.fishingArea && TaxonNameRef.fromObject(source.fishingArea) || undefined;
+    this.laboratories = source.laboratories && source.laboratories.map(ReferentialRef.fromObject) || [];
+    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(ReferentialRef.fromObject) || [];
     this.landingArea = source.landingArea && TaxonNameRef.fromObject(source.landingArea) || undefined;
-    this.calcifiedType = source.calcifiedType && TaxonNameRef.fromObject(source.calcifiedType) || undefined;
+    this.calcifiedTypes = source.calcifiedTypes && source.calcifiedTypes.map(ReferentialRef.fromObject) || [];
     //----------------------------------------------------------------------------------------------------
     this.sex = source.sex  || undefined;
     this.age = source.age  || undefined;
