@@ -3,7 +3,7 @@ import {ActivatedRoute, Params, Router} from "@angular/router";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {AlertController, ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
-import {Subscription} from 'rxjs';
+import {Subscription, TeardownLogic} from 'rxjs';
 import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
 import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
@@ -11,7 +11,6 @@ import {FormButtonsBarComponent} from './form-buttons-bar.component';
 import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
-import {TeardownLogic} from "rxjs/src/internal/types";
 
 export class AppTabFormOptions {
 
@@ -246,6 +245,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
    */
   onSwipeTab(event: HammerSwipeEvent) {
     // DEBUG
+    console.debug("[tab-editor] TODO onSwipeTab()");
     // if (this.debug) console.debug("[tab-page] onSwipeTab()");
 
     // Skip, if not a valid swipe event
@@ -267,6 +267,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
         const isLast = selectTabIndex >= (this.tabCount - 1);
         selectTabIndex = isLast ? 0 : selectTabIndex + 1;
         break;
+
 
       // Open previous tab
       case "swiperight":

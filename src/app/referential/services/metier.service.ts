@@ -4,7 +4,7 @@ import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy} from "@apollo/client/core";
 import {FilterFn, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Metier} from "./model/taxon.model";

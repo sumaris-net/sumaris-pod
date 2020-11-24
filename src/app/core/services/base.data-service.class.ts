@@ -1,11 +1,12 @@
 import {GraphqlService, MutateQueryOptions, WatchQueryOptions} from "../graphql/graphql.service";
 import {Page} from "../../shared/services/entity-service.class";
-import {R} from "apollo-angular/types";
+import {EmptyObject} from "apollo-angular/types";
 import {Observable} from "rxjs";
 import {DataProxy} from "apollo-cache";
 import {FetchResult} from "apollo-link";
 import {environment} from "../../../environments/environment";
 import {EntityUtils} from "./model/entity.model";
+import {ApolloCache} from "@apollo/client/core";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
 
@@ -14,7 +15,7 @@ export interface QueryVariables<F= any> extends Partial<Page> {
   [key: string]: any;
 }
 
-export interface MutateQueryWithCacheUpdateOptions<T = any, V = R> extends MutateQueryOptions<T, V> {
+export interface MutateQueryWithCacheUpdateOptions<T = any, V = EmptyObject> extends MutateQueryOptions<T, V> {
   cacheInsert?: {
     query: any;
     fetchData: (variables: V, mutationResult: FetchResult<T>) => any;
@@ -26,14 +27,14 @@ export interface MutateQueryWithCacheUpdateOptions<T = any, V = R> extends Mutat
   }[];
 }
 
-export interface MutableWatchQueryOptions<D, T = any, V = R> extends WatchQueryOptions<V> {
+export interface MutableWatchQueryOptions<D, T = any, V = EmptyObject> extends WatchQueryOptions<V> {
   queryName?: string,
   arrayFieldName: keyof D;
   totalFieldName?: keyof D ;
   insertFilterFn?: (data: T) => boolean
 }
 
-export interface MutableWatchQueryInfo<D, T = any, V = R> {
+export interface MutableWatchQueryInfo<D, T = any, V = EmptyObject> {
   id?: string;
   query: any;
   variables: V;
@@ -63,7 +64,7 @@ export abstract class BaseEntityService<T = any, F = any>{
     this._debug = !environment.production;
   }
 
-  mutableWatchQuery<D, V = R>(opts: MutableWatchQueryOptions<D, T, V>): Observable<D> {
+  mutableWatchQuery<D, V = EmptyObject>(opts: MutableWatchQueryOptions<D, T, V>): Observable<D> {
 
     if (!opts.arrayFieldName) {
       return this.graphql.watchQuery(opts);
@@ -102,7 +103,7 @@ export abstract class BaseEntityService<T = any, F = any>{
     }
   }
 
-  insertIntoMutableCachedQuery(proxy: DataProxy, opts: {
+  insertIntoMutableCachedQuery(cache: ApolloCache<any>, opts: {
     query?: any;
     queryName?: string;
     data?: T[] | T;
@@ -119,7 +120,7 @@ export abstract class BaseEntityService<T = any, F = any>{
           // Filter values, if a filter function exists
           const data = watchQuery.insertFilterFn ? opts.data.filter(i => watchQuery.insertFilterFn(i)) : opts.data;
           if (this._debug && data.length) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
-          this.graphql.addManyToQueryCache(proxy, {
+          this.graphql.addManyToQueryCache(cache, {
             query: opts.query,
             variables: watchQuery.variables,
             arrayFieldName: watchQuery.arrayFieldName as string,
@@ -131,7 +132,7 @@ export abstract class BaseEntityService<T = any, F = any>{
           // Filter value, if a filter function exists
           if (!watchQuery.insertFilterFn || watchQuery.insertFilterFn(opts.data)) {
             if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
-            this.graphql.insertIntoQueryCache(proxy, {
+            this.graphql.insertIntoQueryCache(cache, {
               query: opts.query,
               variables: watchQuery.variables,
               arrayFieldName: watchQuery.arrayFieldName as string,
@@ -143,7 +144,7 @@ export abstract class BaseEntityService<T = any, F = any>{
       });
   }
 
-  removeFromMutableCachedQueryByIds(proxy: DataProxy, opts: {
+  removeFromMutableCachedQueryByIds(proxy: ApolloCache<any>, opts: {
     query?: any;
     queryName?: string;
     ids?: number|number[];

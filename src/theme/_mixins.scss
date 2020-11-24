@@ -34,7 +34,7 @@
   $value: map-get($colors, $color-name);
   $base: map-get($value, base);
 
-  color: var(--ion-color-#{$color-name}, $base);
+  color: var(--ion-color-#{""+$color-name}, $base);
 }
 
 /**
@@ -46,17 +46,17 @@
   $contrast: map-get($value, contrast);
   $shade: map-get($value, shade);
   $tint: map-get($value, tint);
-  --ion-color-base: var(--ion-color-#{$color-name},
+  --ion-color-base: var(--ion-color-#{""+$color-name},
     #{$base}) !important;
-  --ion-color-base-rgb: var(--ion-color-#{$color-name}-rgb,
+  --ion-color-base-rgb: var(--ion-color-#{""+$color-name}-rgb,
     #{color-to-rgb-list($base)}) !important;
-  --ion-color-contrast: var(--ion-color-#{$color-name}-contrast,
+  --ion-color-contrast: var(--ion-color-#{""+$color-name}-contrast,
     #{$contrast}) !important;
-  --ion-color-contrast-rgb: var(--ion-color-#{$color-name}-contrast-rgb,
+  --ion-color-contrast-rgb: var(--ion-color-#{""+$color-name}-contrast-rgb,
     #{color-to-rgb-list($contrast)}) !important;
-  --ion-color-shade: var(--ion-color-#{$color-name}-shade,
+  --ion-color-shade: var(--ion-color-#{""+$color-name}-shade,
     #{$shade}) !important;
-  --ion-color-tint: var(--ion-color-#{$color-name}-tint,
+  --ion-color-tint: var(--ion-color-#{""+$color-name}-tint,
     #{$tint}) !important;
 }
 
@@ -66,18 +66,18 @@
   $contrast: map-get($value, contrast);
   $shade: map-get($value, shade);
   $tint: map-get($value, tint);
-  --ion-color-#{$color-name} : #{$base};
-  --ion-color-#{$color-name}-rgb: #{color-to-rgb-list($base)};
-  --ion-color-#{$color-name}-contrast: #{$contrast};
-  --ion-color-#{$color-name}-contrast-rgb: #{color-to-rgb-list($contrast)};
-  --ion-color-#{$color-name}-shade: #{$shade};
-  --ion-color-#{$color-name}-tint: #{$tint};
+  --ion-color-#{""+$color-name} : #{$base};
+  --ion-color-#{""+$color-name}-rgb: #{color-to-rgb-list($base)};
+  --ion-color-#{""+$color-name}-contrast: #{$contrast};
+  --ion-color-#{""+$color-name}-contrast-rgb: #{color-to-rgb-list($contrast)};
+  --ion-color-#{""+$color-name}-shade: #{$shade};
+  --ion-color-#{""+$color-name}-tint: #{$tint};
 }
 
 @mixin set-color-each-ion-colors($element-name) {
 
   @each $color-name, $value in $colors {
-    #{$element-name}.ion-color-#{$color-name} {
+    #{$element-name}.ion-color-#{""+$color-name} {
       color: var(--ion-color-base);
     }
   }
@@ -87,7 +87,7 @@
 
   @each $color-name,
   $value in $colors {
-    .ion-color-#{$color-name} {
+    .ion-color-#{""+$color-name} {
       @include generate-color($color-name);
     }
   }

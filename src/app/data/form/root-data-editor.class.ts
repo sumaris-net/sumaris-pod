@@ -148,7 +148,7 @@ export abstract class AppRootDataEditor<
 
   protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
     const pageUrl = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
-    return await this.router.navigateByUrl(pageUrl, {
+    return await this.router.navigate(pageUrl.split('/') as any[], {
       replaceUrl: true,
       queryParams: this.queryParams
     });

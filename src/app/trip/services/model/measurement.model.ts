@@ -291,7 +291,7 @@ export class MeasurementValuesUtils {
 
     const target: MeasurementFormValues =
       // Keep existing object (useful to keep extra pmfms)
-      opts.keepSourceObject ? (source as MeasurementFormValues)
+      opts.keepSourceObject ? {...source as MeasurementFormValues}
       : {};
 
     // Normalize all pmfms from the list
@@ -329,8 +329,7 @@ export class MeasurementValuesUtils {
     }
     // No validator: just normalize values
     else {
-      data.measurementValues = data.measurementValues || {} ;
-      MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues as MeasurementModelValues, pmfms, {
+      data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues || {}, pmfms, {
         // Keep extra pmfm values (not need to remove, when no validator used)
         keepSourceObject: true,
         onlyExistingPmfms: opts && opts.onlyExistingPmfms

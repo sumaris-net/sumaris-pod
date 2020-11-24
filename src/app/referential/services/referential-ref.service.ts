@@ -15,7 +15,7 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy} from "@apollo/client/core";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {fetchAllPagesWithProgress, FilterFn, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";

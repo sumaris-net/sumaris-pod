@@ -62,7 +62,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
-  @Input() showCommentsColumn = true;
   @Input() showDateTimeColumn = true;
   @Input() showFabButton = false;
 

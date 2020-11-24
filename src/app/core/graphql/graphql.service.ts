@@ -1,17 +1,22 @@
 import {Observable, of, Subject, Subscription} from "rxjs";
 import {Apollo} from "apollo-angular";
-import {ApolloClient, ApolloQueryResult, FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "apollo-client";
-import {R} from "apollo-angular/types";
+import {
+  ApolloCache,
+  ApolloClient,
+  ApolloLink,
+  ApolloQueryResult,
+  FetchPolicy,
+  InMemoryCache,
+  MutationUpdaterFn,
+  WatchQueryFetchPolicy
+} from "@apollo/client/core";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "../services/errors";
 import {catchError, distinctUntilChanged, filter, first, map, mergeMap, throttleTime} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
 import {Injectable} from "@angular/core";
-import {HttpLink, Options} from "apollo-angular-link-http";
 import {ConnectionType, NetworkService} from "../services/network.service";
-import {WebSocketLink} from "apollo-link-ws";
-import {ApolloLink} from "apollo-link";
-import {InMemoryCache} from "apollo-cache-inmemory";
+import {WebSocketLink} from "@apollo/link-ws";
 import {
   AppWebSocket,
   createTrackerLink,
@@ -20,9 +25,8 @@ import {
   isSubscriptionOperation,
   restoreTrackedQueries
 } from "./graphql.utils";
-import {persistCache} from "apollo-cache-persist";
 import {Storage} from "@ionic/storage";
-import {RetryLink} from 'apollo-link-retry';
+import {RetryLink} from '@apollo/link-retry';
 import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
@@ -30,8 +34,12 @@ import {Platform} from "@ionic/angular";
 import {EntityUtils, IEntity} from "../services/model/entity.model";
 import {DataProxy} from 'apollo-cache';
 import {isNotNil, toNumber} from "../../shared/functions";
-import {Resolvers} from "apollo-client/core/types";
+import {Resolvers} from "@apollo/client/core/types";
 import {HttpHeaders} from "@angular/common/http";
+import {EmptyObject} from "apollo-angular/types";
+import {HttpLink, Options} from "apollo-angular/http";
+import {IonicStorageWrapper, persistCache} from "apollo3-cache-persist";
+import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 
 export interface WatchQueryOptions<V> {
   query: any,
@@ -40,7 +48,7 @@ export interface WatchQueryOptions<V> {
   fetchPolicy?: WatchQueryFetchPolicy
 }
 
-export interface MutateQueryOptions<T, V = R> {
+export interface MutateQueryOptions<T, V = EmptyObject> {
   mutation: any;
   variables: V;
   error?: ServiceError;
@@ -55,7 +63,9 @@ export interface MutateQueryOptions<T, V = R> {
   forceOffline?: boolean;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({
+  providedIn: 'root'
+})
 export class GraphqlService {
 
   private readonly _debug: boolean;
@@ -171,7 +181,7 @@ export class GraphqlService {
     client.addResolvers(resolvers);
   }
 
-  async query<T, V = R>(opts: {
+  async query<T, V = EmptyObject>(opts: {
     query: any,
     variables: V,
     error?: ServiceError,
@@ -193,7 +203,7 @@ export class GraphqlService {
     return res.data;
   }
 
-  watchQuery<T, V = R>(opts: WatchQueryOptions<V>): Observable<T> {
+  watchQuery<T, V = EmptyObject>(opts: WatchQueryOptions<V>): Observable<T> {
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
       variables: opts.variables,
@@ -212,7 +222,7 @@ export class GraphqlService {
       );
   }
 
-  async mutate<T, V = R>(opts: MutateQueryOptions<T, V>): Promise<T> {
+  async mutate<T, V = EmptyObject>(opts: MutateQueryOptions<T, V>): Promise<T> {
 
     // If offline, compute an optimistic response for tracked queries
     if ((opts.forceOffline || this.network.offline) && opts.offlineResponse) {
@@ -228,7 +238,7 @@ export class GraphqlService {
       if (opts.forceOffline) {
         const res = {data: opts.optimisticResponse};
         if (opts.update) {
-          opts.update(this.apollo.getClient(), res);
+          opts.update(this.apollo.client.cache, res);
         }
         return res.data;
       }
@@ -253,7 +263,7 @@ export class GraphqlService {
     return res.data as T;
   }
 
-  subscribe<T, V = R>(opts: {
+  subscribe<T, V = EmptyObject>(opts: {
     query: any,
     variables: V,
     error?: ServiceError
@@ -276,7 +286,7 @@ export class GraphqlService {
       );
   }
 
-  insertIntoQueryCache<T, V = R>(proxy: DataProxy,
+  insertIntoQueryCache<T, V = EmptyObject>(cache: ApolloCache<any>,
                                  opts: DataProxy.Query<V> & {
                                    arrayFieldName: string;
                                    totalFieldName?: string;
@@ -285,11 +295,11 @@ export class GraphqlService {
                                    size?: number;
                                  }) {
 
-    proxy = proxy || this.apollo.getClient();
+    cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = proxy.readQuery<any, V>(opts);
+      const res = cache.readQuery<any, V>(opts);
 
       if (res && res[opts.arrayFieldName]) {
         // Append to result array
@@ -316,7 +326,7 @@ export class GraphqlService {
           }
         }
 
-        proxy.writeQuery<T[], V>({
+        cache.writeQuery<T[], V>({
           query: opts.query,
           variables: opts.variables,
           data: res
@@ -332,7 +342,7 @@ export class GraphqlService {
     }
   }
 
-  addManyToQueryCache<T = any, V = R>(proxy: DataProxy,
+  addManyToQueryCache<T = any, V = EmptyObject>(cache: ApolloCache<any>,
                              opts: DataProxy.Query<V> & {
                                arrayFieldName: string;
                                totalFieldName?: string;
@@ -343,11 +353,11 @@ export class GraphqlService {
 
     if (!opts.data || !opts.data.length) return; // nothing to process
 
-    proxy = proxy || this.apollo.getClient();
+    cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = proxy.readQuery(opts);
+      const res = cache.readQuery(opts);
 
       if (res && res[opts.arrayFieldName]) {
         // Keep only not existing res
@@ -381,7 +391,7 @@ export class GraphqlService {
         }
 
         // Write to cache
-        proxy.writeQuery({
+        cache.writeQuery({
           query: opts.query,
           variables: opts.variables,
           data: res
@@ -397,18 +407,18 @@ export class GraphqlService {
     }
   }
 
-  removeFromCachedQueryById<V = R>(proxy: DataProxy,
+  removeFromCachedQueryById<V = EmptyObject>(cache: ApolloCache<any>,
                                    opts: DataProxy.Query<V> & {
                                      arrayFieldName: string;
                                      totalFieldName?: string;
                                      id: number
                                    }) {
 
-    proxy = proxy || this.apollo.getClient();
+    cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = proxy.readQuery(opts);
+      const res = cache.readQuery({...opts, id: opts.id.toString()});
 
       if (res && res[opts.arrayFieldName]) {
 
@@ -429,7 +439,7 @@ export class GraphqlService {
         }
 
         // Write to cache
-        proxy.writeQuery({
+        cache.writeQuery({
           query: opts.query,
           variables: opts.variables,
           data: res
@@ -445,18 +455,18 @@ export class GraphqlService {
     }
   }
 
-  removeFromCachedQueryByIds<V = R>(proxy: DataProxy,
+  removeFromCachedQueryByIds<V = EmptyObject>(cache: ApolloCache<any>,
                                     opts: DataProxy.Query<V> & {
                                       arrayFieldName: string;
                                       totalFieldName?: string;
                                       ids: number[]
                                     }) {
 
-    proxy = proxy || this.apollo.getClient();
+    cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = proxy.readQuery(opts);
+      const res = cache.readQuery(opts);
 
       if (res && res[opts.arrayFieldName]) {
 
@@ -483,7 +493,7 @@ export class GraphqlService {
           }
         }
 
-        proxy.writeQuery({
+        cache.writeQuery({
           query: opts.query,
           variables: opts.variables,
           data: res
@@ -499,18 +509,18 @@ export class GraphqlService {
     }
   }
 
-  updateToQueryCache<T extends IEntity<any>, V = R>(proxy: DataProxy,
+  updateToQueryCache<T extends IEntity<any>, V = EmptyObject>(cache: ApolloCache<any>,
                       opts:DataProxy.Query<V> & {
                         arrayFieldName: string;
                         totalFieldName?: string;
                         data: any,
                         equalsFn?: (d1: T, d2: T) => boolean
                       }) {
-    proxy = proxy || this.apollo.getClient();
+    cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = proxy.readQuery(opts);
+      const res = cache.readQuery(opts);
 
       if (res && res[opts.arrayFieldName]) {
         const equalsFn = opts.equalsFn || ((d1,d2) => EntityUtils.equals(d1, d2, 'id'));
@@ -532,7 +542,7 @@ export class GraphqlService {
           }
         }
 
-        proxy.writeQuery({
+        cache.writeQuery({
           query: opts.query,
           variables: opts.variables,
           data: res
@@ -547,7 +557,7 @@ export class GraphqlService {
   }
 
   async clearCache(client?: ApolloClient<any>): Promise<void> {
-    client = client || this.apollo.getClient();
+    client = (client || this.apollo.client) as ApolloClient<any>;
     if (client) {
       let now = this._debug && Date.now();
       console.info("[graphql] Clearing Apollo client's cache... ");
@@ -586,13 +596,9 @@ export class GraphqlService {
     };
 
     // Create a storage configuration
-    const storage = {
-      getItem: (key: string) => this.storage.get(key),
-      setItem: (key: string, data: any) => this.storage.set(key, data),
-      removeItem: (key: string) => this.storage.remove(key)
-    };
+    const storage: PersistentStorage = new IonicStorageWrapper(this.storage);
 
-    let client = this.apollo.getClient();
+    let client = this.apollo.client;
     if (!client) {
       console.debug("[apollo] Creating GraphQL client...");
 
@@ -685,7 +691,7 @@ export class GraphqlService {
       }
 
       // create Apollo
-      this.apollo.create({
+      client = new ApolloClient({
         link:
           ApolloLink.split(
             // Handle mutations
@@ -707,9 +713,9 @@ export class GraphqlService {
           ),
         cache,
         connectToDevTools: !environment.production
-      }, 'default');
+      });
 
-      client = this.apollo.getClient();
+      this.apollo.client = client;
     }
 
     // Enable tracked queries persistence
@@ -745,7 +751,7 @@ export class GraphqlService {
 
 
   protected async resetClient(client?: ApolloClient<any>) {
-    client = client || this.apollo.getClient();
+    client = (client || this.apollo.client) as ApolloClient<any>;
     if (!client) return;
 
     console.info("[graphql] Resetting apollo client...");
@@ -786,8 +792,7 @@ export class GraphqlService {
       data: null,
       errors: [error],
       loading: false,
-      networkStatus: null,
-      stale: null
+      networkStatus: null
     };
   }
 

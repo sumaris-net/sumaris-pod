@@ -32,7 +32,7 @@ type AggregatedLandingVO {
 
 type AggregationResultVO {
   aggStrata: [String]
-  columns: [ExtractionProductColumnVO]
+  columns: [ExtractionTableColumnVO]
   rows: [[String]]
   spaceStrata: [String]
   timeStrata: [String]
@@ -41,17 +41,18 @@ type AggregationResultVO {
 }
 
 type AggregationTypeVO {
-  PROPERTY_SHEET_NAMES: String
-  PROPERTY_STRATUM: String
-  category: String
+  category: ExtractionCategoryEnum
   comments: String
+  creationDate: Date
   description: String
-  format: String
+  docUrl: String
+  documentation: String
   id: Int
   isSpatial: Boolean
   label: String
+  liveFormat: LiveFormatEnum
   name: String
-  rawFormat: ExtractionRawFormatEnum
+  public: Boolean!
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
   sheetNames: [String]
@@ -130,18 +131,6 @@ type DepartmentVO {
   updateDate: Date
 }
 
-type ExtractionProductColumnVO {
-  columnName: String
-  description: String
-  id: Int
-  label: String
-  name: String
-  rankOrder: Int
-  tableId: Int
-  type: String
-  values: [String]
-}
-
 type ExtractionProductStrataVO {
   aggColumnName: String
   aggFunction: String
@@ -155,37 +144,20 @@ type ExtractionProductStrataVO {
   product: ExtractionProductVO
   productId: Int
   sheetName: String
-  spaceColumnName: String
+  spatialColumnName: String
   statusId: Int
   techColumnName: String
   timeColumnName: String
   updateDate: Date
 }
 
-type ExtractionProductTableVO {
-  columnValues: Map_String_List_ObjectScalar
-  columns: [ExtractionProductColumnVO]
-  comments: String
-  creationDate: Date
-  defaultAggColumn: String
-  defaultSpaceColumn: String
-  defaultTechColumn: String
-  description: String
-  id: Int
-  isSpatial: Boolean
-  label: String
-  name: String
-  product: ExtractionProductVO
-  productId: Int
-  statusId: Int
-  tableName: String
-  updateDate: Date
-}
-
 type ExtractionProductVO {
+  category: ExtractionCategoryEnum
   comments: String
   creationDate: Date
   description: String
+  documentation: String
+  format: String
   id: Int
   isSpatial: Boolean
   items: Map_String_StringScalar
@@ -198,27 +170,65 @@ type ExtractionProductVO {
   statusId: Int
   stratum: [ExtractionProductStrataVO]
   tableNames: [String]
-  tables: [ExtractionProductTableVO]
+  tables: [ExtractionTableVO]
   updateDate: Date
+  version: String
 }
 
 type ExtractionResultVO {
-  columns: [ExtractionProductColumnVO]
+  columns: [ExtractionTableColumnVO]
   rows: [[String]]
   total: BigDecimal
   type: ExtractionTypeVO
 }
 
-type ExtractionTypeVO {
-  PROPERTY_SHEET_NAMES: String
-  category: String
-  format: String
+type ExtractionTableColumnVO {
+  columnName: String
+  description: String
+  id: Int
+  label: String
+  name: String
+  rankOrder: Int
+  tableId: Int
+  type: String
+  values: [String]
+}
+
+type ExtractionTableVO {
+  columnValues: Map_String_List_ObjectScalar
+  columns: [ExtractionTableColumnVO]
+  comments: String
+  creationDate: Date
+  defaultAggColumn: String
+  defaultSpaceColumn: String
+  defaultTechColumn: String
+  description: String
   id: Int
   isSpatial: Boolean
   label: String
   name: String
-  rawFormat: ExtractionRawFormatEnum
+  product: ExtractionProductVO
+  productId: Int
+  rankOrder: Int
+  sheetName: String
+  statusId: Int
+  tableName: String
+  updateDate: Date
+}
+
+type ExtractionTypeVO {
+  category: ExtractionCategoryEnum
+  comments: String
+  description: String
+  docUrl: String
+  id: Int
+  isSpatial: Boolean
+  label: String
+  liveFormat: LiveFormatEnum
+  name: String
+  public: Boolean!
   recorderDepartment: DepartmentVO
+  recorderPerson: PersonVO
   sheetNames: [String]
   statusId: Int
   version: String
@@ -798,11 +808,13 @@ type Query {
   "Find aggregated landings by filter"
   aggregatedLandings(filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
   "Read columns from aggregation"
-  aggregationColumns(sheet: String, type: AggregationTypeVOInput): [ExtractionProductColumnVO]
+  aggregationColumns(sheet: String, type: AggregationTypeVOInput): [ExtractionTableColumnVO]
   "Execute an aggregation and return as GeoJson"
   aggregationGeoJson(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: AggregationTypeVOInput): ObjectScalar
   "Read an aggregation"
   aggregationRows(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: AggregationTypeVOInput): AggregationResultVO
+  "Execute an aggregation and return as GeoJson"
+  aggregationTech(filter: ExtractionFilterVOInput, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: AggregationTypeVOInput): Map_String_ObjectScalar
   "Get one aggregation type"
   aggregationType(id: Int!): AggregationTypeVO
   "Get all available aggregation types"
@@ -871,6 +883,8 @@ type Query {
   program(id: Int, label: String): ProgramVO
   "Search in programs"
   programs(filter: ProgramFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ProgramVO]
+  "Get programs count"
+  programsCount(filter: ProgramFilterVOInput): Long
   "Get all levels from entityName"
   referentialLevels(entityName: String): [ReferentialVO]
   "Get all types of referential"
@@ -1294,7 +1308,12 @@ type VesselVO {
   vesselType: ReferentialVO
 }
 
-enum ExtractionRawFormatEnum {
+enum ExtractionCategoryEnum {
+  LIVE
+  PRODUCT
+}
+
+enum LiveFormatEnum {
   COST
   FREE1
   FREE2
@@ -1353,7 +1372,7 @@ input AggregationStrataVOInput {
   product: ExtractionProductVOInput
   productId: Int
   sheetName: String
-  spaceColumnName: String
+  spatialColumnName: String
   statusId: Int
   techColumnName: String
   timeColumnName: String
@@ -1361,12 +1380,14 @@ input AggregationStrataVOInput {
 }
 
 input AggregationTypeFilterVOInput {
-  departmentId: Int
+  id: Int
   isSpatial: Boolean
   label: String
   levelId: Int
   levelIds: [Int]
   name: String
+  recorderDepartmentId: Int
+  recorderPersonId: Int
   searchAttribute: String
   searchJoin: String
   searchText: String
@@ -1374,9 +1395,12 @@ input AggregationTypeFilterVOInput {
 }
 
 input AggregationTypeVOInput {
-  category: String
+  category: ExtractionCategoryEnum
   comments: String
+  creationDate: Date
   description: String
+  docUrl: String
+  documentation: String
   id: Int
   isSpatial: Boolean
   label: String
@@ -1437,6 +1461,7 @@ input ConfigurationVOInput {
 }
 
 input DepartmentFilterVOInput {
+  id: Int
   label: String
   levelId: Int
   levelIds: [Int]
@@ -1484,18 +1509,6 @@ input ExtractionFilterVOInput {
   sheetName: String
 }
 
-input ExtractionProductColumnVOInput {
-  columnName: String
-  description: String
-  id: Int
-  label: String
-  name: String
-  rankOrder: Int
-  tableId: Int
-  type: String
-  values: [String]
-}
-
 input ExtractionProductStrataVOInput {
   aggColumnName: String
   aggFunction: String
@@ -1509,16 +1522,48 @@ input ExtractionProductStrataVOInput {
   product: ExtractionProductVOInput
   productId: Int
   sheetName: String
-  spaceColumnName: String
+  spatialColumnName: String
   statusId: Int
   techColumnName: String
   timeColumnName: String
   updateDate: Date
 }
 
-input ExtractionProductTableVOInput {
+input ExtractionProductVOInput {
+  comments: String
+  creationDate: Date
+  description: String
+  documentation: String
+  format: String
+  id: Int
+  isSpatial: Boolean
+  label: String
+  name: String
+  parentId: Int
+  recorderDepartment: DepartmentVOInput
+  recorderPerson: PersonVOInput
+  statusId: Int
+  stratum: [ExtractionProductStrataVOInput]
+  tables: [ExtractionTableVOInput]
+  updateDate: Date
+  version: String
+}
+
+input ExtractionTableColumnVOInput {
+  columnName: String
+  description: String
+  id: Int
+  label: String
+  name: String
+  rankOrder: Int
+  tableId: Int
+  type: String
+  values: [String]
+}
+
+input ExtractionTableVOInput {
   columnValues: Map_String_List_ObjectScalar
-  columns: [ExtractionProductColumnVOInput]
+  columns: [ExtractionTableColumnVOInput]
   comments: String
   creationDate: Date
   defaultAggColumn: String
@@ -1531,35 +1576,21 @@ input ExtractionProductTableVOInput {
   name: String
   product: ExtractionProductVOInput
   productId: Int
+  rankOrder: Int
   statusId: Int
   tableName: String
   updateDate: Date
 }
 
-input ExtractionProductVOInput {
-  comments: String
-  creationDate: Date
-  description: String
-  id: Int
-  isSpatial: Boolean
-  label: String
-  name: String
-  parentId: Int
-  recorderDepartment: DepartmentVOInput
-  recorderPerson: PersonVOInput
-  statusId: Int
-  stratum: [ExtractionProductStrataVOInput]
-  tables: [ExtractionProductTableVOInput]
-  updateDate: Date
-}
-
 input ExtractionTypeFilterVOInput {
   category: String
-  departmentId: Int
+  id: Int
   label: String
   levelId: Int
   levelIds: [Int]
   name: String
+  recorderDepartmentId: Int
+  recorderPersonId: Int
   searchAttribute: String
   searchJoin: String
   searchText: String
@@ -1567,12 +1598,16 @@ input ExtractionTypeFilterVOInput {
 }
 
 input ExtractionTypeVOInput {
-  category: String
+  category: ExtractionCategoryEnum
+  comments: String
+  description: String
+  docUrl: String
   id: Int
   isSpatial: Boolean
   label: String
   name: String
   recorderDepartment: DepartmentVOInput
+  recorderPerson: PersonVOInput
   sheetNames: [String]
   statusId: Int
   version: String
@@ -1868,6 +1903,7 @@ input ParameterVOInput {
 input PersonFilterVOInput {
   email: String
   firstName: String
+  id: Int
   label: String
   lastName: String
   levelId: Int
@@ -2025,6 +2061,7 @@ input ProductVOInput {
 }
 
 input ProgramFilterVOInput {
+  id: Int
   label: String
   levelId: Int
   levelIds: [Int]
@@ -2220,6 +2257,7 @@ input TaxonGroupVOInput {
 }
 
 input TaxonNameFilterVOInput {
+  id: Int
   label: String
   levelId: Int
   levelIds: [Int]
@@ -2266,6 +2304,7 @@ input TripFilterVOInput {
   recorderDepartmentId: Int
   recorderPersonId: Int
   startDate: Date
+  tripId: Int
   vesselId: Int
 }
 
@@ -2471,6 +2510,9 @@ scalar Map_String_List_ObjectScalar
 
 "Built-in scalar for map-like structures"
 scalar Map_String_Map_String_LongScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_ObjectScalar
 
 "Built-in scalar for map-like structures"
 scalar Map_String_StringScalar

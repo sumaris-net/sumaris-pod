@@ -1,5 +1,4 @@
 import {HttpClient, HttpHeaders} from "@angular/common/http";
-import {HTTP} from "@ionic-native/http/ngx";
 import {HttpUtils} from "../../shared/http/http.utils";
 import {Peer} from "./model/peer.model";
 
@@ -15,7 +14,7 @@ export class NetworkUtils {
 }
 
 export async function getNodeInfo(
-  http: HTTP | HttpClient,
+  http: HttpClient,
   peer: string|Peer,
   opts?: {
   headers?: HttpHeaders | {

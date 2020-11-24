@@ -18,7 +18,7 @@ import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
-import {WatchQueryFetchPolicy} from "apollo-client";
+import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {RootDataService} from "./root-data-service.class";

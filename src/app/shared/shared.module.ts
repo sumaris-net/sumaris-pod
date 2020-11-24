@@ -2,7 +2,7 @@ import {ModuleWithProviders, NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {SharedMaterialModule} from "./material/material.module";
 import {ReactiveFormsModule} from "@angular/forms";
-import {TranslateLoader, TranslateModule, TranslateService} from "@ngx-translate/core";
+import {TranslateModule, TranslateService} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
 import {DateFormatPipe} from "./pipes/date-format.pipe";
 import {DateFromNowPipe} from "./pipes/date-from-now.pipe";
@@ -11,18 +11,17 @@ import {TextMaskModule} from "angular2-text-mask";
 import {MatPaginatorIntl} from "@angular/material/paginator";
 import {MatPaginatorI18n} from "./material/paginator/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
-import {HTTP_INTERCEPTORS, HttpClient} from "@angular/common/http";
+import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {
+  EntitiesService,
   EntityService,
   EntityServiceLoadOptions,
   LoadResult,
-  SuggestService,
-  EntitiesService
+  SuggestService
 } from "./services/entity-service.class";
 import {
   changeCaseToUnderscore,
-  sleep,
   fromDateISOString,
   isNil,
   isNilOrBlank,
@@ -32,6 +31,7 @@ import {
   joinPropertiesPath,
   nullIfUndefined,
   propertyComparator,
+  sleep,
   sort,
   startsWithUpperCase,
   toBoolean,
@@ -53,8 +53,6 @@ import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, FullscreenOverlayContainer, Overlay, OverlayContainer} from '@angular/cdk/overlay';
 import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
 import {FileService} from "./file/file.service";
-import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
-import {AppGestureConfig} from "./gesture/gesture-config";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_AUTOCOMPLETE_SCROLL_STRATEGY} from "@angular/material/autocomplete";
@@ -62,13 +60,11 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 import {SharedDirectivesModule} from "./directives/directives.module";
 import {SharedPipesModule} from "./pipes/pipes.module";
 import {AppLoadingSpinner} from "./form/loading-spinner";
-import {SharedGestureModule} from "./gesture/gesture.module";
 import {QuicklinkModule} from "ngx-quicklink";
 import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
-import {HttpTranslateLoaderFactory} from "./translate/http-translate-loader-factory";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -93,7 +89,6 @@ export {
 @NgModule({
   imports: [
     CommonModule,
-    //HammerModule,
     IonicModule,
     ReactiveFormsModule,
     TranslateModule,
@@ -103,7 +98,6 @@ export {
     QuicklinkModule, // See https://web.dev/route-preloading-in-angular/
 
     // Sub modules
-    SharedGestureModule,
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
@@ -126,7 +120,6 @@ export {
     QuicklinkModule,
 
     // Sub-modules
-    SharedGestureModule,
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,

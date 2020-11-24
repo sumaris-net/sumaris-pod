@@ -16,7 +16,7 @@ import {
   StrataAreaType,
   StrataTimeType
 } from "./model/extraction.model";
-import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService, WatchQueryOptions} from "../../core/graphql/graphql.service";
 import {FeatureCollection} from "geojson";
@@ -299,8 +299,8 @@ export class ExtractionService extends BaseEntityService {
       error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
-    const data = res && res.extractionRows;
-    if (!data) return null;
+    if (!res || !res.extractionRows) return null;
+    const data = ExtractionResult.fromObject(res.extractionRows);
 
     // Compute column index
     (data.columns || []).forEach((c, index) => c.index = index);
@@ -340,9 +340,9 @@ export class ExtractionService extends BaseEntityService {
       error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
-    const data = res && res.aggregationColumns;
-    if (!data) return null;
+    if (!res || !res.aggregationColumns) return null;
 
+    const data = res.aggregationColumns.map(ExtractionColumn.fromObject);
     // Compute column index
     (data || []).forEach((c, index) => c.index = index);
 
@@ -425,7 +425,7 @@ export class ExtractionService extends BaseEntityService {
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
-    return (data && data.aggregationType && AggregationType.fromObject(data.aggregationType));
+    return (data && data.aggregationType && AggregationType.fromObject(data.aggregationType)) || null;
   }
 
   /**
@@ -460,8 +460,9 @@ export class ExtractionService extends BaseEntityService {
       error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_DATA_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_DATA_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
+    if (!res || !res.aggregationGeoJson) return null;
 
-    return (res && res.aggregationGeoJson as FeatureCollection) || null;
+    return Object.assign({}, res.aggregationGeoJson);
   }
 
   async loadAggregationTech(type: ExtractionType, strata: CustomAggregationStrata, filter: ExtractionFilter,
@@ -567,7 +568,7 @@ export class ExtractionService extends BaseEntityService {
         filter: filter
       },
       error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"},
-      update: (proxy, {data}) => {
+      update: (cache, {data}) => {
         const savedEntity = data && AggregationType.fromObject(data.saveAggregation);
         if (savedEntity) {
           if (savedEntity !== entity) {
@@ -583,13 +584,13 @@ export class ExtractionService extends BaseEntityService {
           // Add to cached queries
           if (isNew) {
             // Extraction types
-            this.insertIntoMutableCachedQuery(proxy, {
+            this.insertIntoMutableCachedQuery(cache, {
               query: LoadTypes,
               data: savedEntity
             });
 
             // Aggregation types
-            this.insertIntoMutableCachedQuery(proxy, {
+            this.insertIntoMutableCachedQuery(cache, {
               query: LoadAggregationTypes,
               data: savedEntity
             });
@@ -614,18 +615,18 @@ export class ExtractionService extends BaseEntityService {
       variables: {
         ids
       },
-      update: (proxy) => {
+      update: (cache) => {
 
         // Remove from cache
         {
           // Extraction types
-          this.removeFromMutableCachedQueryByIds(proxy, {
+          this.removeFromMutableCachedQueryByIds(cache, {
             query: LoadTypes,
             ids
           });
 
           // Aggregation types
-          this.removeFromMutableCachedQueryByIds(proxy, {
+          this.removeFromMutableCachedQueryByIds(cache, {
             query: LoadAggregationTypes,
             ids
           });

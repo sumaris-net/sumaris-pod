@@ -16,7 +16,7 @@ export class DurationPipe implements PipeTransform {
     this.dayUnit = translate.instant('COMMON.DAY_UNIT');
   }
 
-  transform(value: number, args?: any): string | Promise<string> {
+  transform(value: number, args?: any): string {
     if (!value) return '';
     const unit = args && args.unit || "hours";
 

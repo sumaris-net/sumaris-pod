@@ -1,9 +1,7 @@
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
-import {HTTP} from "@ionic-native/http/ngx";
-
 
 export class HttpUtils {
-  static async getResource<T>(http: HttpClient | HTTP,
+  static async getResource<T>(http: HttpClient,
                               uri: string,
                               opts?: {
                                 headers?: HttpHeaders | {
@@ -26,15 +24,6 @@ export class HttpUtils {
     };
 
     try {
-
-      // Use native http client
-      if (http instanceof HTTP) {
-        // Execute the request
-        const response = await http.get(uri, opts.params, opts.headers);
-        console.info("[network] response: " + response.data);
-        return response.data as T;
-      }
-
       // Using web http client
       return (await http.get(uri, opts).toPromise()) as T;
     }

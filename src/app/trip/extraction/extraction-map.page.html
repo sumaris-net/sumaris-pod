@@ -274,9 +274,15 @@
                   *ngIf="$details | async as details" @fadeInOutAnimation>
 
           <ion-card-header *ngIf="details.title; let title">
-            <ion-card-subtitle>
-              <ion-label [innerHTML]="title"></ion-label>
-            </ion-card-subtitle>
+            <ion-card-subtitle><span [innerHTML]="title"></span></ion-card-subtitle>
+            <ion-card-title>
+              <ion-label>
+                <span [innerHTML]="details.value"></span>
+                <ion-text *ngIf="details.otherValue" color="medium">
+                  <small>&nbsp;(<span [innerHTML]="details.otherValue"></span>)</small>
+                </ion-text>
+              </ion-label>
+            </ion-card-title>
           </ion-card-header>
 
           <ion-card-content>

@@ -28,7 +28,7 @@ import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.ser
 import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
-import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {
   NOT_MINIFY_OPTIONS,

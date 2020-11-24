@@ -17,7 +17,7 @@ import {Pmfm} from "./model/pmfm.model";
 import {Observable, of} from "rxjs";
 import {ReferentialFragments} from "./referential.fragments";
 import {map} from "rxjs/operators";
-import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 

@@ -43,7 +43,6 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     }
   ];
 
-  form: FormGroup;
   stratumFormArray: FormArray;
   stratumHelper: FormArrayHelper<AggregationStrata>;
 

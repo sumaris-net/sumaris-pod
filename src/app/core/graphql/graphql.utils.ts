@@ -1,14 +1,14 @@
 import {defaultDataIdFromObject} from "apollo-cache-inmemory";
-import {ApolloLink, NextLink, Operation} from "apollo-link";
+import {ApolloLink, NextLink, Operation} from "@apollo/client/core";
 import * as uuidv4 from "uuid/v4";
 import {EventEmitter} from "@angular/core";
 import {debounceTime, filter, switchMap} from "rxjs/operators";
-import {PersistedData, PersistentStorage} from "apollo-cache-persist/types";
 import {BehaviorSubject, Observable} from "rxjs";
-import {ApolloClient} from "apollo-client";
+import {ApolloClient} from "@apollo/client/core";
 import {environment} from "../../../environments/environment";
 import {isNotNil} from "../../shared/functions";
 import {getMainDefinition} from "apollo-utilities";
+import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 
 declare let window: any;
 const _global = typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : {});
@@ -113,7 +113,7 @@ export interface TrackedQuery {
 export const TRACKED_QUERIES_STORAGE_KEY = "apollo-tracker-persist";
 
 export function createTrackerLink(opts: {
-  storage?: PersistentStorage<PersistedData<TrackedQuery[]>>;
+  storage?: PersistentStorage;
   onNetworkStatusChange: Observable<string>;
   debounce?: number;
   debug?: boolean;
@@ -136,7 +136,7 @@ export function createTrackerLink(opts: {
         .map(key => trackedQueriesById[key])
         .filter(value => value !== undefined);
       if (opts.debug) console.debug("[apollo-tracker-link] Saving tracked queries to storage", trackedQueries);
-      return opts.storage.setItem(TRACKED_QUERIES_STORAGE_KEY, trackedQueries);
+      return opts.storage.setItem(TRACKED_QUERIES_STORAGE_KEY, JSON.stringify(trackedQueries));
     });
 
   return new ApolloLink((operation: Operation, forward: NextLink) => {
@@ -188,11 +188,11 @@ export function createTrackerLink(opts: {
 
 export async function restoreTrackedQueries(opts: {
   apolloClient: ApolloClient<any>;
-  storage: PersistentStorage<PersistedData<TrackedQuery[]>>;
+  storage: PersistentStorage;
   debug?: boolean;
 }) {
 
-  const list = (await opts.storage.getItem(TRACKED_QUERIES_STORAGE_KEY)) as TrackedQuery[];
+  const list = JSON.parse(await opts.storage.getItem(TRACKED_QUERIES_STORAGE_KEY)) as TrackedQuery[];
 
   if (!list) return;
   if (opts.debug) console.debug("[apollo-tracker-link] Restoring tracked queries", list);

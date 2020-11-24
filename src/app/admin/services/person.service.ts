@@ -7,7 +7,7 @@ import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {fetchAllPagesWithProgress} from "../../shared/services/entity-service.class";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";

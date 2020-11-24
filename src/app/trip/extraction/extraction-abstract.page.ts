@@ -1,8 +1,9 @@
 import {Directive, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
+import {capitalizeFirstLetter, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {
-  AggregationType, ExtractionCategories,
+  AggregationType,
+  ExtractionCategories,
   ExtractionColumn,
   ExtractionFilter,
   ExtractionType,
@@ -16,7 +17,6 @@ import {TranslateService} from "@ngx-translate/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ExtractionService} from "../services/extraction.service";
 import {AlertController, ToastController} from "@ionic/angular";
-import {capitalizeFirstLetter} from "apollo-client/util/capitalizeFirstLetter";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PlatformService} from "../../core/services/platform.service";

@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Injector,
-  OnDestroy,
-  OnInit,
-  Optional
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {
   AppTable,
@@ -46,9 +38,7 @@ import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
-import {HttpClient, HttpHeaders} from "@angular/common/http";
-import {HttpUtils} from "../../shared/http/http.utils";
-import {HTTP} from "@ionic-native/http/ngx";
+import {HttpClient} from "@angular/common/http";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",

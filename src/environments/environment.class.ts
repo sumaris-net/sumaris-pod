@@ -1,4 +1,4 @@
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy} from "@apollo/client/core";
 import {StorageConfig} from "@ionic/storage";
 export class Environment {
   name: string;
