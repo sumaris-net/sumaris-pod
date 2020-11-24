@@ -48,6 +48,8 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String LABEL_PARAMETER = "label";
     String LEVEL_PARAMETER = "level";
     String LEVEL_SET_PARAMETER = "levelSet";
+    String LEVEL_LABEL_PARAMETER = "levelLabel";
+    String LEVEL_LABEL_SET_PARAMETER = "levelLabelSet";
     String SEARCH_TEXT_PARAMETER = "searchText";
 
     default Specification<E> inStatusIds(IReferentialFilter filter) {
@@ -61,7 +63,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 criteriaBuilder.in(root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID)).value(statusParam)
             );
         });
-        specification.addBind(STATUS_SET_PARAMETER, !ArrayUtils.isEmpty(statusIds));
+        specification.addBind(STATUS_SET_PARAMETER, ArrayUtils.isNotEmpty(statusIds));
         specification.addBind(STATUS_PARAMETER, ArrayUtils.isEmpty(statusIds) ? null : Arrays.asList(statusIds));
         return specification;
     }
@@ -92,8 +94,27 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 criteriaBuilder.in(root.join(levelProperty, JoinType.INNER).get(IEntity.Fields.ID)).value(levelParam)
             );
         });
-        specification.addBind(LEVEL_SET_PARAMETER, !ArrayUtils.isEmpty(levelIds));
+        specification.addBind(LEVEL_SET_PARAMETER, ArrayUtils.isNotEmpty(levelIds));
         specification.addBind(LEVEL_PARAMETER, ArrayUtils.isEmpty(levelIds) ? null : Arrays.asList(levelIds));
+        return specification;
+    }
+
+    default Specification<E> inLevelLabels(String levelProperty, IReferentialFilter filter) {
+        String[] levelLabels = (filter.getLevelLabel() != null) ? new String[]{filter.getLevelLabel()} : filter.getLevelLabels();
+        return inLevelLabels(levelProperty, levelLabels);
+    }
+
+    default Specification<E> inLevelLabels(String levelProperty, String[] levelLabels) {
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_LABEL_PARAMETER);
+            ParameterExpression<Boolean> levelSetParam = criteriaBuilder.parameter(Boolean.class, LEVEL_LABEL_SET_PARAMETER);
+            return criteriaBuilder.or(
+                    criteriaBuilder.isFalse(levelSetParam),
+                    criteriaBuilder.in(root.join(levelProperty, JoinType.INNER).get(IItemReferentialEntity.Fields.LABEL)).value(levelParam)
+            );
+        });
+        specification.addBind(LEVEL_LABEL_SET_PARAMETER, ArrayUtils.isNotEmpty(levelLabels));
+        specification.addBind(LEVEL_LABEL_PARAMETER, ArrayUtils.isEmpty(levelLabels) ? null : Arrays.asList(levelLabels));
         return specification;
     }
 
