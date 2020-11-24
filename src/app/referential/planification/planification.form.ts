@@ -13,6 +13,7 @@ import { Program } from '../services/model/program.model';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { InputElement } from 'src/app/shared/shared.module';
 import { MatAutocompleteFieldConfig } from 'src/app/shared/material/material.autocomplete';
+import { selectInputRange } from 'src/app/shared/inputs';
 
 @Component({
   selector: 'form-planification',
@@ -91,6 +92,8 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   }
   tabIndex?: number;
   hidden?: boolean;
+  appliedYear: string ='';
+
   focus() {
     throw new Error('Method not implemented.');
   }
@@ -109,11 +112,32 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     throw new Error('Method not implemented.');
   }
 
+  get sampleRowCodeValue(): any {
+    return this.form.value;
+  }
+
+  set sampleRowCodeValue(data: any) {
+    this.setValue(data);
+  }
+
   ngOnInit() {
 
     //set current year
     const currentYear = new Date ();
     this.form.get('year').setValue(currentYear);
+
+    // Initialize sample row code
+    const yearValue = this.form.get('year').value;
+    this.sampleRowCodeManager(yearValue.getFullYear());
+
+
+    this.registerSubscription(
+      this.form.controls['sampleRowCode'].valueChanges
+        //.pipe(debounceTime(250))
+        .subscribe((value) => this.onSampleRowCodeChange(value))
+    );
+
+
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
@@ -177,6 +201,54 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     });
     this.loadCalcifiedType();
 
+  }
+
+  private onSampleRowCodeChange(strValue): void {
+      console.debug(`onSampleRowCodeChange: ${strValue}`);
+    }
+
+  onSampleRowCodeFocus(event: FocusEvent) {
+    const caretIndex = 9;
+    // Wait end of focus animation (label should move to top)
+    setTimeout(() => {
+      // Move cursor after the fixed part
+      selectInputRange(event.target, caretIndex);
+    }, 250);
+  }
+
+
+  private sampleRowCodeManager(strValue: string) {
+    // Retrieve current year and current increment according to applied year
+    if (strValue)
+    {
+      this.appliedYear =strValue;
+    }
+    else
+    {
+      const yearValue = this.form.get('year').value;
+      this.appliedYear =yearValue.getFullYear();
+    }
+    const appliedIncrement = "4567";
+    // If nothing found in program: search on taxonGroup
+    const programId = 40;
+    const labelPrefix = `${this.appliedYear}-BIO-`;
+    const nbDigit = 4;
+    //const res = this.referentialRefService.suggestedStrategyNextLabel(programId, labelPrefix, nbDigit);
+    // suggestedStrategyNextLabel(programId: 40, labelPrefix: "2020_BIO_", nbDigit: 4)
+    const initSampleRowCode = `${this.appliedYear}-BIO-${appliedIncrement}`;
+    this.form.controls['sampleRowCode'].setValue(initSampleRowCode);
+
+    // Add year propagation on changes
+    this.registerSubscription(
+      this.form.controls['year'].valueChanges
+        //.pipe(debounceTime(250))
+        .subscribe((value) => this.onYearChange(value))
+    );
+  }
+
+  private onYearChange(strValue): void {
+    // Call sampleRowCodeManager() in order to refresh year and increment
+    this.sampleRowCodeManager(strValue._d.getFullYear());
   }
 
   /**
@@ -297,7 +369,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         {
           entityName: 'Fraction',
           searchAttribute: "description",
-          searchText: "individu" 
+          searchText: "individu"
         });
         return res.data;
     }
