@@ -85,10 +85,10 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     const taxonNameControl = this.form && this.form.get('taxonName');
     if (taxonNameControl) {
       if (show) {
-        taxonNameControl.setValidators(Validators.compose([SharedValidators.entity, Validators.required]));
+        taxonNameControl.setValidators([SharedValidators.entity, Validators.required]);
       }
       else {
-        taxonNameControl.setValidators([]);
+        taxonNameControl.setValidators(null);
       }
     }
   }
@@ -240,7 +240,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     const taxonNameControl = this.form.get('taxonName');
     if (this.showTaxonName) {
       // Add required validator on TaxonName
-      taxonNameControl.setValidators(Validators.compose([SharedValidators.entity, Validators.required]));
+      taxonNameControl.setValidators([SharedValidators.entity, Validators.required]);
     }
     this.registerAutocompleteField('taxonName', {
       items: this.$taxonNames,
@@ -367,7 +367,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
           const individualCountControl = this.form.get('individualCount');
           if (enable) {
             individualCountControl.enable();
-            individualCountControl.setValidators(Validators.compose([Validators.required, Validators.min(0)]));
+            individualCountControl.setValidators([Validators.required, Validators.min(0)]);
           } else {
             individualCountControl.disable();
             individualCountControl.setValue(null);
@@ -515,7 +515,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
             discardReasonControl.updateValueAndValidity({onlySelf: true});
           } else {
             discardReasonControl.setValue(null);
-            discardReasonControl.setValidators([]);
+            discardReasonControl.setValidators(null);
             discardReasonControl.disable();
           }
         }));

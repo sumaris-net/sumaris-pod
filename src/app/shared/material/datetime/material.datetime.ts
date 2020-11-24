@@ -172,7 +172,7 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     }
 
     // Add custom 'validDate' validator
-    this.formControl.setValidators(this.required ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
+    this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.validDate] : SharedValidators.validDate);
 
     // Get patterns to display date and date+time
     //this.updatePattern(this.translate.instant(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN']))

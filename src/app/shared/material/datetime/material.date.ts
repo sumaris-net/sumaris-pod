@@ -142,7 +142,7 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
     this.dayControl = this.formBuilder.control(null, () => $error.getValue());
 
     // Add custom 'validDate' validator
-    this.formControl.setValidators(this.required ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
+    this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.validDate] : SharedValidators.validDate);
 
     // Get patterns to display date
     this.updatePattern(this.translate.instant(['COMMON.DATE_PATTERN']))

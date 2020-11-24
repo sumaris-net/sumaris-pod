@@ -101,7 +101,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     opts = this.fillDefaultOptions(opts);
 
     form.get('returnDateTime').setValidators(opts.isOnFieldMode ? null : Validators.required);
-    form.get('returnLocation').setValidators(opts.isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity]));
+    form.get('returnLocation').setValidators(opts.isOnFieldMode ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
 
     return form;
   }
