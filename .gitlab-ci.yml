@@ -22,6 +22,7 @@ build_develop:
             - web-services/target/*.war
     only:
         - develop
+        - develop-ifremer
     when: always
 
 build_branch:
