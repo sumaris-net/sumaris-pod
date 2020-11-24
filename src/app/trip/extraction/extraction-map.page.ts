@@ -377,8 +377,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     if (changed) {
 
       // Update the title
-      const typeName = this.getI18nTypeName(this.type);
-      this.$title.next(typeName);
+      this.updateTile()
 
       // Stop animation
       if (!opts || opts.stopAnimation !== false) {
@@ -470,6 +469,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   getI18nSheetName(sheetName?: string, type?: AggregationType, self?: ExtractionAbstractPage<any>): string {
     const str = super.getI18nSheetName(sheetName, type, self);
     return str.replace(/\([A-Z]+\)$/, '');
+  }
+
+  protected async updateTile() {
+    const typeName = this.getI18nTypeName(this.type);
+    const prefix = await this.translate.get('EXTRACTION.MAP.TITLE_PREFIX').toPromise();
+
+    this.$title.next(`<small>${prefix}<br/></small>${typeName}`);
   }
 
   /* -- protected method -- */

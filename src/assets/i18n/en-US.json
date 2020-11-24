@@ -223,8 +223,6 @@
     "BTN_DISCONNECT": "Disconnect this account",
     "BTN_MY_ACCOUNT": "My account",
     "BTN_REGISTER": "Register",
-    "DOWNLOAD_APP_TITLE": "{{name}} for {{platform}}",
-    "DOWNLOAD_APP_HELP": "Free download.",
     "SHOW_AT": "Show at"
   },
   "AUTH": {
@@ -288,8 +286,8 @@
     "LOCALE": "Language",
     "LAT_LONG_FORMAT": "Latitude/longitude format",
     "NETWORK_DIVIDER": "Network settings",
-    "PEER_URL": "Network peer address",
-    "BTN_CHANGE_PEER": "See available peers",
+    "PEER_URL": "Network node address",
+    "BTN_CHANGE_PEER": "See available nodes",
     "BTN_SHOW_MORE_HELP": "Show more parameters",
     "BTN_CLEAR_CACHE": "Clear data cache",
     "OFFLINE_MODE": "Force offline mode? (experimental)",
@@ -324,7 +322,7 @@
       }
     },
     "ERROR": {
-      "PEER_NOT_REACHABLE": "Unreachable peer"
+      "PEER_NOT_REACHABLE": "Unreachable node"
     }
   },
   "USER": {
@@ -1221,6 +1219,7 @@
       "BTN_EDIT": "Edit",
       "BTN_ANIMATION_PLAY": "Play animation",
       "BTN_ANIMATION_PAUSE": "Stop animation",
+      "TITLE_PREFIX": "Map",
       "LAYER": "Layer",
       "LAYERS": "Data layers",
       "BASE_LAYER": "Base layer",
@@ -1349,10 +1348,11 @@
     "BTN_INIT_OFFLINE_MODE": "Enable offline mode",
     "BTN_UPDATE_OFFLINE_MODE": "Update offline mode",
     "PEER": {
-      "OFFLINE": "Unreachable peer",
+      "OFFLINE": "Unreachable node",
       "SELECT_MODAL": {
-        "TITLE": "Network peer",
-        "HELP": "Please choose a network peer to connect to:"
+        "TITLE": "Network node",
+        "HELP": "Please choose a network node to connect to:",
+        "NOT_COMPATIBLE_HELP": "Required version: v{{version}} or +"
       }
     },
     "SYNCHRONIZATION_STATUS": {
@@ -1368,6 +1368,9 @@
       "ONLINE": "Sucesfully connected to the network!",
       "OFFLINE_HELP": "The application works in <b>offline mode</b>.",
       "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>"
+    },
+    "ERROR": {
+      "NOT_COMPATIBLE_PEER": "The application works in <b>offline mode</b>, because the node <b>use a too old version</b>.<br/><small>If the problem persists, please <b>contact your administrator</b>, or select a node v{{version}} or superior.</small>"
     }
   },
   "SOCIAL": {
@@ -1447,7 +1450,8 @@
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
     "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode.",
     "COPY_STORAGE_ERROR": "Error during data copy",
-    "DATA_MIGRATION_FAILED": "Faile to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>"
+    "DATA_MIGRATION_FAILED": "Faile to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "BAD_APP_VERSION": "Please update the app. Retrieving and sending data with the current version may not work."
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1464,6 +1468,11 @@
     "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server.",
     "DEBUG_DATA_SEND": "Help request sent to administrator",
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
-    "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!"
+    "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!",
+    "DOWNLOAD_APP_TITLE": "{{name}} for {{platform}}",
+    "DOWNLOAD_APP_HELP": "Free download.",
+    "UPDATE_APP": "<b>Please upgrade {{name}}</b>",
+    "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
+    "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.."
   }
 }

@@ -2,6 +2,7 @@
 
   <ion-buttons slot="end">
     <ion-button [matMenuTriggerFor]="selectTypeMenu"
+                *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
                 color="accent" fill="solid">
       <ion-label translate>EXTRACTION.TABLE.BTN_SELECT_TYPE</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>

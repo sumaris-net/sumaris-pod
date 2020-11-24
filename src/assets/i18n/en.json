@@ -1219,6 +1219,7 @@
       "BTN_EDIT": "Edit",
       "BTN_ANIMATION_PLAY": "Play animation",
       "BTN_ANIMATION_PAUSE": "Stop animation",
+      "TITLE_PREFIX": "Map",
       "LAYER": "Layer",
       "LAYERS": "Data layers",
       "BASE_LAYER": "Base layer",
