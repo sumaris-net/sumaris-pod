@@ -1209,6 +1209,9 @@
         "FORMAT": "Format"
       }
     },
+    "TABLE": {
+      "BTN_SELECT_TYPE": "Liste des extractions"
+    },
     "MAP": {
       "BTN_SELECT_TYPE": "Liste des cartes",
       "BTN_SELECT_AGG": "Indicateur ?",
