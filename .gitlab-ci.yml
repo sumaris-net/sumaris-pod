@@ -23,6 +23,7 @@ build_develop:
     only:
         - develop
         - develop-ifremer
+        - feature-imagine-4
     when: always
 
 build_branch:
