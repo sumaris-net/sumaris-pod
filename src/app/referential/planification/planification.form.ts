@@ -112,6 +112,14 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     throw new Error('Method not implemented.');
   }
 
+  get sampleRowCodeValue(): any {
+    return this.form.value;
+  }
+
+  set sampleRowCodeValue(data: any) {
+    this.setValue(data);
+  }
+
   ngOnInit() {
 
     //set current year
@@ -194,6 +202,10 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     this.loadCalcifiedType();
 
   }
+
+  private onSampleRowCodeChange(strValue): void {
+      console.debug(`onSampleRowCodeChange: ${strValue}`);
+    }
 
   onSampleRowCodeFocus(event: FocusEvent) {
     const caretIndex = 9;
