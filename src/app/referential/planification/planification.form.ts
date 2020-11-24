@@ -229,6 +229,11 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
       this.appliedYear =yearValue.getFullYear();
     }
     const appliedIncrement = "4567";
+    // If nothing found in program: search on taxonGroup
+    const programId = 40;
+    const labelPrefix = `${this.appliedYear}-BIO-`;
+    const nbDigit = 4;
+    //const res = this.referentialRefService.suggestedStrategyNextLabel(programId, labelPrefix, nbDigit);
     // suggestedStrategyNextLabel(programId: 40, labelPrefix: "2020_BIO_", nbDigit: 4)
     const initSampleRowCode = `${this.appliedYear}-BIO-${appliedIncrement}`;
     this.form.controls['sampleRowCode'].setValue(initSampleRowCode);
