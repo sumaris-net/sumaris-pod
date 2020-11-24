@@ -7,11 +7,13 @@
       </ion-col>
       <ion-col>
         <mat-form-field>
-          <input matInput #matInput 
-            formControlName="sampleRowCode" 
-            autocomplete="off" 
+          <input matInput #matInput
+            formControlName="sampleRowCode"
+            autocomplete="off"
             type="text"
-            [textMask]="sampleRowCodeMask"  
+            [textMask]="sampleRowCodeMask"
+            (ngModelChange)="sampleRowCodeValue"
+            (focus)="onSampleRowCodeFocus($event)"
             placeholder="{{ 'PLANIFICATION.SAMPLE_ROW_TITLE' | translate }}" >
         </mat-form-field>
       </ion-col>
