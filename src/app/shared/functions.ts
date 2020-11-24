@@ -55,6 +55,10 @@ export function toInt(obj: string | null | undefined, defaultValue?: number): nu
 export function toNotNil<T = any>(obj: T, defaultValue?: T): any | null {
   return (obj !== undefined && obj !== null) ? obj : defaultValue;
 }
+export function removeDuplicatesFromArray<T>(obj: T[] | null | undefined, property?: string): T[] | null | undefined {
+  if(property) return (obj !== undefined && obj !== null)?obj.filter((item, i, array) => array.findIndex(t => t[property] === item[property]) === i):obj;
+  return (obj !== undefined && obj !== null)?obj.filter((item, i, array) => array.findIndex(t => t === item) === i):obj;
+}
 export function toDateISOString(value: any): string | undefined {
   if (!value) return undefined;
 
@@ -236,8 +240,6 @@ export function sort<T>(array: T[], attribute: string): T[] {
       return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
     });
 }
-
-
 
 export function getPropertyByPath(obj: any, path: string, defaultValue?: any): any {
   if (isNil(obj)) return undefined;
