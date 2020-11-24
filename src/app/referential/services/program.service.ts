@@ -132,6 +132,7 @@ const ProgramFragments = {
       name
       description
       comments
+      analyticReference
       updateDate
       creationDate
       statusId
@@ -143,6 +144,9 @@ const ProgramFragments = {
       }
       taxonNames {
         ...TaxonNameStrategyFragment
+      }
+      appliedStrategies {
+        ...AppliedStrategyFragment
       }
       pmfmStrategies {
         ...PmfmStrategyRefFragment
@@ -156,6 +160,7 @@ const ProgramFragments = {
       name
       description
       comments
+      analyticReference
       updateDate
       creationDate
       statusId
@@ -169,15 +174,42 @@ const ProgramFragments = {
       taxonNames {
         ...TaxonNameStrategyFragment
       }
+      appliedStrategies {
+        ...AppliedStrategyFragment
+      }
       pmfmStrategies {
         ...PmfmStrategyFragment
       }
+    }
+  `,
+  appliedStrategy: gql`
+    fragment AppliedStrategyFragment on AppliedStrategyVO {
+      strategyId
+      location {
+        ...LocationFragment
+      }
+      appliedPeriods {
+        ...AppliedPeriodFragment
+      }
+      __typename
+    }
+  `,
+  appliedPeriod: gql`
+    fragment AppliedPeriodFragment on AppliedPeriodVO {
+      appliedStrategyId
+      startDate
+      endDate
+      acquisitionNumber
+      __typename
     }
   `,
   pmfmStrategyRef: gql`
     fragment PmfmStrategyRefFragment on PmfmStrategyVO {
       id
       pmfmId
+      parameterId
+      matrixId
+      fractionId
       methodId
       label
       name
@@ -216,6 +248,10 @@ const ProgramFragments = {
       pmfm {
         ...PmfmFragment
       }
+      parameterId
+      matrixId
+      fractionId
+      methodId
       gearIds
       taxonGroupIds
       referenceTaxonIds
@@ -257,11 +293,14 @@ const LoadRefQuery: any = gql`
   }
   ${ProgramFragments.programRef}
   ${ProgramFragments.strategyRef}
+  ${ProgramFragments.appliedStrategy}
+  ${ProgramFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategyRef}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
+  ${ReferentialFragments.location}
 `;
 
 const LoadQuery: any = gql`
@@ -272,12 +311,15 @@ const LoadQuery: any = gql`
   }
   ${ProgramFragments.program}
   ${ProgramFragments.strategy}
+  ${ProgramFragments.appliedStrategy}
+  ${ProgramFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategy}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.taxonName}
+  ${ReferentialFragments.location}
 `;
 
 const LoadAllQuery: any = gql`
@@ -309,11 +351,14 @@ const LoadAllRefWithTotalQuery: any = gql`
   }
   ${ProgramFragments.programRef}
   ${ProgramFragments.strategyRef}
+  ${ProgramFragments.appliedStrategy}
+  ${ProgramFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategyRef}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
+  ${ReferentialFragments.location}
 `;
 
 const SaveQuery: any = gql`
@@ -324,12 +369,15 @@ const SaveQuery: any = gql`
   }
   ${ProgramFragments.program}
   ${ProgramFragments.strategy}
+  ${ProgramFragments.appliedStrategy}
+  ${ProgramFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategy}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.taxonName}
+  ${ReferentialFragments.location}
 `;
 
 const ProgramCacheKeys = {
