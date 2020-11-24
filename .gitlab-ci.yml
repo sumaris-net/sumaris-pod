@@ -8,7 +8,7 @@ stages:
     - release
     - deploy
 
-build:
+build_develop:
     stage: build
     tags: 
         - sih_public_runner
