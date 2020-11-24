@@ -334,10 +334,11 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     }
 
     // open the map
-    this.router.navigateByUrl('/extraction/map', {
-      relativeTo: this.route,
-      queryParams: {...this.queryParams, ...this.getFilterAsQueryParams()}
-    });
+    return this.router.navigate(['../map'],
+      {
+        relativeTo: this.route,
+        queryParams: {...this.queryParams, ...this.getFilterAsQueryParams()}
+      });
   }
 
   async openAggregationType(type?: ExtractionType) {

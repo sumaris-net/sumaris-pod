@@ -4,11 +4,12 @@ import {IonicRouteStrategy} from "@ionic/angular";
 import {QuicklinkModule, QuicklinkStrategy} from "ngx-quicklink";
 
 export const SHARED_ROUTE_OPTIONS: ExtraOptions = {
-  enableTracing: false,
-  //enableTracing: !environment.production,
-  useHash: false,
-  onSameUrlNavigation: 'reload',
-  preloadingStrategy: QuicklinkStrategy
+    enableTracing: false,
+    //enableTracing: !environment.production,
+    useHash: false,
+    onSameUrlNavigation: 'reload',
+    preloadingStrategy: QuicklinkStrategy,
+    relativeLinkResolution: 'legacy'
 };
 
 @Injectable()
