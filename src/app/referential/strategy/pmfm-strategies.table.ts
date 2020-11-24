@@ -8,7 +8,7 @@ import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {filterNumberInput} from "../../shared/inputs";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, isNotNil, KeysEnum} from "../../shared/functions";
+import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, isNotNil, KeysEnum, removeDuplicatesFromArray} from "../../shared/functions";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmService} from "../services/pmfm.service";
@@ -20,7 +20,7 @@ import {
   ReferentialUtils
 } from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
-import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
+import {debounceTime, map, startWith, switchMap, filter} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {Program} from "../services/model/program.model";
@@ -298,94 +298,82 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       })
     }, pmfmStrategyParameterColumnNameFormat[0]);
 
+
     // PMFM.PARAMETER
     const pmfmParameterAttributes = ['label', 'name'];
     this.registerFormField('parameter', {
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('parameter', {
-        items: this.$pmfms,
+        items: this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          map((pmfms: Pmfm[]) => {
+            return removeDuplicatesFromArray(pmfms.map(p => p.parameter), 'label');
+          })
+        ),
         attributes: pmfmParameterAttributes,
-        columnSizes: pmfmParameterAttributes.map(attr => {
-          switch(attr) {
-            case 'code':
-              return 3;
-            case 'label':
-              return 3;
-            case 'name':
-              return 4;
-            default: return undefined;
-          }
-        }),
+        columnSizes: [4,8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
+        class: 'mat-autocomplete-panel-xlarge-size'
       })
     });
 
     // PMFM.MATRIX
-    const pmfmMatrixAttributes = ['matrix.name', 'matrix.description'];
+    const mfmAttributes = ['name'];
     this.registerFormField('matrix', {
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('matrix', {
-        items: this.$pmfms,
-        attributes: pmfmMatrixAttributes,
-        columnSizes: pmfmMatrixAttributes.map(attr => {
-          switch(attr) {
-            case 'matrix.name':
-              return 3;
-            case 'matrix.description':
-              return 4;
-            default: return undefined;
-          }
-        }),
+        items: this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          map((pmfms: Pmfm[]) => {
+            return removeDuplicatesFromArray(pmfms.map(p => p.matrix), 'name');
+          })
+        ),
+        attributes: ['name'],
         showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
+        class: 'mat-autocomplete-panel-medium-size'
       })
     });
 
     // PMFM.FRACTION
-    const pmfmFractionAttributes = ['fraction.name'];
     this.registerFormField('fraction', {
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('fraction', {
-        items: this.$pmfms,
-        attributes: pmfmFractionAttributes,
-        columnSizes: pmfmFractionAttributes.map(attr => {
-          switch(attr) {
-            case 'fraction.name':
-              return 3;
-            default: return undefined;
-          }
-        }),
-        showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
+        items: this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          map((pmfms: Pmfm[]) => {
+            return removeDuplicatesFromArray(pmfms.map(p => p.fraction), 'name');
+          })
+        ),
+        attributes: mfmAttributes,
+        class: 'mat-autocomplete-panel-medium-size',
+        showAllOnFocus: false
       })
     });
 
 
 
     // PMFM.METHOD
-    const pmfmMethodAttributes = ['method.name', 'method.description'];
     this.registerFormField('method', {
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('method', {
-        items: this.$pmfms,
-        attributes: pmfmMethodAttributes,
-        columnSizes: pmfmMethodAttributes.map(attr => {
-          switch(attr) {
-            case 'method.name':
-              return 3;
-            case 'method.description':
-              return 4;
-            default: return undefined;
-          }
-        }),
-        showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
+        items: this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          map((pmfms: Pmfm[]) => {
+            return removeDuplicatesFromArray(pmfms.map(p => p.method), 'name');
+          })
+        ),
+        attributes: mfmAttributes,
+        class: 'mat-autocomplete-panel-medium-size',
+        showAllOnFocus: false
       })
     });
 
@@ -659,7 +647,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$pmfms.next(res && res.data || [])
   }
 
-    
+
 
 
 
