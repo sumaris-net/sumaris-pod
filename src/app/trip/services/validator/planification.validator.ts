@@ -35,6 +35,7 @@ export class PlanificationValidatorService<O extends PlanificationValidatorOptio
         __typename: [Planification.TYPENAME],
         comment: [data && data.comment || null,Validators.nullValidator],
         year: [data && data.year || null, Validators.required],
+        sampleRowCode: [data && data.sampleRowCode || null, Validators.required],
         taxonName: [data && data.taxonName || null, Validators.compose([Validators.required, SharedValidators.entity])],
         eotp: [data && data.eotp || null, Validators.compose([Validators.nullValidator, SharedValidators.entity])],
         landingArea: [data && data.landingArea || null, Validators.compose([Validators.required, SharedValidators.entity])],
