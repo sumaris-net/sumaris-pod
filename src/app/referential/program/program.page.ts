@@ -104,7 +104,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   
     this.registerSubscription(this.simpleStrategiesTable.onOpenRow
       .subscribe(row => this.openRow(row))); 
-      this.registerSubscription(this.strategiesTable.onStartEditingRow
+    this.registerSubscription(this.simpleStrategiesTable.onNewRow
+      .subscribe(() => this.addRow())); 
+
+    this.registerSubscription(this.strategiesTable.onStartEditingRow
         .subscribe(row => this.onStartEditStrategy(row)));
     this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
         .subscribe(row => this.onConfirmEditCreateStrategy(row)));
@@ -252,7 +255,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
 
- // TODO : édition de la ligne du plan
+ // edit simple strategy row 
   protected async openRow(row: TableElement<Strategy>): Promise<boolean> {
     const id = row.id;
     const path = this.detailsPathSimpleStrategy;
@@ -266,6 +269,20 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       return true; 
       } 
   }
+
+// add new simple strategy row
+  protected async  addRow(): Promise<boolean> {
+    const path = this.detailsPathSimpleStrategy;
+    if (isNotNilOrBlank(path)) {
+      await this.router.navigateByUrl(
+        path
+        // Replace the id in the path
+        .replace(':id', "new")
+      );
+      return true; 
+      } 
+  }
+
 
   protected async onStartEditStrategy(row: TableElement<Strategy>) {
 
