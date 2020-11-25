@@ -240,6 +240,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   ngOnInit() {
     super.ngOnInit();
 
+    // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
+    this.loadPmfms();
+
     this.validatorService.isSimpleStrategy = this.canDisplaySimpleStrategyValidators;
 
     // Acquisition level
@@ -618,7 +621,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     try {
       await Promise.all([
         this.loadAcquisitionLevels(),
-        this.loadPmfms(),
+        // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
+        //this.loadPmfms(),
       ]);
 
       console.debug("[pmfm-strategy-table] Loaded referential items");
