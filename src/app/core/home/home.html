@@ -48,10 +48,10 @@
     </ion-toolbar>
   </div>
 
-  <!-- Network status (+ Install and upgrade link) -->
-  <app-network-status-card [isLogin]="isLogin"
+  <!-- Install (and upgrade) card -->
+  <app-install-upgrade-card [isLogin]="isLogin"
                            showInstallButton="true">
-  </app-network-status-card>
+  </app-install-upgrade-card>
 
   <!-- Welcome card -->
   <ion-card *ngIf="!loading"
