@@ -11,9 +11,8 @@
             formControlName="sampleRowCode"
             autocomplete="off"
             type="text"
-            [textMask]="sampleRowCodeMask"
-            (ngModelChange)="sampleRowCodeValue"
-            (focus)="onSampleRowCodeFocus($event)"
+            [textMask]="{mask: sampleRowMask, keepCharPositions: true, showMask: true, guide: true}"
+            [(ngModel)]="sampleRowCode"
             placeholder="{{ 'PLANIFICATION.SAMPLE_ROW_TITLE' | translate }}" >
         </mat-form-field>
       </ion-col>
