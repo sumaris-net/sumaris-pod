@@ -79,7 +79,7 @@ public class SparqlRestController {
     private long maxLimit;
 
     @Resource
-    private RdfDatasetService rdfDatasetService;
+    private RdfDatasetService datasetService;
 
     private String sparqlEndpointUrl;
 
@@ -157,7 +157,7 @@ public class SparqlRestController {
         // Local execution
         else {
             // Construct the dataset for this query
-            Dataset dataset = rdfDatasetService.prepareDatasetForQuery(query);
+            Dataset dataset = datasetService.prepareDatasetForQuery(query);
 
             try (RDFConnection conn = RDFConnectionFactory.connect(dataset); QueryExecution qexec = conn.query(query)) {
                 return executeQuery(conn, qexec, acceptedContentTypes);

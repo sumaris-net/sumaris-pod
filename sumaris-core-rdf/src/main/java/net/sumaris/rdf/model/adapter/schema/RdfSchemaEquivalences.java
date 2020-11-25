@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.model.adapter;
+package net.sumaris.rdf.model.adapter.schema;
 
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
@@ -48,7 +48,7 @@ import javax.annotation.PostConstruct;
         prefix = "rdf.equivalences",
         name = {"enabled"},
         matchIfMissing = true)
-public class RdfSchemaEquivalences extends AbstractSchemaEquivalences {
+public class RdfSchemaEquivalences extends AbstractSchemaVisitor {
 
     private static final Logger log = LoggerFactory.getLogger(RdfSchemaEquivalences.class);
 

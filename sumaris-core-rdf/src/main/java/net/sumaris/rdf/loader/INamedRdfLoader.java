@@ -20,19 +20,18 @@
  * #L%
  */
 
-package net.sumaris.rdf.util;
+package net.sumaris.rdf.loader;
 
-import com.google.common.collect.Maps;
-import org.apache.jena.ontology.OntResource;
+import net.sumaris.core.dao.technical.Page;
+import org.apache.jena.rdf.model.Model;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
-public class RdfImportContext {
+public interface INamedRdfLoader {
 
-    public Map<String, Class> URI_2_CLASS = new HashMap<>();
-    public Map<String, Object> URI_2_OBJ_REF = Maps.newHashMap();
-    public  Map<String, Function<OntResource, Object>> B2O_ARBITRARY_MAPPER = new HashMap<>();
-    public  Map<String, Function<Object, OntResource>> O2B_ARBITRARY_MAPPER = new HashMap<>();
+    Stream<Model> streamAllByPages(long maxStatements);
+
+    Model loadOnePage(Page page);
+
+    String getName();
 }

@@ -22,7 +22,7 @@
 
 package net.sumaris.rdf.service.store;
 
-import net.sumaris.rdf.loader.NamedRdfLoader;
+import net.sumaris.rdf.loader.INamedRdfLoader;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
 
 public interface RdfDatasetService {
 
-    void registerNameModel(final NamedRdfLoader producer, final long maxStatements);
+    void registerNameModel(final INamedRdfLoader producer, final long maxStatements);
 
     void registerNamedModel(final String name, final Callable<Model> producer);
 

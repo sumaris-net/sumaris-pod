@@ -20,13 +20,11 @@
  * #L%
  */
 
-package net.sumaris.rdf.model.adapter;
+package net.sumaris.rdf.model.adapter.schema;
 
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.config.RdfConfiguration;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -36,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import org.tdwg.rs.DWC;
 
 @Component("foafSchemaEquivalences")
 @ConditionalOnBean({RdfConfiguration.class})
@@ -44,7 +41,7 @@ import org.tdwg.rs.DWC;
         prefix = "rdf.equivalences",
         name = {"foaf.enabled"},
         matchIfMissing = true)
-public class FoafSchemaEquivalences extends AbstractSchemaEquivalences {
+public class FoafSchemaEquivalences extends AbstractSchemaVisitor {
 
     private static final Logger log = LoggerFactory.getLogger(FoafSchemaEquivalences.class);
 

@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.server.http.rest;
+package net.sumaris.server.http.ontology;
 
 import com.google.common.base.Splitter;
 import net.sumaris.core.dao.technical.Page;
@@ -60,7 +60,7 @@ import java.util.Objects;
 
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
-public class RdfRestController {
+public class OntologyRestController {
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
 
@@ -81,7 +81,7 @@ public class RdfRestController {
 
     public static final String CONVERT_PATH = ONTOLOGY_PATH + "/convert";
 
-    private static final Logger log = LoggerFactory.getLogger(RdfRestController.class);
+    private static final Logger log = LoggerFactory.getLogger(OntologyRestController.class);
 
     @Resource
     private RdfModelService  modelService;
@@ -137,8 +137,14 @@ public class RdfRestController {
                                                     @RequestParam(name = "equivalences", defaultValue = "true", required = false) String equivalences,
                                                     final HttpServletRequest request) {
 
-        // Find output format
-        RdfFormat format = findRdfFormat(request, userFormat, RdfFormat.RDFXML);
+        // Find the output format
+        RdfFormat outputFormat = null;
+        if (StringUtils.isNotBlank(extension)) {
+            outputFormat = RdfFormat.fromExtension(extension).orElse(null);
+        }
+        if (outputFormat == null) {
+            outputFormat = findRdfFormat(request, userFormat, RdfFormat.RDFXML);
+        }
 
         // Generate the schema ontology
         Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
@@ -148,8 +154,8 @@ public class RdfRestController {
                 .build());
 
         return ResponseEntity.ok()
-                .contentType(format.mineType())
-                .body(ModelUtils.toBytes(schema, format));
+                .contentType(outputFormat.mineType())
+                .body(ModelUtils.toBytes(schema, outputFormat));
     }
 
     @GetMapping(

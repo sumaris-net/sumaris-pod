@@ -1,4 +1,4 @@
-package net.sumaris.server.http.rest;
+package net.sumaris.server.http.ontology;
 
 /*-
  * #%L

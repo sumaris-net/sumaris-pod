@@ -27,11 +27,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.crypto.CryptoService;
-import net.sumaris.core.util.Files;
 import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
-import net.sumaris.rdf.loader.NamedRdfLoader;
+import net.sumaris.rdf.loader.INamedRdfLoader;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.service.data.RdfIndividualFetchOptions;
 import net.sumaris.rdf.service.data.RdfIndividualService;
@@ -85,7 +84,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     private static final Logger log = LoggerFactory.getLogger(RdfDatasetServiceImpl.class);
 
     @Resource
-    private RdfSchemaService ontologyService;
+    private RdfSchemaService schemaService;
 
     @Resource
     private RdfIndividualService individualService;
@@ -107,13 +106,13 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     private Dataset dataset;
 
     @Resource(name = "mnhnTaxonLoader")
-    private NamedRdfLoader mnhnTaxonLoader;
+    private INamedRdfLoader mnhnTaxonLoader;
 
     @Resource(name = "sandreTaxonLoader")
-    private NamedRdfLoader sandreTaxonLoader;
+    private INamedRdfLoader sandreTaxonLoader;
 
     @Resource(name = "sandreDepartmentLoader")
-    private NamedRdfLoader sandreDepartmentLoader;
+    private INamedRdfLoader sandreDepartmentLoader;
 
     @Autowired(required = false)
     protected TaskExecutor taskExecutor;
@@ -150,7 +149,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
         this.dataset.close();
     }
 
-    public void registerNameModel(final NamedRdfLoader producer, final long maxStatements) {
+    public void registerNameModel(final INamedRdfLoader producer, final long maxStatements) {
         if (producer == null) return; // Skip if empty
         registerNamedModel(producer.getName(), () -> unionModel(producer.getName(), producer.streamAllByPages(maxStatements)));
     }
@@ -313,15 +312,15 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
 
         // Generate schema, and store it into the dataset
         this.defaultModel = getFullSchemaOntology();
-        FileManager.get().addCacheModel(ontologyService.getNamespace(), this.defaultModel);
+        FileManager.get().addCacheModel(schemaService.getNamespace(), this.defaultModel);
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
             Txn.executeWrite(conn, () -> {
 
-                log.info("Loading {{}} into RDF dataset...", ontologyService.getNamespace());
-                if (dataset.containsNamedModel(ontologyService.getNamespace())) {
-                    dataset.replaceNamedModel(ontologyService.getNamespace(), this.defaultModel);
+                log.info("Loading {{}} into RDF dataset...", schemaService.getNamespace());
+                if (dataset.containsNamedModel(schemaService.getNamespace())) {
+                    dataset.replaceNamedModel(schemaService.getNamespace(), this.defaultModel);
                 } else {
-                    dataset.addNamedModel(ontologyService.getNamespace(), this.defaultModel);
+                    dataset.addNamedModel(schemaService.getNamespace(), this.defaultModel);
                 }
             });
         }
@@ -369,11 +368,11 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     }
 
     protected Model getReferentialSchemaOntology() {
-        return ontologyService.getOntology(ModelVocabulary.REFERENTIAL);
+        return schemaService.getOntology(ModelVocabulary.REFERENTIAL);
     }
 
     protected Model getDataSchemaOntology() {
-        return ontologyService.getOntology(ModelVocabulary.DATA);
+        return schemaService.getOntology(ModelVocabulary.DATA);
     }
 
     public Model unionModel(String baseUri, Stream<Model> stream) throws Exception {

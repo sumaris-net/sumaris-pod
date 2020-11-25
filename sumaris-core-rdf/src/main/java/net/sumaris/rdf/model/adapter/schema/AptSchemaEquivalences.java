@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.model.adapter;
+package net.sumaris.rdf.model.adapter.schema;
 
 import fr.eaufrance.sandre.schema.apt.APT;
 import net.sumaris.core.model.referential.taxon.TaxonName;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
         prefix = "rdf.equivalences",
         name = {"sandre.enabled"},
         matchIfMissing = true)
-public class AptSchemaEquivalences extends AbstractSchemaEquivalences {
+public class AptSchemaEquivalences extends AbstractSchemaVisitor {
 
     private static final Logger log = LoggerFactory.getLogger(AptSchemaEquivalences.class);
 

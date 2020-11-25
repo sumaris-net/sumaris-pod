@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.model.adapter;
+package net.sumaris.rdf.model.adapter.data;
 
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
@@ -41,28 +41,29 @@ import javax.annotation.PostConstruct;
 import java.util.Objects;
 
 
-@Component("rdfDataEquivalences")
+@Component("rdfIndividualEquivalences")
 @ConditionalOnBean({RdfConfiguration.class})
 @ConditionalOnProperty(
         prefix = "rdf.equivalences",
         name = {"enabled"},
         matchIfMissing = true)
-public class RdfDataEquivalences implements IModelVisitor<Model, RdfIndividualFetchOptions> {
+public class RdfIndividualEquivalences implements IModelVisitor<Model, RdfIndividualFetchOptions> {
 
-    private static final Logger log = LoggerFactory.getLogger(RdfDataEquivalences.class);
+    private static final Logger log = LoggerFactory.getLogger(RdfIndividualEquivalences.class);
 
     private boolean debug;
 
     @javax.annotation.Resource
-    protected RdfIndividualService dataExportService;
+    protected RdfIndividualService individualService;
 
     @javax.annotation.Resource
     protected RdfSchemaService schemaService;
 
     @PostConstruct
     protected void init() {
-        // Register to schema service
-        dataExportService.register(this);
+        // Register to individual service
+        individualService.register(this);
+
         debug = log.isDebugEnabled();
     }
 

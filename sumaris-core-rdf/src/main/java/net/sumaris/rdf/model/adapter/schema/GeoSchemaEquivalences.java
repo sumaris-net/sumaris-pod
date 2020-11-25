@@ -20,10 +20,8 @@
  * #L%
  */
 
-package net.sumaris.rdf.model.adapter;
+package net.sumaris.rdf.model.adapter.schema;
 
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationArea;
 import net.sumaris.core.model.referential.location.LocationLine;
@@ -44,7 +42,7 @@ import org.springframework.stereotype.Component;
         prefix = "rdf.equivalences",
         name = {"geo.enabled"},
         matchIfMissing = true)
-public class GeoSchemaEquivalences extends AbstractSchemaEquivalences {
+public class GeoSchemaEquivalences extends AbstractSchemaVisitor {
 
     private static final Logger log = LoggerFactory.getLogger(GeoSchemaEquivalences.class);
 

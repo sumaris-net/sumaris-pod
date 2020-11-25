@@ -27,7 +27,6 @@ import com.google.common.base.Charsets;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.util.StringUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryFactory;
@@ -45,7 +44,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.stream.Stream;
 
-public abstract class AbstractNamedRdfLoader implements NamedRdfLoader, ResourceLoaderAware {
+public abstract class AbstractNamedRdfLoader implements INamedRdfLoader, ResourceLoaderAware {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractNamedRdfLoader.class);
 
@@ -83,7 +82,9 @@ public abstract class AbstractNamedRdfLoader implements NamedRdfLoader, Resource
 
     protected abstract String getEndpointUrl();
 
-    protected abstract int getFetchSize();
+    protected int getFetchSize() {
+        return 10000;
+    }
 
     protected RDFConnection connect() {
         return RDFConnectionFactory.connect(getEndpointUrl());

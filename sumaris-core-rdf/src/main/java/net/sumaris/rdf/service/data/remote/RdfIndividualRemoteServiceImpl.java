@@ -36,7 +36,7 @@ import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.Bean2Owl;
 import net.sumaris.rdf.util.Owl2Bean;
 import net.sumaris.rdf.util.OwlUtils;
-import net.sumaris.rdf.util.RdfImportContext;
+import net.sumaris.rdf.util.RdfOwlConversionContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntResource;
@@ -133,7 +133,7 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
         OntModel sourceModel = getRemoteModel(remoteUrl);
 
         // Recomposed object, from the remote model
-        RdfImportContext context = createImportContext(domain.name().toLowerCase(), baseTargetPackage);
+        RdfOwlConversionContext context = createImportContext(domain.name().toLowerCase(), baseTargetPackage);
 
         long start = System.currentTimeMillis();
         List<? extends Object> recomposed = objectsFromOnt(sourceModel, context);
@@ -178,7 +178,7 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
 
     /* -- Protected functions -- */
 
-    protected List<Object> objectsFromOnt(OntModel m, RdfImportContext context) {
+    protected List<Object> objectsFromOnt(OntModel m, RdfOwlConversionContext context) {
 
         Resource schema = m.listSubjectsWithProperty(RDF.type, OWL.Ontology).nextResource();
 
@@ -206,8 +206,8 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
         return ret;
     }
 
-    protected RdfImportContext createImportContext(String domain, String basePackage) {
-        RdfImportContext context = new RdfImportContext();
+    protected RdfOwlConversionContext createImportContext(String domain, String basePackage) {
+        RdfOwlConversionContext context = new RdfOwlConversionContext();
 
 
         new Reflections(basePackage, new SubTypesScanner(false))

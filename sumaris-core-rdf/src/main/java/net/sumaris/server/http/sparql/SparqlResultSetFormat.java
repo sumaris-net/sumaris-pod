@@ -65,12 +65,14 @@ public enum SparqlResultSetFormat {
                 return Optional.of(RS_XML);
 
             // Json
+            case SparqlMediaType.APPLICATION_JSON_VALUE:
+            case SparqlMediaType.APPLICATION_JSON_UTF8_VALUE:
             case SparqlMediaType.APPLICATION_SPARQL_RESULT_JSON_VALUE:
                 return Optional.of(RS_JSON);
 
             // CSV
-            case SparqlMediaType.APPLICATION_SPARQL_RESULT_CSV_VALUE:
             case SparqlMediaType.TEXT_CSV_VALUE:
+            case SparqlMediaType.APPLICATION_SPARQL_RESULT_CSV_VALUE:
                 return Optional.of(RS_CSV);
 
             // SSE
@@ -80,10 +82,10 @@ public enum SparqlResultSetFormat {
             // TSV
             case SparqlMediaType.TEXT_TSV_VALUE:
             case SparqlMediaType.APPLICATION_SPARQL_RESULT_TSV_VALUE:
-            case SparqlMediaType.TEXT_PLAIN_VALUE:
                 return Optional.of(RS_TSV);
 
-            // HTML
+            // Other (Text, HTML) => TSV
+            case SparqlMediaType.TEXT_PLAIN_VALUE:
             case RdfMediaType.TEXT_HTML_VALUE:
             case RdfMediaType.APPLICATION_XHTML_XML_VALUE:
                 return Optional.of(RS_TSV);

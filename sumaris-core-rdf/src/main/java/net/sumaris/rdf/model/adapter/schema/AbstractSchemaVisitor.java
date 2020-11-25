@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.model.adapter;
+package net.sumaris.rdf.model.adapter.schema;
 
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.service.schema.RdfSchemaFetchOptions;
@@ -37,7 +37,7 @@ import javax.annotation.Resource;
 import java.util.Objects;
 
 
-public abstract class AbstractSchemaEquivalences implements IModelVisitor<Model, RdfSchemaFetchOptions> {
+public abstract class AbstractSchemaVisitor implements IModelVisitor<Model, RdfSchemaFetchOptions> {
 
     @Resource
     protected RdfSchemaService schemaService;

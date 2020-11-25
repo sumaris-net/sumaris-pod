@@ -20,9 +20,8 @@
  * #L%
  */
 
-package net.sumaris.rdf.model.adapter;
+package net.sumaris.rdf.model.adapter.schema;
 
-import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.config.RdfConfiguration;
@@ -34,17 +33,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.tdwg.rs.DWC;
-import org.w3.W3NS;
 
-@Component("orgSchemaEquivalences")
+@Component("dwcSchemaEquivalences")
 @ConditionalOnBean({RdfConfiguration.class})
 @ConditionalOnProperty(
         prefix = "rdf.equivalences",
-        name = {"org.enabled"},
+        name = {"dwc.enabled"},
         matchIfMissing = true)
-public class OrgSchemaEquivalences extends AbstractSchemaEquivalences {
+public class DwcSchemaEquivalences extends AbstractSchemaVisitor {
 
-    private static final Logger log = LoggerFactory.getLogger(OrgSchemaEquivalences.class);
+    private static final Logger log = LoggerFactory.getLogger(DwcSchemaEquivalences.class);
 
 
     @Override
@@ -54,13 +52,32 @@ public class OrgSchemaEquivalences extends AbstractSchemaEquivalences {
 
     @Override
     public void visitClass(Model model, Resource ontClass, Class clazz) {
+        String classUri = ontClass.getURI();
 
-        // Department
-        if (clazz == Department.class) {
-            if (log.isDebugEnabled()) log.debug("Adding {{}} equivalence on Class {{}}...", W3NS.Org.PREFIX, clazz.getSimpleName());
+        // Reference Taxon
+        if (clazz == ReferenceTaxon.class) {
+            if (log.isDebugEnabled()) log.debug("Adding {{}} equivalence on Class {{}}...", DWC.Terms.PREFIX, clazz.getSimpleName());
 
-            ontClass.addProperty(equivalentClass, W3NS.Org.Organization);
+            ontClass.addProperty(equivalentClass, DWC.Terms.Taxon);
+
+            // Id
+            model.getResource(classUri + "#" + ReferenceTaxon.Fields.ID)
+                    .addProperty(equivalentProperty, DWC.Terms.taxonID);
         }
 
+        // Taxon Name
+        else if (clazz == TaxonName.class) {
+            if (log.isDebugEnabled()) log.debug("Adding {{}} equivalence on Class {{}}...", DWC.Terms.PREFIX, clazz.getSimpleName());
+
+            ontClass.addProperty(equivalentClass, DWC.Voc.TaxonName);
+
+            // Id
+            model.getResource(classUri + "#" + ReferenceTaxon.Fields.ID)
+                    .addProperty(equivalentProperty, DWC.Terms.scientificNameID);
+
+            // Complete name
+            model.getResource(classUri + "#" + TaxonName.Fields.NAME)
+                .addProperty(equivalentProperty, DWC.Terms.scientificName);
+        }
     }
 }
