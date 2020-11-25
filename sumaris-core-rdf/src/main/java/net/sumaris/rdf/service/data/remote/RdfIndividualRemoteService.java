@@ -20,24 +20,21 @@
  * #L%
  */
 
-package net.sumaris.rdf.service.data;
+package net.sumaris.rdf.service.data.remote;
 
-import net.sumaris.rdf.model.IModelVisitor;
+
+import net.sumaris.rdf.model.ModelVocabulary;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
+public interface RdfIndividualRemoteService {
 
-@Transactional(readOnly = true)
-public interface RdfDataExportService {
+    OntModel getRemoteModel(String url);
 
-    /**
-     * Register a model visitor, e.g. for add data to instances
-     * @param visitor
-     */
-    void register(IModelVisitor<Model, RdfDataExportOptions> visitor);
-
-    Model getIndividuals(@Nullable RdfDataExportOptions options);
-
-
+    @Transactional()
+    Model importFromRemote(String remoteUrl,
+                           String remoteOntUri,
+                           ModelVocabulary domain,
+                           String baseTargetPackage);
 }

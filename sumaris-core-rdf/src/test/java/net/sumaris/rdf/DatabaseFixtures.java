@@ -31,10 +31,10 @@ package net.sumaris.rdf;
 public class DatabaseFixtures {
 
 	public String getRemoteOntologyUrl() {
-		return "http://192.168.0.45:8080/ontologies/referentials/";
+		return "http://server.e-is.pro/ontologies/data/TaxonName";
 	}
 
 	public String getRemoteOntologyIri() {
-		return "http://192.168.0.45:8080/ontologies/referentials/";
+		return "http://server.e-is.pro/ontology/schema/";
 	}
 }

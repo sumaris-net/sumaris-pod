@@ -20,35 +20,24 @@
  * #L%
  */
 
-package net.sumaris.rdf.service.schema;
+package net.sumaris.rdf.service.data;
 
-import net.sumaris.rdf.cache.RdfCacheNames;
 import net.sumaris.rdf.model.IModelVisitor;
-import net.sumaris.rdf.model.ModelVocabulary;
 import org.apache.jena.rdf.model.Model;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
+
 @Transactional(readOnly = true)
-public interface RdfSchemaService {
-
-    String getPrefix();
-
-    String getNamespace();
+public interface RdfIndividualService {
 
     /**
-     * Register a schema visitor
+     * Register a model visitor, e.g. for add data to instances
      * @param visitor
      */
-    void register(IModelVisitor<Model, RdfSchemaFetchOptions> visitor);
+    void register(IModelVisitor<Model, RdfIndividualFetchOptions> visitor);
 
-    /**
-     * Get schema, as an ontology (classes with properties)
-     * @param options export options
-     * @return a schema representation as an ontology
-     */
-    @Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
-    Model getOntology(RdfSchemaFetchOptions options);
+    Model getIndividuals(@Nullable RdfIndividualFetchOptions options);
 
-    Model getOntology(ModelVocabulary voc);
+
 }

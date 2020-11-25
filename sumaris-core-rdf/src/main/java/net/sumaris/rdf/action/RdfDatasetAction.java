@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.action.ActionUtils;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.service.store.DatasetService;
+import net.sumaris.rdf.service.store.RdfDatasetService;
 import net.sumaris.rdf.util.RdfFormat;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.riot.RDFDataMgr;
@@ -58,7 +58,7 @@ public class RdfDatasetAction {
 	public static final String LOAD_ALIAS = "--load";
 	public static final String DUMP_ALIAS = "--dump";
 
-	private DatasetService service;
+	private RdfDatasetService service;
 	private RdfConfiguration config;
 
 	/**
@@ -112,8 +112,8 @@ public class RdfDatasetAction {
 		Preconditions.checkNotNull(config);
 	}
 
-	protected DatasetService getDatasetService() {
-		return ServiceLocator.instance().getService("datasetService", DatasetService.class);
+	protected RdfDatasetService getDatasetService() {
+		return ServiceLocator.instance().getService("rdfDatasetService", RdfDatasetService.class);
 	}
 
 	protected RdfConfiguration getConfig() {

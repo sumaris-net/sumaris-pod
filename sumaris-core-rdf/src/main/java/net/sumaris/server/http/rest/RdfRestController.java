@@ -29,9 +29,9 @@ import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelURIs;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.service.RdfModelService;
-import net.sumaris.rdf.service.data.RdfDataExportOptions;
-import net.sumaris.rdf.service.data.RdfDataExportService;
-import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.data.RdfIndividualFetchOptions;
+import net.sumaris.rdf.service.data.RdfIndividualService;
+import net.sumaris.rdf.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
@@ -87,10 +87,10 @@ public class RdfRestController {
     private RdfModelService  modelService;
 
     @Resource
-    private RdfSchemaService schemaExportService;
+    private RdfSchemaService schemaService;
 
     @Resource
-    private RdfDataExportService dataExportService;
+    private RdfIndividualService individualService;
 
     @Resource
     private RdfConfiguration config;
@@ -141,7 +141,7 @@ public class RdfRestController {
         RdfFormat format = findRdfFormat(request, userFormat, RdfFormat.RDFXML);
 
         // Generate the schema ontology
-        Model schema = schemaExportService.getOntology(RdfSchemaOptions.builder()
+        Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
                 .className(className)
                 .withDisjoints(!"false".equalsIgnoreCase(disjoints)) // True by default
                 .withEquivalences(!"false".equalsIgnoreCase(equivalences))
@@ -188,7 +188,7 @@ public class RdfRestController {
                                                  @RequestParam(name = "size", required = false, defaultValue = "100") int size,
                                                  final HttpServletRequest request) {
 
-        RdfDataExportOptions options = RdfDataExportOptions.builder()
+        RdfIndividualFetchOptions options = RdfIndividualFetchOptions.builder()
                 .className(className)
                 .id(objectId)
                 .maxDepth(1)
@@ -211,7 +211,7 @@ public class RdfRestController {
         }
 
         // Get individuals
-        Model individuals = dataExportService.getIndividuals(options);
+        Model individuals = individualService.getIndividuals(options);
 
         // Add schema
         //individuals = ModelFactontology/convertry.createInfModel(ReasonerRegistry.getOWLReasoner(), schemaExportService.getOntology(className, extension, ));

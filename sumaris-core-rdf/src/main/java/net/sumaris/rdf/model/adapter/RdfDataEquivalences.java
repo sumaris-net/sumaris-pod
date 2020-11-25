@@ -25,8 +25,8 @@ package net.sumaris.rdf.model.adapter;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
-import net.sumaris.rdf.service.data.RdfDataExportOptions;
-import net.sumaris.rdf.service.data.RdfDataExportService;
+import net.sumaris.rdf.service.data.RdfIndividualFetchOptions;
+import net.sumaris.rdf.service.data.RdfIndividualService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -47,14 +47,14 @@ import java.util.Objects;
         prefix = "rdf.equivalences",
         name = {"enabled"},
         matchIfMissing = true)
-public class RdfDataEquivalences implements IModelVisitor<Model, RdfDataExportOptions> {
+public class RdfDataEquivalences implements IModelVisitor<Model, RdfIndividualFetchOptions> {
 
     private static final Logger log = LoggerFactory.getLogger(RdfDataEquivalences.class);
 
     private boolean debug;
 
     @javax.annotation.Resource
-    protected RdfDataExportService dataExportService;
+    protected RdfIndividualService dataExportService;
 
     @javax.annotation.Resource
     protected RdfSchemaService schemaService;
@@ -67,7 +67,7 @@ public class RdfDataEquivalences implements IModelVisitor<Model, RdfDataExportOp
     }
 
     @Override
-    public boolean accept(Model model, String prefix, String namespace, RdfDataExportOptions options) {
+    public boolean accept(Model model, String prefix, String namespace, RdfIndividualFetchOptions options) {
         return options.getReasoningLevel() != ReasoningLevel.NONE && Objects.equals(schemaService.getNamespace(), namespace);
     }
 

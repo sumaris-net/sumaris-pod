@@ -23,7 +23,7 @@
 package net.sumaris.rdf.model.adapter;
 
 import net.sumaris.rdf.model.IModelVisitor;
-import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
@@ -37,7 +37,7 @@ import javax.annotation.Resource;
 import java.util.Objects;
 
 
-public abstract class AbstractSchemaEquivalences implements IModelVisitor<Model, RdfSchemaOptions> {
+public abstract class AbstractSchemaEquivalences implements IModelVisitor<Model, RdfSchemaFetchOptions> {
 
     @Resource
     protected RdfSchemaService schemaService;
@@ -64,7 +64,7 @@ public abstract class AbstractSchemaEquivalences implements IModelVisitor<Model,
     }
 
     @Override
-    public boolean accept(Model model, String prefix, String namespace, RdfSchemaOptions options) {
+    public boolean accept(Model model, String prefix, String namespace, RdfSchemaFetchOptions options) {
         return options.isWithEquivalences() && Objects.equals(schemaService.getNamespace(), namespace);
     }
 

@@ -38,7 +38,7 @@ import java.util.List;
 @FieldNameConstants
 @EqualsAndHashCode
 @ToString
-public class RdfSchemaOptions {
+public class RdfSchemaFetchOptions {
 
     @Builder.Default
     private boolean withDisjoints = true;

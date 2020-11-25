@@ -36,7 +36,7 @@ import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelEntities;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
-import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.Bean2Owl;
 import net.sumaris.rdf.util.ModelUtils;
@@ -64,11 +64,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Service("rdfDataExportService")
+@Service("rdfIndividualService")
 @ConditionalOnBean({RdfConfiguration.class})
-public class RdfDataExportServiceImpl implements RdfDataExportService {
+public class RdfIndividualServiceImpl implements RdfIndividualService {
 
-    private static final Logger log = LoggerFactory.getLogger(RdfDataExportServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(RdfIndividualServiceImpl.class);
 
     @Autowired
     protected RdfConfiguration config;
@@ -87,7 +87,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
     protected int defaultPageSize;
     protected int maxPageSize;
 
-    protected List<IModelVisitor<Model, RdfDataExportOptions>> modelVisitors = Lists.newCopyOnWriteArrayList();
+    protected List<IModelVisitor<Model, RdfIndividualFetchOptions>> modelVisitors = Lists.newCopyOnWriteArrayList();
 
     @PostConstruct
     protected void init() {
@@ -99,12 +99,12 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
     }
 
     @Override
-    public void register(IModelVisitor<Model, RdfDataExportOptions> visitor) {
+    public void register(IModelVisitor<Model, RdfIndividualFetchOptions> visitor) {
         if (!modelVisitors.contains(modelVisitors)) modelVisitors.add(visitor);
     }
 
     @Override
-    public Model getIndividuals(@Nullable RdfDataExportOptions options) {
+    public Model getIndividuals(@Nullable RdfIndividualFetchOptions options) {
 
         // Make sure to fix options (set packages, ...)
         fillOptions(options);
@@ -115,7 +115,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
 
         OntModel schema = null;
         if (options.getReasoningLevel() != ReasoningLevel.NONE) {
-            schema = (OntModel)schemaService.getOntology(RdfSchemaOptions.builder()
+            schema = (OntModel)schemaService.getOntology(RdfSchemaFetchOptions.builder()
                     .domain(options.getDomain())
                     .className(options.getClassName())
                     .reasoningLevel(options.getReasoningLevel())
@@ -169,7 +169,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
     /* -- protected methods -- */
 
 
-    protected RdfDataExportOptions fillOptions(RdfDataExportOptions options) {
+    protected RdfIndividualFetchOptions fillOptions(RdfIndividualFetchOptions options) {
         Preconditions.checkNotNull(options);
 
         ModelVocabulary domain = options.getDomain();
@@ -239,7 +239,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
 
 
     // TODO: move this into SchemaService, with a cache !!
-    protected Stream<Class<?>> getClassesAsStream(RdfDataExportOptions options) {
+    protected Stream<Class<?>> getClassesAsStream(RdfIndividualFetchOptions options) {
 
         Reflections reflections;
         Stream<Class<?>> result;
@@ -296,7 +296,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
     }
 
 
-    public List<IModelVisitor> getModelVisitors(Model model, String ns, String schemaUri, RdfDataExportOptions options) {
+    public List<IModelVisitor> getModelVisitors(Model model, String ns, String schemaUri, RdfIndividualFetchOptions options) {
         return modelVisitors.stream().filter(visitor -> visitor.accept(model, ns, schemaUri, options)).collect(Collectors.toList());
     }
 

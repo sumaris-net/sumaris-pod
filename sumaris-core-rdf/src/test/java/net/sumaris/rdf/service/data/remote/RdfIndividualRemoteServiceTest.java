@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.service.data;
+package net.sumaris.rdf.service.data.remote;
 
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
@@ -35,15 +35,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class DataServiceTest extends AbstractTest {
+public class RdfIndividualRemoteServiceTest extends AbstractTest {
 
-    private static final Logger log = LoggerFactory.getLogger(DataServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(RdfIndividualRemoteServiceTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private RdfDataImportServiceImpl service;
+    private RdfIndividualRemoteServiceImpl service;
 
     @Test
     @Ignore

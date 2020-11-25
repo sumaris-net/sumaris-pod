@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.service.data;
+package net.sumaris.rdf.service.data.remote;
 
 
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -31,7 +31,7 @@ import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.EntitiesDao;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelEntities;
-import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.Bean2Owl;
 import net.sumaris.rdf.util.Owl2Bean;
@@ -55,7 +55,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
@@ -65,15 +64,15 @@ import java.util.List;
 import java.util.function.Function;
 
 
-@Service("rdfDataImportService")
+@Service("rdfIndividualRemoteService")
 @ConditionalOnBean({RdfConfiguration.class})
-public class RdfDataImportServiceImpl {
+public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteService {
 
-    public static Logger log = LoggerFactory.getLogger(RdfDataImportServiceImpl.class);
+    public static Logger log = LoggerFactory.getLogger(RdfIndividualRemoteServiceImpl.class);
 
     protected Owl2Bean owlConverter;
     protected List tl = new ArrayList();
-    protected List statuses= new ArrayList();
+    protected List statuses = new ArrayList();
 
     @Autowired
     protected EntityManager entityManager;
@@ -85,7 +84,7 @@ public class RdfDataImportServiceImpl {
     protected EntitiesDao modelDao;
 
     @Autowired
-    private RdfSchemaService exportService;
+    private RdfSchemaService schemaService;
 
     protected Bean2Owl beanConverter;
 
@@ -97,16 +96,17 @@ public class RdfDataImportServiceImpl {
         owlConverter = new Owl2Bean(this.entityManager, config.getModelBaseUri()) {
             @Override
             protected List getCacheStatus() {
-                return RdfDataImportServiceImpl.this.getCacheStatus();
+                return RdfIndividualRemoteServiceImpl.this.getCacheStatus();
             }
 
             @Override
             protected List getCacheTL() {
-                return RdfDataImportServiceImpl.this.getCacheTL();
+                return RdfIndividualRemoteServiceImpl.this.getCacheTL();
             }
         };
     }
 
+    @Override
     public OntModel getRemoteModel(String url) {
 
         log.info(String.format("Reading ontology model at {%s}...", url));
@@ -123,7 +123,7 @@ public class RdfDataImportServiceImpl {
         return model;
     }
 
-    @Transactional
+    @Override
     public Model importFromRemote(String remoteUrl,
                                      String remoteOntUri,
                                      ModelVocabulary domain,
@@ -143,11 +143,11 @@ public class RdfDataImportServiceImpl {
         }
         log.info(String.format("Mapped ont to list of %s objects, Making it OntClass again %s", recomposed.size(), Dates.elapsedTime(start)));
 
-        Model targetModel = exportService.getOntology(RdfSchemaOptions.builder()
+        Model targetModel = schemaService.getOntology(RdfSchemaFetchOptions.builder()
                 .domain(domain)
                 .withInterfaces(true)
                 .build());
-        String modelUri = exportService.getNamespace();
+        String modelUri = schemaService.getNamespace();
 
         recomposed.forEach(r -> beanConverter.bean2Owl(targetModel, modelUri, r, 2, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes));
 
@@ -175,6 +175,8 @@ public class RdfDataImportServiceImpl {
 
         return targetModel;
     }
+
+    /* -- Protected functions -- */
 
     protected List<Object> objectsFromOnt(OntModel m, RdfImportContext context) {
 

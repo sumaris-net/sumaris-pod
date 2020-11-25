@@ -20,16 +20,14 @@
  * #L%
  */
 
-package net.sumaris.rdf.service;
+package net.sumaris.rdf.service.data;
 
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.AbstractTest;
-import net.sumaris.rdf.service.data.RdfDataExportOptions;
-import net.sumaris.rdf.service.data.RdfDataExportService;
-import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
@@ -52,18 +50,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class ExportServicesTest extends AbstractTest {
+public class IndividualServicesTest extends AbstractTest {
 
-    private static final Logger log = LoggerFactory.getLogger(ExportServicesTest.class);
+    private static final Logger log = LoggerFactory.getLogger(IndividualServicesTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Resource
-    private RdfSchemaService schemaExportService;
+    private RdfSchemaService schemaService;
 
     @Resource
-    private RdfDataExportService dataExportService;
+    private RdfIndividualService service;
 
     private File schemaModelFile;
     private File dataModelFile;
@@ -93,12 +91,12 @@ public class ExportServicesTest extends AbstractTest {
 
     @Test
     public void executeQuery() throws IOException {
-        Model schema = schemaExportService.getOntology(RdfSchemaOptions.builder()
+        Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
                 .withEquivalences(false)
                 .build());
 
-        Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
+        Model instances = service.getIndividuals(RdfIndividualFetchOptions.builder()
                 .className("TaxonName")
                 .id("1001")
                 .build());
@@ -118,12 +116,12 @@ public class ExportServicesTest extends AbstractTest {
 
     @Test
     public void executeUsingConnectionQuery() throws IOException {
-        Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
+        Model instances = service.getIndividuals(RdfIndividualFetchOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
                 .className("TaxonName")
                 .build());
 
-        Model schema = schemaExportService.getOntology(RdfSchemaOptions.builder()
+        Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
                 .className("TaxonName")
                 .withEquivalences(true)
@@ -147,10 +145,10 @@ public class ExportServicesTest extends AbstractTest {
         }
     }
 
-    /* -- -- */
+    /* -- protected functions -- */
 
     protected File createSchemaModelFile(boolean forceIfExists)  throws IOException {
-        Model model = schemaExportService.getOntology(RdfSchemaOptions.builder()
+        Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
                 .reasoningLevel(ReasoningLevel.NONE)
                 .className("TaxonName")
@@ -159,7 +157,7 @@ public class ExportServicesTest extends AbstractTest {
     }
 
     protected File createDataModelFile(boolean forceIfExists)  throws IOException {
-        Model model = dataExportService.getIndividuals(RdfDataExportOptions.builder()
+        Model model = service.getIndividuals(RdfIndividualFetchOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
                 .reasoningLevel(ReasoningLevel.NONE)
                 .className("TaxonName")

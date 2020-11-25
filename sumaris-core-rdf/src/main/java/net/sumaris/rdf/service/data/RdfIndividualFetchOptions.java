@@ -39,7 +39,7 @@ import java.util.List;
 @FieldNameConstants
 @EqualsAndHashCode
 @ToString
-public class RdfDataExportOptions {
+public class RdfIndividualFetchOptions {
 
     private ModelVocabulary domain;
     private String className;

@@ -20,12 +20,11 @@
  * #L%
  */
 
-package net.sumaris.rdf.service;
+package net.sumaris.rdf.service.store;
 
 import graphql.Assert;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
-import net.sumaris.rdf.service.store.DatasetService;
 import org.apache.jena.query.*;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -36,36 +35,41 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DatasetServiceTest extends AbstractTest {
+public class RdfDatasetServiceTest extends AbstractTest {
 
-    private static final Logger log = LoggerFactory.getLogger(DatasetServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(RdfDatasetServiceTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
     @Autowired
-    private DatasetService service;
+    private RdfDatasetService service;
 
     @Test
     public void getModelNames() {
         Set<String> names = service.getModelNames();
         Assert.assertTrue(names.size() > 0);
-        log.info(names.stream().collect(Collectors.joining(", ")));
+        if (log.isDebugEnabled()) log.debug(names.stream().collect(Collectors.joining(", ")));
     }
 
     @Test
-    public void testDataLoaded() {
-
-
-
+    public void testDataLoaded() throws Exception {
         // Connect or create the TDB2 dataset
         Dataset ds = service.getDataset();
 
-        //Txn.executeWrite(ds, () -> RDFDataMgr.read(ds, "file:src/test/resources/rdf-test-data.ttl")) ;
-        Txn.executeRead(ds, () -> RDFDataMgr.write(System.out, ds, Lang.TRIG));
+        File tmpFile = new File(dbResource.getResourceDirectory("data"), "testDataLoaded.ttl");
+        dbResource.addToDestroy(tmpFile);
+
+        try (FileOutputStream fos = new FileOutputStream(tmpFile)){
+            Txn.executeRead(ds, () -> RDFDataMgr.write(fos, ds, Lang.TRIG));
+        }
+
+
     }
 
 }

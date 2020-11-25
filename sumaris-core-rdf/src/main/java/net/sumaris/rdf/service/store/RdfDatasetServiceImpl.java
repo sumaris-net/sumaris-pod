@@ -27,13 +27,14 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.crypto.CryptoService;
+import net.sumaris.core.util.Files;
 import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
 import net.sumaris.rdf.loader.NamedRdfLoader;
 import net.sumaris.rdf.model.ModelVocabulary;
-import net.sumaris.rdf.service.data.RdfDataExportOptions;
-import net.sumaris.rdf.service.data.RdfDataExportService;
+import net.sumaris.rdf.service.data.RdfIndividualFetchOptions;
+import net.sumaris.rdf.service.data.RdfIndividualService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.RdfFormat;
 import org.apache.commons.collections4.CollectionUtils;
@@ -69,6 +70,7 @@ import javax.annotation.Resource;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
@@ -76,17 +78,17 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Component("datasetService")
+@Component("rdfDatasetService")
 @ConditionalOnBean({RdfConfiguration.class})
-public class DatasetService {
+public class RdfDatasetServiceImpl implements RdfDatasetService {
 
-    private static final Logger log = LoggerFactory.getLogger(DatasetService.class);
-
-    @Resource
-    private RdfSchemaService schemaService;
+    private static final Logger log = LoggerFactory.getLogger(RdfDatasetServiceImpl.class);
 
     @Resource
-    private RdfDataExportService dataExportService;
+    private RdfSchemaService ontologyService;
+
+    @Resource
+    private RdfIndividualService individualService;
 
     @Resource
     private RdfConfiguration config;
@@ -273,8 +275,18 @@ public class DatasetService {
             log.info("Starting {TDB2} triple store at {{}}...", tdb2Dir);
 
             // Check access write
-            if (tdb2Dir.exists() && (!tdb2Dir.canRead() || tdb2Dir.canWrite())){
-                throw new SumarisTechnicalException("Missing write/read access to directory: " + tdb2Dir.getAbsolutePath());
+            if (tdb2Dir.exists()) {
+                if (!tdb2Dir.isDirectory() || !tdb2Dir.canRead() || !tdb2Dir.canWrite()) {
+                    throw new SumarisTechnicalException("Missing write/read access to directory: " + tdb2Dir.getAbsolutePath());
+                }
+            }
+            else {
+                try {
+                    FileUtils.forceMkdir(tdb2Dir);
+                }
+                catch (IOException e) {
+                    throw new SumarisTechnicalException("Cannot create directory: " + tdb2Dir.getAbsolutePath());
+                }
             }
 
             Location location = Location.create(tdb2Dir.getAbsolutePath());
@@ -301,15 +313,15 @@ public class DatasetService {
 
         // Generate schema, and store it into the dataset
         this.defaultModel = getFullSchemaOntology();
-        FileManager.get().addCacheModel(schemaService.getNamespace(), this.defaultModel);
+        FileManager.get().addCacheModel(ontologyService.getNamespace(), this.defaultModel);
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
             Txn.executeWrite(conn, () -> {
 
-                log.info("Loading {{}} into RDF dataset...", schemaService.getNamespace());
-                if (dataset.containsNamedModel(schemaService.getNamespace())) {
-                    dataset.replaceNamedModel(schemaService.getNamespace(), this.defaultModel);
+                log.info("Loading {{}} into RDF dataset...", ontologyService.getNamespace());
+                if (dataset.containsNamedModel(ontologyService.getNamespace())) {
+                    dataset.replaceNamedModel(ontologyService.getNamespace(), this.defaultModel);
                 } else {
-                    dataset.addNamedModel(schemaService.getNamespace(), this.defaultModel);
+                    dataset.addNamedModel(ontologyService.getNamespace(), this.defaultModel);
                 }
             });
         }
@@ -333,7 +345,7 @@ public class DatasetService {
 
                 String graphName = config.getModelBaseUri() + "data/" + entityName;
                 log.info("Loading {{}} into RDF dataset...", graphName);
-                Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
+                Model instances = individualService.getIndividuals(RdfIndividualFetchOptions.builder()
                         .maxDepth(1)
                         .domain(ModelVocabulary.REFERENTIAL)
                         .className(entityName)
@@ -357,11 +369,11 @@ public class DatasetService {
     }
 
     protected Model getReferentialSchemaOntology() {
-        return schemaService.getOntology(ModelVocabulary.REFERENTIAL);
+        return ontologyService.getOntology(ModelVocabulary.REFERENTIAL);
     }
 
     protected Model getDataSchemaOntology() {
-        return schemaService.getOntology(ModelVocabulary.DATA);
+        return ontologyService.getOntology(ModelVocabulary.DATA);
     }
 
     public Model unionModel(String baseUri, Stream<Model> stream) throws Exception {

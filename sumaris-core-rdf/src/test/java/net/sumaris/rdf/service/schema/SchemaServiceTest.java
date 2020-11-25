@@ -57,7 +57,7 @@ public class SchemaServiceTest extends AbstractTest {
         Model individuals = FileManager.get().loadModel("file:src/test/resources/rdf-test-data.ttl");
 
         // Get schema ontology
-        Model model = schemaService.getOntology(RdfSchemaOptions.builder()
+        Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
                 .className(TaxonName.class.getSimpleName())
                 // Will add RDFS equivalence between:
@@ -93,7 +93,7 @@ public class SchemaServiceTest extends AbstractTest {
         Model individuals = FileManager.get().loadModel("file:src/test/resources/rdf-test-data.ttl");
 
         // Get schema ontology
-        Model model = schemaService.getOntology(RdfSchemaOptions.builder()
+        Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
                 .className(TaxonName.class.getSimpleName())
                 // Will add OWL equivalence between:
