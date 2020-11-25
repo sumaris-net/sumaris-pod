@@ -114,6 +114,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input() canDisplayToolbar = true;
   @Input() canDisplayColumnsHeaders = true;
   @Input() canDisplaySimpleStrategyValidators = true;
+  @Input() pmfmFilterApplied: string = 'all';
   @Input() initializeOneRow = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -238,6 +239,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
+    this.loadPmfms();
 
     this.validatorService.isSimpleStrategy = this.canDisplaySimpleStrategyValidators;
 
@@ -617,7 +621,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     try {
       await Promise.all([
         this.loadAcquisitionLevels(),
-        this.loadPmfms(),
+        // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
+        //this.loadPmfms(),
       ]);
 
       console.debug("[pmfm-strategy-table] Loaded referential items");
@@ -637,13 +642,61 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$acquisitionLevels.next(res && res.data || undefined)
   }
 
+
   protected async loadPmfms() {
-    const res = await this.pmfmService.loadAll(0, 10, null, null, null,
+      const res = null;
+      if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
       {
-        withTotal: false,
-        withDetails: true
-      });
-    this.$pmfms.next(res && res.data || [])
+        // We add a filter on pmfm with parameter in ('WEIGHT')
+        const res = await this.pmfmService.loadAll(0, 123, null, null, {
+          entityName: 'Pmfm',
+          levelLabels: ['WEIGHT']
+          // searchJoin: "Parameter" is implied in pod filter
+        },
+          {
+            withTotal: false,
+            withDetails: true
+          });
+          this.$pmfms.next(res && res.data || [])
+      }
+      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'size')
+      {
+        // We add a filter on pmfm with parameter in specific size list
+        const res = await this.pmfmService.loadAll(0, 456, null, null, {
+          entityName: 'Pmfm',
+          levelLabels: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE']
+          // searchJoin: "Parameter" is implied in pod filter
+        },
+          {
+            withTotal: false,
+            withDetails: true
+          });
+          this.$pmfms.next(res && res.data || [])
+      }
+      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'maturity')
+      {
+        // We add a filter on pmfm with parameter in specific maturity list
+        const res = await this.pmfmService.loadAll(0, 789, null, null, {
+          entityName: 'Pmfm',
+          levelLabels: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL']
+          // searchJoin: "Parameter" is implied in pod filter
+        },
+          {
+            withTotal: false,
+            withDetails: true
+          });
+          this.$pmfms.next(res && res.data || [])
+      }
+      else {
+        const res = await this.pmfmService.loadAll(0, 1000, null, null, null,
+        {
+          withTotal: false,
+          withDetails: true
+        });
+        this.$pmfms.next(res && res.data || [])
+      }
+      
+
   }
 
 
