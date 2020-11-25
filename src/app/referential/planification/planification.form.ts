@@ -186,7 +186,6 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     this.registerAutocompleteField('calcifiedType', {
       attributes: ['name'],
       columnNames: [ 'REFERENTIAL.NAME'],
-      columnSizes: [4,6],
       items: this._calcifiedTypeSubject,
       mobile: this.mobile
     });
@@ -266,12 +265,12 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     // Make sure to have (at least) one laboratories
           //value.laboratories = value.laboratories && value.laboratories.length ? value.laboratories : [null];
     // Resize laboratories array
-          //this.laboratoryHelper.resize(Math.max(1, value.laboratories.length));  
-    
+          //this.laboratoryHelper.resize(Math.max(1, value.laboratories.length));
+
     // Make sure to have (at least) one fishingAreas
          //value.fishingAreas = value.fishingAreas && value.fishingAreas.length ? value.fishingAreas : [null];
     // Resize fishingAreas array
-        // this.fishingAreaHelper.resize(Math.max(1, value.fishingAreas.length));    
+        // this.fishingAreaHelper.resize(Math.max(1, value.fishingAreas.length));
 
 
     // Send value for form
@@ -299,7 +298,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   close(){
     console.log("close works");
   }
-  
+
    // fishingArea Helper -----------------------------------------------------------------------------------------------
     protected initFishingAreaHelper() {
       this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
@@ -314,7 +313,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         // Create at least one fishing Area
         if (this.fishingAreaHelper.size() === 0) {
           this.fishingAreaHelper.resize(1);
-        }   
+        }
     }
     addFishingArea() {
       this.fishingAreaHelper.add();
@@ -337,7 +336,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         // Create at least one laboratory
         if (this.laboratoryHelper.size() === 0) {
           this.laboratoryHelper.resize(1);
-        }         
+        }
     }
     addLaboratory() {
       this.laboratoryHelper.add();
@@ -360,7 +359,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         // Create at least one calcifiedType
         if (this.calcifiedTypeHelper.size() === 0) {
           this.calcifiedTypeHelper.resize(1);
-        }      
+        }
     }
     addCalcifiedType() {
       this.calcifiedTypeHelper.add();
@@ -400,7 +399,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         {
           entityName: 'Fraction',
           searchAttribute: "description",
-          searchText: "individu" 
+          searchText: "individu"
         });
         return res.data;
     }

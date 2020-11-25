@@ -357,14 +357,14 @@
   },
 
   "PLANIFICATION": {
-    "CREATE_SAMPLING_PLAN" : "Creating a sampling plan line",
-    "FISHING_AREA" :"Fishing area (s) ",
+    "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
+    "FISHING_AREA" :"Fishing area (s)",
     "SAMPLE_ROW_CODE":"Sample row code",
     "SAMPLE_ROW_TITLE":"Sample row code",
     "EOTP":"EOTP",
-    "LABORATORY" :"Laboratory ",
-    "TARGET_SPECIE" :"Target specie",
-    "LANDING_PORT" :"Landing port",
+    "LABORATORY": "Laboratory",
+    "TARGET_SPECIE": "Target specie",
+    "LANDING_PORT": "Landing port",
     "SEX": "Sexe",
     "AGE": "Age",
     "YEAR": "Year",
@@ -373,12 +373,12 @@
     "MATURITY": "Maturities : ",
     "CALCIFIED_TYPE": "Types of calcified parts : " ,
     "SIZE_INCREMENT": "Size increment",
-    "EFFORT"    : "Effort : ",
-    "QUARTER_1" : "Quarter 1" ,
-    "QUARTER_2" : "Quarter 2",
-    "QUARTER_3" : "Quarter 3",
-    "QUARTER_4" : "Quarter 4",
-    "PARAMETERS_TITLE" : "Mesured parameters :"
+    "EFFORT": "Effort : ",
+    "QUARTER_1": "Quarter 1" ,
+    "QUARTER_2": "Quarter 2",
+    "QUARTER_3": "Quarter 3",
+    "QUARTER_4": "Quarter 4",
+    "PARAMETERS_TITLE": "Mesured parameters :"
   },
 
   "TRIP": {
