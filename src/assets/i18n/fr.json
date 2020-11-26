@@ -1183,6 +1183,11 @@
         "TABLE": {
           "TITLE": "Paramètres collectés"
         }
+      },
+      "ERROR": {
+        "LOAD_STRATEGY_LABEL_ERROR": "Erreur lors de chargement du label de la stratégie",
+        "LOAD_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
+        "SAVE_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie"
       }
     },
     "ERROR": {
