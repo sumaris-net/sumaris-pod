@@ -12,22 +12,13 @@ import { StrategyFilter } from '../strategy/strategies.table';
 import { EntitiesServiceWatchOptions, EntityServiceLoadOptions } from 'src/app/shared/services/entity-service.class';
 
 const StrategyFragments = {
-  strategyNextLabel:  gql`fragment StrategyNextLabelFragment on String {
-    id
-    label
-    name
-    entityName
-    __typename
-  }`,
+
 }
 
 const FindStrategyNextLabel: any = gql`
-  query SuggestedStrategyNextLabelQuery($id: Int, $labelPrefix: String, $nbDigit: Int){
-    suggestedStrategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit){
-      ...StrategyNextLabelFragment
-    }
+  query SuggestedStrategyNextLabelQuery($programId: Int, $labelPrefix: String, $nbDigit: Int){
+    suggestedStrategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
   }
-  ${StrategyFragments.strategyNextLabel}
 `;
 
 @Injectable({providedIn: 'root'})
@@ -37,7 +28,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     protected graphql: GraphqlService,
   ) {
     super(graphql);
-    if (this._debug) console.debug('[program-service] Creating service');
+    if (this._debug) console.debug('[strategy-service] Creating service');
   }
 
   load(id: number, options?: EntityServiceLoadOptions): Promise<Strategy> {
@@ -62,17 +53,19 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     throw new Error('Method not implemented.');
   }
 
-  async findStrategyNextLabel() {
+  async findStrategyNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next label...`);
 
-    const res = await this.graphql.query<{ label: any }>({
+    const res = await this.graphql.query<{ label: string }>({
       query: FindStrategyNextLabel,
       variables: {
-        id: id
+        programId: programId,
+        labelPrefix: labelPrefix,
+        nbDigit: nbDigit
       },
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"}
     });
 
-    return res && res.label && Strategy.fromObject(res.label);
+    return res && res.label;
   }
 }

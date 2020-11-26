@@ -4,6 +4,7 @@ import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ControlValueAccessor, FormBuilder, FormArray} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {StrategyService} from "../services/strategy.service";
 import {AppForm, ReferentialRef, IReferentialRef, FormArrayHelper, isNil} from '../../core/core.module';
 import {BehaviorSubject} from "rxjs";
 import { Planification } from 'src/app/trip/services/model/planification.model';
@@ -97,6 +98,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: PlanificationValidatorService,
     protected referentialRefService: ReferentialRefService,
+    protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
@@ -135,6 +137,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
         // set sample row code
         // TODO : call sample row code increment service method (from strategy.service.ts)
+        //this.sampleRowCode = await this.strategyService.findStrategyNextLabel(this.program.id, `${year}_BIO_`, 4);
         this.sampleRowCode = `${year}-BIO-` + Math.floor(1000 + Math.random() * 9000);
       })
     );
@@ -389,8 +392,8 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
        const allcalcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
        this._calcifiedTypeSubject.next(allcalcifiedTypes);
       } else {
-        // TODO Refresh filtred departments
-         const filtredCalcifiedTypes =await  this.loadCalcifiedTypesMethod();
+         // TODO Refresh filtred departments
+         const filtredCalcifiedTypes = await this.loadCalcifiedTypesMethod();
          this._calcifiedTypeSubject.next(filtredCalcifiedTypes);
       }
   }
