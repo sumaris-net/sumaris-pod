@@ -616,14 +616,11 @@ public class StrategyRepositoryImpl
                     target.setUpdateDate(item.getUpdateDate());
                     target.setStrategyId(source.getId());
 
-                    target.setLocation(locationRepository.toVO(item.getLocation()));
-                    target.setDepartment(departmentRepository.toVO(item.getDepartment()));
-
-                    // Privilege
-                    ProgramPrivilegeVO p = new ProgramPrivilegeVO();
-                    Beans.copyProperties(item.getPrivilege(), p);
-                    p.setStatusId(item.getPrivilege().getStatus().getId());
-                    target.setPrivilege(p);
+                    if (item.getLocation() != null) {
+                        target.setLocation(referentialDao.toVO(item.getLocation()));
+                    }
+                    target.setDepartment(referentialDao.toVO(item.getDepartment()));
+                    target.setPrivilege(referentialDao.toVO(item.getPrivilege()));
 
                     return target;
                 })
