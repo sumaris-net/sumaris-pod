@@ -410,9 +410,6 @@ export class ReferentialRefService extends BaseEntityService
           null,
             logPrefix);
           break;
-        case 'Metier':
-          filter = {entityName, statusIds};
-          break;
         case 'MetierTaxonGroup':
           filter = {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup' };
           break;
@@ -420,10 +417,9 @@ export class ReferentialRefService extends BaseEntityService
           filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO] };
           break;
         case 'Location':
-          filter = {entityName, statusIds, levelIds: Object.keys(LocationLevelIds)
-              .map(key => parseInt(LocationLevelIds[key]))
+          filter = {entityName, statusIds, levelIds: Object.values(LocationLevelIds)
               // Exclude rectangles (because more than 7200 rect exists !)
-              // TODO: find a way to add it, depending on the program properties ?
+              // => Maybe find a way to add it, depending on the program properties ?
               .filter(id => id != LocationLevelIds.ICES_RECTANGLE)};
           break;
         default:
