@@ -110,8 +110,8 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
 
   strategyId: number;
   location: ReferentialRef;
-  //privilege: ProgramPrivilege;
-  department: Department;
+  privilege: ReferentialRef;
+  department: ReferentialRef;
 
   static fromObject(source: any): StrategyDepartment {
     if (!source || source instanceof StrategyDepartment) return source;
@@ -130,7 +130,7 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
     target.location = this.location && this.location.asObject(opts) || undefined;
-    //target.privilege = this.privilege && this.privilege.asObject(opts);
+    target.privilege = this.privilege && this.privilege.asObject(opts);
     target.department = this.department && this.department.asObject(opts);
     return target;
   }
@@ -138,8 +138,8 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
   fromObject(source: any) {
     this.strategyId = source.strategyId;
     this.location = source.location && ReferentialRef.fromObject(source.location);
-    //this.privilege = source.privilege && ProgramPrivilege.fromObject(source.privilege);
-    this.department = source.department && Department.fromObject(source.department);
+    this.privilege = source.privilege && ReferentialRef.fromObject(source.privilege);
+    this.department = source.department && ReferentialRef.fromObject(source.department);
   }
 }
 

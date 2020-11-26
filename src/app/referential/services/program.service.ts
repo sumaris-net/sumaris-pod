@@ -151,6 +151,9 @@ const ProgramFragments = {
       pmfmStrategies {
         ...PmfmStrategyRefFragment
       }
+      strategyDepartments {
+        ...StrategyDepartmentFragment
+      }
     }
   `,
   strategy: gql`
@@ -180,13 +183,16 @@ const ProgramFragments = {
       pmfmStrategies {
         ...PmfmStrategyFragment
       }
+      strategyDepartments {
+        ...StrategyDepartmentFragment
+      }
     }
   `,
   appliedStrategy: gql`
     fragment AppliedStrategyFragment on AppliedStrategyVO {
       strategyId
       location {
-        ...LocationFragment
+        ...ReferentialFragment
       }
       appliedPeriods {
         ...AppliedPeriodFragment
@@ -258,6 +264,21 @@ const ProgramFragments = {
       strategyId
       __typename
   }`,
+  strategyDepartment: gql`
+    fragment StrategyDepartmentFragment on StrategyDepartmentVO {
+      strategyId
+      location {
+        ...ReferentialFragment
+      }
+      privilege {
+        ...ReferentialFragment
+      }
+      department {
+        ...ReferentialFragment
+      }
+      __typename
+    }
+  `,
   taxonGroupStrategy: gql`
     fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
       strategyId
@@ -296,11 +317,11 @@ const LoadRefQuery: any = gql`
   ${ProgramFragments.appliedStrategy}
   ${ProgramFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategyRef}
+  ${ProgramFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
-  ${ReferentialFragments.location}
 `;
 
 const LoadQuery: any = gql`
@@ -314,12 +335,12 @@ const LoadQuery: any = gql`
   ${ProgramFragments.appliedStrategy}
   ${ProgramFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategy}
+  ${ProgramFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.taxonName}
-  ${ReferentialFragments.location}
 `;
 
 const LoadAllQuery: any = gql`
@@ -354,11 +375,11 @@ const LoadAllRefWithTotalQuery: any = gql`
   ${ProgramFragments.appliedStrategy}
   ${ProgramFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategyRef}
+  ${ProgramFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
-  ${ReferentialFragments.location}
 `;
 
 const SaveQuery: any = gql`
@@ -372,12 +393,12 @@ const SaveQuery: any = gql`
   ${ProgramFragments.appliedStrategy}
   ${ProgramFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategy}
+  ${ProgramFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.taxonName}
-  ${ReferentialFragments.location}
 `;
 
 const ProgramCacheKeys = {
