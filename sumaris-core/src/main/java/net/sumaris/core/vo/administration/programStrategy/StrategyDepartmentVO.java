@@ -26,8 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -41,8 +40,8 @@ public class StrategyDepartmentVO implements Serializable, IUpdateDateEntityBean
     private Date updateDate;
 
     private Integer strategyId;
-    private LocationVO location;
-    private ProgramPrivilegeVO privilege;
-    private DepartmentVO department;
+    private ReferentialVO location;
+    private ReferentialVO privilege;
+    private ReferentialVO department;
 
 }

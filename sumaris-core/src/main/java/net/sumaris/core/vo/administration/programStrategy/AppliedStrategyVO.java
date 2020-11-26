@@ -25,7 +25,7 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -38,7 +38,7 @@ public class AppliedStrategyVO implements Serializable {
     private Integer id;
 
     private Integer strategyId;
-    private LocationVO location;
+    private ReferentialVO location;
     private List<AppliedPeriodVO> appliedPeriods;
 
 }

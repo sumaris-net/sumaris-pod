@@ -31,8 +31,11 @@ import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.administration.programStrategy.*;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.programStrategy.AppliedPeriodVO;
+import net.sumaris.core.vo.administration.programStrategy.AppliedStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyDepartmentVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
@@ -73,8 +76,8 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         strategy.setName("Strategy Name changed");
         // Modify departments
         StrategyDepartmentVO strategyDepartment = new StrategyDepartmentVO();
-        ProgramPrivilegeVO privilege = new ProgramPrivilegeVO();
-        DepartmentVO department = new DepartmentVO();
+        ReferentialVO privilege = new ReferentialVO();
+        ReferentialVO department = new ReferentialVO();
         Beans.copyProperties(referentialService.get(ProgramPrivilege.class, 3), privilege);
         Beans.copyProperties(referentialService.get(Department.class, 3), department);
         strategyDepartment.setPrivilege(privilege);
