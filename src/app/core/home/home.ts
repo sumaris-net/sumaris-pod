@@ -95,12 +95,17 @@ export class HomePage implements OnDestroy {
   }
 
   async login() {
-    const modal = await this.modalCtrl.create({component: AuthModal});
+    const modal = await this.modalCtrl.create({
+      component: AuthModal
+    });
     return modal.present();
   }
 
   async register() {
-    const modal = await this.modalCtrl.create({component: RegisterModal});
+    const modal = await this.modalCtrl.create({
+      component: RegisterModal,
+      backdropDismiss: false
+    });
     return modal.present();
   }
 
