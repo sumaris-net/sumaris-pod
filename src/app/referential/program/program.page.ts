@@ -84,7 +84,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/list?entity=Program";
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -98,15 +97,14 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.onUpdateView
       .subscribe(async option => {
         this.simpleStrategiesOption=  option.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
-        this.markForCheck();  
+        this.markForCheck();
       }
-  ); 
-  
-    this.registerSubscription(this.simpleStrategiesTable.onOpenRow
-      .subscribe(row => this.openRow(row))); 
-    this.registerSubscription(this.simpleStrategiesTable.onNewRow
-      .subscribe(() => this.addRow())); 
+  );
 
+    this.registerSubscription(this.simpleStrategiesTable.onOpenRow
+      .subscribe(row => this.onOpenSimpleStrategy(row)));
+    this.registerSubscription(this.simpleStrategiesTable.onNewRow
+      .subscribe((event) => this.addSimpleStrategy(event)));
     this.registerSubscription(this.strategiesTable.onStartEditingRow
         .subscribe(row => this.onStartEditStrategy(row)));
     this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
@@ -185,7 +183,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       this.propertiesForm,
       this.simpleStrategiesTable,
       this.strategiesTable
-    ]); 
+    ]);
 }
 
   protected setValue(data: Program) {
@@ -199,8 +197,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // strategies
     this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
-    
-    this.markForCheck();  
+
+    this.markForCheck();
   }
 
   protected async getJsonValueToSave(): Promise<any> {
@@ -219,14 +217,14 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       await this.simpleStrategiesTable.save();
     }
     data.strategies = this.simpleStrategiesTable.value;
-  } 
+  }
 
   // Finish edition of strategy
   if(!this.simpleStrategiesOption){
     if (this.strategiesTable.dirty) {
-     
+
       if (this.strategiesTable.editedRow) {
-        
+
         await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
       }
       await this.strategiesTable.save();
@@ -255,32 +253,38 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
 
- // edit simple strategy row 
-  protected async openRow(row: TableElement<Strategy>): Promise<boolean> {
-    const id = row.id;
-    const path = this.detailsPathSimpleStrategy;
-    
-    if (isNotNilOrBlank(path)) {
-      await this.router.navigateByUrl(
-        path
-        // Replace the id in the path
-        .replace(':id', isNotNilOrBlank(row.id) ? id.toString() : '')
-      );
-      return true; 
-      } 
+  async onOpenSimpleStrategy(row: TableElement<Strategy>){
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      this.loading = true;
+      try {
+        await this.router.navigateByUrl(`/referential/simpleStrategy/${row.id}`);
+      }
+      finally {
+        this.loading = false;
+      }
+    }
   }
 
-// add new simple strategy row
-  protected async  addRow(): Promise<boolean> {
-    const path = this.detailsPathSimpleStrategy;
-    if (isNotNilOrBlank(path)) {
-      await this.router.navigateByUrl(
-        path
-        // Replace the id in the path
-        .replace(':id', "new")
-      );
-      return true; 
-      } 
+  async  addSimpleStrategy(event?: any) {
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? this.save(event)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm();
+
+    const savedOrContinue = await savePromise;
+    if (savedOrContinue) {
+      this.loading = true;
+      this.markForCheck();
+      try {
+        await this.router.navigateByUrl('/referential/simpleStrategy/new');
+      }
+      finally {
+        this.loading = false;
+        this.markForCheck();
+      }
+    }
   }
 
 
