@@ -35,21 +35,17 @@ export class PlanificationValidatorService<O extends PlanificationValidatorOptio
         __typename: [Planification.TYPENAME],
         comment: [data && data.comment || null,Validators.nullValidator],
         year: [data && data.year || null, Validators.required],
+        sampleRowCode: [data && data.sampleRowCode || null, Validators.required],
         taxonName: [data && data.taxonName || null, Validators.compose([Validators.required, SharedValidators.entity])],
-
-        // TODO : update correct types--------------------------------------------------------------------------------------
         eotp: [data && data.eotp || null, Validators.compose([Validators.nullValidator, SharedValidators.entity])],
-        laboratory: [data && data.laboratory || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        fishingArea: [data && data.fishingArea || null, Validators.compose([Validators.required, SharedValidators.entity])],
         landingArea: [data && data.landingArea || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        calcifiedType: [data && data.calcifiedType || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        //------------------------------------------------------------------------------------------------------------------
-
         sex: [data && data.sex || null,Validators.nullValidator],
         age: [data && data.age || null,Validators.nullValidator],
       });
 
-
+      formConfig.calcifiedTypes = this.getCalcifiedTypesArray(data);
+      formConfig.laboratories = this.getLaboratoriesArray(data);
+      formConfig.fishingAreas = this.getFishingAreasArray(data);
     return formConfig;
 
   }
@@ -75,7 +71,38 @@ export class PlanificationValidatorService<O extends PlanificationValidatorOptio
     return formGroup;
   }
 
+  // FishingArea Control -----------------------------------------------------------------------------------
+  getFishingAreasArray(data?: Planification) {
+    return this.formBuilder.array(
+      (data && data.fishingAreas || []).map(fishingArea => this.getFishingAreaControl(fishingArea)),
+      SharedFormArrayValidators.requiredArrayMinLength(1)
+    );
+  }
+  getFishingAreaControl(value: any) {
+    return this.formBuilder.control(value || null, [Validators.required, SharedValidators.entity]);
+  }
+
+ // Laboratory Control --------------------------------------------------------------------------------------
+  getLaboratoriesArray(data?: Planification) {
+    return this.formBuilder.array(
+      (data && data.laboratories || []).map(laboratory => this.getLaboratoryControl(laboratory)),
+      SharedFormArrayValidators.requiredArrayMinLength(1)
+    );
+  }
+  getLaboratoryControl(value: any) {
+    return this.formBuilder.control(value || null, [Validators.required, SharedValidators.entity]);
+  }
 
 
+ // CalcifiedType Control -----------------------------------------------------------------------------------
+  getCalcifiedTypesArray(data?: Planification) {
+    return this.formBuilder.array(
+      (data && data.calcifiedTypes || []).map(calcifiedType => this.getCalcifiedTypeControl(calcifiedType)),
+      SharedFormArrayValidators.requiredArrayMinLength(1)
+    );
+  }
+  getCalcifiedTypeControl(value: any) {
+    return this.formBuilder.control(value || null, [Validators.required, SharedValidators.entity]);
+  }
 
 }

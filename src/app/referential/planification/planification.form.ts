@@ -2,17 +2,19 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AbstractControl, ControlValueAccessor, FormBuilder} from "@angular/forms";
+import {ControlValueAccessor, FormBuilder, FormArray} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {AppForm, ReferentialRef, IReferentialRef} from '../../core/core.module';
-import {StatusIds} from "../../core/services/model/model.enum";
+import {AppForm, ReferentialRef, IReferentialRef, FormArrayHelper, isNil} from '../../core/core.module';
 import {BehaviorSubject} from "rxjs";
 import { Planification } from 'src/app/trip/services/model/planification.model';
 import { PlanificationValidatorService } from 'src/app/trip/services/validator/planification.validator';
 import { Program } from '../services/model/program.model';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { InputElement } from 'src/app/shared/shared.module';
-import { MatAutocompleteFieldConfig } from 'src/app/shared/material/material.autocomplete';
+import { ReferentialUtils} from "../../core/services/model/referential.model";
+import { selectInputRange } from 'src/app/shared/inputs';
+import * as moment from "moment";
+
 
 @Component({
   selector: 'form-planification',
@@ -28,7 +30,6 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   protected formBuilder: FormBuilder;
   private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
-
 
 
   private eotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
@@ -54,17 +55,22 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
 
   enableLaboratoryFilter = true;
   canFilterLaboratory = true;
+  laboratoryHelper: FormArrayHelper<ReferentialRef>;
+  laboratoryFocusIndex = -1;
 
   enableFishingAreaFilter = true;
   canFilterFishingArea = true;
-
+  fishingAreaHelper: FormArrayHelper<ReferentialRef>;
+  fishingAreaFocusIndex = -1;
 
   enableLandingAreaFilter = true;
   canFilterLandingArea = true;
 
+
   enableCalcifiedTypeFilter = true;
   canFilterCalcifiedType = true;
-
+  calcifiedTypeHelper: FormArrayHelper<ReferentialRef>;
+  calcifiedTypeFocusIndex = -1;
 
   @Input() program: Program;
 
@@ -73,12 +79,19 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
 
-  sampleRowCodeModel: any;
-  public sampleRowCodeMask = {
-    guide: true,
-    showMask : true,
-    mask: [/\d/, /\d/, /\d/, /\d/, '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/]
-  };
+  public sampleRowMask = ['2', '0', '2', '0', '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+
+  get calcifiedTypesForm(): FormArray {
+    return this.form.controls.calcifiedTypes as FormArray;
+  }
+
+  get laboratoriesForm(): FormArray {
+    return this.form.controls.laboratories as FormArray;
+  }
+
+  get fishingAreasForm(): FormArray {
+    return this.form.controls.fishingAreas as FormArray;
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -91,13 +104,15 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   }
   tabIndex?: number;
   hidden?: boolean;
+  appliedYear: string ='';
+
   focus() {
     throw new Error('Method not implemented.');
   }
   writeValue(value: any): void {
-     if (value !== this.sampleRowCode) {
-          this.sampleRowCode = value;
-        }
+    //  if (value !== this.sampleRowCode) {
+    //       this.sampleRowCode = value;
+    //     }
   }
   registerOnChange(fn: any): void {
     throw new Error('Method not implemented.');
@@ -111,9 +126,18 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
 
   ngOnInit() {
 
-    //set current year
-    const currentYear = new Date ();
-    this.form.get('year').setValue(currentYear);
+    // register year field changes
+    this.registerSubscription(
+      this.form.get('year').valueChanges
+      .subscribe((date : Moment) => {
+        //update mask
+        const year = date.year().toString()
+        this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+        // set sample row code
+        // TODO : call sample row code increment service method (from strategy.service.ts)
+        this.sampleRowCode = `${year}-BIO-` + Math.floor(1000 + Math.random() * 9000);
+      })
+    );
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
@@ -171,11 +195,18 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     this.registerAutocompleteField('calcifiedType', {
       attributes: ['name'],
       columnNames: [ 'REFERENTIAL.NAME'],
-      columnSizes: [2,10],
       items: this._calcifiedTypeSubject,
       mobile: this.mobile
     });
     this.loadCalcifiedType();
+
+    //set current date to year field
+    this.form.get('year').setValue(moment());
+
+    //init helpers
+    this.initCalcifiedTypeHelper();
+    this.initLaboratoryHelper();
+    this.initFishingAreaHelper();
 
   }
 
@@ -234,17 +265,32 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     console.debug(`[planification] set enable filtered ${fieldName} items to ${value}`);
   }
 
-  /*setValue(data: Test, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
-    // Use label and name from metier.taxonGroup
-    if (data && data.metier) {
-      data.metier = data.metier.clone(); // Leave original object unchanged
-      data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
-      data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
-    }
-    super.setValue(data, opts);
-  }*/
+  // TODO : setValue à adapter
+  setValue(value: Planification, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    if (!value) return;
 
-  // save buttonn
+    // Make sure to have (at least) one calcifiedTypes
+          // value.calcifiedTypes = value.calcifiedTypes && value.calcifiedTypes.length ? value.calcifiedTypes : [null];
+    // Resize calcifiedTypes array
+          // this.calcifiedTypeHelper.resize(Math.max(1, value.calcifiedTypes.length));
+
+    // Make sure to have (at least) one laboratories
+          //value.laboratories = value.laboratories && value.laboratories.length ? value.laboratories : [null];
+    // Resize laboratories array
+          //this.laboratoryHelper.resize(Math.max(1, value.laboratories.length));
+
+    // Make sure to have (at least) one fishingAreas
+         //value.fishingAreas = value.fishingAreas && value.fishingAreas.length ? value.fishingAreas : [null];
+    // Resize fishingAreas array
+        // this.fishingAreaHelper.resize(Math.max(1, value.fishingAreas.length));
+
+
+    // Send value for form
+    super.setValue(value, opts);
+  }
+
+
+  // save button
   save(){
     console.log("save work");
 
@@ -265,10 +311,78 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     console.log("close works");
   }
 
-  // Calcified Type ---------------------------------------------------------------------------------------------
+   // fishingArea Helper -----------------------------------------------------------------------------------------------
+    protected initFishingAreaHelper() {
+      this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
+        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
+        (fishingArea) => this.validatorService.getFishingAreaControl(fishingArea),
+        ReferentialUtils.equals,
+        ReferentialUtils.isEmpty,
+        {
+          allowEmptyArray: false
+        }
+      );
+        // Create at least one fishing Area
+        if (this.fishingAreaHelper.size() === 0) {
+          this.fishingAreaHelper.resize(1);
+        }
+    }
+    addFishingArea() {
+      this.fishingAreaHelper.add();
+      if (!this.mobile) {
+        this.fishingAreaFocusIndex = this.fishingAreaHelper.size() - 1;
+      }
+    }
 
+  // Laboratory Helper -----------------------------------------------------------------------------------------------
+    protected initLaboratoryHelper() {
+      this.laboratoryHelper = new FormArrayHelper<ReferentialRef>(
+        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'laboratories'),
+        (laboratory) => this.validatorService.getLaboratoryControl(laboratory),
+        ReferentialUtils.equals,
+        ReferentialUtils.isEmpty,
+        {
+          allowEmptyArray: false
+        }
+      );
+        // Create at least one laboratory
+        if (this.laboratoryHelper.size() === 0) {
+          this.laboratoryHelper.resize(1);
+        }
+    }
+    addLaboratory() {
+      this.laboratoryHelper.add();
+      if (!this.mobile) {
+        this.laboratoryFocusIndex = this.laboratoryHelper.size() - 1;
+      }
+    }
+  // CalcifiedTypeHelper -----------------------------------------------------------------------------------------------
+
+    protected initCalcifiedTypeHelper() {
+      this.calcifiedTypeHelper = new FormArrayHelper<ReferentialRef>(
+        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'calcifiedTypes'),
+        (calcifiedType) => this.validatorService.getCalcifiedTypeControl(calcifiedType),
+        ReferentialUtils.equals,
+        ReferentialUtils.isEmpty,
+        {
+          allowEmptyArray: false
+        }
+      );
+        // Create at least one calcifiedType
+        if (this.calcifiedTypeHelper.size() === 0) {
+          this.calcifiedTypeHelper.resize(1);
+        }
+    }
+    addCalcifiedType() {
+      this.calcifiedTypeHelper.add();
+      if (!this.mobile) {
+        this.calcifiedTypeFocusIndex = this.calcifiedTypeHelper.size() - 1;
+      }
+    }
+
+  // Calcified Type ---------------------------------------------------------------------------------------------
   protected async loadCalcifiedType() {
-    const calcifiedTypeControl = this.form.get('calcifiedType');
+    const calcifiedTypeControl = this.form.get('calcifiedTypes');
     calcifiedTypeControl.enable();
       // Refresh filtred departments
       if (this.enableCalcifiedTypeFilter) {
@@ -297,7 +411,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         {
           entityName: 'Fraction',
           searchAttribute: "description",
-          searchText: "individu" 
+          searchText: "individu"
         });
         return res.data;
     }
