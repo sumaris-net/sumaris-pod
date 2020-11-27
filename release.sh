@@ -18,7 +18,7 @@ release_description=$3
 if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
-  echo " > ./release-gitflow.sh pre|rel <version> <release_description>"
+  echo " > $0 pre|rel <version> <release_description>"
   echo "with:"
   echo " - pre: use for pre-release"
   echo " - rel: for full release"

@@ -25,7 +25,7 @@ package net.sumaris.rdf.dao.referential.taxon;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
-import net.sumaris.rdf.loader.NamedRdfLoader;
+import net.sumaris.rdf.loader.INamedRdfLoader;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import org.apache.commons.io.FileUtils;
@@ -45,7 +45,7 @@ public class TaxrefLoaderTest extends AbstractTest {
     private static final Logger log = LoggerFactory.getLogger(TaxrefLoaderTest.class);
 
     @Resource(name = "mnhnTaxonLoader")
-    protected NamedRdfLoader loader;
+    protected INamedRdfLoader loader;
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

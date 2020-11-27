@@ -125,7 +125,7 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
     RDF_MAX_PAGE_SIZE(
             "rdf.data.pageSize.max",
             n("sumaris.config.option.rdf.data.pageSize.max.description"),
-            "1000",
+            "10000",
             Integer.class,
             false),
 

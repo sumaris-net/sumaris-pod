@@ -37,7 +37,7 @@ import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.http.rest.RestPaths;
+import net.sumaris.server.http.ontology.RestPaths;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;

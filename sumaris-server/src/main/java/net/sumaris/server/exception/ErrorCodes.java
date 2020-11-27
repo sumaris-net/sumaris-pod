@@ -22,13 +22,11 @@ package net.sumaris.server.exception;
  * #L%
  */
 
-import org.apache.http.HttpStatus;
-
 public interface ErrorCodes extends net.sumaris.core.exception.ErrorCodes {
 
     // >= 400
-    int UNAUTHORIZED = HttpStatus.SC_UNAUTHORIZED; // 401
-    int FORBIDDEN = HttpStatus.SC_FORBIDDEN;
+    int UNAUTHORIZED = org.springframework.http.HttpStatus.UNAUTHORIZED.value(); // 401
+    int FORBIDDEN = org.springframework.http.HttpStatus.FORBIDDEN.value();
 
     // >= 550
     int INVALID_EMAIL_CONFIRMATION = 550;

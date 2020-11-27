@@ -28,9 +28,9 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelURIs;
-import net.sumaris.rdf.service.data.RdfDataExportOptions;
-import net.sumaris.rdf.service.data.RdfDataExportService;
-import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.data.RdfIndividualFetchOptions;
+import net.sumaris.rdf.service.data.RdfIndividualService;
+import net.sumaris.rdf.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
@@ -58,7 +58,7 @@ public class RdfModelServiceImpl implements RdfModelService {
     private RdfSchemaService schemaExportService;
 
     @Resource
-    private RdfDataExportService dataExportService;
+    private RdfIndividualService dataExportService;
 
     @Resource
     private RdfConfiguration config;
@@ -102,7 +102,7 @@ public class RdfModelServiceImpl implements RdfModelService {
 
         switch (modelType) {
             case "schema":
-                RdfSchemaOptions schemaOptions = RdfSchemaOptions.builder()
+                RdfSchemaFetchOptions schemaOptions = RdfSchemaFetchOptions.builder()
                         .withEquivalences(true)
                         .className(className)
                         .build();
@@ -110,7 +110,7 @@ public class RdfModelServiceImpl implements RdfModelService {
                 return schemaExportService.getOntology(schemaOptions);
             case "data":
                 String objectId = pathParams.size() > 2 ? pathParams.get(2) : null;
-                RdfDataExportOptions dataOptions = RdfDataExportOptions.builder()
+                RdfIndividualFetchOptions dataOptions = RdfIndividualFetchOptions.builder()
                         .className(className)
                         .id(objectId)
                         .build();
@@ -177,7 +177,7 @@ public class RdfModelServiceImpl implements RdfModelService {
 
     /* -- protected functions -- */
 
-    protected RdfSchemaOptions fillSchemaOptionsByUri(RdfSchemaOptions options, URI uri) {
+    protected RdfSchemaFetchOptions fillSchemaOptionsByUri(RdfSchemaFetchOptions options, URI uri) {
         Preconditions.checkNotNull(options);
         Preconditions.checkNotNull(uri);
         Map<String, String> requestParams = parseQueryParams(uri);
@@ -199,7 +199,7 @@ public class RdfModelServiceImpl implements RdfModelService {
         return options;
     }
 
-    protected RdfDataExportOptions fillDataOptionsByUri(RdfDataExportOptions options, URI uri) {
+    protected RdfIndividualFetchOptions fillDataOptionsByUri(RdfIndividualFetchOptions options, URI uri) {
         Preconditions.checkNotNull(options);
         Preconditions.checkNotNull(uri);
         Map<String, String> requestParams = parseQueryParams(uri);
