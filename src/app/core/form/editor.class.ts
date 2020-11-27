@@ -496,6 +496,9 @@ export abstract class AppEntityEditor<
 
       this.onEntityDeleted(data);
 
+      // Remove page history
+      this.removePageHistory();
+
     } catch (err) {
       this.submitted = true;
       this.setError(err);
@@ -515,6 +518,8 @@ export abstract class AppEntityEditor<
         return this.router.navigateByUrl('/');
       }
     }, 500);
+
+
   }
 
   /* -- protected methods to override -- */
@@ -606,15 +611,20 @@ export abstract class AppEntityEditor<
     }
   }
 
-  protected addToPageHistory(page: HistoryPageReference, opts?: {
+  protected async addToPageHistory(page: HistoryPageReference, opts?: {
     removePathQueryParams?: boolean;
     removeTitleSmallTag?: boolean;
   }) {
-    this.settings.addToPageHistory(page, {
+    return this.settings.addToPageHistory(page, {
       removePathQueryParams: true,
       removeTitleSmallTag: true,
+      emitEvents: false,
       ...opts
     });
+  }
+
+  protected async removePageHistory(opts?: { emitEvent?: boolean; }) {
+    return this.settings.removePageHistory(this.router.url, opts);
   }
 
   /**

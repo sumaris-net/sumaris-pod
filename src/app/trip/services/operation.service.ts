@@ -505,7 +505,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
             // Insert into cached queries
             if (isNew) {
               this.insertIntoMutableCachedQuery(proxy, {
-                queryName: LoadAllLightQuery,
+                query: LoadAllLightQuery,
                 data: savedEntity
               });
             }
@@ -557,7 +557,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
         update: (proxy) => {
           // Remove from cached queries
           this.removeFromMutableCachedQueryByIds(proxy, {
-            queryName: LoadAllLightQuery,
+            query: LoadAllLightQuery,
             ids: remoteIds
           });
 

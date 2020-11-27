@@ -33,7 +33,7 @@ import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
 import {EntityUtils, IEntity} from "../services/model/entity.model";
 import {DataProxy} from 'apollo-cache';
-import {isNotNil, toNumber} from "../../shared/functions";
+import {isNil, isNotNil, toNumber} from "../../shared/functions";
 import {Resolvers} from "@apollo/client/core/types";
 import {HttpHeaders} from "@angular/common/http";
 import {EmptyObject} from "apollo-angular/types";
@@ -299,9 +299,12 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const data = cache.readQuery<any, V>(opts);
+      let data = cache.readQuery<any, V>(opts);
 
       if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
+
         // Append to result array
         data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], opts.data];
 
@@ -357,9 +360,12 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const data = cache.readQuery(opts);
+      let data:any = cache.readQuery(opts);
 
       if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
+
         // Keep only not existing res
         const equalsFn = opts.equalsFn || ((d1, d2) => d1['id'] === d2['id'] && d1['entityName'] === d2['entityName']);
         const newItems = opts.data.filter(inputValue => data[opts.arrayFieldName].findIndex(existingValue => equalsFn(inputValue, existingValue)) === -1);
@@ -418,15 +424,20 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const data = cache.readQuery({...opts, id: opts.id.toString()});
+      let data:any = cache.readQuery({...opts, id: opts.id.toString()});
 
       if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
+
 
         const index = data[opts.arrayFieldName].findIndex(item => item['id'] === opts.id);
         if (index === -1) return; // Skip (nothing removed)
 
         // Copy, then remove deleted item
-        data[opts.arrayFieldName] = data[opts.arrayFieldName].slice().splice(index, 1);
+        data[opts.arrayFieldName] = data[opts.arrayFieldName].slice();
+        const deletedItem = data[opts.arrayFieldName].splice(index, 1)[0];
+        cache.evict({id: dataIdFromObject(deletedItem)});
 
         // Decrement the total
         if (isNotNil(opts.totalFieldName)) {
@@ -466,38 +477,55 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const data = cache.readQuery(opts);
+      let data:any = cache.readQuery(opts);
 
       if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
 
-        const newArray = data[opts.arrayFieldName].reduce((result: any[], item: any) => {
-          return opts.ids.includes(item['id']) ?
-              // Remove it
-            result :
-            // Or keep it
-            result.concat(item);
+        const deletedIndexes = data[opts.arrayFieldName].reduce((res, item, index) => {
+          return opts.ids.includes(item['id']) ? res.concat(index) : res;
         }, []);
 
-        const deleteCount = data[opts.arrayFieldName].length - newArray.length;
-        if (deleteCount <= 0) return; // Skip (nothing removed)
+        if (deletedIndexes.length <= 0) return; // Skip (nothing removed)
 
-        data[opts.arrayFieldName] = newArray;
+        // Query has NO total
+        if (isNil(opts.totalFieldName)) {
 
-        // Increment the total
-        if (isNotNil(opts.totalFieldName)) {
+          // Evict each object
+          deletedIndexes
+            .map(index => data[opts.arrayFieldName][index])
+            .map(dataIdFromObject)
+            .forEach(id => cache.evict({id}));
+
+        }
+        // Query has a total
+        else {
+          // Copy the array
+          data[opts.arrayFieldName] = data[opts.arrayFieldName].slice();
+
+          // remove from array, then evict
+          deletedIndexes
+            // Reverse: to keep valid index
+            .reverse()
+            // Remove from the array
+            .map(index => data[opts.arrayFieldName].splice(index, 1)[0])
+            // Evict from cache
+            .map(dataIdFromObject)
+            .forEach(id => cache.evict({id}));
+
           if (isNotNil(data[opts.totalFieldName])) {
-            data[opts.totalFieldName] -= deleteCount; // Remove deletion count
+            data[opts.totalFieldName] -= deletedIndexes.length; // Remove deletion count
           }
           else {
             console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
           }
+          cache.writeQuery({
+            query: opts.query,
+            variables: opts.variables,
+            data
+          });
         }
-
-        cache.writeQuery({
-          query: opts.query,
-          variables: opts.variables,
-          data
-        });
       }
       else {
         console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
@@ -520,11 +548,13 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const data = cache.readQuery(opts);
+      let data: any = cache.readQuery(opts);
 
       if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
+
         const equalsFn = opts.equalsFn || ((d1,d2) => EntityUtils.equals(d1, d2, 'id'));
-        const newArray = data[opts.arrayFieldName].slice(); // Copy before edit
 
         // Update if exists, or insert
         const index = data[opts.arrayFieldName].findIndex(v => equalsFn(opts.data, v));
@@ -532,7 +562,7 @@ export class GraphqlService {
           data[opts.arrayFieldName] = data[opts.arrayFieldName].slice().splice(index, 1, opts.data);
         }
         else {
-          data[opts.arrayFieldName] = [...data[opts.arrayFieldName], opts.data];
+          data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], opts.data];
         }
 
         // Increment total (if changed)
