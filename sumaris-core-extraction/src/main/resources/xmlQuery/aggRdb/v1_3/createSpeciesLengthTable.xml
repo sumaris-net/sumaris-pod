@@ -99,8 +99,10 @@
 
     <groupby>
       SPECIES, CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY,
-      SUBSAMPLING_CATEGORY, STATION_NUMBER, SEX, INDIVIDUAL_SEX, LENGTH_CLASS
+      SUBSAMPLING_CATEGORY, STATION_NUMBER
     </groupby>
+    <groupby group="sex">INDIVIDUAL_SEX</groupby>
+    <groupby group="lengthClass">LENGTH_CLASS</groupby>
   </query>
 
 </queries>

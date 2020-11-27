@@ -787,9 +787,10 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected URL getXMLQueryClasspathURL(String queryName) {
-        Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + XML_QUERY_PATH + "/" + queryName + ".xml");
+        String fileName = XML_QUERY_PATH + "/" + queryName + ".xml";
+        Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + fileName);
         if (!resource.exists())
-            throw new SumarisTechnicalException(t("sumaris.extraction.xmlQuery.notFound", queryName));
+            throw new SumarisTechnicalException(t("sumaris.extraction.xmlQuery.notFound", fileName));
         try {
             return resource.getURL();
         } catch (IOException e) {

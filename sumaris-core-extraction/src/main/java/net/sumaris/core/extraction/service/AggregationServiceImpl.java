@@ -30,6 +30,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.cache.ExtractionCacheNames;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
+import net.sumaris.core.extraction.dao.trip.cost.AggregationCostDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
@@ -84,6 +85,9 @@ public class AggregationServiceImpl implements AggregationService {
 
     @Autowired
     private AggregationSurvivalTestDao aggregationSurvivalTestDao;
+
+    @Autowired
+    private AggregationCostDao aggregationCostDao;
 
     @Autowired
     private ExtractionTableDao extractionTableDao;
@@ -189,6 +193,7 @@ public class AggregationServiceImpl implements AggregationService {
         ProductFormatEnum format = ExtractionFormats.getProductFormat(context);
         switch (format) {
             case AGG_RDB:
+            case AGG_COST:
             case AGG_SURVIVAL_TEST:
                 return aggregationRdbTripDao.read(tableName, filter, strata, offset, size, sort, direction);
             default:
@@ -399,12 +404,16 @@ public class AggregationServiceImpl implements AggregationService {
 
         switch (format) {
             case RDB:
-            case COST:
-            case FREE1:
                 return aggregationRdbTripDao.aggregate(source, filter, strata);
+
+            case COST:
+                return aggregationCostDao.aggregate(source, filter, strata);
 
             case SURVIVAL_TEST:
                 return aggregationSurvivalTestDao.aggregate(source, filter, strata);
+
+            case FREE1: // TODO
+            case FREE2: // TODO
             default:
                 throw new SumarisTechnicalException(String.format("Data aggregation on type '%s' is not implemented!", format.name()));
         }
