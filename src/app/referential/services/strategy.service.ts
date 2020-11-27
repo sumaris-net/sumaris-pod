@@ -16,7 +16,7 @@ const StrategyFragments = {
 }
 
 const FindStrategyNextLabel: any = gql`
-  query SuggestedStrategyNextLabelQuery($programId: Int, $labelPrefix: String, $nbDigit: Int){
+  query SuggestedStrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
     suggestedStrategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
   }
 `;
