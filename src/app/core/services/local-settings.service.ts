@@ -444,7 +444,10 @@ export class LocalSettingsService {
 
     // Clean the title (remove <small> tags)
     if (!opts || opts.removeTitleSmallTag !== false) {
-      page.title = page.title.replace(/^<small[^<]+(<br\/?>)?<\/small>/g, '');
+      const tagIndex = page.title.indexOf('</small>');
+      if (tagIndex !== -1) {
+        page.title = page.title.substring(tagIndex + '</small>'.length);
+      }
       page.title = page.title.replace(/[ ]*class='hidden-xs hidden-sm'/g, '');
     }
 
