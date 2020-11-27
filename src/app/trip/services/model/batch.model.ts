@@ -197,7 +197,7 @@ export class Batch<T extends Batch<any> = Batch<any>,
     this.weight = source.weight || undefined;
 
     if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
+      this.measurementValues = {...source.measurementValues};
     }
     // Convert measurement lists to map
     else if (source.sortingMeasurements || source.quantificationMeasurements) {

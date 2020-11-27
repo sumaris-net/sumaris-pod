@@ -45,8 +45,7 @@ import {
   Entity,
   EntityAsObjectOptions,
   entityToString,
-  EntityUtils,
-  PropertiesMap
+  EntityUtils
 } from './services/model/entity.model';
 // import ngx-translate and the http loader
 import {HttpClientModule} from '@angular/common/http';
@@ -99,8 +98,7 @@ export {
   joinPropertiesPath,
   FormArrayHelper,
   AppTableUtils,
-  EntityAsObjectOptions,
-  PropertiesMap
+  EntityAsObjectOptions
 };
 
 

@@ -352,6 +352,7 @@ export abstract class AppEntityEditor<
   }
 
   async saveAndClose(event: Event, options?: any): Promise<boolean> {
+
     const saved = await this.save(event);
     if (saved) {
       await this.close(event);
@@ -360,6 +361,11 @@ export abstract class AppEntityEditor<
   }
 
   async close(event: Event) {
+    if (event) {
+      if (event.defaultPrevented) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (this.appToolbar && this.appToolbar.canGoBack) {
       await this.appToolbar.goBack();
     }

@@ -8,7 +8,7 @@ import {
 } from "../../../core/core.module";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {FormGroup} from "@angular/forms";
-import {arraySize, isEmptyArray} from "../../../shared/functions";
+import {arraySize, isEmptyArray, notNilOrDefault} from "../../../shared/functions";
 import * as moment from "moment";
 import {isMoment} from "moment";
 import {IEntity} from "../../../core/services/model/entity.model";
@@ -175,14 +175,6 @@ export class MeasurementUtils {
     return PmfmValueUtils.toModelValue(value, pmfm);
   }
 
-  static normalizeValuesToModel(source: { [key: number]: any }, pmfms: PmfmStrategy[]): { [key: string]: any } {
-    const target = {};
-    pmfms.forEach(pmfm => {
-      target[pmfm.pmfmId] = MeasurementUtils.toModelValue(source[pmfm.pmfmId], pmfm);
-    });
-    return target;
-  }
-
   static isEmpty(source: Measurement | any): boolean {
     if (!source) return true;
     return isNil(source.alphanumericalValue)
@@ -257,7 +249,7 @@ export class MeasurementValuesUtils {
     keepSourceObject?: boolean
   }): MeasurementModelValues {
     const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
-    pmfms.forEach(pmfm => {
+    (pmfms||[]).forEach(pmfm => {
       target[pmfm.pmfmId] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.pmfmId], pmfm);
     });
     return target;
@@ -284,7 +276,7 @@ export class MeasurementValuesUtils {
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {
       pmfms = Object.getOwnPropertyNames(source).reduce((res, pmfmId) => {
-        const pmfm = pmfms.find(p => p.pmfmId === +pmfmId);
+        const pmfm = pmfms && pmfms.find(p => p.pmfmId === +pmfmId);
         return pmfm && res.concat(pmfm) || res;
       }, []);
     }
@@ -338,11 +330,11 @@ export class MeasurementValuesUtils {
 
   }
 
-  static asObject(source: { [key: number]: any }, options: DataEntityAsObjectOptions): { [key: string]: any } {
+  static asObject(source:  { [key: string]: any }, options: DataEntityAsObjectOptions): { [key: string]: any } {
     if (!options || options.minify !== true || !source) return source;
-    return source && Object.keys(source)
+    return source && Object.getOwnPropertyNames(source)
       .reduce((map, pmfmId) => {
-        const value = source[pmfmId] && source[pmfmId].id || source[pmfmId];
+        const value = notNilOrDefault(source[pmfmId] && source[pmfmId].id, source[pmfmId]);
         if (isNotNil(value)) {
           // If moment object, then convert to ISO string- fix #157
           if (isMoment(value)) {
@@ -388,7 +380,7 @@ export class MeasurementValuesUtils {
 
   static isEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
     return isNil(measurementValues)
-      || isEmptyArray(Object.keys(measurementValues).filter(pmfmId => !PmfmValueUtils.isEmpty(measurementValues[pmfmId])));
+      || isEmptyArray(Object.getOwnPropertyNames(measurementValues).filter(pmfmId => !PmfmValueUtils.isEmpty(measurementValues[pmfmId])));
   }
 }
 

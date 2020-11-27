@@ -7,3 +7,8 @@ export declare type HammerSwipeEvent = UIEvent & {
   velocity: number;
   srcEvent: UIEvent;
 };
+
+export declare type HammerTapEvent = UIEvent & {
+  tapCount: number;
+  srcEvent: UIEvent;
+}

@@ -12,9 +12,8 @@
 
       <!-- Taxon group -->
       <ion-col size="12" size-md="6"
-               [hidden]="!showTaxonGroup">
-        <mat-autocomplete-field formControlName="taxonGroup"
-                                [appAutofocus]="enabled && !mobile && showTaxonGroup"
+               *ngIf="showTaxonGroup">
+        <mat-autocomplete-field formControlName="taxonGroup" #firstInput
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
                                 [tabindex]="tabindex"
                                 [required]="showTaxonGroup"
@@ -24,8 +23,7 @@
 
       <!-- Taxon name (scientific species) -->
       <ion-col size="12" size-md="6" *ngIf="showTaxonName">
-        <mat-autocomplete-field formControlName="taxonName"
-                                [appAutofocus]="enabled && !mobile && !showTaxonGroup && showTaxonName"
+        <mat-autocomplete-field formControlName="taxonName" #firstInput
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                                 [tabindex]="tabindex+1"
                                 [required]="showTaxonName"
@@ -102,6 +100,7 @@
                             [acquisitionLevel]="acquisitionLevel"
                             [pmfms]="$childrenPmfms | async"
                             [showTaxonGroup]="false"
+                            [availableTaxonGroups]="[]"
                             [showTaxonName]="false"
                             [showSampleBatch]="showChildrenSampleBatch"
                             [showWeight]="showChildrenWeight"

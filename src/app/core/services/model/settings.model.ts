@@ -1,7 +1,8 @@
 import {isNil} from "../../../shared/functions";
-import {Entity, EntityAsObjectOptions, PropertiesMap} from "./entity.model";
+import {Entity, EntityAsObjectOptions} from "./entity.model";
 import {Moment} from "moment";
 import {LatLongPattern} from "../../../shared/material/latlong/latlong.utils";
+import {PropertiesMap} from "../../../shared/types";
 
 export type UsageMode = 'DESK' | 'FIELD';
 

@@ -102,14 +102,9 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     return this._dirty || this.memoryDataService.dirty;
   }
 
-  @Input()
-  availableSubBatchesFn: () => Promise<SubBatch[]>;
-
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: TaxonNameRef;
 
-  @Output()
-  onSubBatchesChanges = new EventEmitter<Batch[]>();
 
   constructor(
     injector: Injector,

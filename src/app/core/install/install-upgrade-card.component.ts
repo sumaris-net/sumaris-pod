@@ -77,7 +77,6 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
 
           const installLinks = this.getAllInstallLinks(config);
 
-          console.log('TODO installLinks')
           // Check for upgrade
           this.updateLinks = this.getCompatibleUpgradeLinks(installLinks, config);
 

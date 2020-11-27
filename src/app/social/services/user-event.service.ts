@@ -137,8 +137,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
     })
       .pipe(
         map(res => {
-          const data = res && res.userEvents.map(UserEvent.fromObject);
-
+          const data = res && (res.userEvents || []).map(UserEvent.fromObject);
 
           if (now) {
             console.debug(`[user-event-service] ${data.length} user events loaded in ${Date.now() - now}ms`);

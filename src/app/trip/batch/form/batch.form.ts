@@ -234,7 +234,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         value : weightPmfm && data.measurementValues[weightPmfm.pmfmId.toString()],
       };
 
-      // Make sure the weight is fill only in the default weight pmfm
+      // Clean all weight values and control (to keep only the weight form group)
       this.weightPmfms.forEach(p => {
         delete data.measurementValues[p.pmfmId.toString()];
         this.form.removeControl(p.pmfmId.toString());
