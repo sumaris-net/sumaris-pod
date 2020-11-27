@@ -686,7 +686,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   }
 
   protected async addToPageHistory(page: HistoryPageReference) {
-    return super.addToPageHistory({ ...page, icon: 'navigate'});
+    return super.addToPageHistory(
+      { ...page, icon: 'navigate'},
+      { removeTitleSmallTag: true});
   }
 
   protected async setDefaultTaxonGroups(enable: boolean) {

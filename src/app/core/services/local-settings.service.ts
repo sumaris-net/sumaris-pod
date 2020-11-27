@@ -281,7 +281,11 @@ export class LocalSettingsService {
   }
 
   async addToPageHistory(page: HistoryPageReference,
-                         opts?: {removePathQueryParams?: boolean; removeTitleSmallTag?: boolean; },
+                         opts?: {
+                           removePathQueryParams?: boolean;
+                           removeTitleSmallTag?: boolean;
+                           emitEvents?: false
+                         },
                          pageHistory?: HistoryPageReference[] // used for recursive call to children
   ) {
     // If not inside recursive call: fill page history defaults
@@ -440,7 +444,7 @@ export class LocalSettingsService {
 
     // Clean the title (remove <small> tags)
     if (!opts || opts.removeTitleSmallTag !== false) {
-      page.title = page.title.replace(/<small[^<]+<\/small>/g, '');
+      page.title = page.title.replace(/^<small[^<]+(<br\/?>)?<\/small>/g, '');
       page.title = page.title.replace(/[ ]*class='hidden-xs hidden-sm'/g, '');
     }
 
