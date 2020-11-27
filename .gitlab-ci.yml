@@ -14,6 +14,7 @@ build_develop:
     - sih_public_runner
   script:
     - echo "Test compilation in progress"
+    - npm install
     - npm run build
   environment:
     name: test
