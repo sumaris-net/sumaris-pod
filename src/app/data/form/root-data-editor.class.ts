@@ -15,6 +15,7 @@ import {
   MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/autocomplete/material.autocomplete";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 
 @Directive()
@@ -125,9 +126,9 @@ export abstract class AppRootDataEditor<
    * Override default function, to add the entity program as subtitle)
    * @param page
    */
-  protected addToPageHistory(page: HistoryPageReference) {
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
     page.subtitle = page.subtitle || this.data.program.label;
-    super.addToPageHistory(page);
+    return super.addToPageHistory(page, opts);
   }
 
   protected getParentPageUrl(withQueryParams?: boolean) {
