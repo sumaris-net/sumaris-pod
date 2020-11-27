@@ -36,6 +36,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.JndiConnectionFactoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.ApplicationContext;
@@ -62,6 +63,7 @@ import javax.persistence.EntityManager;
 				LiquibaseAutoConfiguration.class,
                 FreeMarkerAutoConfiguration.class,
 				JmsAutoConfiguration.class,
+				JndiConnectionFactoryAutoConfiguration.class,
 				ActiveMQAutoConfiguration.class
 		},
 		scanBasePackages = {

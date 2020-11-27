@@ -27,7 +27,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
 import org.slf4j.Logger;
@@ -44,7 +43,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.Collection;

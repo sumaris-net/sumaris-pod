@@ -29,7 +29,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
-import net.sumaris.rdf.service.store.DatasetService;
+import net.sumaris.rdf.service.store.RdfDatasetService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
@@ -79,7 +79,7 @@ public class SparqlRestController {
     private long maxLimit;
 
     @Resource
-    private DatasetService datasetService;
+    private RdfDatasetService datasetService;
 
     private String sparqlEndpointUrl;
 

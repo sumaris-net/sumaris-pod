@@ -27,8 +27,10 @@ import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.cache.ExtractionCacheNames;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
+import net.sumaris.core.extraction.dao.trip.cost.AggregationCostDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
@@ -51,6 +53,10 @@ import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -81,6 +87,9 @@ public class AggregationServiceImpl implements AggregationService {
     private AggregationSurvivalTestDao aggregationSurvivalTestDao;
 
     @Autowired
+    private AggregationCostDao aggregationCostDao;
+
+    @Autowired
     private ExtractionTableDao extractionTableDao;
 
     @Autowired(required = false)
@@ -101,12 +110,14 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
+    @Cacheable(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_ID)
     public AggregationTypeVO get(int id, ExtractionProductFetchOptions fetchOptions) {
         ExtractionProductVO source = productService.get(id, fetchOptions);
         return toAggregationType(source);
     }
 
     @Override
+    @Cacheable(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT, condition = " #format != null", unless = "#result == null")
     public AggregationTypeVO getByFormat(IExtractionFormat format) {
         return ExtractionFormats.findOneMatch(getAllAggregationTypes(null), format);
     }
@@ -182,6 +193,7 @@ public class AggregationServiceImpl implements AggregationService {
         ProductFormatEnum format = ExtractionFormats.getProductFormat(context);
         switch (format) {
             case AGG_RDB:
+            case AGG_COST:
             case AGG_SURVIVAL_TEST:
                 return aggregationRdbTripDao.read(tableName, filter, strata, offset, size, sort, direction);
             default:
@@ -253,6 +265,15 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_ID, allEntries = true),
+                    @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
+            },
+            put = {
+                    @CachePut(cacheNames= ExtractionCacheNames.AGGREGATION_TYPE_BY_ID, key="#result.id", condition = " #result.id != null")
+            }
+    )
     public AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
         Preconditions.checkNotNull(type);
         Preconditions.checkNotNull(type.getLabel());
@@ -383,12 +404,16 @@ public class AggregationServiceImpl implements AggregationService {
 
         switch (format) {
             case RDB:
-            case COST:
-            case FREE1:
                 return aggregationRdbTripDao.aggregate(source, filter, strata);
+
+            case COST:
+                return aggregationCostDao.aggregate(source, filter, strata);
 
             case SURVIVAL_TEST:
                 return aggregationSurvivalTestDao.aggregate(source, filter, strata);
+
+            case FREE1: // TODO
+            case FREE2: // TODO
             default:
                 throw new SumarisTechnicalException(String.format("Data aggregation on type '%s' is not implemented!", format.name()));
         }

@@ -155,7 +155,6 @@ public class RdfFormat extends Lang {
             case RdfMediaType.APPLICATION_TRIG_VALUE:
             case RdfMediaType.TEXT_TRIG_VALUE:
                 return Optional.of(TRIG);
-            case RdfMediaType.APPLICATION_WEBVOWL_VALUE:
             case RdfMediaType.TEXT_N3_VALUE:
             case "text/n3":
                 return Optional.of(N3);
@@ -172,6 +171,7 @@ public class RdfFormat extends Lang {
                 return Optional.of(RDFTHRIFT);
             case "application/xml+owl":
                 return Optional.of(OWL);
+            case RdfMediaType.APPLICATION_WEBVOWL_VALUE:
             case "application/vowl":
             case "text/vowl":
                 return Optional.of(VOWL);

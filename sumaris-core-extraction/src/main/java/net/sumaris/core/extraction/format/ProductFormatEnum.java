@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.format;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.format.specification.AggCostSpecification;
 import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.format.specification.RdbSpecification;
@@ -45,6 +46,7 @@ public enum ProductFormatEnum implements IExtractionFormat {
 
     // Aggregation product
     AGG_RDB (AggRdbSpecification.FORMAT, AggRdbSpecification.SHEET_NAMES, AggRdbSpecification.VERSION_1_3),
+    AGG_COST (AggCostSpecification.FORMAT, AggCostSpecification.SHEET_NAMES, AggCostSpecification.VERSION_1_4),
     AGG_SURVIVAL_TEST (AggSurvivalTestSpecification.FORMAT, AggSurvivalTestSpecification.SHEET_NAMES, AggSurvivalTestSpecification.VERSION_1_0)
     ;
 
