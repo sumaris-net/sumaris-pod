@@ -38,6 +38,15 @@ public class Caches {
         // Helper class
     }
 
+    /**
+     *
+     * @param cacheManager
+     * @param cacheName
+     * @param timeToLive in seconds
+     * @param timeToIdle in seconds
+     * @param entriesLocalHeap
+     * @return
+     */
     public static EhCacheFactoryBean createHeapCache(CacheManager cacheManager, String cacheName, int timeToLive, int timeToIdle, int entriesLocalHeap) {
         EhCacheFactoryBean factory = new EhCacheFactoryBean();
         // Default properties
@@ -59,6 +68,16 @@ public class Caches {
        return createHeapCache(cacheManager, cacheName, ETERNAL_TIME_TO_LIVE, ETERNAL_TIME_TO_IDLE, entriesLocalHeap);
     }
 
+    /**
+     *
+     * @param cacheManager
+     * @param cacheName
+     * @param timeToLive in seconds
+     * @param timeToIdle in seconds
+     * @param entriesLocalHeap
+     * @param diskSpoolBufferSize
+     * @return
+     */
     public static EhCacheFactoryBean createEternalDiskCache(CacheManager cacheManager, String cacheName, int timeToLive, int timeToIdle, int entriesLocalHeap, int diskSpoolBufferSize) {
         EhCacheFactoryBean factory = new EhCacheFactoryBean();
         // Default properties

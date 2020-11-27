@@ -245,7 +245,7 @@ public class OntologyRestController {
     public ResponseEntity<byte[]> convertFromUri(@RequestParam(name = "uri", required = false) String uri,
                                                  @RequestParam(name = "prefix", required = false) String prefix,
                                                  @RequestParam(name = "sourceFormat", required = false) String sourceFormat,
-                                                 @RequestParam(name = "format", defaultValue = "RDF") String userFormat,
+                                                 @RequestParam(name = "format", required = false) String userFormat,
                                                  final HttpServletRequest request) {
 
         // Find the input format
