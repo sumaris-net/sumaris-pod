@@ -1,4 +1,4 @@
-image: trion/ng-cli
+image: node:latest
 
 stages:
     - build
