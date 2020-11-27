@@ -131,14 +131,15 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     // register year field changes
     this.registerSubscription(
       this.form.get('year').valueChanges
-      .subscribe((date : Moment) => {
+      .subscribe(async (date : Moment) => {
         //update mask
         const year = date.year().toString()
         this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
         // set sample row code
         // TODO : call sample row code increment service method (from strategy.service.ts)
-        //this.sampleRowCode = await this.strategyService.findStrategyNextLabel(this.program.id, `${year}_BIO_`, 4);
-        this.sampleRowCode = `${year}-BIO-` + Math.floor(1000 + Math.random() * 9000);
+        // console.log("TEST ID PROGRAM : "+this.program.id);
+         this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40, `${year}_BIO_`, 4);
+       // this.sampleRowCode = `${year}-BIO-` + Math.floor(1000 + Math.random() * 9000);
       })
     );
 
