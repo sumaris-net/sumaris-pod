@@ -1,4 +1,4 @@
-image: jlrigau/maven-git
+image: tetraweb/php
 
 stages:
     - build
