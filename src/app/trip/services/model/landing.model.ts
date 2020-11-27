@@ -79,7 +79,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     this.rankOrder = source.rankOrder;
     this.rankOrderOnVessel = source.rankOrderOnVessel;
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.measurementValues = source.measurementValues;
+    this.measurementValues = source.measurementValues && {...source.measurementValues};
     if (this.measurementValues === undefined) {
       console.warn("Source as no measurementValues. Should never occur ! ", source);
     }

@@ -30,6 +30,9 @@ export function isEmptyArray<T>(obj: T[] | null | undefined): boolean {
 export function isNotNilString(obj: any | null | undefined): obj is string {
   return obj !== undefined && obj !== null && typeof obj === 'string';
 }
+export function notNilOrDefault<T>(obj: T | null | undefined, defaultValue: T): T {
+  return (obj !== undefined && obj !== null) ? obj : defaultValue;
+}
 export function arraySize<T>(obj: T[] | null | undefined): number {
   return isNotEmptyArray(obj) && obj.length || 0;
 }

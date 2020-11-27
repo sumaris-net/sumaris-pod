@@ -245,7 +245,6 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
    */
   onSwipeTab(event: HammerSwipeEvent) {
     // DEBUG
-    console.debug("[tab-editor] TODO onSwipeTab()");
     // if (this.debug) console.debug("[tab-page] onSwipeTab()");
 
     // Skip, if not a valid swipe event

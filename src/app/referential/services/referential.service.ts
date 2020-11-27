@@ -254,13 +254,21 @@ export class ReferentialService extends BaseEntityService<Referential> implement
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
-    const data = (!opts || opts.toEntity !== false) ?
-      (res && res.referentials || []).map(ReferentialUtils.fromObject) :
-      (res && res.referentials || []) as Referential[];
-    data.forEach(r => r.entityName = uniqueEntityName);
+    let data = (res && res.referentials || []) as Referential[];
+
+    // Always use unique entityName, if need
+    if (filter.entityName !== uniqueEntityName) {
+      data = data.map(r => <Referential>{...r, entityName: uniqueEntityName});
+    }
+
+    // Convert to entities
+    if (!opts || opts.toEntity !== false) {
+      data = data.map(ReferentialUtils.fromObject);
+    }
+
     if (debug) console.debug(`[referential-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
     return {
-      data: data,
+      data,
       total: res.referentialsCount
     };
 

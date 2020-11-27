@@ -22,12 +22,12 @@ release_description=$4
 if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ || ! $androidVersion =~ ^[0-9]+$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
-  echo " > ./release-gitflow.sh [pre|rel] <version> <android-version> <release_description>"
+  echo " > $0 pre|rel <version> <android-version> <release_description>"
   echo "with:"
   echo " - pre: use for pre-release"
   echo " - rel: for full release"
   echo " - version: x.y.z"
-  echo " - android-version: nnn"
+  echo " - android-version: xxyyzz"
   echo " - release_description: a comment on release"
   exit 1
 fi

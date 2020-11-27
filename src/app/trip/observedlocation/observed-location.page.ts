@@ -22,6 +22,7 @@ import {firstNotNilPromise} from "../../shared/observables";
 import {filter} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -332,10 +333,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  protected addToPageHistory(page: HistoryPageReference) {
-    // Add entity icon
-    page.matIcon = 'verified_user';
-    super.addToPageHistory(page);
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    return super.addToPageHistory({...page, matIcon: 'verified_user'}, opts);
   }
 
   addRow($event: MouseEvent) {

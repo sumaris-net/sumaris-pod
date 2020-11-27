@@ -15,7 +15,7 @@ import {
   toBoolean
 } from '../../shared/shared.module';
 import {Moment} from "moment";
-import {LocalSettingsService} from "../services/local-settings.service";
+import {AddToPageHistoryOptions, LocalSettingsService} from "../services/local-settings.service";
 import {filter} from "rxjs/operators";
 import {Entity} from "../services/model/entity.model";
 import {HistoryPageReference, UsageMode} from "../services/model/settings.model";
@@ -352,6 +352,7 @@ export abstract class AppEntityEditor<
   }
 
   async saveAndClose(event: Event, options?: any): Promise<boolean> {
+
     const saved = await this.save(event);
     if (saved) {
       await this.close(event);
@@ -360,6 +361,11 @@ export abstract class AppEntityEditor<
   }
 
   async close(event: Event) {
+    if (event) {
+      if (event.defaultPrevented) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (this.appToolbar && this.appToolbar.canGoBack) {
       await this.appToolbar.goBack();
     }
@@ -490,6 +496,9 @@ export abstract class AppEntityEditor<
 
       this.onEntityDeleted(data);
 
+      // Remove page history
+      this.removePageHistory();
+
     } catch (err) {
       this.submitted = true;
       this.setError(err);
@@ -509,6 +518,8 @@ export abstract class AppEntityEditor<
         return this.router.navigateByUrl('/');
       }
     }, 500);
+
+
   }
 
   /* -- protected methods to override -- */
@@ -593,22 +604,24 @@ export abstract class AppEntityEditor<
 
     // If NOT data, then add to page history
     if (!this.isNewData) {
-      this.addToPageHistory({
+      return this.addToPageHistory({
         title,
         path: this.router.url
       });
     }
   }
 
-  protected addToPageHistory(page: HistoryPageReference, opts?: {
-    removePathQueryParams?: boolean;
-    removeTitleSmallTag?: boolean;
-  }) {
-    this.settings.addToPageHistory(page, {
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    return this.settings.addToPageHistory(page, {
       removePathQueryParams: true,
       removeTitleSmallTag: true,
+      emitEvent: false,
       ...opts
     });
+  }
+
+  protected async removePageHistory(opts?: { emitEvent?: boolean; }) {
+    return this.settings.removePageHistory(this.router.url, opts);
   }
 
   /**

@@ -6,13 +6,12 @@ import {SubBatchForm} from "../form/sub-batch.form";
 import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
 import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "../table/sub-batches.table";
 import {AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
-import {MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {AppFormUtils, EntityUtils, isNil} from "../../../core/core.module";
+import {AppFormUtils, isNil} from "../../../core/core.module";
 import {Animation, ModalController} from "@ionic/angular";
 import {isEmptyArray, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
 import {AudioProvider} from "../../../shared/audio/audio";
 import {Alerts} from "../../../shared/alerts";
-import {Subject} from "rxjs";
+import {isObservable, Observable, of, Subject} from "rxjs";
 import {createAnimation} from "@ionic/core";
 import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
@@ -55,7 +54,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
   @Input()
-  availableSubBatchesFn: () => Promise<SubBatch[]>;
+  availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
 
   @Input()
   showParentGroup: boolean;
@@ -124,14 +123,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     if (this.form) await this.form.ready();
 
-    const data = (this.availableSubBatchesFn && (await this.availableSubBatchesFn()) || [])
-      .sort(EntityUtils.sortComparator('rankOrder', 'desc'));
-
-    // Compute the first rankOrder to save
-    this._initialMaxRankOrder = data.length && data[0].rankOrder || 0;
-
-
-
     if (this.form) {
       // Reset the form, using default value
       let defaultBatch: SubBatch;
@@ -150,12 +141,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       );
     }
 
-    // Apply data to table
-    this.setValue(data);
-
-    // Compute the title
-    await this.computeTitle();
-
     this._rowAnimation = createAnimation()
 
       .duration(300)
@@ -168,6 +153,20 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       .beforeStyles({
         color: 'var(--ion-color-accent-contrast)',
         background: 'var(--ion-color-accent)'
+      });
+
+    const data$: Observable<SubBatch[]> = isObservable<SubBatch[]>(this.availableSubBatches) ? this.availableSubBatches :
+      of(this.availableSubBatches);
+
+    data$.subscribe(data => {
+        // Compute the first rankOrder to save
+        this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
+
+        // Apply data to table
+        this.setValue(data);
+
+        // Compute the title
+        this.computeTitle();
       });
   }
 
@@ -355,7 +354,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     // Highlight the row, few seconds
     if (updatedRow) this.onRowChanged(updatedRow);
 
-
     return updatedRow;
   }
 
@@ -389,9 +387,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     setTimeout(() => {
       // If row is still selected: unselect it
       if (this.selection.isSelected(row)) {
-        this.selection.toggle(row);
+        this.selection.deselect(row);
+        this.markForCheck();
       }
-      this.markForCheck();
     }, 1500);
   }
 

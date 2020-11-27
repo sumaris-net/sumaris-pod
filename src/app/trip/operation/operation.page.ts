@@ -32,6 +32,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {IEntity} from "../../core/services/model/entity.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {BatchTreeComponent} from "../batch/batch-tree.component";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-operation-page',
@@ -43,8 +44,6 @@ import {BatchTreeComponent} from "../batch/batch-tree.component";
 export class OperationPage extends AppEntityEditor<Operation, OperationService> implements OnInit, AfterViewInit, OnDestroy {
 
   private _lastOperationsTripId: number;
-  private _lastOperationsSubscription: Subscription;
-
   readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
   trip: Trip;
@@ -55,7 +54,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   $tripId = new BehaviorSubject<number>(null);
   $lastOperations = new BehaviorSubject<Operation[]>(null);
-  //$lastOperations: Observable<Operation[]>;
 
   rankOrder: number;
   selectedBatchTabIndex = 0;
@@ -125,13 +123,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.$tripId
         .pipe(
           // Filter on tripId changes
-          filter(tripId => this._lastOperationsTripId !== tripId),
+          filter(tripId => isNotNil(tripId) && this._lastOperationsTripId !== tripId),
           // Load last operations
           switchMap(tripId => {
             this._lastOperationsTripId = tripId; // Remember new trip id
 
             // Update back href
-            this.defaultBackHref = isNotNil(tripId) ? `/trips/${tripId}?tab=2` : undefined;
+            this.defaultBackHref = `/trips/${tripId}?tab=2`
             this.markForCheck();
 
             return this.dataService.watchAll(
@@ -688,8 +686,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       && this.tripService.canUserWrite(this.trip);
   }
 
-  protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'navigate'});
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    return super.addToPageHistory({ ...page, icon: 'navigate'}, opts);
   }
 
   protected async setDefaultTaxonGroups(enable: boolean) {

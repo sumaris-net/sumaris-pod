@@ -505,7 +505,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
             // Insert into cached queries
             if (isNew) {
               this.insertIntoMutableCachedQuery(proxy, {
-                query: LoadAllFullQuery,
+                query: LoadAllLightQuery,
                 data: savedEntity
               });
             }
@@ -557,7 +557,8 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
         update: (proxy) => {
           // Remove from cached queries
           this.removeFromMutableCachedQueryByIds(proxy, {
-            query: LoadAllFullQuery, ids: remoteIds
+            query: LoadAllLightQuery,
+            ids: remoteIds
           });
 
           if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);

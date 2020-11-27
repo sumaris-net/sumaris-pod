@@ -71,7 +71,7 @@ export class EntitiesStorage
 
     const storeName = variables && variables.trash ? (EntitiesStorage.TRASH_PREFIX + entityName) : entityName;
     return this.getEntityStore<T>(storeName, {create: true})
-      .watchAll(variables);
+      .watchAll(variables, opts);
   }
 
   async loadAll<T extends Entity<T>>(entityName: string,

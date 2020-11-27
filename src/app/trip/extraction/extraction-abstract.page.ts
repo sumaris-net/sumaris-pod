@@ -254,12 +254,9 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     // No I18n translation: continue
 
     // Use name, or label (but replace underscore with space)
-    message = type.name || type.label.replace(/[_-]+/g, " ").toUpperCase();
+    message = type.name || (type.label && type.label.replace(/[_-]+/g, " ").toUpperCase());
     // First letter as upper case
-    if (message.length > 1) {
-      return message.substring(0, 1) + message.substring(1).toLowerCase();
-    }
-    return message;
+    return capitalizeFirstLetter(message.toLowerCase());
   }
 
   async load(id?: number, options?: any): Promise<any> {

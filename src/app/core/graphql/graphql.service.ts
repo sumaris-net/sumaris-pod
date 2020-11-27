@@ -33,7 +33,7 @@ import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
 import {EntityUtils, IEntity} from "../services/model/entity.model";
 import {DataProxy} from 'apollo-cache';
-import {isNotNil, toNumber} from "../../shared/functions";
+import {isNil, isNotNil, toNumber} from "../../shared/functions";
 import {Resolvers} from "@apollo/client/core/types";
 import {HttpHeaders} from "@angular/common/http";
 import {EmptyObject} from "apollo-angular/types";
@@ -299,37 +299,40 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = cache.readQuery<any, V>(opts);
+      let data = cache.readQuery<any, V>(opts);
 
-      if (res && res[opts.arrayFieldName]) {
+      if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
+
         // Append to result array
-        res[opts.arrayFieldName].push(opts.data);
+        data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], opts.data];
 
         // Resort, if need
         if (opts.sortFn) {
-          res[opts.arrayFieldName].sort(opts.sortFn);
+          data[opts.arrayFieldName].sort(opts.sortFn);
         }
 
         // Exclude if exceed max size
         const size = toNumber(opts.variables && opts.variables['size'], -1);
-        if (size > 0 && res[opts.arrayFieldName].length > size) {
-          res[opts.arrayFieldName].splice(size, res[opts.arrayFieldName].length - size);
+        if (size > 0 && data[opts.arrayFieldName].length > size) {
+          data[opts.arrayFieldName].splice(size, data[opts.arrayFieldName].length - size);
         }
 
         // Increment total
         if (isNotNil(opts.totalFieldName)) {
-          if (res[opts.totalFieldName]) {
-            res[opts.totalFieldName] += 1;
+          if (isNotNil(data[opts.totalFieldName])) {
+            data[opts.totalFieldName] += 1;
           }
           else {
             console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
           }
         }
 
-        cache.writeQuery<T[], V>({
+        cache.writeQuery({
           query: opts.query,
           variables: opts.variables,
-          data: res
+          data
         });
       }
       else {
@@ -357,33 +360,36 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = cache.readQuery(opts);
+      let data:any = cache.readQuery(opts);
 
-      if (res && res[opts.arrayFieldName]) {
+      if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
+
         // Keep only not existing res
         const equalsFn = opts.equalsFn || ((d1, d2) => d1['id'] === d2['id'] && d1['entityName'] === d2['entityName']);
-        let newItems = opts.data.filter(inputValue => res[opts.arrayFieldName].findIndex(existingValue => equalsFn(inputValue, existingValue)) === -1);
+        const newItems = opts.data.filter(inputValue => data[opts.arrayFieldName].findIndex(existingValue => equalsFn(inputValue, existingValue)) === -1);
 
         if (!newItems.length) return; // No new value
 
-        // Append to result array
-        res[opts.arrayFieldName] = res[opts.arrayFieldName].concat(newItems);
+        // Append to array
+        data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], ...newItems]
 
         // Resort, if need
         if (opts.sortFn) {
-          res[opts.arrayFieldName].sort(opts.sortFn);
+          data[opts.arrayFieldName].sort(opts.sortFn);
         }
 
         // Exclude if exceed max size
         const size = toNumber(opts.variables && opts.variables['size'], -1);
-        if (size > 0 && res[opts.arrayFieldName].length > size) {
-          res[opts.arrayFieldName].splice(size, res[opts.arrayFieldName].length - size);
+        if (size > 0 && data[opts.arrayFieldName].length > size) {
+          data[opts.arrayFieldName].splice(size, data[opts.arrayFieldName].length - size);
         }
 
         // Increment the total
         if (isNotNil(opts.totalFieldName)) {
-          if (res[opts.totalFieldName]) {
-            res[opts.totalFieldName] += newItems.length;
+          if (isNotNil(data[opts.totalFieldName])) {
+            data[opts.arrayFieldName] += newItems.length;
           }
           else {
             console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
@@ -394,7 +400,7 @@ export class GraphqlService {
         cache.writeQuery({
           query: opts.query,
           variables: opts.variables,
-          data: res
+          data
         });
       }
       else {
@@ -418,20 +424,25 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = cache.readQuery({...opts, id: opts.id.toString()});
+      let data:any = cache.readQuery({...opts, id: opts.id.toString()});
 
-      if (res && res[opts.arrayFieldName]) {
+      if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
 
-        const index = res[opts.arrayFieldName].findIndex(item => item['id'] === opts.id);
+
+        const index = data[opts.arrayFieldName].findIndex(item => item['id'] === opts.id);
         if (index === -1) return; // Skip (nothing removed)
 
-        // Remove the item
-        res[opts.arrayFieldName].splice(index, 1);
+        // Copy, then remove deleted item
+        data[opts.arrayFieldName] = data[opts.arrayFieldName].slice();
+        const deletedItem = data[opts.arrayFieldName].splice(index, 1)[0];
+        cache.evict({id: dataIdFromObject(deletedItem)});
 
-        // Increment the total
+        // Decrement the total
         if (isNotNil(opts.totalFieldName)) {
-          if (res[opts.totalFieldName]) {
-            res[opts.totalFieldName] -= 1;
+          if (isNotNil(data[opts.totalFieldName])) {
+            data[opts.totalFieldName] -= 1;
           }
           else {
             console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
@@ -442,7 +453,7 @@ export class GraphqlService {
         cache.writeQuery({
           query: opts.query,
           variables: opts.variables,
-          data: res
+          data
         });
       }
       else {
@@ -466,38 +477,55 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = cache.readQuery(opts);
+      let data:any = cache.readQuery(opts);
 
-      if (res && res[opts.arrayFieldName]) {
+      if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
 
-        const newArray = res[opts.arrayFieldName].reduce((result: any[], item: any) => {
-          return opts.ids.includes(item['id']) ?
-              // Remove it
-            result :
-            // Or keep it
-            result.concat(item);
+        const deletedIndexes = data[opts.arrayFieldName].reduce((res, item, index) => {
+          return opts.ids.includes(item['id']) ? res.concat(index) : res;
         }, []);
 
-        const deleteCount = res[opts.arrayFieldName].length - newArray.length;
-        if (deleteCount <= 0) return; // Skip (nothing removed)
+        if (deletedIndexes.length <= 0) return; // Skip (nothing removed)
 
-        res[opts.arrayFieldName] = newArray;
+        // Query has NO total
+        if (isNil(opts.totalFieldName)) {
 
-        // Increment the total
-        if (isNotNil(opts.totalFieldName)) {
-          if (res[opts.totalFieldName]) {
-            res[opts.totalFieldName] -= deleteCount; // Remove deletion count
+          // Evict each object
+          deletedIndexes
+            .map(index => data[opts.arrayFieldName][index])
+            .map(dataIdFromObject)
+            .forEach(id => cache.evict({id}));
+
+        }
+        // Query has a total
+        else {
+          // Copy the array
+          data[opts.arrayFieldName] = data[opts.arrayFieldName].slice();
+
+          // remove from array, then evict
+          deletedIndexes
+            // Reverse: to keep valid index
+            .reverse()
+            // Remove from the array
+            .map(index => data[opts.arrayFieldName].splice(index, 1)[0])
+            // Evict from cache
+            .map(dataIdFromObject)
+            .forEach(id => cache.evict({id}));
+
+          if (isNotNil(data[opts.totalFieldName])) {
+            data[opts.totalFieldName] -= deletedIndexes.length; // Remove deletion count
           }
           else {
             console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
           }
+          cache.writeQuery({
+            query: opts.query,
+            variables: opts.variables,
+            data
+          });
         }
-
-        cache.writeQuery({
-          query: opts.query,
-          variables: opts.variables,
-          data: res
-        });
       }
       else {
         console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
@@ -513,39 +541,44 @@ export class GraphqlService {
                       opts:DataProxy.Query<V> & {
                         arrayFieldName: string;
                         totalFieldName?: string;
-                        data: any,
+                        data: T,
                         equalsFn?: (d1: T, d2: T) => boolean
                       }) {
     cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const res = cache.readQuery(opts);
+      let data: any = cache.readQuery(opts);
 
-      if (res && res[opts.arrayFieldName]) {
+      if (data && data[opts.arrayFieldName]) {
+        // Copy because immutable
+        data = { ...data };
+
         const equalsFn = opts.equalsFn || ((d1,d2) => EntityUtils.equals(d1, d2, 'id'));
-        const index = res[opts.arrayFieldName].findIndex(v => equalsFn(opts.data, v));
+
+        // Update if exists, or insert
+        const index = data[opts.arrayFieldName].findIndex(v => equalsFn(opts.data, v));
         if (index !== -1) {
-          res[opts.arrayFieldName].splice(index, 1, opts.data);
+          data[opts.arrayFieldName] = data[opts.arrayFieldName].slice().splice(index, 1, opts.data);
         }
         else {
-          res[opts.arrayFieldName].push(opts.data);
+          data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], opts.data];
+        }
 
-          // Increment the total
-          if (isNotNil(opts.totalFieldName)) {
-            if (res[opts.totalFieldName]) {
-              res[opts.totalFieldName] += 1;
-            }
-            else {
-              console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
-            }
+        // Increment total (if changed)
+        if (isNotNil(opts.totalFieldName) && index === -1) {
+          if (isNotNil(data[opts.totalFieldName])) {
+            data[opts.totalFieldName] += 1;
+          }
+          else {
+            console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
           }
         }
 
         cache.writeQuery({
           query: opts.query,
           variables: opts.variables,
-          data: res
+          data
         });
         return; // OK: stop here
       }

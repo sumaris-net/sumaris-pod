@@ -4,7 +4,14 @@ import {Peer} from "./model/peer.model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
-import {getPropertyByPath, isNotNil, isNotNilOrBlank, toBoolean, toDateISOString} from "../../shared/functions";
+import {
+  getPropertyByPath,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  toBoolean,
+  toDateISOString
+} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
 import {Platform} from "@ionic/angular";
@@ -24,6 +31,12 @@ const DEFAULT_SETTINGS: LocalSettings = {
 };
 
 export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<Partial<LocalSettings>>('LocalSettingsOptions');
+
+export declare type AddToPageHistoryOptions = {
+  removePathQueryParams?: boolean;
+  removeTitleSmallTag?: boolean;
+  emitEvent?: boolean;
+};
 
 @Injectable({
   providedIn: 'root',
@@ -274,7 +287,7 @@ export class LocalSettingsService {
   }
 
   async addToPageHistory(page: HistoryPageReference,
-                         opts?: {removePathQueryParams?: boolean; removeTitleSmallTag?: boolean; },
+                         opts?: AddToPageHistoryOptions,
                          pageHistory?: HistoryPageReference[] // used for recursive call to children
   ) {
     // If not inside recursive call: fill page history defaults
@@ -323,7 +336,7 @@ export class LocalSettingsService {
         existingPage.time = page.time;
 
         // Add page as parent's children (recursive call)
-        this.addToPageHistory(page, opts, existingPage.children);
+        await this.addToPageHistory(page, opts, existingPage.children);
       }
     }
 
@@ -337,23 +350,38 @@ export class LocalSettingsService {
       }
 
       // Apply new value
-      this.applyProperty('pageHistory', pageHistory);
+      await this.applyProperty('pageHistory', pageHistory);
     }
   }
 
-  async removeHistory(path: string, opts?: {emitEvent?: boolean; }) {
-    const index = this.data.pageHistory.findIndex(p => p.path === path);
-    if (index === -1) return; // skip if not found
+  async removePageHistory(path: string,
+                          opts?: {emitEvent?: boolean; },
+                          pageHistory?: HistoryPageReference[] // used for recursive call to children)
+  ) {
+    pageHistory = pageHistory || this.data.pageHistory;
 
-    this.data.pageHistory.splice(index, 1);
-
-    // Save locally
-    this.persistLocally();
-
-    // Emit event
-    if (!opts || opts.emitEvent !== false) {
-      this.onChange.next(this.data);
+    const index = pageHistory.findIndex(p => p.path === path);
+    let found = index !== -1;
+    if (found) {
+      console.debug("[settings] Remove page history: ", path);
+      // Remove value
+      pageHistory.splice(index, 1);
     }
+    else {
+      // Search path on children (stop when found)
+      found = pageHistory
+        .map(p => p.children)
+        .filter(isNotEmptyArray)
+        .findIndex(children => this.removePageHistory(path, opts, children)) !== -1;
+    }
+
+    // Save locally (only if not a recursive execution)
+    if (found && pageHistory === this.data.pageHistory) {
+      // Apply changes
+      await this.applyProperty('pageHistory', this.data.pageHistory);
+    }
+
+    return found;
   }
 
   async clearPageHistory() {
@@ -418,7 +446,10 @@ export class LocalSettingsService {
 
     // Clean the title (remove <small> tags)
     if (!opts || opts.removeTitleSmallTag !== false) {
-      page.title = page.title.replace(/<small[^<]+<\/small>/g, '');
+      const tagIndex = page.title.indexOf('</small>');
+      if (tagIndex !== -1) {
+        page.title = page.title.substring(tagIndex + '</small>'.length);
+      }
       page.title = page.title.replace(/[ ]*class='hidden-xs hidden-sm'/g, '');
     }
 

@@ -1,5 +1,5 @@
-import {Component, EventEmitter, OnInit, Output} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, Output} from "@angular/core";
+import {FormBuilder, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {RegisterModal} from '../../register/modal/modal-register';
 import {AuthData} from "../../services/account.service";
@@ -10,7 +10,7 @@ import {slideUpDownAnimation} from "../../../shared/material/material.animations
 import {PlatformService} from "../../services/platform.service";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {debounceTime, throttleTime} from "rxjs/operators";
+import {debounceTime} from "rxjs/operators";
 import {AppForm} from "../../form/form.class";
 
 
@@ -18,7 +18,8 @@ import {AppForm} from "../../form/form.class";
   selector: 'app-form-auth',
   templateUrl: 'form-auth.html',
   styleUrls: ['./form-auth.scss'],
-  animations: [slideUpDownAnimation]
+  animations: [slideUpDownAnimation],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuthForm extends AppForm<AuthData> implements OnInit {
 
@@ -44,7 +45,8 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
     private modalCtrl: ModalController,
-    public network: NetworkService
+    public network: NetworkService,
+    private cd: ChangeDetectorRef
   ) {
     super(dateAdapter,
       formBuilder.group({
@@ -104,9 +106,16 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
     this.onCancel.emit();
     setTimeout(async () => {
       const modal = await this.modalCtrl.create({
-        component: RegisterModal
+        component: RegisterModal,
+        backdropDismiss: false
       });
       return modal.present();
     }, 200);
+  }
+
+  /* -- protected functions -- */
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }
