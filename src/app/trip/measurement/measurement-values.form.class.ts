@@ -244,6 +244,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     this.setValue(this.data, {...opts, emitEvent: true});
 
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
+
     this.applyingValue = false;
     this.loading = false;
   }

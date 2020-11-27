@@ -78,12 +78,12 @@
 <ion-content class="ion-no-padding">
 
   <!-- Network status (+ Install and upgrade link) -->
-  <app-network-status-card
+  <app-install-upgrade-card
     [isLogin]="accountService.account|isLogin"
     [showInstallButton]="false"
     [showUpgradeWarning]="true"
     [showOfflineWarning]="false">
-  </app-network-status-card>
+  </app-install-upgrade-card>
 
   <mat-toolbar>
 
@@ -398,7 +398,10 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)">
+    <mat-row *matRowDef="let row; columns: displayedColumns;"
+             class="mat-row-disabled"
+             [class.mat-row-selected]="highlightedRow === row"
+             (click)="clickRow($event, row)">
     </mat-row>
   </mat-table>
 

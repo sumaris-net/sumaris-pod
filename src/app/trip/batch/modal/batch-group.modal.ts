@@ -10,15 +10,15 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AppFormUtils, IReferentialRef, isNil} from "../../../core/core.module";
+import {AppFormUtils, environment, IReferentialRef, isNil} from "../../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, Observable, Subscription} from "rxjs";
+import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/services/model/model.enum";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BatchGroupForm} from "../form/batch-group.form";
 import {toBoolean} from "../../../shared/functions";
-import {throttleTime} from "rxjs/operators";
+import {debounceTime, map, startWith} from "rxjs/operators";
 import {PlatformService} from "../../../core/services/platform.service";
 import {Alerts} from "../../../shared/alerts";
 import {BatchGroup} from "../../services/model/batch-group.model";
@@ -63,7 +63,9 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.data = value;
   }
 
-  @Input() showSubBatchesCallback: (parent: Batch, valid?: boolean) => void;
+  @Input() openSubBatchesModal: (parent: Batch) => Promise<BatchGroup>;
+
+  @Input() onDelete: (event: UIEvent, parent: Batch) => Promise<boolean>;
 
   @ViewChild('form', { static: true }) form: BatchGroupForm;
 
@@ -104,7 +106,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   constructor(
     protected injector: Injector,
     protected alertCtrl: AlertController,
-    protected viewCtrl: ModalController,
+    protected modalCtrl: ModalController,
     protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
@@ -115,14 +117,14 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.mobile = platform.mobile;
 
     // TODO: for DEV only
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
 
-    const data = this.data || new BatchGroup();
-
-    this.form.setValue(data);
+    this.isNew = toBoolean(this.isNew, !this.data)
+    this.data = this.data || new BatchGroup();
+    this.form.setValue(this.data);
 
     this.disabled = toBoolean(this.disabled, false);
 
@@ -133,16 +135,22 @@ export class BatchGroupModal implements OnInit, OnDestroy {
       this.enable();
     }
 
-    // Update title each time value changes
-    this.computeTitle(data);
 
-    // Update title each time value changes
+    // Update title, when form change
     this._subscription.add(
-      this.form.valueChanges
-        .pipe(
-          throttleTime(500)
-        )
-        .subscribe((batch) => this.computeTitle(batch)));
+      merge(
+        this.form.form.get('taxonGroup').valueChanges,
+        this.form.form.get('taxonName').valueChanges
+      )
+      .pipe(
+        debounceTime(500),
+        map(() => this.form.value),
+        // Start with current data
+        startWith(this.data)
+      )
+      .subscribe((data) => this.computeTitle(data))
+    );
+
 
     // Wait that form are ready (because of safeSetValue()) then mark as pristine
     setTimeout(() => {
@@ -151,17 +159,26 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     }, 500);
   }
 
+  ngAfterViewInit(): void {
+    // Focus on the first field (if new AND desktop AND enabled)
+    if (this.isNew && !this.mobile && this.enabled) {
+      setTimeout(() => this.form.focusFirstInput(), 400);
+    }
+  }
+
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
   }
 
   async cancel(event?: UIEvent) {
     if (this.dirty) {
-      const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+      let saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) return; // User cancelled
 
-      // User cancelled
-      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
-        return;
+      // Ask a second confirmation, if observed individual count > 0
+      if (saveBeforeLeave == false && this.isNew && this.data.observedIndividualCount > 0) {
+        saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+        if (isNil(saveBeforeLeave) || event && event.defaultPrevented) return; // User cancelled
       }
 
       // Is user confirm: close normally
@@ -171,10 +188,10 @@ export class BatchGroupModal implements OnInit, OnDestroy {
       }
     }
 
-    await this.viewCtrl.dismiss();
+    await this.modalCtrl.dismiss();
   }
 
-  async save(): Promise<BatchGroup | undefined> {
+  async save(opts?: {allowInvalid?: boolean; }): Promise<BatchGroup | undefined> {
     if (this.loading) return undefined; // avoid many call
 
     this.loading = true;
@@ -182,57 +199,86 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     // Force enable form, before use value
     if (!this.enabled) this.enable({emitEvent: false});
 
-    // Wait end of async validation
-    await AppFormUtils.waitWhilePending(this.form);
+    try {
+      // Wait pending async validator
+      await AppFormUtils.waitWhilePending(this.form, {
+        timeout: 2000 // Workaround because from child form never finish FIXME
+      });
 
-    if (this.invalid) {
+      const invalid = !this.valid;
+      if (invalid) {
+        let allowInvalid = !opts || opts.allowInvalid !== false;
+        // DO not allow invalid form, when taxon group and taxon name are missed
+        const taxonGroup = this.form.form.get('taxonGroup').value;
+        const taxonName = this.form.form.get('taxonName').value;
+        if (ReferentialUtils.isEmpty(taxonGroup) && ReferentialUtils.isEmpty(taxonName)) {
+          this.form.error = "COMMON.FORM.HAS_ERROR";
+          allowInvalid = false;
+        }
 
-      // DO not allow to close, if no taxon group nor a taxon name has been set
-      const taxonGroup = this.form.form.get('taxonGroup').value;
-      const taxonName = this.form.form.get('taxonName').value;
-      if (ReferentialUtils.isEmpty(taxonGroup) && ReferentialUtils.isEmpty(taxonName)) {
-        this.form.error = "COMMON.FORM.HAS_ERROR";
-        if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
-        this.form.markAsTouched({emitEvent: true});
-
-        this.loading = false;
-        return undefined;
+        // Invalid not allowed: stop
+        if (!allowInvalid) {
+          if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
+          this.form.markAsTouched({emitEvent: true});
+          return undefined;
+        }
       }
 
+      // Save table content
+      this.data = this.form.value;
+      this.data.qualityFlagId = invalid ? QualityFlagIds.BAD : undefined;
+
+      return this.data;
     }
-
-    // Save table content
-    this.data = this.form.value;
-
-    return this.data;
+    finally {
+      this.loading = false;
+      this.markForCheck();
+    }
   }
 
-  async close(event?: UIEvent): Promise<BatchGroup | undefined> {
+  async close(event?: UIEvent, opts?: {allowInvalid?: boolean; }): Promise<BatchGroup | undefined> {
 
-    const savedBatch = await this.save();
+    const savedBatch = await this.save({allowInvalid: true, ...opts});
     if (!savedBatch) return;
 
-    await this.viewCtrl.dismiss(savedBatch);
+    await this.modalCtrl.dismiss(savedBatch);
 
     return savedBatch;
   }
 
+  async delete(event?: UIEvent) {
+    if (!this.onDelete) return; // Skip
+    const result = await this.onDelete(event, this.data);
+    if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
+
+    if (result) {
+      await this.modalCtrl.dismiss();
+    }
+  }
+
   async onShowSubBatchesButtonClick(event?: UIEvent) {
-    if (!this.showSubBatchesCallback) return; // Skip
+    if (!this.openSubBatchesModal) return; // Skip
 
     // Save
-    const savedBatch = await this.close();
+    const savedBatch = await this.save({allowInvalid: true});
     if (!savedBatch) return;
 
     // Execute the callback
-    this.showSubBatchesCallback(savedBatch, this.valid);
+    const updatedParent = await this.openSubBatchesModal(savedBatch);
+
+    if (!updatedParent) return; // User cancelled
+
+    this.data.observedIndividualCount = updatedParent.observedIndividualCount;
+    this.form.form.patchValue({observedIndividualCount: updatedParent.observedIndividualCount}, {emitEvent: false});
+    this.form.hasIndividualMeasure = (updatedParent.observedIndividualCount > 0);
+    this.form.markAsDirty();
   }
 
   /* -- protected methods -- */
 
   protected async computeTitle(data?: Batch) {
     data = data || this.data;
-    if (this.isNew || !data) {
+    if (this.isNew) {
       this.$title.next(await this.translate.get('TRIP.BATCH.NEW.TITLE').toPromise());
     }
     else {

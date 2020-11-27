@@ -178,7 +178,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
 
-    this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
+    this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties);
 
     // strategies
     this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update

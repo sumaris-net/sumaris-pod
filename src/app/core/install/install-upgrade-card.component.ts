@@ -21,13 +21,13 @@ import {VersionUtils} from "../../shared/version/versions";
 export declare type InstallAppLink = { name: string; url: string; platform?: 'android' | 'ios'; version?: string; };
 
 @Component({
-  selector: 'app-network-status-card',
-  templateUrl: 'network-status-card.component.html',
-  styleUrls: ['./network-status-card.component.scss'],
+  selector: 'app-install-upgrade-card',
+  templateUrl: 'install-upgrade-card.component.html',
+  styleUrls: ['./install-upgrade-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInAnimation, slideUpDownAnimation]
 })
-export class NetworkStatusCard implements OnInit, OnDestroy {
+export class AppInstallUpgradeCard implements OnInit, OnDestroy {
 
   private _subscription = new Subscription();
 
@@ -73,7 +73,7 @@ export class NetworkStatusCard implements OnInit, OnDestroy {
     this._subscription.add(
       this.configService.config
         .subscribe(config => {
-          console.info("[network-status] Checking if upgrade  or install is need...");
+          console.info("[install] Checking if upgrade  or install is need...");
 
           const installLinks = this.getAllInstallLinks(config);
 
@@ -113,7 +113,7 @@ export class NetworkStatusCard implements OnInit, OnDestroy {
     event.preventDefault();
 
     if (link && link.url) {
-      console.info(`[network-status] Opening App download link: ${link.url}`);
+      console.info(`[install] Opening App download link: ${link.url}`);
       this.platform.open(link.url, '_system', 'location=yes');
       return false;
     }
@@ -149,10 +149,16 @@ export class NetworkStatusCard implements OnInit, OnDestroy {
   /* -- protected method  -- */
 
   private getCompatibleInstallLinks(installLinks: InstallAppLink[]): InstallAppLink[] {
-    const links = installLinks
-      .filter(link => this.platform.is('mobileweb') || (!link.platform ||  this.platform.is(link.platform)));
 
-    return isNotEmptyArray(links) ? links : undefined;
+    // Cordova already running: not need to install
+    if (this.platform.is('cordova')) return undefined;
+
+    // If mobile web: return all
+    if (this.platform.is('mobileweb')) {
+      return installLinks;
+    }
+
+    return undefined;
   }
 
   private getCompatibleUpgradeLinks(installLinks: InstallAppLink[], config: Configuration): InstallAppLink[] {

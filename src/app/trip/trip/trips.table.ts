@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {
   AppTable,
   EntitiesTableDataSource,
@@ -29,7 +29,7 @@ import {BehaviorSubject} from "rxjs";
 import {personsToString, personToString} from "../../core/services/model/person.model";
 import {concatPromises} from "../../shared/observables";
 import {isEmptyArray} from "../../shared/functions";
-import {Trip} from "../services/model/trip.model";
+import {Operation, Trip} from "../services/model/trip.model";
 import {PersonService} from "../../admin/services/person.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
@@ -67,6 +67,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   importing = false;
   $importProgression = new BehaviorSubject<number>(0);
   hasOfflineMode = false;
+  highlightedRow: TableElement<Trip>;
 
   synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
   displayedAttributes: {
@@ -442,6 +443,11 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     finally {
       this.onRefresh.emit();
     }
+  }
+
+  clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
+    this.highlightedRow = row;
+    return super.clickRow(event, row);
   }
 
   async openTrashModal(event?: UIEvent) {

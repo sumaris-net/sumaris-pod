@@ -14,6 +14,8 @@ import {IonBackButton, IonRouterOutlet, IonSearchbar} from "@ionic/angular";
 import {isNotNil, isNotNilOrBlank, toBoolean} from "../functions";
 import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
+import {HammerTapEvent} from "../gesture/hammer.utils";
+import {HAMMER_TAP_TIME} from "../gesture/gesture-config";
 
 @Component({
   selector: 'app-toolbar',
@@ -23,6 +25,7 @@ import {Observable} from "rxjs";
 })
 export class ToolbarComponent implements OnInit {
 
+  private _closeTapCount = 0;
   private _validateTapCount = 0;
   private _defaultBackHref: string;
   private _backHref: string;
@@ -80,7 +83,6 @@ export class ToolbarComponent implements OnInit {
 
   @Output()
   onValidateAndClose = new EventEmitter<Event>();
-
 
   @Output()
   onBackClick = new EventEmitter<Event>();
@@ -153,10 +155,35 @@ export class ToolbarComponent implements OnInit {
     }
   }
 
-  doValidateTap(event: Event & { tapCount?: number; }) {
-    //FIXME console.log("TODO doValidateTap", event);
+  tapClose(event: HammerTapEvent) {
+    // DEV only
+    console.debug("[toolbar] tapClose", event.tapCount);
+    if (this._validateTapCount > 0) return;
+
+    // Distinguish simple and double tap
+    this._closeTapCount = event.tapCount;
+    setTimeout(() => {
+      // Event is obsolete (a new tap event occur)
+      if (event.tapCount < this._closeTapCount) {
+        // Ignore event
+      }
+
+      // If event still the last tap event: process it
+      else {
+        this.onClose.emit(event.srcEvent || event);
+
+        // Reset tab count
+        this._closeTapCount = 0;
+      }
+    }, 500);
+  }
+
+  tapValidate(event: HammerTapEvent) {
+    // DEV only
+    console.debug("[toolbar] tapValidate", event.tapCount);
+
     if (!this.onValidateAndClose.observers.length) {
-      this.onValidate.emit(event);
+      this.onValidate.emit(event.srcEvent || event);
     }
 
     // Distinguish simple and double tap
@@ -171,16 +198,16 @@ export class ToolbarComponent implements OnInit {
         // If event still the last tap event: process it
         else {
           if (this._validateTapCount === 1) {
-            this.onValidate.emit(event);
+            this.onValidate.emit(event.srcEvent || event);
           }
           else if (this._validateTapCount >= 2) {
-            this.onValidateAndClose.emit(event);
+            this.onValidateAndClose.emit(event.srcEvent || event);
           }
 
           // Reset tab count
           this._validateTapCount = 0;
         }
-      }, 500);
+      }, HAMMER_TAP_TIME+10);
     }
   }
 }

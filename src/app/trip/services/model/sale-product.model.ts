@@ -4,9 +4,9 @@ import {isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, round} from "../../../s
 import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {Product} from "./product.model";
 import {Packet, PacketUtils} from "./packet.model";
-import {ObjectMap} from "../../../core/services/model/entity.model";
 import {ReferentialUtils} from "../../../core/services/model/referential.model";
 import {PmfmIds} from "../../../referential/services/model/model.enum";
+import {ObjectMap} from "../../../shared/types";
 
 export class SaleProduct extends Product {
 

@@ -154,7 +154,7 @@
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled"
-           [class.mat-row-selected]="selectedRow === row"
+           [class.mat-row-selected]="highlightedRow === row"
            (click)="clickRow($event, row)"
   ></mat-row>
 </mat-table>

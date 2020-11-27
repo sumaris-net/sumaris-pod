@@ -1,7 +1,7 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from '../../shared/functions';
 import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, defer} from "rxjs";
 import {FormGroup} from "@angular/forms";
 import {OperationService} from "../services/operation.service";
 import {ProgramService} from "../../referential/services/program.service";
@@ -23,6 +23,7 @@ import {firstTruePromise} from "../../shared/observables";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {SubBatch, SubBatchUtils} from "../services/model/subbatch.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {fromPromise} from "rxjs/internal/observable/fromPromise";
 
 @Component({
   selector: 'app-batch-tree',
@@ -130,8 +131,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     if (this.batchGroupsTable) {
 
-      // Define function to get available sub-batches
-      this.batchGroupsTable.availableSubBatchesFn = (() => this.getSubBatches({saveIfDirty: true}));
+      // Get available sub-batches only when subscribe (for performance reason)
+      this.batchGroupsTable.availableSubBatches = defer(() => this.getSubBatches({saveIfDirty: true}));
 
       // Watch program, to configure tables from program properties
       this.registerSubscription(
@@ -174,7 +175,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
           this.batchGroupsTable.dataSource.datasourceSubject
             .pipe(
               debounceTime(400),
-              // skip if loading
+              // skip if loading, or hide
               filter(() => !this.loading && this.enableSubBatchesTab)
             )
             // Will refresh the tables (inside the setter):

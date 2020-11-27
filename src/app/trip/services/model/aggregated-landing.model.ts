@@ -51,7 +51,7 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.date = fromDateISOString(source.date);
     this.rankOrder = source.rankOrder;
     this.comments = source.comments;
-    this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
     this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
     this.observedLocationId = source.observedLocationId;
     this.landingId = source.landingId;

@@ -3,6 +3,7 @@ import {fromDateISOString, isNotNil, toDateISOString} from "../../../shared/func
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {Entity, EntityAsObjectOptions, EntityUtils, IEntity} from "./entity.model";
 import {Department} from "./department.model";
+import {PropertiesMap} from "../../../shared/types";
 
 
 export class Software<T extends Software<any> = Software<any>> extends Entity<T, EntityAsObjectOptions>
@@ -19,7 +20,7 @@ export class Software<T extends Software<any> = Software<any>> extends Entity<T,
   name: string;
   creationDate: Date | Moment;
   statusId: number;
-  properties: { [key: string]: string };
+  properties: PropertiesMap;
 
   constructor() {
     super();
@@ -48,7 +49,7 @@ export class Software<T extends Software<any> = Software<any>> extends Entity<T,
     if (source.properties && source.properties instanceof Array) {
       this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
     } else {
-      this.properties = source.properties;
+      this.properties = {...source.properties};
     }
   }
 }

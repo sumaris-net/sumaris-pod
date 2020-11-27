@@ -45,8 +45,7 @@ import {
   Entity,
   EntityAsObjectOptions,
   entityToString,
-  EntityUtils,
-  PropertiesMap
+  EntityUtils
 } from './services/model/entity.model';
 // import ngx-translate and the http loader
 import {HttpClientModule} from '@angular/common/http';
@@ -59,7 +58,7 @@ import {AppListForm} from "./form/list.form";
 import {PlatformService} from "./services/platform.service";
 import {IsNotOnFieldModePipe, IsOnFieldModePipe} from "./services/pipes/usage-mode.pipes";
 import {PersonToStringPipe} from "./services/pipes/person-to-string.pipe";
-import {NetworkStatusCard} from "./peer/network-status-card.component";
+import {AppInstallUpgradeCard} from "./install/install-upgrade-card.component";
 import {AccountToStringPipe, IsLoginAccountPipe} from "./services/pipes/account.pipes";
 
 export {
@@ -99,8 +98,7 @@ export {
   joinPropertiesPath,
   FormArrayHelper,
   AppTableUtils,
-  EntityAsObjectOptions,
-  PropertiesMap
+  EntityAsObjectOptions
 };
 
 
@@ -138,7 +136,7 @@ export {
 
     // Network
     SelectPeerModal,
-    NetworkStatusCard,
+    AppInstallUpgradeCard,
 
     // Other components
     TableSelectColumnsComponent,
@@ -171,7 +169,7 @@ export {
     AboutModal,
     AppPropertiesForm,
     AppListForm,
-    NetworkStatusCard,
+    AppInstallUpgradeCard,
   ]
 })
 export class CoreModule {

@@ -141,7 +141,7 @@ export class Sample extends RootDataEntity<Sample>
     this.parent = source.parent;
     this.batchId = source.batchId;
     this.operationId = source.operationId;
-    this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.measurementValues = source.measurementValues && { ...source.measurementValues } || MeasurementUtils.toMeasurementValues(source.measurements);
 
     if (source.children && (!opts || opts.withChildren !== false)) {
       this.children = source.children.map(child => Sample.fromObject(child, opts));

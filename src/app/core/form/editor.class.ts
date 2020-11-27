@@ -352,6 +352,7 @@ export abstract class AppEntityEditor<
   }
 
   async saveAndClose(event: Event, options?: any): Promise<boolean> {
+
     const saved = await this.save(event);
     if (saved) {
       await this.close(event);
@@ -360,6 +361,11 @@ export abstract class AppEntityEditor<
   }
 
   async close(event: Event) {
+    if (event) {
+      if (event.defaultPrevented) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (this.appToolbar && this.appToolbar.canGoBack) {
       await this.appToolbar.goBack();
     }
@@ -490,6 +496,9 @@ export abstract class AppEntityEditor<
 
       this.onEntityDeleted(data);
 
+      // Remove page history
+      this.removePageHistory();
+
     } catch (err) {
       this.submitted = true;
       this.setError(err);
@@ -509,6 +518,8 @@ export abstract class AppEntityEditor<
         return this.router.navigateByUrl('/');
       }
     }, 500);
+
+
   }
 
   /* -- protected methods to override -- */
@@ -600,15 +611,20 @@ export abstract class AppEntityEditor<
     }
   }
 
-  protected addToPageHistory(page: HistoryPageReference, opts?: {
+  protected async addToPageHistory(page: HistoryPageReference, opts?: {
     removePathQueryParams?: boolean;
     removeTitleSmallTag?: boolean;
   }) {
-    this.settings.addToPageHistory(page, {
+    return this.settings.addToPageHistory(page, {
       removePathQueryParams: true,
       removeTitleSmallTag: true,
+      emitEvents: false,
       ...opts
     });
+  }
+
+  protected async removePageHistory(opts?: { emitEvent?: boolean; }) {
+    return this.settings.removePageHistory(this.router.url, opts);
   }
 
   /**

@@ -52,6 +52,10 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   @ViewChild('form', {static: true}) form: PhysicalGearForm;
 
+  get enabled(): boolean {
+    return !this.disabled;
+  }
+
   constructor(
     protected alertCtrl: AlertController,
     protected viewCtrl: ModalController,
@@ -82,7 +86,7 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     // Focus on the first field, is not in mobile
-     if (this.isNew && !this.mobile) {
+     if (this.isNew && !this.mobile && this.enabled) {
        setTimeout(() => this.form.focusFirstInput(), 400);
      }
   }

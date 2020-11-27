@@ -8,8 +8,8 @@ import {
   joinPropertiesPath,
   toDateISOString
 } from "../../../shared/functions";
-import {FormFieldValue} from "../../../shared/form/field.model";
 import {FilterFn} from "../../../shared/services/entity-service.class";
+import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
 
 
 export declare interface Cloneable<T> {
@@ -43,10 +43,6 @@ export declare interface ITreeItemEntity<T extends IEntity<T>> {
   children: T[];
 }
 
-export declare interface PropertiesMap {
-  [key: string]: string;
-}
-export declare interface ObjectMap<O = any> { [key: string]: O; }
 
 export abstract class Entity<T extends IEntity<any, any>, O extends EntityAsObjectOptions = EntityAsObjectOptions>
   implements IEntity<T, O> {
@@ -110,23 +106,14 @@ export abstract class EntityUtils {
     throw new Error(`Invalid form path: '${key}' is not an valid object.`);
   }
 
-  static getMapAsArray(source?: Map<string, string>): { key: string; value?: string; }[] {
-    return Object.getOwnPropertyNames(source || {})
-      .map(key => {
-        return {
-          key,
-          value: source[key]
-        };
-      });
+  static getArrayAsMap<T = any>(source?: ObjectMapEntry<T>[]): ObjectMap<T> {
+    return (source || []).reduce((res, item) => {
+      res[item.key] = item.value;
+      return res;
+    }, {});
   }
 
-  static getArrayAsMap(source?: { key: string; value?: string; }[]): Map<string, string> {
-    const target = new Map<string, string>();
-    (source || []).forEach(item => target.set(item.key, item.value));
-    return target;
-  }
-
-  static getObjectAsArray(source?: { [key: string]: string }): { key: string; value?: string; }[] {
+  static getMapAsArray<T = any>(source?: ObjectMap<T>): ObjectMapEntry<T>[] {
     if (source instanceof Array) return source;
     return Object.getOwnPropertyNames(source || {})
       .map(key => {
@@ -137,14 +124,14 @@ export abstract class EntityUtils {
       });
   }
 
-  static getPropertyArrayAsObject(source?: FormFieldValue[]): { [key: string]: string } {
+  static getPropertyArrayAsObject(source?: PropertiesArray): PropertiesMap {
     return (source || []).reduce((res, item) => {
       res[item.key] = item.value;
       return res;
     }, {});
   }
 
-  static copyIdAndUpdateDate(source: IEntity<any> | undefined, target: IEntity<any>, opts?: { creationDate?: boolean; }) {
+  static copyIdAndUpdateDate(source: IEntity<any> | undefined, target: IEntity<any>) {
     if (!source) return;
 
     // Update (id and updateDate)

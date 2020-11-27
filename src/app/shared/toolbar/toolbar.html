@@ -49,16 +49,15 @@
 
       <!-- close button -->
       <ion-button *ngIf="hasClose"
-                  (click)="onClose.emit($event)"
-                  visible-xs visible-sm visible-mobile>
+                  (tap)="tapClose($event)"
+                  class="visible-xs visible-sm visible-mobile">
         <ion-icon slot="icon-only" name="close"></ion-icon>
       </ion-button>
 
       <!-- validate button -->
       <ion-button *ngIf="hasValidate"
-                  (click)="onValidate.emit($event)"
-                  (tap)="doValidateTap($event)"
-                  visible-xs visible-sm visible-mobile>
+                  (tap)="tapValidate($event)"
+                  class="visible-xs visible-sm visible-mobile">
         <ion-icon slot="icon-only" name="save"></ion-icon>
       </ion-button>
     </ion-buttons>

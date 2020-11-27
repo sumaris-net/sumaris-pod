@@ -201,7 +201,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       this.showToast({message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true});
 
       // Remove the page from the history (because of local id)
-      await this.settings.removeHistory(path);
+      await this.settings.removePageHistory(path);
 
       // Do a ONLINE terminate
       console.debug("[quality] Terminate entity...");

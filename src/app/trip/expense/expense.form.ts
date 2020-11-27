@@ -19,7 +19,6 @@ import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {PlatformService} from "../../core/services/platform.service";
 import {BehaviorSubject} from "rxjs";
 import {isNil, isNotEmptyArray, isNotNilOrNaN, remove, removeAll, round} from "../../shared/functions";
-import {ObjectMap} from "../../core/services/model/entity.model";
 import {debounceTime, filter} from "rxjs/operators";
 import {Measurement, MeasurementUtils} from "../services/model/measurement.model";
 import {ExpenseValidatorService} from "../services/validator/expense.validator";
@@ -27,6 +26,7 @@ import {FormArrayHelper} from "../../core/form/form.utils";
 import {getMaxRankOrder} from "../../data/services/model/model.utils";
 import {TypedExpenseForm} from "./typed-expense.form";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
+import {ObjectMap} from "../../shared/types";
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 

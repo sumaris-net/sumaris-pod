@@ -16,10 +16,11 @@ import {PlatformService} from "../services/platform.service";
 import {NetworkService} from "../services/network.service";
 import {isNil, isNilOrBlank, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {merge} from "rxjs";
 import {AlertController} from "@ionic/angular";
 import {Alerts} from "../../shared/alerts";
+import {Property} from "../../shared/types";
 
 @Component({
   selector: 'page-settings',
@@ -42,7 +43,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   propertyDefinitions: FormFieldDefinition[];
   propertyDefinitionsByKey: FormFieldDefinitionMap = {};
   propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
-  propertiesFormHelper: FormArrayHelper<FormFieldValue>;
+  propertiesFormHelper: FormArrayHelper<Property>;
 
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
 
@@ -72,7 +73,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
 
-    this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
+    this.propertiesFormHelper = new FormArrayHelper<Property>(
       this.form.get('properties') as FormArray,
       (value) => this.validatorService.getPropertyFormGroup(value),
       (v1, v2) => (!v1 && !v2) || (v1.key === v2.key),
@@ -159,10 +160,10 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     if (!data) return; //skip
     this.data = data;
 
-    const json: any = Object.assign({}, data || {});
+    const json: any = {...data};
 
     // Transform properties map into array
-    json.properties = EntityUtils.getObjectAsArray(data.properties|| {});
+    json.properties = EntityUtils.getMapAsArray(data.properties|| {});
     this.propertiesFormHelper.resize(json.properties.length);
 
     this.form.patchValue(json, {emitEvent: false});

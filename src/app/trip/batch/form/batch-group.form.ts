@@ -14,7 +14,7 @@ import {BatchForm} from "./batch.form";
 import {filter, switchMap} from "rxjs/operators";
 import {PlatformService} from "../../../core/services/platform.service";
 import {firstNotNilPromise} from "../../../shared/observables";
-import {fadeInAnimation} from "../../../shared/shared.module";
+import {fadeInAnimation, InputElement} from "../../../shared/shared.module";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
 import {ReferentialUtils} from "../../../core/services/model/referential.model";
@@ -40,6 +40,8 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   @Input() showChildrenWeight = true;
 
   @Input() showChildrenSampleBatch = true;
+
+  @ViewChildren("firstInput") firstInputFields !: QueryList<InputElement>;
 
   @ViewChildren('childForm') childrenForms !: QueryList<BatchForm>;
 
@@ -122,6 +124,9 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   @Input()
   set hasIndividualMeasure(value: boolean) {
     this.hasIndividualMeasureControl.setValue(value);
+    if (!value && this.hasIndividualMeasureControl.disabled && this.enabled) {
+      this.hasIndividualMeasureControl.enable();
+    }
   }
 
   ngOnInit() {
@@ -135,7 +140,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
           (this.childrenForms || []).forEach((childForm, index) => {
             childForm.setIsSampling(value, {emitEvent: true}/*Important, to force async validator*/);
           });
-          this.markForCheck();
+          //this.markForCheck();
         }));
 
     // Listen form changes
@@ -212,7 +217,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       });
 
       // Set value (batch group)
-      super.setValue(data);
+      super.setValue(data, opts);
 
       // Then set value of each child form
       this.childrenForms.forEach((childForm, index) => {
@@ -242,9 +247,18 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     if (data.observedIndividualCount > 0) {
       this.hasIndividualMeasureControl.disable();
     }
+    else if (this.enabled) {
+      this.hasIndividualMeasureControl.enable();
+    }
+  }
+
+  focusFirstInput() {
+    const element = this.firstInputFields.first;
+    if (element) element.focus();
   }
 
   logFormErrors(logPrefix: string) {
+    logPrefix = logPrefix || '';
     AppFormUtils.logFormErrors(this.form, logPrefix);
     if (this.childrenForms) this.childrenForms.forEach((childForm, index) => {
         AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);

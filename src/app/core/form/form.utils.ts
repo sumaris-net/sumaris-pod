@@ -8,18 +8,18 @@ import {
   ValidatorFn
 } from "@angular/forms";
 import {
-  sleep,
   filterNumberInput,
   isNil,
   nullIfUndefined,
   selectInputContent,
+  sleep,
   toBoolean,
   toDateISOString
 } from "../../shared/shared.module";
 import {isMoment} from "moment";
-import {Entity, ObjectMap} from "../services/model/entity.model";
+import {Entity} from "../services/model/entity.model";
 import {timer} from "rxjs";
-import {filter, first, tap} from "rxjs/operators";
+import {filter, first} from "rxjs/operators";
 import {SharedFormArrayValidators} from "../../shared/validator/validators";
 import {round} from "../../shared/functions";
 
@@ -493,31 +493,39 @@ export function markAsUntouched(form: FormGroup, opts?: {onlySelf?: boolean; }) 
  */
 export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?: {
   checkPeriod?: number;
+  timeout?: number;
 }): Promise<any> {
   const period = opts && opts.checkPeriod || 300;
   if (!form.pending) return;
+  let stop = false;
+  if (opts && opts.timeout) {
+    setTimeout(() => {
+      console.warn(`Waiting async validator: timeout reached (after ${opts.timeout}ms)`);
+      stop = true;
+    }, opts.timeout);
+  }
   return timer(period, period)
     .pipe(
       // For DEBUG :
-      tap(() => console.debug("Waiting async validator...", form)),
-      filter(() => !form.pending),
+      //tap(() => console.debug("Waiting async validator...", form)),
+      filter(() => stop || !form.pending),
       first()
     ).toPromise();
 }
 
-export function isControlHasInput(controls: ObjectMap<AbstractControl>, controlName: string): boolean {
+export function isControlHasInput(controls: { [key:string]: AbstractControl}, controlName: string): boolean {
   // true if the control has a value and its 'calculated' control has the value 'false'
   return controls[controlName].value && !toBoolean(controls[controlName + AppFormUtils.calculatedSuffix].value, false);
 }
 
-export function setCalculatedValue(controls: ObjectMap<AbstractControl>, controlName: string, value: number | undefined) {
+export function setCalculatedValue(controls: { [key:string]: AbstractControl}, controlName: string, value: number | undefined) {
   // set value to control
   controls[controlName].setValue(round(value));
   // set 'calculated' control to 'true'
   controls[controlName + AppFormUtils.calculatedSuffix].setValue(true);
 }
 
-export function resetCalculatedValue(controls: ObjectMap<AbstractControl>, controlName: string) {
+export function resetCalculatedValue(controls: { [key:string]: AbstractControl}, controlName: string) {
   if (!AppFormUtils.isControlHasInput(controls, controlName)) {
     // set undefined only if control already calculated
     AppFormUtils.setCalculatedValue(controls, controlName, undefined);

@@ -1,26 +1,27 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Optional} from "@angular/core";
 import {FormArray, FormBuilder, FormGroup, FormGroupDirective, Validators} from "@angular/forms";
 import {EntityUtils} from "../services/model/entity.model";
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {isEmptyArray, isNil} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {AppForm} from "./form.class";
 import {FormArrayHelper, FormArrayHelperOptions} from "./form.utils";
+import {Property} from "../../shared/types";
 
 @Component({
   selector: 'app-properties-form',
   templateUrl: 'properties.form.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppPropertiesForm<T = FormFieldValue> extends AppForm<T[]> implements OnInit {
+export class AppPropertiesForm<T = Property> extends AppForm<T[]> implements OnInit {
 
 
   loading = true;
   definitionsMapByKey: FormFieldDefinitionMap = {};
   definitionsByIndex: { [index: number]: FormFieldDefinition } = {};
-  helper: FormArrayHelper<FormFieldValue>;
+  helper: FormArrayHelper<Property>;
 
   @Input() formArrayName: string;
 
@@ -54,9 +55,6 @@ export class AppPropertiesForm<T = FormFieldValue> extends AppForm<T[]> implemen
       null,
       settings);
 
-
-
-
     //this.debug = !environment.production;
   }
 
@@ -83,7 +81,7 @@ export class AppPropertiesForm<T = FormFieldValue> extends AppForm<T[]> implemen
       this.form.addControl(this.formArrayName, this.formArray);
     }
 
-    this.helper = new FormArrayHelper<FormFieldValue>(
+    this.helper = new FormArrayHelper<Property>(
       this.formArray,
       (value) => this.getPropertyFormGroup(value),
       (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
@@ -127,7 +125,7 @@ export class AppPropertiesForm<T = FormFieldValue> extends AppForm<T[]> implemen
     if (!data) return; // Skip
 
     // Transform properties map into array
-    const values = EntityUtils.getObjectAsArray(data);
+    const values = EntityUtils.getMapAsArray<T>(data);
     this.helper.resize(values.length);
     this.helper.formArray.patchValue(values, {emitEvent: false});
 

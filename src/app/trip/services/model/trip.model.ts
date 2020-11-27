@@ -232,7 +232,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
     super.fromObject(source);
     this.rankOrder = source.rankOrder;
     this.gear = source.gear && ReferentialRef.fromObject(source.gear);
-    this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
 
     // Parent trip
     if (source.trip) {

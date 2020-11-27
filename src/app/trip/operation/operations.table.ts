@@ -37,7 +37,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   displayAttributes: {
     [key: string]: string[]
   };
-  selectedRow: TableElement<Operation>;
+  highlightedRow: TableElement<Operation>;
 
   @Input() latLongPattern: LatLongPattern;
 
@@ -196,7 +196,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Operation>): boolean {
-    this.selectedRow = row;
+    this.highlightedRow = row;
 
     return super.clickRow(event, row);
   }

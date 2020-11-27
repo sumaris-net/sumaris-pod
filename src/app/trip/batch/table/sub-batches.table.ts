@@ -12,7 +12,7 @@ import {
 } from "@angular/core";
 import {isObservable, Observable, Subscription} from 'rxjs';
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {AppFormUtils, EntityUtils, environment, IReferentialRef, referentialToString} from "../../../core/core.module";
+import {AppFormUtils, EntityUtils, environment, IReferentialRef} from "../../../core/core.module";
 import {FormGroup, Validators} from "@angular/forms";
 import {
   isEmptyArray,
@@ -39,8 +39,6 @@ import {ReferentialRefService} from "../../../referential/services/referential-r
 import {SortDirection} from "@angular/material/sort";
 import {SubBatch, SubBatchUtils} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
-import {filter} from "rxjs/operators";
-import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -552,7 +550,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected async openRow(id: number, row: TableElement<SubBatch>): Promise<boolean> {
-
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
