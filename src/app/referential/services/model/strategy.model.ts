@@ -6,7 +6,6 @@ import {
   ReferentialRef
 } from "../../../core/services/model/referential.model";
 import {Entity} from "../../../core/services/model/entity.model";
-import {Department} from '../../../core/core.module';
 import {Moment} from "moment";
 import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/functions";
