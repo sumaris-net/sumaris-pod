@@ -135,11 +135,9 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         //update mask
         const year = date.year().toString()
         this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
-        // set sample row code
-        // TODO : call sample row code increment service method (from strategy.service.ts)
-        // console.log("TEST ID PROGRAM : "+this.program.id);
-         this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40, `${year}_BIO_`, 4);
-       // this.sampleRowCode = `${year}-BIO-` + Math.floor(1000 + Math.random() * 9000);
+        // set sample row code  
+        //TODO : replace 40 with this.program.id
+         this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
       })
     );
 

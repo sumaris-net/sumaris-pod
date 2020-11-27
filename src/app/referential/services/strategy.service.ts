@@ -56,7 +56,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
   async findStrategyNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next label...`);
 
-    const res = await this.graphql.query<{ label: string }>({
+    const res = await this.graphql.query<{ suggestedStrategyNextLabel: string }>({
       query: FindStrategyNextLabel,
       variables: {
         programId: programId,
@@ -65,7 +65,6 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       },
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"}
     });
-
-    return res && res.label;
+    return res && res.suggestedStrategyNextLabel;
   }
 }
