@@ -843,9 +843,6 @@ export class GraphqlService {
       code: errorCode,
       message: this.getI18nErrorMessageByCode(errorCode)
     }
-    else {
-      console.debug('TODO: errorCode=' + errorCode);
-    }
     return undefined;
   }
 
