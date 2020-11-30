@@ -45,13 +45,14 @@ sonarqube:
     script:
       - echo "Sonarqube analysis in progress"
       - sonar-scanner
-        -Dsonar.projectKey=wao
+        -Dsonar.projectKey=imagine-app
         -Dsonar.host.url=$SONAR_HOST_URL
         -Dsonar.login=$SONAR_TOKEN
         -Dsonar.sourceEncoding=UTF-8
         -Dsonar.java.binaries=.
         -Dsonar.java.libraries=.
     only:
+        - develop
         - develop-ifremer
     when: manual
 
@@ -73,6 +74,7 @@ pages:
         paths:
             - public
     only:
+        - develop
         - develop-ifremer
     when: manual
 
