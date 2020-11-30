@@ -1,4 +1,4 @@
-image: mhart/alpine-node
+image: trion/ng-cli
 
 stages:
     - build
