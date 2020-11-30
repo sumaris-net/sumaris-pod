@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client";
 import {
   EntityService,
   EntityServiceLoadOptions, isNil, isNotNil,

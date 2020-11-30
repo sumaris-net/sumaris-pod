@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client";
 import {BehaviorSubject, defer, Observable} from 'rxjs';
 import {EntitiesService, LoadResult, SuggestService} from "../../shared/shared.module";
 import {BaseEntityService, MutableWatchQueryOptions} from "../../core/services/base.data-service.class";

@@ -116,11 +116,13 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
           // Configure trip form
           this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
           if (!this.tripForm.showObservers) {
-            this.data.observers = []; // make sure to reset data observers, if any
+            // make sure to reset data observers, if any
+            if (this.data) this.data.observers = [];
           }
           this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
           if (!this.tripForm.showMetiers) {
-            this.data.metiers = []; // make sure to reset data metiers, if any
+            // make sure to reset data metiers, if any
+            if (this.data) this.data.metiers = [];
           } else {
             this.tripForm.metiersForm.valueChanges.subscribe(value => {
               const metiers = ((value || []) as ReferentialRef[]).filter(metier => isNotNilOrBlank(metier));
@@ -509,11 +511,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     const json = await super.getJsonValueToSave();
 
     // parent link
-    json.landing = this.data.landing && {id: this.data.landing.id, rankOrderOnVessel: this.data.landing.rankOrderOnVessel} || undefined;
-    json.observedLocationId = this.data.observedLocationId;
+    json.landing = this.data && this.data.landing && {id: this.data.landing.id, rankOrderOnVessel: this.data.landing.rankOrderOnVessel} || undefined;
+    json.observedLocationId = this.data && this.data.observedLocationId;
 
     // recopy vesselSnapshot (disabled control)
-    json.vesselSnapshot = this.data.vesselSnapshot;
+    json.vesselSnapshot = this.data && this.data.vesselSnapshot;
 
     // json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     // Concat trip and expense measurements

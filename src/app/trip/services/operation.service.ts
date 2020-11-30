@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client";
 import {EMPTY, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {
@@ -16,7 +16,6 @@ import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {isEmptyArray, isNilOrBlank} from "../../shared/functions";
-import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {
@@ -471,7 +470,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
           // For the query to be tracked (see tracked query link) with a unique serialization key
           context.tracked = (entity.tripId >= 0);
-          if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
+          if (isNotNil(entity.id)) context.serializationKey = `${Operation.TYPENAME}:${entity.id}`;
 
           return { saveOperations: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
         },

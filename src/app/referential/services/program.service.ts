@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client";
 import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {AcquisitionLevelCodes} from "./model/model.enum";
@@ -524,7 +524,8 @@ export class ProgramService extends BaseEntityService
           .pipe(
             map(res => {
               return {program: res && res.data && res.data.length && res.data[0] || undefined};
-            }));
+            })
+          );
         }
         else {
           const query = opts && opts.query || LoadRefQuery;

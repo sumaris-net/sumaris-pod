@@ -17,16 +17,16 @@ import {environment} from '../../../environments/environment';
 import {Injectable} from "@angular/core";
 import {ConnectionType, NetworkService} from "../services/network.service";
 import {WebSocketLink} from "@apollo/link-ws";
+import {MODEL_TYPES_POLICIES} from "./graphql.types";
 import {
   AppWebSocket,
   createTrackerLink,
-  dataIdFromObject,
   isMutationOperation,
   isSubscriptionOperation,
   restoreTrackedQueries
 } from "./graphql.utils";
 import {Storage} from "@ionic/storage";
-import {RetryLink} from '@apollo/link-retry';
+import {RetryLink} from '@apollo/client/link/retry';
 import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
@@ -85,6 +85,14 @@ export class GraphqlService {
 
   get started(): boolean {
     return this._started;
+  }
+
+  get client(): ApolloClient<any> {
+    return this.apollo.client;
+  }
+
+  get cache(): ApolloCache<any> {
+    return this.apollo.client.cache;
   }
 
   constructor(
@@ -437,7 +445,7 @@ export class GraphqlService {
         // Copy, then remove deleted item
         data[opts.arrayFieldName] = data[opts.arrayFieldName].slice();
         const deletedItem = data[opts.arrayFieldName].splice(index, 1)[0];
-        cache.evict({id: dataIdFromObject(deletedItem)});
+        cache.evict({id: cache.identify(deletedItem)});
 
         // Decrement the total
         if (isNotNil(opts.totalFieldName)) {
@@ -495,7 +503,7 @@ export class GraphqlService {
           // Evict each object
           deletedIndexes
             .map(index => data[opts.arrayFieldName][index])
-            .map(dataIdFromObject)
+            .map(item => cache.identify(item))
             .forEach(id => cache.evict({id}));
 
         }
@@ -511,7 +519,7 @@ export class GraphqlService {
             // Remove from the array
             .map(index => data[opts.arrayFieldName].splice(index, 1)[0])
             // Evict from cache
-            .map(dataIdFromObject)
+            .map(item => cache.identify(item))
             .forEach(id => cache.evict({id}));
 
           if (isNotNil(data[opts.totalFieldName])) {
@@ -663,7 +671,7 @@ export class GraphqlService {
 
       // Cache
       const cache = new InMemoryCache({
-        dataIdFromObject
+        typePolicies: MODEL_TYPES_POLICIES
       });
 
       // Add cache persistence
@@ -725,6 +733,7 @@ export class GraphqlService {
 
       // create Apollo
       client = new ApolloClient({
+        cache,
         link:
           ApolloLink.split(
             // Handle mutations
@@ -744,7 +753,6 @@ export class GraphqlService {
               ])
             )
           ),
-        cache,
         connectToDevTools: !environment.production
       });
 

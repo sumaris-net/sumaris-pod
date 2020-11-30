@@ -11,7 +11,7 @@ import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {Moment} from "moment";
 import {environment} from "../../../environments/environment";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client";
 import {Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";

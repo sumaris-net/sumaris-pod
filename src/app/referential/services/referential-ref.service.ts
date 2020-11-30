@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService} from "../../shared/shared.module";
@@ -142,7 +142,7 @@ export class ReferentialRefService extends BaseEntityService
       const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
       $loadResult = this.graphql.watchQuery<{ referentials?: any[]; referentialsCount?: number }>({
         query,
-        variables: variables,
+        variables,
         error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || "cache-first"
       });
@@ -157,7 +157,7 @@ export class ReferentialRefService extends BaseEntityService
             now = undefined;
           }
           return {
-            data: data,
+            data,
             total: referentialsCount
           };
         })
@@ -197,9 +197,6 @@ export class ReferentialRefService extends BaseEntityService
       sortDirection: sortDirection || 'asc',
       filter: ReferentialRefFilter.asPodObject(filter)
     };
-
-
-
     const now = debug && Date.now();
     if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items...`, variables);
 
@@ -242,7 +239,7 @@ export class ReferentialRefService extends BaseEntityService
 
     if (debug) console.debug(`[referential-ref-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
     return {
-      data: data,
+      data,
       total: loadResult.referentialsCount
     };
   }

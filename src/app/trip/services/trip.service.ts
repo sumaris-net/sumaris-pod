@@ -1,5 +1,5 @@
 import {Injectable, Injector} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client";
 import {
   EntitiesService,
   EntityService,
@@ -20,7 +20,6 @@ import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
 import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {RootDataService} from "./root-data-service.class";
 import {
   DataEntityAsObjectOptions,
@@ -700,7 +699,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
         // For the query to be tracked (see tracked query link) with a unique serialization key
         context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
-        if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
+        if (isNotNil(entity.id)) context.serializationKey = `${Trip.TYPENAME}:${entity.id}`;
 
         return {
           saveTrip: !withLanding && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)],

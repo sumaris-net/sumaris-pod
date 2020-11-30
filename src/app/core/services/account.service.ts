@@ -5,7 +5,7 @@ import {Account} from "./model/account.model";
 import {Person, PersonUtils, UserProfileLabel} from "./model/person.model";
 import {UsageMode, UserSettings} from "./model/settings.model";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "@apollo/client/core";
 

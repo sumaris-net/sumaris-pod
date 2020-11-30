@@ -10,6 +10,7 @@ import {
 } from "../../../shared/functions";
 import {FilterFn} from "../../../shared/services/entity-service.class";
 import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
+import {StoreObject} from "@apollo/client";
 
 
 export declare interface Cloneable<T> {
@@ -53,7 +54,7 @@ export abstract class Entity<T extends IEntity<any, any>, O extends EntityAsObje
 
   abstract clone(): T;
 
-  asObject(opts?: O): any {
+  asObject(opts?: O): StoreObject {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
     if (target.id < 0 && (!opts || opts.keepLocalId === false)) delete target.id;

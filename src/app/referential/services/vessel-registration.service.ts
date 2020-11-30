@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client";
 import {Observable} from "rxjs";
 import {VesselRegistration} from "./model/vessel.model";
 import {LoadResult, EntitiesService} from "../../shared/shared.module";
