@@ -1,4 +1,4 @@
-image: node:latest-alpine
+image: node:15.3-alpine
 
 stages:
     - build
