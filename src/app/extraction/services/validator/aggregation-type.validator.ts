@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
-import {AggregationStrata, AggregationType} from "../model/extraction.model";
+import {SharedValidators} from "../../../shared/validator/validators";
+import {AggregationStrata, AggregationType} from "../model/aggregation-type.model";
 import {AppValidatorService} from "../../../core/services/validator/base.validator.class";
 import {toBoolean, toNumber} from "../../../shared/functions";
 

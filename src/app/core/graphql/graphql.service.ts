@@ -314,7 +314,7 @@ export class GraphqlService {
         data = { ...data };
 
         // Append to result array
-        data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], opts.data];
+        data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], {...opts.data}];
 
         // Resort, if need
         if (opts.sortFn) {

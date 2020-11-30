@@ -8,7 +8,7 @@ import {
 import {Observable} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {Landing} from "./model/landing.model";
-import {gql} from "@apollo/client";
+import {gql} from "@apollo/client/core";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";

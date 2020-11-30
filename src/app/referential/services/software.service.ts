@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client";
+import {gql} from "@apollo/client/core";
 import {environment} from "../../../environments/environment";
 import {Observable, Subject} from "rxjs";
 import {ErrorCodes} from "./errors";

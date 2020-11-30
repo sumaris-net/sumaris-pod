@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client";
+import {gql} from "@apollo/client/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService} from "../../shared/shared.module";

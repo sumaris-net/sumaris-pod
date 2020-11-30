@@ -1,5 +1,5 @@
 import {Injectable, Injector} from "@angular/core";
-import {gql} from "@apollo/client";
+import {gql} from "@apollo/client/core";
 import {
   EntitiesService,
   EntityService,
@@ -720,7 +720,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
        variables,
        offlineResponse,
        error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
-       update: async (proxy, {data}) => {
+       update: async (cache, {data}) => {
          const savedEntity = data && (data.saveTrip || data.saveLandedTrip);
 
          // Local entity: save it
@@ -757,7 +757,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
            // Add to cache
            if (isNew) {
-             this.insertIntoMutableCachedQuery(proxy, {
+             this.insertIntoMutableCachedQuery(cache, {
                query: LoadAllQuery,
                data: savedEntity
              });

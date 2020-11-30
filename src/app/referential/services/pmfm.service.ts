@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client";
+import {gql} from "@apollo/client/core";
 import {
   EntityService,
   EntityServiceLoadOptions, isNil, isNotNil,

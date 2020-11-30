@@ -15,7 +15,7 @@ import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Beans} from "../../shared/functions";
-import {gql} from "@apollo/client";
+import {gql} from "@apollo/client/core";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {Observable} from "rxjs";

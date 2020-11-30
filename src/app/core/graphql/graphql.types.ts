@@ -1,4 +1,4 @@
-import {TypePolicies} from "@apollo/client";
+import {TypePolicies} from "@apollo/client/core";
 
 export const MODEL_TYPES_POLICIES: TypePolicies = {
   'MetierVO': {

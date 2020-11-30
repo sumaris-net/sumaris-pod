@@ -10,15 +10,20 @@ import {
 import {PlatformService} from "../../core/services/platform.service";
 import {AggregationTypeFilter, CustomAggregationStrata, ExtractionService} from "../services/extraction.service";
 import {BehaviorSubject, Observable, Subject, Subscription, timer} from "rxjs";
-import {arraySize, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, isNumber} from "../../shared/functions";
+import {
+  arraySize,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  isNumber
+} from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {
-  AggregationStrata,
-  AggregationType,
   ExtractionColumn,
   ExtractionFilter,
-  ExtractionFilterCriterion,
-  ExtractionUtils
+  ExtractionFilterCriterion
 } from "../services/model/extraction.model";
 import {Location} from "@angular/common";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
@@ -28,9 +33,9 @@ import {CRS, WMSParams} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
-import {AggregationTypeSelectModal} from "./aggregation-type-select.modal";
+import {AggregationTypeSelectModal} from "../agg/aggregation-type-select.modal";
 import {AccountService} from "../../core/services/account.service";
-import {ExtractionAbstractPage} from "./extraction-abstract.page";
+import {ExtractionAbstractPage} from "../form/extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -39,8 +44,10 @@ import {AppFormUtils} from "../../core/core.module";
 import {MatExpansionPanel} from "@angular/material/expansion";
 import {Label, SingleOrMultiDataSet} from "ng2-charts";
 import {ChartOptions, ChartType} from "chart.js";
-import {DEFAULT_CRITERION_OPERATOR} from "./extraction-data.page";
+import {DEFAULT_CRITERION_OPERATOR} from "../table/extraction-table.page";
 import {DurationPipe} from "../../shared/pipes/duration.pipe";
+import {AggregationStrata, AggregationType} from "../services/model/aggregation-type.model";
+import {ExtractionUtils} from "../services/extraction.utils";
 
 declare interface LegendOptions {
   min: number;
@@ -458,7 +465,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     }, opts);
 
     if (!opts || opts.emitEVent !== false) {
-      this.onRefresh.emit();
+      this.loadTechData()
     }
   }
 
@@ -711,7 +718,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         // Find the column
         const column = this.$techColumns.getValue().find(c => c.columnName === techColumnName);
 
-        // Add missing values
+        // Make sure all column values is on the chart
         (column.values || [])
           .filter(key => isNil(map[key]))
           .forEach(key => map[key] = 0);

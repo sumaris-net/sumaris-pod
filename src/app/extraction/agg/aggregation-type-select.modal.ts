@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {AggregationTypeFilter, ExtractionService} from "../services/extraction.service";
-import {AggregationType} from "../services/model/extraction.model";
+import {AggregationType} from "../services/model/aggregation-type.model";
 import {Observable} from "rxjs";
 import {first} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";

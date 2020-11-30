@@ -10,7 +10,7 @@ import {
 } from "../../../shared/functions";
 import {FilterFn} from "../../../shared/services/entity-service.class";
 import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
-import {StoreObject} from "@apollo/client";
+import {StoreObject} from "@apollo/client/core";
 
 
 export declare interface Cloneable<T> {

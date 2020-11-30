@@ -3,7 +3,7 @@ import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {arrayGroupBy, isNil, isNotNil} from '../../shared/functions';
 import {TableDataSource} from "@e-is/ngx-material-table";
 import {
-  AggregationType, ExtractionCategories,
+  ExtractionCategories,
   ExtractionColumn,
   ExtractionResult,
   ExtractionRow,
@@ -13,9 +13,9 @@ import {TableSelectColumnsComponent} from "../../core/table/table-select-columns
 import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {delay, filter, groupBy, map, mergeMap, toArray} from "rxjs/operators";
+import {delay, filter, map} from "rxjs/operators";
 import {firstNotNilPromise} from "../../shared/observables";
-import {ExtractionAbstractPage} from "./extraction-abstract.page";
+import {ExtractionAbstractPage} from "../form/extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {ExtractionService} from "../services/extraction.service";
@@ -28,20 +28,19 @@ import {MatTable} from "@angular/material/table";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatExpansionPanel} from "@angular/material/expansion";
-import {SubBatchesModal} from "../batch/modal/sub-batches.modal";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {ExtractionHelpModal} from "./help/help.modal";
+import {ExtractionHelpModal} from "../help/help.modal";
+import {AggregationType} from "../services/model/aggregation-type.model";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
-  selector: 'app-extraction-data-page',
-  templateUrl: './extraction-data.page.html',
-  styleUrls: ['./extraction-data.page.scss'],
+  selector: 'app-extraction-table-page',
+  templateUrl: './extraction-table.page.html',
+  styleUrls: ['./extraction-table.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> implements OnInit {
+export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> implements OnInit {
 
   data: ExtractionResult;
   $title = new Subject<string>();
@@ -92,11 +91,9 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
       .pipe(
         map(types => arrayGroupBy(types, 'category')),
         filter(isNotNil),
-        map(groups => {
-          return Object.keys(groups).map(key => {
-            return {key, value: groups[key]};
-          });
-        })
+        map(map => Object.getOwnPropertyNames(map)
+            .map(key => ({key, value: map[key]}))
+        )
       );
 
     // If the user changes the sort order, reset back to the first page.
@@ -269,6 +266,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
         // Open the new aggregation
         await this.openAggregationType(savedAggType);
 
+        // Change current type
         await this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
 
         this.loading = false;

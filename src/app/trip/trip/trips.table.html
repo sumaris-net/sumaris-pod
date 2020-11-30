@@ -1,5 +1,13 @@
 <app-toolbar [title]="'TRIP.TABLE.TITLE'|translate" color="primary"
              [canGoBack]="false">
+
+  <ion-buttons slot="end">
+    <!-- Synchronization status -->
+    <ion-button color="secondary" *ngIf="hasOfflineMode" [matMenuTriggerFor]="syncStatusMenu">
+      <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
+      <mat-icon slot="end">arrow_drop_down</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
 
 
@@ -88,11 +96,7 @@
   <mat-toolbar>
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-      <!-- Synchronization status -->
-      <ion-button color="secondary" *ngIf="hasOfflineMode" [matMenuTriggerFor]="syncStatusMenu">
-        <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
-        <mat-icon slot="end">arrow_drop_down</mat-icon>
-      </ion-button>
+
 
       <button mat-icon-button
               hidden-xs hidden-sm hidden-mobile

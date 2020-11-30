@@ -1,31 +1,30 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client";
+import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {BaseEntityService, EntityUtils, environment, isNil, isNotNil, StatusIds} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
-import {ErrorCodes} from "./trip.errors";
+import {ErrorCodes} from "../../trip/services/trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {
-  AggregationType, ExtractionCategories,
+  ExtractionCategories,
   ExtractionColumn,
   ExtractionFilter,
   ExtractionFilterCriterion,
   ExtractionResult,
-  ExtractionType,
-  StrataAreaType,
-  StrataTimeType
+  ExtractionType
 } from "./model/extraction.model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService, WatchQueryOptions} from "../../core/graphql/graphql.service";
 import {FeatureCollection} from "geojson";
-import {Fragments} from "./trip.queries";
+import {Fragments} from "../../trip/services/trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
+import {AggregationType, StrataAreaType, StrataTimeType} from "./model/aggregation-type.model";
 
 
 export const ExtractionFragments = {
@@ -193,7 +192,7 @@ const DeleteAggregations: any = gql`
 
 export class AggregationTypeFilter {
 
-  static searchFilter<T extends AggregationType>(f: AggregationTypeFilter): (T) => boolean{
+  static searchFilter<T extends AggregationType>(f: AggregationTypeFilter): (T) => boolean {
     const filterFns: FilterFn<T>[] = [];
 
     // Filter by status
@@ -203,7 +202,7 @@ export class AggregationTypeFilter {
 
     // Filter by spatial
     if (isNotNil(f.isSpatial)) {
-      filterFns.push((entity) => f.isSpatial === f.isSpatial);
+      filterFns.push((entity) => f.isSpatial === entity.isSpatial);
     }
 
     if (!filterFns.length) return undefined;
@@ -249,10 +248,22 @@ export class ExtractionService extends BaseEntityService {
     })
       .pipe(
         map((data) => {
-          const res = (data && data.extractionTypes || []).map(ExtractionType.fromObject);
+          const res = (data && data.extractionTypes || [])
+            .filter(json => {
+              // Workaround because saveAggregation() doest not add NEW extraction type correctly
+              if (!json || isNil(json.label)) {
+                console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?')
+                return false;
+              }
+              return true;
+            })
+            .map(ExtractionType.fromObject);
           if (this._debug && now) {
             console.debug(`[extraction-service] Extraction types loaded in ${Date.now() - now}ms`, res);
             now = undefined;
+          }
+          else {
+            console.debug(`[extraction-service] Extraction types updated (probably by cache)`, res);
           }
           return res;
         })
@@ -569,32 +580,26 @@ export class ExtractionService extends BaseEntityService {
       },
       error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"},
       update: (cache, {data}) => {
-        const savedEntity = data && AggregationType.fromObject(data.saveAggregation);
-        if (savedEntity) {
-          if (savedEntity !== entity) {
-            EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
+        let savedEntity = data && data.saveAggregation;
+        EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
+        //if (this._debug)
+          console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
 
-            if (this._debug) console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
-          }
+        // Add to cached queries
+        if (isNew) {
+          // Convert into extraction type
+          const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: true});
+          // Extraction types
+          this.insertIntoMutableCachedQuery(cache, {
+            query: LoadTypes,
+            data: savedExtractionType
+          });
 
-          // Always force category, as source type could NOT be a live extraction
-          savedEntity.category = ExtractionCategories.PRODUCT;
-          savedEntity.isSpatial = entity.isSpatial;
-
-          // Add to cached queries
-          if (isNew) {
-            // Extraction types
-            this.insertIntoMutableCachedQuery(cache, {
-              query: LoadTypes,
-              data: savedEntity
-            });
-
-            // Aggregation types
-            this.insertIntoMutableCachedQuery(cache, {
-              query: LoadAggregationTypes,
-              data: savedEntity
-            });
-          }
+          // Aggregation types
+         /* this.insertIntoMutableCachedQuery(cache, {
+            query: LoadAggregationTypes,
+            data: savedEntity
+          });*/
         }
       }
     });

@@ -247,7 +247,7 @@ export function sort<T>(array: T[], attribute: string): T[] {
     });
 }
 
-const NUMBER_REGEXP = /^[-]?\d+(.\d+)?$/;
+const NUMBER_REGEXP = /^[-]?\d+(\.\d+)?$/;
 export function isNumber(value: string): boolean {
   return isNotNil(value) && NUMBER_REGEXP.test(value);
 }
