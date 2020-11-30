@@ -69,7 +69,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     if (this._mapToLightEntity && (!opts || opts.fullLoad !== false)) {
       return this.loadFullEntity(id, opts);
     }
-    return this.loadCachedEntity(id);
+    return this.loadCachedEntity(id, opts);
   }
 
   /**
@@ -99,7 +99,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
               return {
                 data,
                 total: res.total
-              }
+              };
             })
           )
         );
@@ -269,14 +269,14 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     const dirtyIndexes = Object.values(this._statusById)
       .filter(s => s && s.dirty)
       .map(s => s.index);
-    const entities = this._cache.slice();
+    const entities = this._cache.slice(); // Copy cached entities
 
     // Mark all (entities and status) as pristine
     this.markAsPristine({emitEvent: false});
 
-    // Map dirty entities to light entities (AFTER the previous copy)
+    // Convert dirty entities, in cache, into light entities (/!\ AFTER the previous copy)
     if (this._mapToLightEntity) {
-      dirtyIndexes.forEach(index => this._cache[index] = this._mapToLightEntity(this._cache[index]));
+      dirtyIndexes.forEach(index => this._cache[index] = this._mapToLightEntity(entities[index]));
     }
 
     // If no entity found
@@ -290,7 +290,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
       // Save each entity into a unique key (advanced mode)
       if (this.options.storeById) {
         // Save ids
-        await this.storage.set(this._storageKey + "#ids", entities.filter(isNotNil).map(e => e.id));
+        await this.storage.set(this._storageKey + '#ids', entities.filter(isNotNil).map(e => e.id));
 
         // Saved dirty entities
         await Promise.all(
@@ -298,7 +298,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
             .map(index => {
               const entity = entities[index];
               console.info(`[entity-storage] Persisting ${this.name}#${entity.id}...`);
-              return this.storage.set(this._storageKey + "#" + entity.id, entity);
+              return this.storage.set(this._storageKey + '#' + entity.id, entity);
             }));
 
         console.info(`[entity-storage] Persisting ${dirtyIndexes.length}/${entities.length} ${this.name}(s)...`);
@@ -394,9 +394,12 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     // Reload from storage, if need (e.g. some attributes has been excluded in light elements)
     if (status.dirty === false) {
       console.debug(`[entity-storage] Full reloading ${this.name}#${id}...`);
-      return await this.storage.get(this._storageKey + '#' + id);
+      const fullData = await this.storage.get(this._storageKey + '#' + id);
+      if (fullData) return fullData;
+      // Not found by id, continue from cache (version prior to 1.5.3)
     }
 
+    // Load from the cache, if dirty OR if storage is not splited by id
     return this._cache[index];
   }
 
