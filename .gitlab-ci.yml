@@ -1,4 +1,4 @@
-image: node:15.3-alpine
+image: mhart/alpine-node
 
 stages:
     - build
