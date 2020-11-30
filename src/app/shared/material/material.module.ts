@@ -78,8 +78,7 @@ const modules: Array<Type<any> | any[]> = [
   SharedMatDurationModule,
   SharedMatBooleanModule,
   SharedMatNumpadModule,
-  SharedMatSwipeModule,
-  SharedMatTextWithMaskModule
+  SharedMatSwipeModule
 ];
 
 @NgModule({
