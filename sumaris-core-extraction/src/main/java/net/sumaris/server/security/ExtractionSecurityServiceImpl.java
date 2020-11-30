@@ -67,7 +67,6 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     @Autowired
     protected IAuthService<PersonVO> authService;
 
-
     private String minRoleForNotSelfDataAccess;
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})

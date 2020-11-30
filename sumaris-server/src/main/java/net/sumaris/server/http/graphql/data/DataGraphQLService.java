@@ -1269,7 +1269,7 @@ public class DataGraphQLService {
                 result.setRecorderPersonId(user.getId());
             }
             else {
-                result.setRecorderPersonId(-999); // Hide all. Should neveer occur
+                result.setRecorderPersonId(-999); // Hide all. Should never occur
             }
         }
         return result;
@@ -1277,7 +1277,7 @@ public class DataGraphQLService {
 
     protected boolean canAccessNotSelfData() {
         String minRole = config.getAuthRoleForNotSelfData();
-        return StringUtils.isNotBlank(minRole) || authService.hasAuthority(minRole);
+        return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
     }
 
     /**
