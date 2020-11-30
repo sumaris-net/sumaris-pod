@@ -106,3 +106,35 @@
   </ion-card-content>
 </ion-card>
 
+<!-- Update offline feature card-->
+<ion-card *ngIf="showUpdateOfflineFeature && !loading && !offline"
+          color="accent"
+          class="main ion-no-margin"
+          @slideUpDownAnimation>
+  <ion-card-content class="ion-no-padding">
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <ion-text class="ion-text-wrap">
+            <h4>
+              <b [innerHTML]="'NETWORK.INFO.UPDATE_OFFLINE_MODE'| translate"></b>
+            </h4>
+            <h3>
+              <small [innerHTML]="'NETWORK.INFO.UPDATE_OFFLINE_MODE_HELP'|translate"></small>
+            </h3>
+          </ion-text>
+        </ion-col>
+        <ion-col size="auto">
+
+          <!-- Retry button -->
+          <ion-button color="tertiary" class="ion-float-end"
+                      (click)="onUpdateOfflineModeClick.emit($event)">
+            <span translate>NETWORK.BTN_UPDATE</span>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </ion-card-content>
+</ion-card>
+

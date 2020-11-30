@@ -442,7 +442,7 @@ type Mutation {
   "Save a software configuration"
   saveSoftware(software: SoftwareVOInput): SoftwareVO
   "Create or update a trip"
-  saveTrip(saveOptions: TripSaveOptionsInput, trip: TripVOInput): TripVO
+  saveTrip(saveOptions: TripSaveOptionsInput, trip: TripVOInput, withOperation: Boolean): TripVO @deprecated(reason : "Please use saveTrip(TripVO, TripSaveOptions)")
   "Create or update many trips"
   saveTrips(saveOptions: TripSaveOptionsInput, trips: [TripVOInput]): [TripVO]
   "Sent data to admin, for debug"
