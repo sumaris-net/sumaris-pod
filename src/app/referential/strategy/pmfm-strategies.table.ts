@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {TableElement} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {environment} from "../../../environments/environment";
 import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
@@ -23,10 +23,7 @@ import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasou
 import {debounceTime, map, startWith, switchMap, filter} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-import {Program} from "../services/model/program.model";
-import {SelectionChange} from "@angular/cdk/collections";
 import {ProgramService} from "../services/program.service";
-import {ProgramProperties} from "../services/config/program.config";
 
 export class PmfmStrategyFilter {
 
@@ -644,7 +641,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
 
   protected async loadPmfms() {
-      const res = null;
       if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
       {
         // We add a filter on pmfm with parameter in ('WEIGHT')
@@ -720,9 +716,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     const program = await this.programService.loadByLabel(this._program);
     if (!program) return; //  Program not found
-
-    // Map center
-    const centerCoords = program.getPropertyAsNumbers(ProgramProperties.TRIP_MAP_CENTER);
 
 
     // Emit event
