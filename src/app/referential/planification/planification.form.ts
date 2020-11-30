@@ -135,7 +135,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         //update mask
         const year = date.year().toString()
         this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
-        // set sample row code  
+        // set sample row code
         //TODO : replace 40 with this.program.id
          this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
       })
@@ -267,8 +267,8 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     console.debug(`[planification] set enable filtered ${fieldName} items to ${value}`);
   }
 
-  // TODO : setValue à adapter
   setValue(value: Planification, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    console.debug("[planification-form] Setting value", value);
     if (!value) return;
 
     // Make sure to have (at least) one calcifiedTypes
@@ -287,7 +287,23 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
         // this.fishingAreaHelper.resize(Math.max(1, value.fishingAreas.length));
 
 
-    // Send value for form
+
+
+
+    this.sampleRowCode = value.sampleRowCode;
+    //this.laboratoriesForm =
+    value.laboratories;
+    value.landingArea;
+    value.sex;
+    value.landingArea;
+    value.updateDate;
+    value.year;
+    value.calcifiedTypes;
+    value.comment;
+    value.fishingAreas;
+    //this.
+
+  // Send value for form
     super.setValue(value, opts);
   }
 
