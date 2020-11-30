@@ -112,9 +112,6 @@
       <column name="department_fk" type="integer">
         <constraints nullable="false" foreignKeyName="strategy2department_department_fkc" referencedTableName="department" referencedColumnNames="id"/>
       </column>
-      <column name="update_date" type="timestamp">
-        <constraints nullable="false"/>
-      </column>
       <column name="update_date" type="timestamp"/>
     </createTable>
     <createSequence sequenceName="STRATEGY2DEPARTMENT_SEQ"/>

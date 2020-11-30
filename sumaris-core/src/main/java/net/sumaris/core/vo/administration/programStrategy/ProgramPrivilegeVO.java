@@ -25,25 +25,16 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-
-import java.io.Serializable;
-import java.util.Date;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 @Data
 @FieldNameConstants
-@EqualsAndHashCode
-public class ProgramPrivilegeVO implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class ProgramPrivilegeVO extends ReferentialVO {
 
-    private Integer id;
-    private String label;
-    private String name;
-    private String description;
-    private String comments;
-
-    private Date updateDate;
-    private Date creationDate;
-    private Integer statusId;
-
-    private Integer strategyId;
+    public ProgramPrivilegeVO() {
+        this.setEntityName(ProgramPrivilege.class.getSimpleName());
+    }
 
 }

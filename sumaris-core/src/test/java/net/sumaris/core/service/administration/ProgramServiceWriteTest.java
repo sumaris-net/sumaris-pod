@@ -112,7 +112,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
             if (appliedStrategy.getId() == 10) {
                 appliedPeriods = appliedStrategy.getAppliedPeriods();
                 Assert.assertNotNull(appliedPeriods);
-                Assert.assertEquals(4, appliedPeriods.size());
+                Assert.assertEquals(3, appliedPeriods.size());
 
                 LocationVO location = new LocationVO();
                 Beans.copyProperties(referentialService.get(Location.class, 23), location);
