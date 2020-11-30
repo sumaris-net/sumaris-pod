@@ -16,6 +16,12 @@ build_develop:
     - echo "Test compilation in progress"
     - npm install
     - npm run build
+    - echo "Creating web artifact in progress"
+    - PROJECT_DIR=`pwd`
+    - mkdir -p "${PROJECT_DIR}/dist"
+    - ZIP_FILE=${PROJECT_DIR}/dist/${CI_PROJECT_NAME}.zip
+    - cd $PROJECT_DIR/www
+    - zip -q -r $ZIP_FILE .
   environment:
     name: test
   artifacts:
