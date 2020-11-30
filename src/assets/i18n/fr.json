@@ -1210,7 +1210,7 @@
       }
     },
     "TABLE": {
-      "BTN_SELECT_TYPE": "Liste des extractions"
+      "BTN_SELECT_TYPE": "Sources de données"
     },
     "MAP": {
       "BTN_SELECT_TYPE": "Liste des cartes",

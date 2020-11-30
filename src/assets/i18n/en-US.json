@@ -1210,7 +1210,7 @@
       }
     },
     "TABLE": {
-      "BTN_SELECT_TYPE": "List of datasets"
+      "BTN_SELECT_TYPE": "Data sources"
     },
     "MAP": {
       "BTN_SELECT_TYPE": "List of maps",

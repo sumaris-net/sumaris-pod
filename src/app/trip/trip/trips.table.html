@@ -1,9 +1,14 @@
-<app-toolbar [title]="'TRIP.TABLE.TITLE'|translate" color="primary"
-             [canGoBack]="false">
+<app-toolbar color="primary" [canGoBack]="false">
+
+  <ion-title>{{'TRIP.TABLE.TITLE'|translate}}</ion-title>
 
   <ion-buttons slot="end">
+
     <!-- Synchronization status -->
-    <ion-button color="secondary" *ngIf="hasOfflineMode" [matMenuTriggerFor]="syncStatusMenu">
+    <ion-button *ngIf="hasOfflineMode"
+                [color]="synchronizationStatus==='SYNC' ? 'secondary' : 'danger'"
+                fill="solid"
+                [matMenuTriggerFor]="syncStatusMenu">
       <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
     </ion-button>
@@ -19,7 +24,7 @@
   <!-- item for each synchro status-->
   <button mat-menu-item *ngFor="let status of synchronizationStatusList"
           (click)="setSynchronizationStatus(status)">
-    <mat-icon>{{synchronizationStatus === status ? 'radio_button_checked' : 'radio_button_unchecked'}}</mat-icon>
+    <mat-icon>{{synchronizationStatus === status ? 'checkmark' : ''}}</mat-icon>
     <ion-label class="ion-text-wrap"
                [color]="status === 'SYNC' && offline && 'medium'"
                translate>{{'TRIP.TABLE.SYNCHRONIZATION_STATUS.' + status + '_HELP' }}
@@ -142,6 +147,7 @@
     </ion-item>
 
     <div class="toolbar-spacer"></div>
+
 
     <button mat-icon-button
             [title]="'COMMON.BTN_OPTIONS'|translate"
