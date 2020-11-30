@@ -6,7 +6,7 @@
 
     <!-- Synchronization status -->
     <ion-button *ngIf="hasOfflineMode"
-                [color]="synchronizationStatus==='SYNC' ? 'secondary' : 'danger'"
+                [color]="synchronizationStatus==='SYNC' ? 'secondary' : 'accent'"
                 fill="solid"
                 [matMenuTriggerFor]="syncStatusMenu">
       <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
@@ -93,9 +93,12 @@
   <!-- Network status (+ Install and upgrade link) -->
   <app-install-upgrade-card
     [isLogin]="accountService.account|isLogin"
-    [showInstallButton]="false"
-    [showUpgradeWarning]="true"
-    [showOfflineWarning]="false">
+    showInstallButton="false"
+    showUpgradeWarning="true"
+    showOfflineWarning="false"
+    [showUpdateOfflineFeature]="showUpdateOfflineFeature"
+    (onUpdateOfflineModeClick)="prepareOfflineMode($event)"
+  >
   </app-install-upgrade-card>
 
   <mat-toolbar>

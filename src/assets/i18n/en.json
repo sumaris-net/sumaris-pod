@@ -1345,6 +1345,7 @@
   },
   "NETWORK": {
     "BTN_CHECK_ALIVE": "Retry",
+    "BTN_UPDATE": "Update",
     "BTN_INIT_OFFLINE_MODE": "Enable offline mode",
     "BTN_UPDATE_OFFLINE_MODE": "Update offline mode",
     "PEER": {
@@ -1367,7 +1368,9 @@
       "OFFLINE_OR_UNAUTHORIZED": "No network connection, or unauthorized access.",
       "ONLINE": "Sucesfully connected to the network!",
       "OFFLINE_HELP": "The application works in <b>offline mode</b>.",
-      "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>"
+      "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>",
+      "UPDATE_OFFLINE_MODE": "<b>Offline mode</b> update available.",
+      "UPDATE_OFFLINE_MODE_HELP": "Before updating, <b>please synchronize any completed trips</b>."
     },
     "ERROR": {
       "NOT_COMPATIBLE_PEER": "The application works in <b>offline mode</b>, because the node <b>use a too old version</b>.<br/><small>If the problem persists, please <b>contact your administrator</b>, or select a node v{{version}} or superior.</small>"

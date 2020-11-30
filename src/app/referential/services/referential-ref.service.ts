@@ -2,7 +2,14 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService} from "../../shared/shared.module";
+import {
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  EntitiesService,
+  toDateISOString,
+  fromDateISOString
+} from "../../shared/shared.module";
 import {
   BaseEntityService,
   EntityUtils,
@@ -25,6 +32,7 @@ import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
+import {Moment} from "moment";
 
 export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];
@@ -37,7 +45,11 @@ export type TaxonNameRefFilter = Partial<ReferentialRefFilter> & {
   taxonGroupIds?: number[];
 };
 
-
+const LastUpdateDate: any = gql`
+  query LastUpdateDate{
+    lastUpdateDate
+  }
+`;
 
 const LoadAllQuery: any = gql`
   query ReferentialRefs($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -357,6 +369,22 @@ export class ReferentialRefService extends BaseEntityService
 
   deleteAll(data: ReferentialRef[], options?: any): Promise<any> {
     throw new Error('Not implemented yet');
+  }
+
+  async lastUpdateDate(): Promise<Moment> {
+    try {
+      const res = await this.graphql.query<{lastUpdateDate: string}>({
+        query: LastUpdateDate,
+        variables: {},
+        fetchPolicy: "network-only"
+      });
+
+      return res && fromDateISOString(res.lastUpdateDate);
+    }
+    catch (err) {
+      console.error('[referential-ref] Cannot get pod lastUpdateDate: ' + (err && err.message || err), err);
+      return undefined;
+    }
   }
 
   /* -- protected methods -- */

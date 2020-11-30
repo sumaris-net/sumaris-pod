@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Injector,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {
   AppTable,
@@ -12,7 +20,7 @@ import {
   RESERVED_START_COLUMNS,
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/validator/trip.validator";
-import {TripFilter, TripService} from "../services/trip.service";
+import {TRIP_FEATURE, TripFilter, TripService} from "../services/trip.service";
 import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -39,6 +47,7 @@ import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
 import {HttpClient} from "@angular/common/http";
+import * as moment from "moment";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -62,6 +71,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   isAdmin: boolean;
   filterForm: FormGroup;
   filterIsEmpty = true;
+  showUpdateOfflineFeature = false;
   offline = false;
 
   importing = false;
@@ -249,10 +259,15 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
         this.markForCheck();
+
+        // Check if update offline mode is need
+        this.checkUpdateOfflineNeed();
+
       }));
 
     // Restore filter from settings, or load all trips
     this.restoreFilterOrLoad();
+
   }
 
   onNetworkStatusChanged(type: ConnectionType) {
@@ -326,6 +341,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.setSynchronizationStatus('DIRTY');
       this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
       success = true;
+      this.showUpdateOfflineFeature = false;
     }
     catch (err) {
       this.error = err && err.message || err;
@@ -481,13 +497,13 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
   protected async restoreFilterOrLoad() {
     console.debug("[trips] Restoring filter from settings...");
-    const json = this.settings.getPageSettings(this.settingsId, TripsPageSettingsEnum.FILTER_KEY);
+    const jsonFilter = this.settings.getPageSettings(this.settingsId, TripsPageSettingsEnum.FILTER_KEY);
 
-    const synchronizationStatus = json && json.synchronizationStatus;
-    const tripFilter = json && typeof json === 'object' && {...json, synchronizationStatus: undefined} || undefined;
+    const synchronizationStatus = jsonFilter && jsonFilter.synchronizationStatus;
+    const tripFilter = jsonFilter && typeof jsonFilter === 'object' && {...jsonFilter, synchronizationStatus: undefined} || undefined;
 
     this.hasOfflineMode = (synchronizationStatus && synchronizationStatus !== 'SYNC') ||
-      (this.settings.hasOfflineFeature() || await this.service.hasOfflineData());
+      (this.settings.hasOfflineFeature(TRIP_FEATURE) || await this.service.hasOfflineData());
 
     // No default filter, nor synchronizationStatus
     if (TripFilter.isEmpty(tripFilter) && !synchronizationStatus) {
@@ -517,6 +533,39 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       else {
         this.filterForm.patchValue({...tripFilter, synchronizationStatus});
       }
+    }
+  }
+
+  protected async checkUpdateOfflineNeed() {
+    let needUpdate = false;
+
+    // If online
+    if (this.network.online) {
+
+      // Get last synchro date
+      const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(TRIP_FEATURE);
+
+      // Check only if last synchro older than 10 min
+      if (lastSynchronizationDate && lastSynchronizationDate
+            .isBefore(moment().add(-10, 'minute'))) {
+
+        // Get peer last update date
+        let remoteUpdateDate = await this.referentialRefService.lastUpdateDate();
+        if (isNotNil(remoteUpdateDate) && moment.isMoment(remoteUpdateDate)) {
+
+          // Compare dates, to kwown if an update if need
+          console.debug('[trips] Last synchronization:', lastSynchronizationDate);
+          console.debug('[trips] Peer last update:', remoteUpdateDate);
+          needUpdate = remoteUpdateDate.isAfter(lastSynchronizationDate);
+        }
+      }
+    }
+
+    // Update the view
+    if (this.showUpdateOfflineFeature !== needUpdate) {
+      this.showUpdateOfflineFeature = needUpdate;
+
+      this.markForCheck();
     }
   }
 

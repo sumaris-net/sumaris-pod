@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {Subscription} from 'rxjs';
 import {Configuration} from '../services/model/config.model';
@@ -30,6 +39,7 @@ export declare type InstallAppLink = { name: string; url: string; platform?: 'an
 export class AppInstallUpgradeCard implements OnInit, OnDestroy {
 
   private _subscription = new Subscription();
+  private _showUpdateOfflineFeature = false;
 
   loading = true;
   waitingNetwork = false;
@@ -52,6 +62,20 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
 
   @Input()
   showInstallButton: boolean = false;
+
+  @Input()
+  set showUpdateOfflineFeature(value: boolean) {
+    if (value === this._showUpdateOfflineFeature) return; // Skip
+    this._showUpdateOfflineFeature = value;
+    this.markForCheck();
+  }
+
+  get showUpdateOfflineFeature(): boolean {
+    return this._showUpdateOfflineFeature;
+  }
+
+  @Output()
+  onUpdateOfflineModeClick = new EventEmitter<UIEvent>();
 
   constructor(
     private modalCtrl: ModalController,

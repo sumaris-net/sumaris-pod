@@ -830,6 +830,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
       console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
       // Continue
     }
+
+    // TODO: add to a synchro history (using class SynchronizationHistory) and store it in local settings ?
+
     return entity;
   }
 
