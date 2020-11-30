@@ -68,6 +68,16 @@ export class ProgramFilter {
   }
 }
 
+export interface ProgramServiceLoadOption extends EntityServiceLoadOptions {
+  withStrategy?: boolean;
+  toEntity?: boolean;
+}
+
+export interface ProgramServiceSaveOption {
+  withStrategy?: boolean;
+  enableOptimisticResponse?: boolean; // True by default
+}
+
 const ProgramFragments = {
   lightProgram: gql`
     fragment LightProgramFragment on ProgramVO {
@@ -416,7 +426,7 @@ const ProgramCacheKeys = {
 @Injectable({providedIn: 'root'})
 export class ProgramService extends BaseEntityService
   implements EntitiesService<Program, ProgramFilter>,
-    EntityService<Program> {
+    EntityService<Program, ProgramServiceLoadOption> {
 
 
   constructor(
@@ -889,6 +899,7 @@ export class ProgramService extends BaseEntityService
 
     if (this._debug) console.debug(`[program-service] Loading program {${id}}...`);
 
+    // LoadQuery return program with strategies
     const res = await this.graphql.query<{ program: any }>({
       query: LoadQuery,
       variables: {
