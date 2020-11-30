@@ -55,6 +55,8 @@ import net.sumaris.server.service.technical.ChangesPublisherService;
 import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -68,6 +70,8 @@ import java.util.Set;
 @Service
 @Transactional
 public class DataGraphQLService {
+    /* Logger */
+    private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
 
     @Autowired
     private SumarisServerConfiguration config;
@@ -304,17 +308,58 @@ public class DataGraphQLService {
         return result;
     }
 
+    /**
+     * @deprecated
+     */
+    @GraphQLMutation(name = "saveTrip", description = "Create or update a trip",
+            deprecationReason = "Please use saveTrip(TripVO, TripSaveOptions)")
+    @IsUser
+    @Deprecated
+    public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
+                           @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation,
+                           @GraphQLEnvironment() Set<String> fields) {
+
+        // Warn in log
+        logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
+
+        return saveTrip(trip, TripSaveOptions.builder()
+                .withOperation(withOperation)
+                .build(),
+                fields);
+    }
+
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
     @IsUser
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
                            @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions,
                            @GraphQLEnvironment() Set<String> fields) {
+
         final TripVO result = tripService.save(trip, saveOptions);
 
         // Add additional properties if needed
         fillTripFields(result, fields);
 
         return result;
+    }
+
+    /**
+     * @deprecated
+     */
+    @GraphQLMutation(name = "saveTrips", description = "Create or update many trips",
+            deprecationReason = "Please use saveTrips(TripVO, TripSaveOptions)")
+    @IsUser
+    @Deprecated
+    public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
+                                  @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation,
+                                  @GraphQLEnvironment() Set<String> fields) {
+
+        // Warn in log
+        logDeprecatedUse("saveTrips(TripVO, withOperation)", "1.5.0");
+
+        return saveTrips(trips, TripSaveOptions.builder()
+                .withOperation(withOperation)
+                .build(),
+                fields);
     }
 
     @GraphQLMutation(name = "saveTrips", description = "Create or update many trips")
@@ -1285,5 +1330,11 @@ public class DataGraphQLService {
      */
     protected void checkIsAdmin(String message) {
         if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Forbidden");
+    }
+
+    protected void logDeprecatedUse(String functionName, String appVersion) {
+        Integer userId = authService.getAuthenticatedUser().map(PersonVO::getId).orElse(null);
+        log.warn(String.format("User {id: %s} used service {%s} that is deprecated since {appVersion: %s}.", userId, functionName, appVersion));
+
     }
 }
