@@ -50,6 +50,8 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
@@ -467,11 +469,12 @@ public class ReferentialDaoImpl
         criteriaQuery.orderBy(builder.desc(root.get(IReferentialEntity.Fields.UPDATE_DATE)));
 
         try {
-            return getEntityManager().createQuery(criteriaQuery)
+            return IterableUtils.first(getEntityManager().createQuery(criteriaQuery)
                     .setMaxResults(1)
-                    .getSingleResult();
+                    .getResultList() // DO NOT use getSingleResult, because table can be null
+                    );
         }
-        catch (NoResultException e) {
+        catch (Exception e) {
             // Table is empty: return null
             return null;
         }

@@ -42,6 +42,7 @@ import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.http.security.IsAdmin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -66,7 +67,7 @@ public class ReferentialGraphQLService {
     /* -- Referential queries -- */
 
     @GraphQLQuery(name = "lastUpdateDate", description = "Get last update date of all referential")
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Date getLastUpdateDate() {
         return referentialService.getLastUpdateDate();
     }
