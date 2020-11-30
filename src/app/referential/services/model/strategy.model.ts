@@ -15,6 +15,8 @@ import {PmfmStrategy} from "./pmfm-strategy.model";
 
 export class Strategy extends Referential<Strategy> {
 
+  static TYPENAME = 'StrategyVO';
+
   static fromObject(source: any): Strategy {
     if (!source || source instanceof Strategy) return source;
     const res = new Strategy();
