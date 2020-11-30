@@ -28,11 +28,10 @@ import {BatchGroup} from "../../services/model/batch-group.model";
 import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {PlatformService} from "../../../core/services/platform.service";
 import {SubBatch} from "../../services/model/subbatch.model";
-import {Observable, Subject} from "rxjs";
+import {defer, Observable, Subject} from "rxjs";
 import {map, takeUntil} from "rxjs/operators";
 import {SubBatchesModal} from "../modal/sub-batches.modal";
 import {TaxonGroupRef} from "../../../referential/services/model/taxon.model";
-import {fromPromise} from "rxjs/internal/observable/fromPromise";
 import {MatMenuTrigger} from "@angular/material/menu";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
@@ -690,7 +689,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // - If mobile, create an observable, linked to table rows
     // - else (if desktop), create a copy
     const onModalDismiss = new Subject<any>();
-    const availableParents = (showParentGroup ? this.dataSource.connect(null): fromPromise(this.dataSource.getRows()))
+    const availableParents = (showParentGroup ? this.dataSource.connect(null): defer(() => this.dataSource.getRows()))
         .pipe(
           takeUntil(onModalDismiss),
           map((res: TableElement<BatchGroup>[]) => res.map(row => this.toEntity(row)))

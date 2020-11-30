@@ -15,6 +15,7 @@ import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-auction-control',
@@ -181,8 +182,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.landingForm.showObservers = false;
   }
 
-  protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'flag'});
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    return super.addToPageHistory({ ...page, icon: 'flag'}, opts);
   }
 
   async save(event?: Event, options?: any): Promise<boolean> {

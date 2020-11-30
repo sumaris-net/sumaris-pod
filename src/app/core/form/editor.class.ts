@@ -15,7 +15,7 @@ import {
   toBoolean
 } from '../../shared/shared.module';
 import {Moment} from "moment";
-import {LocalSettingsService} from "../services/local-settings.service";
+import {AddToPageHistoryOptions, LocalSettingsService} from "../services/local-settings.service";
 import {filter} from "rxjs/operators";
 import {Entity} from "../services/model/entity.model";
 import {HistoryPageReference, UsageMode} from "../services/model/settings.model";
@@ -604,21 +604,18 @@ export abstract class AppEntityEditor<
 
     // If NOT data, then add to page history
     if (!this.isNewData) {
-      this.addToPageHistory({
+      return this.addToPageHistory({
         title,
         path: this.router.url
       });
     }
   }
 
-  protected async addToPageHistory(page: HistoryPageReference, opts?: {
-    removePathQueryParams?: boolean;
-    removeTitleSmallTag?: boolean;
-  }) {
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
     return this.settings.addToPageHistory(page, {
       removePathQueryParams: true,
       removeTitleSmallTag: true,
-      emitEvents: false,
+      emitEvent: false,
       ...opts
     });
   }

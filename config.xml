@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="10503" id="net.sumaris.app" version="1.5.3" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="10505" id="net.sumaris.app" version="1.5.5" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>SUMARiS</name>
     <description>Halieutic data capture</description>
     <author email="contact@e-is.pro" href="http://www.e-is.pro">Environmental Information Systems</author>
@@ -27,6 +27,7 @@
     <preference name="ShowSplashScreen" value="true" />
     <preference name="loadUrlTimeoutValue" value="60000" />
     <platform name="android">
+        <preference name="android-targetSdkVersion" value="29" />
         <icon density="ldpi" src="resources/android/icon/drawable-ldpi-icon.png" />
         <icon density="mdpi" src="resources/android/icon/drawable-mdpi-icon.png" />
         <icon density="hdpi" src="resources/android/icon/drawable-hdpi-icon.png" />

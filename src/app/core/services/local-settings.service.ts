@@ -32,6 +32,12 @@ const DEFAULT_SETTINGS: LocalSettings = {
 
 export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<Partial<LocalSettings>>('LocalSettingsOptions');
 
+export declare type AddToPageHistoryOptions = {
+  removePathQueryParams?: boolean;
+  removeTitleSmallTag?: boolean;
+  emitEvent?: boolean;
+};
+
 @Injectable({
   providedIn: 'root',
   deps: [APP_LOCAL_SETTINGS_OPTIONS]
@@ -281,11 +287,7 @@ export class LocalSettingsService {
   }
 
   async addToPageHistory(page: HistoryPageReference,
-                         opts?: {
-                           removePathQueryParams?: boolean;
-                           removeTitleSmallTag?: boolean;
-                           emitEvents?: false
-                         },
+                         opts?: AddToPageHistoryOptions,
                          pageHistory?: HistoryPageReference[] // used for recursive call to children
   ) {
     // If not inside recursive call: fill page history defaults

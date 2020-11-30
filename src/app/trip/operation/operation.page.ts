@@ -32,6 +32,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {IEntity} from "../../core/services/model/entity.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {BatchTreeComponent} from "../batch/batch-tree.component";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-operation-page',
@@ -685,10 +686,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       && this.tripService.canUserWrite(this.trip);
   }
 
-  protected async addToPageHistory(page: HistoryPageReference) {
-    return super.addToPageHistory(
-      { ...page, icon: 'navigate'},
-      { removeTitleSmallTag: true});
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    return super.addToPageHistory({ ...page, icon: 'navigate'}, opts);
   }
 
   protected async setDefaultTaxonGroups(enable: boolean) {

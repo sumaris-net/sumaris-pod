@@ -28,6 +28,7 @@ import {filter} from "rxjs/operators";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {Alerts} from "../../shared/alerts";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -399,8 +400,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
   }
 
-  protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'boat'});
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    return super.addToPageHistory({...page, icon: 'boat'}, opts);
   }
 
   protected markForCheck() {

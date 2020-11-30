@@ -40,6 +40,7 @@ import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -625,8 +626,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     });
   }
 
-  protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({...page, icon: 'boat'});
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    return super.addToPageHistory({...page, icon: 'boat'}, opts);
   }
 
   protected markForCheck() {
