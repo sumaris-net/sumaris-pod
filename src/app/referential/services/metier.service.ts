@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client/core";
 import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./errors";

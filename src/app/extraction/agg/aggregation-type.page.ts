@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {AppEntityEditor, isNil} from "../../core/core.module";
-import {AggregationType, ExtractionColumn, ExtractionUtils} from "../services/model/extraction.model";
+import {ExtractionColumn} from "../services/model/extraction.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ExtractionService} from "../services/extraction.service";
@@ -11,9 +11,7 @@ import {AggregationTypeForm} from "./aggregation-type.form";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {isNotEmptyArray} from "../../shared/functions";
-import {Observable} from "rxjs";
-import {debounceTime, tap} from "rxjs/operators";
+import {AggregationType} from "../services/model/aggregation-type.model";
 
 @Component({
   selector: 'app-aggregation-type-page',
@@ -28,10 +26,7 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
 
   columns: ExtractionColumn[];
 
-
-
   @ViewChild('typeForm', {static: true}) typeForm: AggregationTypeForm;
-
 
   get form(): FormGroup {
     return this.typeForm.form;

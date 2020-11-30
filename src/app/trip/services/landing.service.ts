@@ -8,7 +8,7 @@ import {
 import {Observable} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {Landing} from "./model/landing.model";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client/core";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";
@@ -36,8 +36,6 @@ import {VesselSnapshotFragments} from "../../referential/services/vessel-snapsho
 import {FormErrors} from "../../core/form/form.utils";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Trip} from "./model/trip.model";
-import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {Moment} from "moment";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
@@ -511,7 +509,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
       // For the query to be tracked (see tracked query link) with a unique serialization key
       context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
-      if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
+      if (isNotNil(entity.id)) context.serializationKey = `${Landing.TYPENAME}:${entity.id}`;
 
       return { saveLandings: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
     };

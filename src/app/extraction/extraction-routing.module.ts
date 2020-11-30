@@ -1,16 +1,16 @@
 import {RouterModule, Routes} from "@angular/router";
-import {AuthGuardService} from "../../core/services/auth-guard.service";
+import {AuthGuardService} from "../core/services/auth-guard.service";
 import {NgModule} from "@angular/core";
-import {ExtractionDataPage} from "./extraction-data.page";
-import {AggregationTypePage} from "./aggregation-type.page";
-import {ExtractionMapPage} from "./extraction-map.page";
-import {SharedModule} from "../../shared/shared.module";
+import {ExtractionTablePage} from "./table/extraction-table.page";
+import {AggregationTypePage} from "./agg/aggregation-type.page";
+import {ExtractionMapPage} from "./map/extraction-map.page";
+import {SharedModule} from "../shared/shared.module";
 
 const routes: Routes = [
   {
     path: 'data',
     pathMatch: 'full',
-    component: ExtractionDataPage,
+    component: ExtractionTablePage,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'GUEST'

@@ -13,7 +13,7 @@ import {fromDateISOString, isNil} from "../../shared/functions";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {TripFilter} from "./trip.service";
 import {ErrorCodes} from "./trip.errors";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client/core";
 import {PhysicalGearFragments} from "./trip.queries";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {SortDirection} from "@angular/material/sort";

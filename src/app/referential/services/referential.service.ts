@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {isNotNil, LoadResult, EntitiesService} from "../../shared/shared.module";

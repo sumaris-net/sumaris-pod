@@ -1,10 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
 import {AppForm, EntityUtils, FormArrayHelper, isNil, StatusIds} from "../../core/core.module";
 import {
-  AggregationStrata,
-  AggregationType,
-  ExtractionColumn,
-  ExtractionUtils
+  ExtractionColumn
 } from "../services/model/extraction.model";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
@@ -16,6 +13,8 @@ import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ExtractionService} from "../services/extraction.service";
 import {debounceTime} from "rxjs/operators";
+import {AggregationStrata, AggregationType} from "../services/model/aggregation-type.model";
+import {ExtractionUtils} from "../services/extraction.utils";
 
 declare type ColumnMap = {[sheetName: string]: ExtractionColumn[] };
 
