@@ -308,31 +308,20 @@ public class DataGraphQLService {
         return result;
     }
 
-    /**
-     * @deprecated
-     */
-    @GraphQLMutation(name = "saveTrip", description = "Create or update a trip",
-            deprecationReason = "Please use saveTrip(TripVO, TripSaveOptions)")
-    @IsUser
-    @Deprecated
-    public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
-                           @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation,
-                           @GraphQLEnvironment() Set<String> fields) {
-
-        // Warn in log
-        logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
-
-        return saveTrip(trip, TripSaveOptions.builder()
-                .withOperation(withOperation)
-                .build(),
-                fields);
-    }
-
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
     @IsUser
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
+                           @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation,
                            @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions,
                            @GraphQLEnvironment() Set<String> fields) {
+
+        // For compat prior to 1.5
+        if (saveOptions == null && withOperation != null) {
+            logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
+            saveOptions = TripSaveOptions.builder()
+                    .withOperation(withOperation)
+                    .build();
+        }
 
         final TripVO result = tripService.save(trip, saveOptions);
 
@@ -342,31 +331,21 @@ public class DataGraphQLService {
         return result;
     }
 
-    /**
-     * @deprecated
-     */
-    @GraphQLMutation(name = "saveTrips", description = "Create or update many trips",
-            deprecationReason = "Please use saveTrips(TripVO, TripSaveOptions)")
-    @IsUser
-    @Deprecated
-    public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
-                                  @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation,
-                                  @GraphQLEnvironment() Set<String> fields) {
-
-        // Warn in log
-        logDeprecatedUse("saveTrips(TripVO, withOperation)", "1.5.0");
-
-        return saveTrips(trips, TripSaveOptions.builder()
-                .withOperation(withOperation)
-                .build(),
-                fields);
-    }
-
     @GraphQLMutation(name = "saveTrips", description = "Create or update many trips")
     @IsUser
     public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
+                                  @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation,
                                   @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions,
                                   @GraphQLEnvironment() Set<String> fields) {
+
+        // For compat prior to 1.5
+        if (saveOptions == null && withOperation != null) {
+            logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
+            saveOptions = TripSaveOptions.builder()
+                    .withOperation(withOperation)
+                    .build();
+        }
+
         final List<TripVO> result = tripService.save(trips, saveOptions);
 
         // Add additional properties if needed
