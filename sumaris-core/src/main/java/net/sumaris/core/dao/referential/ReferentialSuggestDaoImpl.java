@@ -328,24 +328,21 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
 
     /* -- protected methods -- */
 
-    // TODO move in a dedicated service and get id, label, name, status from it
     protected List<ReferentialVO> findAnalyticReferencesByLabels(List<String> labels,
                                                                  int offset,
                                                                  int size,
                                                                  String sortAttribute,
                                                                  SortDirection sortDirection) {
         return labels.stream()
-                .skip(offset)
-                .limit(size)
                 .map(source -> {
                     ReferentialVO target = new ReferentialVO();
                     target.setId(source.hashCode());
                     target.setLabel(source);
-                    target.setName(source);
-                    target.setStatusId(StatusEnum.ENABLE.getId());
                     return target;
                 })
                 .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
+                .skip(offset)
+                .limit(size)
                 .collect(Collectors.toList()
         );
     }
