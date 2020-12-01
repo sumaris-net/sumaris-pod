@@ -15,7 +15,38 @@ import {NetworkService} from 'src/app/core/services/network.service';
 import {AccountService} from 'src/app/core/services/account.service';
 import {EntitiesStorage} from 'src/app/core/services/entities-storage.service';
 
-const StrategyFragments = {
+export const StrategyFragments = {
+  strategyRef: gql`
+    fragment StrategyRefFragment on StrategyVO {
+      id
+      label
+      name
+      description
+      comments
+      analyticReference
+      updateDate
+      creationDate
+      statusId
+      gears {
+        ...ReferentialFragment
+      }
+      taxonGroups {
+        ...TaxonGroupStrategyFragment
+      }
+      taxonNames {
+        ...TaxonNameStrategyFragment
+      }
+      appliedStrategies {
+        ...AppliedStrategyFragment
+      }
+      pmfmStrategies {
+        ...PmfmStrategyRefFragment
+      }
+      strategyDepartments {
+        ...StrategyDepartmentFragment
+      }
+    }
+  `,
   lightStrategy: gql`
   fragment LightStrategyFragment on StrategyVO {
     id
@@ -23,25 +54,81 @@ const StrategyFragments = {
     name
     description
     comments
+    analyticReference
     updateDate
     creationDate
     statusId
-    properties
+    programId
   }
   `,
   strategy: gql`
-  fragment StrategyFragment on StrategyVO {
-    id
-    label
-    name
-    description
-    comments
-    updateDate
-    creationDate
-    statusId
-    properties
-  }
-  `
+    fragment StrategyFragment on StrategyVO {
+      id
+      label
+      name
+      description
+      comments
+      analyticReference
+      updateDate
+      creationDate
+      statusId
+      programId
+      gears {
+        ...ReferentialFragment
+      }
+      taxonGroups {
+        ...TaxonGroupStrategyFragment
+      }
+      taxonNames {
+        ...TaxonNameStrategyFragment
+      }
+      appliedStrategies {
+        ...AppliedStrategyFragment
+      }
+      pmfmStrategies {
+        ...PmfmStrategyFragment
+      }
+      strategyDepartments {
+        ...StrategyDepartmentFragment
+      }
+    }
+  `,
+  appliedStrategy: gql`
+    fragment AppliedStrategyFragment on AppliedStrategyVO {
+      strategyId
+      location {
+        ...ReferentialFragment
+      }
+      appliedPeriods {
+        ...AppliedPeriodFragment
+      }
+      __typename
+    }
+  `,
+  appliedPeriod: gql`
+    fragment AppliedPeriodFragment on AppliedPeriodVO {
+      appliedStrategyId
+      startDate
+      endDate
+      acquisitionNumber
+      __typename
+    }
+  `,
+  strategyDepartment: gql`
+    fragment StrategyDepartmentFragment on StrategyDepartmentVO {
+      strategyId
+      location {
+        ...ReferentialFragment
+      }
+      privilege {
+        ...ReferentialFragment
+      }
+      department {
+        ...ReferentialFragment
+      }
+      __typename
+    }
+  `,
 }
 
 
@@ -185,17 +272,17 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     // Offline mode
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      // loadResult = await this.entities.loadAll('StrategyVO',
-      //   {
-      //     ...variables,
-      //     filter: EntityUtils.searchTextFilter('label', dataFilter.searchText)
-      //   }
-      // ).then(res => {
-      //   return {
-      //     strategies: res && res.data,
-      //     referentialsCount: res && res.total
-      //   };
-      // });
+// loadResult = await this.entities.loadAll('StrategyVO',
+//  {
+//    ...variables,
+//    filter: EntityUtils.searchTextFilter('label', dataFilter.searchText)
+//  }
+// ).then(res => {
+//  return {
+//    programs: res && res.data,
+//    referentialsCount: res && res.total
+//  };
+// });
     }
 
 // Online mode

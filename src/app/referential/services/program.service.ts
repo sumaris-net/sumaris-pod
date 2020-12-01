@@ -15,6 +15,7 @@ import {
 } from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
+import {StrategyFragments} from "./strategy.service";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {
   EntityService,
@@ -135,90 +136,8 @@ const ProgramFragments = {
       }
     }
     `,
-  strategyRef: gql`
-    fragment StrategyRefFragment on StrategyVO {
-      id
-      label
-      name
-      description
-      comments
-      analyticReference
-      updateDate
-      creationDate
-      statusId
-      gears {
-        ...ReferentialFragment
-      }
-      taxonGroups {
-        ...TaxonGroupStrategyFragment
-      }
-      taxonNames {
-        ...TaxonNameStrategyFragment
-      }
-      appliedStrategies {
-        ...AppliedStrategyFragment
-      }
-      pmfmStrategies {
-        ...PmfmStrategyRefFragment
-      }
-      strategyDepartments {
-        ...StrategyDepartmentFragment
-      }
-    }
-  `,
-  strategy: gql`
-    fragment StrategyFragment on StrategyVO {
-      id
-      label
-      name
-      description
-      comments
-      analyticReference
-      updateDate
-      creationDate
-      statusId
-      programId
-      gears {
-        ...ReferentialFragment
-      }
-      taxonGroups {
-        ...TaxonGroupStrategyFragment
-      }
-      taxonNames {
-        ...TaxonNameStrategyFragment
-      }
-      appliedStrategies {
-        ...AppliedStrategyFragment
-      }
-      pmfmStrategies {
-        ...PmfmStrategyFragment
-      }
-      strategyDepartments {
-        ...StrategyDepartmentFragment
-      }
-    }
-  `,
-  appliedStrategy: gql`
-    fragment AppliedStrategyFragment on AppliedStrategyVO {
-      strategyId
-      location {
-        ...ReferentialFragment
-      }
-      appliedPeriods {
-        ...AppliedPeriodFragment
-      }
-      __typename
-    }
-  `,
-  appliedPeriod: gql`
-    fragment AppliedPeriodFragment on AppliedPeriodVO {
-      appliedStrategyId
-      startDate
-      endDate
-      acquisitionNumber
-      __typename
-    }
-  `,
+
+
   pmfmStrategyRef: gql`
     fragment PmfmStrategyRefFragment on PmfmStrategyVO {
       id
@@ -274,21 +193,6 @@ const ProgramFragments = {
       strategyId
       __typename
   }`,
-  strategyDepartment: gql`
-    fragment StrategyDepartmentFragment on StrategyDepartmentVO {
-      strategyId
-      location {
-        ...ReferentialFragment
-      }
-      privilege {
-        ...ReferentialFragment
-      }
-      department {
-        ...ReferentialFragment
-      }
-      __typename
-    }
-  `,
   taxonGroupStrategy: gql`
     fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
       strategyId
@@ -323,11 +227,11 @@ const LoadRefQuery: any = gql`
       }
   }
   ${ProgramFragments.programRef}
-  ${ProgramFragments.strategyRef}
-  ${ProgramFragments.appliedStrategy}
-  ${ProgramFragments.appliedPeriod}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategyRef}
-  ${ProgramFragments.strategyDepartment}
+  ${StrategyFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -341,11 +245,11 @@ const LoadQuery: any = gql`
       }
   }
   ${ProgramFragments.program}
-  ${ProgramFragments.strategy}
-  ${ProgramFragments.appliedStrategy}
-  ${ProgramFragments.appliedPeriod}
+  ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategy}
-  ${ProgramFragments.strategyDepartment}
+  ${StrategyFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -381,11 +285,11 @@ const LoadAllRefWithTotalQuery: any = gql`
     referentialsCount(entityName: "Program")
   }
   ${ProgramFragments.programRef}
-  ${ProgramFragments.strategyRef}
-  ${ProgramFragments.appliedStrategy}
-  ${ProgramFragments.appliedPeriod}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategyRef}
-  ${ProgramFragments.strategyDepartment}
+  ${StrategyFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -399,11 +303,11 @@ const SaveQuery: any = gql`
     }
   }
   ${ProgramFragments.program}
-  ${ProgramFragments.strategy}
-  ${ProgramFragments.appliedStrategy}
-  ${ProgramFragments.appliedPeriod}
+  ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategy}
-  ${ProgramFragments.strategyDepartment}
+  ${StrategyFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
