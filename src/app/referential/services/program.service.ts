@@ -79,7 +79,7 @@ export interface ProgramServiceSaveOption {
   enableOptimisticResponse?: boolean; // True by default
 }
 
-const ProgramFragments = {
+export const ProgramFragments = {
   lightProgram: gql`
     fragment LightProgramFragment on ProgramVO {
       id
