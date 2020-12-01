@@ -14,6 +14,7 @@ import {FetchPolicy} from 'apollo-client';
 import {NetworkService} from 'src/app/core/services/network.service';
 import {AccountService} from 'src/app/core/services/account.service';
 import {EntitiesStorage} from 'src/app/core/services/entities-storage.service';
+import {ReferentialFragments} from "./referential.fragments";
 import {isEmptyArray} from "../../shared/functions";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 
@@ -249,6 +250,15 @@ const LoadQuery: any = gql`
     }
   }
   ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.taxonName}
 `;
 
 const LoadAllQuery: any = gql`
