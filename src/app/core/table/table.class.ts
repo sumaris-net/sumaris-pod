@@ -977,11 +977,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   protected async askDeleteConfirmation(event?: UIEvent): Promise<boolean> {
-    if (!this.alertCtrl) {
-      console.warn("[table] Missing alertCtrl in component's constructor. Cannot ask user confirmation before deletion!")
-      return true;
-    }
     return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
+  }
+
+  protected async askRestoreConfirmation(event?: UIEvent): Promise<boolean> {
+    return Alerts.askActionConfirmation(this.alertCtrl, this.translate, false, event);
   }
 
   protected async showToast(opts: ShowToastOptions) {

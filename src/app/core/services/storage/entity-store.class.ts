@@ -8,7 +8,7 @@ import {concatPromises} from "../../../shared/observables";
 
 export const ENTITIES_STORAGE_KEY = "entities";
 
-export interface EntityStoreOptions<T extends Entity<T>>  {
+export interface EntityStoreTypePolicy<T extends Entity<T>>  {
   storeById?: boolean; // false by efault
   onlyLocalEntities?: boolean;
   detailedAttributes?: (keyof T)[];
@@ -31,7 +31,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   private _dirty = false;
   private _loaded: boolean;
 
-  readonly options: EntityStoreOptions<T>;
+  readonly policy: EntityStoreTypePolicy<T>;
 
   get cache(): T[] {
     return this._cache;
@@ -45,13 +45,13 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   constructor(
     protected readonly name: string,
     protected readonly storage: Storage,
-    opts?: EntityStoreOptions<T>) {
-    this.options = opts || {};
+    policy?: EntityStoreTypePolicy<T>) {
+    this.policy = policy || {};
     this.reset({emitEvent: false});
     this._dirty = false;
     this._loaded = false;
     this._storageKey = ENTITIES_STORAGE_KEY + '#' + name;
-    this._mapToLightEntity = this.options.storeById && this.createLightEntityMapFn(this.options.detailedAttributes);
+    this._mapToLightEntity = this.policy.storeById && this.createLightEntityMapFn(this.policy.detailedAttributes);
   }
 
   nextValue(): number {
@@ -211,7 +211,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     this._cache[index] = undefined;
     this._statusById[+entity.id] = undefined;
 
-    if (this.options.storeById) {
+    if (this.policy.storeById) {
       this.storage.remove(this._storageKey + "#" + id);
     }
 
@@ -288,7 +288,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     else {
 
       // Save each entity into a unique key (advanced mode)
-      if (this.options.storeById) {
+      if (this.policy.storeById) {
         // Save ids
         await this.storage.set(this._storageKey + '#ids', entities.filter(isNotNil).map(e => e.id));
 
@@ -318,7 +318,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   async restore(opts?: { emitEvent?: boolean; }): Promise<number> {
     let entities: T[];
 
-    if (this.options.storeById) {
+    if (this.policy.storeById) {
       const ids = await this.storage.get(this._storageKey+"#ids");
       if (isNotNil(ids)) {
         // Load entity by id (one by one)
@@ -405,7 +405,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
   private setEntities(entities: T[], opts?: {emitEvent?: boolean; }) {
     entities = entities && (
-      (this.options && this.options.onlyLocalEntities)
+      (this.policy && this.policy.onlyLocalEntities)
         // Filter NOT nil AND local id
         ? entities.filter(item => isNotNil(item) && item.id < 0)
         // Filter NOT nil
@@ -502,7 +502,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     if (isEmptyArray(excludedAttributes)) return undefined; // skip
 
     // Create a immutable mask object, use to clean some properties
-    const excludeAttributesMask = Object.freeze(this.options.detailedAttributes.reduce((res, attr) => {
+    const excludeAttributesMask = Object.freeze(this.policy.detailedAttributes.reduce((res, attr) => {
       res[attr] = undefined;
       return res;
     }, <T>{}));

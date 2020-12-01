@@ -7,17 +7,17 @@ import {
   ApolloQueryResult,
   FetchPolicy,
   InMemoryCache,
-  MutationUpdaterFn,
+  MutationUpdaterFn, OperationVariables,
+  TypePolicies,
   WatchQueryFetchPolicy
 } from "@apollo/client/core";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "../services/errors";
 import {catchError, distinctUntilChanged, filter, first, map, mergeMap, throttleTime} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
-import {Injectable} from "@angular/core";
+import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import {ConnectionType, NetworkService} from "../services/network.service";
 import {WebSocketLink} from "@apollo/link-ws";
-import {MODEL_TYPES_POLICIES} from "./graphql.types";
 import {
   AppWebSocket,
   createTrackerLink,
@@ -40,6 +40,7 @@ import {EmptyObject} from "apollo-angular/types";
 import {HttpLink, Options} from "apollo-angular/http";
 import {IonicStorageWrapper, persistCache} from "apollo3-cache-persist";
 import {PersistentStorage} from "apollo3-cache-persist/lib/types";
+import {MutationBaseOptions} from "@apollo/client/core/watchQueryOptions";
 
 export interface WatchQueryOptions<V> {
   query: any,
@@ -48,7 +49,7 @@ export interface WatchQueryOptions<V> {
   fetchPolicy?: WatchQueryFetchPolicy
 }
 
-export interface MutateQueryOptions<T, V = EmptyObject> {
+export interface MutateQueryOptions<T, V = OperationVariables> extends MutationBaseOptions<T, V> {
   mutation: any;
   variables: V;
   error?: ServiceError;
@@ -62,6 +63,9 @@ export interface MutateQueryOptions<T, V = EmptyObject> {
   update?: MutationUpdaterFn<T>;
   forceOffline?: boolean;
 }
+
+export const APP_GRAPHQL_TYPE_POLICIES = new InjectionToken<TypePolicies>('graphqlTypePolicies');
+
 
 @Injectable({
   providedIn: 'root'
@@ -100,7 +104,8 @@ export class GraphqlService {
     private apollo: Apollo,
     private httpLink: HttpLink,
     private network: NetworkService,
-    private storage: Storage
+    private storage: Storage,
+    @Optional() @Inject(APP_GRAPHQL_TYPE_POLICIES) private typePolicies: TypePolicies
   ) {
 
     this._debug = !environment.production;
@@ -671,7 +676,7 @@ export class GraphqlService {
 
       // Cache
       const cache = new InMemoryCache({
-        typePolicies: MODEL_TYPES_POLICIES
+        typePolicies: this.typePolicies
       });
 
       // Add cache persistence

@@ -477,7 +477,10 @@ export class Operation extends DataEntity<Operation, OperationAsObjectOptions, O
         this.positions = positions;
       }
     }
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
+    this.measurements = [
+      ...(source.measurements && source.measurements.map(Measurement.fromObject) || []),
+      ...(source.gearMeasurements && source.gearMeasurements.map(Measurement.fromObject) || [])
+    ];
 
     // Remove fake dates (e.g. if endDateTime = startDateTime)
     if (this.endDateTime && this.endDateTime.isSameOrBefore(this.startDateTime)) {

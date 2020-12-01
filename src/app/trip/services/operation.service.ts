@@ -439,14 +439,12 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
    */
   async save(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
 
-    // If parent is a local entity: force a local save
-    // Save response locally
+    // If parent is a local entity: force to save locally
     if (entity.tripId < 0) {
       return await this.saveLocally(entity, opts);
     }
 
     const now = Date.now();
-    if (this._debug) console.debug("[operation-service] Saving operation...");
 
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, opts);
@@ -456,7 +454,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug("[operation-service] Using minify object, to send:", json);
+    if (this._debug) console.debug("[operation-service] Saving operation remotely...", json);
 
     await this.graphql.mutate<{ saveOperations: Operation[] }>({
         mutation: SaveOperations,
@@ -674,9 +672,6 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
   protected async saveLocally(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
     if (entity.tripId >= 0) throw new Error('Must be a local entity');
 
-    const now = Date.now();
-    if (this._debug) console.debug("[operation-service] Saving operation locally...");
-
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, opts);
 
@@ -738,7 +733,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
   }
 
   protected fillRecorderDepartment(entity: DataEntity<Operation | VesselPosition | Measurement>, department?: Department) {
-    if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
+    if (entity && (!entity.recorderDepartment || !entity.recorderDepartment.id)) {
 
       department = department || this.accountService.department;
 

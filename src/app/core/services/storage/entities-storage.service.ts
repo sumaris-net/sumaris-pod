@@ -6,14 +6,14 @@ import {environment} from "../../../../environments/environment";
 import {catchError, switchMap, throttleTime} from "rxjs/operators";
 import {Entity} from "../model/entity.model";
 import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
-import {EntityService, EntityServiceLoadOptions, LoadResult} from "../../../shared/services/entity-service.class";
-import {ENTITIES_STORAGE_KEY, EntityStorageLoadOptions, EntityStore, EntityStoreOptions} from "./entity-store.class";
+import {LoadResult} from "../../../shared/services/entity-service.class";
+import {ENTITIES_STORAGE_KEY, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
 
 
-export declare type EntitiesStorageOptions = {[name: string]: EntityStoreOptions<any> };
+export declare type EntitiesStorageTypePolicies = {[__typename: string]: EntityStoreTypePolicy<any> };
 
 
-export const LOCAL_ENTITIES_STORAGE_OPTIONS = new InjectionToken<EntitiesStorageOptions>('entitiesStorageOptions');
+export const APP_LOCAL_STORAGE_TYPE_POLICIES = new InjectionToken<EntitiesStorageTypePolicies>('localStorageTypePolicies');
 
 @Injectable({providedIn: 'root'})
 export class EntitiesStorage
@@ -23,7 +23,7 @@ export class EntitiesStorage
   public static TRASH_PREFIX = "Trash#";
 
   private readonly _debug: boolean;
-  private readonly _options: EntitiesStorageOptions;
+  private readonly _typePolicies: EntitiesStorageTypePolicies;
   private _started = false;
   private _startPromise: Promise<void>;
   private _subscription = new Subscription();
@@ -44,9 +44,9 @@ export class EntitiesStorage
   public constructor(
     private platform: Platform,
     private storage: Storage,
-    @Optional() @Inject(LOCAL_ENTITIES_STORAGE_OPTIONS) options: EntitiesStorageOptions
+    @Optional() @Inject(APP_LOCAL_STORAGE_TYPE_POLICIES) typePolicies: EntitiesStorageTypePolicies
   ) {
-    this._options = options || {};
+    this._typePolicies = typePolicies || {};
 
     // For DEV only
     this._debug = !environment.production;
@@ -412,9 +412,9 @@ export class EntitiesStorage
   }): EntityStore<T> {
     let store = this._stores[name];
     if (!store && (!opts || opts.create !== false)) {
-      const options = this._options[name];
       if (this._debug) console.debug(`[entity-storage] Creating store ${name}`);
-      store = new EntityStore<T>(name, this.storage, options);
+      const typePolicy = this._typePolicies[name];
+      store = new EntityStore<T>(name, this.storage, typePolicy);
       this._stores[name] = store;
     }
     return store;

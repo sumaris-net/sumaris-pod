@@ -290,11 +290,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
   }
 
-  async copyToOffline() {
+  async copyLocally() {
     if (!this.data) return;
 
     // Copy the trip
-    await this.dataService.copyToOffline(this.data.id, { withOperations: true });
+    await this.dataService.copyLocallyById(this.data.id, { withOperations: true });
 
   }
 

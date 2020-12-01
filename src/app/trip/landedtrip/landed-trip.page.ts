@@ -16,7 +16,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
-import {TripService, TripServiceSaveOption} from "../services/trip.service";
+import {TripService, TripServiceSaveOptions} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
@@ -464,11 +464,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }
   }
 
-  async devDownloadToLocal() {
+  async copyLocally() {
     if (!this.data) return;
 
     // Copy the trip
-    await (this.dataService as TripService).copyToOffline(this.data.id, {isLandedTrip: true, withOperationGroup: true});
+    await (this.dataService as TripService).copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
 
   }
 
@@ -559,7 +559,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   async save(event, options?: any): Promise<boolean> {
 
-    const saveOptions: TripServiceSaveOption = {
+    const saveOptions: TripServiceSaveOptions = {
       withLanding: true // indicate service to reload with LandedTrip query
     };
 

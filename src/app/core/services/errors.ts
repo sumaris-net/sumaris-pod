@@ -34,6 +34,9 @@ export const ErrorCodes = {
 
   LOAD_CONFIG_ERROR: 700,
   SAVE_CONFIG_ERROR: 701,
+
+  LOAD_TRASH_ENTITY_ERROR: 800,
+  DELETE_TRASH_ENTITY_ERROR: 801
 };
 
 export const ServerErrorCodes = {

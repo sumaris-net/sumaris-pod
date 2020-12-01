@@ -37,9 +37,12 @@ import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {SharedModule} from "./shared/shared.module";
 import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
 import {MarkdownModule, MarkedOptions} from "ngx-markdown";
-import {EntitiesStorageOptions, LOCAL_ENTITIES_STORAGE_OPTIONS} from "./core/services/storage/entities-storage.service";
+import {EntitiesStorageTypePolicies, APP_LOCAL_STORAGE_TYPE_POLICIES} from "./core/services/storage/entities-storage.service";
 import {OperationService} from "./trip/services/operation.service";
 import {AppGestureConfig} from "./shared/gesture/gesture-config";
+import {TypePolicies} from "@apollo/client/core";
+import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
+import {SocialModule} from "./social/social.module";
 
 
 @NgModule({
@@ -81,6 +84,7 @@ import {AppGestureConfig} from "./shared/gesture/gesture-config";
     // functional modules
     CoreModule.forRoot(),
     SharedModule.forRoot(),
+    SocialModule.forRoot(),
     HammerModule,
     AppRoutingModule
   ],
@@ -189,8 +193,40 @@ import {AppGestureConfig} from "./shared/gesture/gesture-config";
       ]
     },
 
+    // Entities Apollo cache options
+    { provide: APP_GRAPHQL_TYPE_POLICIES, useValue: <TypePolicies>{
+        'MetierVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'PmfmVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'TaxonGroupVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'TaxonNameVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'LocationVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'ReferentialVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'MeasurementVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'TaxonGroupStrategyVO': {
+          keyFields: ['__typename', 'strategyId', 'taxonGroup', ['entityName', 'id']]
+        },
+        'TaxonNameStrategyVO': {
+          keyFields: ['__typename', 'strategyId', 'taxonName', ['entityName', 'id']]
+        }
+      }
+    },
+
     // Entities options
-    { provide: LOCAL_ENTITIES_STORAGE_OPTIONS, useValue: <EntitiesStorageOptions>{
+    { provide: APP_LOCAL_STORAGE_TYPE_POLICIES, useValue: <EntitiesStorageTypePolicies>{
         'OperationVO': {
           onlyLocalEntities: true,
           storeById: true,
@@ -199,7 +235,7 @@ import {AppGestureConfig} from "./shared/gesture/gesture-config";
       }
     },
 
-    // Test pages
+    // Test pages link
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
       {label: 'Batch tree', page: '/testing/trip/batchTree'}
     ]},

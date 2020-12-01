@@ -83,9 +83,10 @@ export abstract class BaseEntityService<T = any, F = any>{
         mutableQuery = existingQueries[0] as MutableWatchQueryInfo<D, T, V>;
         mutableQuery.counter += 1;
         console.debug('[base-data-service] Find existing mutable watching query (same variables): ' + queryName);
-        if (mutableQuery.counter > 3) {
-          console.warn('[base-data-service] TODO: clean previous queries with name: ' + queryName);
-        }
+
+        //if (mutableQuery.counter > 3) {
+        //  console.warn('[base-data-service] TODO: clean previous queries with name: ' + queryName);
+        //}
       }
       else {
         this.registerNewMutableWatchQuery({

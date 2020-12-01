@@ -368,7 +368,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     console.info(`Importing Trip#${json.id}...`);
     const trip = Trip.fromObject(json);
-    await this.service.restoreFromTrash([trip]);
+    await this.service.copyLocally(trip, {withOperation: true, displaySuccessToast: false});
 
     console.info(`Successfully restored 1 trip...`);
 

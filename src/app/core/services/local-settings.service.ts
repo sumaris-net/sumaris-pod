@@ -230,7 +230,7 @@ export class LocalSettingsService {
     this.data.offlineFeatures = this.data.offlineFeatures || [];
 
     const featurePrefix = featureName.toLowerCase() + '#';
-    const featureAndLastSyncDate = featurePrefix + toDateISOString(moment().utc(false));
+    const featureAndLastSyncDate = featurePrefix + moment().toISOString();
     const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase().startsWith(featurePrefix));
     if (existingIndex !== -1) {
       this.data.offlineFeatures[existingIndex] = featureAndLastSyncDate;

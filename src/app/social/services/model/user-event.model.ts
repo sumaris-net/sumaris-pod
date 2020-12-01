@@ -1,5 +1,7 @@
 import {Entity, EntityAsObjectOptions, fromDateISOString} from "../../../core/core.module";
 import {Moment} from "moment/moment";
+import {IEntity} from "../../../core/services/model/entity.model";
+import {PredefinedColors} from "@ionic/core";
 
 export const UserEventTypes = {
   DEBUG_DATA: 'DEBUG_DATA',
@@ -71,3 +73,16 @@ export class UserEvent extends Entity<UserEvent> {
   }
 }
 
+
+export interface UserEventAction<T extends IEntity<T>> {
+
+  name: string | any;
+  title?: string;
+
+  icon?: string;
+  matIcon?: string;
+  color?: PredefinedColors;
+
+  executeAction: (event: UserEvent, context?: T) => any | Promise<any>;
+
+}

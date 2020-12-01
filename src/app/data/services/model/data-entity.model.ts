@@ -6,16 +6,19 @@ import {IWithRecorderDepartmentEntity} from "./model.utils";
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
   keepSynchronizationStatus?: boolean;
+
+  keepRemoteId?: boolean; // Allow to clean id (e.g. when restoring entities from trash)
+  keepUpdateDate?: boolean; // Allow to clean updateDate (e.g. when restoring entities from trash)
 }
 
-export const SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = <DataEntityAsObjectOptions>{
+export const SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS = <DataEntityAsObjectOptions>{
   minify: false,
   keepTypename: true,
   keepEntityName: true,
   keepLocalId: true,
   keepSynchronizationStatus: true
 };
-export const SAVE_LOCALLY_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = <DataEntityAsObjectOptions>{
+export const SAVE_LOCALLY_AS_OBJECT_OPTIONS = <DataEntityAsObjectOptions>{
   minify: true,
   keepTypename: true,
   keepEntityName: true,
@@ -23,13 +26,20 @@ export const SAVE_LOCALLY_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = <DataEn
   keepSynchronizationStatus: true
 };
 
-export const SAVE_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = <DataEntityAsObjectOptions>{
+export const SAVE_AS_OBJECT_OPTIONS = <DataEntityAsObjectOptions>{
   minify: true,
   keepTypename: false,
   keepEntityName: false,
   keepLocalId: false,
   keepSynchronizationStatus: false
 };
+export const COPY_LOCALLY_AS_OBJECT_OPTIONS = <DataEntityAsObjectOptions>{
+  ...SAVE_LOCALLY_AS_OBJECT_OPTIONS,
+  keepLocalId: false,
+  keepRemoteId: false,
+  keepUpdateDate: false
+};
+
 
 export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
   extends Entity<T, O>
@@ -48,6 +58,8 @@ export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntity
 
   asObject(opts?: O): any {
     const target = super.asObject(opts);
+    if ((!opts || opts.keepRemoteId === false) && target.id >= 0) delete target.id;
+    if ((!opts || opts.keepUpdateDate === false) && target.id >= 0) delete target.updateDate;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts) || undefined;
     target.controlDate = toDateISOString(this.controlDate);
     target.qualificationDate = toDateISOString(this.qualificationDate);

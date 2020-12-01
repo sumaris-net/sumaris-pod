@@ -13,16 +13,8 @@
 
     <ion-buttons slot="end">
       <!-- loading spinner -->
-      <ion-spinner *ngIf="loadingSubject|async; else endButtons"></ion-spinner>
+      <ion-spinner *ngIf="loadingSubject|async"></ion-spinner>
 
-      <!-- top buttons -->
-      <ng-template #endButtons>
-        <button mat-icon-button
-                [title]="'COMMON.BTN_OPTIONS'|translate"
-                [matMenuTriggerFor]="optionsMenu">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-      </ng-template>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -38,24 +30,52 @@
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
   </button>
 
-  <mat-divider></mat-divider>
-
-  <!-- Clean local trash -->
-  <button mat-menu-item *ngIf="synchronizationStatus === 'DIRTY'"
-          (click)="cleanLocalTrash($event)">
-    <mat-icon color="warn">delete_forever</mat-icon>
-    <ion-label color="danger" translate>COMMON.BTN_CLEAN_TRASH</ion-label>
-  </button>
-
 </mat-menu>
 
 <ion-content class="ion-no-padding">
 
-  <!-- error -->
-  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-  </ion-item>
+  <mat-toolbar>
+
+    <!-- if NO row selection -->
+    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+      <button mat-icon-button [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </ng-container>
+
+    <!-- if row selection -->
+    <ng-template #hasSelection>
+
+      <!-- restore -->
+      <ion-button [fill]="selection.isEmpty() ? 'clear' : 'solid'"
+                  [disabled]="selection.isEmpty()"
+                  (click)="closeAndRestore($event, selection.selected)"
+                  color="tertiary">
+        <ion-label translate>COMMON.BTN_RESTORE</ion-label>
+      </ion-button>
+
+      <!-- delete -->
+      <button mat-icon-button class="hidden-xs hidden-sm" *ngIf="canDelete"
+              [matTooltip]="'COMMON.BTN_DELETE_FOREVER'|translate" (click)="cleanRemoteTrash($event, selection.selected)">
+        <mat-icon>delete_forever</mat-icon>
+      </button>
+
+    </ng-template>
+
+    <!-- error -->
+    <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+    <div class="toolbar-spacer"></div>
+
+    <button mat-icon-button
+            [title]="'COMMON.BTN_OPTIONS'|translate"
+            [matMenuTriggerFor]="optionsMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </mat-toolbar>
 
 
   <!-- table -->
@@ -78,10 +98,10 @@
 
     <!-- Id Column -->
     <ng-container matColumnDef="id">
-      <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!isAdmin">
+      <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showIdColumn">
         <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id | mathAbs }}</mat-cell>
+      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIdColumn">{{ row.currentData.id | mathAbs }}</mat-cell>
     </ng-container>
 
     <!-- Update date Column -->
@@ -172,6 +192,11 @@
                 (click)="restore($event, [row])">
           <mat-icon>open_in_new</mat-icon>
         </button>
+        <button mat-icon-button color="warn"
+                [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="cleanRemoteTrash($event, [row])">
+          <mat-icon>close</mat-icon>
+        </button>
       </mat-cell>
     </ng-container>
 
@@ -202,11 +227,13 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button [fill]="selection.isEmpty() ? 'clear' : 'solid'"
-                    [disabled]="selection.isEmpty()"
-                    (click)="closeAndRestore($event, selection.selected)"
-                    color="danger">
-          <ion-label translate>COMMON.BTN_RESTORE</ion-label>
+
+        <!-- Clean local trash -->
+        <ion-button fill="clear" color="danger"
+                    *ngIf="isOfflineMode"
+                    (click)="cleanLocalTrash($event)">
+          <mat-icon slot="start">delete_forever</mat-icon>
+          <ion-label translate>COMMON.BTN_CLEAN_TRASH</ion-label>
         </ion-button>
 
         <ion-button fill="clear" color="dark"
