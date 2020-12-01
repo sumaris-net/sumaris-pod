@@ -38,8 +38,8 @@ sonarqube:
       entrypoint: [""]
     script:
       - echo "Sonarqube analysis in progress"
-      - sonar-scanner 
-        -Dsonar.projectKey=wao
+      - sonar-scanner
+        -Dsonar.projectKey=imagine-pod
         -Dsonar.host.url=$SONAR_HOST_URL 
         -Dsonar.login=$SONAR_TOKEN
         -Dsonar.sourceEncoding=UTF-8
