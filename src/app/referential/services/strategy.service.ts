@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {LoadResult, EntitiesService, EntityService, isNil} from "../../shared/shared.module";
+import {LoadResult, EntitiesService, EntityService, isNil, isNotNil, isNotEmptyArray} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 
@@ -14,8 +14,33 @@ import {FetchPolicy} from 'apollo-client';
 import {NetworkService} from 'src/app/core/services/network.service';
 import {AccountService} from 'src/app/core/services/account.service';
 import {EntitiesStorage} from 'src/app/core/services/entities-storage.service';
+import {isEmptyArray} from "../../shared/functions";
+import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+
+import {
+  DataEntityAsObjectOptions,
+  SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
+} from "../../data/services/model/data-entity.model";
+
+import {
+  SAVE_LOCALLY_AS_OBJECT_OPTIONS,
+  SAVE_AS_OBJECT_OPTIONS
+} from "../../core/services/model/referential.model";
+
+export declare interface StrategySaveOptions {
+  programId?: number
+}
 
 export const StrategyFragments = {
+  referential: gql`fragment ReferentialFragment on ReferentialVO {
+    id
+    label
+    name
+    rankOrder
+    statusId
+    entityName
+    __typename
+  }`,
   strategyRef: gql`
     fragment StrategyRefFragment on StrategyVO {
       id
@@ -129,6 +154,85 @@ export const StrategyFragments = {
       __typename
     }
   `,
+  taxonName: gql`fragment TaxonNameFragment on TaxonNameVO {
+    id
+    label
+    name
+    statusId
+    levelId
+    referenceTaxonId
+    entityName
+    isReferent
+    __typename
+  }`,
+  pmfmStrategy: gql`
+    fragment PmfmStrategyFragment on PmfmStrategyVO {
+      id
+      acquisitionLevel
+      rankOrder
+      isMandatory
+      acquisitionNumber
+      defaultValue
+      pmfmId
+      pmfm {
+        ...PmfmFragment
+      }
+      parameterId
+      matrixId
+      fractionId
+      methodId
+      gearIds
+      taxonGroupIds
+      referenceTaxonIds
+      strategyId
+      __typename
+  }`,
+  taxonGroupStrategy: gql`
+    fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
+      strategyId
+      priorityLevel
+      taxonGroup {
+          id
+          label
+          name
+          entityName
+          taxonNames {
+              ...TaxonNameFragment
+          }
+      }
+      __typename
+    }
+  `,
+  taxonNameStrategy: gql`
+    fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
+      strategyId
+      priorityLevel
+      taxonName {
+          ...TaxonNameFragment
+      }
+      __typename
+    }
+  `,
+  pmfm: gql`fragment PmfmFragment on PmfmVO {
+    id
+    label
+    name
+    type
+    minValue
+    maxValue
+    unitLabel
+    defaultValue
+    maximumNumberDecimals
+    unitId
+    parameterId
+    matrixId
+    fractionId
+    methodId
+    levelId: parameterId
+    entityName
+    __typename
+  }`,
+
 }
 
 
@@ -165,6 +269,47 @@ const LoadAllWithTotalQuery: any = gql`
   }
   ${StrategyFragments.lightStrategy}
 `;
+
+const SaveStrategy: any = gql`
+    mutation SaveStrategy($strategy:StrategyVOInput){
+      saveStrategy(strategy: $strategy){
+        ...StrategyFragment
+      }
+    }
+  ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
+  ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${StrategyFragments.referential}
+  ${StrategyFragments.pmfm}
+  ${StrategyFragments.taxonName}
+`;
+const LoadAllStrategies: any = gql`
+    query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
+      strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+        ...StrategyFragment
+      }
+    }
+  ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
+  ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${StrategyFragments.referential}
+  ${StrategyFragments.pmfm}
+  ${StrategyFragments.taxonName}
+  `;
+
+const DeleteStrategies: any = gql`
+    mutation deleteStrategies($ids:[Int]){
+      deleteStrategies(ids: $ids)
+    }
+  `;
 
 @Injectable({providedIn: 'root'})
 export class StrategyService extends BaseEntityService implements EntitiesService<Strategy, StrategyFilter>, EntityService<Strategy> {
@@ -219,12 +364,49 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
   }
 
 
-  save(data: Strategy, options?: any): Promise<Strategy> {
-    throw new Error('Method not implemented.');
+  /**
+   * Save an strategy
+   * @param data
+   */
+
+  async save(entity: Strategy, options?: any): Promise<Strategy> {
+
+    if (!entity) return entity;
+
+    // Clean cache
+    //this.clearCache();
+
+    // Fill default properties
+    this.fillDefaultProperties(entity);
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+
+    const now = Date.now();
+    if (this._debug) console.debug("[strategy-service] Saving strategy...", json);
+
+    const res = await this.graphql.mutate<{ saveStrategy: Strategy }>({
+      mutation: SaveStrategy,
+      variables: {
+        strategy: json
+      },
+      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"}
+    });
+    const savedStrategy = res && res.saveStrategy;
+    this.copyIdAndUpdateDate(savedStrategy, entity);
+
+    //if (this._debug)
+    console.debug(`[strategy-service] Strategy saved and updated in ${Date.now() - now}ms`, entity);
+
+    return entity;
   }
 
-  delete(data: Strategy, options?: any): Promise<any> {
-    throw new Error('Method not implemented.');
+
+  /**
+   * delete strategy
+   * @param data
+   */
+
+  async delete(data: Strategy, options?: any): Promise<any> {
+    await this.deleteAll([data]);
   }
 
   listenChanges(id: number, options?: any): Observable<Strategy> {
@@ -307,12 +489,53 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
 
   }
 
-  saveAll(data: Strategy[], options?: any): Promise<Strategy[]> {
-    throw new Error('Method not implemented.');
+  /**
+   * Save many strategies
+   * @param data
+   */
+
+  async saveAll(entities: Strategy[], options?: any): Promise<Strategy[]> {
+    if (!entities) return entities;
+    return await Promise.all(entities.map((strategy) => this.save(strategy, options)));
   }
 
-  deleteAll(data: Strategy[], options?: any): Promise<any> {
-    throw new Error('Method not implemented.');
+  /**
+   * Delete many strategies
+   * @param entities
+   */
+
+  async deleteAll(entities: Strategy[]): Promise<any> {
+    // Get local entity ids, then delete id
+    const localIds = entities && entities
+      .map(t => t.id)
+      .filter(id => id < 0);
+    if (isNotEmptyArray(localIds)) {
+      if (this._debug) console.debug("[strategy-service] Deleting programs locally... ids:", localIds);
+      await this.entities.deleteMany<Strategy>(localIds, 'StrategyVO');
+    }
+
+    const ids: number[] = entities && entities
+      .map(t => t.id)
+      .filter(id => id >= 0);
+    if (isEmptyArray(ids)) return; // stop, if nothing else to do
+
+    const now = Date.now();
+    if (this._debug) console.debug("[strategy-service] Deleting strategies... ids:", ids);
+
+    await this.graphql.mutate({
+      mutation: DeleteStrategies,
+      variables: {
+        ids
+      },
+      update: (proxy) => {
+        // Remove from cached queries
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllStrategies, ids
+        });
+
+        if (this._debug) console.debug(`[strategy-service] strategies deleted in ${Date.now() - now}ms`);
+      }
+    });
   }
 
   async findStrategyNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
@@ -328,5 +551,32 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"}
     });
     return res && res.suggestedStrategyNextLabel;
+  }
+
+  protected copyIdAndUpdateDate(source: Strategy | undefined | any, target: Strategy) {
+    if (!source) return;
+    // Update (id and updateDate)
+    EntityUtils.copyIdAndUpdateDate(source, target);
+  }
+  protected asObject(entity: Strategy, opts?: DataEntityAsObjectOptions): any {
+    opts = {...MINIFY_OPTIONS, ...opts};
+    const copy: any = entity.asObject(opts);
+    return copy;
+  }
+
+  //TODO : implements fillDefaultProperties here
+  protected fillDefaultProperties(entity: Strategy, options?: Partial<StrategySaveOptions>) {
+    /*  program.statusId = isNotNil(program.statusId) ? program.statusId : StatusIds.ENABLE;
+
+      // Update strategies
+      (program.strategies || []).forEach(strategy => {
+
+        strategy.statusId = isNotNil(strategy.statusId) ? strategy.statusId : StatusIds.ENABLE;
+
+        // Force a valid programId
+        // (because a bad copy can leave an old value)
+        strategy.programId = isNotNil(program.id) ? program.id : undefined;
+      });
+      }*/
   }
 }
