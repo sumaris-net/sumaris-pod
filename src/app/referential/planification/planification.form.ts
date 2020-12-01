@@ -5,7 +5,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ControlValueAccessor, FormBuilder, FormArray} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StrategyService} from "../services/strategy.service";
-import {AppForm, ReferentialRef, IReferentialRef, FormArrayHelper, isNil} from '../../core/core.module';
+import {AppForm, ReferentialRef, IReferentialRef, FormArrayHelper, isNil, Referential} from '../../core/core.module';
 import {BehaviorSubject} from "rxjs";
 import { Planification } from 'src/app/trip/services/model/planification.model';
 import { PlanificationValidatorService } from 'src/app/trip/services/validator/planification.validator';
@@ -15,6 +15,7 @@ import { InputElement } from 'src/app/shared/shared.module';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
 import { selectInputRange } from 'src/app/shared/inputs';
 import * as moment from "moment";
+import {Strategy} from "../services/model/strategy.model";
 
 
 @Component({
@@ -47,6 +48,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   ];
 
   mobile: boolean;
+  programId = -1;
 
   enableTaxonNameFilter = true;
   canFilterTaxonName = true;
@@ -265,6 +267,20 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     }
     this.markForCheck();
     console.debug(`[planification] set enable filtered ${fieldName} items to ${value}`);
+  }
+
+  setValueSimpleStrategy(data: Referential, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    console.debug("[planification-form] Setting SimpleStrategy value", data);
+    if (!data) return;
+
+    if (data instanceof Strategy)
+    {
+      var strategy : Strategy = data as Strategy;
+      console.debug(strategy.creationDate);
+      this.programId = strategy.programId;
+    }
+    console.debug(data.entityName);
+
   }
 
   setValue(value: Planification, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
