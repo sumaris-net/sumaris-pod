@@ -39,7 +39,6 @@ schedule-build:
   artifacts:
     paths:
       - dist
-  when: manual
 
 sonarqube:
     stage: test
