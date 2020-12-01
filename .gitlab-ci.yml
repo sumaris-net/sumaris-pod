@@ -8,12 +8,12 @@ stages:
     - release
     - deploy
 
-build_develop:
+build_dev:
     stage: build
     tags: 
         - sih_public_runner
     script:
-        - echo "Test compilation in progress"
+        - echo "Test dev build in progress"
         - mvn -s ./settings.xml clean install -DskipTests
     environment:
         name: test
@@ -23,8 +23,26 @@ build_develop:
     only:
         - develop
         - develop-ifremer
-    when: always
+        - feature-oracle-adagio
+    when: manual
 
+build_val:
+    stage: build
+    tags:
+        - sih_public_runner
+    script:
+        - echo "Test oracle build  in progress"
+        - mvn -s ./settings.xml -P oracle  clean install -DskipTests
+    environment:
+        name: test
+    artifacts:
+        paths:
+            - sumaris-server/target/*.war
+    only:
+        - develop
+        - develop-ifremer
+        - feature-oracle-adagio
+    when: manual
 
 sonarqube:
     stage: test
