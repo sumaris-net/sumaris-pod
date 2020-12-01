@@ -8,7 +8,20 @@ stages:
     - release
     - deploy
 
-build_dev:
+build-dev:
+    extends: .build
+    only:
+        - develop
+        - develop-ifremer
+        - feature-oracle-adagio
+    when: manual
+
+schedule-build:
+    extends: .build
+    only:
+        - schedules
+
+.build:
     stage: build
     tags: 
         - sih_public_runner
@@ -20,11 +33,6 @@ build_dev:
     artifacts:
         paths:
             - sumaris-server/target/*.war
-    only:
-        - develop
-        - develop-ifremer
-        - feature-oracle-adagio
-    when: manual
 
 build_val:
     stage: build
@@ -32,7 +40,7 @@ build_val:
         - sih_public_runner
     script:
         - echo "Test oracle build  in progress"
-        - mvn -s ./settings.xml -P oracle  clean install -DskipTests
+        - mvn -s ./settings.xml clean install -DskipTests -P oracle
     environment:
         name: test
     artifacts:
