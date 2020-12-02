@@ -39,7 +39,7 @@ import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {concatPromises} from "../../shared/observables";
+import {chainPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./validator/trip.validator";
 import {FormErrors} from "../../core/form/form.utils";
@@ -656,7 +656,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     if (this._debug) console.debug(`[trip-service] Saving ${entities.length} trips...`);
     const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
-    return concatPromises<Trip>(jobsFactories);
+    return chainPromises<Trip>(jobsFactories);
   }
 
   /**
@@ -1156,7 +1156,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
       if (this._debug) console.debug(`[trip-service] Deleting trips locally... {trash: ${trash}`);
 
-      await concatPromises(localEntities.map(entity => async () => {
+      await chainPromises(localEntities.map(entity => async () => {
 
 
         // Load trip's operations
@@ -1214,7 +1214,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
    * @param entities
    */
   copyAllLocally(entities: Trip[], opts?: TripServiceCopyOptions): Promise<Trip[]> {
-    return concatPromises(entities.map(source => () => this.copyLocally(source, opts)));
+    return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
   }
 
 

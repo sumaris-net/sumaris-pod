@@ -18,7 +18,7 @@ import {isEmptyArray, isNotNil, toBoolean} from "../../../shared/functions";
 import {OperationService} from "../../services/operation.service";
 import {EntitiesStorage} from "../../../core/services/storage/entities-storage.service";
 import {TrashRemoteService} from "../../../core/services/trash-remote.service";
-import {concatPromises} from "../../../shared/observables";
+import {chainPromises} from "../../../shared/observables";
 
 @Component({
   selector: 'app-trip-trash-modal',
@@ -154,7 +154,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
       // If online: get trash data full content
       if (this.isOnlineMode) {
-        entities = (await concatPromises(entities.map(e => () => this.trashRemoteService.load('Trip', e.id))))
+        entities = (await chainPromises(entities.map(e => () => this.trashRemoteService.load('Trip', e.id))))
           .map(Trip.fromObject)
       }
 

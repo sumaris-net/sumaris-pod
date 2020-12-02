@@ -35,7 +35,7 @@ import {ConnectionType, NetworkService} from "../../core/services/network.servic
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
 import {personsToString, personToString} from "../../core/services/model/person.model";
-import {concatPromises} from "../../shared/observables";
+import {chainPromises} from "../../shared/observables";
 import {isEmptyArray} from "../../shared/functions";
 import {Operation, Trip} from "../services/model/trip.model";
 import {PersonService} from "../../admin/services/person.service";
@@ -437,7 +437,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.error = null;
 
     try {
-      await concatPromises(tripIds.map(tripId => () => this.service.synchronizeById(tripId)));
+      await chainPromises(tripIds.map(tripId => () => this.service.synchronizeById(tripId)));
       this.selection.clear();
 
       // Success message
@@ -453,7 +453,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     } catch (error) {
       this.userEventService.showToastErrorWithContext({
         error,
-        context: () => concatPromises(tripIds.map(tripId => () => this.service.load(tripId, {withOperation: true, toEntity: false})))
+        context: () => chainPromises(tripIds.map(tripId => () => this.service.load(tripId, {withOperation: true, toEntity: false})))
       });
     }
     finally {

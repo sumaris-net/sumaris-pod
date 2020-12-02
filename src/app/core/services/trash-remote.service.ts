@@ -3,7 +3,7 @@ import {BaseEntityService} from "./base.data-service.class";
 import {GraphqlService} from "../graphql/graphql.service";
 import {ErrorCodes} from "./errors";
 import {gql} from "@apollo/client/core";
-import {concatPromises} from "../../shared/observables";
+import {chainPromises} from "../../shared/observables";
 
 // Load a trash file
 const LoadQuery: any = gql`
@@ -68,7 +68,7 @@ export class TrashRemoteService extends BaseEntityService<string, any> {
 
   async deleteAll(entityName: string, ids: number[]) {
     // Delete one by one
-    return concatPromises((ids || [])
+    return chainPromises((ids || [])
       .map(id => (() => this.delete(entityName, id))));
   }
 }

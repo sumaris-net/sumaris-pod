@@ -133,7 +133,9 @@ export class PlatformService {
         // Play startup sound
         this.audioProvider.playStartupSound();
       }, 1000);
-    });
+    })
+      // Manage error
+      .catch(err => this.onStartupError(err));
     return this._startPromise;
   }
 
@@ -327,6 +329,37 @@ export class PlatformService {
         onWillPresent: (t) => resolve(t)
       });
     });
+  }
+
+  protected async onStartupError(err) {
+    let message = err && err.message || err;
+    const detailsMessage = err && (err.details && err.details.message || err.details);
+    if (this.translate) {
+      message = await this.translate.get(message).toPromise();
+      if (err && err.code) {
+        message += ` {code: ${err.code}}`;
+      }
+    }
+    else {
+      message = `Fatal error: Please contact your administrator.\n\n{code: ${err && err.code || 'null'}, message: "${message}"}`;
+    }
+    if (this.toastController) {
+      if (detailsMessage) {
+        message += `<br/><small>${detailsMessage}</small>`;
+      }
+      await this.showToast({
+        type: 'error',
+        duration: -1,
+        showCloseButton: true,
+        message
+      });
+    }
+    else {
+      if (detailsMessage) {
+        message += `\n\n{cause: "${detailsMessage}"}`;
+      }
+      window.alert(message);
+    }
   }
 }
 

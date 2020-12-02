@@ -36,7 +36,7 @@ import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum
 import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
 import {QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
-import {concatPromises, firstNotNilPromise} from "../../shared/observables";
+import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {FetchPolicy} from "@apollo/client/core";
 
 export const OperationFragments = {
@@ -129,6 +129,7 @@ export const OperationFragments = {
   `
 };
 
+export const LIGHT_OPERATION_KEY_FIELDS_EXCLUDES = ["trip", "measurements", "samples", "batches", "catchBatch", "gearMeasurements", 'fishingAreas'];
 
 export class OperationFilter {
 
@@ -231,12 +232,13 @@ export declare interface OperationServiceWatchOptions extends
   fetchPolicy?: FetchPolicy;
 }
 
+
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseEntityService<Operation, OperationFilter>
   implements EntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
              EntityService<Operation>{
 
-  static LIGHT_EXCLUDED_ATTRIBUTES = ["measurements", "samples", "batches"];
+
 
   loading = false;
 
@@ -430,7 +432,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     if (this._debug) console.debug(`[operation-service] Saving ${entities.length} operations...`);
     const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
-    return concatPromises<Operation>(jobsFactories);
+    return chainPromises<Operation>(jobsFactories);
   }
 
   /**

@@ -10,8 +10,9 @@ import {LoadResult} from "../../../shared/services/entity-service.class";
 import {ENTITIES_STORAGE_KEY, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
 
 
-export declare type EntitiesStorageTypePolicies = {[__typename: string]: EntityStoreTypePolicy<any> };
-
+export interface EntitiesStorageTypePolicies {
+  [__typename: string]: EntityStoreTypePolicy<Entity<any>>;
+}
 
 export const APP_LOCAL_STORAGE_TYPE_POLICIES = new InjectionToken<EntitiesStorageTypePolicies>('localStorageTypePolicies');
 

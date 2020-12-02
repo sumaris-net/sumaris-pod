@@ -38,7 +38,7 @@ import {SharedModule} from "./shared/shared.module";
 import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
 import {MarkdownModule, MarkedOptions} from "ngx-markdown";
 import {EntitiesStorageTypePolicies, APP_LOCAL_STORAGE_TYPE_POLICIES} from "./core/services/storage/entities-storage.service";
-import {OperationService} from "./trip/services/operation.service";
+import {LIGHT_OPERATION_KEY_FIELDS_EXCLUDES, OperationService} from "./trip/services/operation.service";
 import {AppGestureConfig} from "./shared/gesture/gesture-config";
 import {TypePolicies} from "@apollo/client/core";
 import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
@@ -228,9 +228,9 @@ import {SocialModule} from "./social/social.module";
     // Entities options
     { provide: APP_LOCAL_STORAGE_TYPE_POLICIES, useValue: <EntitiesStorageTypePolicies>{
         'OperationVO': {
-          onlyLocalEntities: true,
-          storeById: true,
-          detailedAttributes: OperationService.LIGHT_EXCLUDED_ATTRIBUTES
+          skipNonLocalEntities: true,
+          mode: 'by-id',
+          lightFieldsExcludes: LIGHT_OPERATION_KEY_FIELDS_EXCLUDES
         }
       }
     },
