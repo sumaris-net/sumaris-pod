@@ -195,7 +195,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     try {
       console.debug("[quality] Synchronizing entity...");
       // TODO: clone the data before ??
-      const remoteData = await this.service.synchronize(this.data);
+      const remoteData = await this.service.synchronize(this.editor.data);
 
       // Success message
       this.showToast({message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true});
@@ -212,10 +212,10 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     }
     catch(error) {
       this.editor.setError(error);
-
+      const context = error && error.context || (() => this.data.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS));
       this.userEventService.showToastErrorWithContext({
         error,
-        context: () => error && error.context || this.data.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
+        context
       });
 
     }

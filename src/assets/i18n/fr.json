@@ -13,6 +13,7 @@
     "BTN_DONE": "Terminer",
     "BTN_DOWNLOAD": "Télécharger",
     "BTN_DELETE": "Supprimer",
+    "BTN_DELETE_FOREVER": "Supprimer définitivement",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
     "BTN_YES_DELETE": "Oui, supprimer",
@@ -868,6 +869,7 @@
     "BTN_QUALIFY": "Qualifier",
     "NOT_SYNCHRONIZED": "Donnée non synchronisée",
     "MODIFIED": "En cours de saisie",
+    "MODIFIED_OFFLINE": "En cours de saisie (hors-ligne)",
     "CONTROLLED": "Terminé",
     "CONTROLLED_ON": "Terminé le ",
     "VALIDATED": "Validé",
@@ -877,6 +879,7 @@
     "QUALIFICATION_COMMENT": "Commentaire de qualification",
     "QUALITY_FLAG": "Niveau de qualité",
     "QUALITY_FLAG_SHORT": "Qualité :",
+    "READY_TO_SYNC": "Terminé, en attente de synchronisation",
     "QUALITY_FLAGS": {
       "NOT_QUALIFIED": "Non qualifiée",
       "GOOD": "Bonne",
@@ -1454,7 +1457,11 @@
     "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
     "COPY_STORAGE_ERROR": "Erreur de copie des données",
     "DATA_MIGRATION_FAILED": "Echec de la migration de données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-    "BAD_APP_VERSION": "Veuillez mettre à jour l'application. La récupération et l'envoi de données avec la version actuelle risque de ne pas fonctionner.</small>"
+    "BAD_APP_VERSION": "Veuillez mettre à jour l'application. La récupération et l'envoi de données avec la version actuelle risque de ne pas fonctionner.</small>",
+    "LOAD_TRASH_ENTITY_ERROR": "Erreur de chargement du fichier de corbeille",
+    "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille",
+    "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données",
+    "STARTUP_FAILED": "Echec du lancement"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1462,6 +1469,7 @@
     "SAVE_BEFORE_CLOSE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
+    "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",
     "ACTION_IMMEDIATE": "Cette action est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",

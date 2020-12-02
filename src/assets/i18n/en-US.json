@@ -13,6 +13,7 @@
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
     "BTN_DELETE": "Delete",
+    "BTN_DELETE_FOREVER": "Delete forever",
     "BTN_FREEZE_VALUE": "Freeze",
     "BTN_FREEZE_VALUE_HELP": "Freeze the value",
     "BTN_YES_DELETE": "Oui, delete",
@@ -868,6 +869,7 @@
     "BTN_QUALIFY": "Qualify",
     "NOT_SYNCHRONIZED": "Data not synchronized",
     "MODIFIED": "Being edited",
+    "MODIFIED_OFFLINE": "Being edited (offline)",
     "CONTROLLED": "Completed",
     "CONTROLLED_ON": "Completed on ",
     "VALIDATED": "Validated",
@@ -877,6 +879,7 @@
     "QUALIFICATION_COMMENT": "Qualification comment",
     "QUALITY_FLAG": "Quality level",
     "QUALITY_FLAG_SHORT": "Quality:",
+    "READY_TO_SYNC": "Completed, waiting synchronization",
     "QUALITY_FLAGS": {
       "NOT_QUALIFIED": "Not qualified",
       "GOOD": "Good",
@@ -1453,8 +1456,10 @@
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
     "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode.",
     "COPY_STORAGE_ERROR": "Error during data copy",
-    "DATA_MIGRATION_FAILED": "Faile to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>",
-    "BAD_APP_VERSION": "Please update the app. Retrieving and sending data with the current version may not work."
+    "DATA_MIGRATION_FAILED": "Failed to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "BAD_APP_VERSION": "Please update the app. Retrieving and sending data with the current version may not work.",
+    "LOAD_TRASH_ENTITY_ERROR": "Error while loading the trash file",
+    "DELETE_TRASH_ENTITY_ERROR": "Error while deleting the trash file"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1463,6 +1468,7 @@
     "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE": "<b>Are you sure</b> you want to delete?",
     "ACTION_IMMEDIATE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?",
+    "ACTION": "<b>Are you sure</b> you want to continue?",
     "DELETE_ROW": "<b>Are you sure</b> you want to delete this row?",
     "DELETE_ROWS": "<b>Are you sure</b> you want to delete this rows?",
     "SEND_DEBUG_DATA": "Do you want to send this data to the administrator for help?"

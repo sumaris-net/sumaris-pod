@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {TableElement} from "@e-is/ngx-material-table";
 import {UserEventFilter, UserEventService, UserEventWatchOptions} from "../services/user-event.service";
 import {AccountService} from "../../core/services/account.service";
-import {UserEvent, UserEventTypes} from "../services/model/user-event.model";
+import {UserEvent, UserEventAction, UserEventTypes} from "../services/model/user-event.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {toBoolean} from "../../shared/functions";
 import {Moment} from "moment";
@@ -17,6 +17,7 @@ import {Trip} from "../../trip/services/model/trip.model";
 import {PredefinedColors} from "@ionic/core";
 import {IEntity} from "../../core/services/model/entity.model";
 import {RootDataEntity, SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
+import {ObservedLocation} from "../../trip/services/model/observed-location.model";
 
 
 export interface UserEventDetail<T extends IEntity<T>> {
@@ -40,6 +41,7 @@ export interface UserEventDetail<T extends IEntity<T>> {
 
   // conversion
   fromObject?: (source: any) => T;
+  childrenFields?: string[];
 }
 export interface UserEventIcon{
   icon?: string;
@@ -50,16 +52,30 @@ const ICONS_MAP: {[key: string]: UserEventIcon } = {
   "DEBUG_DATA": {matIcon: "bug_report"},
   "INBOX_MESSAGE": {matIcon: "mail"},
 }
-const DETAILS_MAP: {[key: string]: Partial<UserEventDetail<RootDataEntity<any>>>} = {
+
+// TODO: refactor with a registration done by data service:
+// - userEventService.registerEventAction({__typename: 'TripVO', ...})
+// - userEventService.getActionsFor(__typename): UserEventDetailAction
+/*const DETAILS_MAP: {[key: string]: UserEventAction<RootDataEntity<any>>} = {
   "TripVO": {
     icon: null,
     matIcon: "content_copy",
     action: 'copyToLocal',
     actionTitle: 'SOCIAL.USER_EVENT.BTN_COPY_TO_LOCAL',
     actionColor: 'primary',
-    fromObject: Trip.fromObject
+    fromObject: Trip.fromObject,
+    childrenFields: ['operation', 'landing']
+  },
+  "ObservedLocationVO": {
+    icon: null,
+    matIcon: "content_copy",
+    action: 'copyToLocal',
+    actionTitle: 'SOCIAL.USER_EVENT.BTN_COPY_TO_LOCAL',
+    actionColor: 'primary',
+    fromObject: ObservedLocation.fromObject,
+    childrenFields: ['landings']
   }
-}
+}*/
 
 
 @Component({
@@ -163,15 +179,15 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
     return ICONS_MAP[source.eventType];
   }
 
-  getDetail(source: UserEvent): Partial<UserEventDetail<IEntity<any>>> {
+  getDetail(source: UserEvent): Partial<UserEventDetail<IEntity<any>> & {actions: UserEventAction<any>[]}> {
     if (!source) return undefined;
-
 
     if (source.content && source.eventType === UserEventTypes.DEBUG_DATA) {
       const context = source.content.context;
       if (context && context.__typename) {
+        const actions = this.service.getActionsByTypename(context.__typename)
         return {
-          ...DETAILS_MAP[context.__typename],
+          actions,
           title: source.content.error && source.content.error.message || source.content.message,
           description: source.content.error && source.content.error.details || undefined
         };
@@ -183,31 +199,26 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
   }
 
 
-  async doAction(action: string, row: TableElement<UserEvent>) {
+  async doAction(action: UserEventAction<any>, row: TableElement<UserEvent>) {
 
-    const data = row.currentData;
-    const context = data.content && data.content.context;
-    const details = context && DETAILS_MAP[context.__typename];
+    const event = row.currentData;
+    const context = event.content && event.content.context;
 
-    if (action === 'copyToLocal' && details.fromObject) {
+    this.markAsLoading();
 
-      console.debug("[user-events] Copy debug data locally...", context);
-
-      // Convert to entity, then to JSON (without local id)
-      const entity = details.fromObject(context);
-      entity.id = null;
-      entity.synchronizationStatus = SynchronizationStatusEnum.DIRTY;
-      const json = entity.asObject({minify: false,
-        keepTypename: true,
-        keepEntityName: true,
-        keepLocalId: false, // Clean local ID
-        keepSynchronizationStatus: true});
-
-      // Save to entities storage
-      await this.entities.save(json);
-
-      // Alert user
-      await this.showToast({message: 'SOCIAL.USER_EVENT.INFO.COPIED_LOCALLY'});
+    if (action && typeof action.executeAction === 'function') {
+      try {
+        const res = action.executeAction(event, context);
+        if (res instanceof Promise) {
+          await res;
+        }
+      } catch (err) {
+        this.error = err && err.message || err;
+        console.error(`[user-event] Failed to execute action ${action.name}: ${err && err.message || err}`, err);
+      }
+      finally {
+        this.markAsLoaded();
+      }
     }
   }
 

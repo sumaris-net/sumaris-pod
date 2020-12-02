@@ -325,9 +325,9 @@
         </ng-container>
         <ng-template #synchronizationStatus >
           <ng-container [ngSwitch]="row.currentData.synchronizationStatus">
-            <ion-icon *ngSwitchCase="'DIRTY'" color="secondary" name="pencil" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
-            <ion-icon *ngSwitchCase="'READY_TO_SYNC'" color="tertiary" name="checkmark" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
-            <ion-icon *ngSwitchCase="'SYNC'" color="tertiary" name="checkmark-circle" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
+            <ion-icon *ngSwitchCase="'DIRTY'" color="accent" name="pencil" slot="icon-only" [matTooltip]="'QUALITY.MODIFIED_OFFLINE'|translate"></ion-icon>
+            <ion-icon *ngSwitchCase="'READY_TO_SYNC'" color="accent" name="time" slot="icon-only" [matTooltip]="'QUALITY.READY_TO_SYNC'|translate"></ion-icon>
+            <ion-icon *ngSwitchCase="'SYNC'" color="accent" name="checkmark-circle" slot="icon-only" [matTooltip]="'QUALITY.VALIDATED'|translate"></ion-icon>
           </ng-container>
         </ng-template>
       </mat-cell>

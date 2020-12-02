@@ -5,7 +5,7 @@ import {Platform} from "@ionic/angular";
 
 import * as uuidv4 from "uuid/v4";
 import {Base64ImageReader, Base64ImageResizeOptions} from "./base64-image-reader";
-import {concatPromises, firstNotNilPromise} from "../observables";
+import {chainPromises, firstNotNilPromise} from "../observables";
 import {HttpClient} from "@angular/common/http";
 import {environment} from "../../../environments/environment";
 
@@ -49,7 +49,7 @@ export class FileService {
     //const jobsFactories = (sources || []).map(source => () => this.getImage(source, {...opts, fileTransfer}));
 
     const jobsFactories = (sources || []).map(source => () => this.getImage(source, {...opts}));
-    return concatPromises<string>(jobsFactories);
+    return chainPromises<string>(jobsFactories);
   }
 
   async getImage(source: string, opts?: Base64ImageResizeOptions & {

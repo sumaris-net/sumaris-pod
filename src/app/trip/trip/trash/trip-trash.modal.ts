@@ -14,9 +14,11 @@ import {EntitiesTableDataSource} from "../../../core/table/entities-table-dataso
 import {environment} from "../../../../environments/environment";
 import {TableElement} from "@e-is/ngx-material-table";
 import {SynchronizationStatus, SynchronizationStatusEnum} from "../../../data/services/model/root-data-entity.model";
-import {isEmptyArray, isNotNil} from "../../../shared/functions";
+import {isEmptyArray, isNotNil, toBoolean} from "../../../shared/functions";
 import {OperationService} from "../../services/operation.service";
 import {EntitiesStorage} from "../../../core/services/storage/entities-storage.service";
+import {TrashRemoteService} from "../../../core/services/trash-remote.service";
+import {chainPromises} from "../../../shared/observables";
 
 @Component({
   selector: 'app-trip-trash-modal',
@@ -26,12 +28,22 @@ import {EntitiesStorage} from "../../../core/services/storage/entities-storage.s
 export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
 
-  isAdmin: boolean;
+  canDelete: boolean;
   displayedAttributes: {
     [key: string]: string[]
   };
 
+  @Input() showIdColumn: boolean;
+
   @Input() synchronizationStatus: SynchronizationStatus;
+
+  get isOfflineMode(): boolean {
+    return !this.synchronizationStatus || this.synchronizationStatus !== 'SYNC';
+  }
+
+  get isOnlineMode(): boolean {
+    return !this.isOfflineMode;
+  }
 
   constructor(
     protected injector: Injector,
@@ -45,6 +57,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     protected service: TripService,
     protected entities: EntitiesStorage,
     protected operationService: OperationService,
+    protected trashRemoteService: TrashRemoteService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
@@ -94,7 +107,8 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
   ngOnInit() {
     super.ngOnInit();
-    this.isAdmin = this.accountService.isAdmin();
+    this.showIdColumn = toBoolean(this.showIdColumn, this.accountService.isAdmin());
+    this.canDelete = this.isOnlineMode && this.accountService.isAdmin();
 
     this.displayedAttributes = {
       vesselSnapshot: this.settings.getFieldDisplayAttributes('vesselSnapshot'),
@@ -117,13 +131,15 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
   async closeAndRestore(event: UIEvent, rows: TableElement<Trip>[]) {
 
-    await this.restore(event, rows)
-
-    return this.close();
+    const done = await this.restore(event, rows)
+    if (done) return this.close();
   }
 
-  async restore(event: UIEvent, rows: TableElement<Trip>[]) {
+  async restore(event: UIEvent, rows: TableElement<Trip>[]): Promise<boolean> {
     if (this.loading) return; // Skip
+
+    const confirm = await this.askRestoreConfirmation()
+    if (!confirm) return false;
 
     if (event) {
       event.stopPropagation();
@@ -133,19 +149,22 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     this.markAsLoading();
 
     try {
-      const entities = (rows || []).map(row => row.currentData).filter(isNotNil);
+      let entities = (rows || []).map(row => row.currentData).filter(isNotNil);
       if (isEmptyArray(entities)) return; // Skip
 
-      // Set the newt synchronization status (DIRTY or null)
-      const synchronizationStatus = (!this.synchronizationStatus || this.synchronizationStatus !== 'SYNC') ?
-        SynchronizationStatusEnum.DIRTY : null;
-      entities.forEach(source => {
-        source.synchronizationStatus = synchronizationStatus;
+      // If online: get trash data full content
+      if (this.isOnlineMode) {
+        entities = (await chainPromises(entities.map(e => () => this.trashRemoteService.load('Trip', e.id))))
+          .map(Trip.fromObject)
+      }
+
+      // Copy locally
+      await this.service.copyAllLocally(entities, {
+        deletedFromTrash: this.isOfflineMode, // Delete from trash, only if local trash
+        displaySuccessToast: false
       });
 
-      // Execute restore
-      await this.service.restoreFromTrash(entities);
-
+      // Deselect rows
       this.selection.deselect(...rows);
 
       // Success toast
@@ -157,15 +176,18 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
             'TRIP.TRASH.INFO.MANY_TRIPS_RESTORED' });
       }, 200);
 
+      return true;
     }
     catch(err) {
       console.error(err && err.message || err, err);
       this.error = err && err.message || err;
+      return false;
     }
     finally {
       this.markAsLoaded();
     }
   }
+
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
     if (event && event.defaultPrevented) return; // Skip
@@ -208,9 +230,46 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     // Success toast
     setTimeout(() => {
       this.showToast({
+        type: 'info',
         message: 'TRIP.TRASH.INFO.LOCAL_TRASH_CLEANED' });
     }, 200);
 
+  }
+
+  async cleanRemoteTrash(event: UIEvent, rows: TableElement<Trip>[]) {
+    if (this.loading) return; // Skip
+
+    if (!(await this.askRestoreConfirmation(event))) return; // User cancelled
+
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    this.markAsLoading();
+
+    try {
+
+      const remoteIds = rows.map(row => row.currentData)
+        .map(trip => trip.id)
+        .filter(id => isNotNil(id) && id >= 0);
+
+      if (isEmptyArray(remoteIds)) return; // Skip if no remote ids
+
+      await this.trashRemoteService.deleteAll('Trip', remoteIds);
+
+      // Unselect rows, then refresh
+      this.selection.deselect(...rows);
+
+      this.onRefresh.emit();
+    }
+    catch(err) {
+      console.error(err && err.message || err, err);
+      this.error = err && err.message || err;
+    }
+    finally {
+      this.markAsLoaded();
+    }
   }
 
   /* -- protected method -- */

@@ -4,21 +4,26 @@ import {map, mergeMap} from "rxjs/operators";
 import {Entity, EntityUtils} from "../model/entity.model";
 import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
-import {concatPromises} from "../../../shared/observables";
+import {chainPromises} from "../../../shared/observables";
+import {ErrorCodes} from "../errors";
 
-export const ENTITIES_STORAGE_KEY = "entities";
+export const ENTITIES_STORAGE_KEY_PREFIX = "entities";
 
-export interface EntityStoreOptions<T extends Entity<T>>  {
-  storeById?: boolean; // false by efault
-  onlyLocalEntities?: boolean;
-  detailedAttributes?: (keyof T)[];
+export type EntityStoreTypePolicyMode = 'default' | 'by-id';
+
+export declare interface EntityStoreTypePolicy<T extends Entity<T> = Entity<any>, K = keyof T>  {
+  mode?: EntityStoreTypePolicyMode; // 'default' by default
+  skipNonLocalEntities?: boolean; // False by default
+  lightFieldsExcludes?: K[]; // none by default
 }
 
 export declare interface EntityStorageLoadOptions {
   fullLoad?: boolean;
 }
 
-declare type EntityStatusMap = { [key: number]: {index: number; dirty?: boolean; } };
+declare interface EntityStatusMap {
+  [key: number]: { index: number; dirty?: boolean; };
+}
 
 export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions = EntityStorageLoadOptions> {
 
@@ -31,7 +36,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   private _dirty = false;
   private _loaded: boolean;
 
-  readonly options: EntityStoreOptions<T>;
+  readonly policy: EntityStoreTypePolicy<T>;
 
   get cache(): T[] {
     return this._cache;
@@ -41,17 +46,24 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     return this._dirty;
   }
 
+  protected get isByIdMode(): boolean {
+    return this.policy.mode === 'by-id';
+  }
+
+  protected get storageKeyById(): string {
+    return this._storageKey + '#ids';
+  }
 
   constructor(
     protected readonly name: string,
     protected readonly storage: Storage,
-    opts?: EntityStoreOptions<T>) {
-    this.options = opts || {};
+    policy?: EntityStoreTypePolicy<T>) {
+    this.policy = policy || {};
     this.reset({emitEvent: false});
     this._dirty = false;
     this._loaded = false;
-    this._storageKey = ENTITIES_STORAGE_KEY + '#' + name;
-    this._mapToLightEntity = this.options.storeById && this.createLightEntityMapFn(this.options.detailedAttributes);
+    this._storageKey = ENTITIES_STORAGE_KEY_PREFIX + '#' + name;
+    this._mapToLightEntity = this.createLightEntityMapFn(this.policy);
   }
 
   nextValue(): number {
@@ -125,19 +137,19 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     filter?: (T) => boolean;
   }, opts?: O): Promise<LoadResult<T>> {
 
-    let res = this.reduceAndSort(this._cache, variables);
+    const res = this.reduceAndSort(this._cache, variables);
 
     // If store by ID: make sure to full the full entities
     if (this._mapToLightEntity && isNotEmptyArray(res.data) && (opts && opts.fullLoad === true)) {
       // Load full entities, one by one
-      res.data = await concatPromises((res.data || []).map(e => () => this.load(e.id)));
+      res.data = await chainPromises((res.data || []).map(e => () => this.load(e.id)));
     }
 
     return res ;
   }
 
   save(entity: T, opts? : {emitEvent?: boolean}): T {
-    let status = isNotNil(entity.id) && this._statusById[+entity.id] || {index: undefined};
+    const status = isNotNil(entity.id) && this._statusById[+entity.id] || {index: undefined};
     const isNew = isNil(status.index);
     if (isNew) {
       if (isNil(entity.id)) {
@@ -208,10 +220,12 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     const entity = this._cache[index];
     if (!entity) return undefined;
 
+    // Remove from cache
     this._cache[index] = undefined;
     this._statusById[+entity.id] = undefined;
 
-    if (this.options.storeById) {
+    // Remove full entity, by id
+    if (this.isByIdMode) {
       this.storage.remove(this._storageKey + "#" + id);
     }
 
@@ -244,7 +258,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     return deletedEntities;
   }
 
-  reset(opts? : {emitEvent?: boolean}) {
+  reset(opts?: {emitEvent?: boolean}) {
     this._cache = [];
     this._sequence = 0;
     this._statusById = {};
@@ -258,24 +272,35 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     }
   }
 
-  async persist(): Promise<number> {
+  /**
+   *
+   * @param opts
+   *  opts.force : force all entities to be persist, and not only if dirty
+   */
+  async persist(opts?: { skipIfPristine?: boolean; }): Promise<number> {
+    opts = {
+      skipIfPristine: true,
+      ...opts
+    };
+
     // Skip is not dirty
-    if (!this._dirty) {
+    if (opts.skipIfPristine && !this._dirty) {
       console.debug(`[entity-storage] Persisting ${this.name} not need. Skip`);
       return this._cache.length;
     }
 
     // Copy some data, BEFORE to call markAsPristine() to allow parallel changes
-    const dirtyIndexes = Object.values(this._statusById)
-      .filter(s => s && s.dirty)
+    const dirtyIndexes = this.isByIdMode && Object.values(this._statusById)
+      .filter(s => !opts.skipIfPristine || (s && s.dirty))
       .map(s => s.index);
     const entities = this._cache.slice(); // Copy cached entities
 
     // Mark all (entities and status) as pristine
     this.markAsPristine({emitEvent: false});
 
-    // Convert dirty entities, in cache, into light entities (/!\ AFTER the previous copy)
-    if (this._mapToLightEntity) {
+    // Convert dirty entities into light entities (/!\ AFTER the previous copy)
+    // and update the cache (but NOT the 'entities' variable)
+    if (dirtyIndexes && this._mapToLightEntity) {
       dirtyIndexes.forEach(index => this._cache[index] = this._mapToLightEntity(entities[index]));
     }
 
@@ -288,7 +313,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     else {
 
       // Save each entity into a unique key (advanced mode)
-      if (this.options.storeById) {
+      if (this.isByIdMode) {
         // Save ids
         await this.storage.set(this._storageKey + '#ids', entities.filter(isNotNil).map(e => e.id));
 
@@ -297,7 +322,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
           dirtyIndexes
             .map(index => {
               const entity = entities[index];
-              console.info(`[entity-storage] Persisting ${this.name}#${entity.id}...`);
+              console.debug(`[entity-storage] Persisting ${this.name}#${entity.id}...`);
               return this.storage.set(this._storageKey + '#' + entity.id, entity);
             }));
 
@@ -318,34 +343,75 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   async restore(opts?: { emitEvent?: boolean; }): Promise<number> {
     let entities: T[];
 
-    if (this.options.storeById) {
-      const ids = await this.storage.get(this._storageKey+"#ids");
+    const res = await Promise.all([
+      this.storage.get(this._storageKey),
+      this.storage.get(this.storageKeyById)
+    ]);
+    const values = res[0] && res[0] instanceof Array ? res[0] : null;
+    const ids = res[1] && res[1] instanceof Array ? res[1] : null;
+    let migration = false;
+    let oldKeysToClean: string[];
+
+    // "Split by id" mode
+    if (this.isByIdMode) {
       if (isNotNil(ids)) {
         // Load entity by id (one by one)
-        entities = await concatPromises<T>(
-          ids.map(id =>() => this.storage.get(this._storageKey + "#" + id)
-            .then(entity => this._mapToLightEntity ? this._mapToLightEntity(entity) : entity))
-        );
+        const storageKeys = ids.map(id => this._storageKey + "#" + id);
+        entities = await chainPromises<T>(storageKeys.map(key => () => this.storage.get(key)));
+      }
+      // Migrate from the standard mode
+      else if (isNotNil(values)) {
+        entities = values.filter(e => e && isNotNil(e.id));
+        migration = true;
+        oldKeysToClean = [this._storageKey];
       }
     }
 
-    if (isNil(entities)) {
-      const values = await this.storage.get(this._storageKey);
-      // OK, there is something in storage...
-      entities = values && values instanceof Array ? values : [];
+    // Else (default mode)
+    else {
+      if (isNotNil(values)) {
+        entities = values.filter(e => e && isNotNil(e.id));
+      }
+      else if (isNotNil(ids)) {
+        const storageKeys = ids.map(id => this._storageKey + "#" + id);
+        // Load entity by id (one by one)
+        entities = await chainPromises<T>(storageKeys.map(key => () => this.storage.get(key)));
+        migration = true;
+        oldKeysToClean = [...storageKeys, this.storageKeyById];
+      }
+    }
 
+    // OK, there is something in storage...
+    if (isNil(entities)) {
       if (entities && entities.length >= 1000) {
         console.warn(`[entity-storage] - Restoring ${entities.length} ${this.name}...`);
       }
 
-      // Map entities
-      if (this._mapToLightEntity) {
+      // Map entities into light element (if if not need to persist, because of migration
+      if (this._mapToLightEntity && !migration) {
         entities = entities.map(this._mapToLightEntity);
       }
     }
 
     this.setEntities(entities || [], {...opts, emitEvent: false });
     this._dirty = false;
+
+    // Finish the migration
+    if (migration) {
+      try {
+        console.warn(`[entity-storage] - Migrate ${this.name} into {mode: '${this.policy.mode}'}...`);
+
+        // Force to persist, using the new mode
+        await this.persist({skipIfPristine: false /* force persist using the new mode */ });
+
+        // Clean old storage keys (one by one)
+        await chainPromises(oldKeysToClean.map(key => () => this.storage.remove(key)));
+      }
+      catch (err) {
+        console.error();
+        throw {code: ErrorCodes.ENTITY_STORAGE_MIGRATION_FAILED, message: 'ERROR.ENTITY_STORAGE_MIGRATION_FAILED', details: err};
+      }
+    }
 
     // Emit update event
     if (!opts || opts.emitEvent !== false) {
@@ -404,12 +470,11 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   }
 
   private setEntities(entities: T[], opts?: {emitEvent?: boolean; }) {
-    entities = entities && (
-      (this.options && this.options.onlyLocalEntities)
-        // Filter NOT nil AND local id
-        ? entities.filter(item => isNotNil(item) && item.id < 0)
-        // Filter NOT nil
-        : entities.filter(isNotNil)) || [];
+    // Filter non nil (and if need non local) entities
+    entities = (entities || [])
+        .filter(item => isNotNil(item)
+          && (!this.policy.skipNonLocalEntities || item.id < 0)
+        );
 
     this._cache = entities;
 
@@ -498,11 +563,12 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     return {data, total};
   }
 
-  private createLightEntityMapFn(excludedAttributes: (keyof T)[]): (T) => T {
-    if (isEmptyArray(excludedAttributes)) return undefined; // skip
+  private createLightEntityMapFn(policy: EntityStoreTypePolicy<T>): (T) => T {
+    if (policy.mode !== 'by-id') return undefined; // Only need for the 'by-id' mode
+    if (isEmptyArray(policy.lightFieldsExcludes)) return undefined; // skip
 
     // Create a immutable mask object, use to clean some properties
-    const excludeAttributesMask = Object.freeze(this.options.detailedAttributes.reduce((res, attr) => {
+    const excludeAttributesMask = Object.freeze(this.policy.lightFieldsExcludes.reduce((res, attr) => {
       res[attr] = undefined;
       return res;
     }, <T>{}));

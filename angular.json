@@ -37,7 +37,8 @@
               "apollo-link-logger",
               "zen-observable",
               "subscriptions-transport-ws",
-              "chart.js"
+              "chart.js",
+              "react"
             ],
             "assets": [
               {
@@ -114,7 +115,6 @@
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
-              "extractCss": true,
               "namedChunks": false,
               "extractLicenses": true,
               "vendorChunk": false,
@@ -146,7 +146,6 @@
               "aot": true,
               "outputHashing": "all",
               "sourceMap": false,
-              "extractCss": true,
               "namedChunks": true,
               "extractLicenses": true,
               "vendorChunk": false
@@ -279,5 +278,8 @@
       }
     }
   },
-  "defaultProject": "app"
+  "defaultProject": "app",
+  "cli": {
+    "analytics": false
+  }
 }

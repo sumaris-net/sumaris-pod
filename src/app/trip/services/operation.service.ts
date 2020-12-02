@@ -26,7 +26,7 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
+import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
@@ -36,8 +36,9 @@ import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum
 import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
 import {QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
-import {concatPromises, firstNotNilPromise} from "../../shared/observables";
+import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {FetchPolicy} from "@apollo/client/core";
+import {EntityStoreTypePolicy} from "../../core/services/storage/entity-store.class";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -128,7 +129,6 @@ export const OperationFragments = {
   ${DataFragments.fishingArea}
   `
 };
-
 
 export class OperationFilter {
 
@@ -231,12 +231,13 @@ export declare interface OperationServiceWatchOptions extends
   fetchPolicy?: FetchPolicy;
 }
 
+
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseEntityService<Operation, OperationFilter>
   implements EntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
              EntityService<Operation>{
 
-  static LIGHT_EXCLUDED_ATTRIBUTES = ["measurements", "samples", "batches"];
+
 
   loading = false;
 
@@ -430,7 +431,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     if (this._debug) console.debug(`[operation-service] Saving ${entities.length} operations...`);
     const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
-    return concatPromises<Operation>(jobsFactories);
+    return chainPromises<Operation>(jobsFactories);
   }
 
   /**
@@ -439,14 +440,12 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
    */
   async save(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
 
-    // If parent is a local entity: force a local save
-    // Save response locally
+    // If parent is a local entity: force to save locally
     if (entity.tripId < 0) {
       return await this.saveLocally(entity, opts);
     }
 
     const now = Date.now();
-    if (this._debug) console.debug("[operation-service] Saving operation...");
 
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, opts);
@@ -456,7 +455,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug("[operation-service] Using minify object, to send:", json);
+    if (this._debug) console.debug("[operation-service] Saving operation remotely...", json);
 
     await this.graphql.mutate<{ saveOperations: Operation[] }>({
         mutation: SaveOperations,
@@ -674,9 +673,6 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
   protected async saveLocally(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
     if (entity.tripId >= 0) throw new Error('Must be a local entity');
 
-    const now = Date.now();
-    if (this._debug) console.debug("[operation-service] Saving operation locally...");
-
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, opts);
 
@@ -738,7 +734,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
   }
 
   protected fillRecorderDepartment(entity: DataEntity<Operation | VesselPosition | Measurement>, department?: Department) {
-    if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
+    if (entity && (!entity.recorderDepartment || !entity.recorderDepartment.id)) {
 
       department = department || this.accountService.department;
 

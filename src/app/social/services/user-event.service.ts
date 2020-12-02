@@ -7,7 +7,7 @@ import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {environment} from "../../../environments/environment";
 import {Observable, of} from "rxjs";
-import {UserEvent, UserEventTypes} from "./model/user-event.model";
+import {UserEvent, UserEventAction, UserEventTypes} from "./model/user-event.model";
 import {SocialFragments} from "./social.fragments";
 import {SortDirection} from "@angular/material/sort";
 import {EntitiesServiceWatchOptions, Page} from "../../shared/services/entity-service.class";
@@ -61,9 +61,15 @@ export declare interface UserEventWatchOptions extends EntitiesServiceWatchOptio
   withContent?: boolean; // Default to false
 }
 
+export interface UserEventActionDefinition extends UserEventAction<any> {
+  __typename: string;
+}
+
 @Injectable({providedIn: 'root'})
 export class UserEventService extends BaseEntityService<UserEvent>
   implements EntitiesService<UserEvent, UserEventFilter, UserEventWatchOptions> {
+
+  private _userEventActions: UserEventActionDefinition[] = [];
 
   constructor(
     protected graphql: GraphqlService,
@@ -77,7 +83,6 @@ export class UserEventService extends BaseEntityService<UserEvent>
     // For DEV only
     this._debug = !environment.production;
   }
-
 
   /**
    *
@@ -257,6 +262,15 @@ export class UserEventService extends BaseEntityService<UserEvent>
     // TODO
     console.warn("TODO: implement listen changes on user events");
     return of();
+  }
+
+  registerAction(definition: UserEventActionDefinition) {
+    console.info(`[user-event-service] Registering action ${definition.name} for ${definition.__typename}`);
+    this._userEventActions.push(definition);
+  }
+
+  getActionsByTypename(typename: string): UserEventAction<any>[] {
+    return this._userEventActions.filter(def => def.__typename === typename);
   }
 
   async showToastErrorWithContext(opts: {

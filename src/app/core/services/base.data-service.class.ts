@@ -2,8 +2,7 @@ import {GraphqlService, MutateQueryOptions, WatchQueryOptions} from "../graphql/
 import {Page} from "../../shared/services/entity-service.class";
 import {EmptyObject} from "apollo-angular/types";
 import {Observable} from "rxjs";
-import {DataProxy} from "apollo-cache";
-import {FetchResult} from "apollo-link";
+import {FetchResult} from "@apollo/client/link/core";
 import {environment} from "../../../environments/environment";
 import {EntityUtils} from "./model/entity.model";
 import {ApolloCache} from "@apollo/client/core";
@@ -83,9 +82,10 @@ export abstract class BaseEntityService<T = any, F = any>{
         mutableQuery = existingQueries[0] as MutableWatchQueryInfo<D, T, V>;
         mutableQuery.counter += 1;
         console.debug('[base-data-service] Find existing mutable watching query (same variables): ' + queryName);
-        if (mutableQuery.counter > 3) {
-          console.warn('[base-data-service] TODO: clean previous queries with name: ' + queryName);
-        }
+
+        //if (mutableQuery.counter > 3) {
+        //  console.warn('[base-data-service] TODO: clean previous queries with name: ' + queryName);
+        //}
       }
       else {
         this.registerNewMutableWatchQuery({
@@ -144,10 +144,10 @@ export abstract class BaseEntityService<T = any, F = any>{
       });
   }
 
-  removeFromMutableCachedQueryByIds(proxy: ApolloCache<any>, opts: {
+  removeFromMutableCachedQueryByIds(cache: ApolloCache<any>, opts: {
     query?: any;
     queryName?: string;
-    ids?: number|number[];
+    ids: number|number[];
   }){
     if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
     const existingQueries = opts.queryName ?
@@ -158,7 +158,7 @@ export abstract class BaseEntityService<T = any, F = any>{
     console.debug(`[base-data-service] Removing data from watching queries: `, existingQueries);
     existingQueries.forEach(watchQuery => {
       if (opts.ids instanceof Array) {
-        this.graphql.removeFromCachedQueryByIds(proxy, {
+        this.graphql.removeFromCachedQueryByIds(cache, {
           query: watchQuery.query,
           variables: watchQuery.variables,
           arrayFieldName: watchQuery.arrayFieldName as string,
@@ -166,11 +166,11 @@ export abstract class BaseEntityService<T = any, F = any>{
         });
       }
       else {
-        this.graphql.removeFromCachedQueryById(proxy, {
+        this.graphql.removeFromCachedQueryById(cache, {
           query: watchQuery.query,
           variables: watchQuery.variables,
           arrayFieldName: watchQuery.arrayFieldName as string,
-          id: opts.ids as number
+          id: opts.ids.toString()
         });
       }
     });

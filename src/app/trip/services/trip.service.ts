@@ -1,5 +1,5 @@
-import {Injectable, Injector} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Injectable, Injector, Optional} from "@angular/core";
+import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {
   EntitiesService,
   EntityService,
@@ -9,19 +9,19 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  toBoolean,
   toDateISOString
 } from "../../shared/shared.module";
 import {AppFormUtils, Department, Entity, EntityUtils, environment} from "../../core/core.module";
 import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
+import * as moment from "moment";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
-import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {RootDataService} from "./root-data-service.class";
 import {
+  COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
   SAVE_AS_OBJECT_OPTIONS,
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
@@ -37,7 +37,7 @@ import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {concatPromises} from "../../shared/observables";
+import {chainPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./validator/trip.validator";
 import {FormErrors} from "../../core/form/form.utils";
@@ -52,6 +52,12 @@ import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
 import {UserEventService} from "../../social/services/user-event.service";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {OverlayEventDetail} from "@ionic/core";
+import {TranslateService} from "@ngx-translate/core";
+import {ToastController} from "@ionic/angular";
+import {TrashRemoteService} from "../../core/services/trash-remote.service";
+import {TRIP_FEATURE_NAME} from "./config/trip.config";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -219,7 +225,6 @@ export const TripFragments = {
   `
 };
 
-export const TRIP_FEATURE = 'trip';
 
 export class TripFilter {
   programLabel?: string;
@@ -254,18 +259,18 @@ export class TripFilter {
 
     // Location
     if (isNotNil(f.locationId)) {
-      filterFns.push(t => ((t.departureLocation && t.departureLocation.id === f.locationId) || (t.returnLocation && t.returnLocation.id === f.locationId)))
+      filterFns.push(t => ((t.departureLocation && t.departureLocation.id === f.locationId) || (t.returnLocation && t.returnLocation.id === f.locationId)));
     }
 
     // Start/end period
     const startDate = fromDateISOString(f.startDate);
     let endDate = fromDateISOString(f.endDate);
     if (startDate) {
-      filterFns.push(t => t.returnDateTime ? startDate.isSameOrBefore(t.returnDateTime) : startDate.isSameOrBefore(t.departureDateTime))
+      filterFns.push(t => t.returnDateTime ? startDate.isSameOrBefore(t.returnDateTime) : startDate.isSameOrBefore(t.departureDateTime));
     }
     if (endDate) {
       endDate = endDate.add(1, 'day');
-      filterFns.push(t => t.departureDateTime && endDate.isAfter(t.departureDateTime))
+      filterFns.push(t => t.departureDateTime && endDate.isAfter(t.departureDateTime));
     }
 
     // Recorder department
@@ -319,20 +324,26 @@ export const TripFilterKeys: KeysEnum<TripFilter> = {
   recorderDepartmentId: true,
   recorderPersonId: true,
   synchronizationStatus: true
-}
+};
 
-export interface TripServiceLoadOption extends EntityServiceLoadOptions {
+export interface TripServiceLoadOptions extends EntityServiceLoadOptions {
   isLandedTrip?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
   toEntity?: boolean;
 }
 
-export interface TripServiceSaveOption {
-  withLanding: boolean;
+export interface TripServiceSaveOptions {
+  withLanding?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
   enableOptimisticResponse?: boolean; // True by default
+}
+
+export interface TripServiceCopyOptions extends TripServiceSaveOptions {
+  keepRemoteId?: boolean;
+  deletedFromTrash?: boolean;
+  displaySuccessToast?: boolean;
 }
 
 const LoadAllQuery: any = gql`
@@ -361,15 +372,6 @@ const LoadLandedTripQuery: any = gql`
     }
   }
   ${TripFragments.landedTrip}
-`;
-// Save all trips
-const SaveAllTripQuery: any = gql`
-  mutation saveTrips($trips:[TripVOInput], $tripSaveOption: TripSaveOptionsInput!){
-    saveTrips(trips: $trips, saveOptions: $tripSaveOption){
-      ...TripFragment
-    }
-  }
-  ${TripFragments.trip}
 `;
 // Save a trip
 const SaveTripQuery: any = gql`
@@ -436,11 +438,12 @@ const UpdateSubscription = gql`
   ${TripFragments.trip}
 `;
 
+
 @Injectable({providedIn: 'root'})
 export class TripService extends RootDataService<Trip, TripFilter>
   implements
     EntitiesService<Trip, TripFilter>,
-    EntityService<Trip, TripServiceLoadOption>,
+    EntityService<Trip, TripServiceLoadOptions>,
     DataQualityService<Trip> {
 
   protected $importationProgress: Observable<number>;
@@ -459,9 +462,22 @@ export class TripService extends RootDataService<Trip, TripFilter>
     protected operationService: OperationService,
     protected settings: LocalSettingsService,
     protected validatorService: TripValidatorService,
-    protected userEventService: UserEventService
+    protected userEventService: UserEventService,
+    protected trashRemoteService: TrashRemoteService,
+    @Optional() private translate: TranslateService,
+    @Optional() private toastController: ToastController
   ) {
     super(injector);
+
+    // Register user event actions
+    userEventService.registerAction({
+      __typename: Trip.TYPENAME,
+      matIcon: "content_copy",
+      name: 'copyToLocal',
+      title: 'SOCIAL.USER_EVENT.BTN_COPY_TO_LOCAL',
+      color: 'primary',
+      executeAction: (event, context) => this.copyLocally(Trip.fromObject(context), {displaySuccessToast: true})
+    });
 
     // FOR DEV ONLY
     this._debug = !environment.production;
@@ -542,7 +558,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       );
   }
 
-  async load(id: number, opts?: TripServiceLoadOption): Promise<Trip | null> {
+  async load(id: number, opts?: TripServiceLoadOptions): Promise<Trip | null> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     // use landedTrip option if itself or withOperationGroups is present in service options
@@ -583,7 +599,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       }
 
       // Transform to entity
-      const data:Trip = (!opts || opts.toEntity !== false) ? Trip.fromObject(json) : (json as Trip);
+      const data: Trip = (!opts || opts.toEntity !== false) ? Trip.fromObject(json) : (json as Trip);
 
       if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
       return data;
@@ -631,27 +647,37 @@ export class TripService extends RootDataService<Trip, TripFilter>
    * @param entities
    * @param opts
    */
-  async saveAll(entities: Trip[], opts?: TripServiceSaveOption): Promise<Trip[]> {
+  async saveAll(entities: Trip[], opts?: TripServiceSaveOptions): Promise<Trip[]> {
     if (isEmptyArray(entities)) return entities;
 
     if (this._debug) console.debug(`[trip-service] Saving ${entities.length} trips...`);
     const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
-    return concatPromises<Trip>(jobsFactories);
+    return chainPromises<Trip>(jobsFactories);
   }
 
   /**
    * Save a trip
    * @param entity
-   * @param options
+   * @param opts
    */
-  async save(entity: Trip, options?: TripServiceSaveOption): Promise<Trip> {
+  async save(entity: Trip, opts?: TripServiceSaveOptions): Promise<Trip> {
+    const isNew = isNil(entity.id);
 
-    const withLanding = toBoolean(options && options.withLanding, false);
-    const withOperation = toBoolean(options && options.withOperation, false);
-    const withOperationGroup = toBoolean(options && options.withOperationGroup, false);
+    // If is a local entity: force a local save
+    const isLocal = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
+    if (isLocal) {
+      return this.saveLocally(entity, opts);
+    }
+
+    opts = {
+      withLanding: false,
+      withOperation: false,
+      withOperationGroup: false,
+      ...opts
+    };
 
     const now = Date.now();
-    if (this._debug) console.debug("[trip-service] Saving a trip...", entity);
+    if (this._debug) console.debug("[trip-service] Saving trip...", entity);
 
     // Prepare to save
     this.fillDefaultProperties(entity);
@@ -662,37 +688,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
     entity.qualificationDate = undefined;
     entity.qualityFlagId = undefined;
 
-    // If new, create a temporary if (for offline mode)
-    const isNew = isNil(entity.id);
-
-    // If is a local entity: force a local save
-    const offline = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
-    if (offline) {
-      // Make sure to fill id, with local ids
-      await this.fillOfflineDefaultProperties(entity);
-
-      // Reset synchro status
-      entity.synchronizationStatus = 'DIRTY';
-
-      const operations = entity.operations;
-      delete entity.operations;
-
-      const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
-      if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', jsonLocal);
-
-      // Save trip locally
-      await this.entities.save(jsonLocal, {entityName: Trip.TYPENAME});
-
-      // Save operations
-      if (withOperation && isNotEmptyArray(operations)) {
-        entity.operations = await this.operationService.saveAll(operations, {tripId: entity.id});
-      }
-
-      return entity;
-    }
-
     // Provide an optimistic response, if connection lost
-    const offlineResponse = (!options || options.enableOptimisticResponse !== false) ?
+    const offlineResponse = (!opts || opts.enableOptimisticResponse !== false) ?
       async (context) => {
         // Make sure to fill id, with local ids
         await this.fillOfflineDefaultProperties(entity);
@@ -702,8 +699,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
         if (isNotNil(entity.id)) context.serializationKey = `${Trip.TYPENAME}:${entity.id}`;
 
         return {
-          saveTrip: !withLanding && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)],
-          saveLandedTrip: withLanding && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)]
+          saveTrip: !opts.withLanding && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)],
+          saveLandedTrip: opts.withLanding && [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)]
         };
       } : undefined;
 
@@ -712,9 +709,14 @@ export class TripService extends RootDataService<Trip, TripFilter>
     if (this._debug) console.debug("[trip-service] Using minify object, to send:", json);
 
     const variables = {
-      trip: json, tripSaveOption: {withLanding, withOperation, withOperationGroup}
+      trip: json,
+      tripSaveOption: {
+        withLanding: opts.withLanding,
+        withOperation: opts.withOperation,
+        withOperationGroup: opts.withOperationGroup
+      }
     };
-    const mutation = (withLanding) ? SaveLandedTripQuery : SaveTripQuery;
+    const mutation = (opts.withLanding) ? SaveLandedTripQuery : SaveTripQuery;
     await this.graphql.mutate<{ saveTrip: any, saveLandedTrip: any }>({
        mutation,
        variables,
@@ -741,7 +743,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
              try {
                // Remove linked operations
-               if (options && options.withOperation) {
+               if (opts && opts.withOperation) {
                  await this.operationService.deleteLocally({tripId: entity.id});
                }
              }
@@ -751,7 +753,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
            }
 
            // Copy id and update Date
-           this.copyIdAndUpdateDate(savedEntity, entity, options);
+           this.copyIdAndUpdateDate(savedEntity, entity, opts);
 
            if (this._debug) console.debug(`[trip-service] Trip saved remotely in ${Date.now() - now}ms`, entity);
 
@@ -770,6 +772,57 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return entity;
   }
 
+  async saveLocally(entity: Trip, opts?: TripServiceSaveOptions): Promise<Trip> {
+    if (entity.id >= 0) throw new Error('Must be a local entity');
+    opts = {
+      withLanding: false,
+      withOperation: false,
+      withOperationGroup: false,
+      ...opts
+    };
+
+    this.fillDefaultProperties(entity);
+
+    // Reset the control date
+    entity.controlDate = undefined;
+    entity.validationDate = undefined;
+    entity.qualificationDate = undefined;
+    entity.qualityFlagId = undefined;
+
+    // Make sure to fill id, with local ids
+    await this.fillOfflineDefaultProperties(entity);
+
+    // Reset synchro status
+    entity.synchronizationStatus = 'DIRTY';
+
+    // Extract operations (saved just after)
+    const operations = entity.operations;
+    delete entity.operations;
+
+    const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
+    if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', jsonLocal);
+
+    // Save trip locally
+    await this.entities.save(jsonLocal, {entityName: Trip.TYPENAME});
+
+    // Save operations
+    if (opts.withOperation && isNotEmptyArray(operations)) {
+
+      // Link to physical gear id, using the rankOrder
+      operations.forEach(o => {
+        o.id = null; // Clean ID, to force new ids
+        o.physicalGear = o.physicalGear && (entity.gears || []).find(g => g.rankOrder === o.physicalGear.rankOrder);
+        o.tripId = entity.id;
+        o.trip = undefined;
+        o.updateDate = undefined;
+      });
+
+      entity.operations = await this.operationService.saveAll(operations, {tripId: entity.id});
+    }
+
+    return entity;
+  }
+
   async synchronizeById(id: number): Promise<Trip> {
     const entity = await this.load(id);
 
@@ -779,7 +832,15 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return await this.synchronize(entity);
   }
 
-  async synchronize(entity: Trip, opts?: any): Promise<Trip> {
+  async synchronize(entity: Trip, opts?: TripServiceSaveOptions): Promise<Trip> {
+    opts = {
+      withOperation: true, // Change default to true
+      withLanding: false, // todo manage landedTrip
+      withOperationGroup: false,
+      enableOptimisticResponse: false, // Optimistic response not need
+      ...opts
+    };
+
     const localId = entity && entity.id;
     if (isNil(localId) || localId >= 0) {
       throw new Error("Entity must be a local entity");
@@ -799,18 +860,16 @@ export class TripService extends RootDataService<Trip, TripFilter>
     entity.operations = res && res.data || [];
 
     try {
-      // todo comment synchroniser un landedTrip ?
-      entity = await this.save(entity, {
-        withLanding: false,
-        withOperation: true,
-        enableOptimisticResponse: false // Optimistic response not need
-      });
 
+      entity = await this.save(entity, opts);
+
+      // Check return entity has a valid id
       if (isNil(entity.id) || entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR};
       }
     } catch (err) {
-      throw {...err,
+      throw {
+        ...err,
         code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR,
         message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR",
         context: entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
@@ -1081,14 +1140,20 @@ export class TripService extends RootDataService<Trip, TripFilter>
     trash?: boolean; // True by default
   }): Promise<any> {
 
+
     // Get local entity ids, then delete id
     const localEntities = entities && entities
       .filter(DataRootEntityUtils.isLocal);
+
     if (isNotEmptyArray(localEntities)) {
+
       const trash = !opts || opts !== false;
+      const trashUpdateDate = trash && moment();
+
       if (this._debug) console.debug(`[trip-service] Deleting trips locally... {trash: ${trash}`);
 
-      await concatPromises(localEntities.map(entity => async () => {
+      await chainPromises(localEntities.map(entity => async () => {
+
 
         // Load trip's operations
         const res = await this.operationService.loadAllByTrip({tripId: entity.id},
@@ -1104,6 +1169,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
         if (trash) {
           // Fill trip's operation, before moving it to trash
           entity.operations = operations;
+          entity.updateDate = trashUpdateDate;
 
           const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
 
@@ -1140,46 +1206,70 @@ export class TripService extends RootDataService<Trip, TripFilter>
   }
 
   /**
-   * Restore entities from trash (remote or local trash)
+   * Copy entities (local or remote) to the local storage
    * @param entities
    */
-  async restoreFromTrash(entities: Trip[]): Promise<Trip[]> {
+  copyAllLocally(entities: Trip[], opts?: TripServiceCopyOptions): Promise<Trip[]> {
+    return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
+  }
 
-    console.debug('[trip-service] Restoring trips...', entities);
-    let result: Trip[] = [];
 
-    // Restore (one by one)
-    result = await concatPromises(entities.map(source => async () => {
+  async copyLocallyById(id: number, opts?: TripServiceLoadOptions & {}): Promise<Trip> {
 
-      const isLocal = DataRootEntityUtils.isLocal(source);
+    // Load existing data
+    const data = await this.load(id, {...opts, fetchPolicy: "network-only"});
 
-      // Remove id
-      if (!isLocal) {
-        source.id = null;
-      }
+    // Add operations
+    if (!opts || opts.withOperation !== false) {
+      const res = await this.operationService.loadAllByTrip({tripId: id}, {
+        fetchPolicy: "network-only",
+        fullLoad: true
+      });
+      data.operations = res.data;
+    }
 
-      // Create a new entity (without local id)
-      const json = this.asObject(source, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
-      json.updateDate = null;
-      json.synchronizationStatus = SynchronizationStatusEnum.DIRTY; // To make sure it will be saved locally
+    await this.copyLocally(data, opts);
 
-      const target = Trip.fromObject(json);
+    return data;
+  }
 
-      // Save
-      await this.save(target, {withLanding: false, withOperation: true});
+  /**
+   * Copy an entity (local or remote) to the local storage
+   * @param entities
+   */
+  async copyLocally(source: Trip, opts?: TripServiceCopyOptions): Promise<Trip> {
+    console.debug("[trip-service] Copy trip locally...", source);
 
-      // Remove from the local trash
+    opts = {
+      keepRemoteId: false,
+      deletedFromTrash: false,
+      withOperation: true, // Change default value to 'true'
+      ...opts
+    };
+    const isLocal = DataRootEntityUtils.isLocal(source);
+
+    // Create a new entity (without id and updateDate)
+    const json = this.asObject(source, { ...COPY_LOCALLY_AS_OBJECT_OPTIONS, keepRemoteId: opts.keepRemoteId });
+    json.synchronizationStatus = SynchronizationStatusEnum.DIRTY; // To make sure it will be saved locally
+
+    // Save
+    const target = await this.saveLocally(Trip.fromObject(json), opts);
+
+    // Remove from the local trash
+    if (opts.deletedFromTrash) {
       if (isLocal) {
         await this.entities.deleteFromTrash(source, {entityName: Trip.TYPENAME});
       }
       else {
-        // TODO! BLA: delete form trash
+        await this.trashRemoteService.delete('Trip', source.id);
       }
+    }
 
-      return target;
-    }));
+    if (opts.displaySuccessToast) {
+      await this.showToast({message: 'SOCIAL.USER_EVENT.INFO.COPIED_LOCALLY', type: 'info'});
+    }
 
-    return result
+    return target;
   }
 
   executeImport(opts?: {
@@ -1242,7 +1332,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
           tap(() => {
             this.$importationProgress = null;
             console.info(`[trip-service] Importation finished in ${Date.now() - now}ms`);
-            this.settings.registerOfflineFeature(TRIP_FEATURE);
+            this.settings.registerOfflineFeature(TRIP_FEATURE_NAME);
           })
         ))
 
@@ -1260,29 +1350,6 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return this.$importationProgress;
   }
 
-  async copyToOffline(id: number, opts?: TripServiceLoadOption): Promise<Trip> {
-
-    console.debug("[trip-service] Copy trip locally...");
-
-    const data = await this.load(id, {...opts, fetchPolicy: "network-only"});
-
-    // Add operations
-    if (!opts || opts.withOperation !== false) {
-      const res = await this.operationService.loadAllByTrip({tripId: id}, {
-        fetchPolicy: "network-only",
-        fullLoad: true
-      });
-      data.operations = res.data;
-      data.operations.forEach(o => {
-        o.id = null;
-        data.updateDate = null;
-      });
-    }
-
-    await this.restoreFromTrash([data]);
-
-    return data;
-  }
 
   /* -- protected methods -- */
 
@@ -1328,7 +1395,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     fillRankOrder(entity.measurements);
   }
 
-  fillRecorderDepartment(entities: IWithRecorderDepartmentEntity<any> | IWithRecorderDepartmentEntity<any>[], department?: Department) {
+  protected fillRecorderDepartment(entities: IWithRecorderDepartmentEntity<any> | IWithRecorderDepartmentEntity<any>[], department?: Department) {
 
     if (isNil(entities)) return;
     if (!Array.isArray(entities)) {
@@ -1362,7 +1429,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
   }
 
-  copyIdAndUpdateDate(source: Trip | undefined, target: Trip, opts?: TripServiceSaveOption) {
+  protected copyIdAndUpdateDate(source: Trip | undefined, target: Trip, opts?: TripServiceSaveOptions) {
     if (!source) return;
 
     // Update (id and updateDate), and control validation
@@ -1458,4 +1525,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     }
   }
 
+  protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+    return Toasts.show(this.toastController, this.translate, opts);
+  }
 }
