@@ -305,22 +305,18 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('parameter', {
-        items: this.$pmfms,
+        items: this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          map((pmfms: Pmfm[]) => {
+            return removeDuplicatesFromArray(pmfms.map(p => p.parameter), 'label');
+          })
+        ),
         attributes: pmfmParameterAttributes,
-        columnSizes: pmfmParameterAttributes.map(attr => {
-          switch(attr) {
-            case 'code':
-              return 3;
-            case 'label':
-              return 3;
-            case 'name':
-              return 4;
-            default: return undefined;
-          }
-        }),
+        columnSizes: [4,8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
+        class: 'mat-autocomplete-panel-xlarge-size'
       })
     });
 
