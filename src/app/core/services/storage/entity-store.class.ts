@@ -315,7 +315,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
       // Save each entity into a unique key (advanced mode)
       if (this.isByIdMode) {
         // Save ids
-        await this.storage.set(this._storageKey + '#ids', entities.filter(isNotNil).map(e => e.id));
+        await this.storage.set(this.storageKeyById, entities.filter(isNotNil).map(e => e.id));
 
         // Saved dirty entities
         await Promise.all(
@@ -382,9 +382,9 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     }
 
     // OK, there is something in storage...
-    if (isNil(entities)) {
-      if (entities && entities.length >= 1000) {
-        console.warn(`[entity-storage] - Restoring ${entities.length} ${this.name}...`);
+    if (isNotEmptyArray(entities)) {
+      if (entities.length >= 1000) {
+        console.warn(`[entity-storage] - Restoring ${entities.length} ${this.name}. Check if not too many elements?!`);
       }
 
       // Map entities into light element (if if not need to persist, because of migration
@@ -405,10 +405,10 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
         await this.persist({skipIfPristine: false /* force persist using the new mode */ });
 
         // Clean old storage keys (one by one)
-        await chainPromises(oldKeysToClean.map(key => () => this.storage.remove(key)));
+        if (isNotEmptyArray(oldKeysToClean)) await chainPromises(oldKeysToClean.map(key => () => this.storage.remove(key)));
       }
       catch (err) {
-        console.error();
+        console.error(err);
         throw {code: ErrorCodes.ENTITY_STORAGE_MIGRATION_FAILED, message: 'ERROR.ENTITY_STORAGE_MIGRATION_FAILED', details: err};
       }
     }

@@ -332,6 +332,7 @@ export class PlatformService {
   }
 
   protected async onStartupError(err) {
+    console.error('[platform] Failed starting the platform! ', err);
     let message = err && err.message || err;
     const detailsMessage = err && (err.details && err.details.message || err.details);
     if (this.translate) {
@@ -354,11 +355,15 @@ export class PlatformService {
         message
       });
     }
-    else {
+    else if (window) {
       if (detailsMessage) {
         message += `\n\n{cause: "${detailsMessage}"}`;
       }
       window.alert(message);
+    }
+    else {
+      console.error(message);
+      if (err && err.details) console.error("cause", err.details);
     }
   }
 }
