@@ -295,7 +295,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       target.pmfm = pmfm;
       delete target.pmfmId;
 
-      if (isNotNil(target.defaultValue)) console.log("TODO check reading default value", target.defaultValue);
+      if (isNotNil(target.defaultValue)) {
+        console.debug("[pmfm-strategy-table] TODO check default value is valid: ", target.defaultValue);
+      }
       target.defaultValue = PmfmValueUtils.fromModelValue(target.defaultValue, pmfm);
 
       return target;

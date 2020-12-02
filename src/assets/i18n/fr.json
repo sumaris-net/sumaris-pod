@@ -1460,6 +1460,7 @@
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION_IMMEDIATE": "Cette action est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
+    "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
     "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"
