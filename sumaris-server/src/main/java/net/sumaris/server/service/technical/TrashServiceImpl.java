@@ -34,15 +34,16 @@ import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -50,14 +51,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,12 +71,9 @@ public class TrashServiceImpl implements TrashService {
     private boolean enable;
     private File trashDirectory;
 
+    @Resource(name = "jacksonObjectMapper")
     private ObjectMapper objectMapper;
 
-    @Autowired
-    public TrashServiceImpl(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public <V> Page<V> findAll(@NonNull String entityName, @NonNull Pageable pageable, Class<? extends V> clazz) {
@@ -125,46 +121,64 @@ public class TrashServiceImpl implements TrashService {
             .map(content -> (V)content);
         }
         else {
-            File classFile = new File(directory, CLASS_FILE_NAME);
-            Set<Class<?>> classes = null;
-            if (clazz != null) {
-                classes = ImmutableSet.of(clazz);
-            }
-            else if (classFile.exists()) {
-                classes = readFileContentAsClasses(classFile);
-            }
-            Preconditions.checkArgument(CollectionUtils.isNotEmpty(classes), "Missing or invalid file " + classFile.getAbsolutePath());
-
             // Create readers for each classes
-            List<ObjectReader> readers = classes.stream()
-                    .map(c -> objectMapper.reader().forType(c))
-                    .collect(Collectors.toList());
+            List<ObjectReader> readers = getObjectReaders(directory, clazz);
 
-            // Try to deserialize, using readers, to return the first valid object.
-            // Keep null values (e.g. when cannot deserialize), because of page's total
-            result = fileStream.map(file -> readers.stream().map(reader -> {
-                try {
-                    // Deserialize file content
-                    Object vo = reader.readValue(file);
-
-                    // Override update date, with file date (=deletion date)
-                    if (vo instanceof IUpdateDateEntityBean) {
-                        Date lastModified = new Date(file.lastModified());
-                        ((IUpdateDateEntityBean<?, Date>) vo).setUpdateDate(lastModified);
-                    }
-                    return vo;
-                }
-                catch(Throwable t) {
-                    return null;
-                }
-            })
-            .filter(Objects::nonNull)
-            .filter(obj -> obj instanceof IValueObject)
-            .map(obj -> (V)obj)
-            .findFirst()
-            .orElse(null));
+            // Try to deserialize
+            result = fileStream.map(file -> readAsObject(file, readers, clazz)
+                    // Keep null values (e.g. when cannot deserialize), because of page's total
+                    .orElse(null));
         }
         return new PageImpl<>(result.collect(Collectors.toList()), pageable, total);
+    }
+
+    @Override
+    public <V> V getById(String entityName, Serializable id, Class<? extends V> clazz) {
+        return findById(entityName, id, clazz)
+                .orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.trash.notfound")));
+    }
+
+    @Override
+    public <V> Optional<V> findById(String entityName, Serializable id, Class<? extends V> clazz) {
+
+        File directory = new File(trashDirectory, entityName);
+        if (!directory.isDirectory()) return Optional.empty();
+        if (!directory.canRead()) throw new SumarisTechnicalException("Cannot read the trash directory " + entityName);
+
+        // Compute the file
+        File file = new File(directory, getFileBasename(entityName, id));
+
+        // Read as String
+        if (clazz != null && String.class.isAssignableFrom(clazz)) {
+            try {
+                return Optional.of((V) Files.readContent(file, Files.CHARSET_UTF8));
+            }
+            catch(IOException e) {
+                return Optional.empty();
+            }
+        }
+
+        // Read as object
+        else {
+            return readAsObject(file, clazz);
+        }
+    }
+
+    @Override
+    public void delete(String entityName, Serializable id) {
+        File directory = new File(trashDirectory, entityName);
+        if (!directory.isDirectory()) return; // Not exists (or already deleted)
+        if (!directory.canRead()) throw new SumarisTechnicalException("Cannot read the trash directory " + entityName);
+
+        // Compute the file
+        String filename = getFileBasename(entityName, id);
+
+        if (log.isInfoEnabled()) {
+            log.info("Delete {}#{} from trash {path: '{}/{}'}", entityName, id, entityName, filename);
+        }
+
+        File file = new File(directory, filename);
+        Files.deleteQuietly(file);
     }
 
     @Override
@@ -231,13 +245,8 @@ public class TrashServiceImpl implements TrashService {
             }
         }
 
-        String filename = new StringBuilder()
-                .append(StringUtils.trimToEmpty(getFilePrefix(data)))
-                .append(entityName.toLowerCase())
-                .append('#')
-                .append(data.getId())
-                .append('.').append(JSON_FILE_EXTENSION)
-                .toString();
+        String filename = StringUtils.trimToEmpty(getFilePrefix(data))
+                + getFileBasename(entityName, data.getId());
         File file = new File(directory, filename);
 
         if (log.isInfoEnabled()) {
@@ -246,6 +255,10 @@ public class TrashServiceImpl implements TrashService {
 
         try (FileWriter writer = new FileWriter(file)) {
             objectMapper.writeValue(writer, data);
+        }
+        catch(IOException e) {
+            log.error("Cannot serialize entity to trash file: " + e.getMessage(), e);
+            throw new SumarisTechnicalException("Cannot serialize entity to trash file: " + e.getMessage(), e);
         }
     }
 
@@ -296,5 +309,81 @@ public class TrashServiceImpl implements TrashService {
         } catch (IOException e) {
             throw new SumarisTechnicalException("Error while reading class file " + classFile.getAbsolutePath(), e);
         }
+    }
+
+    /* -- -- */
+
+    protected String getFileBasename(String entityName, Serializable id) {
+        return new StringBuilder()
+                .append(entityName.toLowerCase())
+                .append('#')
+                .append(id)
+                .append('.').append(JSON_FILE_EXTENSION)
+                .toString();
+    }
+
+    protected List<ObjectReader> getObjectReaders(File directory, Class<?> clazz) {
+        File classFile = new File(directory, CLASS_FILE_NAME);
+        Set<Class<?>> classes = null;
+        if (clazz != null) {
+            classes = ImmutableSet.of(clazz);
+        }
+        else if (classFile.exists()) {
+            classes = readFileContentAsClasses(classFile);
+        }
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(classes), "Missing or invalid file " + classFile.getAbsolutePath());
+
+        // Create readers for each classes
+        return classes.stream()
+                .map(c -> objectMapper.reader().forType(c))
+                .collect(Collectors.toList());
+    }
+    /**
+     * Try to deserialize using a list of readers, and return the first valid object.
+     * @param file
+     * @param clazz
+     * @param <V>
+     * @return
+     */
+    protected <V> Optional<V> readAsObject(File file,
+                                 Class<? extends V> clazz) {
+        List<ObjectReader> readers = getObjectReaders(file.getParentFile(), clazz);
+        return readAsObject(file, readers, clazz);
+    }
+
+    /**
+     * Try to deserialize using a list of readers, and return the first valid object.
+     * @param file
+     * @param readers
+     * @param clazz
+     * @param <V>
+     * @return
+     */
+    protected <V> Optional<V> readAsObject(File file,
+                                 List<ObjectReader> readers,
+                                 Class<? extends V> clazz) {
+
+        // Keep null values (e.g. when cannot deserialize), because of page's total
+        return readers.stream().map(reader -> {
+            try {
+                // Deserialize file content
+                Object vo = reader.readValue(file);
+
+                // Not the expected class
+                if (clazz != null && !clazz.isInstance(vo)) return null;
+
+                // Override update date, with file date (=deletion date)
+                if (vo instanceof IUpdateDateEntityBean) {
+                    Date lastModified = new Date(file.lastModified());
+                    ((IUpdateDateEntityBean<?, Date>) vo).setUpdateDate(lastModified);
+                }
+
+                return (V)vo;
+            } catch (Throwable t) {
+                return null;
+            }
+        })
+        .filter(Objects::nonNull)
+        .findFirst();
     }
 }

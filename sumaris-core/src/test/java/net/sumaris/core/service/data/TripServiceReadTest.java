@@ -31,6 +31,7 @@ import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -43,6 +44,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public class TripServiceReadTest extends AbstractServiceTest{
 
@@ -118,11 +120,13 @@ public class TripServiceReadTest extends AbstractServiceTest{
 
 
     @Test
-    public void getWithChildren() {
+    public void getFullGraph() {
 
         Integer id = fixtures.getTripId(0);
         TripVO trip = service.get(id, DataFetchOptions.FULL_GRAPH);
         Assert.assertNotNull(trip);
+        Assert.assertNotNull(trip.getVesselSnapshot());
+        Assert.assertNotNull(trip.getVesselSnapshot().getExteriorMarking());
 
         // PhysicalGear
         {
@@ -141,8 +145,21 @@ public class TripServiceReadTest extends AbstractServiceTest{
         {
             Assert.assertTrue(CollectionUtils.isNotEmpty(trip.getOperations()));
 
+            // Check positions
+            {
+                Assert.assertTrue(trip.getOperations()
+                        .stream().map(OperationVO::getPositions).anyMatch(CollectionUtils::isNotEmpty));
+            }
 
-           /* // Check samples
+            // Measurements
+            {
+                Assert.assertTrue(trip.getOperations()
+                        .stream()
+                        .flatMap(o -> Stream.concat(Beans.getStream(o.getMeasurements()), Beans.getStream(o.getGearMeasurements())))
+                        .findAny()
+                        .isPresent());
+            }
+            // Check samples
             {
                 Assert.assertTrue(trip.getOperations()
                         .stream().map(OperationVO::getSamples).anyMatch(CollectionUtils::isNotEmpty));
@@ -161,7 +178,7 @@ public class TripServiceReadTest extends AbstractServiceTest{
                         .flatMap(Beans::getStream)
                         .map(SampleVO::getParentId)
                         .anyMatch(Objects::nonNull));
-            }*/
+            }
 
             // Check batches
             {

@@ -118,7 +118,6 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 // Data
                 .withOperationsFromSingleton(dataService, DataGraphQLService.class)
 
-
                 // Social
                 .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
 

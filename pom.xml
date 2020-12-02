@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.5.6</version>
+  <version>1.6.0</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -102,7 +102,7 @@
     <elasticsearch.version>6.2.2</elasticsearch.version>
     <jna.version>4.5.2</jna.version>
     <tyrus.version>1.15</tyrus.version>
-    <jackson.version>2.10.2</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
+    <jackson.version>2.11.3</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
     <stringtemplate.version>4.0.2</stringtemplate.version>
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
     <commonBeanutilsVersion>1.9.4</commonBeanutilsVersion>

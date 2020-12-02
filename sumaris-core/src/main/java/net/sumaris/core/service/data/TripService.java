@@ -28,9 +28,11 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripSaveOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author BLA
@@ -70,9 +72,13 @@ public interface TripService {
 
 	List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions);
 
-	void asyncDelete(int id);
+	@Transactional(timeout = -1)
+	@Async
+	CompletableFuture<Boolean> asyncDelete(int id);
 
-	void asyncDelete(List<Integer> ids);
+	@Transactional(timeout = -1)
+	@Async
+	CompletableFuture<Boolean> asyncDelete(List<Integer> ids);
 
 	@Transactional(timeout = -1)
 	void delete(List<Integer> ids);

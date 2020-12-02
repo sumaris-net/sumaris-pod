@@ -57,9 +57,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service("tripService")
@@ -106,11 +109,8 @@ public class TripServiceImpl implements TripService {
     @Autowired
     private FishingAreaService fishingAreaService;
 
-    @Autowired(required = false)
-    private TaskExecutor taskExecutor;
-
     @Autowired
-    private TripService self;
+    private VesselService vesselService;
 
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
@@ -145,6 +145,7 @@ public class TripServiceImpl implements TripService {
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
 
+            target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), target.getDepartureDateTime()));
             target.setGears(physicalGearService.getAllByTripId(id, fetchOptions));
             target.setSales(saleService.getAllByTripId(id, fetchOptions));
 
@@ -477,7 +478,7 @@ public class TripServiceImpl implements TripService {
         log.info("Delete Trip#{} {trash: {}}", id, enableTrash);
 
         TripVO eventData = enableTrash ?
-                get(id, DataFetchOptions.builder().withChildrenEntities(true).build()) :
+                get(id, DataFetchOptions.FULL_GRAPH) :
                 null;
 
         // Remove link LANDING->TRIP
@@ -494,25 +495,6 @@ public class TripServiceImpl implements TripService {
         publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), eventData));
     }
 
-    @Override
-    public void asyncDelete(int id) {
-        if (taskExecutor == null) {
-            delete(id);
-        } else {
-            // Delete async
-            taskExecutor.execute(() -> {
-                try {
-                    Thread.sleep(2000); // Wait 2 s
-
-                    // Call self, to be sure to have a transaction
-                    self.delete(id);
-                } catch (Exception e) {
-                    log.warn(String.format("Error while deleting trip {id: %s}: %s", id, e.getMessage()), e);
-                }
-            });
-        }
-    }
-
 
     @Override
     public void delete(List<Integer> ids) {
@@ -523,21 +505,26 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public void asyncDelete(List<Integer> ids) {
-        if (taskExecutor == null) {
-            delete(ids);
-        } else {
-            // Delete async
-            taskExecutor.execute(() -> {
-                try {
-                    Thread.sleep(2000); // Wait 2 s
+    public CompletableFuture<Boolean> asyncDelete(int id) {
+        try {
+            // Call self, to be sure to have a transaction
+            this.delete(id);
+            return CompletableFuture.completedFuture(Boolean.TRUE);
+        } catch (Exception e) {
+            log.warn(String.format("Error while deleting trip {id: %s}: %s", id, e.getMessage()), e);
+            return CompletableFuture.completedFuture(Boolean.FALSE);
+        }
+    }
 
-                    // Call self, to be sure to have a transaction
-                    self.delete(ids);
-                } catch (Exception e) {
-                    log.warn(String.format("Error while deleting trip {ids: %s}: %s", ids, e.getMessage()), e);
-                }
-            });
+    @Override
+    public CompletableFuture<Boolean> asyncDelete(List<Integer> ids) {
+        try {
+            // Call self, to be sure to have a transaction
+            this.delete(ids);
+            return CompletableFuture.completedFuture(Boolean.TRUE);
+        } catch (Exception e) {
+            log.warn(String.format("Error while deleting trip {ids: %s}: %s", ids, e.getMessage()), e);
+            return CompletableFuture.completedFuture(Boolean.FALSE);
         }
     }
 
