@@ -4,6 +4,7 @@ import {DATE_ISO_PATTERN, PUBKEY_REGEXP} from "../constants";
 import {fromDateISOString, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN} from "../functions";
 import {Moment} from "moment";
 
+// @dynamic
 export class SharedValidators {
 
   static validDate(control: FormControl): ValidationErrors | null {
@@ -123,6 +124,7 @@ export class SharedValidators {
 
 }
 
+// @dynamic
 export class SharedFormGroupValidators {
 
   static dateRange(startDateField: string, endDateField: string): ValidatorFn {
@@ -233,6 +235,7 @@ export class SharedFormGroupValidators {
 
 }
 
+// @dynamic
 export class SharedFormArrayValidators {
 
   /**

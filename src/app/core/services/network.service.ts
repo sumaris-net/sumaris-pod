@@ -114,7 +114,7 @@ export class NetworkService {
   }
 
   constructor(
-    @Inject(DOCUMENT) private _document: HTMLDocument,
+    @Inject(DOCUMENT) private _document: any,
     private platform: Platform,
     private modalCtrl: ModalController,
     private cryptoService: CryptoService,
