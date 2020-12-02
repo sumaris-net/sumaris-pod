@@ -9,6 +9,18 @@ stages:
     - deploy
 
 build_develop:
+  extends: .build
+  only:
+    - develop
+    - develop-ifremer
+  when: manual
+
+schedule-build:
+  extends: .build
+  only:
+    - schedules
+
+.build:
   stage: build
   tags:
     - sih_public_runner
@@ -27,10 +39,6 @@ build_develop:
   artifacts:
     paths:
       - dist
-  only:
-    - develop
-    - develop-ifremer
-  when: always
 
 sonarqube:
     stage: test
@@ -45,13 +53,14 @@ sonarqube:
     script:
       - echo "Sonarqube analysis in progress"
       - sonar-scanner
-        -Dsonar.projectKey=wao
+        -Dsonar.projectKey=imagine-app
         -Dsonar.host.url=$SONAR_HOST_URL
         -Dsonar.login=$SONAR_TOKEN
         -Dsonar.sourceEncoding=UTF-8
         -Dsonar.java.binaries=.
         -Dsonar.java.libraries=.
     only:
+        - develop
         - develop-ifremer
     when: manual
 
@@ -73,6 +82,7 @@ pages:
         paths:
             - public
     only:
+        - develop
         - develop-ifremer
     when: manual
 
