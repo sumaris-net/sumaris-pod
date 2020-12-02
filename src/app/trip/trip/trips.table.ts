@@ -1,12 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Injector,
-  OnDestroy,
-  OnInit
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {
   AppTable,
@@ -20,7 +12,7 @@ import {
   RESERVED_START_COLUMNS,
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/validator/trip.validator";
-import {TRIP_FEATURE, TripFilter, TripService} from "../services/trip.service";
+import {TripFilter, TripService} from "../services/trip.service";
 import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -37,7 +29,7 @@ import {BehaviorSubject} from "rxjs";
 import {personsToString, personToString} from "../../core/services/model/person.model";
 import {chainPromises} from "../../shared/observables";
 import {isEmptyArray} from "../../shared/functions";
-import {Operation, Trip} from "../services/model/trip.model";
+import {Trip} from "../services/model/trip.model";
 import {PersonService} from "../../admin/services/person.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
@@ -48,6 +40,7 @@ import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
 import {HttpClient} from "@angular/common/http";
 import * as moment from "moment";
+import {TRIP_FEATURE_NAME} from "../services/config/trip.config";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -503,7 +496,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     const tripFilter = jsonFilter && typeof jsonFilter === 'object' && {...jsonFilter, synchronizationStatus: undefined} || undefined;
 
     this.hasOfflineMode = (synchronizationStatus && synchronizationStatus !== 'SYNC') ||
-      (this.settings.hasOfflineFeature(TRIP_FEATURE) || await this.service.hasOfflineData());
+      (this.settings.hasOfflineFeature(TRIP_FEATURE_NAME) || await this.service.hasOfflineData());
 
     // No default filter, nor synchronizationStatus
     if (TripFilter.isEmpty(tripFilter) && !synchronizationStatus) {
@@ -543,7 +536,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     if (this.network.online) {
 
       // Get last synchro date
-      const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(TRIP_FEATURE);
+      const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(TRIP_FEATURE_NAME);
 
       // Check only if last synchro older than 10 min
       if (lastSynchronizationDate && lastSynchronizationDate

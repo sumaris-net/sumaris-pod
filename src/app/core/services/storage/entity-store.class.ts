@@ -7,14 +7,14 @@ import {LoadResult} from "../../../shared/services/entity-service.class";
 import {chainPromises} from "../../../shared/observables";
 import {ErrorCodes} from "../errors";
 
-export const ENTITIES_STORAGE_KEY = "entities";
+export const ENTITIES_STORAGE_KEY_PREFIX = "entities";
 
 export type EntityStoreTypePolicyMode = 'default' | 'by-id';
 
-export declare interface EntityStoreTypePolicy<T extends Entity<T> = Entity<any>>  {
-  mode?: EntityStoreTypePolicyMode;
-  skipNonLocalEntities?: boolean;
-  lightFieldsExcludes?: (keyof T)[];
+export declare interface EntityStoreTypePolicy<T extends Entity<T> = Entity<any>, K = keyof T>  {
+  mode?: EntityStoreTypePolicyMode; // 'default' by default
+  skipNonLocalEntities?: boolean; // False by default
+  lightFieldsExcludes?: K[]; // none by default
 }
 
 export declare interface EntityStorageLoadOptions {
@@ -62,7 +62,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     this.reset({emitEvent: false});
     this._dirty = false;
     this._loaded = false;
-    this._storageKey = ENTITIES_STORAGE_KEY + '#' + name;
+    this._storageKey = ENTITIES_STORAGE_KEY_PREFIX + '#' + name;
     this._mapToLightEntity = this.createLightEntityMapFn(this.policy);
   }
 
@@ -343,10 +343,6 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   async restore(opts?: { emitEvent?: boolean; }): Promise<number> {
     let entities: T[];
 
-    if (this._storageKey === 'entities#OperationVO') {
-      console.log("TODO restore ope");
-    }
-
     const res = await Promise.all([
       this.storage.get(this._storageKey),
       this.storage.get(this.storageKeyById)
@@ -360,9 +356,8 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     if (this.isByIdMode) {
       if (isNotNil(ids)) {
         // Load entity by id (one by one)
-        entities = await chainPromises<T>(
-          ids.map(id => () => this.storage.get(this.storageKeyById))
-        );
+        const storageKeys = ids.map(id => this._storageKey + "#" + id);
+        entities = await chainPromises<T>(storageKeys.map(key => () => this.storage.get(key)));
       }
       // Migrate from the standard mode
       else if (isNotNil(values)) {

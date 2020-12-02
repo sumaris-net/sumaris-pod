@@ -26,7 +26,7 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
+import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
@@ -38,6 +38,7 @@ import {QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {FetchPolicy} from "@apollo/client/core";
+import {EntityStoreTypePolicy} from "../../core/services/storage/entity-store.class";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -128,8 +129,6 @@ export const OperationFragments = {
   ${DataFragments.fishingArea}
   `
 };
-
-export const LIGHT_OPERATION_KEY_FIELDS_EXCLUDES = ["trip", "measurements", "samples", "batches", "catchBatch", "gearMeasurements", 'fishingAreas'];
 
 export class OperationFilter {
 
