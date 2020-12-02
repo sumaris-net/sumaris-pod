@@ -28,7 +28,7 @@ export class VersionUtils {
  *
  *  Taken from http://stackoverflow.com/a/6832721/11236
  */
- function compareVersionNumbers(v1, v2){
+ export function compareVersionNumbers(v1, v2){
   var v1parts = v1.split('.');
   var v2parts = v2.split('.');
 
@@ -79,9 +79,8 @@ function validateParts(parts) {
   return true;
 }
 
-function isVersionCompatible(minVersion, actualVersion) {
+export function isVersionCompatible(minVersion, actualVersion) {
   // DEV ONLY
   //console.debug(`[http] Checking actual version {${actualVersion}} is compatible with min expected version {${minVersion}}`);
-
   return compareVersionNumbers(minVersion, actualVersion) <= 0;
 }

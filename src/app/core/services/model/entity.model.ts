@@ -75,6 +75,7 @@ export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsOb
 
 }
 
+// @dynamic
 export abstract class EntityUtils {
   // Check that the object has a NOT nil attribute (ID by default)
   static isNotEmpty<T extends IEntity<any> | any>(obj: any | T, checkedAttribute: keyof T): boolean {
