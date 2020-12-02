@@ -129,12 +129,12 @@
     <mat-cell *matCellDef="let row">
       <ng-container *ngIf="getDetail(row.currentData); let details">
         <button mat-icon-button color="light"
-                *ngIf="details.action"
-                [title]="details.actionTitle |translate"
-                [color]="details.actionColor"
-                (click)="doAction(details.action, row)">
-          <ion-icon slot="start" *ngIf="details.icon" [name]="details.icon"></ion-icon>
-          <mat-icon slot="start" *ngIf="details.matIcon">{{details.matIcon}}</mat-icon>
+                *ngFor="let action of details.actions"
+                [title]="action.title |translate"
+                [color]="action.color"
+                (click)="doAction(action, row)">
+          <ion-icon slot="start" *ngIf="action.icon" [name]="action.icon"></ion-icon>
+          <mat-icon slot="start" *ngIf="action.matIcon">{{action.matIcon}}</mat-icon>
         </button>
       </ng-container>
     </mat-cell>

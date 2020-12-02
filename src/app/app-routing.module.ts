@@ -75,7 +75,7 @@ const routes: Routes = [
     data: {
       profile: 'GUEST'
     },
-    loadChildren: () => import('./trip/extraction/extraction.module').then(m => m.ExtractionModule)
+    loadChildren: () => import('./extraction/extraction.module').then(m => m.ExtractionModule)
   },
 
   // Test module (disable in menu, by default - can be enable by the Pod configuration page)

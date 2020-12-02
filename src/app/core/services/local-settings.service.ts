@@ -5,7 +5,8 @@ import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
 import {
-  getPropertyByPath,
+  fromDateISOString,
+  getPropertyByPath, isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -19,6 +20,7 @@ import {FormFieldDefinition} from "../../shared/form/field.model";
 import * as moment from "moment";
 import {debounceTime, filter} from "rxjs/operators";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
+import {Moment} from "moment";
 
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
@@ -228,7 +230,7 @@ export class LocalSettingsService {
     this.data.offlineFeatures = this.data.offlineFeatures || [];
 
     const featurePrefix = featureName.toLowerCase() + '#';
-    const featureAndLastSyncDate = featurePrefix + toDateISOString(new Date());
+    const featureAndLastSyncDate = featurePrefix + moment().toISOString();
     const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase().startsWith(featurePrefix));
     if (existingIndex !== -1) {
       this.data.offlineFeatures[existingIndex] = featureAndLastSyncDate;
@@ -251,11 +253,23 @@ export class LocalSettingsService {
   }
 
   hasOfflineFeature(featureName?: string): boolean {
-    return this.data && this.data.offlineFeatures
-      && (
-        (featureName && this.data.offlineFeatures.findIndex(f => f.toLowerCase() === featureName.toLowerCase()) !== -1)
-        || (this.data.offlineFeatures.length > 0)
-      );
+    if (!this.data || !this.data.offlineFeatures) return false;
+
+    if (!featureName) return isNotEmptyArray(this.data.offlineFeatures);
+
+    const featurePrefix = featureName.toLowerCase() + '#';
+    const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase().startsWith(featurePrefix));
+    return existingIndex !== -1;
+  }
+
+  getOfflineFeatureLastSyncDate(featureName: string): Moment {
+    if (!this.data || !this.data.offlineFeatures || isEmptyArray(this.data.offlineFeatures))
+      return undefined;
+    if (!featureName) throw Error("Missing 'featureName' argument");
+
+    const featurePrefix = featureName.toLowerCase() + '#';
+    const featureAndSyncDate = this.data.offlineFeatures.find(f => f.toLowerCase().startsWith(featurePrefix));
+    return featureAndSyncDate && fromDateISOString(featureAndSyncDate.substring(featurePrefix.length));
   }
 
   getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {

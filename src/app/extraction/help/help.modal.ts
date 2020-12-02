@@ -1,11 +1,11 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import {BehaviorSubject} from "rxjs";
 import {ModalController} from "@ionic/angular";
-import {PlatformService} from "../../../core/services/platform.service";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {PlatformService} from "../../core/services/platform.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
-import {ExtractionType} from "../../services/model/extraction.model";
-import {isNotNilOrBlank} from "../../../shared/functions";
+import {ExtractionType} from "../services/model/extraction.model";
+import {isNotNilOrBlank} from "../../shared/functions";
 
 @Component({
     selector: 'app-extraction-help-modal',

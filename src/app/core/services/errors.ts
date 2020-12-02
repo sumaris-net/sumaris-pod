@@ -20,6 +20,7 @@ export const ErrorCodes = {
   SAVE_ACCOUNT_ERROR: 8,
   ACCOUNT_NOT_EXISTS: 9,
   SUBSCRIBE_ACCOUNT_ERROR: 10,
+  ENTITY_STORAGE_MIGRATION_FAILED: 11,
 
   // DATA errors (load error)
   LOAD_PERSONS_ERROR: 100,
@@ -34,6 +35,9 @@ export const ErrorCodes = {
 
   LOAD_CONFIG_ERROR: 700,
   SAVE_CONFIG_ERROR: 701,
+
+  LOAD_TRASH_ENTITY_ERROR: 800,
+  DELETE_TRASH_ENTITY_ERROR: 801
 };
 
 export const ServerErrorCodes = {

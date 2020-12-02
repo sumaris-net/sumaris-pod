@@ -10,6 +10,8 @@ import {
 } from "../../../shared/functions";
 import {FilterFn} from "../../../shared/services/entity-service.class";
 import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
+import {StoreObject} from "@apollo/client/core";
+import {ReferentialRef} from "../../core.module";
 
 
 export declare interface Cloneable<T> {
@@ -26,10 +28,10 @@ export interface EntityAsObjectOptions {
   keepLocalId?: boolean; // true by default
 }
 
-export interface IEntity<T, O extends EntityAsObjectOptions = EntityAsObjectOptions>
+export interface IEntity<T, O extends EntityAsObjectOptions = EntityAsObjectOptions, ID = number>
   extends Cloneable<T> {
-  id: number;
-  updateDate: Date | Moment;
+  id: ID;
+  updateDate: Moment;
   __typename: string;
   equals(other: T): boolean;
   clone(): T;
@@ -44,19 +46,19 @@ export declare interface ITreeItemEntity<T extends IEntity<T>> {
 }
 
 
-export abstract class Entity<T extends IEntity<any, any>, O extends EntityAsObjectOptions = EntityAsObjectOptions>
-  implements IEntity<T, O> {
+export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsObjectOptions = EntityAsObjectOptions, ID = number>
+  implements IEntity<T, O, ID> {
 
-  id: number;
-  updateDate: Date | Moment;
+  id: ID;
+  updateDate: Moment;
   __typename: string;
 
   abstract clone(): T;
 
-  asObject(opts?: O): any {
+  asObject(opts?: O): StoreObject {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
-    if (target.id < 0 && (!opts || opts.keepLocalId === false)) delete target.id;
+    if ((!opts || opts.keepLocalId === false) && target.id < 0) delete target.id;
     target.updateDate = toDateISOString(this.updateDate);
     return target;
   }
@@ -152,6 +154,16 @@ export abstract class EntityUtils {
     // Take the min (sequence, id), in case the sequence is corrupted
     currentId = items.filter(item => isNotNil(item.id) && item.id < 0).reduce((res, item) => Math.min(res, item.id), currentId);
     newItems.forEach(item => item.id = --currentId);
+  }
+
+  static cleanIdAndUpdateDate<T extends IEntity<T>>(source: T) {
+    if (!source) return; // Skip
+    source.id = null;
+    source.updateDate = null;
+  }
+
+  static cleanIdsAndUpdateDates<T extends IEntity<T>>(items: T[]) {
+    (items || []).forEach(EntityUtils.cleanIdAndUpdateDate);
   }
 
   static sort<T extends IEntity<T> | any>(data: T[], sortBy?: string, sortDirection?: string): T[] {
@@ -266,3 +278,4 @@ export abstract class EntityUtils {
     return entity && !EntityUtils.isLocal(entity);
   }
 }
+

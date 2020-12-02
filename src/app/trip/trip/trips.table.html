@@ -1,5 +1,18 @@
-<app-toolbar [title]="'TRIP.TABLE.TITLE'|translate" color="primary"
-             [canGoBack]="false">
+<app-toolbar color="primary" [canGoBack]="false">
+
+  <ion-title>{{'TRIP.TABLE.TITLE'|translate}}</ion-title>
+
+  <ion-buttons slot="end">
+
+    <!-- Synchronization status -->
+    <ion-button *ngIf="hasOfflineMode"
+                [color]="synchronizationStatus==='SYNC' ? 'secondary' : 'accent'"
+                fill="solid"
+                [matMenuTriggerFor]="syncStatusMenu">
+      <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
+      <mat-icon slot="end">arrow_drop_down</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
 
 
@@ -11,7 +24,7 @@
   <!-- item for each synchro status-->
   <button mat-menu-item *ngFor="let status of synchronizationStatusList"
           (click)="setSynchronizationStatus(status)">
-    <mat-icon>{{synchronizationStatus === status ? 'radio_button_checked' : 'radio_button_unchecked'}}</mat-icon>
+    <mat-icon>{{synchronizationStatus === status ? 'checkmark' : ''}}</mat-icon>
     <ion-label class="ion-text-wrap"
                [color]="status === 'SYNC' && offline && 'medium'"
                translate>{{'TRIP.TABLE.SYNCHRONIZATION_STATUS.' + status + '_HELP' }}
@@ -80,19 +93,18 @@
   <!-- Network status (+ Install and upgrade link) -->
   <app-install-upgrade-card
     [isLogin]="accountService.account|isLogin"
-    [showInstallButton]="false"
-    [showUpgradeWarning]="true"
-    [showOfflineWarning]="false">
+    showInstallButton="false"
+    showUpgradeWarning="true"
+    showOfflineWarning="false"
+    [showUpdateOfflineFeature]="showUpdateOfflineFeature"
+    (onUpdateOfflineModeClick)="prepareOfflineMode($event)"
+  >
   </app-install-upgrade-card>
 
   <mat-toolbar>
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-      <!-- Synchronization status -->
-      <ion-button color="secondary" *ngIf="hasOfflineMode" [matMenuTriggerFor]="syncStatusMenu">
-        <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
-        <mat-icon slot="end">arrow_drop_down</mat-icon>
-      </ion-button>
+
 
       <button mat-icon-button
               hidden-xs hidden-sm hidden-mobile
@@ -138,6 +150,7 @@
     </ion-item>
 
     <div class="toolbar-spacer"></div>
+
 
     <button mat-icon-button
             [title]="'COMMON.BTN_OPTIONS'|translate"
@@ -312,9 +325,9 @@
         </ng-container>
         <ng-template #synchronizationStatus >
           <ng-container [ngSwitch]="row.currentData.synchronizationStatus">
-            <ion-icon *ngSwitchCase="'DIRTY'" color="secondary" name="pencil" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
-            <ion-icon *ngSwitchCase="'READY_TO_SYNC'" color="tertiary" name="checkmark" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
-            <ion-icon *ngSwitchCase="'SYNC'" color="tertiary" name="checkmark-circle" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
+            <ion-icon *ngSwitchCase="'DIRTY'" color="accent" name="pencil" slot="icon-only" [matTooltip]="'QUALITY.MODIFIED_OFFLINE'|translate"></ion-icon>
+            <ion-icon *ngSwitchCase="'READY_TO_SYNC'" color="accent" name="time" slot="icon-only" [matTooltip]="'QUALITY.READY_TO_SYNC'|translate"></ion-icon>
+            <ion-icon *ngSwitchCase="'SYNC'" color="accent" name="checkmark-circle" slot="icon-only" [matTooltip]="'QUALITY.VALIDATED'|translate"></ion-icon>
           </ng-container>
         </ng-template>
       </mat-cell>

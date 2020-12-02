@@ -1459,9 +1459,7 @@
     "DATA_MIGRATION_FAILED": "Failed to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>",
     "BAD_APP_VERSION": "Please update the app. Retrieving and sending data with the current version may not work.",
     "LOAD_TRASH_ENTITY_ERROR": "Error while loading the trash file",
-    "DELETE_TRASH_ENTITY_ERROR": "Error while deleting the trash file",
-    "ENTITY_STORAGE_MIGRATION_FAILED": "Local storage migration failed",
-    "STARTUP_FAILED": "Startup error"
+    "DELETE_TRASH_ENTITY_ERROR": "Error while deleting the trash file"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

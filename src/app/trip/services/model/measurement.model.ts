@@ -18,13 +18,13 @@ import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmf
 
 
 export declare interface MeasurementModelValues {
-  [key: string]: string;
+  [pmfmId: string]: string;
 }
 
 export declare type MeasurementFormValue = PmfmValue;
 
 export declare interface MeasurementFormValues {
-  [key: string]: PmfmValue;
+  [pmfmId: string]: PmfmValue;
 }
 
 export declare interface IEntityWithMeasurement<T extends IEntity<T>> extends IEntity<T> {
@@ -197,6 +197,13 @@ export class MeasurementUtils {
       map[m.pmfmId] = isNotNil(value) ? value : null;
       return map;
     }, {}) || undefined;
+  }
+
+  static fromMeasurementValues(measurements: MeasurementFormValues): Measurement[] {
+    return measurements && Object.getOwnPropertyNames(measurements).map(pmfmId => Measurement.fromObject({
+        pmfmId,
+        alphanumericalValue: measurements[pmfmId]
+      })) || undefined;
   }
 
   // Update measurements from source values map

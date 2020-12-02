@@ -35,7 +35,7 @@
   </ng-template>
 </mat-menu>
 
-<mat-menu #typesButtons="matMenu" xPosition="after">
+<mat-menu #typesButtons="matMenu" xPosition="after" class="mat-menu-size-400">
   <ng-template matMenuContent let-types="types">
     <button mat-menu-item
             *ngFor="let type of types"
@@ -59,15 +59,6 @@
 
   <mat-toolbar>
     <mat-toolbar-row>
-
-      <!-- Help button -->
-      <button mat-icon-button
-              *ngIf="type?.description"
-              [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
-              (click)="openHelpModal($event)">
-        <mat-icon>help_outline</mat-icon>
-      </button>
-
       <button mat-icon-button color="light" [matTooltip]="'COMMON.BTN_EDIT'|translate"
               *ngIf="canEdit"
               (click)="openAggregationType(type)">
@@ -77,21 +68,21 @@
               (click)="deleteAggregation()">
         <mat-icon>delete</mat-icon>
       </button>
+
+
+
       <button mat-icon-button [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_FILE'|translate" (click)="downloadAsFile()" download="true">
         <mat-icon>get_app</mat-icon>
       </button>
+
+      <button mat-icon-button color="light" [matTooltip]="'COMMON.BTN_REFRESH'|translate"
+              (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+
       <button mat-icon-button [matTooltip]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
         <mat-icon>filter_list</mat-icon>
       </button>
-      <button mat-icon-button
-              *ngIf="type?.isSpatial"
-              [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
-              (click)="openMap($event)">
-        <mat-icon>
-          <ion-icon name="earth"></ion-icon>
-        </mat-icon>
-      </button>
-
 
       <!-- error -->
       <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
@@ -101,9 +92,21 @@
 
       <span class="toolbar-spacer"></span>
 
-      <button mat-icon-button color="light" [matTooltip]="'COMMON.BTN_REFRESH'|translate"
-              (click)="onRefresh.emit()">
-        <mat-icon>refresh</mat-icon>
+      <!-- Help button -->
+      <button mat-icon-button
+              *ngIf="type?.description"
+              [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+              (click)="openHelpModal($event)">
+        <mat-icon>help_outline</mat-icon>
+      </button>
+
+      <button mat-icon-button
+              *ngIf="type?.isSpatial"
+              [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
+              (click)="openMap($event)">
+        <mat-icon>
+          <ion-icon name="earth"></ion-icon>
+        </mat-icon>
       </button>
 
       <ion-button [matMenuTriggerFor]="aggregateMenu"

@@ -20,12 +20,10 @@ body {
 
 // Text style
 // --------------------------------------------------
-*[text-italic],
 .text-italic {
   font-style: italic;
 }
-*[text-wrap],
-.text-wrap {
+.ion-text-wrap {
   white-space: normal;
   word-wrap: break-word;
 }

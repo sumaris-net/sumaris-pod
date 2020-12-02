@@ -1,5 +1,5 @@
 import {isEmptyArray} from "../functions";
-import {concatPromises} from "../observables";
+import {chainPromises} from "../observables";
 
 export class StorageUtils {
 
@@ -24,7 +24,7 @@ export class StorageUtils {
     console.info(`[storage-utils] Copying ${keys.length} keys from '${from.driver()}' to '${to.driver()}'... {deleteAfterCopy: ${options.deleteAfterCopy}`);
     let errorCount = 0;
 
-    return concatPromises(
+    return chainPromises(
       keys.map(key => () => from.getItem(key)
         .then((data) => to.setItem(key, data))
         .then(() => options.deleteAfterCopy && from.removeItem(key))

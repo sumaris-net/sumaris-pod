@@ -27,9 +27,9 @@ import {ConnectionType, NetworkService} from "../../core/services/network.servic
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
 import {personsToString, personToString} from "../../core/services/model/person.model";
-import {concatPromises} from "../../shared/observables";
+import {chainPromises} from "../../shared/observables";
 import {isEmptyArray} from "../../shared/functions";
-import {Operation, Trip} from "../services/model/trip.model";
+import {Trip} from "../services/model/trip.model";
 import {PersonService} from "../../admin/services/person.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
@@ -39,6 +39,8 @@ import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
 import {HttpClient} from "@angular/common/http";
+import * as moment from "moment";
+import {TRIP_FEATURE_NAME} from "../services/config/trip.config";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -62,6 +64,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   isAdmin: boolean;
   filterForm: FormGroup;
   filterIsEmpty = true;
+  showUpdateOfflineFeature = false;
   offline = false;
 
   importing = false;
@@ -249,10 +252,15 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
         this.markForCheck();
+
+        // Check if update offline mode is need
+        this.checkUpdateOfflineNeed();
+
       }));
 
     // Restore filter from settings, or load all trips
     this.restoreFilterOrLoad();
+
   }
 
   onNetworkStatusChanged(type: ConnectionType) {
@@ -326,6 +334,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.setSynchronizationStatus('DIRTY');
       this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
       success = true;
+      this.showUpdateOfflineFeature = false;
     }
     catch (err) {
       this.error = err && err.message || err;
@@ -352,7 +361,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     console.info(`Importing Trip#${json.id}...`);
     const trip = Trip.fromObject(json);
-    await this.service.restoreFromTrash([trip]);
+    await this.service.copyLocally(trip, {withOperation: true, displaySuccessToast: false});
 
     console.info(`Successfully restored 1 trip...`);
 
@@ -421,7 +430,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.error = null;
 
     try {
-      await concatPromises(tripIds.map(tripId => () => this.service.synchronizeById(tripId)));
+      await chainPromises(tripIds.map(tripId => () => this.service.synchronizeById(tripId)));
       this.selection.clear();
 
       // Success message
@@ -437,7 +446,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     } catch (error) {
       this.userEventService.showToastErrorWithContext({
         error,
-        context: () => concatPromises(tripIds.map(tripId => () => this.service.load(tripId, {withOperation: true, toEntity: false})))
+        context: () => chainPromises(tripIds.map(tripId => () => this.service.load(tripId, {withOperation: true, toEntity: false})))
       });
     }
     finally {
@@ -481,13 +490,13 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
   protected async restoreFilterOrLoad() {
     console.debug("[trips] Restoring filter from settings...");
-    const json = this.settings.getPageSettings(this.settingsId, TripsPageSettingsEnum.FILTER_KEY);
+    const jsonFilter = this.settings.getPageSettings(this.settingsId, TripsPageSettingsEnum.FILTER_KEY);
 
-    const synchronizationStatus = json && json.synchronizationStatus;
-    const tripFilter = json && typeof json === 'object' && {...json, synchronizationStatus: undefined} || undefined;
+    const synchronizationStatus = jsonFilter && jsonFilter.synchronizationStatus;
+    const tripFilter = jsonFilter && typeof jsonFilter === 'object' && {...jsonFilter, synchronizationStatus: undefined} || undefined;
 
     this.hasOfflineMode = (synchronizationStatus && synchronizationStatus !== 'SYNC') ||
-      (this.settings.hasOfflineFeature() || await this.service.hasOfflineData());
+      (this.settings.hasOfflineFeature(TRIP_FEATURE_NAME) || await this.service.hasOfflineData());
 
     // No default filter, nor synchronizationStatus
     if (TripFilter.isEmpty(tripFilter) && !synchronizationStatus) {
@@ -517,6 +526,39 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       else {
         this.filterForm.patchValue({...tripFilter, synchronizationStatus});
       }
+    }
+  }
+
+  protected async checkUpdateOfflineNeed() {
+    let needUpdate = false;
+
+    // If online
+    if (this.network.online) {
+
+      // Get last synchro date
+      const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(TRIP_FEATURE_NAME);
+
+      // Check only if last synchro older than 10 min
+      if (lastSynchronizationDate && lastSynchronizationDate
+            .isBefore(moment().add(-10, 'minute'))) {
+
+        // Get peer last update date
+        let remoteUpdateDate = await this.referentialRefService.lastUpdateDate();
+        if (isNotNil(remoteUpdateDate) && moment.isMoment(remoteUpdateDate)) {
+
+          // Compare dates, to kwown if an update if need
+          console.debug('[trips] Last synchronization:', lastSynchronizationDate);
+          console.debug('[trips] Peer last update:', remoteUpdateDate);
+          needUpdate = remoteUpdateDate.isAfter(lastSynchronizationDate);
+        }
+      }
+    }
+
+    // Update the view
+    if (this.showUpdateOfflineFeature !== needUpdate) {
+      this.showUpdateOfflineFeature = needUpdate;
+
+      this.markForCheck();
     }
   }
 

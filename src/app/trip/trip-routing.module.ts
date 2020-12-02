@@ -17,6 +17,7 @@ const routes: Routes = [
     path: ':tripId',
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
+      profile: 'USER',
       pathIdParam: 'tripId'
     },
     children: [

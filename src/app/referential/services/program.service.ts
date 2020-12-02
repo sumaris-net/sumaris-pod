@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client/core";
 import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {AcquisitionLevelCodes} from "./model/model.enum";
@@ -524,7 +524,8 @@ export class ProgramService extends BaseEntityService
           .pipe(
             map(res => {
               return {program: res && res.data && res.data.length && res.data[0] || undefined};
-            }));
+            })
+          );
         }
         else {
           const query = opts && opts.query || LoadRefQuery;
@@ -842,15 +843,15 @@ export class ProgramService extends BaseEntityService
   }
 
 
-  async save(data: Program, options?: any): Promise<Program> {
-    if (!data) return data;
+  async save(entity: Program, options?: any): Promise<Program> {
+    if (!entity) return entity;
 
     // Clean cache
     this.clearCache();
 
     // Fill default properties
-    this.fillDefaultProperties(data);
-    const json = this.asObject(data, SAVE_AS_OBJECT_OPTIONS);
+    this.fillDefaultProperties(entity);
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
 
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Saving program...", json);
@@ -863,12 +864,11 @@ export class ProgramService extends BaseEntityService
       error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"}
     });
     const savedProgram = res && res.saveProgram;
-    this.copyIdAndUpdateDate(savedProgram, data);
+    this.copyIdAndUpdateDate(savedProgram, entity);
 
-    //if (this._debug)
-      console.debug(`[pogram-service] Program saved and updated in ${Date.now() - now}ms`, data);
+    if (this._debug) console.debug(`[program-service] Program saved and updated in ${Date.now() - now}ms`, entity);
 
-    return data;
+    return entity;
   }
 
   listenChanges(id: number, options?: any): Observable<Program | undefined> {

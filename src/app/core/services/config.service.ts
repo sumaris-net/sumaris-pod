@@ -1,5 +1,5 @@
 import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client/core";
 import {Configuration} from "./model/config.model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";

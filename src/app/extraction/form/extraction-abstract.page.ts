@@ -2,12 +2,10 @@ import {Directive, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {capitalizeFirstLetter, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {
-  AggregationType,
   ExtractionCategories,
   ExtractionColumn,
   ExtractionFilter,
-  ExtractionType,
-  ExtractionUtils
+  ExtractionType
 } from "../services/model/extraction.model";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {first, mergeMap} from "rxjs/operators";
@@ -21,6 +19,8 @@ import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppTabEditor} from "../../core/form/tab-editor.class";
+import {AggregationType} from "../services/model/aggregation-type.model";
+import {ExtractionUtils} from "../services/extraction.utils";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';

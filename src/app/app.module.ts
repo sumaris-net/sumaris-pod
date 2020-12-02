@@ -24,7 +24,7 @@ import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service
 import {LocalSettings} from "./core/services/model/settings.model";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
-import {TripConfigOptions} from "./trip/services/config/trip.config";
+import {TRIP_CONFIG_OPTIONS, TRIP_STORAGE_TYPE_POLICIES} from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 import {APP_MENU_ITEMS} from "./core/menu/menu.component";
@@ -37,9 +37,11 @@ import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {SharedModule} from "./shared/shared.module";
 import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
 import {MarkdownModule, MarkedOptions} from "ngx-markdown";
-import {EntitiesStorageOptions, LOCAL_ENTITIES_STORAGE_OPTIONS} from "./core/services/storage/entities-storage.service";
-import {OperationService} from "./trip/services/operation.service";
+import {APP_LOCAL_STORAGE_TYPE_POLICIES} from "./core/services/storage/entities-storage.service";
 import {AppGestureConfig} from "./shared/gesture/gesture-config";
+import {TypePolicies} from "@apollo/client/core";
+import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
+import {SocialModule} from "./social/social.module";
 
 
 @NgModule({
@@ -81,6 +83,7 @@ import {AppGestureConfig} from "./shared/gesture/gesture-config";
     // functional modules
     CoreModule.forRoot(),
     SharedModule.forRoot(),
+    SocialModule.forRoot(),
     HammerModule,
     AppRoutingModule
   ],
@@ -122,7 +125,7 @@ import {AppGestureConfig} from "./shared/gesture/gesture-config";
     },
 
     // Config options (Core + trip)
-    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TripConfigOptions}},
+    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TRIP_CONFIG_OPTIONS}},
 
     // Menu items
     { provide: APP_MENU_ITEMS, useValue: [
@@ -189,17 +192,42 @@ import {AppGestureConfig} from "./shared/gesture/gesture-config";
       ]
     },
 
-    // Entities options
-    { provide: LOCAL_ENTITIES_STORAGE_OPTIONS, useValue: <EntitiesStorageOptions>{
-        'OperationVO': {
-          onlyLocalEntities: true,
-          storeById: true,
-          detailedAttributes: OperationService.LIGHT_EXCLUDED_ATTRIBUTES
+    // Entities Apollo cache options
+    { provide: APP_GRAPHQL_TYPE_POLICIES, useValue: <TypePolicies>{
+        'MetierVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'PmfmVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'TaxonGroupVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'TaxonNameVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'LocationVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'ReferentialVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'MeasurementVO': {
+          keyFields: ['entityName', 'id']
+        },
+        'TaxonGroupStrategyVO': {
+          keyFields: ['__typename', 'strategyId', 'taxonGroup', ['entityName', 'id']]
+        },
+        'TaxonNameStrategyVO': {
+          keyFields: ['__typename', 'strategyId', 'taxonName', ['entityName', 'id']]
         }
       }
     },
 
-    // Test pages
+    // Entities options
+    { provide: APP_LOCAL_STORAGE_TYPE_POLICIES, useValue: { ...TRIP_STORAGE_TYPE_POLICIES}},
+
+    // Test pages link
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
       {label: 'Batch tree', page: '/testing/trip/batchTree'}
     ]},

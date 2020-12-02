@@ -16,7 +16,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
-import {TripService, TripServiceSaveOption} from "../services/trip.service";
+import {TripService, TripServiceSaveOptions} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
@@ -116,11 +116,13 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
           // Configure trip form
           this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
           if (!this.tripForm.showObservers) {
-            this.data.observers = []; // make sure to reset data observers, if any
+            // make sure to reset data observers, if any
+            if (this.data) this.data.observers = [];
           }
           this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
           if (!this.tripForm.showMetiers) {
-            this.data.metiers = []; // make sure to reset data metiers, if any
+            // make sure to reset data metiers, if any
+            if (this.data) this.data.metiers = [];
           } else {
             this.tripForm.metiersForm.valueChanges.subscribe(value => {
               const metiers = ((value || []) as ReferentialRef[]).filter(metier => isNotNilOrBlank(metier));
@@ -462,11 +464,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }
   }
 
-  async devDownloadToLocal() {
+  async copyLocally() {
     if (!this.data) return;
 
     // Copy the trip
-    await (this.dataService as TripService).copyToOffline(this.data.id, {isLandedTrip: true, withOperationGroup: true});
+    await (this.dataService as TripService).copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
 
   }
 
@@ -509,11 +511,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     const json = await super.getJsonValueToSave();
 
     // parent link
-    json.landing = this.data.landing && {id: this.data.landing.id, rankOrderOnVessel: this.data.landing.rankOrderOnVessel} || undefined;
-    json.observedLocationId = this.data.observedLocationId;
+    json.landing = this.data && this.data.landing && {id: this.data.landing.id, rankOrderOnVessel: this.data.landing.rankOrderOnVessel} || undefined;
+    json.observedLocationId = this.data && this.data.observedLocationId;
 
     // recopy vesselSnapshot (disabled control)
-    json.vesselSnapshot = this.data.vesselSnapshot;
+    json.vesselSnapshot = this.data && this.data.vesselSnapshot;
 
     // json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     // Concat trip and expense measurements
@@ -557,7 +559,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   async save(event, options?: any): Promise<boolean> {
 
-    const saveOptions: TripServiceSaveOption = {
+    const saveOptions: TripServiceSaveOptions = {
       withLanding: true // indicate service to reload with LandedTrip query
     };
 

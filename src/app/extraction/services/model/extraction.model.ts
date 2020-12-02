@@ -24,6 +24,7 @@ export const ExtractionCategories = {
 
 export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>> extends Entity<T> {
 
+  static TYPENAME = 'ExtractionTypeVO';
 
   static equals(o1: ExtractionType, o2: ExtractionType): boolean {
     return o1 && o2 ? o1.label === o2.label && o1.category === o2.category : o1 === o2;
@@ -32,6 +33,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
   static fromObject(source: any): ExtractionType {
     const res = new ExtractionType();
     res.fromObject(source);
+    res.__typename = ExtractionType.TYPENAME;
     return res;
   }
 
@@ -51,6 +53,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
 
   constructor() {
     super();
+    this.__typename = ExtractionType.TYPENAME;
     this.recorderDepartment = null;
   }
 
@@ -154,107 +157,6 @@ export class ExtractionRow extends Array<any> {
   }
 }
 
-export type StrataAreaType = 'area' | 'statistical_rectangle' | 'sub_polygon' | 'square';
-export type StrataTimeType = 'year' | 'quarter' | 'month';
-
-export class AggregationType extends ExtractionType<AggregationType>
-  implements IWithRecorderDepartmentEntity<AggregationType>,
-             IWithRecorderPersonEntity<AggregationType> {
-
-  static fromObject(source: any): AggregationType {
-    const res = new AggregationType();
-    res.fromObject(source);
-    return res;
-  }
-
-  documentation: string;
-  creationDate: Date | Moment;
-  stratum: AggregationStrata[];
-
-  columns: ExtractionColumn[];
-
-  constructor() {
-    super();
-    this.recorderPerson = null;
-  }
-
-  clone(): AggregationType {
-    return this.copy(new AggregationType());
-  }
-
-  fromObject(source: any): AggregationType {
-    super.fromObject(source);
-
-    this.documentation = source.documentation;
-    this.creationDate = fromDateISOString(source.creationDate);
-    this.stratum = isNotEmptyArray(source.stratum) && source.stratum.map(AggregationStrata.fromObject) || [];
-
-    return this;
-  }
-
-  asObject(options?: EntityAsObjectOptions): any {
-    const target = super.asObject(options);
-
-    target.creationDate = toDateISOString(this.creationDate);
-    target.stratum = this.stratum && this.stratum.map(s => s.asObject(options)) || undefined;
-    target.columns = this.columns && this.columns.map((c: any) => {
-      const json = Object.assign({}, c);
-      delete json.index;
-      delete json.__typename;
-      return json;
-    }) || undefined;
-    return target;
-  }
-}
-
-export class AggregationStrata extends Entity<AggregationStrata> {
-
-  static fromObject(source: any): AggregationStrata {
-    const res = new AggregationStrata();
-    res.fromObject(source);
-    return res;
-  }
-
-  isDefault: boolean;
-  sheetName: string;
-
-  spatialColumnName: StrataAreaType;
-  timeColumnName: StrataTimeType;
-  aggColumnName: string;
-  aggFunction: string;
-  techColumnName: string;
-
-  constructor() {
-    super();
-  }
-
-  copy(target: AggregationStrata): AggregationStrata {
-    target.fromObject(this);
-    return target;
-  }
-
-  clone(): AggregationStrata {
-    return this.copy(new AggregationStrata());
-  }
-
-  fromObject(source: any): AggregationStrata {
-    super.fromObject(source);
-    this.sheetName = source.sheetName;
-    this.isDefault = toBoolean(source.isDefault, false);
-    this.spatialColumnName = source.spatialColumnName;
-    this.timeColumnName = source.timeColumnName;
-    this.aggColumnName = source.aggColumnName;
-    this.aggFunction = source.aggFunction;
-    this.techColumnName = source.techColumnName;
-    return this;
-  }
-
-  asObject(options?: EntityAsObjectOptions): any {
-    const target = super.asObject(options);
-    return target;
-  }
-}
-
 export declare class ExtractionFilter {
   searchText?: string;
   criteria?: ExtractionFilterCriterion[];
@@ -303,81 +205,3 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
     return super.asObject(options);
   }
 }
-
-export const SPATIAL_COLUMNS: string[] = [
-  'area',
-  'statistical_rectangle',
-  'sub_polygon',
-  'square'];
-export const TIME_COLUMNS:   string[] = ['year', 'quarter', 'month'];
-export const IGNORED_COLUMNS:   string[] = ['record_type'];
-
-export class ExtractionUtils {
-
-  static dispatchColumns(columns: ExtractionColumn[]): {
-    timeColumns: ExtractionColumn[];
-    spatialColumns: ExtractionColumn[];
-    aggColumns: ExtractionColumn[];
-    techColumns: ExtractionColumn[];
-    criteriaColumns: ExtractionColumn[];} {
-
-    const timeColumns = columns.filter(c => TIME_COLUMNS.includes(c.columnName));
-    const spatialColumns = columns.filter(c => SPATIAL_COLUMNS.includes(c.columnName));
-
-    // Aggregation columns (numeric columns)
-    const aggColumns = columns.filter(c =>
-      (!c.type || c.type === 'integer' || c.type === 'double')
-      && (c.columnName.endsWith('_count')
-      || c.columnName.indexOf('_count_by_') != -1
-      || c.columnName.endsWith('_time')
-      || c.columnName.endsWith('_weight')
-      || c.columnName.endsWith('_length')
-      || c.columnName.endsWith('_value')));
-
-    const excludedFilterColumns = spatialColumns
-      .concat(timeColumns);
-
-    const techColumns = columns.filter(c => !excludedFilterColumns.includes(c)
-      && !IGNORED_COLUMNS.includes(c.columnName)
-      && (c.type === 'string' || (c.columnName.endsWith('_class'))));
-    const criteriaColumns = columns.filter(c => !excludedFilterColumns.includes(c)
-      && !IGNORED_COLUMNS.includes(c.columnName));
-
-    return {
-      timeColumns,
-      spatialColumns,
-      aggColumns,
-      techColumns,
-      criteriaColumns
-    };
-  }
-
-  static asQueryParams(type: ExtractionType|AggregationType, filter?: ExtractionFilter): any {
-    const queryParams: any = {
-      category: type && type.category,
-      label: type && type.label
-    };
-    if (filter.sheetName) {
-      queryParams.sheet = filter.sheetName;
-    }
-    if (isNotEmptyArray(filter.criteria)) {
-      queryParams.q = filter.criteria.reduce((res, criterion) => {
-        if (criterion.endValue) {
-          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}:${criterion.endValue}`);
-        } else {
-          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}`);
-        }
-      }, []).join(";");
-    }
-    return queryParams;
-  }
-
-  static filterWithValues(columns: ExtractionColumn[]) {
-    return this.filterValuesMinSize(columns, 1);
-  }
-
-  static filterValuesMinSize(columns: ExtractionColumn[], minSize: number) {
-    return (columns || []).filter(c => arraySize(c.values) >= minSize);
-  }
-}
-
