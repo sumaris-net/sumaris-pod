@@ -25,15 +25,12 @@ package net.sumaris.server.http.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-@Configuration
+//@Configuration
+// TODO: can be removed
 public class JsonMapperConfiguration {
 
     @Bean

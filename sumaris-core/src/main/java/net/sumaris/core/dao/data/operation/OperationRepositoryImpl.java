@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data.operation;
  * #L%
  */
 
+import net.sumaris.core.dao.data.VesselPositionDao;
 import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.data.MeasurementDao;
@@ -87,39 +88,12 @@ public class OperationRepositoryImpl
     @Autowired
     private BatchRepository batchRepository;
 
+    @Autowired
+    protected VesselPositionDao vesselPositionDao;
+
     protected OperationRepositoryImpl(EntityManager entityManager) {
         super(Operation.class, OperationVO.class, entityManager);
         setLockForUpdate(true);
-    }
-
-    @Override
-    public List<OperationVO> findAllVO(Specification<Operation> spec, DataFetchOptions fetchOptions) {
-        // Standard load
-        if (!fetchOptions.isWithMeasurementValues()) {
-            return super.findAllVO(spec, fetchOptions);
-        }
-
-        List<OperationVO> result = super.findAllVO(spec, DataFetchOptions.builder()
-                .withChildrenEntities(fetchOptions.isWithChildrenEntities())
-                .withMeasurementValues(false) // Load just later
-                .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-                .withRecorderPerson(fetchOptions.isWithRecorderPerson())
-                .build());
-
-        // Load measurement in an optimize way
-        Collection<Integer> ids = Beans.collectIds(result);
-
-        Map<Integer, Map<Integer, String>> vum = measurementDao.getOperationsVesselUseMeasurementsMap(ids);
-        Map<Integer, Map<Integer, String>> gum = measurementDao.getOperationsGearUseMeasurementsMap(ids);
-
-        // Apply to operations
-        result.forEach(o -> {
-            int id = o.getId();
-            o.setMeasurementValues(vum.get(id));
-            o.setGearMeasurementValues(gum.get(id));
-        });
-
-        return result;
     }
 
     @Override
@@ -149,6 +123,9 @@ public class OperationRepositoryImpl
         Integer operationId = source.getId();
         if (fetchOptions != null && fetchOptions.isWithChildrenEntities() && operationId != null) {
 
+            // Positions
+            target.setPositions(vesselPositionDao.getAllByOperationId(operationId));
+
             // Fishing Areas
             target.setFishingAreas(fishingAreaRepository.findAllVO(fishingAreaRepository.hasOperationId(operationId)));
 
@@ -167,8 +144,6 @@ public class OperationRepositoryImpl
                             .withRecorderDepartment(false)
                             .withMeasurementValues(true)
                     .build()));
-
-
         }
 
         // Measurements

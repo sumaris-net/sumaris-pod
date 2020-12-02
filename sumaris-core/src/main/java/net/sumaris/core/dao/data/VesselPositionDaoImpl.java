@@ -61,6 +61,11 @@ public class VesselPositionDaoImpl extends HibernateDaoSupport implements Vessel
     private ReferentialDao referentialDao;
 
     @Override
+    public List<VesselPositionVO> getAllByOperationId(int operationId) {
+        return getAllByOperationId(operationId, 0, 1000, VesselPositionVO.Fields.DATE_TIME, SortDirection.ASC);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public List<VesselPositionVO> getAllByOperationId(int operationId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
         Preconditions.checkArgument(offset >= 0);
