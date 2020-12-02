@@ -7,7 +7,8 @@ import {
   ApolloQueryResult,
   FetchPolicy,
   InMemoryCache,
-  MutationUpdaterFn, OperationVariables,
+  MutationUpdaterFn,
+  OperationVariables,
   TypePolicies,
   WatchQueryFetchPolicy
 } from "@apollo/client/core";
@@ -32,7 +33,6 @@ import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
 import {EntityUtils, IEntity} from "../services/model/entity.model";
-import {DataProxy} from 'apollo-cache';
 import {isNil, isNotNil, toNumber} from "../../shared/functions";
 import {Resolvers} from "@apollo/client/core/types";
 import {HttpHeaders} from "@angular/common/http";
@@ -41,12 +41,13 @@ import {HttpLink, Options} from "apollo-angular/http";
 import {IonicStorageWrapper, persistCache} from "apollo3-cache-persist";
 import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 import {MutationBaseOptions} from "@apollo/client/core/watchQueryOptions";
+import {Cache} from "@apollo/client/cache/core/types/Cache";
 
 export interface WatchQueryOptions<V> {
-  query: any,
-  variables: V,
-  error?: ServiceError,
-  fetchPolicy?: WatchQueryFetchPolicy
+  query: any;
+  variables: V;
+  error?: ServiceError;
+  fetchPolicy?: WatchQueryFetchPolicy;
 }
 
 export interface MutateQueryOptions<T, V = OperationVariables> extends MutationBaseOptions<T, V> {
@@ -135,7 +136,7 @@ export class GraphqlService {
         mergeMap(() => this.network.checkPeerAlive()),
         filter(alive => !alive)
       )
-      .subscribe(() => this.network.setForceOffline(true, {displayToast: true}))
+      .subscribe(() => this.network.setForceOffline(true, {displayToast: true}));
 
   }
 
@@ -300,7 +301,7 @@ export class GraphqlService {
   }
 
   insertIntoQueryCache<T, V = EmptyObject>(cache: ApolloCache<any>,
-                                 opts: DataProxy.Query<V> & {
+                                 opts: Cache.ReadQueryOptions<V, any> & {
                                    arrayFieldName: string;
                                    totalFieldName?: string;
                                    data: T;
@@ -359,7 +360,7 @@ export class GraphqlService {
   }
 
   addManyToQueryCache<T = any, V = EmptyObject>(cache: ApolloCache<any>,
-                             opts: DataProxy.Query<V> & {
+                             opts: Cache.ReadQueryOptions<V, any> & {
                                arrayFieldName: string;
                                totalFieldName?: string;
                                data: T[];
@@ -427,17 +428,17 @@ export class GraphqlService {
   }
 
   removeFromCachedQueryById<V = EmptyObject>(cache: ApolloCache<any>,
-                                   opts: DataProxy.Query<V> & {
+                                   opts: Cache.ReadQueryOptions<V, any> & {
                                      arrayFieldName: string;
                                      totalFieldName?: string;
-                                     id: number
+                                     id: string
                                    }) {
 
     cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data:any = cache.readQuery({...opts, id: opts.id.toString()});
+      let data = cache.readQuery(opts);
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
@@ -480,7 +481,7 @@ export class GraphqlService {
   }
 
   removeFromCachedQueryByIds<V = EmptyObject>(cache: ApolloCache<any>,
-                                    opts: DataProxy.Query<V> & {
+                                    opts: Cache.ReadQueryOptions<V, any> & {
                                       arrayFieldName: string;
                                       totalFieldName?: string;
                                       ids: number[]
@@ -490,7 +491,7 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data:any = cache.readQuery(opts);
+      let data = cache.readQuery(opts);
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
@@ -551,7 +552,7 @@ export class GraphqlService {
   }
 
   updateToQueryCache<T extends IEntity<any>, V = EmptyObject>(cache: ApolloCache<any>,
-                      opts:DataProxy.Query<V> & {
+                      opts: Cache.ReadQueryOptions<V, any> & {
                         arrayFieldName: string;
                         totalFieldName?: string;
                         data: T,
@@ -567,7 +568,7 @@ export class GraphqlService {
         // Copy because immutable
         data = { ...data };
 
-        const equalsFn = opts.equalsFn || ((d1,d2) => EntityUtils.equals(d1, d2, 'id'));
+        const equalsFn = opts.equalsFn || ((d1, d2) => EntityUtils.equals(d1, d2, 'id'));
 
         // Update if exists, or insert
         const index = data[opts.arrayFieldName].findIndex(v => equalsFn(opts.data, v));
@@ -605,7 +606,7 @@ export class GraphqlService {
   async clearCache(client?: ApolloClient<any>): Promise<void> {
     client = (client || this.apollo.client) as ApolloClient<any>;
     if (client) {
-      let now = this._debug && Date.now();
+      const now = this._debug && Date.now();
       console.info("[graphql] Clearing Apollo client's cache... ");
       await client.cache.reset();
       if (this._debug) console.debug(`[graphql] Apollo client's cache cleared, in ${Date.now() - now}ms`);
@@ -773,7 +774,7 @@ export class GraphqlService {
           storage,
           debug: true
         });
-      } catch(err) {
+      } catch (err) {
         console.error('[graphql] Failed to restore tracked queries from storage: ' + (err && err.message || err), err);
       }
     }
@@ -844,9 +845,11 @@ export class GraphqlService {
 
   private createAppErrorByCode(errorCode: number): any | undefined {
     const message = this.getI18nErrorMessageByCode(errorCode);
-    if (message) return {
-      code: errorCode,
-      message: this.getI18nErrorMessageByCode(errorCode)
+    if (message) {
+      return {
+        code: errorCode,
+        message: this.getI18nErrorMessageByCode(errorCode)
+      };
     }
     return undefined;
   }

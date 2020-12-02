@@ -5,31 +5,24 @@
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
-    "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es2015",
-    "importHelpers": true,
     "module": "esnext",
-    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
     "allowSyntheticDefaultImports": true,
     "typeRoots": [
       "node_modules/@types"
     ],
+    "target": "es2015",
     "lib": [
-      "es2017",
-      "dom",
-      // This is need for graphql
-      // see https://stackoverflow.com/questions/45810696/ionic2-apollo-graphql-eror-cannot-find-name-asynciterator#45812540
-      "esnext.asynciterable"
+      "es2018",
+      "dom"
     ],
     "paths": {
-      "rxjs": [
-        "node_modules/rxjs"
-      ],
-      "rxjs/*": [
-        "node_modules/rxjs/*"
-      ]
+      // Force using the RxJS project's version
+      "rxjs": ["node_modules/rxjs"],
+      "rxjs/*": ["node_modules/rxjs/*"]
     }
   },
   "angularCompilerOptions": {
