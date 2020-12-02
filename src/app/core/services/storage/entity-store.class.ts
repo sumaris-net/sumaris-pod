@@ -297,7 +297,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
           dirtyIndexes
             .map(index => {
               const entity = entities[index];
-              console.info(`[entity-storage] Persisting ${this.name}#${entity.id}...`);
+              console.debug(`[entity-storage] Persisting ${this.name}#${entity.id}...`);
               return this.storage.set(this._storageKey + '#' + entity.id, entity);
             }));
 
@@ -318,6 +318,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   async restore(opts?: { emitEvent?: boolean; }): Promise<number> {
     let entities: T[];
 
+    if (this._storageKey==='entities#OperationVO') console.log("TODO restore ope")
     if (this.policy.storeById) {
       const ids = await this.storage.get(this._storageKey+"#ids");
       if (isNotNil(ids)) {

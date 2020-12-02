@@ -17,7 +17,7 @@ import {catchError, distinctUntilChanged, filter, first, map, mergeMap, throttle
 import {environment} from '../../../environments/environment';
 import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import {ConnectionType, NetworkService} from "../services/network.service";
-import {WebSocketLink} from "@apollo/link-ws";
+import {WebSocketLink} from "@apollo/client/link/ws";
 import {
   AppWebSocket,
   createTrackerLink,
