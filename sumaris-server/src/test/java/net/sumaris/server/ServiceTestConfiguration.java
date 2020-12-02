@@ -49,8 +49,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
 @EnableJpaRepositories("net.sumaris.core.dao")
-@org.springframework.boot.test.context.TestConfiguration
-public class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
+public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
     public static final String MODULE_NAME = "sumaris-server";
     public static final String DATASOURCE_PLATFORM = "hsqldb";
