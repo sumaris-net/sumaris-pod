@@ -85,7 +85,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   super.ngOnInit();
 
     // Set entity name (required for referential form validator)
-    this.simpleStrategyForm.entityName = 'Program';
+    this.simpleStrategyForm.entityName = 'simpleStrategyForm';
 
 
    }
@@ -135,9 +135,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
 
     this.simpleStrategyForm.value = data;
-    //if (trip) {
-    //  this.simpleStrategyForm. = trip;
-    //}
+    //this.simpleStrategyForm.program = 40;
+    //this.simpleStrategyForm.statusList =
+    this.simpleStrategyForm.entityName= 'strategy';
 
     this.markAsPristine();
   }

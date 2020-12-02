@@ -5,7 +5,13 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ControlValueAccessor, FormBuilder, FormArray} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StrategyService} from "../services/strategy.service";
-import {AppForm, ReferentialRef, IReferentialRef, FormArrayHelper, isNil, Referential} from '../../core/core.module';
+import {
+  AppForm,
+  ReferentialRef,
+  IReferentialRef,
+  FormArrayHelper,
+  Referential
+} from '../../core/core.module';
 import {BehaviorSubject} from "rxjs";
 import { Planification } from 'src/app/trip/services/model/planification.model';
 import { PlanificationValidatorService } from 'src/app/trip/services/validator/planification.validator';
@@ -13,9 +19,9 @@ import { Program } from '../services/model/program.model';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { InputElement } from 'src/app/shared/shared.module';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
-import { selectInputRange } from 'src/app/shared/inputs';
 import * as moment from "moment";
 import {Strategy} from "../services/model/strategy.model";
+
 
 
 @Component({
@@ -276,53 +282,81 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     if (data instanceof Strategy)
     {
       var strategy : Strategy = data as Strategy;
-      console.debug(strategy.creationDate);
       this.programId = strategy.programId;
+
+      // SAMPLE ROW CODE
+      const sampleRowCodeControl = this.form.get("sampleRowCode");
+      sampleRowCodeControl.patchValue(strategy.label);
+
+      // EOTP
+      const eotpControl = this.form.get("eotp");
+      let eotp = strategy.analyticReference;
+      eotpControl.patchValue(eotp);
+
+      // LABORATORIES
+      const laboratoriesControl = this.laboratoriesForm;
+      let strategyDepartments = strategy.strategyDepartments;
+      let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;
+      });
+      laboratoriesControl.patchValue(laboratories);
+
+      // FISHING AREA
+      const fishingAreaControl = this.fishingAreasForm;
+      // applied_strategy.location_fk + program2location (zones en mer / configurables)
+      let appliedStrategies = strategy.appliedStrategies;
+      let fishingArea = appliedStrategies.map(appliedStrategy => { return appliedStrategy.location;
+      });
+      fishingAreaControl.patchValue(fishingArea);
+
+
+      // TAXONS
+      const taxonControl = this.form.get("taxonName");
+      let taxonNameStrategy = (strategy.taxonNames || []).find(t => t.taxonName.id);
+      let taxon = taxonNameStrategy.taxonName;
+      taxonControl.patchValue(taxon);
+
+
+      // YEAR
+
+
+      // EFFORT
+
+
+      // SEX
+      const sexControl = this.form.get("sex");
+      let sexPmfmStrategy =  (strategy.pmfmStrategies || []).find(t => t.pmfm.label === "SEX");
+      if (sexPmfmStrategy) {
+        let sexValuePmfm = sexPmfmStrategy.pmfm;
+        if (sexValuePmfm) {
+          let sexValue = sexValuePmfm.qualitativeValues;
+          if (sexValue) {
+            sexControl.patchValue(sexValue);
+          }
+        }
+      }
+
+
+      // AGE
+      const ageControl = this.form.get("age");
+      let agePmfmStrategy =  (strategy.pmfmStrategies || []).find(t => t.pmfm.label === "AGE");
+      if (agePmfmStrategy) {
+        let ageValuePmfm = agePmfmStrategy.pmfm;
+        if (ageValuePmfm) {
+          let ageValue = ageValuePmfm.qualitativeValues;
+          if (ageValue) {
+            ageControl.patchValue(ageValue);
+          }
+        }
+      }
+
+
+
+
+
+
     }
     console.debug(data.entityName);
-
   }
-
-  setValue(value: Planification, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    console.debug("[planification-form] Setting value", value);
-    if (!value) return;
-
-    // Make sure to have (at least) one calcifiedTypes
-          // value.calcifiedTypes = value.calcifiedTypes && value.calcifiedTypes.length ? value.calcifiedTypes : [null];
-    // Resize calcifiedTypes array
-          // this.calcifiedTypeHelper.resize(Math.max(1, value.calcifiedTypes.length));
-
-    // Make sure to have (at least) one laboratories
-          //value.laboratories = value.laboratories && value.laboratories.length ? value.laboratories : [null];
-    // Resize laboratories array
-          //this.laboratoryHelper.resize(Math.max(1, value.laboratories.length));
-
-    // Make sure to have (at least) one fishingAreas
-         //value.fishingAreas = value.fishingAreas && value.fishingAreas.length ? value.fishingAreas : [null];
-    // Resize fishingAreas array
-        // this.fishingAreaHelper.resize(Math.max(1, value.fishingAreas.length));
-
-
-
-
-
-    this.sampleRowCode = value.sampleRowCode;
-    //this.laboratoriesForm =
-    value.laboratories;
-    value.landingArea;
-    value.sex;
-    value.landingArea;
-    value.updateDate;
-    value.year;
-    value.calcifiedTypes;
-    value.comment;
-    value.fishingAreas;
-    //this.
-
-  // Send value for form
-    super.setValue(value, opts);
-  }
-
 
   // save button
   save(){

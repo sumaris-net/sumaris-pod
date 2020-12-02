@@ -78,7 +78,7 @@ export class SimpleStrategyForm extends AppForm<Referential> implements OnInit {
       entityNameControl.setValue(this.entityName, opts);
     }
 
-    // Propagate value to planification form
+    // Propagate value to planification form when automatic binding isn't set in super.setValue()
     this.planificationForm.setValueSimpleStrategy(data, opts);
   }
   protected markForCheck() {
