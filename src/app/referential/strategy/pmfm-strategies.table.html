@@ -127,12 +127,6 @@
          <mat-icon *ngIf="row.id === -1 || (!canDisplayColumnsHeaders && selection.isSelected(row) == true)">delete_outline</mat-icon>
       </button>
 
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid"
-              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-              (click)="cancelOrDelete($event, row)">
-        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-      </button>
 
       <!-- validate -->
       <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
