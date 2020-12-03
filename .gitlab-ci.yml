@@ -30,7 +30,7 @@ build_dev_and_zip:
 
 .build_and_zip:
   extends: .build
-  script:
+  after_script:
     - echo "Creating web artifact in progress"
     - PROJECT_DIR=`pwd`
     - mkdir -p "${PROJECT_DIR}/dist"
