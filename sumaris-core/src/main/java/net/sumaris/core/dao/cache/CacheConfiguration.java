@@ -53,6 +53,8 @@ public class CacheConfiguration {
     protected void init() {
         log.info("Starting cache manager...");
         if (this.cacheManager == null) this.cacheManager = ehcache();
+
+        log.info("Adding {Core} caches...");
     }
 
     public CacheManager getCacheManager() {

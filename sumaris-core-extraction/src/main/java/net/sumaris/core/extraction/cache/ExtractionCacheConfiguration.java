@@ -46,7 +46,7 @@ public class ExtractionCacheConfiguration {
     @Autowired
     protected ExtractionCacheConfiguration(CacheConfiguration cacheConfiguration) {
         this.cacheManager = cacheConfiguration.getCacheManager();
-        log.info("Adding Extraction caches...");
+        log.info("Adding {Extraction} caches...");
     }
 
     @Bean

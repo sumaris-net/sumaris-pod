@@ -46,7 +46,7 @@ public class RdfCacheConfiguration {
     @Autowired
     protected RdfCacheConfiguration(CacheConfiguration cacheConfiguration) {
         this.cacheManager = cacheConfiguration.getCacheManager();
-        log.info("Adding RDF caches...");
+        log.info("Adding {RDF} caches...");
     }
 
     @Bean

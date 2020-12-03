@@ -238,10 +238,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         String dbTimeZone = applicationConfig.getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
         if (StringUtils.isNotBlank(dbTimeZone)) {
             if (log.isInfoEnabled()) {
-                log.info(String.format("Using timezone [%s] for database", dbTimeZone));
+                log.info("Using timezone {{}} for database", dbTimeZone);
             }
         } else if (log.isInfoEnabled()) {
-            log.info(String.format("Using default timezone [%s] for database", System.getProperty("user.timezone")));
+            log.info("Using default timezone {{}} for database", System.getProperty("user.timezone"));
         }
     }
 
