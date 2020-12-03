@@ -44,14 +44,24 @@ public class ReferentialExternalServiceImpl implements ReferentialExternalServic
 
     @Override
     public List<ReferentialVO> findAnalyticReferencesByFilter(String urlStr, String authStr, ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return referentialExternalDao.findAnalyticReferencesByFilter(urlStr, authStr, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
-                sortDirection);
+        return referentialExternalDao.findAnalyticReferencesByFilter(urlStr, authStr, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute, sortDirection);
     }
 
     @Override
     public List<ReferentialVO> findAnalyticReferencesByFilter(String urlStr, String authStr, ReferentialFilterVO filter, int offset, int size) {
-        return findAnalyticReferencesByFilter(urlStr, authStr, filter != null ? filter : new ReferentialFilterVO(), offset, size,
+        return findAnalyticReferencesByFilter(urlStr, authStr, filter, offset, size,
                 IItemReferentialEntity.Fields.LABEL,
                 SortDirection.ASC);
+    }
+
+    @Override
+    public Long countAnalyticReferencesByFilter(String urlStr, String authStr, ReferentialFilterVO filter) {
+        List<ReferentialVO> results = findAnalyticReferencesByFilter(urlStr, authStr, filter,
+                0,
+                -1,
+                IItemReferentialEntity.Fields.LABEL,
+                SortDirection.ASC);
+
+        return Long.valueOf(results.size());
     }
 }

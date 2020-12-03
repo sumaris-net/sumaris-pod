@@ -37,4 +37,7 @@ public interface ReferentialExternalService {
 
     @Transactional(readOnly = true)
     List<ReferentialVO> findAnalyticReferencesByFilter(String urlStr, String authStr, ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    @Transactional(readOnly = true)
+    Long countAnalyticReferencesByFilter(String urlStr, String authStr, ReferentialFilterVO filter);
 }

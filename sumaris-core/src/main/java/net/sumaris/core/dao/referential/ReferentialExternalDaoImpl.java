@@ -35,7 +35,6 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
@@ -113,7 +112,7 @@ public class ReferentialExternalDaoImpl extends HibernateDaoSupport implements R
                 )
                 .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
                 .skip(offset)
-                .limit(size)
+                .limit((size < 0) ? results.size() : size)
                 .collect(Collectors.toList()
                 );
     }

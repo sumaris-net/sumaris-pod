@@ -48,6 +48,7 @@ public class ReferentialExternalGraphQLService {
     /* -- Referential queries -- */
 
     @GraphQLQuery(name = "analyticReferences", description = "Search in analytic references")
+    @Transactional(readOnly = true)
     public List<? extends ReferentialVO> findAnalyticReferencesByFilter(
             @GraphQLArgument(name = "filter") ReferentialFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
@@ -63,6 +64,16 @@ public class ReferentialExternalGraphQLService {
                 size == null ? 1000 : size,
                 sort == null ? ReferentialVO.Fields.LABEL : sort,
                 direction == null ? SortDirection.ASC : SortDirection.valueOf(direction.toUpperCase()));
+    }
+
+    @GraphQLQuery(name = "analyticReferencesCount", description = "Get analytic references count")
+    @Transactional(readOnly = true)
+    public Long getAnalyticReferencesCount(@GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
+        return referentialExternalService.countAnalyticReferencesByFilter(
+                config.getAnalyticReferencesServiceUrl(),
+                config.getAnalyticReferencesServiceAuth(),
+                filter != null ? filter : new ReferentialFilterVO()
+        );
     }
 
 }
