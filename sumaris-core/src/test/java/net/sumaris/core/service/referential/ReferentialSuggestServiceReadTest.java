@@ -62,7 +62,7 @@ public class ReferentialSuggestServiceReadTest extends AbstractServiceTest{
         Assert.assertNotNull(results);
         Assert.assertTrue(CollectionUtils.isNotEmpty(results));
 
-        results = service.findFromStrategy(Location.class.getSimpleName(), 40, LocationClassificationEnum.LAND, 0, 100);
+        results = service.findFromStrategy(Location.class.getSimpleName(), 40, LocationClassificationEnum.SEA, 0, 100);
         Assert.assertNotNull(results);
         Assert.assertTrue(CollectionUtils.isNotEmpty(results));
 
@@ -84,7 +84,7 @@ public class ReferentialSuggestServiceReadTest extends AbstractServiceTest{
         List<String> refs = service.findAnalyticReferencesFromStrategy(40);
         Assert.assertNotNull(refs);
         Assert.assertTrue(CollectionUtils.isNotEmpty(refs));
-        Assert.assertTrue(refs.contains("EOTP1"));
+        Assert.assertTrue(refs.contains("P101-0001-01-DF"));
 
         List<Integer> results = service.findDepartmentsFromStrategy(40);
         Assert.assertNotNull(results);
@@ -94,7 +94,7 @@ public class ReferentialSuggestServiceReadTest extends AbstractServiceTest{
         Assert.assertNotNull(results);
         Assert.assertTrue(CollectionUtils.isNotEmpty(results));
 
-        results = service.findLocationsFromStrategy(40, LocationClassificationEnum.LAND);
+        results = service.findLocationsFromStrategy(40, LocationClassificationEnum.SEA);
         Assert.assertNotNull(results);
         Assert.assertTrue(CollectionUtils.isNotEmpty(results));
 
