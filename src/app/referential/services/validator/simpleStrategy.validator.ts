@@ -34,8 +34,27 @@ export class SimpleStrategyValidatorService extends StrategyValidatorService {
       laboratories : this.getLaboratoriesArray(data),
       fishingAreas : this.getFishingAreasArray(data),
       eotp: [data && data.eotp || null, Validators.compose([Validators.nullValidator, SharedValidators.entity])],
+      weightPmfmStrategies: this.getWeightPmfmStrategiesFormArray(data),
+      sizePmfmStrategies: this.getSizePmfmStrategiesFormArray(data),
+      maturityPmfmStrategies: this.getMaturityPmfmStrategiesFormArray(data),
 
     });
+  }
+
+  getWeightPmfmStrategiesFormArray(data?: Strategy) {
+    return this.formBuilder.array(
+      (data && data.pmfmStrategies || []).map(ps => this.pmfmStrategyValidatorService.getFormGroup(ps))
+    );
+  }
+  getSizePmfmStrategiesFormArray(data?: Strategy) {
+    return this.formBuilder.array(
+      (data && data.pmfmStrategies || []).map(ps => this.pmfmStrategyValidatorService.getFormGroup(ps))
+    );
+  }
+  getMaturityPmfmStrategiesFormArray(data?: Strategy) {
+    return this.formBuilder.array(
+      (data && data.pmfmStrategies || []).map(ps => this.pmfmStrategyValidatorService.getFormGroup(ps))
+    );
   }
 
   // FishingArea Control -----------------------------------------------------------------------------------
