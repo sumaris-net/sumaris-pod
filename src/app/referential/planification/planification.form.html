@@ -8,7 +8,7 @@
       <ion-col>
         <mat-form-field>
           <input matInput #matInput
-                 formControlName="label"
+                 formControlName="sampleRowCode"
                  autocomplete="off"
                  type="text"
                  [textMask]="{mask: sampleRowMask, keepCharPositions: true, showMask: true, guide: true}"
@@ -26,16 +26,16 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          formControlName="analyticReference"
+          formControlName="eotp"
           [placeholder]="'PLANIFICATION.EOTP'|translate"
-          [config]="autocompleteFields.analyticReference"
+          [config]="autocompleteFields.eotp"
           [tabindex]="tabindex+1">
 
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
                   [disabled]="!canFilterEotp"
                   [title]="'PLANIFICATION.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('analyticReference')"
+                  (click)="toggleFilteredItems('eotp')"
                   [color]="enableEotpFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
           </button>
@@ -186,7 +186,7 @@
       </ion-col>
       <ion-col size="12" size-sm="auto">
         <mat-date-short-field [placeholder]="'PLANIFICATION.YEAR'|translate"
-                              formControlName="creationDate"
+                              formControlName="year"
                               [required]="true" >
         </mat-date-short-field>
       </ion-col>

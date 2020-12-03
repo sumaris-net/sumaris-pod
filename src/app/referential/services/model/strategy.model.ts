@@ -41,15 +41,6 @@ export class Strategy extends Referential<Strategy> {
 
   programId: number;
 
-  // simple strategy
-  taxonName: TaxonNameRef;
-  landingArea: ReferentialRef;
-  laboratories: ReferentialRef [];
-  fishingAreas: ReferentialRef [];
-  calcifiedTypes: ReferentialRef[];
-  sex : boolean;
-  age : boolean;
-
 
   constructor(data?: {
     id?: number,
@@ -66,16 +57,6 @@ export class Strategy extends Referential<Strategy> {
     this.gears = [];
     this.taxonGroups = [];
     this.taxonNames = [];
-
-    this.taxonName = null;
-    this.landingArea = null;
-    this.laboratories =  [];
-    this.fishingAreas =  [];
-    this.calcifiedTypes =  [];
-    this.sex = null;
-    this.age =null;
-
-
   }
 
   clone(): Strategy {
@@ -94,14 +75,6 @@ export class Strategy extends Referential<Strategy> {
     target.gears = this.gears && this.gears.map(s => s.asObject(opts));
     target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-
-    target.taxonName = this.taxonName;
-    target.landingArea = this.landingArea;
-    target.fishingAreas = this.fishingAreas && this.fishingAreas.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.laboratories = this.laboratories && this.laboratories.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.calcifiedTypes = this.calcifiedTypes && this.calcifiedTypes.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.sex = this.sex;
-    target.age = this.age;
 
     return target;
   }
@@ -122,14 +95,6 @@ export class Strategy extends Referential<Strategy> {
     // Taxon groups, sorted by priority level
     this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
-
-    this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
-    this.landingArea = source.taxonName && ReferentialRef.fromObject(source.landingArea) || undefined;
-    this.laboratories = source.laboratories && source.laboratories.map(ReferentialRef.fromObject) || [];
-    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(ReferentialRef.fromObject) || [];
-    this.calcifiedTypes = source.calcifiedTypes && source.calcifiedTypes.map(ReferentialRef.fromObject) || [];
-    this.sex = source.sex  || undefined;
-    this.age = source.age  || undefined;
 
   }
 

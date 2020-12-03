@@ -18,8 +18,9 @@ import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { InputElement } from 'src/app/shared/shared.module';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
+import {SimpleStrategyValidatorService} from "../services/validator/simpleStrategy.validator";
+import {SimpleStrategy} from "../services/model/simpleStrategy.model";
 import {Strategy} from "../services/model/strategy.model";
-import {StrategyValidatorService} from "../services/validator/strategy.validator";
 
 
 
@@ -29,10 +30,10 @@ import {StrategyValidatorService} from "../services/validator/strategy.validator
   styleUrls: ['./planification.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    {provide: StrategyValidatorService}
+    {provide: SimpleStrategyValidatorService}
   ],
 })
-export class PlanificationForm extends AppForm<Strategy> implements OnInit, ControlValueAccessor, InputElement {
+export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit, ControlValueAccessor, InputElement {
 
   protected formBuilder: FormBuilder;
   private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
@@ -103,7 +104,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected validatorService: StrategyValidatorService,
+    protected validatorService: SimpleStrategyValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
@@ -137,7 +138,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
 
     // register year field changes
     this.registerSubscription(
-      this.form.get('creationDate').valueChanges
+      this.form.get('year').valueChanges
         .subscribe(async (date : Moment) => {
           //update mask
           const year = date.year().toString()
@@ -193,7 +194,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
     });
 
     // eotp combo -------------------------------------------------------------------
-    this.registerAutocompleteField('analyticReference', {
+    this.registerAutocompleteField('eotp', {
       columnSizes : [4,6],
       items: this._eotpSubject,
       mobile: this.mobile
@@ -210,7 +211,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
     this.loadCalcifiedType();
 
     //set current date to year field
-    this.form.get('creationDate').setValue(moment());
+    this.form.get('year').setValue(moment());
 
     //init helpers
     this.initCalcifiedTypeHelper();
@@ -247,7 +248,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
   toggleFilteredItems(fieldName: string){
     let value : boolean;
     switch (fieldName) {
-      case 'analyticReference':
+      case 'eotp':
         this.enableEotpFilter = value = !this.enableEotpFilter;
         this.loadEotps();
         break;
@@ -280,21 +281,21 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
 
     if (data instanceof Strategy)
     {
-      var strategy : Strategy = data as Strategy;
-      this.programId = strategy.programId;
+      var simpleStrategy : SimpleStrategy = data as SimpleStrategy;
+      this.programId = simpleStrategy.programId;
 
       // SAMPLE ROW CODE
-      const sampleRowCodeControl = this.form.get("label");
-      sampleRowCodeControl.patchValue(strategy.label);
+      const sampleRowCodeControl = this.form.get("sampleRowCode");
+      sampleRowCodeControl.patchValue(simpleStrategy.label);
 
       // EOTP
-      const eotpControl = this.form.get("analyticReference");
-      let eotp = strategy.analyticReference;
+      const eotpControl = this.form.get("eotp");
+      let eotp = simpleStrategy.eotp;
       eotpControl.patchValue(eotp);
 
       // LABORATORIES
       const laboratoriesControl = this.laboratoriesForm;
-      let strategyDepartments = strategy.strategyDepartments;
+      let strategyDepartments = simpleStrategy.strategyDepartments;
       let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;
       });
       laboratoriesControl.patchValue(laboratories);
@@ -302,7 +303,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
       // FISHING AREA
       const fishingAreaControl = this.fishingAreasForm;
       // applied_strategy.location_fk + program2location (zones en mer / configurables)
-      let appliedStrategies = strategy.appliedStrategies;
+      let appliedStrategies = simpleStrategy.appliedStrategies;
       let fishingArea = appliedStrategies.map(appliedStrategy => { return appliedStrategy.location;
       });
       fishingAreaControl.patchValue(fishingArea);
@@ -310,7 +311,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
 
       // TAXONS
       const taxonControl = this.form.get("taxonName");
-      let taxonNameStrategy = (strategy.taxonNames || []).find(t => t.taxonName.id);
+      let taxonNameStrategy = (simpleStrategy.taxonNames || []).find(t => t.taxonName.id);
       let taxon = taxonNameStrategy.taxonName;
       taxonControl.patchValue(taxon);
 
@@ -323,7 +324,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
 
       // SEX
       const sexControl = this.form.get("sex");
-      let sexPmfmStrategy =  (strategy.pmfmStrategies || []).find(t => t.pmfm.label === "SEX");
+      let sexPmfmStrategy =  (simpleStrategy.pmfmStrategies || []).find(t => t.pmfm.label === "SEX");
       if (sexPmfmStrategy) {
         let sexValuePmfm = sexPmfmStrategy.pmfm;
         if (sexValuePmfm) {
@@ -337,7 +338,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
 
       // AGE
       const ageControl = this.form.get("age");
-      let agePmfmStrategy =  (strategy.pmfmStrategies || []).find(t => t.pmfm.label === "AGE");
+      let agePmfmStrategy =  (simpleStrategy.pmfmStrategies || []).find(t => t.pmfm.label === "AGE");
       if (agePmfmStrategy) {
         let ageValuePmfm = agePmfmStrategy.pmfm;
         if (ageValuePmfm) {
@@ -347,9 +348,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
           }
         }
       }
-
-
-
 
 
 
@@ -485,7 +483,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit, Cont
   // EOTP  ---------------------------------------------------------------------------------------------------
 
   protected  loadEotps() {
-    const eotpAreaControl = this.form.get('analyticReference');
+    const eotpAreaControl = this.form.get('eotp');
     eotpAreaControl.enable();
 
     if (this.enableEotpFilter) {

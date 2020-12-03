@@ -37,15 +37,6 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
       appliedStrategies: this.getAppliedStrategiesFormArray(data),
       strategyDepartments: this.getStrategyDepartmentsFormArray(data),
 
-
-      taxonName: [data && data.taxonName || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      landingArea: [data && data.landingArea || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      sex: [data && data.sex || null,Validators.nullValidator],
-      age: [data && data.age || null,Validators.nullValidator],
-      calcifiedTypes : this.getCalcifiedTypesArray(data),
-      laboratories : this.getLaboratoriesArray(data),
-      fishingAreas : this.getFishingAreasArray(data),
-
       //gears: [data && data.gears || null], // WARN: Do NOT use special validator here
       //taxonGroups: [data && data.taxonGroups || null], // WARN: Do NOT use special validator here
       //taxonNames: [data && data.taxonNames || null], // WARN: Do NOT use special validator here
@@ -141,34 +132,5 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
       priorityLevel: [data && data.priorityLevel, SharedValidators.integer],
       taxonGroup: [data && data.taxonGroup, Validators.compose([Validators.required, SharedValidators.entity])]
     });
-  }
-
-  // FishingArea Control -----------------------------------------------------------------------------------
-  getFishingAreasArray(data?: Strategy) {
-    return this.formBuilder.array(
-      (data && data.fishingAreas || []).map(fishingArea => this.getControl(fishingArea)),
-      SharedFormArrayValidators.requiredArrayMinLength(1)
-    );
-  }
-
-  // Laboratory Control --------------------------------------------------------------------------------------
-  getLaboratoriesArray(data?: Strategy) {
-    return this.formBuilder.array(
-      (data && data.laboratories || []).map(laboratory => this.getControl(laboratory)),
-      SharedFormArrayValidators.requiredArrayMinLength(1)
-    );
-  }
-
-
-  // CalcifiedType Control -----------------------------------------------------------------------------------
-  getCalcifiedTypesArray(data?: Strategy) {
-    return this.formBuilder.array(
-      (data && data.calcifiedTypes || []).map(calcifiedType => this.getControl(calcifiedType)),
-      SharedFormArrayValidators.requiredArrayMinLength(1)
-    );
-  }
-
-  getControl(value: any) {
-    return this.formBuilder.control(value || null, [Validators.required, SharedValidators.entity]);
   }
 }
