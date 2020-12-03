@@ -112,7 +112,7 @@ export const StrategyFragments = {
         ...AppliedStrategyFragment
       }
       pmfmStrategies {
-        ...PmfmFullStrategyFragment
+        ...PmfmStrategyFragment
       }
       strategyDepartments {
         ...StrategyDepartmentFragment
@@ -176,28 +176,6 @@ export const StrategyFragments = {
       defaultValue
       pmfmId
       pmfm {
-        ...PmfmFragment
-      }
-      parameterId
-      matrixId
-      fractionId
-      methodId
-      gearIds
-      taxonGroupIds
-      referenceTaxonIds
-      strategyId
-      __typename
-  }`,
-  pmfmFullStrategy: gql`
-    fragment PmfmFullStrategyFragment on PmfmStrategyVO {
-      id
-      acquisitionLevel
-      rankOrder
-      isMandatory
-      acquisitionNumber
-      defaultValue
-      pmfmId
-      pmfm {
         ...FullPmfmFragment
       }
       parameterId
@@ -209,7 +187,7 @@ export const StrategyFragments = {
       referenceTaxonIds
       strategyId
       __typename
-    }`,
+  }`,
   taxonGroupStrategy: gql`
     fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
       strategyId
@@ -256,7 +234,7 @@ const LoadQuery: any = gql`
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.pmfmFullStrategy}
+  ${StrategyFragments.pmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -299,15 +277,15 @@ const SaveStrategy: any = gql`
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${StrategyFragments.referential}
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.fullPmfm}
   ${StrategyFragments.taxonName}
 `;
 const LoadAllStrategies: any = gql`
-    query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
-      strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-        ...StrategyFragment
-      }
+  query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
+    strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...StrategyFragment
     }
+  }
   ${StrategyFragments.strategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
@@ -316,9 +294,9 @@ const LoadAllStrategies: any = gql`
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${StrategyFragments.referential}
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.fullPmfm}
   ${StrategyFragments.taxonName}
-  `;
+`;
 
 const DeleteStrategies: any = gql`
     mutation deleteStrategies($ids:[Int]){
