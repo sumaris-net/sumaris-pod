@@ -49,6 +49,8 @@ public interface CacheNames {
     String TAXON_NAMES_BY_TAXON_GROUP_ID = "net.sumaris.core.dao.referential.taxonNamesByTaxonGroupId";
     String REFERENCE_TAXON_ID_BY_TAXON_NAME_ID = "net.sumaris.core.dao.referential.referenceTaxonIdByTaxonNameId";
 
+    String ANALYTIC_REFERENCES_BY_FILTER = "net.sumaris.core.dao.referential.analyticReferenceByFilterCache";
+
     String PRODUCT_BY_LABEL = "net.sumaris.core.dao.technical.product.productByLabelCache";
     String PRODUCTS = "net.sumaris.core.dao.technical.product.productsCache";
     String PRODUCTS_BY_FILTER = "net.sumaris.core.dao.technical.product.productByFilterCache";

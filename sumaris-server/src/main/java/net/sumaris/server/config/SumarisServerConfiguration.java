@@ -236,7 +236,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>find the ActiveMQ broker URL.</p>
      *
-     * @return a {@link Integer}
+     * @return a {@link String}
      */
     public String getActiveMQBrokerURL() {
         return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_URL.getKey());
@@ -245,7 +245,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>Get mail host?</p>
      *
-     * @return a {@link Boolean}
+     * @return a {@link String}
      */
     public String getMailHost() {
         return applicationConfig.getOption(SumarisServerConfigurationOption.MAIL_HOST.getKey());
@@ -266,6 +266,24 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public boolean isActiveMQEnable() {
         return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.ACTIVEMQ_ENABLE.getKey());
+    }
+
+    /**
+     * <p>find the analytic references service URL.</p>
+     *
+     * @return a {@link String}
+     */
+    public String getAnalyticReferencesServiceUrl() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.ANALYTIC_REFERENCES_SERVICE_URL.getKey());
+    }
+
+    /**
+     * <p>find the analytic references service authorization key (format "user:pass").</p>
+     *
+     * @return a {@link String}
+     */
+    public String getAnalyticReferencesServiceAuth() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.ANALYTIC_REFERENCES_SERVICE_AUTH.getKey());
     }
 
     /* -- Internal methods -- */
