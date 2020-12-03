@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, EventEmitter, Output} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {Peer} from "../services/model/peer.model";
 import {Observable, Subject, Subscription} from "rxjs";
@@ -24,6 +24,7 @@ export class SelectPeerModal implements OnDestroy {
 
   @Input() canCancel = true;
   @Input() allowSelectDownPeer = true;
+  @Output() onRefresh = new EventEmitter<UIEvent>();
 
   constructor(
 
@@ -81,9 +82,8 @@ export class SelectPeerModal implements OnDestroy {
 
     this._subscription.add(
       this.$peers
-        .subscribe(() => {
-          this.cd.markForCheck();
-        }));
+        .subscribe(() => this.cd.markForCheck())
+    );
 
     try {
       await jobs;
@@ -121,4 +121,5 @@ export class SelectPeerModal implements OnDestroy {
     }
     return peer;
   }
+
 }
