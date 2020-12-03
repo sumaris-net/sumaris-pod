@@ -176,7 +176,7 @@ export const StrategyFragments = {
       defaultValue
       pmfmId
       pmfm {
-        ...PmfmFragment
+        ...FullPmfmFragment
       }
       parameterId
       matrixId
@@ -214,25 +214,6 @@ export const StrategyFragments = {
       __typename
     }
   `,
-  pmfm: gql`fragment PmfmFragment on PmfmVO {
-    id
-    label
-    name
-    type
-    minValue
-    maxValue
-    unitLabel
-    defaultValue
-    maximumNumberDecimals
-    unitId
-    parameterId
-    matrixId
-    fractionId
-    methodId
-    levelId: parameterId
-    entityName
-    __typename
-  }`,
 
 }
 
@@ -257,17 +238,19 @@ const LoadQuery: any = gql`
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.fullPmfm}
+  ${ReferentialFragments.fullParameter}
   ${ReferentialFragments.taxonName}
+  ${ReferentialFragments.fullReferential}
 `;
 
 const LoadAllQuery: any = gql`
-  query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
-    strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...LightStrategyFragment
-    }
+query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
+  strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+    ...LightStrategyFragment
   }
-  ${StrategyFragments.lightStrategy}
+}
+${StrategyFragments.lightStrategy}
 `;
 
 const LoadAllWithTotalQuery: any = gql`
@@ -294,26 +277,26 @@ const SaveStrategy: any = gql`
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${StrategyFragments.referential}
-  ${StrategyFragments.pmfm}
+  ${ReferentialFragments.fullPmfm}
   ${StrategyFragments.taxonName}
 `;
-const LoadAllStrategies: any = gql`
-    query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
-      strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-        ...StrategyFragment
-      }
-    }
-  ${StrategyFragments.strategy}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.pmfmStrategy}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${StrategyFragments.referential}
-  ${StrategyFragments.pmfm}
-  ${StrategyFragments.taxonName}
-  `;
+// const LoadAllStrategies: any = gql`
+//     query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
+//       strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+//         ...StrategyFragment
+//       }
+//     }
+//   ${StrategyFragments.strategy}
+//   ${StrategyFragments.appliedStrategy}
+//   ${StrategyFragments.appliedPeriod}
+//   ${StrategyFragments.pmfmStrategy}
+//   ${StrategyFragments.strategyDepartment}
+//   ${StrategyFragments.taxonGroupStrategy}
+//   ${StrategyFragments.taxonNameStrategy}
+//   ${StrategyFragments.referential}
+//   ${ReferentialFragments.fullPmfm}
+//   ${StrategyFragments.taxonName}
+//   `;
 
 const DeleteStrategies: any = gql`
     mutation deleteStrategies($ids:[Int]){
