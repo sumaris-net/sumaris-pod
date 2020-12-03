@@ -14,7 +14,8 @@ build-dev:
         - develop
         - develop-ifremer
         - feature-oracle-adagio
-    when: always
+    except:
+        - schedules
 
 schedule-build:
     extends: .build
