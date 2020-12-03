@@ -280,23 +280,6 @@ const SaveStrategy: any = gql`
   ${ReferentialFragments.fullPmfm}
   ${StrategyFragments.taxonName}
 `;
-// const LoadAllStrategies: any = gql`
-//     query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
-//       strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-//         ...StrategyFragment
-//       }
-//     }
-//   ${StrategyFragments.strategy}
-//   ${StrategyFragments.appliedStrategy}
-//   ${StrategyFragments.appliedPeriod}
-//   ${StrategyFragments.pmfmStrategy}
-//   ${StrategyFragments.strategyDepartment}
-//   ${StrategyFragments.taxonGroupStrategy}
-//   ${StrategyFragments.taxonNameStrategy}
-//   ${StrategyFragments.referential}
-//   ${ReferentialFragments.fullPmfm}
-//   ${StrategyFragments.taxonName}
-//   `;
 
 const DeleteStrategies: any = gql`
     mutation deleteStrategies($ids:[Int]){
