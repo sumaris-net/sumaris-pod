@@ -228,6 +228,7 @@ export class Batch<T extends Batch<any> = Batch<any>,
   }
 }
 
+// @dynamic
 export class BatchUtils {
 
   static parentToString(parent: Batch, opts?: {

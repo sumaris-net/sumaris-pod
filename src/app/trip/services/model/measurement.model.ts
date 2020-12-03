@@ -9,7 +9,8 @@ import {
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {FormGroup} from "@angular/forms";
 import {arraySize, isEmptyArray, notNilOrDefault} from "../../../shared/functions";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {isMoment} from "moment";
 import {IEntity} from "../../../core/services/model/entity.model";
 import {Pmfm} from "../../../referential/services/model/pmfm.model";

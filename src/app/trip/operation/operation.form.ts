@@ -14,7 +14,8 @@ import {
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {FormGroup, ValidationErrors} from "@angular/forms";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {isNotEmptyArray} from "../../shared/functions";

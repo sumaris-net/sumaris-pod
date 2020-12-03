@@ -9,7 +9,8 @@ import {
   isNotEmptyArray,
   isNotNilOrBlank
 } from '../../shared/shared.module';
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";

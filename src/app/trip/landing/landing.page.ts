@@ -1,7 +1,8 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild} from '@angular/core';
 
 import {isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {Moment} from "moment";
 import {LandingForm} from "./landing.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";

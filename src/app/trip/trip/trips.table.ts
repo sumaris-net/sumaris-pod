@@ -47,7 +47,8 @@ import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
 import {HttpClient} from "@angular/common/http";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",

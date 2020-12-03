@@ -17,7 +17,7 @@ import {
   catchError,
   debounceTime,
   distinctUntilChanged,
-  filter, map,
+  filter,
   mergeMap,
   startWith,
   switchMap,
@@ -58,6 +58,7 @@ export class CellValueChangeListener {
   formPath?: string;
 }
 
+// @dynamic
 @Directive()
 export abstract class AppTable<T extends Entity<T>, F = any>
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {

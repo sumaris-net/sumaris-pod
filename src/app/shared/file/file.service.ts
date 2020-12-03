@@ -3,7 +3,8 @@ import {Platform} from "@ionic/angular";
 //import {File} from '@ionic-native/file/ngx';
 //import {FileTransfer, FileTransferObject} from "@ionic-native/file-transfer/ngx";
 
-import * as uuidv4 from "uuid/v4";
+import * as uuidv4Imported from "uuid/v4";
+const uuidv4 = uuidv4Imported;
 import {Base64ImageReader, Base64ImageResizeOptions} from "./base64-image-reader";
 import {concatPromises, firstNotNilPromise} from "../observables";
 import {HttpClient} from "@angular/common/http";

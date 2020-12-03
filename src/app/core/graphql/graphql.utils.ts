@@ -1,6 +1,7 @@
 import {defaultDataIdFromObject} from "apollo-cache-inmemory";
 import {ApolloLink, NextLink, Operation} from "@apollo/client/core";
-import * as uuidv4 from "uuid/v4";
+import * as uuidv4Imported from "uuid/v4";
+const uuidv4 = uuidv4Imported;
 import {EventEmitter} from "@angular/core";
 import {debounceTime, filter, switchMap} from "rxjs/operators";
 import {BehaviorSubject, Observable} from "rxjs";

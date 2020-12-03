@@ -21,7 +21,8 @@ import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments,
 import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {RootDataService} from "./root-data-service.class";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,

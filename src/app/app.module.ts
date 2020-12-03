@@ -62,7 +62,7 @@ import {SocialModule} from "./social/social.module";
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: HttpTranslateLoaderFactory,
+        useFactory: HttpTranslateLoaderFactory.build,
         deps: [HttpClient]
       }
     }),
