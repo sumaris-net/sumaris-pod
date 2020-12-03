@@ -79,7 +79,10 @@ export class SimpleStrategyForm extends AppForm<Referential> implements OnInit {
     }
 
     // Propagate value to planification form when automatic binding isn't set in super.setValue()
-    this.planificationForm.setValueSimpleStrategy(data, opts);
+    if (data && data.id)
+    {
+      this.planificationForm.setValueSimpleStrategy(data, opts);
+    }
   }
   protected markForCheck() {
     if (this.cd) this.cd.markForCheck();
