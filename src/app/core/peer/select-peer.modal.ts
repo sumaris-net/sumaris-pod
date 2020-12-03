@@ -24,7 +24,7 @@ export class SelectPeerModal implements OnDestroy {
 
   @Input() canCancel = true;
   @Input() allowSelectDownPeer = true;
-  @Output() onRefresh = new EventEmitter<UIEvent>();
+  @Input() onRefresh = new EventEmitter<UIEvent>();
 
   constructor(
 
@@ -54,6 +54,22 @@ export class SelectPeerModal implements OnDestroy {
       this.viewCtrl.dismiss(peer);
     }
   }
+
+
+  /**
+   *  Check the min pod version, defined by the app
+   * @param peer
+   */
+  isCompatible(peer: Peer): boolean {
+    return !this.peerMinVersion || (peer && peer.softwareVersion && VersionUtils.isCompatible(this.peerMinVersion, peer.softwareVersion));
+  }
+
+  refresh(event: UIEvent) {
+    this.loading = true;
+    this.onRefresh.emit(event);
+  }
+
+  /* -- protected methods -- */
 
   async refreshPeers(peers: Peer[]) {
     peers = peers || [];
@@ -95,14 +111,6 @@ export class SelectPeerModal implements OnDestroy {
     this.cd.markForCheck();
   }
 
-  /**
-   *  Check the min pod version, defined by the app
-   * @param peer
-   */
-  isCompatible(peer: Peer): boolean {
-    return !this.peerMinVersion || (peer && peer.softwareVersion && VersionUtils.isCompatible(this.peerMinVersion, peer.softwareVersion));
-  }
-
   protected async refreshPeer(peer: Peer): Promise<Peer> {
     try {
       const summary: NodeInfo = await NetworkUtils.getNodeInfo(this.http, peer.url);
@@ -122,4 +130,7 @@ export class SelectPeerModal implements OnDestroy {
     return peer;
   }
 
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }

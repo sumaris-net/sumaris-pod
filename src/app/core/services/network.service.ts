@@ -556,12 +556,17 @@ export class NetworkService {
 
     opts = opts || {};
 
-    const $peers = new Subject();
+    const $onRefresh = new EventEmitter<UIEvent>();
+    const peers$ = $onRefresh.pipe(
+      mergeMap((_) => this.getDefaultPeers()),
+      map(peers => peers || [])
+    );
 
     const modal = await this.modalCtrl.create({
       component: SelectPeerModal,
       componentProps: {
-        peers: $peers,
+        onRefresh: $onRefresh,
+        peers: peers$,
         canCancel: toBoolean(opts.canCancel, true),
         allowSelectDownPeer: toBoolean(opts.allowSelectDownPeer, true)
       },
@@ -569,14 +574,12 @@ export class NetworkService {
       showBackdrop: true
     });
     await modal.present();
+    $onRefresh.emit();
 
-    const peers = await this.getDefaultPeers();
-    $peers.next(peers || []);
+    const { data } = await modal.onWillDismiss();
+    $onRefresh.complete();
 
-    return modal.onDidDismiss()
-      .then((res) => {
-        return res && res.data && (res.data as Peer) || undefined;
-      });
+    return data && (data as Peer) || undefined;
   }
 
   async clearCache(opts?: { emitEvent?: boolean; }): Promise<void> {

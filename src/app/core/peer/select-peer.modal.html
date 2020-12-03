@@ -19,7 +19,7 @@
         <!-- refresh button -->
         <ion-button *ngIf="onRefresh.observers | isNotEmptyArray"
                     [matTooltip]="'COMMON.BTN_REFRESH'|translate"
-                    (click)="onRefresh.emit($event)">
+                    (click)="refresh($event)">
           <mat-icon slot="icon-only">refresh</mat-icon>
         </ion-button>
       </ng-template>
