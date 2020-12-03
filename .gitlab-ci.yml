@@ -16,14 +16,17 @@ build_dev:
   except:
     - schedules
 
+schedule-build:
+  extends: .build_and_zip
+  only:
+    - schedules
+
 build_dev_and_zip:
-  extends: .build
+  extends: .build_and_zip
   only:
     - develop
     - develop-ifremer
-  rules:
-    - if: '$CI_PIPELINE_SOURCE != "schedule"'
-      when: manual
+  when: manual
 
 .build_and_zip:
   extends: .build
@@ -35,8 +38,10 @@ build_dev_and_zip:
     - cd $PROJECT_DIR/www
     - zip -q -r $ZIP_FILE .
   artifacts:
-    paths:
-      - dist
+      paths:
+        - dist
+  only:
+    - schedules
 
 .build:
   stage: build
