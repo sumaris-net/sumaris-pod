@@ -7,13 +7,12 @@ import {catchError, switchMap, throttleTime} from "rxjs/operators";
 import {Entity} from "../model/entity.model";
 import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
-import {ENTITIES_STORAGE_KEY, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
+import {ENTITIES_STORAGE_KEY_PREFIX, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
 
 
-export declare interface EntitiesStorageTypePolicies {
-  [__typename: string]: EntityStoreTypePolicy<any>;
+export interface EntitiesStorageTypePolicies {
+  [__typename: string]: EntityStoreTypePolicy;
 }
-
 
 export const APP_LOCAL_STORAGE_TYPE_POLICIES = new InjectionToken<EntitiesStorageTypePolicies>('localStorageTypePolicies');
 
@@ -433,7 +432,7 @@ export class EntitiesStorage
 
   protected async restoreLocally() {
 
-    const entityNames = await this.storage.get(ENTITIES_STORAGE_KEY);
+    const entityNames = await this.storage.get(ENTITIES_STORAGE_KEY_PREFIX);
     if (!entityNames) return;
 
     const now = this._debug && Date.now();
@@ -487,8 +486,8 @@ export class EntitiesStorage
         defer(() =>  {
           currentEntityName = undefined;
           return isEmptyArray(entityNames) ?
-            this.storage.remove(ENTITIES_STORAGE_KEY) :
-            this.storage.set(ENTITIES_STORAGE_KEY, entityNames);
+            this.storage.remove(ENTITIES_STORAGE_KEY_PREFIX) :
+            this.storage.set(ENTITIES_STORAGE_KEY_PREFIX, entityNames);
         }),
         defer(() =>  {
           if (this._debug) console.debug(`[entity-storage] Persisting [OK] ${entityNames.length} stores saved in ${Date.now() - now}ms...`);

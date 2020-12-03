@@ -1,14 +1,10 @@
-import {defaultDataIdFromObject} from "apollo-cache-inmemory";
-import {ApolloLink, NextLink, Operation} from "@apollo/client/core";
+import {ApolloClient, ApolloLink, NextLink, Operation} from "@apollo/client/core";
 import * as uuidv4Imported from "uuid/v4";
 const uuidv4 = uuidv4Imported;
 import {EventEmitter} from "@angular/core";
 import {debounceTime, filter, switchMap} from "rxjs/operators";
 import {BehaviorSubject, Observable} from "rxjs";
-import {ApolloClient} from "@apollo/client/core";
-import {environment} from "../../../environments/environment";
-import {isNotNil} from "../../shared/functions";
-import {getMainDefinition} from "apollo-utilities";
+import {getMainDefinition} from "@apollo/client/utilities";
 import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 
 declare let window: any;

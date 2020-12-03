@@ -2,29 +2,33 @@
 <html lang="en" dir="ltr">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, width=device-width, minimal-ui">
-  <meta name="format-detection" content="telephone=no">
-
+  <meta charset="utf-8" />
   <title id="appTitle">Loading...</title>
-  <link id="appFavicon" rel="icon" type="image/x-icon" href="./favicon.ico">
 
-  <base href="/">
+  <base href="/" />
 
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#4e8ef7">
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#4e8ef7" />
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, width=device-width, minimal-ui" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
 
-  <meta name="msapplication-tap-highlight" content="no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link id="appFavicon" rel="icon" type="image/x-icon" href="./favicon.ico" />
+
+  <link rel="manifest" href="./manifest.json" />
+
+
+  <!-- add to homescreen for ios -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
   <!-- configure browser cache (need to load new version without reloading) -->
   <meta http-equiv="Cache-Control" content="max-age=3600, must-revalidate"/>
-  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta http-equiv="If-Modified-Since" content="0" />
 
-  <link href="./assets/css/loading.css" rel="stylesheet">
+  <link href="./assets/css/loading.css" rel="stylesheet" />
 
   <meta property="og:title" content="SUMARiS App" />
   <meta property="og:type" content="website" />
@@ -37,16 +41,6 @@
   <meta property="og:locale" content="en_GB" />
   <meta property="og:locale:alternate" content="en_US" />
   <meta property="og:locale:alternate" content="fr_FR" />
-
-  <!-- un-comment this code to enable service worker
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('service worker installed'))
-        .catch(err => console.error('Error', err));
-    }
-  </script>-->
-
 </head>
 
 <body>
@@ -63,7 +57,6 @@
       </div>
     </div>
   </app-root>
-
 
 </body>
 

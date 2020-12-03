@@ -28,10 +28,10 @@ export interface EntityAsObjectOptions {
   keepLocalId?: boolean; // true by default
 }
 
-export interface IEntity<T, O extends EntityAsObjectOptions = EntityAsObjectOptions>
+export interface IEntity<T, O extends EntityAsObjectOptions = EntityAsObjectOptions, ID = number>
   extends Cloneable<T> {
-  id: number;
-  updateDate: Date | Moment;
+  id: ID;
+  updateDate: Moment;
   __typename: string;
   equals(other: T): boolean;
   clone(): T;
@@ -46,11 +46,11 @@ export declare interface ITreeItemEntity<T extends IEntity<T>> {
 }
 
 
-export abstract class Entity<T extends IEntity<any, any>, O extends EntityAsObjectOptions = EntityAsObjectOptions>
-  implements IEntity<T, O> {
+export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsObjectOptions = EntityAsObjectOptions, ID = number>
+  implements IEntity<T, O, ID> {
 
-  id: number;
-  updateDate: Date | Moment;
+  id: ID;
+  updateDate: Moment;
   __typename: string;
 
   abstract clone(): T;

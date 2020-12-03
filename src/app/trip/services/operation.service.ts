@@ -26,7 +26,7 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
+import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
@@ -36,8 +36,9 @@ import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum
 import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
 import {QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
-import {concatPromises, firstNotNilPromise} from "../../shared/observables";
+import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {FetchPolicy} from "@apollo/client/core";
+import {EntityStoreTypePolicy} from "../../core/services/storage/entity-store.class";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -128,7 +129,6 @@ export const OperationFragments = {
   ${DataFragments.fishingArea}
   `
 };
-
 
 export class OperationFilter {
 
@@ -231,12 +231,13 @@ export declare interface OperationServiceWatchOptions extends
   fetchPolicy?: FetchPolicy;
 }
 
+
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseEntityService<Operation, OperationFilter>
   implements EntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
              EntityService<Operation>{
 
-  static LIGHT_EXCLUDED_ATTRIBUTES = ["measurements", "samples", "batches"];
+
 
   loading = false;
 
@@ -430,7 +431,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     if (this._debug) console.debug(`[operation-service] Saving ${entities.length} operations...`);
     const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
-    return concatPromises<Operation>(jobsFactories);
+    return chainPromises<Operation>(jobsFactories);
   }
 
   /**

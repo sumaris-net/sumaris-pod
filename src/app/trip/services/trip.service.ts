@@ -1,5 +1,5 @@
 import {Injectable, Injector, Optional} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {
   EntitiesService,
   EntityService,
@@ -9,7 +9,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  toBoolean,
   toDateISOString
 } from "../../shared/shared.module";
 import {AppFormUtils, Department, Entity, EntityUtils, environment} from "../../core/core.module";
@@ -18,7 +17,6 @@ import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
-import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {RootDataService} from "./root-data-service.class";
 import * as momentImported from "moment";
@@ -40,7 +38,7 @@ import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {concatPromises} from "../../shared/observables";
+import {chainPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./validator/trip.validator";
 import {FormErrors} from "../../core/form/form.utils";
@@ -55,14 +53,12 @@ import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
 import {UserEventService} from "../../social/services/user-event.service";
-import {UserEvent} from "../../social/services/model/user-event.model";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
 import {TranslateService} from "@ngx-translate/core";
 import {ToastController} from "@ionic/angular";
-import {IEntity} from "../../core/services/model/entity.model";
 import {TrashRemoteService} from "../../core/services/trash-remote.service";
-import {BatchUtils} from "./model/batch.model";
+import {TRIP_FEATURE_NAME} from "./config/trip.config";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -230,7 +226,6 @@ export const TripFragments = {
   `
 };
 
-export const TRIP_FEATURE = 'trip';
 
 export class TripFilter {
   programLabel?: string;
@@ -265,18 +260,18 @@ export class TripFilter {
 
     // Location
     if (isNotNil(f.locationId)) {
-      filterFns.push(t => ((t.departureLocation && t.departureLocation.id === f.locationId) || (t.returnLocation && t.returnLocation.id === f.locationId)))
+      filterFns.push(t => ((t.departureLocation && t.departureLocation.id === f.locationId) || (t.returnLocation && t.returnLocation.id === f.locationId)));
     }
 
     // Start/end period
     const startDate = fromDateISOString(f.startDate);
     let endDate = fromDateISOString(f.endDate);
     if (startDate) {
-      filterFns.push(t => t.returnDateTime ? startDate.isSameOrBefore(t.returnDateTime) : startDate.isSameOrBefore(t.departureDateTime))
+      filterFns.push(t => t.returnDateTime ? startDate.isSameOrBefore(t.returnDateTime) : startDate.isSameOrBefore(t.departureDateTime));
     }
     if (endDate) {
       endDate = endDate.add(1, 'day');
-      filterFns.push(t => t.departureDateTime && endDate.isAfter(t.departureDateTime))
+      filterFns.push(t => t.departureDateTime && endDate.isAfter(t.departureDateTime));
     }
 
     // Recorder department
@@ -444,6 +439,7 @@ const UpdateSubscription = gql`
   ${TripFragments.trip}
 `;
 
+
 @Injectable({providedIn: 'root'})
 export class TripService extends RootDataService<Trip, TripFilter>
   implements
@@ -604,7 +600,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       }
 
       // Transform to entity
-      const data:Trip = (!opts || opts.toEntity !== false) ? Trip.fromObject(json) : (json as Trip);
+      const data: Trip = (!opts || opts.toEntity !== false) ? Trip.fromObject(json) : (json as Trip);
 
       if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
       return data;
@@ -657,7 +653,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     if (this._debug) console.debug(`[trip-service] Saving ${entities.length} trips...`);
     const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
-    return concatPromises<Trip>(jobsFactories);
+    return chainPromises<Trip>(jobsFactories);
   }
 
   /**
@@ -679,7 +675,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       withOperation: false,
       withOperationGroup: false,
       ...opts
-    }
+    };
 
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving trip...", entity);
@@ -816,11 +812,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
       // Link to physical gear id, using the rankOrder
       operations.forEach(o => {
         o.id = null; // Clean ID, to force new ids
-        o.physicalGear = o.physicalGear && (entity.gears||[]).find(g => g.rankOrder === o.physicalGear.rankOrder);
+        o.physicalGear = o.physicalGear && (entity.gears || []).find(g => g.rankOrder === o.physicalGear.rankOrder);
         o.tripId = entity.id;
         o.trip = undefined;
         o.updateDate = undefined;
-      })
+      });
 
       entity.operations = await this.operationService.saveAll(operations, {tripId: entity.id});
     }
@@ -1157,7 +1153,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
       if (this._debug) console.debug(`[trip-service] Deleting trips locally... {trash: ${trash}`);
 
-      await concatPromises(localEntities.map(entity => async () => {
+      await chainPromises(localEntities.map(entity => async () => {
 
 
         // Load trip's operations
@@ -1215,7 +1211,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
    * @param entities
    */
   copyAllLocally(entities: Trip[], opts?: TripServiceCopyOptions): Promise<Trip[]> {
-    return concatPromises(entities.map(source => () => this.copyLocally(source, opts)));
+    return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
   }
 
 
@@ -1250,7 +1246,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       deletedFromTrash: false,
       withOperation: true, // Change default value to 'true'
       ...opts
-    }
+    };
     const isLocal = DataRootEntityUtils.isLocal(source);
 
     // Create a new entity (without id and updateDate)
@@ -1337,7 +1333,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
           tap(() => {
             this.$importationProgress = null;
             console.info(`[trip-service] Importation finished in ${Date.now() - now}ms`);
-            this.settings.registerOfflineFeature(TRIP_FEATURE);
+            this.settings.registerOfflineFeature(TRIP_FEATURE_NAME);
           })
         ))
 

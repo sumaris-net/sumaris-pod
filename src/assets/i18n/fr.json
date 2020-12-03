@@ -1459,7 +1459,9 @@
     "DATA_MIGRATION_FAILED": "Echec de la migration de données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "BAD_APP_VERSION": "Veuillez mettre à jour l'application. La récupération et l'envoi de données avec la version actuelle risque de ne pas fonctionner.</small>",
     "LOAD_TRASH_ENTITY_ERROR": "Erreur de chargement du fichier de corbeille",
-    "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille"
+    "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille",
+    "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données",
+    "STARTUP_FAILED": "Echec du lancement"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
