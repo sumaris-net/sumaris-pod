@@ -27,7 +27,6 @@ export class SimpleStrategyValidatorService extends StrategyValidatorService {
       sampleRowCode: [data && data.sampleRowCode || null, Validators.required],
       comments: [data && data.comments || null,Validators.nullValidator],
       taxonName: [data && data.taxonName || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      landingArea: [data && data.landingArea || null, Validators.compose([Validators.required, SharedValidators.entity])],
       sex: [data && data.sex || null,Validators.nullValidator],
       age: [data && data.age || null,Validators.nullValidator],
       calcifiedTypes : this.getCalcifiedTypesArray(data),

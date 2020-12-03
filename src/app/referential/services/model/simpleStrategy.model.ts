@@ -30,7 +30,6 @@ export class SimpleStrategy extends Strategy {
   sampleRowCode : string;
   eotp: string;
   taxonName: TaxonNameRef;
-  landingArea: ReferentialRef;
   laboratories: ReferentialRef [];
   fishingAreas: ReferentialRef [];
   calcifiedTypes: ReferentialRef[];
@@ -47,7 +46,6 @@ export class SimpleStrategy extends Strategy {
     this.sampleRowCode = null;
     this.laboratories =  [];
     this.fishingAreas = [];
-    this.landingArea = null;
     this.sex = null;
     this.age =null;
     this.calcifiedTypes = [];
@@ -71,7 +69,6 @@ export class SimpleStrategy extends Strategy {
     if (isEmptyArray(target.laboratories)) delete target.laboratories; // Clean is empty, for compat with previous version
     target.fishingAreas = this.fishingAreas && this.fishingAreas.filter(isNotNil).map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
     if (isEmptyArray(target.fishingAreas)) delete target.fishingAreas; // Clean is empty, for compat with previous version
-    target.landingArea = this.landingArea;
     target.calcifiedTypes = this.calcifiedTypes && this.calcifiedTypes.filter(isNotNil).map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
     if (isEmptyArray(target.calcifiedTypes)) delete target.calcifiedTypes; // Clean is empty, for compat with previous version
     target.sex = this.sex;
@@ -88,7 +85,6 @@ export class SimpleStrategy extends Strategy {
     this.eotp = source.eotp;
     this.laboratories = source.laboratories && source.laboratories.map(ReferentialRef.fromObject) || [];
     this.fishingAreas = source.fishingAreas && source.fishingAreas.map(ReferentialRef.fromObject) || [];
-    this.landingArea = source.landingArea && TaxonNameRef.fromObject(source.landingArea) || undefined;
     this.calcifiedTypes = source.calcifiedTypes && source.calcifiedTypes.map(ReferentialRef.fromObject) || [];
     this.sex = source.sex  || undefined;
     this.age = source.age  || undefined;

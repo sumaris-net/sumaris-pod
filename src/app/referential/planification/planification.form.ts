@@ -76,17 +76,14 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
   fishingAreaHelper: FormArrayHelper<ReferentialRef>;
   fishingAreaFocusIndex = -1;
 
-  enableLandingAreaFilter = true;
-  canFilterLandingArea = true;
-
-
   enableCalcifiedTypeFilter = true;
   canFilterCalcifiedType = true;
   calcifiedTypeHelper: FormArrayHelper<ReferentialRef>;
   calcifiedTypeFocusIndex = -1;
 
   @Input() program: Program;
-
+  @Input() showError = true;
+  @Input() entityName;
   sampleRowCode: string = '';
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
@@ -187,15 +184,6 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
       mobile: this.settings.mobile
     });
 
-    // landingArea autocomplete
-    this.registerAutocompleteField('landingArea', {
-      suggestFn: (value, filter) => this.suggest(value, {
-          ...filter, statusId : 1, levelId : 6
-        },
-        'Location',
-        this.enableLandingAreaFilter),
-      mobile: this.settings.mobile
-    });
 
     // eotp combo -------------------------------------------------------------------
     this.registerAutocompleteField('eotp', {
@@ -262,9 +250,6 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
       case 'fishingArea':
         this.enableFishingAreaFilter = value = !this.enableFishingAreaFilter;
         break;
-      case 'landingArea':
-        this.enableLandingAreaFilter = value = !this.enableLandingAreaFilter;
-        break;
       case 'taxonName':
         this.enableTaxonNameFilter = value = !this.enableTaxonNameFilter;
         break;
@@ -304,7 +289,7 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
       });
       laboratoriesControl.patchValue(laboratories);
 
-      // FISHING AREA / landingArea
+      // FISHING AREA
       const fishingAreaControl = this.fishingAreasForm;
       // applied_strategy.location_fk + program2location (zones en mer / configurables)
       let appliedStrategies = simpleStrategy.appliedStrategies;
@@ -531,5 +516,8 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
     }
   }
 
+  protected markForCheck() {
+    if (this.cd) this.cd.markForCheck();
+  }
 
 }

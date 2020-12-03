@@ -1,10 +1,9 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
+import {AppEntityEditor, EntityUtils, isNil, Referential} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
 import {Strategy} from "../services/model/strategy.model";
-import {SimpleStrategyForm} from "../simpleStrategy/form/simpleStrategy.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {
   fadeInOutAnimation
@@ -17,6 +16,7 @@ import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {animate, state, style, transition, trigger} from "@angular/animations";
 import {ProgramProperties} from "../services/config/program.config";
 import {StrategyService} from "../services/strategy.service";
+import {PlanificationForm} from "../planification/planification.form";
 
 
 export enum AnimationState {
@@ -56,7 +56,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
 
-  @ViewChild('simpleStrategyForm', { static: true }) simpleStrategyForm: SimpleStrategyForm;
+  @ViewChild('planificationForm', { static: true }) planificationForm: PlanificationForm;
 
 
   constructor(
@@ -85,7 +85,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   super.ngOnInit();
 
     // Set entity name (required for referential form validator)
-    this.simpleStrategyForm.entityName = 'simpleStrategyForm';
+    this.planificationForm.entityName = 'planificationForm';
 
 
    }
@@ -109,15 +109,14 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
 
   protected getFirstInvalidTabIndex(): number {
-    if (this.simpleStrategyForm.invalid) return 0;
+    if (this.planificationForm.invalid) return 0;
    // TODO
     return 0;
   }
 
   protected registerForms() {
     this.addChildForms([
-      this.simpleStrategyForm
-       // TODO
+      this.planificationForm
     ]);
   }
 
@@ -129,15 +128,33 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     //}
   }
 
-  protected setValue(data: Strategy) {
-    if (!data) return; // Skip
+  //protected setValue(data: Strategy) {
+  protected setValue(data: Referential, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+
+      if (!data) return; // Skip
 
     this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
 
-    this.simpleStrategyForm.value = data;
+    /*this.simpleStrategyForm.value = data;
+    //this.simpleStrategyForm.program = 40;*/
+    //this.simpleStrategyForm.statusList =
+   /* this.simpleStrategyForm.entityName= 'strategy';*/
+
+
+    this.planificationForm.value = data;
     //this.simpleStrategyForm.program = 40;
     //this.simpleStrategyForm.statusList =
-    this.simpleStrategyForm.entityName= 'strategy';
+    //this.planificationForm.entityName= 'strategy';
+
+
+    // Make sure to set entityName if set from Input()
+    /*const entityNameControl = this.form.get('entityName');
+    if (entityNameControl && this.entityName && entityNameControl.value !== this.entityName) {
+      entityNameControl.setValue(this.entityName);
+    }*/
+    // Propagate value to planification form when automatic binding isn't set in super.setValue()
+    this.planificationForm.setValueSimpleStrategy(data, opts);
+
 
     this.markAsPristine();
   }
