@@ -119,7 +119,7 @@ public class ExtractionRestController {
 
     @PostConstruct
     public void init() {
-        log.info("Starting Extraction endpoint {{}}...", BASE_PATH);
+        log.info("Starting extraction endpoint {{}}...", BASE_PATH);
     }
 
     @GetMapping(

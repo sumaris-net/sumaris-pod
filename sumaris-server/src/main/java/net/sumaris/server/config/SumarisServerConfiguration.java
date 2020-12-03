@@ -294,18 +294,18 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
         String timeZone = applicationConfig.getOption(SumarisConfigurationOption.TIMEZONE.getKey());
         if (StringUtils.isNotBlank(timeZone)) {
-            log.info(String.format("Using timezone [%s]", timeZone));
+            log.info("Using timezone {{}}", timeZone);
             TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
             System.setProperty("user.timezone", timeZone);
         } else {
-            log.info(String.format("Using default timezone [%s]", System.getProperty("user.timezone")));
+            log.info("Using default timezone {{}}", System.getProperty("user.timezone"));
         }
 
         String dbTimeZone = applicationConfig.getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
         if (StringUtils.isNotBlank(dbTimeZone)) {
-            log.info(String.format("Using timezone [%s] for database", dbTimeZone));
+            log.info("Using timezone {{}} for database", dbTimeZone);
         } else {
-            log.info(String.format("Using default timezone [%s] for database", System.getProperty("user.timezone")));
+            log.info("Using default timezone {{}} for database", System.getProperty("user.timezone"));
         }
     }
 
