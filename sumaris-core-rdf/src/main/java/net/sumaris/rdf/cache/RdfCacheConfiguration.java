@@ -22,6 +22,7 @@
 package net.sumaris.rdf.cache;
 
 import net.sf.ehcache.CacheManager;
+import net.sumaris.core.dao.cache.CacheConfiguration;
 import net.sumaris.core.dao.technical.ehcache.Caches;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnBean({org.springframework.cache.CacheManager.class})
+@ConditionalOnBean({CacheConfiguration.class})
 public class RdfCacheConfiguration {
     /**
      * Logger.
@@ -40,8 +41,13 @@ public class RdfCacheConfiguration {
     protected static final Logger log =
             LoggerFactory.getLogger(RdfCacheConfiguration.class);
 
-    @Autowired
     protected CacheManager cacheManager;
+
+    @Autowired
+    protected RdfCacheConfiguration(CacheConfiguration cacheConfiguration) {
+        this.cacheManager = cacheConfiguration.getCacheManager();
+        log.info("Adding RDF caches...");
+    }
 
     @Bean
     public EhCacheFactoryBean ontologyByNameCache() {

@@ -51,10 +51,12 @@ public class CacheConfiguration {
 
     @PostConstruct
     protected void init() {
-        if (this.cacheManager == null) {
-            log.info("Starting cache manager...");
-            this.cacheManager = ehcache();
-        }
+        log.info("Starting cache manager...");
+        if (this.cacheManager == null) this.cacheManager = ehcache();
+    }
+
+    public CacheManager getCacheManager() {
+        return this.cacheManager;
     }
 
     @Bean(name="ehcacheFactory")
@@ -190,10 +192,9 @@ public class CacheConfiguration {
         return Caches.createHeapCache(ehcache(), CacheNames.TABLE_META_BY_NAME, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 500);
     }
 
+    /* -- protected methods -- */
 
-    /* protected */
     protected CacheManager ehcache() {
-        return cacheManager != null ? cacheManager : ehcacheFactory().getObject();
+        return (cacheManager != null) ? cacheManager : ehcacheFactory().getObject();
     }
-
 }
