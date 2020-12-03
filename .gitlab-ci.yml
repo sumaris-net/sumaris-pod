@@ -8,17 +8,35 @@ stages:
     - release
     - deploy
 
-build_develop:
+build_dev:
   extends: .build
   only:
     - develop
     - develop-ifremer
-  when: manual
+  except:
+    - schedules
 
-schedule-build:
+build_dev_and_zip:
   extends: .build
   only:
-    - schedules
+    - develop
+    - develop-ifremer
+  rules:
+    - if: '$CI_PIPELINE_SOURCE != "schedule"'
+      when: manual
+
+.build_and_zip:
+  extends: .build
+  script:
+    - echo "Creating web artifact in progress"
+    - PROJECT_DIR=`pwd`
+    - mkdir -p "${PROJECT_DIR}/dist"
+    - ZIP_FILE=${PROJECT_DIR}/dist/${CI_PROJECT_NAME}.zip
+    - cd $PROJECT_DIR/www
+    - zip -q -r $ZIP_FILE .
+  artifacts:
+    paths:
+      - dist
 
 .build:
   stage: build
@@ -28,17 +46,8 @@ schedule-build:
     - echo "Test compilation in progress"
     - npm install
     - npm run build
-    - echo "Creating web artifact in progress"
-    - PROJECT_DIR=`pwd`
-    - mkdir -p "${PROJECT_DIR}/dist"
-    - ZIP_FILE=${PROJECT_DIR}/dist/${CI_PROJECT_NAME}.zip
-    - cd $PROJECT_DIR/www
-    - zip -q -r $ZIP_FILE .
   environment:
     name: test
-  artifacts:
-    paths:
-      - dist
 
 sonarqube:
     stage: test
