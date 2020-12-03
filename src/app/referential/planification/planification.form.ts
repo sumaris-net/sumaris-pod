@@ -13,14 +13,13 @@ import {
   Referential
 } from '../../core/core.module';
 import {BehaviorSubject} from "rxjs";
-import { Planification } from 'src/app/trip/services/model/planification.model';
-import { PlanificationValidatorService } from 'src/app/trip/services/validator/planification.validator';
 import { Program } from '../services/model/program.model';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { InputElement } from 'src/app/shared/shared.module';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
 import {Strategy} from "../services/model/strategy.model";
+import {StrategyValidatorService} from "../services/validator/strategy.validator";
 
 
 
@@ -30,10 +29,10 @@ import {Strategy} from "../services/model/strategy.model";
   styleUrls: ['./planification.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    {provide: PlanificationValidatorService}
+    {provide: StrategyValidatorService}
   ],
 })
-export class PlanificationForm extends AppForm<Planification> implements OnInit, ControlValueAccessor, InputElement {
+export class PlanificationForm extends AppForm<Strategy> implements OnInit, ControlValueAccessor, InputElement {
 
   protected formBuilder: FormBuilder;
   private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
@@ -104,7 +103,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected validatorService: PlanificationValidatorService,
+    protected validatorService: StrategyValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
@@ -138,24 +137,24 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
 
     // register year field changes
     this.registerSubscription(
-      this.form.get('year').valueChanges
-      .subscribe(async (date : Moment) => {
-        //update mask
-        const year = date.year().toString()
-        this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
-        // set sample row code
-        //TODO : replace 40 with this.program.id
-         this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
-      })
+      this.form.get('creationDate').valueChanges
+        .subscribe(async (date : Moment) => {
+          //update mask
+          const year = date.year().toString()
+          this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+          // set sample row code
+          //TODO : replace 40 with this.program.id
+          this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
+        })
     );
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggest(value, {
-        ...filter, statusId : 1
-      },
-      'TaxonName',
-      this.enableTaxonNameFilter),
+          ...filter, statusId : 1
+        },
+        'TaxonName',
+        this.enableTaxonNameFilter),
       attributes: ['name'],
       columnNames: [ 'REFERENTIAL.NAME'],
       columnSizes: [2,10],
@@ -165,10 +164,10 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     // laboratory autocomplete
     this.registerAutocompleteField('laboratory', {
       suggestFn: (value, filter) => this.suggest(value, {
-        ...filter, statusId : 1
-      },
-      'Department',
-      this.enableLaboratoryFilter),
+          ...filter, statusId : 1
+        },
+        'Department',
+        this.enableLaboratoryFilter),
       columnSizes : [4,6],
       mobile: this.settings.mobile
     });
@@ -176,25 +175,25 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     // fishingArea autocomplete
     this.registerAutocompleteField('fishingArea', {
       suggestFn: (value, filter) => this.suggest(value, {
-        ...filter, statusId : 0, levelId : 111
-      },
-      'Location',
-      this.enableFishingAreaFilter),
+          ...filter, statusId : 0, levelId : 111
+        },
+        'Location',
+        this.enableFishingAreaFilter),
       mobile: this.settings.mobile
     });
 
     // landingArea autocomplete
     this.registerAutocompleteField('landingArea', {
       suggestFn: (value, filter) => this.suggest(value, {
-        ...filter, statusId : 1, levelId : 6
-      },
-      'Location',
-      this.enableLandingAreaFilter),
+          ...filter, statusId : 1, levelId : 6
+        },
+        'Location',
+        this.enableLandingAreaFilter),
       mobile: this.settings.mobile
     });
 
-     // eotp combo -------------------------------------------------------------------
-     this.registerAutocompleteField('eotp', {
+    // eotp combo -------------------------------------------------------------------
+    this.registerAutocompleteField('analyticReference', {
       columnSizes : [4,6],
       items: this._eotpSubject,
       mobile: this.mobile
@@ -211,7 +210,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     this.loadCalcifiedType();
 
     //set current date to year field
-    this.form.get('year').setValue(moment());
+    this.form.get('creationDate').setValue(moment());
 
     //init helpers
     this.initCalcifiedTypeHelper();
@@ -248,7 +247,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   toggleFilteredItems(fieldName: string){
     let value : boolean;
     switch (fieldName) {
-      case 'eotp':
+      case 'analyticReference':
         this.enableEotpFilter = value = !this.enableEotpFilter;
         this.loadEotps();
         break;
@@ -285,11 +284,11 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
       this.programId = strategy.programId;
 
       // SAMPLE ROW CODE
-      const sampleRowCodeControl = this.form.get("sampleRowCode");
+      const sampleRowCodeControl = this.form.get("label");
       sampleRowCodeControl.patchValue(strategy.label);
 
       // EOTP
-      const eotpControl = this.form.get("eotp");
+      const eotpControl = this.form.get("analyticReference");
       let eotp = strategy.analyticReference;
       eotpControl.patchValue(eotp);
 
@@ -362,9 +361,9 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   save(){
     console.log("save work");
 
-    console.log(this.form.get("comment"));
+    console.log(this.form.get("comments"));
 
-  /* console.log("comment : "+this.form.get("comment").value);*/
+    /* console.log("comment : "+this.form.get("comment").value);*/
   }
 
   cancel(){
@@ -379,114 +378,114 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     console.log("close works");
   }
 
-   // fishingArea Helper -----------------------------------------------------------------------------------------------
-    protected initFishingAreaHelper() {
-      this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
-        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
-        (fishingArea) => this.validatorService.getFishingAreaControl(fishingArea),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
-        {
-          allowEmptyArray: false
-        }
-      );
-        // Create at least one fishing Area
-        if (this.fishingAreaHelper.size() === 0) {
-          this.fishingAreaHelper.resize(1);
-        }
-    }
-    addFishingArea() {
-      this.fishingAreaHelper.add();
-      if (!this.mobile) {
-        this.fishingAreaFocusIndex = this.fishingAreaHelper.size() - 1;
+  // fishingArea Helper -----------------------------------------------------------------------------------------------
+  protected initFishingAreaHelper() {
+    this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
+      (fishingArea) => this.validatorService.getControl(fishingArea),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false
       }
+    );
+    // Create at least one fishing Area
+    if (this.fishingAreaHelper.size() === 0) {
+      this.fishingAreaHelper.resize(1);
     }
+  }
+  addFishingArea() {
+    this.fishingAreaHelper.add();
+    if (!this.mobile) {
+      this.fishingAreaFocusIndex = this.fishingAreaHelper.size() - 1;
+    }
+  }
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
-    protected initLaboratoryHelper() {
-      this.laboratoryHelper = new FormArrayHelper<ReferentialRef>(
-        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'laboratories'),
-        (laboratory) => this.validatorService.getLaboratoryControl(laboratory),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
-        {
-          allowEmptyArray: false
-        }
-      );
-        // Create at least one laboratory
-        if (this.laboratoryHelper.size() === 0) {
-          this.laboratoryHelper.resize(1);
-        }
-    }
-    addLaboratory() {
-      this.laboratoryHelper.add();
-      if (!this.mobile) {
-        this.laboratoryFocusIndex = this.laboratoryHelper.size() - 1;
+  protected initLaboratoryHelper() {
+    this.laboratoryHelper = new FormArrayHelper<ReferentialRef>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'laboratories'),
+      (laboratory) => this.validatorService.getControl(laboratory),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false
       }
+    );
+    // Create at least one laboratory
+    if (this.laboratoryHelper.size() === 0) {
+      this.laboratoryHelper.resize(1);
     }
+  }
+  addLaboratory() {
+    this.laboratoryHelper.add();
+    if (!this.mobile) {
+      this.laboratoryFocusIndex = this.laboratoryHelper.size() - 1;
+    }
+  }
   // CalcifiedTypeHelper -----------------------------------------------------------------------------------------------
 
-    protected initCalcifiedTypeHelper() {
-      this.calcifiedTypeHelper = new FormArrayHelper<ReferentialRef>(
-        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'calcifiedTypes'),
-        (calcifiedType) => this.validatorService.getCalcifiedTypeControl(calcifiedType),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
-        {
-          allowEmptyArray: false
-        }
-      );
-        // Create at least one calcifiedType
-        if (this.calcifiedTypeHelper.size() === 0) {
-          this.calcifiedTypeHelper.resize(1);
-        }
-    }
-    addCalcifiedType() {
-      this.calcifiedTypeHelper.add();
-      if (!this.mobile) {
-        this.calcifiedTypeFocusIndex = this.calcifiedTypeHelper.size() - 1;
+  protected initCalcifiedTypeHelper() {
+    this.calcifiedTypeHelper = new FormArrayHelper<ReferentialRef>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'calcifiedTypes'),
+      (calcifiedType) => this.validatorService.getControl(calcifiedType),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false
       }
+    );
+    // Create at least one calcifiedType
+    if (this.calcifiedTypeHelper.size() === 0) {
+      this.calcifiedTypeHelper.resize(1);
     }
+  }
+  addCalcifiedType() {
+    this.calcifiedTypeHelper.add();
+    if (!this.mobile) {
+      this.calcifiedTypeFocusIndex = this.calcifiedTypeHelper.size() - 1;
+    }
+  }
 
   // Calcified Type ---------------------------------------------------------------------------------------------
   protected async loadCalcifiedType() {
     const calcifiedTypeControl = this.form.get('calcifiedTypes');
     calcifiedTypeControl.enable();
-      // Refresh filtred departments
-      if (this.enableCalcifiedTypeFilter) {
-       const allcalcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
-       this._calcifiedTypeSubject.next(allcalcifiedTypes);
-      } else {
-         // TODO Refresh filtred departments
-         const filtredCalcifiedTypes = await this.loadCalcifiedTypesMethod();
-         this._calcifiedTypeSubject.next(filtredCalcifiedTypes);
-      }
+    // Refresh filtred departments
+    if (this.enableCalcifiedTypeFilter) {
+      const allcalcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
+      this._calcifiedTypeSubject.next(allcalcifiedTypes);
+    } else {
+      // TODO Refresh filtred departments
+      const filtredCalcifiedTypes = await this.loadCalcifiedTypesMethod();
+      this._calcifiedTypeSubject.next(filtredCalcifiedTypes);
+    }
   }
-     // Load CalcifiedTypes Service
-     protected async loadCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
-      const res = await this.referentialRefService.loadAll(0, 200, null,null,
-        {
-          entityName: 'Fraction',
-          searchAttribute: "description",
-          searchText: "individu"
-        });
-      return res.data;
-    }
+  // Load CalcifiedTypes Service
+  protected async loadCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
+    const res = await this.referentialRefService.loadAll(0, 200, null,null,
+      {
+        entityName: 'Fraction',
+        searchAttribute: "description",
+        searchText: "individu"
+      });
+    return res.data;
+  }
 
-     //TODO : Load filtred CalcifiedTypes Service : another service to implement
-     protected async loadFilteredCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
-      const res = await this.referentialRefService.loadAll(0, 1, null,null,
-        {
-          entityName: 'Fraction',
-          searchAttribute: "description",
-          searchText: "individu"
-        });
-        return res.data;
-    }
+  //TODO : Load filtred CalcifiedTypes Service : another service to implement
+  protected async loadFilteredCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
+    const res = await this.referentialRefService.loadAll(0, 1, null,null,
+      {
+        entityName: 'Fraction',
+        searchAttribute: "description",
+        searchText: "individu"
+      });
+    return res.data;
+  }
   // EOTP  ---------------------------------------------------------------------------------------------------
 
   protected  loadEotps() {
-    const eotpAreaControl = this.form.get('eotp');
+    const eotpAreaControl = this.form.get('analyticReference');
     eotpAreaControl.enable();
 
     if (this.enableEotpFilter) {
