@@ -21,6 +21,10 @@ import * as moment from "moment";
 import {SimpleStrategyValidatorService} from "../services/validator/simpleStrategy.validator";
 import {SimpleStrategy} from "../services/model/simpleStrategy.model";
 import {Strategy} from "../services/model/strategy.model";
+import {filter, map} from "rxjs/operators";
+import {Pmfm} from "../services/model/pmfm.model";
+import {removeDuplicatesFromArray} from "../../shared/functions";
+import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 
 
 
@@ -300,7 +304,7 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
       });
       laboratoriesControl.patchValue(laboratories);
 
-      // FISHING AREA
+      // FISHING AREA / landingArea
       const fishingAreaControl = this.fishingAreasForm;
       // applied_strategy.location_fk + program2location (zones en mer / configurables)
       let appliedStrategies = simpleStrategy.appliedStrategies;
@@ -312,8 +316,11 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
       // TAXONS
       const taxonControl = this.form.get("taxonName");
       let taxonNameStrategy = (simpleStrategy.taxonNames || []).find(t => t.taxonName.id);
-      let taxon = taxonNameStrategy.taxonName;
-      taxonControl.patchValue(taxon);
+      if (taxonNameStrategy)
+      {
+        let taxon = taxonNameStrategy.taxonName;
+        taxonControl.patchValue(taxon);
+      }
 
 
       // YEAR
@@ -322,17 +329,46 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
       // EFFORT
 
 
+      // WEIGHT PMFMS
+      const weightPmfmsControl = this.form.get("weightPmfmStrategies");
+       let weightPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
+
+      if (weightPmfmStrategy)
+      {
+        let weightPmfm = weightPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
+        //weightPmfmsControl.patchValue(weightPmfm);
+        weightPmfmsControl.patchValue(weightPmfmStrategy);
+      }
+
+      // Size
+      const sizePmfmsControl = this.form.get("sizePmfmStrategies");
+      const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
+      let sizePmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
+      if (sizePmfmStrategy)
+      {
+        let sizePmfm = sizePmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
+        sizePmfmsControl.patchValue(sizePmfm);
+      }
+
       // SEX
       const sexControl = this.form.get("sex");
-      let sexPmfmStrategy =  (simpleStrategy.pmfmStrategies || []).find(t => t.pmfm.label === "SEX");
+      let sexPmfmStrategy =  simpleStrategy.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
       if (sexPmfmStrategy) {
-        let sexValuePmfm = sexPmfmStrategy.pmfm;
-        if (sexValuePmfm) {
-          let sexValue = sexValuePmfm.qualitativeValues;
-          if (sexValue) {
-            sexControl.patchValue(sexValue);
-          }
+            sexControl.patchValue(true);
         }
+      else {
+        sexControl.patchValue(false);
+      }
+
+
+      // MATURITY PMFMS
+      const maturityPmfmsControl = this.form.get("maturityPmfmStrategies");
+      const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
+      let maturityPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
+      if (maturityPmfmStrategy)
+      {
+        let maturityPmfm = maturityPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
+        maturityPmfmsControl.patchValue(maturityPmfm);
       }
 
 
@@ -340,14 +376,11 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
       const ageControl = this.form.get("age");
       let agePmfmStrategy =  (simpleStrategy.pmfmStrategies || []).find(t => t.pmfm.label === "AGE");
       if (agePmfmStrategy) {
-        let ageValuePmfm = agePmfmStrategy.pmfm;
-        if (ageValuePmfm) {
-          let ageValue = ageValuePmfm.qualitativeValues;
-          if (ageValue) {
-            ageControl.patchValue(ageValue);
-          }
+        ageControl.patchValue(true);
         }
-      }
+        else {
+        ageControl.patchValue(false);
+        }
 
 
 
