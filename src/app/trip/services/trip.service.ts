@@ -13,7 +13,8 @@ import {
 } from "../../shared/shared.module";
 import {AppFormUtils, Entity, EntityUtils, environment} from "../../core/core.module";
 import {filter, map} from "rxjs/operators";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";

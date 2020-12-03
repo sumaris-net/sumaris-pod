@@ -1,5 +1,6 @@
 import {ApolloClient, ApolloLink, NextLink, Operation} from "@apollo/client/core";
-import {v4 as uuidv4} from "uuid";
+import * as uuidv4Imported from "uuid/v4";
+const uuidv4 = uuidv4Imported;
 import {EventEmitter} from "@angular/core";
 import {debounceTime, filter, switchMap} from "rxjs/operators";
 import {BehaviorSubject, Observable} from "rxjs";

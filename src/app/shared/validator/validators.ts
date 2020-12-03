@@ -1,5 +1,6 @@
 import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
-import * as moment from 'moment/moment';
+import * as momentImported from "moment";
+const moment = momentImported;
 import {DATE_ISO_PATTERN, PUBKEY_REGEXP} from "../constants";
 import {fromDateISOString, isEmptyArray, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN} from "../functions";
 import {Moment} from "moment";

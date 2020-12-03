@@ -77,7 +77,7 @@ import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: HttpTranslateLoaderFactory,
+        useFactory: HttpTranslateLoaderFactory.build,
         deps: [HttpClient]
       }
     }),

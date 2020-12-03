@@ -33,7 +33,8 @@ import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-la
 import {AggregatedLandingFilter, AggregatedLandingService} from "../services/aggregated-landing.service";
 import {Moment} from "moment";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {TableElement} from "@e-is/ngx-material-table";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";

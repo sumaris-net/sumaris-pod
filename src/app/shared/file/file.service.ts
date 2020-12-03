@@ -1,6 +1,7 @@
 import {Injectable} from "@angular/core";
 import {Platform} from "@ionic/angular";
-import {v4 as uuidv4} from "uuid";
+import * as uuidv4Imported from "uuid/v4";
+const uuidv4 = uuidv4Imported;
 import {Base64ImageReader, Base64ImageResizeOptions} from "./base64-image-reader";
 import {chainPromises, firstNotNilPromise} from "../observables";
 import {HttpClient} from "@angular/common/http";

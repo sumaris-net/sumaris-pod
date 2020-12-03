@@ -14,7 +14,8 @@ import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/co
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {isEmptyArray, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {Moment} from "moment";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";

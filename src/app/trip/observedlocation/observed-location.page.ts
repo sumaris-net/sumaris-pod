@@ -7,7 +7,8 @@ import {
   isNotNil,
   toBoolean
 } from '../../shared/shared.module';
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";

@@ -25,6 +25,7 @@ export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extend
   [key: string]: any;
 }
 
+// @dynamic
 @Directive()
 export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
     extends TableDataSource<T>

@@ -17,7 +17,7 @@ import {
   catchError,
   debounceTime,
   distinctUntilChanged,
-  filter, map,
+  filter,
   mergeMap,
   startWith,
   switchMap,
@@ -72,6 +72,7 @@ export interface IModalDetailOptions<T = any> {
   onDelete: (event: UIEvent, data: T) => Promise<boolean>;
 }
 
+// @dynamic
 @Directive()
 export abstract class AppTable<T extends Entity<T>, F = any>
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {
