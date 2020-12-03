@@ -14,10 +14,14 @@ build-dev:
         - develop
         - develop-ifremer
         - feature-oracle-adagio
-    when: manual
+    except:
+        - schedules
 
 schedule-build:
     extends: .build
+    artifacts:
+        paths:
+            - sumaris-server/target/*.war
     only:
         - schedules
 
@@ -30,9 +34,6 @@ schedule-build:
         - mvn -s ./settings.xml clean install -DskipTests
     environment:
         name: test
-    artifacts:
-        paths:
-            - sumaris-server/target/*.war
 
 build_val:
     stage: build
