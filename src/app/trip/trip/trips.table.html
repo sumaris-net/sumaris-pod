@@ -97,7 +97,7 @@
     showUpgradeWarning="true"
     showOfflineWarning="false"
     [showUpdateOfflineFeature]="showUpdateOfflineFeature"
-    (onUpdateOfflineModeClick)="prepareOfflineMode($event)"
+    (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
   >
   </app-install-upgrade-card>
 

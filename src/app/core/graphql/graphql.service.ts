@@ -136,7 +136,7 @@ export class GraphqlService {
         mergeMap(() => this.network.checkPeerAlive()),
         filter(alive => !alive)
       )
-      .subscribe(() => this.network.setForceOffline(true, {displayToast: true}));
+      .subscribe(() => this.network.setForceOffline(true, {showToast: true}));
 
   }
 

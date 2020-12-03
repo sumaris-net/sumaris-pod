@@ -455,7 +455,7 @@ export class NetworkService {
         tap(info => lastInfo = info),
 
         // Check compatibility
-        mergeMap((info) => this.checkPeerCompatible(info, {displayToast: true})),
+        mergeMap((info) => this.checkPeerCompatible(info, {showToast: true})),
       )
       .subscribe(alive => {
           if (alive && this.offline) {
@@ -495,14 +495,14 @@ export class NetworkService {
     }
   }
 
-  async checkPeerCompatible(peerInfo: NodeInfo, opts?: { displayToast?: boolean; }): Promise<boolean> {
+  async checkPeerCompatible(peerInfo: NodeInfo, opts?: { showToast?: boolean; }): Promise<boolean> {
     if (!environment.peerMinVersion) return true; // Skip compatibility check
 
     // Check the min pod version, defined by the app
     const isCompatible = peerInfo && peerInfo.softwareVersion && VersionUtils.isCompatible(environment.peerMinVersion, peerInfo.softwareVersion);
 
     // Display toast, if not compatible
-    if (!isCompatible && (!opts || opts.displayToast !== false)) {
+    if (!isCompatible && (!opts || opts.showToast !== false)) {
       await this.showToast({
         type: 'error',
         message: 'NETWORK.ERROR.NOT_COMPATIBLE_PEER',
@@ -532,7 +532,7 @@ export class NetworkService {
    * Allow to force offline mode
    */
   setForceOffline(value?: boolean, opts?: {
-    displayToast?: boolean; // Display a toast, when offline ?
+    showToast?: boolean; // Display a toast, when offline ?
   }) {
     value = toBoolean(value, true);
     if (this._forceOffline !== value) {
@@ -545,7 +545,7 @@ export class NetworkService {
         this.onNetworkStatusChanges.next(currentConnectionType);
 
         // Offline mode: alert the user
-        if (currentConnectionType === 'none' && (!opts || opts.displayToast !== false)) {
+        if (currentConnectionType === 'none' && (!opts || opts.showToast !== false)) {
           this.showToast({message: 'NETWORK.INFO.OFFLINE_HELP'});
         }
       }

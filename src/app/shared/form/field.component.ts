@@ -77,7 +77,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
   @Input('class') classList: string;
 
   @Output('keyup.enter')
-  onKeyupEnter: EventEmitter<any> = new EventEmitter<any>();
+  onKeyupEnter = new EventEmitter<any>();
 
   get value(): any {
     return this.formControl.value;

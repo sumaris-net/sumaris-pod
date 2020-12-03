@@ -12,6 +12,7 @@ import {ConfigOptions} from "../../core/services/config/core.config";
 import {APP_CONFIG_OPTIONS, ConfigService} from "../../core/services/config.service";
 import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {AbstractSoftwarePage} from "../../referential/software/abstract-software.page";
+import {HistoryPageReference} from "../../core/services/model/history.model";
 
 declare interface CacheStatistic {
   name: string;
@@ -175,6 +176,10 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
       total.diskSize += stat.diskSize;
     });
     this.cacheStatisticTotal.next(total);
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return null; // No page history
   }
 }
 

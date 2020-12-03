@@ -283,7 +283,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.network.setForceOffline(false);
     }
     else {
-      this.network.setForceOffline(true, {displayToast: true});
+      this.network.setForceOffline(true, {showToast: true});
       this.filterForm.patchValue({synchronizationStatus: 'DIRTY'}, {emitEvent: false/*avoid refresh*/});
       this.hasOfflineMode = true;
     }
@@ -291,7 +291,10 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.onRefresh.emit();
   }
 
-  async prepareOfflineMode(event?: UIEvent) {
+  async prepareOfflineMode(event?: UIEvent, opts?: {
+    toggleToOfflineMode?: boolean; // Switch to offline mode ?
+    showToast?: boolean; // Display success toast ?
+  }) {
     if (this.importing) return; // skip
 
     // If offline, warn user and ask to reconnect
@@ -330,10 +333,18 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
           .add(() => resolve());
       });
 
-      // Enable sync status button
-      this.setSynchronizationStatus('DIRTY');
-      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
+      // Toggle to offline mode
+      if (!opts || opts.toggleToOfflineMode !== false) {
+        this.setSynchronizationStatus('DIRTY');
+      }
+
+      // Display toast
+      if (!opts || opts.showToast !== false) {
+        this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
+      }
       success = true;
+
+      // Hide the warning message
       this.showUpdateOfflineFeature = false;
     }
     catch (err) {

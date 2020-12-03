@@ -455,6 +455,8 @@ export class LocalSettingsService {
       removePathQueryParams?: boolean;
     removeTitleSmallTag?: boolean;
   }): HistoryPageReference {
+    if (!page || !page.title || !page.path) throw Error("Missing required argument 'page', 'page.path' or 'page.title'");
+
     // Set time
     page.time = page.time || moment();
 

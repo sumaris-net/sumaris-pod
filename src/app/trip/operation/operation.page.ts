@@ -454,6 +454,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'navigate'
+    };
+  }
+
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
     const changed = super.onTabChange(event, queryParamName);
     if (changed && this.selectedTabIndex === 1) {
@@ -686,9 +693,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       && this.tripService.canUserWrite(this.trip);
   }
 
-  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
-    return super.addToPageHistory({ ...page, icon: 'navigate'}, opts);
-  }
 
   protected async setDefaultTaxonGroups(enable: boolean) {
     if (!enable) {

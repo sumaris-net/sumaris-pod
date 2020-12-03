@@ -959,8 +959,11 @@
     "COMMENTS": "Commentaires",
     "STATUS": "Etat",
     "RANK_ORDER": "#",
+    "UPDATE_DATE": "Date de mise à jour",
+    "CREATION_DATE": "Date de création",
     "EXTERIOR_MARKING": "Marquage extérieur",
     "REGISTRATION_CODE": "Immatriculation",
+    "PAGE_HISTORY_SUBTITLE": "Référentiel",
     "BASE_PORT_LOCATION": {
       "LABEL": "Code port d'attache",
       "NAME": "Libellé port d'attache"
@@ -1042,7 +1045,7 @@
       "PARAMETER": "Paramètres",
       "USER_PROFILE": "Profils utilisateur",
       "VESSEL_TYPE": "Types de navire",
-      "PMFM": "Paramètres collectés",
+      "PMFM": "Quadruplets PSFM",
       "MATRIX": "Supports de mesure",
       "FRACTION": "Fractions du support",
       "QUALITATIVE_VALUE": "Valeurs qualitatives",
@@ -1354,7 +1357,7 @@
     "PEER": {
       "OFFLINE": "Nœud injoignable",
       "SELECT_MODAL": {
-        "TITLE": "Nœud réseau",
+        "TITLE": "Nœuds réseau",
         "HELP": "Veuillez choisir un nœud réseau auquel vous connecter :",
         "NOT_COMPATIBLE_HELP": "Version requise : v{{version}} ou +"
       }

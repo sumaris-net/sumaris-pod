@@ -80,7 +80,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected toastController: ToastController;
 
   pageSize: number;
-  excludesColumns = new Array<String>();
+  excludesColumns: string[] = [];
   displayedColumns: string[];
   resultsLength: number;
   visibleRowCount: number;

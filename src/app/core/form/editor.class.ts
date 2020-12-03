@@ -66,6 +66,7 @@ export abstract class AppEntityEditor<
   saving = false;
   hasRemoteListener = false;
   defaultBackHref: string;
+  historyIcon: {icon?: string; matIcon?: string; };
   onUpdateView = new EventEmitter<T>();
 
   get usageMode(): UsageMode {
@@ -135,6 +136,7 @@ export abstract class AppEntityEditor<
 
     // Defaults
     this._autoOpenNextTab = toBoolean(this._autoOpenNextTab, !this.isOnFieldMode);
+    this.historyIcon = this.historyIcon || {icon: 'list'};
 
     // Register forms
     this.registerForms();
@@ -604,20 +606,27 @@ export abstract class AppEntityEditor<
 
     // If NOT data, then add to page history
     if (!this.isNewData) {
-      return this.addToPageHistory({
-        title,
-        path: this.router.url
-      });
+      const page = await this.computePageHistory(title);
+      return this.addToPageHistory(page);
     }
   }
 
   protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    if (!page) return; // Skip
+
     return this.settings.addToPageHistory(page, {
       removePathQueryParams: true,
       removeTitleSmallTag: true,
       emitEvent: false,
       ...opts
     });
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      title,
+      path: this.router.url
+    };
   }
 
   protected async removePageHistory(opts?: { emitEvent?: boolean; }) {

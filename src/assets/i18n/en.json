@@ -1354,7 +1354,7 @@
     "PEER": {
       "OFFLINE": "Unreachable node",
       "SELECT_MODAL": {
-        "TITLE": "Network node",
+        "TITLE": "Network nodes",
         "HELP": "Please choose a network node to connect to:",
         "NOT_COMPATIBLE_HELP": "Required version: v{{version}} or +"
       }

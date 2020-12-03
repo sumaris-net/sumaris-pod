@@ -190,6 +190,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }).toPromise();
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      matIcon: 'verified_user'
+    };
+  }
+
   protected getFirstInvalidTabIndex(): number {
     return this.observedLocationForm.invalid ? 0
       : ((this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1
@@ -333,9 +340,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
-    return super.addToPageHistory({...page, matIcon: 'verified_user'}, opts);
-  }
 
   addRow($event: MouseEvent) {
     if (this.landingsTable) {

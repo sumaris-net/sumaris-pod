@@ -455,7 +455,7 @@ export class AccountService extends BaseEntityService {
       this.data.authToken = previousToken;
 
       // Make sure network if set as offline
-      this.network.setForceOffline(true, {displayToast: false});
+      this.network.setForceOffline(true, {showToast: false});
       console.info(`[account] Login [OK] {pubkey: ${this.data.pubkey.substr(0, 8)}}, {offline: true}`);
     }
 
@@ -607,7 +607,7 @@ export class AccountService extends BaseEntityService {
         // Offline feature are enable: continue in offline mode
         if (this.settings.hasOfflineFeature()) {
           console.warn("[account] Unable to authenticate on pod: forcing offline mode");
-          this.network.setForceOffline(true, {displayToast: false});
+          this.network.setForceOffline(true, {showToast: false});
           // Continue
         }
         // No offline features enable (=offline mode not allowed)

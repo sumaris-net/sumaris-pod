@@ -63,10 +63,10 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
   @Input() style: 'radio' | 'checkbox' | 'button';
 
   @Output('keyup.enter')
-  onPressEnter: EventEmitter<any> = new EventEmitter<any>();
+  onPressEnter = new EventEmitter<any>();
 
   @Output()
-  onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  onBlur = new EventEmitter<FocusEvent>();
 
   @Input() set tabindex(value: number) {
     if (this._tabindex !== value) {
