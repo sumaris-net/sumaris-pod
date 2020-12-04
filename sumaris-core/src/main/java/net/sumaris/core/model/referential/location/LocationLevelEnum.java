@@ -10,12 +10,12 @@ package net.sumaris.core.model.referential.location;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -33,8 +33,8 @@ public enum LocationLevelEnum implements Serializable {
     COUNTRY(1, "Country"),
     HARBOUR(2, "Port"),
     AUCTION(3, "Auction"),
-    RECTANGLE_ICES(4,"ICES_RECTANGLE"),
-    RECTANGLE_GFCM(5,"GFCM_RECTANGLE"),
+    RECTANGLE_ICES(4, "ICES_RECTANGLE"),
+    RECTANGLE_GFCM(5, "GFCM_RECTANGLE"),
     SQUARE_10(6, "SQUARE_10"), // 10' x 10'
     SQUARE_3(7, "SQUARE_3"), // 3' x 3'
 
@@ -49,31 +49,31 @@ public enum LocationLevelEnum implements Serializable {
 
     public static LocationLevelEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(enumValue -> enumValue.id == id)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + id));
+            .filter(enumValue -> enumValue.id == id)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + id));
     }
 
     public static LocationLevelEnum byLabel(final String label) {
         return Arrays.stream(values())
-                .filter(level -> label.equals(level.label))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + label));
+            .filter(level -> label.equals(level.label))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + label));
     }
 
-    private int id;
+    private Integer id;
     private String label;
 
-    LocationLevelEnum(int id, String label) {
+    LocationLevelEnum(Integer id, String label) {
         this.id = id;
         this.label = label;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

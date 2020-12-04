@@ -10,12 +10,12 @@ package net.sumaris.core.dao.administration.user;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -25,10 +25,8 @@ package net.sumaris.core.dao.administration.user;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
-import net.sumaris.core.dao.technical.SoftwareDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
@@ -37,11 +35,11 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfile;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,10 +53,10 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -74,24 +72,18 @@ public class PersonRepositoryImpl
     @Autowired
     protected DepartmentRepository departmentRepository;
 
-    @Autowired
-    private ReferentialDao referentialDao;
-
-    @Autowired
-    private SoftwareDao softwareDao;
-
     protected PersonRepositoryImpl(EntityManager entityManager) {
         super(Person.class, PersonVO.class, entityManager);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PERSON_BY_ID, key = "#id", unless="#result==null")
+    @Cacheable(cacheNames = CacheNames.PERSON_BY_ID, key = "#id", unless = "#result==null")
     public PersonVO findById(int id) {
         return super.findById(id).map(this::toVO).orElse(null);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PERSON_BY_PUBKEY, key = "#pubkey", unless="#result==null")
+    @Cacheable(cacheNames = CacheNames.PERSON_BY_PUBKEY, key = "#pubkey", unless = "#result==null")
     public PersonVO findByPubkey(String pubkey) {
         return findAll(BindableSpecification.where(hasPubkey(pubkey))).stream().findFirst().map(this::toVO).orElse(null);
     }
@@ -177,7 +169,8 @@ public class PersonRepositoryImpl
         // Profiles (keep only label)
         if (CollectionUtils.isNotEmpty(source.getUserProfiles())) {
             List<String> profiles = source.getUserProfiles().stream()
-                .map(profile -> getUserProfileLabelTranslationMap(true).getOrDefault(profile.getLabel(), profile.getLabel()))
+                // get the UserProfileEnum by the label, then get the enum value
+                .map(profile -> UserProfileEnum.byLabel(profile.getLabel()).toString())
                 .collect(Collectors.toList());
             target.setProfiles(profiles);
         }
@@ -189,8 +182,8 @@ public class PersonRepositoryImpl
 
     @Override
     @Caching(put = {
-        @CachePut(cacheNames= CacheNames.PERSON_BY_ID, key="#vo.id", condition = "#vo != null && #vo.id != null"),
-        @CachePut(cacheNames= CacheNames.PERSON_BY_PUBKEY, key="#vo.pubkey", condition = "#vo != null && #vo.id != null && #vo.pubkey != null")
+        @CachePut(cacheNames = CacheNames.PERSON_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+        @CachePut(cacheNames = CacheNames.PERSON_BY_PUBKEY, key = "#vo.pubkey", condition = "#vo != null && #vo.id != null && #vo.pubkey != null")
     })
     public PersonVO save(PersonVO vo) {
         Preconditions.checkNotNull(vo);
@@ -274,25 +267,16 @@ public class PersonRepositoryImpl
 
         // User profiles
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getProfiles())) {
-            if (CollectionUtils.isEmpty(source.getProfiles())) {
-                target.getUserProfiles().clear();
-            } else {
-                target.getUserProfiles().clear();
-                for (String profile : source.getProfiles()) {
-                    if (StringUtils.isNotBlank(profile)) {
-                        // translate the user profile label
-                        String translatedLabel = getUserProfileLabelTranslationMap(false).getOrDefault(profile, profile);
-                        if (StringUtils.isNotBlank(translatedLabel)) {
-                            Optional<ReferentialVO> userProfileVO = referentialDao.findByUniqueLabel(UserProfile.class.getSimpleName(), translatedLabel);
-                            if (userProfileVO.isPresent()) {
-                                UserProfile up = load(
-                                    UserProfile.class,
-                                    userProfileVO.get().getId()
-                                );
-                                target.getUserProfiles().add(up);
-                            }                        }
-                    }
-                }
+            target.getUserProfiles().clear();
+            if (CollectionUtils.isNotEmpty(source.getProfiles())) {
+                target.getUserProfiles().addAll(
+
+                    source.getProfiles().stream()
+                        // get the UserProfileEnum by the enum value, not the label
+                        .map(profile -> load(UserProfile.class, UserProfileEnum.valueOf(profile).getId()))
+                        .collect(Collectors.toSet())
+
+                );
             }
         }
 
@@ -309,27 +293,6 @@ public class PersonRepositoryImpl
         super.deleteById(id);
 
         emitDeleteEvent(id);
-    }
-
-    /**
-     * Create a translate map from software properties 'sumaris.userProfile.<ENUM>.label' (<ENUM> is one of the UserProfileEnum name)
-     *
-     * @param toVO if true, the map key is the translated label, the value is the enum label; if false, it's inverted
-     * @return the translation map
-     */
-    private Map<String, String> getUserProfileLabelTranslationMap(boolean toVO) {
-        Map<String, String> translateMap = new HashMap<>();
-        Pattern pattern = Pattern.compile("sumaris.userProfile.(\\w+).label");
-        softwareDao.getByLabel(getConfig().getAppName()).getProperties().forEach((key, value) -> {
-            Matcher matcher = pattern.matcher(key);
-            if (value != null && matcher.find()) {
-                if (toVO)
-                    translateMap.put(value, matcher.group(1));
-                else
-                    translateMap.put(matcher.group(1), value);
-            }
-        });
-        return translateMap;
     }
 
     private void emitSaveEvent(final PersonVO person) {

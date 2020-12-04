@@ -290,7 +290,7 @@ public class DenormalizedBatchRepositoryImpl
 
         // Quality flag (default value)
         if (target.getQualityFlagId() == null) {
-            target.setQualityFlagId(QualityFlagEnum.NOT_QUALIFED.getId());
+            target.setQualityFlagId(QualityFlagEnum.NOT_QUALIFIED.getId());
         }
 
         if (source.getMeasurementValues() != null) {

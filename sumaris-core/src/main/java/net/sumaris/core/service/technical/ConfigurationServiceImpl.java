@@ -38,7 +38,6 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.schema.SchemaEvent;
 import net.sumaris.core.event.schema.SchemaReadyEvent;
-import net.sumaris.core.event.schema.SchemaUpdatedEvent;
 import net.sumaris.core.exception.DenyDeletionException;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
@@ -102,9 +101,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     /* -- event listeners -- */
 
     @Async
-    @EventListener({SchemaUpdatedEvent.class, SchemaReadyEvent.class})
+    @EventListener({SchemaEvent.class})
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    protected void onSchemaUpdatedOrReady(SchemaEvent event) {
+    public void onSchemaUpdatedOrReady(SchemaEvent event) {
         if (this.dbVersion == null || !this.dbVersion.equals(event.getSchemaVersion())) {
             this.dbVersion = event.getSchemaVersion();
 
@@ -129,7 +128,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             phase = TransactionPhase.AFTER_COMMIT,
             condition = "#event.entityName=='Software'")
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    protected void onSoftwareChanged(AbstractEntityEvent event) {
+    public void onSoftwareChanged(AbstractEntityEvent event) {
         SoftwareVO software = (SoftwareVO)event.getData();
 
         // Test if same as the current software
@@ -162,9 +161,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
     }
 
-    /* -- protected methods -- */
-
-    protected void applySoftwareConfig() {
+    @Override
+    public void applySoftwareConfig() {
 
         boolean newDatabase = false;
 
@@ -188,6 +186,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         updateModelEnumerations();
     }
 
+    /* -- protected methods -- */
 
     protected void applySoftwareProperties(ApplicationConfig appConfig, SoftwareVO software) {
         if (software == null) {
@@ -286,12 +285,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                     String configOptionKey = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), joinAttribute);
                     boolean hasConfigOption = appConfig.hasOption(configOptionKey);
                     if (hasConfigOption) {
-                        if (joinValue != null) {
-                            joinValue = appConfig.getOption(joinValue.getClass(), configOptionKey);
-                        }
-                        else {
-                            joinValue = appConfig.getOption(configOptionKey);
-                        }
+                        joinValue = appConfig.getOption(joinValue.getClass(), configOptionKey);
                     }
 
                     // Find entities that match the attribute
@@ -318,10 +312,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                         .findFirst();
                 if (entity.isPresent()) {
                     successCounter.incrementAndGet();
-                    if (debug) log.debug(String.format("Updating %s with %s", enumValue, entity));
+                    if (debug) log.debug(String.format("Updating %s with %s", enumValue, entity.get()));
 
                     // Update the enum
-                    Beans.copyProperties(entity, enumValue);
+                    Beans.copyProperties(entity.get(), enumValue); // FIXME fix int<->Integer
                 }
                 else {
                     errorCounter.incrementAndGet();
@@ -329,7 +323,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                             entityClassName,
                             enumContentBuilder.substring(2),
                             configKeysBuilder.substring(2)));
-                    Beans.setProperty(enumValue, IEntity.Fields.ID, -1);
+                    Beans.setProperty(enumValue, IEntity.Fields.ID, -1); // FIXME fix int<->Integer
                 }
             });
         });

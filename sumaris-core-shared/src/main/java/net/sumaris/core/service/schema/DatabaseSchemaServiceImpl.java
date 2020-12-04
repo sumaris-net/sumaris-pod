@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
+import net.sumaris.core.event.schema.SchemaEvent;
 import net.sumaris.core.event.schema.SchemaReadyEvent;
 import net.sumaris.core.event.schema.SchemaUpdatedEvent;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
@@ -219,7 +220,7 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
      * Publish and event, when application is ready
      * @param event
      */
-    protected void publishEventAfterApplicationReady(Object event) {
+    protected void publishEventAfterApplicationReady(SchemaEvent event) {
         if (!isApplicationReady && taskExecutor != null) {
             taskExecutor.execute(() -> {
                 try {

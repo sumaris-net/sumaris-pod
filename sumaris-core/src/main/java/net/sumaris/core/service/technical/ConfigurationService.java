@@ -30,6 +30,11 @@ public interface ConfigurationService {
 
     SoftwareVO getCurrentSoftware();
 
+    /**
+     * Apply software configuration
+     * Usually executed by published SchemaEvent, but useful in unit testing
+     */
+    void applySoftwareConfig();
 }
 
 
