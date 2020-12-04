@@ -10,7 +10,7 @@ import {
   ReferentialRef,
   IReferentialRef,
   FormArrayHelper,
-  Referential
+  Referential, toDateISOString, fromDateISOString
 } from '../../core/core.module';
 import {BehaviorSubject, Observable} from "rxjs";
 import { Program } from '../services/model/program.model';
@@ -89,7 +89,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   @Input() program: Program;
   @Input() showError = true;
   @Input() entityName;
-  sampleRowCode: string = '';
+  label: string = '';
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
@@ -158,7 +158,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
           this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
           // set sample row code
           //TODO : replace 40 with this.program.id
-          this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
+          this.label = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
         })
     );
 
@@ -346,22 +346,24 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
           {
             let fishingAreaAppliedPeriods = fishingAreaAppliedPeriodsAsObject as AppliedPeriod[];
             for (let fishingAreaAppliedPeriod of fishingAreaAppliedPeriods) {
-              if (moment(fishingAreaAppliedPeriod.startDate).month() > 0 && moment(fishingAreaAppliedPeriod.endDate).month() < 4)
+              let startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
+              let endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
+              if (startDateMonth >= 0 && endDateMonth < 3)
               {
                 // First quarter
                 let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
               }
-              else if (moment(fishingAreaAppliedPeriod.startDate).month() > 3 && moment(fishingAreaAppliedPeriod.endDate).month() < 7)
+              else if (startDateMonth >= 3 && endDateMonth < 6)
               {
                 // Second quarter
                 let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
               }
-              else if (moment(fishingAreaAppliedPeriod.startDate).month() > 6 && moment(fishingAreaAppliedPeriod.endDate).month() < 10)
+              else if (startDateMonth >= 6 && endDateMonth < 9)
               {
                 // Third quarter
                 let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
               }
-              else if (moment(fishingAreaAppliedPeriod.startDate).month() > 9 && moment(fishingAreaAppliedPeriod.endDate).month() < 13)
+              else if (startDateMonth >= 9 && endDateMonth < 12)
               {
                 // Fourth quarter
                 let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
