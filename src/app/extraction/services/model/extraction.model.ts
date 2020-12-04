@@ -3,18 +3,7 @@
 import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {Department} from "../../../core/services/model/department.model";
 import {Person} from "../../../core/services/model/person.model";
-import {
-  arraySize, fromDateISOString,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  toBoolean,
-  toDateISOString,
-  toNumber
-} from "../../../shared/functions";
 import {Moment} from "moment";
-import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from "../../../data/services/model/model.utils";
-import {tar} from "@ionic/cli/lib/utils/archive";
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {

@@ -1172,6 +1172,8 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
+        "BTN_OPEN_MAP": "Voir la carte",
+        "BTN_PREVIEW_DOC": "Prévisualiser la doc",
         "STRATUM_DOTS": "Strates :",
         "FORMAT_DOTS": "Documentation :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
@@ -1239,8 +1241,12 @@
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
       "TECH_CHART_TITLE": "{{aggColumnName}} par {{techColumnName}}",
-      "TECH_CHART_ALL_LABELS": "Figer les libellés",
+      "FREEZE_VALUES": "Figer les valeurs",
       "LEGEND": "Légende",
+      "SCALE_LINEAR" : "Linéaire",
+      "SCALE_LOGARITHMIC":  "Logarithmique",
+      "CHART_AXIS_Y": "Echelle Y (gauche)",
+      "CHART_AXIS_X": "Echelle X (bas)",
       "LEGEND_FORM": {
         "TITLE": "Paramètres",
         "OPACITY_PLACEHOLDER": "Opacité (%)",
@@ -1255,8 +1261,8 @@
       },
       "CHART_SORT_BY": {
         "TITLE": "Trier par",
-        "LABEL" : "Libellé",
-        "VALUE":  "Valeur"
+        "LABEL" : "Libellé (asc)",
+        "VALUE":  "Valeur (desc)"
       },
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",
@@ -1346,7 +1352,9 @@
       "LOAD_ROWS_ERROR": "Erreur de chargement des lignes de données.",
       "DOWNLOAD_FILE_ERROR": "Erreur de téléchargement du fichier d'extraction.",
       "LOAD_GEO_TYPES_ERROR": "Erreur de chargement des types de données spatiale",
-      "LOAD_GEO_DATA_ERROR": "Erreur de chargement des données spatiales"
+      "LOAD_GEO_JSON_ERROR": "Erreur de chargement des données spatiales",
+      "LOAD_TECH_ERROR": "Erreur de chargement des données du graphiques",
+      "LOAD_MIN_MAX_ERROR": "Erreur de chargement des bornes"
     }
   },
   "NETWORK": {

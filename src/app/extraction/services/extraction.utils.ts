@@ -30,7 +30,7 @@ export class ExtractionUtils {
       && (c.columnName.endsWith('_count')
       || c.columnName.indexOf('_count_by_') != -1
       || c.columnName.endsWith('_time')
-      || c.columnName.endsWith('_weight')
+      || c.columnName.endsWith('weight')
       || c.columnName.endsWith('_length')
       || c.columnName.endsWith('_value')));
 

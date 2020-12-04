@@ -60,7 +60,7 @@
 <mat-menu #chartOptionsMenu="matMenu">
   <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
 
-  <!-- Chart type sub menu -->
+  <!-- Type sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartTypeMenu" translate>EXTRACTION.MAP.CHART_TYPE.TITLE</button>
   <mat-menu #chartTypeMenu="matMenu">
     <button mat-menu-item *ngFor="let value of chartTypes"
@@ -70,7 +70,7 @@
     </button>
   </mat-menu>
 
-  <!-- Chart sort sub menu -->
+  <!-- Sort by sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartSortByMenu" translate>EXTRACTION.MAP.CHART_SORT_BY.TITLE</button>
   <mat-menu #chartSortByMenu="matMenu">
     <button mat-menu-item (click)="setTechChartOption({sortByLabel: true})">
@@ -83,12 +83,30 @@
     </button>
   </mat-menu>
 
-  <!-- Show all values -->
-  <button mat-menu-item
-          (click)="setTechChartOption({displayAllLabels: !techChartOptions.displayAllLabels})">
-    <ion-icon *ngIf="techChartOptions.displayAllLabels" name="checkmark"></ion-icon>
-    <ion-label translate>EXTRACTION.MAP.TECH_CHART_ALL_LABELS</ion-label>
-  </button>
+  <!-- Axis X sub menu -->
+  <button mat-menu-item [matMenuTriggerFor]="chartAxisXMenu" translate>EXTRACTION.MAP.CHART_AXIS_X</button>
+  <mat-menu #chartAxisXMenu="matMenu">
+    <!-- Freeze values -->
+    <button mat-menu-item
+            (click)="setTechChartOption({fixAxis: !techChartOptions.fixAxis})">
+      <ion-icon *ngIf="techChartOptions.fixAxis" name="checkmark"></ion-icon>
+      <ion-label translate>EXTRACTION.MAP.FREEZE_VALUES</ion-label>
+    </button>
+  </mat-menu>
+
+  <!-- Axis Y sub menu -->
+  <button mat-menu-item [matMenuTriggerFor]="chartAxisYMenu" translate>EXTRACTION.MAP.CHART_AXIS_Y</button>
+  <mat-menu #chartAxisYMenu="matMenu">
+      <button mat-menu-item (click)="techChartAxisType='linear'">
+        <ion-icon *ngIf="techChartAxisType === 'linear'" name="checkmark"></ion-icon>
+        <span translate> EXTRACTION.MAP.SCALE_LINEAR</span>
+      </button>
+      <button mat-menu-item (click)="techChartAxisType='logarithmic'" translate>
+        <ion-icon *ngIf="techChartAxisType === 'logarithmic'" name="checkmark"></ion-icon>
+        <span translate> EXTRACTION.MAP.SCALE_LOGARITHMIC</span>
+      </button>
+  </mat-menu>
+
 </mat-menu>
 
 <ion-content>
@@ -273,7 +291,7 @@
       <ion-col class="ion-align-self-end">
 
         <!-- Details card -->
-        <ion-card color="light" class="details ng-hide"
+        <ion-card color="light" class="details ng-hide "
                   *ngIf="$details | async as details" @fadeInOutAnimation>
 
           <ion-card-header *ngIf="details.title; let title">
@@ -337,8 +355,7 @@
                       [data]="tech.data"
                       [labels]="tech.labels"
                       [chartType]="techChartOptions.type"
-                      [options]="techChartOptions"
-                      [legend]="techChartOptions.legend"
+                      [options]="animationOverrides.techChartOptions || techChartOptions"
                       (chartClick)="onChartClick($event)">
               </canvas>
           </ion-card-content>

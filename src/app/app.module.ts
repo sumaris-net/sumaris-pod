@@ -220,6 +220,12 @@ import {SocialModule} from "./social/social.module";
         },
         'TaxonNameStrategyVO': {
           keyFields: ['__typename', 'strategyId', 'taxonName', ['entityName', 'id']]
+        },
+        'ExtractionTypeVO': {
+          keyFields: ['category', 'label']
+        },
+        'AggregationTypeVO': {
+          keyFields: ['category', 'label']
         }
       }
     },

@@ -45,7 +45,6 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   private _parentDateTime;
   private _detailEditor: LandingEditor;
-  private pageIndex;
 
   protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
@@ -119,7 +118,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     // TODO  ::: USE NAVIGATOR (check service)
-    this.pageSize = 200; // normal high value
+    this.defaultPageSize = 200; // normal high value
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
 
     // Set default acquisition level

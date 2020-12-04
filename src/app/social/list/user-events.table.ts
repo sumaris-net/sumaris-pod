@@ -95,8 +95,8 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
   @Input() recipient: string;
 
   @Input() withContent: boolean;
-  @Input() sortBy: string;
-  @Input() sortDirection: SortDirection;
+  @Input() defaultSortBy: string;
+  @Input() defaultSortDirection: SortDirection;
 
   constructor(
     protected injector: Injector,
@@ -127,8 +127,8 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
     this.i18nColumnPrefix = 'SOCIAL.USER_EVENT.';
     this.autoLoad = false; // this.start()
     this.inlineEdition = false;
-    this.sortBy = 'creationDate';
-    this.sortDirection = 'desc';
+    this.defaultSortBy = 'creationDate';
+    this.defaultSortDirection = 'desc';
 
   }
 

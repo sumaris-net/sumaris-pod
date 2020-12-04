@@ -146,8 +146,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false;
-    this.sortBy = 'departureDateTime';
-    this.sortDirection = 'desc';
+    this.defaultSortBy = 'departureDateTime';
+    this.defaultSortDirection = 'desc';
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fix value, to be able to reuse it in the trip page
 

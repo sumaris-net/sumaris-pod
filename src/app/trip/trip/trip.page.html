@@ -166,8 +166,8 @@
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
                             [program]="programSubject|async"
-                            [sortBy]="mobile ? 'startDateTime': 'endDateTime'"
-                            [sortDirection]="mobile ?'desc': 'asc'">
+                            [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
+                            [defaultSortDirection]="mobile ?'desc': 'asc'">
       </app-operations-table>
     </mat-tab>
   </mat-tab-group>

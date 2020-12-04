@@ -139,7 +139,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.programService = injector.get(ProgramService);
     this.translate = injector.get(TranslateService);
     this.formBuilder = injector.get(FormBuilder);
-    this.pageSize = -1; // Do not use paginator
+    this.defaultPageSize = -1; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
     this.setLoading(false, {emitEvent: false});
 

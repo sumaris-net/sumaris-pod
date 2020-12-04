@@ -1236,7 +1236,7 @@
       "QUARTER": "Quarter",
       "DETAILS": "Details",
       "TECH_CHART_TITLE": "{{aggColumnName}} by {{techColumnName}}",
-      "TECH_CHART_ALL_LABELS": "Freeze labels",
+      "TECH_CHART_FIX_AXIS": "Freeze axis",
       "LEGEND": "Legend",
       "LEGEND_FORM": {
         "TITLE": "Parameter",
@@ -1251,9 +1251,9 @@
         "DOUGHNUT": "Doughnut"
       },
       "CHART_SORT_BY": {
-        "TITLE": "Trier par",
-        "LABEL" : "Libellé",
-        "VALUE":  "Valeur"
+        "TITLE": "Sort by",
+        "LABEL" : "Label (asc)",
+        "VALUE":  "Value (desc)"
       },
       "SELECT_MODAL": {
         "TITLE": "Map list",

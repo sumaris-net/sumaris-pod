@@ -50,7 +50,7 @@
 
 <!-- aggregate menu -->
 <mat-menu #aggregateMenu="matMenu" xPosition="before">
-  <button mat-menu-item *ngIf="!type?.isSpatial" (click)="aggregate()">
+  <button mat-menu-item *ngIf="!type?.isSpatial" (click)="createAggregation()">
     <ion-label translate>EXTRACTION.SPATIAL_AGGREGATION</ion-label>
   </button>
 </mat-menu>
@@ -61,11 +61,11 @@
     <mat-toolbar-row>
       <button mat-icon-button color="light" [matTooltip]="'COMMON.BTN_EDIT'|translate"
               *ngIf="canEdit"
-              (click)="openAggregationType(type)">
+              (click)="openAggregationTypeModal(type)">
         <mat-icon>edit</mat-icon>
       </button>
       <button mat-icon-button *ngIf="canEdit && isAdmin" [matTooltip]="'COMMON.BTN_DELETE'|translate"
-              (click)="deleteAggregation()">
+              (click)="delete($event)">
         <mat-icon>delete</mat-icon>
       </button>
 
@@ -231,7 +231,7 @@
   <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!data?.total">
     <ion-col></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="data?.total" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200, 500]"
+      <mat-paginator [length]="data?.total" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200, 500]"
                      showFirstLastButtons>
       </mat-paginator>
     </ion-col>

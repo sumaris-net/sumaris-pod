@@ -25,6 +25,7 @@ export class AggregationTypeValidatorService extends AppValidatorService<Aggrega
       description: [data && data.description || null, Validators.maxLength(255)],
       comments: [data && data.comments || null, Validators.maxLength(2000)],
       version: [data && data.version || null, Validators.maxLength(10)],
+      filter: [data && data.filter || null, Validators.maxLength(10000)],
       documentation: [data && data.documentation || null, Validators.maxLength(10000)],
       statusId: [toNumber(data && data.statusId, null), Validators.required],
       isSpatial: [toBoolean(data && data.isSpatial, false)],

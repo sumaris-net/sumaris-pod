@@ -233,21 +233,26 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     row.cancelOrDelete();
   }
 
-  public handleError(error: any, message: string): Observable<LoadResult<T>> {
+  handleError(error: any, message: string): Observable<LoadResult<T>> {
+    const errorMsg = error && error.message || error;
+    if (this.dataService) {
+      console.error(`${errorMsg} (dataService: ${this.dataService.constructor.name})`, error);
+    }
+    else {
+      console.error(errorMsg, error);
+    }
+    this.$busy.next(false);
+    throw new Error(message || errorMsg);
+  }
+
+  handleErrorPromise(error: any, message: string) {
     const errorMsg = error && error.message || error;
     console.error(`${errorMsg} (dataService: ${this.dataService.constructor.name})`, error);
     this.$busy.next(false);
     throw new Error(message || errorMsg);
   }
 
-  public handleErrorPromise(error: any, message: string) {
-    const errorMsg = error && error.message || error;
-    console.error(`${errorMsg} (dataService: ${this.dataService.constructor.name})`, error);
-    this.$busy.next(false);
-    throw new Error(message || errorMsg);
-  }
-
-  public delete(id: number): void {
+  delete(id: number): void {
     const row = this.getRow(id);
     this.$busy.next(true);
 

@@ -39,7 +39,10 @@ export const COPY_LOCALLY_AS_OBJECT_OPTIONS = <DataEntityAsObjectOptions>{
   keepRemoteId: false,
   keepUpdateDate: false
 };
-
+export const CLONE_AS_OBJECT_OPTIONS = <DataEntityAsObjectOptions>{
+  ...SAVE_LOCALLY_AS_OBJECT_OPTIONS,
+  minify: false
+};
 
 export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
   extends Entity<T, O>

@@ -79,7 +79,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
 
-  pageSize: number;
   excludesColumns: string[] = [];
   displayedColumns: string[];
   resultsLength: number;
@@ -105,8 +104,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   @Input() saveBeforeSort: boolean;
   @Input() saveBeforeFilter: boolean;
   @Input() debug = false;
-  @Input() sortBy: string;
-  @Input() sortDirection: SortDirection;
+
+  @Input() defaultSortBy: string;
+  @Input() defaultSortDirection: SortDirection;
+  @Input() defaultPageSize = 20;
 
   @Input() set dataSource(value: EntitiesTableDataSource<T, F>) {
     this.setDatasource(value);
@@ -247,6 +248,28 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (this.sort) this.sort.disabled = true;
   }
 
+  set pageSize(value: number) {
+    this.defaultPageSize = value;
+    if (this.paginator) {
+      this.paginator.pageSize = value;
+    }
+  }
+
+  get pageSize(): number {
+    return this.paginator && this.paginator.pageSize || this.defaultPageSize || DEFAULT_PAGE_SIZE;
+  }
+
+  get pageOffset(): number {
+    return this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0;
+  }
+
+  get sortActive(): string {
+    return this.sort && this.sort.active;
+  }
+  get sortDirection(): 'asc' | 'desc' {
+    return this.sort && this.sort.direction && (this.sort.direction === 'desc' ? 'desc' : 'asc') || undefined;
+  }
+
   @ViewChild(MatTable, {static: true}) table: MatTable<T>;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
@@ -293,11 +316,15 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.displayedColumns = this.getDisplayColumns();
 
     const sortedColumn = this.getSortedColumn();
-    this.sortBy = sortedColumn.id;
-    this.sortDirection = sortedColumn.start;
+    this.defaultSortBy = sortedColumn.id;
+    this.defaultSortDirection = sortedColumn.start;
 
     // If the user changes the sort order, reset back to the first page.
-    this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+    if(this.sort && this.paginator) {
+      this.registerSubscription(
+        this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0)
+      );
+    }
 
     merge(
       // Listen sort events
@@ -314,7 +341,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           filter(res => res === true),
           // Save sort in settings
           tap(() => {
-            const value = [this.sort.active,this.sort.direction||'asc'].join(':')
+            const value = [this.sort.active, this.sort.direction || 'asc'].join(':');
             this.settings.savePageSetting(this.settingsId, value, SETTINGS_SORTED_COLUMN);
           })
         )
@@ -355,10 +382,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
             if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
             this.selection.clear();
             return this._dataSource.watchAll(
-              this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0,
-              this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,
-              this.sort && this.sort.active,
-              this.sort && this.sort.direction && (this.sort.direction === 'desc' ? 'desc' : 'asc') || undefined,
+              this.pageOffset,
+              this.pageSize,
+              this.sortActive,
+              this.sortDirection,
               this._filter
             );
           }),
@@ -827,8 +854,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (parts && parts.length === 2 && this.columns.includes(parts[0])) {
       return {id: parts[0], start: parts[1] === 'desc' ? 'desc' : 'asc', disableClear: false};
     }
-    if (this.sortBy) {
-       return {id: this.sortBy, start: this.sortDirection || 'asc', disableClear: false};
+    if (this.defaultSortBy) {
+       return {id: this.defaultSortBy, start: this.defaultSortDirection || 'asc', disableClear: false};
     }
     return {id: 'id', start: 'asc', disableClear: false};
   }

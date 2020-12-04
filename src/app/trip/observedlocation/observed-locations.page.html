@@ -151,7 +151,7 @@
 
   <!-- table -->
   <mat-table #table [dataSource]="dataSource" matSort
-             [matSortActive]="sortBy" [matSortDirection]="sortDirection"
+             [matSortActive]="defaultSortBy" [matSortDirection]="defaultSortDirection"
              matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
@@ -261,7 +261,7 @@
   <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!resultsLength">
     <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      <mat-paginator [length]="resultsLength" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>
