@@ -2,29 +2,23 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {
-  isNotEmptyArray,
-  isNotNil,
-  LoadResult,
-  EntitiesService,
-  toDateISOString,
-  fromDateISOString
-} from "../../shared/shared.module";
-import {
-  BaseEntityService,
-  EntityUtils,
-  environment,
-  IReferentialRef,
-  Referential,
-  StatusIds
-} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {
+  IReferentialRef,
+  Referential,
+  ReferentialRef,
+  ReferentialUtils
+} from "../../core/services/model/referential.model";
 
 import {FetchPolicy} from "@apollo/client/core";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
-import {fetchAllPagesWithProgress, FilterFn, SuggestService} from "../../shared/services/entity-service.class";
+import {
+  EntitiesService,
+  fetchAllPagesWithProgress,
+  FilterFn, LoadResult,
+  SuggestService
+} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {TaxonNameRef} from "./model/taxon.model";
@@ -33,6 +27,10 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 import {Moment} from "moment";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {fromDateISOString, isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];

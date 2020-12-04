@@ -9,13 +9,14 @@ import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {fadeInOutAnimation, isNil, isNotNil} from "../../shared/shared.module";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {isNil, isNotNil} from "../../shared/functions";
 
 @Component({
   selector: 'app-auction-control',

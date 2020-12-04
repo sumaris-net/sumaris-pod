@@ -2,9 +2,9 @@ import { Injectable } from "@angular/core";
 import { ValidatorService } from "@e-is/ngx-material-table";
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { Person } from "../../../core/services/model/person.model";
-import { AccountValidatorService } from "../../../core/core.module";
 import { Account } from "../../../core/services/model/account.model";
 import { SharedValidators } from "../../../shared/validator/validators";
+import {AccountValidatorService} from "../../../core/services/validator/account.validator";
 
 @Injectable({providedIn: 'root'})
 export class PersonValidatorService implements ValidatorService {

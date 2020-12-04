@@ -5,12 +5,11 @@ import {DateAdapter} from "@angular/material/core";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {AppFormUtils, IAppForm} from "./form.utils";
-import {
-  MatAutocompleteConfigHolder,
-  MatAutocompleteFieldAddOptions,
-  MatAutocompleteFieldConfig
-} from "../../shared/material/material.autocomplete";
 import {LocalSettingsService} from "../services/local-settings.service";
+import {
+  MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig
+} from "../../shared/material/autocomplete/material.autocomplete";
 
 @Directive()
 export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {

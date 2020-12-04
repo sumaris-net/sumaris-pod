@@ -13,45 +13,11 @@ import {MatPaginatorI18n} from "./material/paginator/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
-import {
-  EntitiesService,
-  EntityService,
-  EntityServiceLoadOptions,
-  LoadResult,
-  SuggestService
-} from "./services/entity-service.class";
-import {
-  changeCaseToUnderscore,
-  fromDateISOString,
-  isNil,
-  isNilOrBlank,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  joinPropertiesPath,
-  nullIfUndefined,
-  propertyComparator,
-  sleep,
-  sort,
-  startsWithUpperCase,
-  toBoolean,
-  toDateISOString,
-  toFloat,
-  toInt
-} from "./functions";
-import {filterNumberInput, InputElement, selectInputContent} from "./inputs";
-import {
-  fadeInAnimation,
-  fadeInOutAnimation,
-  slideInOutAnimation,
-  slideUpDownAnimation
-} from "./material/material.animations";
-import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
 import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, FullscreenOverlayContainer, Overlay, OverlayContainer} from '@angular/cdk/overlay';
-import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
+import {SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
 import {FileService} from "./file/file.service";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
@@ -70,21 +36,6 @@ import {NumberFormatPipe} from "./pipes/number-format.pipe";
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
   return () => overlay.scrollStrategies.close();
 }
-
-export {
-  SuggestService, EntitiesService, LoadResult,
-  EntityService, EntityServiceLoadOptions,
-  isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined, sleep,
-  toBoolean, toFloat, toInt,
-  toDateISOString, fromDateISOString, filterNumberInput,
-  startsWithUpperCase,
-  propertyComparator, joinPropertiesPath, sort, selectInputContent,
-  fadeInAnimation, fadeInOutAnimation, slideInOutAnimation, slideUpDownAnimation, changeCaseToUnderscore,
-  DateFormatPipe, DateFromNowPipe,
-  ToolbarComponent,
-  Color, ColorScale, InputElement,
-  Hotkeys,
-};
 
 @NgModule({
   imports: [

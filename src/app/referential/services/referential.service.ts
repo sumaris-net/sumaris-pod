@@ -2,8 +2,6 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNotNil, LoadResult, EntitiesService} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, Referential} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 
@@ -11,11 +9,14 @@ import {FetchPolicy, MutationUpdaterFn} from "@apollo/client/core";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";
-import {Beans, KeysEnum, toNumber} from "../../shared/functions";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {Beans, isNotNil, KeysEnum} from "../../shared/functions";
+import {Referential, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
 import {PlatformService} from "../../core/services/platform.service";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 export class ReferentialFilter {
   entityName: string;

@@ -1,13 +1,11 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
-import {BaseEntityService, EntityUtils, environment, isNil, isNotNil, StatusIds} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {
-  ExtractionCategories,
   ExtractionColumn,
   ExtractionFilter,
   ExtractionFilterCriterion,
@@ -15,7 +13,7 @@ import {
   ExtractionType
 } from "./model/extraction.model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService, WatchQueryOptions} from "../../core/graphql/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "../../trip/services/trip.queries";
@@ -25,6 +23,9 @@ import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AggregationType, StrataAreaType, StrataTimeType} from "./model/aggregation-type.model";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 
 export const ExtractionFragments = {

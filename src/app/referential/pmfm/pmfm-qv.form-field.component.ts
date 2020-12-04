@@ -22,13 +22,13 @@ import {FloatLabelType} from "@angular/material/form-field";
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
 import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean} from "../../shared/functions";
-import {AppFormUtils, ReferentialRef, referentialToString} from "../../core/core.module";
 import {focusInput, InputElement} from "../../shared/inputs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmIds} from "../services/model/model.enum";
 import {Pmfm} from "../services/model/pmfm.model";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-pmfm-qv-field',

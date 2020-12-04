@@ -30,7 +30,7 @@ import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {InputElement, setTabIndex} from "../../inputs";
 import {isFocusableElement} from "../../focusable";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
+const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatDuration),
   multi: true

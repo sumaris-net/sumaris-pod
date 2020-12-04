@@ -10,7 +10,6 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {EntitiesService, environment} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
@@ -19,6 +18,8 @@ import {PhysicalGear} from "../services/model/trip.model";
 import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearFilter} from "../services/physicalgear.service";
 import {createPromiseEventEmitter} from "../../shared/events";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {EntitiesService} from "../../shared/services/entity-service.class";
+import {environment} from "../../../environments/environment";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];

@@ -2,8 +2,6 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {LoadResult, EntitiesService} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -14,6 +12,9 @@ import {VesselSnapshotFragments} from "../../referential/services/vessel-snapsho
 import {Sale} from "./model/sale.model";
 import {Sample} from "./model/sample.model";
 import {SortDirection} from "@angular/material/sort";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {

@@ -5,15 +5,6 @@ import {AlertController, ToastController} from "@ionic/angular";
 import {TranslateService} from '@ngx-translate/core';
 import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
-import {
-  DateFormatPipe,
-  EntityService,
-  EntityServiceLoadOptions,
-  isNil,
-  isNilOrBlank,
-  isNotNil,
-  toBoolean
-} from '../../shared/shared.module';
 import {Moment} from "moment";
 import {AddToPageHistoryOptions, LocalSettingsService} from "../services/local-settings.service";
 import {filter} from "rxjs/operators";
@@ -24,6 +15,9 @@ import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ErrorCodes, ServerErrorCodes} from "../services/errors";
+import {EntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
+import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;

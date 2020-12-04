@@ -2,20 +2,10 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {EMPTY, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
-import {
-  EntitiesService,
-  EntityService,
-  EntityServiceLoadOptions,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  LoadResult
-} from "../../shared/shared.module";
-import {BaseEntityService, Department, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {isEmptyArray, isNilOrBlank} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {
@@ -33,12 +23,21 @@ import {Sample} from "./model/sample.model";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
-import {QueryVariables} from "../../core/services/base.data-service.class";
+import {
+  EntitiesService,
+  EntitiesServiceWatchOptions,
+  EntityService,
+  EntityServiceLoadOptions,
+  FilterFn, LoadResult
+} from "../../shared/services/entity-service.class";
+import {BaseEntityService, QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {FetchPolicy} from "@apollo/client/core";
 import {EntityStoreTypePolicy} from "../../core/services/storage/entity-store.class";
+import {Department} from "../../core/services/model/department.model";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {

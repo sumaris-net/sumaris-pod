@@ -1,12 +1,14 @@
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {Injector} from "@angular/core";
-import {BaseEntityService, EntityUtils, isNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {DataQualityService} from "../../data/services/base.service";
 import {FormErrors} from "../../core/form/form.utils";
 import {DataRootEntityUtils, RootDataEntity} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {isNil} from "../../shared/functions";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 
 export abstract class RootDataService<T extends RootDataEntity<T>, F = any>

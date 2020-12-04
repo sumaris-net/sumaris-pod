@@ -1,14 +1,13 @@
-import {
-  AppFormUtils,
-  fromDateISOString,
-  isNil,
-  isNotNil,
-  ReferentialRef,
-  toDateISOString
-} from "../../../core/core.module";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {FormGroup} from "@angular/forms";
-import {arraySize, isEmptyArray, notNilOrDefault} from "../../../shared/functions";
+import {
+  arraySize,
+  fromDateISOString,
+  isEmptyArray,
+  isNil, isNotNil,
+  notNilOrDefault,
+  toDateISOString
+} from "../../../shared/functions";
 import * as momentImported from "moment";
 const moment = momentImported;
 import {isMoment} from "moment";
@@ -16,6 +15,8 @@ import {IEntity} from "../../../core/services/model/entity.model";
 import {Pmfm} from "../../../referential/services/model/pmfm.model";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
+import {AppFormUtils} from "../../../core/form/form.utils";
+import {ReferentialRef} from "../../../core/services/model/referential.model";
 
 
 export declare interface MeasurementModelValues {

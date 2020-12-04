@@ -1,5 +1,5 @@
-import {MatAutocompleteFieldAddOptions} from "../material/material.autocomplete";
 import {ObjectMap, Property} from "../types";
+import {MatAutocompleteFieldAddOptions} from "../material/autocomplete/material.autocomplete";
 
 export declare type DisplayFn = (obj: any) => string;
 

@@ -17,7 +17,6 @@ import {Department} from '../services/model/department.model';
 import {HistoryPageReference, Locales, LocalSettings} from '../services/model/settings.model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
-import {fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {debounceTime, distinctUntilChanged, map, startWith} from "rxjs/operators";
@@ -26,6 +25,8 @@ import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {MenuItem, MenuItems} from "../menu/menu.component";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {fadeInAnimation, slideUpDownAnimation} from "../../shared/material/material.animations";
+import {isNotNil, isNotNilOrBlank} from "../../shared/functions";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);

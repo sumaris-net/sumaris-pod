@@ -14,8 +14,9 @@ import {AppFormUtils} from "../../core/form/form.utils";
 import {TranslateService} from "@ngx-translate/core";
 import {AggregatedLandingForm, AggregatedLandingFormOption} from "./aggregated-landing.form";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
-import {isNil, referentialToString} from "../../core/core.module";
 import {Alerts} from "../../shared/alerts";
+import {referentialToString} from "../../core/services/model/referential.model";
+import {isNil} from "../../shared/functions";
 
 @Component({
   selector: 'app-aggregated-landing-modal',

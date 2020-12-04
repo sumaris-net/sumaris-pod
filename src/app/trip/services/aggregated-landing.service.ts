@@ -1,20 +1,11 @@
 import {Injectable, Injector} from "@angular/core";
-import {
-  BaseEntityService,
-  environment,
-  isNotNil,
-  LoadResult,
-  EntitiesService,
-  toDateISOString,
-  isNil
-} from "../../core/core.module";
 import {AggregatedLanding} from "./model/aggregated-landing.model";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {Beans} from "../../shared/functions";
+import {Beans, isNil, isNotNil, toDateISOString} from "../../shared/functions";
 import {gql} from "@apollo/client/core";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
@@ -22,10 +13,11 @@ import {Observable} from "rxjs";
 import {filter, map, tap} from "rxjs/operators";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
-import {Landing} from "./model/landing.model";
-import {LandingFragments} from "./landing.service";
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {environment} from "../../../environments/environment";
 
 export class AggregatedLandingFilter {
   programLabel?: string;

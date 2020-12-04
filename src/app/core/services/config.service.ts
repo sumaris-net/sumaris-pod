@@ -3,24 +3,23 @@ import {gql} from "@apollo/client/core";
 import {Configuration} from "./model/config.model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
-import {BehaviorSubject, Observable, of, Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
 import {FetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../graphql/graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
-import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {ConfigOptions} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {VersionUtils} from "../../shared/version/versions";
 import {ToastController} from "@ionic/angular";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
-import {filter, map} from "rxjs/operators";
+import {filter} from "rxjs/operators";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";

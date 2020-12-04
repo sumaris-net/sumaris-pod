@@ -3,26 +3,24 @@ import {gql} from "@apollo/client/core";
 import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {AcquisitionLevelCodes} from "./model/model.enum";
-import {
-  BaseEntityService,
-  EntityUtils,
-  environment,
-  IReferentialRef, isNil,
-  isNotNil,
-  LoadResult,
-  ReferentialRef,
-  EntitiesService
-} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {
+  EntitiesService,
   EntityService,
   EntityServiceLoadOptions,
-  fetchAllPagesWithProgress, FilterFn
+  fetchAllPagesWithProgress, FilterFn, LoadResult
 } from "../../shared/services/entity-service.class";
 import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
+import {
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  propertiesPathComparator,
+  suggestFromArray
+} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
@@ -31,8 +29,9 @@ import {NetworkService} from "../../core/services/network.service";
 import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {
+  IReferentialRef,
   NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
+  ReferentialAsObjectOptions, ReferentialRef,
   ReferentialUtils,
   SAVE_AS_OBJECT_OPTIONS
 } from "../../core/services/model/referential.model";
@@ -42,6 +41,8 @@ import {Program} from "./model/program.model";
 import {PmfmStrategy} from "./model/pmfm-strategy.model";
 import {IWithProgramEntity} from "../../data/services/model/model.utils";
 import {SortDirection} from "@angular/material/sort";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 
 export class ProgramFilter {

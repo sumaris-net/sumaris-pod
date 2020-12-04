@@ -1,11 +1,3 @@
-import {
-  EntityUtils,
-  fromDateISOString,
-  isNotNil,
-  Person,
-  ReferentialRef,
-  toDateISOString
-} from "../../../core/core.module";
 import {Moment} from "moment/moment";
 import {DataEntity, DataEntityAsObjectOptions,} from "../../../data/services/model/data-entity.model";
 import {
@@ -18,17 +10,23 @@ import {
 } from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Metier} from "../../../referential/services/model/taxon.model";
-import {isEmptyArray} from "../../../shared/functions";
+import {fromDateISOString, isEmptyArray, isNotNil, toDateISOString} from "../../../shared/functions";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {IWithProductsEntity, Product} from "./product.model";
 import {IWithPacketsEntity, Packet} from "./packet.model";
 import {FishingArea} from "./fishing-area.model";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
+import {
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialRef
+} from "../../../core/services/model/referential.model";
 import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 import {Landing} from "./landing.model";
+import {Person} from "../../../core/services/model/person.model";
+import {EntityUtils} from "../../../core/services/model/entity.model";
 
 /* -- Helper function -- */
 

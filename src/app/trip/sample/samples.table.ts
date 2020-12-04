@@ -10,9 +10,8 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {SampleValidatorService} from "../services/validator/sample.validator";
-import {isNilOrBlank, isNotNil} from "../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
 import * as momentImported from "moment";
 const moment = momentImported;
@@ -26,6 +25,8 @@ import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {IReferentialRef, ReferentialRef} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 export interface SampleFilter {
   operationId?: number;

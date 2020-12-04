@@ -11,12 +11,12 @@ import {UsageMode} from "../../core/services/model/settings.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {AppFormUtils, isNil, isNotNil} from "../../core/core.module";
-import {isNilOrBlank} from "../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {PlatformService} from "../../core/services/platform.service";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-sample-form',

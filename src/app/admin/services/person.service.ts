@@ -1,13 +1,17 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, defer, Observable} from 'rxjs';
-import {EntitiesService, LoadResult, SuggestService} from "../../shared/shared.module";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {fetchAllPagesWithProgress} from "../../shared/services/entity-service.class";
+import {
+  EntitiesService,
+  fetchAllPagesWithProgress,
+  LoadResult,
+  SuggestService
+} from "../../shared/services/entity-service.class";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {environment} from "../../../environments/environment";

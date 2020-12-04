@@ -1,25 +1,15 @@
 import {Directive, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  environment,
-  isNil,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  EntitiesService, Entity
-} from "../../core/core.module";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
-import {MeasurementsValidatorService} from "../services/validator/trip.validators";
-import {isNotNil} from "../../shared/functions";
+import {isNil, isNotNil} from "../../shared/functions";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {MeasurementsDataService} from "./measurements.service";
-import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
+import {AppTableDataSourceOptions, EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {AcquisitionLevelType} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -27,6 +17,11 @@ import {Alerts} from "../../shared/alerts";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 import {ProgramService} from "../../referential/services/program.service";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
+import {EntitiesService} from "../../shared/services/entity-service.class";
+import {environment} from "../../../environments/environment";
+import {Entity} from "../../core/services/model/entity.model";
 
 
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {

@@ -3,10 +3,11 @@ import {Vessel} from "../../services/model/vessel.model";
 import {ModalController} from "@ionic/angular";
 import {VesselForm} from '../form/form-vessel';
 import {VesselService} from '../../services/vessel-service';
-import {AppFormUtils, isNotNil} from '../../../core/core.module';
 import {ConfigService} from "../../../core/services/config.service";
 import {Subscription} from "rxjs";
 import {ConfigOptions} from "../../../core/services/config/core.config";
+import {isNotNil} from "../../../shared/functions";
+import {AppFormUtils} from "../../../core/form/form.utils";
 
 
 @Component({

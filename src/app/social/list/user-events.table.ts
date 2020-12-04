@@ -13,11 +13,8 @@ import {Location} from "@angular/common";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {SortDirection} from "@angular/material/sort";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Trip} from "../../trip/services/model/trip.model";
 import {PredefinedColors} from "@ionic/core";
 import {IEntity} from "../../core/services/model/entity.model";
-import {RootDataEntity, SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
-import {ObservedLocation} from "../../trip/services/model/observed-location.model";
 
 
 export interface UserEventDetail<T extends IEntity<T>> {

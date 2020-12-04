@@ -1,11 +1,9 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {FetchPolicy} from "@apollo/client/core";
-import {FilterFn, SuggestService} from "../../shared/services/entity-service.class";
+import {FilterFn, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Metier} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
@@ -16,6 +14,10 @@ import {Moment} from "moment";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
+import {isNil, isNotNil} from "../../shared/functions";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 export class MetierFilter extends ReferentialRefFilter {
 

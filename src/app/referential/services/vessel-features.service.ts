@@ -2,15 +2,14 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {VesselFeatures, VesselRegistration} from "./model/vessel.model";
-import {LoadResult, EntitiesService} from "../../shared/shared.module";
-import {BaseEntityService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {VesselFilter} from "./vessel-service";
 import {SortDirection} from "@angular/material/sort";
-import {VesselFeaturesHistoryComponent} from "../vessel/page/vessel-features-history.component";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 
 export const VesselFeaturesFragments = {
     vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {

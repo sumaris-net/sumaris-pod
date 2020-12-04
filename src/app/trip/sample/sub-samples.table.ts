@@ -1,9 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityUtils, environment, joinPropertiesPath} from "../../core/core.module";
 import {PmfmIds} from "../../referential/services/model/model.enum";
 import {SubSampleValidatorService} from "../services/validator/sub-sample.validator";
-import {isNil, isNotNil, toNumber} from "../../shared/functions";
+import {isNil, isNotNil, joinPropertiesPath, toNumber} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -12,6 +11,8 @@ import {Sample} from "../services/model/sample.model";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SortDirection} from "@angular/material/sort";
 import {PmfmValueUtils} from "../../referential/services/model/pmfm-value.model";
+import {environment} from "../../../environments/environment";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];

@@ -1,13 +1,12 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {environment} from "../../../environments/environment";
 import {Observable, Subject} from "rxjs";
 import {ErrorCodes} from "./errors";
 import {isNotNil} from "../../shared/functions";
-import {EntityService, EntityServiceLoadOptions} from "../../shared/shared.module";
 import {Software} from "../../core/services/model/config.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 
 /* ------------------------------------
  * GraphQL queries

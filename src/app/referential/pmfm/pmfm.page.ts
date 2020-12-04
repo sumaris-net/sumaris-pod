@@ -1,21 +1,24 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
-import {AppEntityEditor, environment, isNil, joinPropertiesPath} from "../../core/core.module";
 import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {ReferentialForm} from "../form/referential.form";
 import {PmfmValidatorService} from "../services/validator/pmfm.validator";
-import {EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {Pmfm} from "../services/model/pmfm.model";
 import {Parameter} from "../services/model/parameter.model";
 import {PmfmService} from "../services/pmfm.service";
 import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
-import {MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {ParameterService} from "../services/parameter.service";
 import {filter, mergeMap} from "rxjs/operators";
 import {Observable} from "rxjs";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {isNil, joinPropertiesPath} from "../../shared/functions";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-pmfm',

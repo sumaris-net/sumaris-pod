@@ -14,7 +14,6 @@ import {BatchGroupsTable} from "./table/batch-groups.table";
 import {SubBatchesTable, SubBatchFilter} from "./table/sub-batches.table";
 import {CatchBatchForm} from "../catch/catch.form";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {AppTabEditor, AppTableUtils, EntitiesService, environment} from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -24,6 +23,9 @@ import {ProgramProperties} from "../../referential/services/config/program.confi
 import {SubBatch, SubBatchUtils} from "../services/model/subbatch.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {fromPromise} from "rxjs/internal/observable/fromPromise";
+import {AppTabEditor} from "../../core/form/tab-editor.class";
+import {environment} from "../../../environments/environment";
+import {AppTableUtils} from "../../core/table/table.utils";
 
 @Component({
   selector: 'app-batch-tree',

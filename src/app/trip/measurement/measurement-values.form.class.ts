@@ -3,7 +3,6 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject, isObservable, Observable} from 'rxjs';
-import {AppForm, isNil, isNotNil} from '../../core/core.module';
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramService} from "../../referential/services/program.service";
 import {FormBuilder, FormGroup} from '@angular/forms';
@@ -12,6 +11,8 @@ import {filter, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {AppForm} from "../../core/form/form.class";
+import {isNil, isNotNil} from "../../shared/functions";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;

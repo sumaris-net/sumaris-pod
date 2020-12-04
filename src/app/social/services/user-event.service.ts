@@ -1,7 +1,5 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {EntitiesService, EntityServiceLoadOptions, isNil, isNilOrBlank, LoadResult} from "../../shared/shared.module";
-import {BaseEntityService, Entity, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -10,14 +8,21 @@ import {Observable, of} from "rxjs";
 import {UserEvent, UserEventAction, UserEventTypes} from "./model/user-event.model";
 import {SocialFragments} from "./social.fragments";
 import {SortDirection} from "@angular/material/sort";
-import {EntitiesServiceWatchOptions, Page} from "../../shared/services/entity-service.class";
+import {
+  EntitiesService,
+  EntitiesServiceWatchOptions,
+  EntityServiceLoadOptions, LoadResult,
+  Page
+} from "../../shared/services/entity-service.class";
 import {map} from "rxjs/operators";
-import {isEmptyArray, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, toNumber} from "../../shared/functions";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {NetworkService} from "../../core/services/network.service";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {Entity, EntityUtils} from "../../core/services/model/entity.model";
 
 export class UserEventFilter {
   issuer?: string;

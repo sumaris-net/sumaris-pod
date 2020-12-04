@@ -1,12 +1,13 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {environment, referentialToString, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {Strategy} from "../services/model/strategy.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {toBoolean} from "../../shared/functions";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
+import {DefaultStatusList, referentialToString} from "../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {environment} from "../../../environments/environment";
 
 export declare interface StrategyFilter {
 }

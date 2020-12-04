@@ -1,15 +1,17 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {EntityService, EntityServiceLoadOptions, isNil, isNotNil} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {environment} from "../../../environments/environment";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
 import {Parameter} from "./model/parameter.model";
 import {ReferentialFragments} from "./referential.fragments";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){

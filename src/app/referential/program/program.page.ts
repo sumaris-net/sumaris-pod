@@ -1,14 +1,12 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
 import {Strategy} from "../services/model/strategy.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
-import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppPropertiesForm} from "../../core/form/properties.form";
@@ -20,6 +18,11 @@ import {animate, AnimationEvent, state, style, transition, trigger} from "@angul
 import {debounceTime, filter, first} from "rxjs/operators";
 import {AppFormHolder} from "../../core/form/form.utils";
 import {ProgramProperties} from "../services/config/program.config";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {changeCaseToUnderscore, isNil} from "../../shared/functions";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 export enum AnimationState {
   ENTER = 'enter',

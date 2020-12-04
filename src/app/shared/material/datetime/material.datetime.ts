@@ -36,9 +36,8 @@ import {isFocusableElement} from "../../focusable";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
 import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
-import {firstNotNilPromise} from "../../observables";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
+const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatDateTime),
   multi: true

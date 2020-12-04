@@ -8,7 +8,7 @@ import {AppValidatorService} from "./base.validator.class";
 export class ConfigValidatorService extends AppValidatorService<Configuration> {
 
   constructor(
-    private formBuilder: FormBuilder
+    protected formBuilder: FormBuilder
   ) {
     super(formBuilder);
   }

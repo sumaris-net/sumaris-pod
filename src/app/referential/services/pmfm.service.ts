@@ -1,17 +1,8 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {
-  EntityService,
-  EntityServiceLoadOptions, isNil, isNotNil,
-  LoadResult,
-  SuggestService,
-  EntitiesService
-} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {environment} from "../../../environments/environment";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {Pmfm} from "./model/pmfm.model";
 import {Observable, of} from "rxjs";
@@ -20,6 +11,16 @@ import {map} from "rxjs/operators";
 import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {
+  EntitiesService,
+  EntityService,
+  EntityServiceLoadOptions, LoadResult,
+  SuggestService
+} from "../../shared/services/entity-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 const LoadAllQuery: any = gql`
   query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){

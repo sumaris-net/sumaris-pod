@@ -1,5 +1,4 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {fadeInOutAnimation, isNil, isNotNil, toBoolean} from '../../shared/shared.module';
 import * as momentImported from "moment";
 const moment = momentImported;
 import {ObservedLocationForm} from "./observed-location.form";
@@ -9,7 +8,6 @@ import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ModalController} from "@ionic/angular";
-import {environment} from "../../core/core.module";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {SelectVesselsModal} from "./vessels/select-vessel.modal";
@@ -24,6 +22,9 @@ import {filter} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {environment} from "../../../environments/environment";
+import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 
 @Component({
   selector: 'app-observed-location-page',

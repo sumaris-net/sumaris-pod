@@ -12,8 +12,7 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../../core/core.module";
-import {isNilOrBlank, isNotNil} from "../../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
 import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../../core/services/model/settings.model";
@@ -28,6 +27,8 @@ import {getPmfmName, PmfmStrategy} from "../../../referential/services/model/pmf
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {BatchModal} from "../modal/batch.modal";
 import {SubBatch} from "../../services/model/subbatch.model";
+import {IReferentialRef, ReferentialRef} from "../../../core/services/model/referential.model";
+import {environment} from "../../../../environments/environment";
 
 export interface BatchFilter {
   operationId?: number;
@@ -312,7 +313,6 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     }
   }
 
-  referentialToString = referentialToString;
   getPmfmColumnHeader = getPmfmName;
   measurementValueToString = MeasurementValuesUtils.valueToString;
 

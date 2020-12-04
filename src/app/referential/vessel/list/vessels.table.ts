@@ -1,19 +1,10 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  environment,
-  isNil,
-  isNotNil, referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from "../../../core/core.module";
 import {VesselValidatorService} from "../../services/validator/vessel.validator";
 import {VesselFilter, VesselService} from "../../services/vessel-service";
 import {VesselModal} from "../modal/modal-vessel";
 import {Vessel} from "../../services/model/vessel.model";
-import {DefaultStatusList, ReferentialRef} from "../../../core/services/model/referential.model";
+import {DefaultStatusList, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from "../../../core/services/account.service";
@@ -23,8 +14,11 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {debounceTime, filter, tap} from "rxjs/operators";
 import {SharedValidators} from "../../../shared/validator/validators";
-import {toBoolean} from "../../../shared/functions";
+import {isNil, isNotNil, toBoolean} from "../../../shared/functions";
 import {statusToColor} from "../../../data/services/model/model.utils";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
+import {environment} from "../../../../environments/environment";
 
 @Component({
   selector: 'app-vessels-table',

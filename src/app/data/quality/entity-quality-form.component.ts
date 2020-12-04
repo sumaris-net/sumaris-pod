@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {DataEntity, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from '../services/model/data-entity.model';
 // import fade in animation
-import {fadeInAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AccountService} from "../../core/services/account.service";
 import {DataQualityService, isDataQualityService} from "../services/base.service";
 import {QualityFlags} from "../../referential/services/model/model.enum";
@@ -18,9 +17,11 @@ import {AppRootDataEditor} from "../form/root-data-editor.class";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
 import {ReferentialRef} from "../../core/services/model/referential.model";
 import {qualityFlagToColor} from "../services/model/model.utils";
-import {StatusIds} from "../../core/core.module";
 import {UserEventService} from "../../social/services/user-event.service";
 import {OverlayEventDetail} from "@ionic/core";
+import {isNil, isNotNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {fadeInAnimation} from "../../shared/material/material.animations";
 
 @Component({
   selector: 'app-entity-quality-form',

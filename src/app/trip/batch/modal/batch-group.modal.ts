@@ -10,19 +10,20 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AppFormUtils, environment, IReferentialRef, isNil} from "../../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/services/model/model.enum";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BatchGroupForm} from "../form/batch-group.form";
-import {toBoolean} from "../../../shared/functions";
+import {isNil, toBoolean} from "../../../shared/functions";
 import {debounceTime, map, startWith} from "rxjs/operators";
 import {PlatformService} from "../../../core/services/platform.service";
 import {Alerts} from "../../../shared/alerts";
 import {BatchGroup} from "../../services/model/batch-group.model";
-import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
+import {environment} from "../../../../environments/environment";
+import {AppFormUtils} from "../../../core/form/form.utils";
 
 @Component({
   selector: 'app-batch-group-modal',

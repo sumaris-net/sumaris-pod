@@ -3,7 +3,6 @@ import {HistoryPageReference, LocalSettings, UsageMode} from "./model/settings.m
 import {Peer} from "./model/peer.model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
-
 import {
   fromDateISOString,
   getPropertyByPath, isEmptyArray,
@@ -11,7 +10,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   toBoolean,
-  toDateISOString
 } from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";

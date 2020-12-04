@@ -1,16 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  environment,
-  isNil,
-  isNotNil,
-  ReferentialRef,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-} from "../../core/core.module";
 import {TripValidatorService} from "../services/validator/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
 import {AlertController, ModalController} from "@ionic/angular";
@@ -28,7 +17,7 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {BehaviorSubject} from "rxjs";
 import {personsToString, personToString} from "../../core/services/model/person.model";
 import {chainPromises} from "../../shared/observables";
-import {isEmptyArray} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
 import {Trip} from "../services/model/trip.model";
 import {PersonService} from "../../admin/services/person.service";
 import {StatusIds} from "../../core/services/model/model.enum";
@@ -42,6 +31,10 @@ import {HttpClient} from "@angular/common/http";
 import * as momentImported from "moment";
 const moment = momentImported;
 import {TRIP_FEATURE_NAME} from "../services/config/trip.config";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",

@@ -1,14 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, isNotNil, ReferentialRef} from '../../core/core.module';
-import {
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  isNil,
-  isNotEmptyArray,
-  isNotNilOrBlank
-} from '../../shared/shared.module';
 import * as momentImported from "moment";
 const moment = momentImported;
 import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
@@ -22,9 +14,8 @@ import {HistoryPageReference, UsageMode} from "../../core/services/model/setting
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isEmptyArray} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
-import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
 import {Product, ProductFilter} from "../services/model/product.model";
@@ -42,6 +33,10 @@ import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {ReferentialRef} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 
 @Component({
   selector: 'app-landed-trip-page',

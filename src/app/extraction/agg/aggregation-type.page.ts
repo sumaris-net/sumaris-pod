@@ -1,5 +1,4 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {AppEntityEditor, isNil} from "../../core/core.module";
 import {ExtractionColumn} from "../services/model/extraction.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
@@ -12,6 +11,8 @@ import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {AggregationType} from "../services/model/aggregation-type.model";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {isNil} from "../../shared/functions";
 
 @Component({
   selector: 'app-aggregation-type-page',

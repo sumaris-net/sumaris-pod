@@ -1,14 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  environment,
-  isNotNil,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from "../../core/core.module";
 import {OperationValidatorService} from "../services/validator/operation.validator";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -18,9 +9,13 @@ import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Operation} from "../services/model/trip.model";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
-import {toBoolean} from "../../shared/functions";
+import {isNotNil, toBoolean} from "../../shared/functions";
 import {OperationsMap} from "./map/operations.map";
 import {AccountService} from "../../core/services/account.service";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {referentialToString} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 
 @Component({

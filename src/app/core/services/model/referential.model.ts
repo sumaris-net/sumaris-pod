@@ -3,8 +3,6 @@ import {fromDateISOString, joinPropertiesPath, toDateISOString} from "../../../s
 import {Entity, EntityAsObjectOptions, EntityUtils} from "./entity.model";
 import {StatusIds} from "./model.enum";
 
-export {StatusIds};
-
 export function referentialToString(obj: Referential | any | any, properties?: string[]): string | undefined {
   return obj && obj.id && joinPropertiesPath(obj, properties || ['label', 'name']) || undefined;
 }

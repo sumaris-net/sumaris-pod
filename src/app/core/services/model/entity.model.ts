@@ -11,7 +11,6 @@ import {
 import {FilterFn} from "../../../shared/services/entity-service.class";
 import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
 import {StoreObject} from "@apollo/client/core";
-import {ReferentialRef} from "../../core.module";
 
 
 export declare interface Cloneable<T> {

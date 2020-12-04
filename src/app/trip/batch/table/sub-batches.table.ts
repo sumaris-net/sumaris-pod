@@ -12,7 +12,6 @@ import {
 } from "@angular/core";
 import {isObservable, Observable, Subscription} from 'rxjs';
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {AppFormUtils, EntityUtils, environment, IReferentialRef} from "../../../core/core.module";
 import {FormGroup, Validators} from "@angular/forms";
 import {
   isEmptyArray,
@@ -23,7 +22,7 @@ import {
   startsWithUpperCase,
   toBoolean
 } from "../../../shared/functions";
-import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {UsageMode} from "../../../core/services/model/settings.model";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
@@ -40,6 +39,9 @@ import {SortDirection} from "@angular/material/sort";
 import {SubBatch, SubBatchUtils} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
+import {environment} from "../../../../environments/environment";
+import {AppFormUtils} from "../../../core/form/form.utils";
+import {EntityUtils} from "../../../core/services/model/entity.model";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];

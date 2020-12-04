@@ -1,4 +1,3 @@
-import {fromDateISOString, isNil, toDateISOString} from "../../../core/core.module";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {Person} from "../../../core/services/model/person.model";
 import {Moment} from "moment/moment";
@@ -6,6 +5,7 @@ import {Moment} from "moment/moment";
 import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
 import {DataEntity, DataEntityAsObjectOptions} from "./data-entity.model";
 import {IWithProgramEntity, IWithRecorderPersonEntity} from "./model.utils";
+import {fromDateISOString, isNil, toDateISOString} from "../../../shared/functions";
 
 export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
 export const SynchronizationStatusEnum = {

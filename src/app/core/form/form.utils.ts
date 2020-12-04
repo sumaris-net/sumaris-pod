@@ -7,23 +7,13 @@ import {
   ValidationErrors,
   ValidatorFn
 } from "@angular/forms";
-import {
-  filterNumberInput,
-  isNil,
-  nullIfUndefined,
-  selectInputContent,
-  sleep,
-  toBoolean,
-  toDateISOString
-} from "../../shared/shared.module";
 import {isMoment} from "moment";
 import {Entity} from "../services/model/entity.model";
 import {timer} from "rxjs";
 import {filter, first} from "rxjs/operators";
 import {SharedFormArrayValidators} from "../../shared/validator/validators";
-import {round} from "../../shared/functions";
-
-export {selectInputContent};
+import {isNil, nullIfUndefined, round, sleep, toBoolean, toDateISOString} from "../../shared/functions";
+import {filterNumberInput, selectInputContent} from "../../shared/inputs";
 
 export declare type IAppFormFactory = () => IAppForm;
 

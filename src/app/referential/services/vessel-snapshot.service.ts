@@ -1,10 +1,8 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseEntityService, StatusIds} from "../../core/core.module";
 
 import {ErrorCodes} from "./errors";
-import {fetchAllPagesWithProgress, SuggestService} from "../../shared/services/entity-service.class";
+import {fetchAllPagesWithProgress, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {FetchPolicy} from "@apollo/client/core";
@@ -15,6 +13,9 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {VesselSnapshot} from "./model/vessel-snapshot.model";
 import {SortDirection} from "@angular/material/sort";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {isNotNil} from "../../shared/functions";
 
 export const VesselSnapshotFragments = {
   lightVesselSnapshot: gql`fragment LightVesselSnapshotFragment on VesselSnapshotVO {

@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
-import {FormArrayHelper, isNil, isNotNil, Person, referentialToString} from '../../core/core.module';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
@@ -9,15 +8,16 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 
-import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {Person, personToString, UserProfileLabel} from "../../core/services/model/person.model";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {toBoolean} from "../../shared/functions";
+import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {FormArrayHelper} from "../../core/form/form.utils";
 
 @Component({
   selector: 'form-observed-location',

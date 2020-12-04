@@ -5,10 +5,12 @@ import {LocationLevelIds} from "../../services/model/model.enum";
 import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
-import {AppForm, AppFormUtils, StatusIds} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {AccountService} from "../../../core/services/account.service";
+import {AppForm} from "../../../core/form/form.class";
+import {StatusIds} from "../../../core/services/model/model.enum";
+import {AppFormUtils} from "../../../core/form/form.utils";
 
 
 @Component({

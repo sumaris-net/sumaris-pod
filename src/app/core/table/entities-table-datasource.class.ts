@@ -1,15 +1,15 @@
 import {TableDataSource, TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService, toBoolean} from '../../shared/shared.module';
 import {Entity, IEntity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
 import {catchError, first, map, takeUntil} from "rxjs/operators";
 import {Directive, OnDestroy} from "@angular/core";
-import {EntitiesServiceWatchOptions} from "../../shared/services/entity-service.class";
+import {EntitiesService, EntitiesServiceWatchOptions, LoadResult} from "../../shared/services/entity-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {CollectionViewer} from "@angular/cdk/collections";
 import {firstNotNilPromise} from "../../shared/observables";
 import {environment} from "../../../environments/environment";
+import {isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
 
 
 export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> extends EntitiesServiceWatchOptions {

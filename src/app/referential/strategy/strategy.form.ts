@@ -1,27 +1,25 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {AppEntityEditor, isNotNil, ReferentialRef, referentialToString} from "../../core/core.module";
 import {ReferentialForm} from "../form/referential.form";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmStrategiesTable, PmfmStrategyFilter} from "./pmfm-strategies.table";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {SelectReferentialModal} from "../list/select-referential.modal";
 import {ModalController} from "@ionic/angular";
 import {AppListForm, AppListFormOptions} from "../../core/form/list.form";
-import {isEmptyArray, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNotNil, toNumber} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {BehaviorSubject} from "rxjs";
-import {debounceTime, map} from "rxjs/operators";
+import {debounceTime} from "rxjs/operators";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model/strategy.model";
 import {Program} from "../services/model/program.model";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {TableElement} from "@e-is/ngx-material-table";
+import {AppEntityEditor} from "../../core/form/editor.class";
 
 @Component({
   selector: 'app-strategy-form',

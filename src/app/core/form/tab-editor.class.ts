@@ -4,13 +4,14 @@ import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {AlertController, ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 import {Subscription, TeardownLogic} from 'rxjs';
-import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
 import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
 import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {ToolbarComponent} from "../../shared/toolbar/toolbar";
+import {isNotNil} from "../../shared/functions";
 
 export class AppTabFormOptions {
 

@@ -5,9 +5,7 @@ import {TripForm} from './trip.form';
 import {SaleForm} from '../sale/sale.form';
 import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
-import {EntityServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
 import * as momentImported from "moment";
 const moment = momentImported;
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
@@ -26,10 +24,14 @@ import {ProgramProperties} from "../../referential/services/config/program.confi
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {filter} from "rxjs/operators";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {Alerts} from "../../shared/alerts";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {environment} from "../../../environments/environment";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {fromDateISOString, isNil, isNotEmptyArray} from "../../shared/functions";
 
 const TripPageTabs = {
   GENERAL: 0,

@@ -1,9 +1,9 @@
 import * as momentImported from "moment";
 const moment = momentImported;
 import {Duration, isMoment, Moment} from "moment"
+import {DATE_ISO_PATTERN} from "./constants";
 
 
-export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 export const DATE_UNIX_TIMESTAMP = 'X';
 export const DATE_UNIX_MS_TIMESTAMP = 'x';
 

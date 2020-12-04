@@ -5,16 +5,16 @@ import {Software} from '../../core/services/model/config.model';
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {AppEntityEditor, isNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialForm} from "../form/referential.form";
 import {SoftwareService} from "../services/software.service";
 import {SoftwareValidatorService} from "../services/validator/software.validator";
-import {AppEditorOptions} from "../../core/form/editor.class";
+import {AppEditorOptions, AppEntityEditor} from "../../core/form/editor.class";
 import {ConfigOptions} from "../../core/services/config/core.config";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ObjectMapEntry} from "../../shared/types";
+import {isNil} from "../../shared/functions";
 
 @Directive()
 export abstract class AbstractSoftwarePage<T extends Software<T>, S extends SoftwareService<T>>

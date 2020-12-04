@@ -1,5 +1,4 @@
 import {BehaviorSubject, isObservable, Observable} from "rxjs";
-import {isNil, isNotNil, LoadResult, EntitiesService} from "../../core/core.module";
 import {filter, first, map, switchMap} from "rxjs/operators";
 import {
   IEntityWithMeasurement,
@@ -7,11 +6,13 @@ import {
 } from "../services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {Directive, EventEmitter, Injector, Input, OnDestroy} from "@angular/core";
+import {Directive, EventEmitter, Injector, Input} from "@angular/core";
 import {ProgramService} from "../../referential/services/program.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 import {SortDirection} from "@angular/material/sort";
+import {isNil, isNotNil} from "../../shared/functions";
+import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 
 @Directive()
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>

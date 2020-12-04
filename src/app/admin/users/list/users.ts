@@ -1,5 +1,4 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
-import {AppTable, EntitiesTableDataSource, isNil, isNotNil} from "../../../core/core.module";
 import { Person, PRIORITIZED_USER_PROFILES} from "../../../core/services/model/person.model";
 import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
 import {PersonFilter, PersonService} from "../../services/person.service";
@@ -9,12 +8,14 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from "../../../core/services/account.service";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {PlatformService} from "../../../core/services/platform.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {debounceTime, filter, tap} from "rxjs/operators";
+import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
+import {isNotNil} from "../../../shared/functions";
 
 @Component({
   selector: 'app-users-table',
