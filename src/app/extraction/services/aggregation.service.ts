@@ -368,6 +368,7 @@ export class AggregationService extends BaseEntityService {
 
         // Add to cached queries
         if (isNew) {
+
           // Extraction types
           {
             // Convert into the extraction type
@@ -403,6 +404,7 @@ export class AggregationService extends BaseEntityService {
       },
       update: (cache) => {
 
+        // Remove from cache
         const cacheKey = {__typename: AggregationType.TYPENAME, id: type.id, label: type.label, category: ExtractionCategories.PRODUCT};
         cache.evict({ id: cache.identify(cacheKey)});
         cache.evict({ id: cache.identify({
@@ -416,38 +418,8 @@ export class AggregationService extends BaseEntityService {
   }
 
   async deleteAll(entities: AggregationType[]): Promise<any> {
-    const ids = entities && entities
-      .map(t => t.id)
-      .filter(isNotNil);
-
-    const now = Date.now();
-    if (this._debug) console.debug("[aggregation-service] Deleting aggregations... ids:", ids);
-
-    await this.graphql.mutate<any>({
-      mutation: DeleteAggregations,
-      variables: {
-        ids
-      },
-      update: (cache) => {
-
-        // Remove from cache
-        {
-          // Extraction types
-          this.removeFromMutableCachedQueryByIds(cache, {
-            queryName: 'LoadExtractionTypes',
-            ids
-          });
-
-          // Aggregation types
-          this.removeFromMutableCachedQueryByIds(cache, {
-            query: LoadTypesQuery,
-            ids
-          });
-        }
-
-        if (this._debug) console.debug(`[aggregation-service] Aggregations deleted in ${Date.now() - now}ms`);
-      }
-    });
+    await Promise.all((entities || [])
+      .filter(t => t && isNotNil(t.id)).map(type => this.delete(type)));
   }
 
   /* -- protected methods  -- */

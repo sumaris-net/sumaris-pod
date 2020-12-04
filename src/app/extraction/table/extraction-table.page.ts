@@ -311,7 +311,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.disable();
 
     try {
-      await this.aggregationService.deleteAll([this.type as AggregationType]);
+      const aggType = AggregationType.fromObject(this.type.asObject());
+      await this.aggregationService.delete(aggType);
 
       // Wait propagation to types
       await sleep(4000);
