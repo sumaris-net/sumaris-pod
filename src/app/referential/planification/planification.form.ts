@@ -150,17 +150,17 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
     // register year field changes
-    this.registerSubscription(
-      this.form.get('year').valueChanges
-        .subscribe(async (date : Moment) => {
-          //update mask
-          const year = date.year().toString()
-          this.sampleRowMask = [...year.split(''), '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
-          // set sample row code
-          //TODO : replace 40 with this.program.id
-          this.label = await this.strategyService.findStrategyNextLabel(40,`${year}_BIO_`, 4);
-        })
-    );
+    // this.registerSubscription(
+    //   this.form.get('creationDate').valueChanges
+    //     .subscribe(async (date : Moment) => {
+    //       //update mask
+    //       const year = date.year().toString()
+    //       this.sampleRowMask = [...year.split(''), '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
+    //       // set sample row code
+    //       //TODO : replace 40 with this.program.id
+    //       this.label = await this.strategyService.findStrategyNextLabel(40,`${year}_BIO_`, 4);
+    //     })
+    // );
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
@@ -206,16 +206,16 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.loadEotps();
 
     // Calcified type combo ------------------------------------------------------------
-    this.registerAutocompleteField('calcifiedType', {
-      attributes: ['name'],
-      columnNames: [ 'REFERENTIAL.NAME'],
-      items: this._calcifiedTypeSubject,
-      mobile: this.mobile
-    });
-    this.loadCalcifiedType();
+    // this.registerAutocompleteField('calcifiedType', {
+    //   attributes: ['name'],
+    //   columnNames: [ 'REFERENTIAL.NAME'],
+    //   items: this._calcifiedTypeSubject,
+    //   mobile: this.mobile
+    // });
+    // this.loadCalcifiedType();
 
     //set current date to year field
-    this.form.get('year').setValue(moment());
+    this.form.get('creationDate').setValue(moment());
 
     //init helpers
     this.initCalcifiedTypeHelper();
@@ -284,6 +284,8 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     console.log(data);
     super.setValue(data, opts);
 
+    console.log(this.form);
+
 
     //   // SAMPLE ROW CODE
     //   const sampleRowCodeControl = this.form.get("sampleRowCode");
@@ -302,11 +304,11 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //   eotpControl.patchValue(eotpObject);
 
     //   // LABORATORIES
-    //   const laboratoriesControl = this.laboratoriesForm;
-    //   let strategyDepartments = simpleStrategy.strategyDepartments;
-    //   let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;
-    //   });
-    //   laboratoriesControl.patchValue(laboratories);
+      const laboratoriesControl = this.laboratoriesForm;
+      let strategyDepartments = data.strategyDepartments;
+      let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;});
+      this.laboratoryHelper.resize(Math.max(1, data.strategyDepartments.length));
+      laboratoriesControl.patchValue(laboratories);
 
     //   // FISHING AREA
       // const fishingAreaControl = this.fishingAreasForm;
@@ -385,7 +387,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         //weightPmfmsControl.patchValue(weightPmfm);
     //     weightPmfmsControl.patchValue(weightPmfmStrategy);
 
-        this.weightPmfmStrategiesTable.value = weightPmfmStrategy || [];
+        // this.weightPmfmStrategiesTable.value = weightPmfmStrategy || [];
       }
 
       // Size
@@ -396,7 +398,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       {
     //     let sizePmfm = sizePmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
     //     sizePmfmsControl.patchValue(sizePmfm);
-        this.sizePmfmStrategiesTable.value = sizePmfmStrategy || [];
+        // this.sizePmfmStrategiesTable.value = sizePmfmStrategy || [];
       }
 
       // SEX
@@ -418,7 +420,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       {
     //     let maturityPmfm = maturityPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
     //     maturityPmfmsControl.patchValue(maturityPmfm);
-        this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy || [];
+        // this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy || [];
       }
 
 
@@ -504,7 +506,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   protected initLaboratoryHelper() {
     this.laboratoryHelper = new FormArrayHelper<ReferentialRef>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'strategyDepartments'),
-      (laboratory) => this.formBuilder.control(laboratory || null, [Validators.required, SharedValidators.entity]),
+      (laboratory) => this.formBuilder.control(laboratory || null),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
