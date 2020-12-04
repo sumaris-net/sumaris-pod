@@ -1,7 +1,7 @@
-import {Entity, EntityAsObjectOptions, fromDateISOString} from "../../../core/core.module";
 import {Moment} from "moment/moment";
-import {IEntity} from "../../../core/services/model/entity.model";
+import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
 import {PredefinedColors} from "@ionic/core";
+import {fromDateISOString} from "../../../shared/functions";
 
 export const UserEventTypes = {
   DEBUG_DATA: 'DEBUG_DATA',

@@ -16,7 +16,6 @@ import {BatchGroupsTable} from './batch/table/batch-groups.table';
 import {BatchesTable} from './batch/table/batches.table';
 import {SubBatchesTable} from './batch/table/sub-batches.table';
 import {IndividualMonitoringSubSamplesTable} from './sample/individualmonitoring/individual-monitoring-samples.table';
-import {MeasurementValuesForm} from './measurement/measurement-values.form.class';
 import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {SubBatchesModal} from "./batch/modal/sub-batches.modal";
 import {SubBatchForm} from "./batch/form/sub-batch.form";
@@ -38,8 +37,6 @@ import {CoreModule} from "../core/core.module";
 import {TranslateModule} from "@ngx-translate/core";
 import {CommonModule} from "@angular/common";
 import {TripTrashModal} from "./trip/trash/trip-trash.modal";
-
-export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm };
 
 @NgModule({
   imports: [

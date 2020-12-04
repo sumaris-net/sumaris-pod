@@ -9,15 +9,15 @@ import {environment} from "../../../environments/environment";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {EntitiesTableDataSource, isNil} from "../../core/core.module";
 import {BehaviorSubject, Observable} from "rxjs";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {PacketModal} from "./packet.modal";
 import {PacketSaleModal} from "../sale/packet-sale.modal";
 import {ProgramService} from "../../referential/services/program.service";
-import {isNotEmptyArray} from "../../shared/functions";
+import {isNil, isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 
 @Component({
   selector: 'app-packets-table',

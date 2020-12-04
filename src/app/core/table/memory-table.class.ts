@@ -1,13 +1,14 @@
 import {Directive, Injector, Input} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {AppTable, EntitiesTableDataSource, Entity} from "../../core/core.module";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {isEmptyArray} from "../../shared/functions";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppTableDataSourceOptions} from "./entities-table-datasource.class";
+import {LocalSettingsService} from "../services/local-settings.service";
+import {AppTableDataSourceOptions, EntitiesTableDataSource} from "./entities-table-datasource.class";
+import {AppTable} from "./table.class";
+import {Entity} from "../services/model/entity.model";
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix

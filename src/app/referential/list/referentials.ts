@@ -2,7 +2,6 @@ import {Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {debounceTime, filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {AppTable, EntitiesTableDataSource, environment, isNil, isNotNil} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
 import {DefaultStatusList, Referential} from "../../core/services/model/referential.model";
@@ -12,9 +11,11 @@ import {AccountService} from '../../core/services/account.service';
 import {Location} from '@angular/common';
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isNotNilOrBlank, sort} from "../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank, sort} from "../../shared/functions";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {environment} from "../../../environments/environment";
 
 
 @Component({

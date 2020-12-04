@@ -1,4 +1,3 @@
-import {isNil, isNotNil} from "../../../core/core.module";
 import {
   NOT_MINIFY_OPTIONS,
   ReferentialAsObjectOptions,
@@ -7,7 +6,7 @@ import {
 } from "../../../core/services/model/referential.model";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
-import {equalsOrNil, isNotNilOrBlank} from "../../../shared/functions";
+import {equalsOrNil, isNil, isNotNil, isNotNilOrBlank} from "../../../shared/functions";
 import {IEntity} from "../../../core/services/model/entity.model";
 
 export interface IWithProductsEntity<T> extends IEntity<T> {

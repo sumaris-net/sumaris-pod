@@ -34,7 +34,7 @@ import {DEFAULT_MAX_DECIMALS, formatDuration, parseDuration} from "./duration.ut
 import {BehaviorSubject, Subscription} from "rxjs";
 import {filter} from "rxjs/operators";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
+const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatDuration),
   multi: true

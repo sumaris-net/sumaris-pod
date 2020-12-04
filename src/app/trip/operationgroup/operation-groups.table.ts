@@ -1,5 +1,4 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {environment, ReferentialRef, referentialToString} from "../../core/core.module";
 import {Platform} from "@ionic/angular";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {OperationFilter} from "../services/operation.service";
@@ -11,6 +10,8 @@ import {InMemoryEntitiesService} from "../../shared/services/memory-entity-servi
 import {MetierService} from "../../referential/services/metier.service";
 import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];

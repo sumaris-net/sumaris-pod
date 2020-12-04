@@ -38,7 +38,6 @@ import {
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {PlatformService} from "../../../core/services/platform.service";
-import {AppFormUtils} from "../../../core/core.module";
 import {PmfmFormField} from "../../../referential/pmfm/pmfm.form-field.component";
 import {focusNextInput, focusPreviousInput, GetFocusableInputOptions} from "../../../shared/inputs";
 import {SharedValidators} from "../../../shared/validator/validators";
@@ -47,6 +46,7 @@ import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {TranslateService} from "@ngx-translate/core";
 import {FloatLabelType} from "@angular/material/form-field";
+import {AppFormUtils} from "../../../core/form/form.utils";
 
 
 @Component({

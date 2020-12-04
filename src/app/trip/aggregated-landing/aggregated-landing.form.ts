@@ -7,7 +7,6 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import {AppForm, environment, FormArrayHelper, isNil} from "../../core/core.module";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormArray, FormBuilder, Validators} from "@angular/forms";
@@ -26,6 +25,10 @@ import {DisplayFn} from "../../shared/form/field.model";
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {VesselActivityValidatorService} from "../services/validator/vessel-activity.validator";
 import {getMaxRankOrder} from "../../data/services/model/model.utils";
+import {AppForm} from "../../core/form/form.class";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {environment} from "../../../environments/environment";
+import {isNil} from "../../shared/functions";
 
 export class AggregatedLandingFormOption {
   dates: Observable<Moment[]> | Moment[];

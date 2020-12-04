@@ -18,7 +18,8 @@ import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {NetworkService} from "./network.service";
 import {FileService} from "../../shared/file/file.service";
-import {Referential, ReferentialUtils, StatusIds} from "./model/referential.model";
+import {Referential, ReferentialUtils} from "./model/referential.model";
+import {StatusIds} from "./model/model.enum";
 
 
 export declare interface AccountHolder {

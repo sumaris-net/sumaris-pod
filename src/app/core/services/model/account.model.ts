@@ -1,5 +1,5 @@
 import {UserSettings} from "./settings.model";
-import {Person, personToString} from "./person.model";
+import {Person} from "./person.model";
 import {EntityAsObjectOptions} from "./entity.model";
 
 /**

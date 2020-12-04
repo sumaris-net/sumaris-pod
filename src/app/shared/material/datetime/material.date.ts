@@ -36,7 +36,7 @@ import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepick
 import {DateAdapter} from "@angular/material/core";
 import {isFocusableElement} from "../../focusable";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
+const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatDate),
   multi: true

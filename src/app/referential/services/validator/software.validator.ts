@@ -8,7 +8,7 @@ import {EntityUtils} from "../../../core/services/model/entity.model";
 export class SoftwareValidatorService<T extends Software<T> = Software<any>> implements ValidatorService{
 
   constructor(
-    private formBuilder: FormBuilder
+    protected formBuilder: FormBuilder
   ) {
   }
 

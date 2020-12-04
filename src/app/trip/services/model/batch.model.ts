@@ -1,13 +1,12 @@
-import {EntityUtils, isNil, isNotNil, ReferentialRef, referentialToString} from "../../../core/core.module";
 import {AcquisitionLevelCodes, PmfmIds, QualityFlagIds} from "../../../referential/services/model/model.enum";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank, toNumber} from "../../../shared/functions";
+import {isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, toNumber} from "../../../shared/functions";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {ITreeItemEntity} from "../../../core/services/model/entity.model";
+import {EntityUtils, ITreeItemEntity} from "../../../core/services/model/entity.model";
 import {
   NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
+  ReferentialAsObjectOptions, ReferentialRef, referentialToString,
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";

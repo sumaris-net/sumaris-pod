@@ -8,14 +8,6 @@ import {
   OnDestroy,
   OnInit
 } from "@angular/core";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  environment, isNil, isNotNil, referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  StatusIds
-} from "../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -28,7 +20,7 @@ import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
 import {filterNotNil} from "../../shared/observables";
-import {isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
 import {AggregatedLandingFilter, AggregatedLandingService} from "../services/aggregated-landing.service";
 import {Moment} from "moment";
@@ -45,6 +37,10 @@ import {add} from "ionicons/icons";
 import {PacketModal} from "../packet/packet.modal";
 import {AggregatedLandingModal} from "./aggregated-landing.modal";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {referentialToString} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-aggregated-landings-table',

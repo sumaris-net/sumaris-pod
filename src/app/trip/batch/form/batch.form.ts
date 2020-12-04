@@ -15,14 +15,14 @@ import {debounceTime, filter, first} from "rxjs/operators";
 import {AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
 import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AppFormUtils, FormArrayHelper, isNil, isNotNil} from "../../../core/core.module";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {isNotNilOrBlank, toBoolean} from "../../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
 import {BatchValidatorService} from "../../services/validator/batch.validator";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {PlatformService} from "../../../core/services/platform.service";
 import {SharedFormGroupValidators} from "../../../shared/validator/validators";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {AppFormUtils, FormArrayHelper} from "../../../core/form/form.utils";
 
 @Component({
   selector: 'app-batch-form',
