@@ -816,10 +816,11 @@ export class GraphqlService {
   private toApolloError<T>(err: any, defaultError?: any): ApolloQueryResult<T> {
     let error =
       // If network error: try to convert to App (read as JSON), or create an UNKNOWN_NETWORK_ERROR
-      (err.networkError &&
+      (err.networkError && (
         (err.networkError.error && this.toAppError(err.networkError.error))
         || this.toAppError(err.networkError)
         || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR)
+        )
       )
       // If graphQL: try to convert the first error found
       || (err.graphQLErrors && err.graphQLErrors.length && this.toAppError(err.graphQLErrors[0]))
