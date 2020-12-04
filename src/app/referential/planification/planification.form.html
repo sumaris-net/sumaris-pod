@@ -8,7 +8,7 @@
       <ion-col>
         <mat-form-field>
           <input matInput #matInput
-                 formControlName="sampleRowCode"
+                 formControlName="label"
                  autocomplete="off"
                  type="text"
                  [textMask]="{mask: sampleRowMask, keepCharPositions: true, showMask: true, guide: true}"
@@ -26,9 +26,9 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          formControlName="eotp"
+          formControlName="analyticReference"
           [placeholder]="'PLANIFICATION.EOTP'|translate"
-          [config]="autocompleteFields.eotp"
+          [config]="autocompleteFields.analyticReference"
           [tabindex]="tabindex+1">
 
           <button matAfter type="button" mat-icon-button
@@ -86,7 +86,7 @@
     </ion-row>
 
     <!--FISHING AREA -->
-    <ion-row *ngFor="let fishingAreaTypeForm of fishingAreasForm?.controls; index as i; first as first">
+    <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; index as i; first as first">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -130,7 +130,7 @@
 
 
     <!-- Target species (using metier) -->
-    <ion-row>
+    <!-- <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -151,11 +151,11 @@
           </button>
         </mat-autocomplete-field>
       </ion-col>
-    </ion-row>
+    </ion-row> -->
 
 
     <!--year -->
-    <ion-row>
+    <!-- <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -165,15 +165,15 @@
                               [required]="true" >
         </mat-date-short-field>
       </ion-col>
-    </ion-row>
+    </ion-row> -->
 
     <!--quarters-->
     <!-- Trimestre -->
-    <ion-row>
+    <!-- <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" translate>PLANIFICATION.EFFORT</ion-label>
       </ion-col>
-      <!-- T1 -->
+      
       <ion-col size="1" class="ion-margin">
         <mat-form-field>
           <input matInput type="number" step="1" min="0" autocomplete="off" [placeholder]="'PLANIFICATION.QUARTER_1'|translate"
@@ -181,20 +181,20 @@
         </mat-form-field>
       </ion-col>
 
-      <!-- T2 -->
+      
       <ion-col size="1" class="ion-margin">
         <mat-form-field>
           <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_2'|translate">
         </mat-form-field>
       </ion-col>
-      <!-- T3 -->
+      
       <ion-col size="1" class="ion-margin">
         <mat-form-field>
           <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_3'|translate">
         </mat-form-field>
       </ion-col>
 
-      <!-- T4 -->
+      
       <ion-col size="1" class="ion-margin">
         <mat-form-field>
           <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_4'|translate">
@@ -209,10 +209,10 @@
           <ion-label class="ion-float-end" translate>PLANIFICATION.PARAMETERS_TITLE</ion-label>
         </h2>
       </ion-col>
-    </ion-row>
+    </ion-row> -->
 
   <!-- Weight Pmfms -->
-  <ion-row>
+  <!-- <ion-row>
         <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
           <ion-label class="ion-float-end" translate>PLANIFICATION.WEIGHT</ion-label>
         </ion-col>
@@ -234,10 +234,10 @@
           </ion-card>
         </ion-col>
       </ion-row>
-  <ion-row style="height: 15px"></ion-row>
+  <ion-row style="height: 15px"></ion-row> -->
 
       <!-- Size Pmfms -->
-  <ion-row>
+  <!-- <ion-row>
     <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
       <ion-label class="ion-float-end" translate>PLANIFICATION.SIZE</ion-label>
     </ion-col>
@@ -259,10 +259,10 @@
       </ion-card>
     </ion-col>
   </ion-row>
-  <ion-row style="height: 15px"></ion-row>
+  <ion-row style="height: 15px"></ion-row> -->
 
     <!--SEX -->
-    <ion-row>
+    <!-- <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -271,10 +271,10 @@
         </mat-boolean-field>
       </ion-col>
 
-    </ion-row>
+    </ion-row> -->
 
   <!-- Maturity Pmfms -->
-    <ion-row>
+    <!-- <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end" translate>PLANIFICATION.MATURITY</ion-label>
       </ion-col>
@@ -296,10 +296,10 @@
         </ion-card>
       </ion-col>
     </ion-row>
-  <ion-row style="height: 15px"></ion-row>
+  <ion-row style="height: 15px"></ion-row> -->
 
     <!-- AGE -->
-    <ion-row>
+    <!-- <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -307,10 +307,10 @@
         <mat-boolean-field [placeholder]="'PLANIFICATION.AGE'|translate" formControlName="age" [required]="true" >
         </mat-boolean-field>
       </ion-col>
-    </ion-row>
+    </ion-row> -->
 
     <!-- Calcified Pmfms -->
-    <ion-row *ngFor="let calcifiedTypeForm of calcifiedTypesForm?.controls; index as i; first as first">
+    <!-- <ion-row *ngFor="let calcifiedTypeForm of calcifiedTypesForm?.controls; index as i; first as first">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label  class="ion-float-end" *ngIf="!i" translate>PLANIFICATION.CALCIFIED_TYPE</ion-label>
       </ion-col>
@@ -352,20 +352,20 @@
 
       </ion-col>
 
-    </ion-row>
+    </ion-row> -->
 
 
 
     <!--comment-->
-    <ion-row>
+    <!-- <ion-row>
       <ion-col>
         <mat-form-field appearance="outline">
         <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"
                   [placeholder]="'COMMON.COMMENTS'|translate"
-                  formControlName="comments" ></textarea>
+                  formControlName="description" ></textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
         </mat-form-field>
       </ion-col>
-    </ion-row>
+    </ion-row> -->
   </ion-grid>
 </form>

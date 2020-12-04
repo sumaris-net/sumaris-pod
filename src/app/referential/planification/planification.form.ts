@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ControlValueAccessor, FormBuilder, FormArray} from "@angular/forms";
+import {ControlValueAccessor, FormBuilder, FormArray, Validators} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StrategyService} from "../services/strategy.service";
 import {
@@ -20,12 +20,14 @@ import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
 import {SimpleStrategyValidatorService} from "../services/validator/simpleStrategy.validator";
 import {SimpleStrategy} from "../services/model/simpleStrategy.model";
-import {Strategy} from "../services/model/strategy.model";
+import {AppliedStrategy, Strategy, StrategyDepartment} from "../services/model/strategy.model";
 import {filter, map} from "rxjs/operators";
 import {Pmfm} from "../services/model/pmfm.model";
 import {removeDuplicatesFromArray} from "../../shared/functions";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {AppFormHolder, IAppForm, IAppFormFactory} from "../../core/form/form.utils";
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { SharedValidators } from 'src/app/shared/validator/validators';
 
 
 
@@ -35,12 +37,12 @@ import {AppFormHolder, IAppForm, IAppFormFactory} from "../../core/form/form.uti
   styleUrls: ['./planification.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    {provide: SimpleStrategyValidatorService}
+    {provide: StrategyValidatorService}
   ],
 })
-export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit, ControlValueAccessor, InputElement {
+export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
-  protected formBuilder: FormBuilder;
+  // protected formBuilder: FormBuilder;
   private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
 
@@ -54,6 +56,7 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
   ];
 
   private FiltredEotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
+    {id: '1', label: 'P101-0001-01-DF', name: 'GRAND PORT MARITIME DE GUADELOUPE - FCT', statusId:1,entityName:"Eotp"},
     {id: '3', label: 'P101-0003-01-RE', name: 'DCF- Recettes',statusId:1,entityName:"Eotp"},
     {id: '5', label: 'P101-0006-01-DF', name: 'APP EMR DGEC - état des lieux - DF',statusId:1,entityName:"Eotp"}
   ];
@@ -69,7 +72,7 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
 
   enableLaboratoryFilter = true;
   canFilterLaboratory = true;
-  laboratoryHelper: FormArrayHelper<ReferentialRef>;
+  laboratoryHelper: FormArrayHelper<StrategyDepartment>;
   laboratoryFocusIndex = -1;
 
   enableFishingAreaFilter = true;
@@ -97,22 +100,25 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
   }
 
   get laboratoriesForm(): FormArray {
-    return this.form.controls.laboratories as FormArray;
+    return this.form.controls.strategyDepartments as FormArray;
   }
 
   get fishingAreasForm(): FormArray {
-    return this.form.controls.fishingAreas as FormArray;
+    return this.form.controls.appliedStrategies as FormArray;
   }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: SimpleStrategyValidatorService,
+    protected validatorService2: StrategyValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected formBuilder: FormBuilder,
   ) {
-    super(dateAdapter, validatorService.getFormGroup(), settings);
+    super(dateAdapter, validatorService2.getFormGroup(), settings);
+    this.mobile = this.settings.mobile;
   }
   tabIndex?: number;
   hidden?: boolean;
@@ -137,32 +143,32 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
   }
 
   ngOnInit() {
-
+    super.ngOnInit();
     // register year field changes
-    this.registerSubscription(
-      this.form.get('year').valueChanges
-        .subscribe(async (date : Moment) => {
-          //update mask
-          const year = date.year().toString()
-          this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
-          // set sample row code
-          //TODO : replace 40 with this.program.id
-          this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
-        })
-    );
+    // this.registerSubscription(
+    //   this.form.get('year').valueChanges
+    //     .subscribe(async (date : Moment) => {
+    //       //update mask
+    //       const year = date.year().toString()
+    //       this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+    //       // set sample row code
+    //       //TODO : replace 40 with this.program.id
+    //       this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
+    //     })
+    // );
 
     // taxonName autocomplete
-    this.registerAutocompleteField('taxonName', {
-      suggestFn: (value, filter) => this.suggest(value, {
-          ...filter, statusId : 1
-        },
-        'TaxonName',
-        this.enableTaxonNameFilter),
-      attributes: ['name'],
-      columnNames: [ 'REFERENTIAL.NAME'],
-      columnSizes: [2,10],
-      mobile: this.settings.mobile
-    });
+    // this.registerAutocompleteField('taxonName', {
+    //   suggestFn: (value, filter) => this.suggest(value, {
+    //       ...filter, statusId : 1
+    //     },
+    //     'TaxonName',
+    //     this.enableTaxonNameFilter),
+    //   attributes: ['name'],
+    //   columnNames: [ 'REFERENTIAL.NAME'],
+    //   columnSizes: [2,10],
+    //   mobile: this.settings.mobile
+    // });
 
     // laboratory autocomplete
     this.registerAutocompleteField('laboratory', {
@@ -187,7 +193,7 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
 
 
     // eotp combo -------------------------------------------------------------------
-    this.registerAutocompleteField('eotp', {
+    this.registerAutocompleteField('analyticReference', {
       columnSizes : [4,6],
       items: this._eotpSubject,
       mobile: this.mobile
@@ -195,21 +201,21 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
     this.loadEotps();
 
     // Calcified type combo ------------------------------------------------------------
-    this.registerAutocompleteField('calcifiedType', {
-      attributes: ['name'],
-      columnNames: [ 'REFERENTIAL.NAME'],
-      items: this._calcifiedTypeSubject,
-      mobile: this.mobile
-    });
-    this.loadCalcifiedType();
+    // this.registerAutocompleteField('calcifiedType', {
+    //   attributes: ['name'],
+    //   columnNames: [ 'REFERENTIAL.NAME'],
+    //   items: this._calcifiedTypeSubject,
+    //   mobile: this.mobile
+    // });
+    // this.loadCalcifiedType();
 
     //set current date to year field
-    this.form.get('year').setValue(moment());
+    // this.form.get('year').setValue(moment());
 
     //init helpers
-    this.initCalcifiedTypeHelper();
+    // this.initCalcifiedTypeHelper();
     this.initLaboratoryHelper();
-    this.initFishingAreaHelper();
+    // this.initFishingAreaHelper();
 
   }
 
@@ -265,139 +271,144 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
     console.debug(`[planification] set enable filtered ${fieldName} items to ${value}`);
   }
 
-  setValueSimpleStrategy(data: Referential, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    console.debug("[planification-form] Setting SimpleStrategy value", data);
+  setValueSimpleStrategy(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    console.debug("[planification-form] Setting Strategy value", data);
     if (!data) return;
 
-    if (data instanceof Strategy)
-    {
-      var simpleStrategy : SimpleStrategy = data as SimpleStrategy;
-      this.programId = simpleStrategy.programId;
 
-      // SAMPLE ROW CODE
-      const sampleRowCodeControl = this.form.get("sampleRowCode");
-      sampleRowCodeControl.patchValue(simpleStrategy.label);
+    console.log(data);
+    super.setValue(data, opts);
+    // if (data instanceof Strategy)
+    // {
+    //   var simpleStrategy : SimpleStrategy = data as SimpleStrategy;
+    //   this.programId = simpleStrategy.programId;
 
-      // EOTP
-      if (this.enableEotpFilter)
-      {
-        this.toggleFilteredItems('eotp');
-      }
-      const eotpControl = this.form.get("eotp");
-      let eotp = simpleStrategy.analyticReference;
-      let eotpValues = this._eotpSubject.getValue();
-      let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
+    //   // SAMPLE ROW CODE
+    //   const sampleRowCodeControl = this.form.get("sampleRowCode");
+    //   sampleRowCodeControl.patchValue(simpleStrategy.label);
 
-      eotpControl.patchValue(eotpObject);
+    //   // EOTP
+    //   if (this.enableEotpFilter)
+    //   {
+    //     this.toggleFilteredItems('eotp');
+    //   }
+    //   const eotpControl = this.form.get("eotp");
+    //   let eotp = simpleStrategy.analyticReference;
+    //   let eotpValues = this._eotpSubject.getValue();
+    //   let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
 
-      // LABORATORIES
-      const laboratoriesControl = this.laboratoriesForm;
-      let strategyDepartments = simpleStrategy.strategyDepartments;
-      let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;
-      });
-      laboratoriesControl.patchValue(laboratories);
+    //   eotpControl.patchValue(eotpObject);
 
-      // FISHING AREA
-      const fishingAreaControl = this.fishingAreasForm;
-      // applied_strategy.location_fk + program2location (zones en mer / configurables)
-      let appliedStrategies = simpleStrategy.appliedStrategies;
-      let fishingArea = appliedStrategies.map(appliedStrategy => { return appliedStrategy.location;
-      });
-      fishingAreaControl.patchValue(fishingArea);
+    //   // LABORATORIES
+    //   const laboratoriesControl = this.laboratoriesForm;
+    //   let strategyDepartments = simpleStrategy.strategyDepartments;
+    //   let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;
+    //   });
+    //   laboratoriesControl.patchValue(laboratories);
 
-
-      // TAXONS
-      const taxonControl = this.form.get("taxonName");
-      let taxonNameStrategy = (simpleStrategy.taxonNames || []).find(t => t.taxonName.id);
-      if (taxonNameStrategy)
-      {
-        let taxon = taxonNameStrategy.taxonName;
-        taxonControl.patchValue(taxon);
-      }
+    //   // FISHING AREA
+      // const fishingAreaControl = this.fishingAreasForm;
+      // // applied_strategy.location_fk + program2location (zones en mer / configurables)
+      // let appliedStrategies = simpleStrategy.appliedStrategies;
+      // let fishingArea = appliedStrategies.map(appliedStrategy => { return appliedStrategy.location;
+      // });
+      // fishingAreaControl.patchValue(fishingArea);
 
 
-      // YEAR
-      //  Automatic binding
-
-      // EFFORT
-      const appliedStrategiesControl = this.form.get("appliedStrategies");
-
-
-      // WEIGHT PMFMS
-      const weightPmfmsControl = this.form.get("weightPmfmStrategies");
-       let weightPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
-
-      if (weightPmfmStrategy)
-      {
-        let weightPmfm = weightPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
-        //weightPmfmsControl.patchValue(weightPmfm);
-        weightPmfmsControl.patchValue(weightPmfmStrategy);
-      }
-
-      // Size
-      const sizePmfmsControl = this.form.get("sizePmfmStrategies");
-      const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
-      let sizePmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
-      if (sizePmfmStrategy)
-      {
-        let sizePmfm = sizePmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
-        sizePmfmsControl.patchValue(sizePmfm);
-      }
-
-      // SEX
-      const sexControl = this.form.get("sex");
-      let sexPmfmStrategy =  simpleStrategy.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
-      if (sexPmfmStrategy) {
-            sexControl.patchValue(true);
-        }
-      else {
-        sexControl.patchValue(false);
-      }
+    //   // TAXONS
+    //   const taxonControl = this.form.get("taxonName");
+    //   let taxonNameStrategy = (simpleStrategy.taxonNames || []).find(t => t.taxonName.id);
+    //   if (taxonNameStrategy)
+    //   {
+    //     let taxon = taxonNameStrategy.taxonName;
+    //     taxonControl.patchValue(taxon);
+    //   }
 
 
-      // MATURITY PMFMS
-      const maturityPmfmsControl = this.form.get("maturityPmfmStrategies");
-      const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
-      let maturityPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
-      if (maturityPmfmStrategy)
-      {
-        let maturityPmfm = maturityPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
-        maturityPmfmsControl.patchValue(maturityPmfm);
-      }
+    //   // YEAR
+    //   //  Automatic binding
+
+    //   // EFFORT
+    //   const appliedStrategiesControl = this.form.get("appliedStrategies");
 
 
-      // AGE
-      const ageControl = this.form.get("age");
-      let agePmfmStrategy =  (simpleStrategy.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===   "AGE");
-      if (agePmfmStrategy) {
-        ageControl.patchValue(true);
-      }
-      else {
-        ageControl.patchValue(false);
-      }
+    //   // WEIGHT PMFMS
+    //   const weightPmfmsControl = this.form.get("weightPmfmStrategies");
+    //    let weightPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
+
+    //   if (weightPmfmStrategy)
+    //   {
+    //     let weightPmfm = weightPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
+    //     //weightPmfmsControl.patchValue(weightPmfm);
+    //     weightPmfmsControl.patchValue(weightPmfmStrategy);
+    //   }
+
+    //   // Size
+    //   const sizePmfmsControl = this.form.get("sizePmfmStrategies");
+    //   const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
+    //   let sizePmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
+    //   if (sizePmfmStrategy)
+    //   {
+    //     let sizePmfm = sizePmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
+    //     sizePmfmsControl.patchValue(sizePmfm);
+    //   }
+
+    //   // SEX
+    //   const sexControl = this.form.get("sex");
+    //   let sexPmfmStrategy =  simpleStrategy.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
+    //   if (sexPmfmStrategy) {
+    //         sexControl.patchValue(true);
+    //     }
+    //   else {
+    //     sexControl.patchValue(false);
+    //   }
 
 
-        // CALCIFIED TYPES
-      const calcifiedTypesControl = this.form.get("calcifiedTypes");
-      let calcifiedTypesPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
-
-      if (calcifiedTypesPmfmStrategy)
-      {
-        let calcifiedTypesFractionIds = calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.fractionId;});
-
-        // Not initialiezd since loadCalcifiedTypes ares loaded asynchronously
-        //this._calcifiedTypeSubject.getValue();
-        // @ts-ignore
-        //for (let item of this._calcifiedTypeSubject.asObservable())
-        //{
-        //  item.toString();
-       // }
-        //calcifiedTypesControl.patchValue(calcifiedTypesFractionId);
-      }
+    //   // MATURITY PMFMS
+    //   const maturityPmfmsControl = this.form.get("maturityPmfmStrategies");
+    //   const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
+    //   let maturityPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
+    //   if (maturityPmfmStrategy)
+    //   {
+    //     let maturityPmfm = maturityPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
+    //     maturityPmfmsControl.patchValue(maturityPmfm);
+    //   }
 
 
+    //   // AGE
+    //   const ageControl = this.form.get("age");
+    //   let agePmfmStrategy =  (simpleStrategy.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===   "AGE");
+    //   if (agePmfmStrategy) {
+    //     ageControl.patchValue(true);
+    //   }
+    //   else {
+    //     ageControl.patchValue(false);
+    //   }
 
-    }
+
+    //     // CALCIFIED TYPES
+    //   const calcifiedTypesControl = this.form.get("calcifiedTypes");
+    //   let calcifiedTypesPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
+
+    //   if (calcifiedTypesPmfmStrategy)
+    //   {
+    //     let calcifiedTypesFractionIds = calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.fractionId;});
+
+    //     // Not initialiezd since loadCalcifiedTypes ares loaded asynchronously
+    //     //this._calcifiedTypeSubject.getValue();
+    //     // @ts-ignore
+    //     //for (let item of this._calcifiedTypeSubject.asObservable())
+    //     //{
+    //     //  item.toString();
+    //    // }
+    //     //calcifiedTypesControl.patchValue(calcifiedTypesFractionId);
+    //   }
+
+
+
+    // }
+
+    
     console.debug(data.entityName);
   }
 
@@ -425,8 +436,8 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
   // fishingArea Helper -----------------------------------------------------------------------------------------------
   protected initFishingAreaHelper() {
     this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
-      (fishingArea) => this.validatorService.getControl(fishingArea),
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
+      (fishingArea) => this.formBuilder.control(fishingArea || null, [Validators.required, SharedValidators.entity]),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
@@ -447,9 +458,9 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
   protected initLaboratoryHelper() {
-    this.laboratoryHelper = new FormArrayHelper<ReferentialRef>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'laboratories'),
-      (laboratory) => this.validatorService.getControl(laboratory),
+    this.laboratoryHelper = new FormArrayHelper<StrategyDepartment>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'strategyDepartments'),
+      (laboratory) => this.formBuilder.control(laboratory || null, [Validators.required, SharedValidators.entity]),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
@@ -529,7 +540,7 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
   // EOTP  ---------------------------------------------------------------------------------------------------
 
   protected  loadEotps() {
-    const eotpAreaControl = this.form.get('eotp');
+    const eotpAreaControl = this.form.get('analyticReference');
     eotpAreaControl.enable();
 
     if (this.enableEotpFilter) {
