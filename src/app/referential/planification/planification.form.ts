@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -20,7 +20,7 @@ import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
 import {SimpleStrategyValidatorService} from "../services/validator/simpleStrategy.validator";
 import {SimpleStrategy} from "../services/model/simpleStrategy.model";
-import {AppliedStrategy, Strategy, StrategyDepartment} from "../services/model/strategy.model";
+import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment} from "../services/model/strategy.model";
 import {filter, map} from "rxjs/operators";
 import {Pmfm} from "../services/model/pmfm.model";
 import {removeDuplicatesFromArray} from "../../shared/functions";
@@ -28,6 +28,7 @@ import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {AppFormHolder, IAppForm, IAppFormFactory} from "../../core/form/form.utils";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { SharedValidators } from 'src/app/shared/validator/validators';
+import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
 
 
 
@@ -72,7 +73,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   enableLaboratoryFilter = true;
   canFilterLaboratory = true;
-  laboratoryHelper: FormArrayHelper<StrategyDepartment>;
+  laboratoryHelper: FormArrayHelper<ReferentialRef>;
   laboratoryFocusIndex = -1;
 
   enableFishingAreaFilter = true;
@@ -104,20 +105,24 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   }
 
   get fishingAreasForm(): FormArray {
+    // appliedStrategies.location à la place de appliedStrategies
     return this.form.controls.appliedStrategies as FormArray;
   }
 
+  @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
+  @ViewChild('sizePmfmStrategiesTable', { static: true }) sizePmfmStrategiesTable: PmfmStrategiesTable;
+  @ViewChild('maturityPmfmStrategiesTable', { static: true }) maturityPmfmStrategiesTable: PmfmStrategiesTable;
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected validatorService: SimpleStrategyValidatorService,
-    protected validatorService2: StrategyValidatorService,
+    protected validatorService: StrategyValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder,
   ) {
-    super(dateAdapter, validatorService2.getFormGroup(), settings);
+    super(dateAdapter, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
   }
   tabIndex?: number;
@@ -145,30 +150,30 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
     // register year field changes
-    // this.registerSubscription(
-    //   this.form.get('year').valueChanges
-    //     .subscribe(async (date : Moment) => {
-    //       //update mask
-    //       const year = date.year().toString()
-    //       this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
-    //       // set sample row code
-    //       //TODO : replace 40 with this.program.id
-    //       this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
-    //     })
-    // );
+    this.registerSubscription(
+      this.form.get('year').valueChanges
+        .subscribe(async (date : Moment) => {
+          //update mask
+          const year = date.year().toString()
+          this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+          // set sample row code
+          //TODO : replace 40 with this.program.id
+          this.sampleRowCode = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
+        })
+    );
 
     // taxonName autocomplete
-    // this.registerAutocompleteField('taxonName', {
-    //   suggestFn: (value, filter) => this.suggest(value, {
-    //       ...filter, statusId : 1
-    //     },
-    //     'TaxonName',
-    //     this.enableTaxonNameFilter),
-    //   attributes: ['name'],
-    //   columnNames: [ 'REFERENTIAL.NAME'],
-    //   columnSizes: [2,10],
-    //   mobile: this.settings.mobile
-    // });
+    this.registerAutocompleteField('taxonName', {
+      suggestFn: (value, filter) => this.suggest(value, {
+          ...filter, statusId : 1
+        },
+        'TaxonName',
+        this.enableTaxonNameFilter),
+      attributes: ['name'],
+      columnNames: [ 'REFERENTIAL.NAME'],
+      columnSizes: [2,10],
+      mobile: this.settings.mobile
+    });
 
     // laboratory autocomplete
     this.registerAutocompleteField('laboratory', {
@@ -201,21 +206,21 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.loadEotps();
 
     // Calcified type combo ------------------------------------------------------------
-    // this.registerAutocompleteField('calcifiedType', {
-    //   attributes: ['name'],
-    //   columnNames: [ 'REFERENTIAL.NAME'],
-    //   items: this._calcifiedTypeSubject,
-    //   mobile: this.mobile
-    // });
-    // this.loadCalcifiedType();
+    this.registerAutocompleteField('calcifiedType', {
+      attributes: ['name'],
+      columnNames: [ 'REFERENTIAL.NAME'],
+      items: this._calcifiedTypeSubject,
+      mobile: this.mobile
+    });
+    this.loadCalcifiedType();
 
     //set current date to year field
-    // this.form.get('year').setValue(moment());
+    this.form.get('year').setValue(moment());
 
     //init helpers
-    // this.initCalcifiedTypeHelper();
+    this.initCalcifiedTypeHelper();
     this.initLaboratoryHelper();
-    // this.initFishingAreaHelper();
+    this.initFishingAreaHelper();
 
   }
 
@@ -278,10 +283,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     console.log(data);
     super.setValue(data, opts);
-    // if (data instanceof Strategy)
-    // {
-    //   var simpleStrategy : SimpleStrategy = data as SimpleStrategy;
-    //   this.programId = simpleStrategy.programId;
+
 
     //   // SAMPLE ROW CODE
     //   const sampleRowCodeControl = this.form.get("sampleRowCode");
@@ -328,32 +330,74 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //   // YEAR
     //   //  Automatic binding
 
-    //   // EFFORT
+      // EFFORT
     //   const appliedStrategiesControl = this.form.get("appliedStrategies");
+      let appliedStrategies = data.appliedStrategies;
+      if (appliedStrategies)
+      {
+        // We keep the first applied period of the array as linked to fishing area
+        let fishingAreaAppliedStrategyAsObject = appliedStrategies[0];
+        if (fishingAreaAppliedStrategyAsObject)
+        {
+          // We iterate over applied periods in order to retrieve quarters acquisition numbers
+          let fishingAreaAppliedStrategy = fishingAreaAppliedStrategyAsObject as AppliedStrategy;
+          let fishingAreaAppliedPeriodsAsObject = fishingAreaAppliedStrategy.appliedPeriods;
+          if (fishingAreaAppliedPeriodsAsObject)
+          {
+            let fishingAreaAppliedPeriods = fishingAreaAppliedPeriodsAsObject as AppliedPeriod[];
+            for (let fishingAreaAppliedPeriod of fishingAreaAppliedPeriods) {
+              if (moment(fishingAreaAppliedPeriod.startDate).month() > 0 && moment(fishingAreaAppliedPeriod.endDate).month() < 4)
+              {
+                // First quarter
+                let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+              }
+              else if (moment(fishingAreaAppliedPeriod.startDate).month() > 3 && moment(fishingAreaAppliedPeriod.endDate).month() < 7)
+              {
+                // Second quarter
+                let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+              }
+              else if (moment(fishingAreaAppliedPeriod.startDate).month() > 6 && moment(fishingAreaAppliedPeriod.endDate).month() < 10)
+              {
+                // Third quarter
+                let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+              }
+              else if (moment(fishingAreaAppliedPeriod.startDate).month() > 9 && moment(fishingAreaAppliedPeriod.endDate).month() < 13)
+              {
+                // Fourth quarter
+                let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+              }
+
+            }
+          }
+        }
+      }
 
 
-    //   // WEIGHT PMFMS
+      // WEIGHT PMFMS
     //   const weightPmfmsControl = this.form.get("weightPmfmStrategies");
-    //    let weightPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
+       let weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
 
-    //   if (weightPmfmStrategy)
-    //   {
-    //     let weightPmfm = weightPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
-    //     //weightPmfmsControl.patchValue(weightPmfm);
+      if (weightPmfmStrategy)
+      {
+        let weightPmfm = weightPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
+        //weightPmfmsControl.patchValue(weightPmfm);
     //     weightPmfmsControl.patchValue(weightPmfmStrategy);
-    //   }
 
-    //   // Size
+        this.weightPmfmStrategiesTable.value = weightPmfmStrategy || [];
+      }
+
+      // Size
     //   const sizePmfmsControl = this.form.get("sizePmfmStrategies");
-    //   const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
-    //   let sizePmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
-    //   if (sizePmfmStrategy)
-    //   {
+      const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
+      let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
+      if (sizePmfmStrategy)
+      {
     //     let sizePmfm = sizePmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
     //     sizePmfmsControl.patchValue(sizePmfm);
-    //   }
+        this.sizePmfmStrategiesTable.value = sizePmfmStrategy || [];
+      }
 
-    //   // SEX
+      // SEX
     //   const sexControl = this.form.get("sex");
     //   let sexPmfmStrategy =  simpleStrategy.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
     //   if (sexPmfmStrategy) {
@@ -364,18 +408,19 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //   }
 
 
-    //   // MATURITY PMFMS
+      // MATURITY PMFMS
     //   const maturityPmfmsControl = this.form.get("maturityPmfmStrategies");
-    //   const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
-    //   let maturityPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
-    //   if (maturityPmfmStrategy)
-    //   {
+      const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
+      let maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
+      if (maturityPmfmStrategy)
+      {
     //     let maturityPmfm = maturityPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
     //     maturityPmfmsControl.patchValue(maturityPmfm);
-    //   }
+        this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy || [];
+      }
 
 
-    //   // AGE
+      // AGE
     //   const ageControl = this.form.get("age");
     //   let agePmfmStrategy =  (simpleStrategy.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===   "AGE");
     //   if (agePmfmStrategy) {
@@ -386,14 +431,14 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //   }
 
 
-    //     // CALCIFIED TYPES
+        // CALCIFIED TYPES
     //   const calcifiedTypesControl = this.form.get("calcifiedTypes");
     //   let calcifiedTypesPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
-
+      //
     //   if (calcifiedTypesPmfmStrategy)
     //   {
     //     let calcifiedTypesFractionIds = calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.fractionId;});
-
+      //
     //     // Not initialiezd since loadCalcifiedTypes ares loaded asynchronously
     //     //this._calcifiedTypeSubject.getValue();
     //     // @ts-ignore
@@ -405,10 +450,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //   }
 
 
-
-    // }
-
-    
     console.debug(data.entityName);
   }
 
@@ -435,6 +476,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   // fishingArea Helper -----------------------------------------------------------------------------------------------
   protected initFishingAreaHelper() {
+  // appliedStrategies => appliedStrategies.location ?
     this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
       (fishingArea) => this.formBuilder.control(fishingArea || null, [Validators.required, SharedValidators.entity]),
@@ -458,7 +500,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
   protected initLaboratoryHelper() {
-    this.laboratoryHelper = new FormArrayHelper<StrategyDepartment>(
+    this.laboratoryHelper = new FormArrayHelper<ReferentialRef>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'strategyDepartments'),
       (laboratory) => this.formBuilder.control(laboratory || null, [Validators.required, SharedValidators.entity]),
       ReferentialUtils.equals,
@@ -483,7 +525,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   protected initCalcifiedTypeHelper() {
     this.calcifiedTypeHelper = new FormArrayHelper<ReferentialRef>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'calcifiedTypes'),
-      (calcifiedType) => this.validatorService.getControl(calcifiedType),
+      (calcifiedType) => this.formBuilder.control(calcifiedType || null, [Validators.required, SharedValidators.entity]),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
