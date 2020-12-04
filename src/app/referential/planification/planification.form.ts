@@ -94,7 +94,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
 
-  public sampleRowMask = ['2', '0', '2', '0', '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+  public sampleRowMask = ['2', '0', '2', '0', '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
 
   get calcifiedTypesForm(): FormArray {
     return this.form.controls.calcifiedTypes as FormArray;
@@ -155,10 +155,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         .subscribe(async (date : Moment) => {
           //update mask
           const year = date.year().toString()
-          this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+          this.sampleRowMask = [...year.split(''), '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
           // set sample row code
           //TODO : replace 40 with this.program.id
-          this.label = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
+          this.label = await this.strategyService.findStrategyNextLabel(40,`${year}_BIO_`, 4);
         })
     );
 
