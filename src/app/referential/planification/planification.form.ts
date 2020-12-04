@@ -150,17 +150,17 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
     // register year field changes
-    // this.registerSubscription(
-    //   this.form.get('creationDate').valueChanges
-    //     .subscribe(async (date : Moment) => {
-    //       //update mask
-    //       const year = date.year().toString()
-    //       this.sampleRowMask = [...year.split(''), '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
-    //       // set sample row code
-    //       //TODO : replace 40 with this.program.id
-    //       this.label = await this.strategyService.findStrategyNextLabel(40,`${year}_BIO_`, 4);
-    //     })
-    // );
+    this.registerSubscription(
+      this.form.get('creationDate').valueChanges
+        .subscribe(async (date : Moment) => {
+          //update mask
+          const year = date.year().toString()
+          this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+          // set sample row code
+          //TODO : replace 40 with this.program.id
+          this.label = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
+        })
+    );
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
@@ -287,9 +287,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     console.log(this.form);
 
 
-    //   // SAMPLE ROW CODE
-    //   const sampleRowCodeControl = this.form.get("sampleRowCode");
-    //   sampleRowCodeControl.patchValue(simpleStrategy.label);
+      // SAMPLE ROW CODE
+      const sampleRowCodeControl = this.form.get("label");
+
+      // FIX Replace '_' by '-'
+      let sampleRowValue = data.label.replace(/_/g, "-");
+      sampleRowCodeControl.patchValue(sampleRowValue);
 
     //   // EOTP
     //   if (this.enableEotpFilter)
@@ -303,20 +306,20 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     //   eotpControl.patchValue(eotpObject);
 
-    //   // LABORATORIES
+      // LABORATORIES
       const laboratoriesControl = this.laboratoriesForm;
       let strategyDepartments = data.strategyDepartments;
       let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;});
       this.laboratoryHelper.resize(Math.max(1, data.strategyDepartments.length));
       laboratoriesControl.patchValue(laboratories);
 
-    //   // FISHING AREA
-      // const fishingAreaControl = this.fishingAreasForm;
-      // // applied_strategy.location_fk + program2location (zones en mer / configurables)
-      // let appliedStrategies = simpleStrategy.appliedStrategies;
-      // let fishingArea = appliedStrategies.map(appliedStrategy => { return appliedStrategy.location;
-      // });
-      // fishingAreaControl.patchValue(fishingArea);
+      // FISHING AREA
+      const fishingAreaControl = this.fishingAreasForm;
+      // applied_strategy.location_fk + program2location (zones en mer / configurables)
+      let fishingAreaAppliedStrategies = data.appliedStrategies;
+      let fishingArea = fishingAreaAppliedStrategies.map(appliedStrategy => { return appliedStrategy.location;
+      });
+      fishingAreaControl.patchValue(fishingArea);
 
 
     //   // TAXONS
