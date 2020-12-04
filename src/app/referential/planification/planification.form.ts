@@ -12,7 +12,7 @@ import {
   FormArrayHelper,
   Referential
 } from '../../core/core.module';
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import { Program } from '../services/model/program.model';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { InputElement } from 'src/app/shared/shared.module';
@@ -25,6 +25,7 @@ import {filter, map} from "rxjs/operators";
 import {Pmfm} from "../services/model/pmfm.model";
 import {removeDuplicatesFromArray} from "../../shared/functions";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {AppFormHolder, IAppForm, IAppFormFactory} from "../../core/form/form.utils";
 
 
 
@@ -278,9 +279,16 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
       sampleRowCodeControl.patchValue(simpleStrategy.label);
 
       // EOTP
+      if (this.enableEotpFilter)
+      {
+        this.toggleFilteredItems('eotp');
+      }
       const eotpControl = this.form.get("eotp");
-      let eotp = simpleStrategy.eotp;
-      eotpControl.patchValue(eotp);
+      let eotp = simpleStrategy.analyticReference;
+      let eotpValues = this._eotpSubject.getValue();
+      let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
+
+      eotpControl.patchValue(eotpObject);
 
       // LABORATORIES
       const laboratoriesControl = this.laboratoriesForm;
@@ -309,9 +317,10 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
 
 
       // YEAR
-
+      //  Automatic binding
 
       // EFFORT
+      const appliedStrategiesControl = this.form.get("appliedStrategies");
 
 
       // WEIGHT PMFMS
@@ -365,6 +374,25 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
       }
       else {
         ageControl.patchValue(false);
+      }
+
+
+        // CALCIFIED TYPES
+      const calcifiedTypesControl = this.form.get("calcifiedTypes");
+      let calcifiedTypesPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
+
+      if (calcifiedTypesPmfmStrategy)
+      {
+        let calcifiedTypesFractionIds = calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.fractionId;});
+
+        // Not initialiezd since loadCalcifiedTypes ares loaded asynchronously
+        //this._calcifiedTypeSubject.getValue();
+        // @ts-ignore
+        //for (let item of this._calcifiedTypeSubject.asObservable())
+        //{
+        //  item.toString();
+       // }
+        //calcifiedTypesControl.patchValue(calcifiedTypesFractionId);
       }
 
 
