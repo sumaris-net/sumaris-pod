@@ -223,9 +223,6 @@ import {SocialModule} from "./social/social.module";
         },
         'ExtractionTypeVO': {
           keyFields: ['category', 'label']
-        },
-        'AggregationTypeVO': {
-          keyFields: ['category', 'label']
         }
       }
     },

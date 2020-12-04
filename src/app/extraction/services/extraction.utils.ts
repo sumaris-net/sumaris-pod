@@ -5,10 +5,11 @@ import {ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extrac
 import {AggregationType} from "./model/aggregation-type.model";
 
 export const SPATIAL_COLUMNS: string[] = [
-  'area',
+  //'area', FIXME no geometries in Pod
   'statistical_rectangle',
   'sub_polygon',
-  'square'];
+  'square'
+];
 export const TIME_COLUMNS:   string[] = ['year', 'quarter', 'month'];
 export const IGNORED_COLUMNS:   string[] = ['record_type'];
 
@@ -28,7 +29,7 @@ export class ExtractionUtils {
     const aggColumns = columns.filter(c =>
       (!c.type || c.type === 'integer' || c.type === 'double')
       && (c.columnName.endsWith('_count')
-      || c.columnName.indexOf('_count_by_') != -1
+      || c.columnName.indexOf('_count_by_') !== -1
       || c.columnName.endsWith('_time')
       || c.columnName.endsWith('weight')
       || c.columnName.endsWith('_length')
@@ -39,7 +40,8 @@ export class ExtractionUtils {
 
     const techColumns = columns.filter(c => !excludedFilterColumns.includes(c)
       && !IGNORED_COLUMNS.includes(c.columnName)
-      && (c.type === 'string' || (c.columnName.endsWith('_class'))));
+      && (c.type === 'string' || (c.columnName.endsWith('_class')))
+    );
     const criteriaColumns = columns.filter(c => !excludedFilterColumns.includes(c)
       && !IGNORED_COLUMNS.includes(c.columnName));
 

@@ -9,7 +9,7 @@ export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
   PRODUCT: 'PRODUCT',
   LIVE: 'LIVE',
-}
+};
 
 export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>> extends Entity<T> {
 

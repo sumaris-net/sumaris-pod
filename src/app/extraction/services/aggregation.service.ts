@@ -6,7 +6,7 @@ import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
 import {AccountService} from "../../core/services/account.service";
-import {ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction.model";
+import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "../../trip/services/trip.queries";
@@ -403,9 +403,12 @@ export class AggregationService extends BaseEntityService {
       },
       update: (cache) => {
 
-       cache.evict({
-         id: cache.identify({__typename: type.__typename, id: type.id, label: type.label})
-       });
+        const cacheKey = {__typename: AggregationType.TYPENAME, id: type.id, label: type.label, category: ExtractionCategories.PRODUCT};
+        cache.evict({ id: cache.identify(cacheKey)});
+        cache.evict({ id: cache.identify({
+            ...cacheKey,
+            __typename: ExtractionType.TYPENAME
+          })});
 
        if (this._debug) console.debug(`[aggregation-service] Aggregation deleted in ${Date.now() - now}ms`);
       }
