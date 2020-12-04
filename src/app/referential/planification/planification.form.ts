@@ -359,13 +359,13 @@ export class PlanificationForm extends AppForm<SimpleStrategy> implements OnInit
 
       // AGE
       const ageControl = this.form.get("age");
-      let agePmfmStrategy =  (simpleStrategy.pmfmStrategies || []).find(t => t.pmfm.label === "AGE");
+      let agePmfmStrategy =  (simpleStrategy.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===   "AGE");
       if (agePmfmStrategy) {
         ageControl.patchValue(true);
-        }
-        else {
+      }
+      else {
         ageControl.patchValue(false);
-        }
+      }
 
 
 
