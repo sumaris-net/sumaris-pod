@@ -10,10 +10,10 @@ import {
   ExtractionType
 } from "../services/model/extraction.model";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
-import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
+import {DEFAULT_PAGE_SIZE, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {delay, filter, map} from "rxjs/operators";
+import {filter, map} from "rxjs/operators";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionAbstractPage} from "../form/extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -32,7 +32,6 @@ import {ExtractionHelpModal} from "../help/help.modal";
 import {AggregationType} from "../services/model/aggregation-type.model";
 import {AggregationService} from "../services/aggregation.service";
 
-export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
@@ -43,7 +42,7 @@ export const DEFAULT_CRITERION_OPERATOR = '=';
 })
 export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> implements OnInit {
 
-  defaultPageSize= DEFAULT_PAGE_SIZE;
+  defaultPageSize = DEFAULT_PAGE_SIZE;
   data: ExtractionResult;
   $title = new Subject<string>();
   sortedColumns: ExtractionColumn[];
