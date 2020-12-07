@@ -134,9 +134,7 @@ public class StrategyServiceImpl implements StrategyService {
 	public StrategyVO save(StrategyVO source) {
 		StrategyVO result = strategyRepository.save(source);
 
-		// Save pmfm strategies
-		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(result.getId(), Beans.getList(source.getPmfmStrategies()));
-		source.setPmfmStrategies(savedPmfmStrategies);
+		saveSubStrategiesByStrategyId(result.getId(), source);
 
 		return result;
 	}
@@ -145,10 +143,8 @@ public class StrategyServiceImpl implements StrategyService {
 	public List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources) {
 		List<StrategyVO> result = strategyRepository.saveByProgramId(programId, sources);
 
-		// Save pmfm strategies
 		sources.forEach(source -> {
-			List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(source.getId(), Beans.getList(source.getPmfmStrategies()));
-			source.setPmfmStrategies(savedPmfmStrategies);
+			saveSubStrategiesByStrategyId(source.getId(), source);
 		});
 
 		return result;
@@ -157,5 +153,29 @@ public class StrategyServiceImpl implements StrategyService {
 	@Override
 	public void delete(int id) {
 		strategyRepository.deleteById(id);
+	}
+
+
+	private void saveSubStrategiesByStrategyId(int strategyId, StrategyVO source) {
+
+		// Save taxon Group strategy
+		List<TaxonGroupStrategyVO> savedTaxonGroupStrategies = strategyRepository.saveTaxonGroupStrategiesByStrategyId(strategyId, Beans.getList(source.getTaxonGroups()));
+		source.setTaxonGroups(savedTaxonGroupStrategies);
+
+		// Save reference Names strategy
+		List<TaxonNameStrategyVO> savedReferenceTaxonStrategies = strategyRepository.saveReferenceTaxonStrategiesByStrategyId(strategyId, Beans.getList(source.getTaxonNames()));
+		source.setTaxonNames(savedReferenceTaxonStrategies);
+
+		// Save applied strategies
+		List<AppliedStrategyVO> savedAppliedStrategies = strategyRepository.saveAppliedStrategiesByStrategyId(strategyId, Beans.getList(source.getAppliedStrategies()));
+		source.setAppliedStrategies(savedAppliedStrategies);
+
+		// Save strategy departments
+		List<StrategyDepartmentVO> savedStrategyDepartments = strategyRepository.saveStrategyDepartmentsByStrategyId(strategyId, Beans.getList(source.getStrategyDepartments()));
+		source.setStrategyDepartments(savedStrategyDepartments);
+
+		// Save pmfm strategies
+		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(strategyId, Beans.getList(source.getPmfmStrategies()));
+		source.setPmfmStrategies(savedPmfmStrategies);
 	}
 }
