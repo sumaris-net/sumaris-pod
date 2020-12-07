@@ -90,13 +90,16 @@ public class OperationServiceImpl implements OperationService {
 
 
     @Override
-    public List<OperationVO> getAllByTripId(int tripId, @NonNull DataFetchOptions fetchOptions) {
+    public List<OperationVO> findAllByTripId(int tripId, @NonNull DataFetchOptions fetchOptions) {
         return operationRepository.findAllVO(operationRepository.hasTripId(tripId), fetchOptions);
     }
 
     @Override
-    public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return operationRepository.findAll(OperationFilterVO.builder().tripId(tripId).build(), offset, size, sortAttribute, sortDirection, DataFetchOptions.builder().build()).getContent();
+    public List<OperationVO> findAllByTripId(int tripId, int offset, int size, String sortAttribute,
+                                             SortDirection sortDirection,
+                                             @NonNull DataFetchOptions fetchOptions) {
+        return operationRepository.findAll(OperationFilterVO.builder().tripId(tripId).build(), offset, size,
+                sortAttribute, sortDirection, fetchOptions).getContent();
     }
 
     @Override

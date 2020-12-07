@@ -34,6 +34,7 @@ import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
+import net.sumaris.core.model.technical.extraction.rdb.ProductRdbTrip;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -207,7 +207,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpatialColumnName("area");
 
-        AggregationResultVO result = service.read(savedType, filter, strata, 0,100, null, null);
+        AggregationResultVO result = service.getAggBySpace(savedType, filter, strata, 0,100, null, null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
@@ -222,24 +222,25 @@ public class AggregationServiceTest extends AbstractServiceTest {
         type.setLabel(fixtures.getRdbProductLabel(0));
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSheetName(RdbSpecification.HH_SHEET_NAME);
-        strata.setAggColumnName(ProductRdbStation.COLUMN_FISHING_TIME);
-        strata.setTechColumnName(ProductRdbStation.COLUMN_GEAR_TYPE);
+        strata.setSheetName(RdbSpecification.TR_SHEET_NAME);
+        strata.setAggColumnName(ProductRdbTrip.COLUMN_DAYS_AT_SEA);
+        strata.setTechColumnName(ProductRdbTrip.COLUMN_VESSEL_FLAG_COUNTRY);
+        strata.setTimeColumnName(ProductRdbTrip.COLUMN_YEAR);
 
         ExtractionFilterVO filter = new ExtractionFilterVO();
-        filter.setSheetName(RdbSpecification.HH_SHEET_NAME);
+        filter.setSheetName(RdbSpecification.TR_SHEET_NAME);
 
         ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO() ;
-        criterion.setSheetName(RdbSpecification.HH_SHEET_NAME);
+        criterion.setSheetName(RdbSpecification.TR_SHEET_NAME);
         criterion.setName(RdbSpecification.COLUMN_YEAR);
         criterion.setOperator("=");
         criterion.setValue(yearRdbProduct);
         filter.setCriteria(ImmutableList.of(criterion));
 
-
-        Map<String, Object> result = service.readTech(type, filter, strata, null, null);
+        AggregationTechResultVO result = service.getAggByTech(type, filter, strata, null, null);
         Assert.assertNotNull(result);
-        Assert.assertTrue(result.size() > 0);
+        Assert.assertNotNull(result.getData());
+        Assert.assertTrue(result.getData().size() > 0);
     }
 
     /* -- protected methods --*/

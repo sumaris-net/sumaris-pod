@@ -623,16 +623,9 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 				}
 				result.add(pk);
 			}
-			statement.close();
 			return result;
 		} finally {
-			// close statement silently
-			if (statement != null) {
-				try {
-					statement.close();
-				}
-				catch(Exception e) {}
-			}
+			Daos.closeSilently(statement);
 		}
 	}
 

@@ -92,6 +92,9 @@ public class ExtractionProduct implements IItemReferentialEntity,
     @Lob
     private String documentation;
 
+    @Lob
+    private String filter;
+
     @Column(name = "is_spatial")
     private Boolean isSpatial;
 

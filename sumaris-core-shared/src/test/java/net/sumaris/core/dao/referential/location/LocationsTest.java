@@ -182,7 +182,7 @@ public class LocationsTest {
 		Assert.assertEquals("24950000", square10Label);
 
 		// Check other case
-		Geometry geometry = Locations.getGeometryFromSquare10Label("24950000");
+		Geometry geometry = Locations.getGeometryFromMinuteSquareLabel("24950000", 10, true);
 		assertNotNull(geometry);
 
 		Coordinate startPoint = geometry.getCoordinates()[0];

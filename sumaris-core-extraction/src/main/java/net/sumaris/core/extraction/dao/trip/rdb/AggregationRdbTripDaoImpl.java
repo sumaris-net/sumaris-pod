@@ -167,9 +167,9 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public AggregationResultVO read(String tableName, F filter, S strata,
-                                    int offset, int size,
-                                    String sortAttribute, SortDirection direction) {
+    public AggregationResultVO getAggBySpace(String tableName, F filter, S strata,
+                                             int offset, int size,
+                                             String sortAttribute, SortDirection direction) {
         Preconditions.checkNotNull(tableName);
         Preconditions.checkNotNull(strata);
 
@@ -199,11 +199,12 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public Map<String, Object> readTech(@NonNull String tableName, @NonNull F filter, @NonNull S strata,
-                                          String sortAttribute, SortDirection direction) {
+    public AggregationTechResultVO getAggByTech(@NonNull String tableName, @NonNull F filter, @NonNull S strata,
+                                                String sortAttribute, SortDirection direction) {
 
         Preconditions.checkNotNull(strata.getTechColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.TECH_COLUMN_NAME));
         Preconditions.checkNotNull(strata.getAggColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME));
+        AggregationTechResultVO result = new AggregationTechResultVO();
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
 
@@ -211,13 +212,35 @@ public class AggregationRdbTripDaoImpl<
         Map.Entry<String, ExtractionTableDao.SQLAggregatedFunction> aggColumn = aggColumns.entrySet().stream().findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME)));
 
-        return extractionTableDao.getTechRows(tableName, filter,
+        result.setData(extractionTableDao.getAggByTechRows(tableName, filter,
                 aggColumn.getKey(),
                 aggColumn.getValue(),
                 strata.getTechColumnName(),
-                sortAttribute, direction);
+                sortAttribute, direction));
+
+        return result;
     }
 
+    @Override
+    public MinMaxVO getAggMinMaxByTech(String tableName, F filter, S strata) {
+        Preconditions.checkNotNull(strata.getTechColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.TECH_COLUMN_NAME));
+        Preconditions.checkNotNull(strata.getAggColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME));
+        AggregationTechResultVO result = new AggregationTechResultVO();
+
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+
+        Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
+        Map.Entry<String, ExtractionTableDao.SQLAggregatedFunction> aggColumn = aggColumns.entrySet().stream().findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME)));
+
+        Set<String> timeColumnNames = getGroupByTimesColumnNames(strata.getTimeColumnName());
+
+        return extractionTableDao.getAggMinMaxByTech(tableName, filter,
+                timeColumnNames,
+                aggColumn.getKey(),
+                aggColumn.getValue(),
+                strata.getTechColumnName());
+    }
 
     @Override
     public <R extends C> void clean(R context) {
@@ -362,11 +385,11 @@ public class AggregationRdbTripDaoImpl<
 
     protected Set<String> getGroupByColumnNames(AggregationStrataVO strata) {
 
-        Set<String> groupByColumnNames = Sets.newLinkedHashSet();
+        Set<String> result = Sets.newLinkedHashSet();
 
         if (strata == null) {
-            groupByColumnNames.addAll(SPATIAL_COLUMNS);
-            groupByColumnNames.addAll(TIME_COLUMNS);
+            result.addAll(SPATIAL_COLUMNS);
+            result.addAll(TIME_COLUMNS);
         }
 
         else {
@@ -376,32 +399,46 @@ public class AggregationRdbTripDaoImpl<
 
             switch (spaceStrata) {
                 case COLUMN_SQUARE:
-                    groupByColumnNames.add(COLUMN_SQUARE);
+                    result.add(COLUMN_SQUARE);
                 case COLUMN_SUB_POLYGON:
-                    groupByColumnNames.add(COLUMN_SUB_POLYGON);
+                    result.add(COLUMN_SUB_POLYGON);
                 case COLUMN_STATISTICAL_RECTANGLE:
-                    groupByColumnNames.add(COLUMN_STATISTICAL_RECTANGLE);
+                    result.add(COLUMN_STATISTICAL_RECTANGLE);
                 case COLUMN_AREA:
                 default:
-                    groupByColumnNames.add(COLUMN_AREA);
+                    result.add(COLUMN_AREA);
             }
 
             // Time strata
-            String timeStrata = strata.getTimeColumnName() != null ? strata.getTimeColumnName().toLowerCase() : COLUMN_YEAR;
-            timeStrata = COLUMN_ALIAS.getOrDefault(timeStrata, timeStrata); // Replace alias
+            String timeColumnName = strata.getTimeColumnName() != null ? strata.getTimeColumnName().toLowerCase() : COLUMN_YEAR;
+            result.addAll(getGroupByTimesColumnNames(timeColumnName));
+        }
 
-            switch (timeStrata) {
+        return result;
+    }
+
+    protected Set<String> getGroupByTimesColumnNames(String timeColumnName) {
+        Set<String> result = Sets.newLinkedHashSet();
+
+        if (timeColumnName == null) {
+            result.addAll(TIME_COLUMNS);
+        }
+
+        else {
+            timeColumnName = COLUMN_ALIAS.getOrDefault(timeColumnName, timeColumnName); // Replace alias
+
+            switch (timeColumnName) {
                 case COLUMN_MONTH:
-                    groupByColumnNames.add(COLUMN_MONTH);
+                    result.add(COLUMN_MONTH);
                 case COLUMN_QUARTER:
-                    groupByColumnNames.add(COLUMN_QUARTER);
+                    result.add(COLUMN_QUARTER);
                 case COLUMN_YEAR:
                 default:
-                    groupByColumnNames.add(COLUMN_YEAR);
+                    result.add(COLUMN_YEAR);
             }
         }
 
-        return groupByColumnNames;
+        return result;
     }
 
     protected Set<String> getExistingGroupByColumnNames(final AggregationStrataVO strata,

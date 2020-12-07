@@ -28,6 +28,7 @@ import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.location.Location;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -85,5 +86,18 @@ public class Department implements IItemReferentialEntity {
 
     public int hashCode() {
         return Objects.hash(label);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Department that = (Department) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .isEquals();
     }
 }

@@ -56,4 +56,11 @@ public class UserToken implements IEntity<Integer> {
         return Objects.hash(token);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserToken userToken = (UserToken) o;
+        return token.equals(userToken.token);
+    }
 }

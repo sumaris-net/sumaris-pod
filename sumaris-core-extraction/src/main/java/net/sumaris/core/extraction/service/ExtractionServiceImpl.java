@@ -202,7 +202,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             case PRODUCT:
                 ExtractionProductVO product = extractionProductRepository.getByLabel(type.getLabel(),
                         ExtractionProductFetchOptions.TABLES_AND_COLUMNS);
-                Set<String> hiddenColumns = product.getTables().stream()
+                Set<String> hiddenColumns = Beans.getStream(product.getTables())
                         .map(ExtractionTableVO::getColumns)
                         .filter(Objects::nonNull)
                         .flatMap(List::stream)

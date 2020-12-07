@@ -76,7 +76,9 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
     @Override
     public boolean canReadAll() {
-        return StringUtils.isBlank(minRoleForNotSelfDataAccess) || authService.hasAuthority(minRoleForNotSelfDataAccess);
+        return (StringUtils.isNotBlank(minRoleForNotSelfDataAccess)
+                && authService.hasAuthority(minRoleForNotSelfDataAccess))
+                || authService.isAdmin();
     }
 
     @Override
@@ -89,7 +91,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
             return false; // KO: Live extraction not allowed, when cannot read all data
         }
 
-        ExtractionTypeVO type = aggregationService.getByFormat(format);
+        ExtractionTypeVO type = aggregationService.getTypeByFormat(format);
 
         if (type.isPublic()) return true; // OK if public
 
@@ -98,7 +100,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
         if (user == null) throw new UnauthorizedException("User not login");
 
         Integer recorderPersonId = type.getRecorderPerson() != null ? type.getRecorderPerson().getId() : null;
-        boolean isSameRecorder = user != null && Objects.equals(user.getId(), recorderPersonId);
+        boolean isSameRecorder = Objects.equals(user.getId(), recorderPersonId);
         if (isSameRecorder) return true; // OK if same
 
         return false; // KO: not same recorder
@@ -137,13 +139,13 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
     @Override
     public boolean canRead(int productId) {
-       AggregationTypeVO type = aggregationService.get(productId, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
+       AggregationTypeVO type = aggregationService.getTypeById(productId, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
        return canRead(type);
     }
 
     @Override
     public boolean canWrite(int productId) throws UnauthorizedException {
-        AggregationTypeVO type = aggregationService.get(productId, ExtractionProductFetchOptions.builder()
+        AggregationTypeVO type = aggregationService.getTypeById(productId, ExtractionProductFetchOptions.builder()
             .withRecorderDepartment(true)
             .withRecorderPerson(true)
         .build());
