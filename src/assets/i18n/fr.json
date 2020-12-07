@@ -1177,7 +1177,7 @@
         "STRATUM_DOTS": "Strates :",
         "FORMAT_DOTS": "Documentation :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
-        "FORMAT_PLACEHOLDER": "Documentation du format",
+        "FORMAT_PLACEHOLDER": "Describe the output format...",
         "FORMAT_PREVIEW": "Prévisualisation",
         "STRATA": {
           "SHEET_NAME": "Onglet",
@@ -1229,6 +1229,7 @@
       "BTN_EDIT": "Editer",
       "BTN_ANIMATION_PLAY": "Lancer l'animation",
       "BTN_ANIMATION_PAUSE": "Stopper l'animation",
+      "BTN_CHART_SERIES_HELP": "Cliquez ici pour changer la série du graphique",
       "LAYER": "Couche",
       "LAYERS": "Couches de données",
       "BASE_LAYER": "Fond de carte",
@@ -1477,7 +1478,7 @@
     "BAD_APP_VERSION": "Veuillez mettre à jour l'application. La récupération et l'envoi de données avec la version actuelle risque de ne pas fonctionner.</small>",
     "LOAD_TRASH_ENTITY_ERROR": "Erreur de chargement du fichier de corbeille",
     "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille",
-    "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données",
+    "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données locale",
     "STARTUP_FAILED": "Echec du lancement"
   },
   "CONFIRM": {
@@ -1488,7 +1489,6 @@
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",
     "ACTION_IMMEDIATE": "Cette action est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
-    "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
     "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"

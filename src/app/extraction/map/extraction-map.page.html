@@ -345,9 +345,10 @@
                   class="chart no-margin-end"
                   [class.chart-bar]="techChartOptions.type==='bar'"
                   @fadeInAnimation>
-          <ion-toolbar color="transparent" class="mat-expansion-panel-header">
-            <ion-text color="primary" [matMenuTriggerFor]="techColumnMenu"
+          <ion-toolbar color="transparent" class="mat-expansion-panel-header"
+                       [matMenuTriggerFor]="techColumnMenu"
                        (click)="$event.stopPropagation()">
+            <ion-text color="primary" [matTooltip]="'EXTRACTION.MAP.BTN_CHART_SERIES_HELP'|translate">
               <span [innerHTML]="tech.title | translate: tech.titleParams"></span>
               <mat-icon class="ion-color-primary">arrow_drop_down</mat-icon>
             </ion-text>
@@ -405,9 +406,9 @@
                   *ngIf="showLegend"
                   [ngStyle]="legendStyle"
                   @fadeInAnimation>
-          <ion-card-header>
+          <ion-card-header (click)="openLegendForm($event)">
             <ion-card-subtitle>
-              <ion-label (click)="openLegendForm($event)">
+              <ion-label>
                 <span translate>EXTRACTION.MAP.LEGEND</span>
                 <div hidden-xs hidden-sm *ngIf="!showLegendForm">
                   <mat-icon>edit</mat-icon>
