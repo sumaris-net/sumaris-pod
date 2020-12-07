@@ -95,6 +95,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
 
+  pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
+
+
   public sampleRowMask = ['2', '0', '2', '0', '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
 
   get calcifiedTypesForm(): FormArray {
@@ -112,6 +115,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   get taxonNamesForm(): FormArray {
     return this.form.controls.taxonNames as FormArray;
+  }
+
+  get pmfmStrategiesForm(): FormArray {
+    return this.form.controls.pmfmStrategies as FormArray;
   }
 
   @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
@@ -231,6 +238,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.initLaboratoryHelper();
     this.initFishingAreaHelper();
     this.initTaxonNameHelper();
+    this.initPmfmStrategiesHelper();
 
   }
 
@@ -410,6 +418,19 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       }
 
       // SEX
+
+      const pmfmStrategiesControl = this.pmfmStrategiesForm;
+      this.pmfmStrategiesHelper.resize(2);
+
+      let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "AGE");
+      let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
+
+      let pmfmStrategies = [ sex ? true : false, age ? true : false]
+      pmfmStrategiesControl.patchValue(pmfmStrategies);
+
+
+      // this.pmfmStrategiesHelper.resize(0);
+      // this.pmfmStrategiesHelper.add();
       const sexControl = this.form.get("sex");
       let sexPmfmStrategy =  data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
       if (sexPmfmStrategy) {
@@ -504,12 +525,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       }
     }
 
-  // fishingArea Helper -----------------------------------------------------------------------------------------------
-  protected initFishingAreaHelper() {
+  // pmfmStrategies Helper -----------------------------------------------------------------------------------------------
+  protected initPmfmStrategiesHelper() {
   // appliedStrategies => appliedStrategies.location ?
-    this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
-      (fishingArea) => this.formBuilder.control(fishingArea || null, [Validators.required, SharedValidators.entity]),
+    this.pmfmStrategiesHelper = new FormArrayHelper<PmfmStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmStrategies'),
+      (pmfmStrategy) => this.formBuilder.control(pmfmStrategy || null, [Validators.required, SharedValidators.entity]),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
@@ -517,16 +538,35 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       }
     );
     // Create at least one fishing Area
-    if (this.fishingAreaHelper.size() === 0) {
-      this.fishingAreaHelper.resize(1);
+    if (this.pmfmStrategiesHelper.size() === 0) {
+      this.pmfmStrategiesHelper.resize(2);
     }
   }
-  addFishingArea() {
-    this.fishingAreaHelper.add();
-    if (!this.mobile) {
-      this.fishingAreaFocusIndex = this.fishingAreaHelper.size() - 1;
+
+
+  // fishingArea Helper -----------------------------------------------------------------------------------------------
+  protected initFishingAreaHelper() {
+    // appliedStrategies => appliedStrategies.location ?
+      this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
+        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
+        (fishingArea) => this.formBuilder.control(fishingArea || null, [Validators.required, SharedValidators.entity]),
+        ReferentialUtils.equals,
+        ReferentialUtils.isEmpty,
+        {
+          allowEmptyArray: false
+        }
+      );
+      // Create at least one fishing Area
+      if (this.fishingAreaHelper.size() === 0) {
+        this.fishingAreaHelper.resize(1);
+      }
     }
-  }
+    addFishingArea() {
+      this.fishingAreaHelper.add();
+      if (!this.mobile) {
+        this.fishingAreaFocusIndex = this.fishingAreaHelper.size() - 1;
+      }
+    }
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
   protected initLaboratoryHelper() {
