@@ -28,7 +28,6 @@ import {filter} from "rxjs/operators";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {Alerts} from "../../shared/alerts";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -143,7 +142,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   protected registerForms() {
     this.addChildForms([
       this.tripForm, this.saleForm, this.measurementsForm,
-      this.physicalGearTable, this.operationTable
+      this.physicalGearTable
     ]);
   }
 
@@ -151,7 +150,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
 
-      console.debug("[trip] New entity: settings defaults...");
+      console.debug("[trip] New entity: set default values...");
 
       // Fil defaults, using filter applied on trips table
       const tripFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
@@ -185,7 +184,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Listen first opening the operations tab, then save
       this.tabGroup.selectedTabChange
         .pipe(
-          filter(event => event.index === TripPageTabs.OPERATIONS)
+          filter(event => this.showOperationTable && event.index === TripPageTabs.OPERATIONS)
         )
         .subscribe(event => this.save());
     }
