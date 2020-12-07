@@ -29,6 +29,8 @@ import {AppFormHolder, IAppForm, IAppFormFactory} from "../../core/form/form.uti
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { SharedValidators } from 'src/app/shared/validator/validators';
 import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
+import {AppListForm} from "../../core/form/list.form";
+import {MatBooleanField} from "../../shared/material/boolean/material.boolean";
 
 
 
@@ -222,13 +224,33 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.loadEotps();
 
     // Calcified type combo ------------------------------------------------------------
+    // this.registerAutocompleteField('calcifiedType', {
+    //   attributes: ['name'],
+    //   columnNames: [ 'REFERENTIAL.NAME'],
+    //   items: this._calcifiedTypeSubject,
+    //   mobile: this.mobile
+    // });
+    // this.loadCalcifiedType();
+
+    // const res = await this.referentialRefService.loadAll(0, 200, null,null,
+    //   {
+    //     entityName: 'Fraction',
+    //     searchAttribute: "description",
+    //     searchText: "individu"
+    //   });
+    // return res.data;
+
     this.registerAutocompleteField('calcifiedType', {
+        suggestFn: (value, filter) => this.suggest(value, {
+            ...filter, statusId : 1
+          },
+          'Fraction',
+          this.enableCalcifiedTypeFilter),
       attributes: ['name'],
       columnNames: [ 'REFERENTIAL.NAME'],
-      items: this._calcifiedTypeSubject,
-      mobile: this.mobile
+        columnSizes: [2,10],
+        mobile: this.settings.mobile
     });
-    this.loadCalcifiedType();
 
     //set current date to year field
     this.form.get('creationDate').setValue(moment());
@@ -285,7 +307,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         break;
       case 'calcifiedType':
         this.enableCalcifiedTypeFilter = value = !this.enableCalcifiedTypeFilter;
-        this.loadCalcifiedType();
+        //this.loadCalcifiedType();
         break;
       default:
         break;
@@ -300,7 +322,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
     console.log(data);
-    
+
     super.setValue(data, opts);
     console.log(this.form);
 
@@ -341,9 +363,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     let taxons = taxonsNames.map(taxonsNames => { return taxonsNames.taxonName;});
     this.taxonNameHelper.resize(Math.max(1, data.taxonNames.length));
     taxonNamesControl.patchValue(taxons);
-      
 
- 
+
+
 
     //   // YEAR
     //   //  Automatic binding
@@ -420,25 +442,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       // SEX
 
       const pmfmStrategiesControl = this.pmfmStrategiesForm;
-      this.pmfmStrategiesHelper.resize(2);
+      this.pmfmStrategiesHelper.resize(5);
 
       let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "AGE");
       let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
-
-      let pmfmStrategies = [ sex ? true : false, age ? true : false]
-      pmfmStrategiesControl.patchValue(pmfmStrategies);
-
-
-      // this.pmfmStrategiesHelper.resize(0);
-      // this.pmfmStrategiesHelper.add();
-      // const sexControl = this.form.get("sex");
-      // let sexPmfmStrategy =  data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
-      // if (sexPmfmStrategy) {
-      //       // sexControl.patchValue(true);
-      //   }
-      // else {
-      //   // sexControl.patchValue(false);
-      // }
 
 
       // MATURITY PMFMS
@@ -452,25 +459,28 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         // this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy || [];
       }
 
+    let pmfmStrategies = [ sex ? true : false, age ? true : false, weightPmfmStrategy, sizePmfmStrategy, maturityPmfmStrategy]
+    pmfmStrategiesControl.patchValue(pmfmStrategies);
 
-      // AGE
-      // const ageControl = this.form.get("age");
-      // let agePmfmStrategy =  (data.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===   "AGE");
-      // if (agePmfmStrategy) {
-      //   // ageControl.patchValue(true);
-      // }
-      // else {
-      //   // ageControl.patchValue(false);
-      // }
 
 
         // CALCIFIED TYPES
-      const calcifiedTypesControl = this.form.get("calcifiedTypes");
+      const calcifiedTypesControl = this.calcifiedTypesForm;
       let calcifiedTypesPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
+
+    // return {
+    //   id: pmfmStrategy.fractionId,
+    //   entityName: "Fraction",
+    //   __typename: "ReferentialVO" || undefined
+    // };
+
 
       if (calcifiedTypesPmfmStrategy)
       {
-        let calcifiedTypesFractionIds = calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.fractionId;});
+        let calcifiedTypesFractionRefIds = calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {
+          return new ReferentialRef ({id:pmfmStrategy.fractionId, label:null, name:null, rankOrder:null}
+            );
+        });
 
     //     // Not initialiezd since loadCalcifiedTypes ares loaded asynchronously
     //     //this._calcifiedTypeSubject.getValue();
@@ -479,7 +489,8 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //     //{
     //     //  item.toString();
     //    // }
-    //     //calcifiedTypesControl.patchValue(calcifiedTypesFractionId);
+        this.calcifiedTypeHelper.resize(Math.max(1, calcifiedTypesPmfmStrategy.length));
+        calcifiedTypesControl.patchValue(calcifiedTypesFractionRefIds);
       }
 
 
