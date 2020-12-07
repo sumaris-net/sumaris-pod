@@ -36,7 +36,7 @@
     "BTN_UNDO": "Annuler les modifications",
     "BTN_TABLE_EDIT": "Editer dans le tableau",
     "BTN_TABLE_OPEN": "Editer dans un formulaire",
-    "BTN_SHOW_HELP": "Voir l'aide",
+    "BTN_SHOW_HELP": "Aide en ligne",
     "BTN_HIDE": "Masquer",
     "BTN_HIDE_MENU": "Masquer le menu",
     "BTN_SHOW_MENU": "Afficher le menu",
@@ -1222,12 +1222,13 @@
     },
     "MAP": {
       "BTN_SELECT_TYPE": "Liste des cartes",
+      "BTN_SELECT_TYPE_HELP": "Affiche la liste des cartes disponibles",
       "BTN_SELECT_AGG": "Indicateur ?",
-      "BTN_ADD_TECH_GRAPH": "Ajouter un graphique",
+      "BTN_ADD_CHART": "Graphique...",
+      "BTN_ADD_CHART_HELP": "Ajouter un graphique",
       "BTN_EDIT": "Editer",
       "BTN_ANIMATION_PLAY": "Lancer l'animation",
       "BTN_ANIMATION_PAUSE": "Stopper l'animation",
-      "TITLE_PREFIX": "Carte",
       "LAYER": "Couche",
       "LAYERS": "Couches de données",
       "BASE_LAYER": "Fond de carte",
@@ -1240,7 +1241,7 @@
       "DISPLAY_OPTIONS": "Options d'affichage",
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
-      "TECH_CHART_TITLE": "{{aggColumnName}} par {{techColumnName}}",
+      "TECH_CHART_TITLE": "{{aggColumnName}} par <b>{{techColumnName}}</b>",
       "FREEZE_VALUES": "Figer les valeurs",
       "LEGEND": "Légende",
       "SCALE_LINEAR" : "Linéaire",
@@ -1266,7 +1267,7 @@
       },
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",
-        "HELP": "Vo ici la liste des cartes disponibles :"
+        "HELP": "Veuillez choisir la carte à afficher :"
       }
     },
     "CATEGORY": {
@@ -1303,6 +1304,8 @@
       "SUBSAMPLING_WEIGHT": "Poids échantillonné (kg)",
       "SUBSAMPLING_CATEGORY": "Catégorie de sous-échantillonnage",
       "STATION_COUNT": "Nombre de station",
+      "TRIP_COUNT_BY_STATION": "Nb de marées, par station",
+      "TRIP_COUNT_BY_FISHING_TIME": "Nb de marées, par temps de peche",
       "VESSEL_COUNT": "Nombre de navires",
       "FISHING_TIME": "Temps de pêche (h. dec)",
       "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",

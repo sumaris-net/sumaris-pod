@@ -4,6 +4,7 @@
     <ion-button [matMenuTriggerFor]="selectTypeMenu"
                 *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
                 color="accent" fill="solid">
+      <ion-icon slot="start" name="server"></ion-icon>
       <ion-label translate>EXTRACTION.TABLE.BTN_SELECT_TYPE</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
     </ion-button>
@@ -100,6 +101,7 @@
         <mat-icon>help_outline</mat-icon>
       </button>
 
+      <!-- open map -->
       <button mat-icon-button
               *ngIf="type?.isSpatial"
               [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"

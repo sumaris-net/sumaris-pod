@@ -1,12 +1,28 @@
-<app-toolbar [title]="$title | async" color="primary">
+<app-toolbar color="primary">
 
+  <ion-title>
+    <span [innerHTML]="$title | async"></span>
+    <!-- Help button -->
+    <button mat-icon-button
+            *ngIf="type?.description"
+            [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+            (click)="openHelpModal($event)">
+      <mat-icon>help_outline</mat-icon>
+    </button>
+  </ion-title>
   <ion-buttons slot="end">
+
+    <!-- select map modal -->
     <ion-button (click)="openSelectTypeModal($event)"
                 color="accent"
-                fill="solid">
+                fill="solid"
+                [matTooltip]="'EXTRACTION.MAP.BTN_SELECT_TYPE_HELP'|translate">
+      <ion-icon slot="start" name="list"></ion-icon>
       <ion-label translate>EXTRACTION.MAP.BTN_SELECT_TYPE</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
     </ion-button>
+
+    <!-- options sub menu -->
     <ion-button *ngIf="canEdit"
                 [matMenuTriggerFor]="optionMenu">
       <mat-icon slot="icon-only">more_vert</mat-icon>
@@ -229,7 +245,7 @@
 
           <form [formGroup]="form" class="form-container">
 
-            <ion-grid *ngIf="form.controls.strata as strataForm">
+            <ion-grid>
               <ion-row [formGroup]="strataForm" class="strata-row odd">
 
                 <!-- space -->
@@ -243,7 +259,7 @@
                 </ion-col>
 
                 <!-- tech -->
-                <ion-col class="ion-no-padding" *ngIf="strataForm.get('techColumnName') as control">
+                <ion-col class="ion-no-padding" *ngIf="strataForm.controls.techColumnName as control">
                   <mat-form-field>
                     <mat-select [formControl]="control"
                                 [placeholder]="'EXTRACTION.MAP.TECH_VALUE'|translate">
@@ -325,15 +341,16 @@
 
         <!-- chart -->
         <ion-card *ngIf="$tech | async as tech; else addChartButton"
-                  color="light" class="chart no-margin-end"
+                  color="light"
+                  class="chart no-margin-end"
                   [class.chart-bar]="techChartOptions.type==='bar'"
                   @fadeInAnimation>
-          <ion-toolbar color="transparent">
-            <ion-label [matMenuTriggerFor]="techColumnMenu"
+          <ion-toolbar color="transparent" class="mat-expansion-panel-header">
+            <ion-text color="primary" [matMenuTriggerFor]="techColumnMenu"
                        (click)="$event.stopPropagation()">
-              {{tech.title | translate: tech.titleParams }}
-              <mat-icon class="ion-color-medium">arrow_drop_down</mat-icon>
-            </ion-label>
+              <span [innerHTML]="tech.title | translate: tech.titleParams"></span>
+              <mat-icon class="ion-color-primary">arrow_drop_down</mat-icon>
+            </ion-text>
 
             <ion-buttons slot="end">
               <button mat-icon-button class="ion-color-dark"
@@ -342,10 +359,9 @@
                       (click)="$event.stopPropagation()">
                 <mat-icon>more_vert</mat-icon>
               </button>
-              <button mat-icon-button class="ion-color-medium"
-                      [matTooltip]="'COMMON.BTN_CLOSE'|translate"
+              <button mat-icon-button
                       (click)="hideTechChart()">
-                <mat-icon>close</mat-icon>
+                <mat-icon class="ion-color-medium">close</mat-icon>
               </button>
             </ion-buttons>
           </ion-toolbar>
@@ -364,16 +380,17 @@
         <!-- add chart button -->
         <ng-template #addChartButton>
           <ion-card *ngIf="$techColumns | async | isNotEmptyArray"
+                    [class.cdk-visually-hidden]="!started"
                     color="light" class="no-margin-end"
-                    [matMenuTriggerFor]="techColumnMenu">
+                    [matMenuTriggerFor]="techColumnMenu" @fadeInAnimation>
             <ion-card-content class="ion-no-padding">
               <!-- tech column selector -->
               <button mat-stroked-button class="ion-color-medium"
                       [matMenuTriggerFor]="techColumnMenu"
+                      [matTooltip]="'EXTRACTION.MAP.BTN_ADD_CHART_HELP'|translate"
                       (click)="$event.stopPropagation()">
-                <mat-icon class="ion-color-medium" matPrefix>insert_chart</mat-icon>
-                <ion-text color="medium" translate>EXTRACTION.MAP.BTN_ADD_TECH_GRAPH</ion-text>
-                <mat-icon class="ion-color-medium">arrow_drop_down</mat-icon>
+                <mat-icon class="ion-color-medium" >insert_chart</mat-icon>
+                <ion-text color="medium" translate>EXTRACTION.MAP.BTN_ADD_CHART</ion-text>
               </button>
             </ion-card-content>
           </ion-card>
@@ -540,7 +557,6 @@
 
     <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
 
-    <!--<div [leafletLayer]="countriesLayer"></div>-->
   </div>
 
 

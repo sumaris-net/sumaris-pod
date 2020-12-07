@@ -18,7 +18,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNumber,
-  isNumberRange
+  isNumberRange, sleep
 } from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion} from "../services/model/extraction.model";
@@ -26,7 +26,7 @@ import {Location} from "@angular/common";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
-import {CRS, WMSParams} from 'leaflet';
+import {CRS, point, WMSParams} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -64,24 +64,24 @@ declare interface TechChartOptions extends ChartOptions {
 
 const REGEXP_NAME_WITH_UNIT = /^([^(]+)(?: \(([^)]+)\))?$/;
 
-const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">\n' +
-  '   <sld:NamedLayer>\n' +
-  '      <sld:Name>ESPACES_TERRESTRES_P</sld:Name>\n' +
-  '      <sld:UserStyle>\n' +
-  '         <sld:Name>pointSymbolizer</sld:Name>\n' +
-  '         <sld:Title>pointSymbolizer</sld:Title>\n' +
-  '         <sld:FeatureTypeStyle>\n' +
-  '            <sld:Rule>\n' +
-  '               <sld:PolygonSymbolizer>\n' +
-  '                  <sld:Fill>\n' +
-  '                     <sld:CssParameter name="fill">#666666</sld:CssParameter>\n' +
-  '                     <sld:CssParameter name="fill-opacity">1</sld:CssParameter>\n' +
-  '                  </sld:Fill>\n' +
-  '               </sld:PolygonSymbolizer>\n' +
-  '            </sld:Rule>\n' +
-  '         </sld:FeatureTypeStyle>\n' +
-  '      </sld:UserStyle>\n' +
-  '   </sld:NamedLayer>\n' +
+const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">' +
+  '   <sld:NamedLayer>' +
+  '      <sld:Name>ESPACES_TERRESTRES_P</sld:Name>' +
+  '      <sld:UserStyle>' +
+  '         <sld:Name>pointSymbolizer</sld:Name>' +
+  '         <sld:Title>pointSymbolizer</sld:Title>' +
+  '         <sld:FeatureTypeStyle>' +
+  '            <sld:Rule>' +
+  '               <sld:PolygonSymbolizer>' +
+  '                  <sld:Fill>' +
+  '                     <sld:CssParameter name="fill">#666666</sld:CssParameter>' + // 8C8C8C
+  '                     <sld:CssParameter name="fill-opacity">1</sld:CssParameter>' +
+  '                  </sld:Fill>' +
+  '               </sld:PolygonSymbolizer>' +
+  '            </sld:Rule>' +
+  '         </sld:FeatureTypeStyle>' +
+  '      </sld:UserStyle>' +
+  '   </sld:NamedLayer>' +
   '</sld:StyledLayerDescriptor>';
 
 @Component({
@@ -91,9 +91,10 @@ const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:sche
   animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> implements OnInit, OnDestroy {
+export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
 
   ready = false;
+  started = false;
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -113,12 +114,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     crs: CRS.EPSG3857,
     format: "image/png",
     transparent: true,
-    styles: "style_sld_body",
     attribution: "<a href='https://www.ifremer.fr'>Ifremer</a>"
   }).setParams({
     layers: "ESPACES_TERRESTRES_P",
     service: 'WMS',
-    sld_body: encodeURIComponent(BASE_LAYER_SLD_BODY.replace(/[ \t\n]+/, ' '))
+    sld_body: BASE_LAYER_SLD_BODY
   } as WMSParams);
 
   sextantGraticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
@@ -161,7 +161,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
   $details = new Subject<{ title: string; value?: string;  otherValue?: string; properties: { name: string; value: string }[]; }>();
 
-  // -- Chart card
+  // -- Tech chart card
   techChartOptions: TechChartOptions = {
     type: 'bar',
     responsive: true,
@@ -182,6 +182,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     aggMax: undefined
   };
   chartTypes: ChartType[] = ['pie', 'bar', 'doughnut'];
+  showTechChart = true;
 
   // -- Data --
   data = {
@@ -212,15 +213,15 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   @ViewChild('aggExpansionPanel', { static: true }) aggExpansionPanel: MatExpansionPanel;
 
   get year(): number {
-    return this.form.get('year').value;
+    return this.form.controls.year.value;
   }
 
   get aggColumnName(): string {
-    return this.form.get('strata.aggColumnName').value;
+    return this.strataForm.controls.aggColumnName.value;
   }
 
   get techColumnName(): string {
-    return this.form.get('strata.techColumnName').value;
+    return this.strataForm.controls.techColumnName.value;
   }
 
   get hasData(): boolean {
@@ -228,25 +229,29 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   }
 
   get legendStartColor(): string {
-    return this.legendForm.get('startColor').value;
+    return this.legendForm.controls.startColor.value;
   }
 
   set legendStartColor(value: string) {
-    this.legendForm.get('startColor')
+    this.legendForm.controls.startColor
       .patchValue(value, {emitEvent: false});
   }
 
   get legendEndColor(): string {
-    return this.legendForm.get('endColor').value;
+    return this.legendForm.controls.endColor.value;
   }
 
   set legendEndColor(value: string) {
-    this.legendForm.get('endColor')
+    this.legendForm.controls.endColor
       .patchValue(value, {emitEvent: false});
   }
 
   get dirty(): boolean {
     return this.form.dirty || this.criteriaForm.dirty;
+  }
+
+  get strataForm(): FormGroup {
+    return this.form.controls.strata as FormGroup;
   }
 
   get techChartAxisType(): string {
@@ -267,25 +272,25 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     AppFormUtils.markAsTouched(this.form);
   }
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected alertCtrl: AlertController,
-    protected toastController: ToastController,
-    protected translate: TranslateService,
+    route: ActivatedRoute,
+    router: Router,
+    alertCtrl: AlertController,
+    toastController: ToastController,
+    translate: TranslateService,
+    accountService: AccountService,
+    service: ExtractionService,
+    settings: LocalSettingsService,
+    formBuilder: FormBuilder,
+    platform: PlatformService,
+    modalCtrl: ModalController,
     protected location: Location,
-    protected modalCtrl: ModalController,
-    protected accountService: AccountService,
-    protected service: ExtractionService,
     protected aggregationService: AggregationService,
-    protected settings: LocalSettingsService,
-    protected formBuilder: FormBuilder,
-    protected platform: PlatformService,
     protected zone: NgZone,
     protected durationPipe: DurationPipe,
     protected aggregationStrataValidator: AggregationTypeValidatorService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform);
+    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
 
     // Add controls to form
     this.form.addControl('strata', this.aggregationStrataValidator.getStrataFormGroup());
@@ -312,17 +317,16 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       endColor: [legendEndColor.rgba(), Validators.required]
     });
 
-    this.loading = false;
     const account = this.accountService.account;
     this.formatNumberLocale = account && account.settings.locale || 'en-US';
     this.formatNumberLocale = this.formatNumberLocale.replace(/_/g, '-');
 
-    this.platform.ready().then(() => {
-      setTimeout(async () => {
+    this.platform.ready()
+      .then(() => sleep(500))
+      .then(() => {
         this.ready = true;
-        if (!this.loading) return this.start();
-      }, 500);
-    });
+        if (!this.started) return this.start();
+      });
 
     this.registerSubscription(
       this.onRefresh.pipe(
@@ -330,7 +334,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         filter(() => this.ready && isNotNil(this.type) && (!this.loading || !!this.animation)),
         switchMap(() => {
           console.debug('[extraction-map] Refreshing...');
-          return this.loadData();
+          return this.loadGeoData();
         })
       ).subscribe(() => this.markAsPristine()));
   }
@@ -354,10 +358,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           debounceTime(250)
         ).subscribe(() => this.markForCheck())
     );
-  }
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
   }
 
   onMapReady(leafletMap: L.Map) {
@@ -386,12 +386,16 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   }
 
   protected async start() {
-    if (!this.ready || this.loading) return; // skip
+    if (!this.ready || this.started) return; // skip
 
     const hasData = await this.tryLoadByYearIterations();
 
+    if (hasData) {
+      this.started = true;
+      this.fitToBounds();
+    }
     // No data found: open the select modal
-    if (!hasData) {
+    else {
       this.openSelectTypeModal();
     }
   }
@@ -449,7 +453,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.$spatialColumns.next(null);
       this.$aggColumns.next(null);
       this.$techColumns.next(null);
-      this.hideTechChart();
+      this.loading = true;
     }
 
     super.setSheetName(sheetName, {
@@ -461,8 +465,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.applyDefaultStrata(opts);
       this.updateColumns(opts)
         .then(() => {
-          if (!this.loading && (!opts || opts.emitEvent !== false)) {
-            return this.loadData();
+          if (!opts || opts.emitEvent !== false) {
+            return this.loadGeoData();
           }
         });
     }
@@ -487,6 +491,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       techColumnName
     }, opts);
 
+    this.showTechChart = true;
+
     // Reset animation data
     this.resetAnimationOverrides();
 
@@ -497,6 +503,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
   hideTechChart() {
     this.$tech.next(null);
+    this.showTechChart = false;
+    delete this.animationOverrides.techChartOptions;
+    this.markForCheck();
   }
 
   getI18nSheetName(sheetName?: string, type?: AggregationType, self?: ExtractionAbstractPage<any>): string {
@@ -505,10 +514,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   }
 
   protected async updateTile() {
-    const typeName = this.getI18nTypeName(this.type);
-    const prefix = await this.translate.get('EXTRACTION.MAP.TITLE_PREFIX').toPromise();
-
-    this.$title.next(`<small>${prefix}<br/></small>${typeName}`);
+    const title = this.translate.instant(this.type.name);
+    this.$title.next(title);
   }
 
   /* -- protected method -- */
@@ -594,9 +601,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.form.patchValue({
         year: year--,
         strata
-      });
+      }, {emitEvent: false});
 
-      await this.loadData();
+      await this.loadGeoData();
 
       hasData = this.hasData;
     }
@@ -605,7 +612,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     return hasData;
   }
 
-  async loadData() {
+  async loadGeoData() {
     if (!this.ready) return;
     if (!this.type || !this.type.category || !this.type.label) {
       this.loading = false;
@@ -631,6 +638,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       let offset = 0;
       const size = 3000;
 
+      const layers = [];
       const layer = L.geoJSON(null, {
         onEachFeature: this.onEachFeature.bind(this)
       });
@@ -673,8 +681,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       if (total === 0) {
         console.debug(`[extraction-map] No data found, in ${Date.now() - now}ms`);
 
-        // Refresh layer
-        this.$layers.next([]);
+        this.$layers.next(layers);
+        this.$tech.next(null);
       } else {
 
         // Prepare legend options
@@ -700,15 +708,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         console.debug(`[extraction-map] ${total} geometries loaded in ${Date.now() - now}ms (${Math.floor(offset / size)} slices)`);
 
         // Load tech data (wait end if animation is running)
-        const techDataPromise = this.loadTechData(this.type, strata, filter);
-        if (techDataPromise && isAnimated) await techDataPromise;
-
-        // TODO fit to scale
-        /*map.fitBounds(this.lalayersyer.getBounds(), {
-          padding: point(24, 24),
-          maxZoom: 12,
-          animate: true
-        });*/
+        if (this.showTechChart) {
+          await this.loadTechData(this.type, strata, filter);
+        }
 
       }
 
@@ -819,6 +821,19 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.$tech.next(undefined);
     }
 
+  }
+
+  fitToBounds() {
+    if (!this.started) return;
+
+    // Fit to bounds (only first)
+    const layers = this.$layers.getValue();
+    if (layers.length) {
+      const bounds = layers[0].getBounds();
+      if (bounds.isValid()) {
+        this.map.fitBounds(bounds, {maxZoom: 10});
+      }
+    }
   }
 
   async loadAnimationOverrides(type: AggregationType, strata: IAggregationStrata, filter: ExtractionFilter):
