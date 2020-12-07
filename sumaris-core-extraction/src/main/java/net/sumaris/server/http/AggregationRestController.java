@@ -108,7 +108,7 @@ public class AggregationRestController {
         strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_FISHING_TIME);
         strata.setTechColumnName(null);
 
-        return geoJsonConverter.toFeatureCollection(aggregationService.read(
+        return geoJsonConverter.toFeatureCollection(aggregationService.getAggBySpace(
                 type,
                 filter,
                 strata,

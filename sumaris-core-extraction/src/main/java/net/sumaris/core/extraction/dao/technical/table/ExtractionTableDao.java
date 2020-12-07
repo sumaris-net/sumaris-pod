@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.dao.technical.table;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
+import net.sumaris.core.extraction.vo.MinMaxVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 
@@ -60,12 +61,18 @@ public interface ExtractionTableDao {
                                   Map<String, SQLAggregatedFunction> otherColumnNames,
                                   int offset, int size, String sort, SortDirection direction);
 
-    Map<String, Object> getTechRows(String tableName,
-                                              ExtractionFilterVO filter,
-                                              String aggColumnName,
-                                              SQLAggregatedFunction aggFunction,
-                                              String techColumnName,
-                                              String sort, SortDirection direction);
+    Map<String, Object> getAggByTechRows(String tableName,
+                                         ExtractionFilterVO filter,
+                                         String aggColumnName,
+                                         SQLAggregatedFunction aggFunction,
+                                         String techColumnName,
+                                         String sort, SortDirection direction);
+
+    MinMaxVO getAggMinMaxByTech(String tableName, ExtractionFilterVO filter,
+                                Set<String> groupByColumns,
+                                String aggColumnName,
+                                SQLAggregatedFunction aggFunction,
+                                String techColumnName);
 
     void dropTable(String tableName);
 

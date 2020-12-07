@@ -10,12 +10,12 @@ package net.sumaris.core.extraction.service;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -39,6 +39,7 @@ import java.util.Map;
 
 /**
  * Create aggregation tables, from a data extraction.
+ *
  * @author benoit.lavenier@e-is.pro
  * @since 0.12.0
  */
@@ -46,17 +47,18 @@ import java.util.Map;
 public interface AggregationService {
 
     @Transactional(readOnly = true)
-    AggregationTypeVO getByFormat(IExtractionFormat format);
+    AggregationTypeVO getTypeByFormat(IExtractionFormat format);
 
     @Transactional(readOnly = true)
-    List<AggregationTypeVO> findByFilter(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
+    List<AggregationTypeVO> findTypesByFilter(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    AggregationTypeVO get(int id, ExtractionProductFetchOptions fetchOptions);
+    AggregationTypeVO getTypeById(int id, ExtractionProductFetchOptions fetchOptions);
 
 
     /**
      * Do an aggregate
+     *
      * @param type
      * @param filter
      */
@@ -66,22 +68,26 @@ public interface AggregationService {
                                  @Nullable AggregationStrataVO strata);
 
     @Transactional(readOnly = true)
-    AggregationResultVO read(AggregationTypeVO type,
-                             @Nullable  ExtractionFilterVO filter,
-                             @Nullable AggregationStrataVO strata,
-                             int offset, int size, String sort, SortDirection direction);
+    AggregationResultVO getAggBySpace(AggregationTypeVO type,
+                                      @Nullable ExtractionFilterVO filter,
+                                      @Nullable AggregationStrataVO strata,
+                                      int offset, int size, String sort, SortDirection direction);
 
     @Transactional(readOnly = true)
-    AggregationResultVO read(AggregationContextVO context,
-                             @Nullable  ExtractionFilterVO filter,
-                             @Nullable AggregationStrataVO strata,
-                             int offset, int size, String sort, SortDirection direction);
+    AggregationResultVO getAggBySpace(AggregationContextVO context,
+                                      @Nullable ExtractionFilterVO filter,
+                                      @Nullable AggregationStrataVO strata,
+                                      int offset, int size, String sort, SortDirection direction);
 
-    Map<String, Object> readTech(AggregationTypeVO format,
-                                 ExtractionFilterVO filter,
-                                 AggregationStrataVO strata,
-                                 String sort,
-                                 SortDirection direction);
+    AggregationTechResultVO getAggByTech(AggregationTypeVO format,
+                                         ExtractionFilterVO filter,
+                                         AggregationStrataVO strata,
+                                         String sort,
+                                         SortDirection direction);
+
+    MinMaxVO getAggMinMaxByTech(AggregationTypeVO format,
+                                ExtractionFilterVO filter,
+                                AggregationStrataVO strata);
 
     @Transactional(rollbackFor = IOException.class)
     File executeAndDump(AggregationTypeVO type,

@@ -27,14 +27,10 @@ import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.referential.LocationVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
@@ -43,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 public class TripServiceWriteTest extends AbstractServiceTest{
 
@@ -99,7 +94,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(savedVO.getId());
 
         // Reload and check
-        List<OperationVO> savedOperations = operationService.getAllByTripId(savedVO.getId(), 0, 1000, null, null);
+        List<OperationVO> savedOperations = operationService.findAllByTripId(savedVO.getId(), DataFetchOptions.DEFAULT);
         Assert.assertNotNull(savedOperations);
         Assert.assertEquals(1, savedOperations.size());
 

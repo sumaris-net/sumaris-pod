@@ -44,6 +44,7 @@ import java.util.List;
 public class AggregationTypeVO extends ExtractionTypeVO {
 
     String documentation;
+    String filter;
 
     Date updateDate;
     Date creationDate;

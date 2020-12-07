@@ -64,11 +64,10 @@ public final class Tests {
 		File db = new File(dbDirectory);
 		if (!db.exists()) {
 
-			if (log.isWarnEnabled()) {
-				log.warn("Could not find db at " + db + ", test [" +
-							testClass + "] is skipped.");
-			}
-			Assume.assumeTrue(false);
+			String message = "Could not find db at " + db + ", test [" +
+					testClass + "] is skipped.";
+			if (log.isWarnEnabled()) log.warn(message);
+			Assume.assumeTrue(message, false);
 		}
 	}
 

@@ -37,9 +37,11 @@ public interface AggregationRdbTripDao<C extends AggregationRdbTripContextVO,
 
     <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata);
 
-    AggregationResultVO read(String tableName, F filter, S strata, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    AggregationResultVO getAggBySpace(String tableName, F filter, S strata, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
-    Map<String, Object> readTech(String tableName, F filter, S strata, String sortAttribute, SortDirection direction);
+    AggregationTechResultVO getAggByTech(String tableName, F filter, S strata, String sortAttribute, SortDirection direction);
+
+    MinMaxVO getAggMinMaxByTech(String tableName, F filter, S strata);
 
     <R extends C> void clean(R context);
 

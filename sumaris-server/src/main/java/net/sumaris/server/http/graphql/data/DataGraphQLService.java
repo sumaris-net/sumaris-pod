@@ -10,12 +10,12 @@ package net.sumaris.server.http.graphql.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -203,10 +203,10 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public List<VesselRegistrationVO> getVesselRegistrationHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
-                                                     @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                     @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                     @GraphQLArgument(name = "sortBy", defaultValue = VesselRegistrationVO.Fields.START_DATE) String sort,
-                                                     @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+                                                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                                   @GraphQLArgument(name = "sortBy", defaultValue = VesselRegistrationVO.Fields.START_DATE) String sort,
+                                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         return vesselService.getRegistrationsByVesselId(vesselId, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
@@ -247,7 +247,7 @@ public class DataGraphQLService {
                                           @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
                                           @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
                                           @GraphQLEnvironment() Set<String> fields
-                                  ) {
+    ) {
 
         filter = fillTripFilterDefaults(filter);
         SortDirection sortDirection = direction != null ? SortDirection.valueOf(direction.toUpperCase()) : SortDirection.DESC;
@@ -426,11 +426,11 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public List<PhysicalGearVO> findPhysicalGears(@GraphQLArgument(name = "filter") PhysicalGearFilterVO filter,
-                                               @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                               @GraphQLArgument(name = "sortBy", defaultValue = PhysicalGearVO.Fields.RANK_ORDER) String sort,
-                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                               @GraphQLEnvironment() Set<String> fields) {
+                                                  @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                  @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                  @GraphQLArgument(name = "sortBy", defaultValue = PhysicalGearVO.Fields.RANK_ORDER) String sort,
+                                                  @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                  @GraphQLEnvironment() Set<String> fields) {
         Preconditions.checkNotNull(filter, "Missing filter");
         Preconditions.checkNotNull(filter.getVesselId(), "Missing filter.vesselId");
         Page page = Page.builder().offset(offset)
@@ -481,11 +481,11 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public List<ObservedLocationVO> findObservedLocationsByFilter(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
-                                                                @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                                @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                                @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
-                                                                @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                                                @GraphQLEnvironment() Set<String> fields
+                                                                  @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                                  @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                                  @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
+                                                                  @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                                  @GraphQLEnvironment() Set<String> fields
     ) {
         final List<ObservedLocationVO> result = observedLocationService.findAll(
                 filter,
@@ -510,7 +510,7 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public ObservedLocationVO getObservedLocationById(@GraphQLArgument(name = "id") int id,
-                              @GraphQLEnvironment() Set<String> fields) {
+                                                      @GraphQLEnvironment() Set<String> fields) {
         final ObservedLocationVO result = observedLocationService.get(id);
 
         // Add additional properties if needed
@@ -556,7 +556,7 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateObservedLocation", description = "Subscribe to changes on an observed location")
     @IsUser
     public Publisher<ObservedLocationVO> updateObservedLocation(@GraphQLArgument(name = "id") final int id,
-                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return changesPublisherService.getPublisher(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true);
@@ -614,28 +614,30 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
     @Transactional(readOnly = true)
     @IsUser
-    public List<OperationVO> getOperationsByTripId(@GraphQLArgument(name = "filter") OperationFilterVO filter,
-                                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                   @GraphQLArgument(name = "sortBy", defaultValue = OperationVO.Fields.START_DATE_TIME) String sort,
-                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+    public List<OperationVO> findOperationsByTripId(@GraphQLArgument(name = "filter") OperationFilterVO filter,
+                                                    @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                    @GraphQLArgument(name = "sortBy", defaultValue = OperationVO.Fields.START_DATE_TIME) String sort,
+                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
-        return operationService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        return operationService.findAllByTripId(filter.getTripId(), offset, size, sort,
+                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
+                DataFetchOptions.DEFAULT);
     }
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
-    public List<OperationVO> getOperationsByTrip(@GraphQLContext TripVO trip) {
+    public List<OperationVO> findOperationsByTripId(@GraphQLContext TripVO trip) {
         if (CollectionUtils.isNotEmpty(trip.getOperations())) {
             return trip.getOperations();
         }
-        return operationService.getAllByTripId(trip.getId(), 0, 1000, OperationVO.Fields.START_DATE_TIME, SortDirection.ASC);
+        return operationService.findAllByTripId(trip.getId(), DataFetchOptions.DEFAULT);
     }
 
     @GraphQLQuery(name = "operationsCount", description = "Get operations count")
     @Transactional(readOnly = true)
     @IsUser
-    public long getOperationsCount(@GraphQLArgument(name = "filter") OperationFilterVO filter) {
+    public long countOperations(@GraphQLArgument(name = "filter") OperationFilterVO filter) {
         Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
         return operationService.countByTripId(filter.getTripId());
@@ -675,7 +677,7 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateOperation", description = "Subscribe to changes on an operation")
     @IsUser
     public Publisher<OperationVO> updateOperation(@GraphQLArgument(name = "id") final int id,
-                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                                  @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return changesPublisherService.getPublisher(Operation.class, OperationVO.class, id, minIntervalInSecond, true);
@@ -696,10 +698,10 @@ public class DataGraphQLService {
     @IsUser
     @Deprecated
     public List<OperationGroupVO> getOperationGroupsByTripId(@GraphQLArgument(name = "filter") OperationFilterVO filter,
-                                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                   @GraphQLArgument(name = "sortBy", defaultValue = OperationGroupVO.Fields.RANK_ORDER_ON_PERIOD) String sort,
-                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+                                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                             @GraphQLArgument(name = "sortBy", defaultValue = OperationGroupVO.Fields.RANK_ORDER_ON_PERIOD) String sort,
+                                                             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
         return operationGroupService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
@@ -895,7 +897,7 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateLanding", description = "Subscribe to changes on an landing")
     @IsUser
     public Publisher<LandingVO> updateLanding(@GraphQLArgument(name = "id") final int id,
-                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return changesPublisherService.getPublisher(Landing.class, LandingVO.class, id, minIntervalInSecond, true);
@@ -905,8 +907,8 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "aggregatedLandings", description = "Find aggregated landings by filter")
     public List<AggregatedLandingVO> findAggregatedLandings(
-        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-        @GraphQLEnvironment() Set<String> fields
+            @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+            @GraphQLEnvironment() Set<String> fields
     ) {
 
         final List<AggregatedLandingVO> result = aggregatedLandingService.findAll(filter);
@@ -918,9 +920,9 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "saveAggregatedLandings", description = "Save aggregated landings")
     public List<AggregatedLandingVO> saveAggregatedLandings(
-        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-        @GraphQLArgument(name = "aggregatedLandings") List<AggregatedLandingVO> aggregatedLandings,
-        @GraphQLEnvironment() Set<String> fields
+            @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+            @GraphQLArgument(name = "aggregatedLandings") List<AggregatedLandingVO> aggregatedLandings,
+            @GraphQLEnvironment() Set<String> fields
     ) {
         final List<AggregatedLandingVO> result = aggregatedLandingService.saveAllByObservedLocationId(filter, aggregatedLandings);
 
@@ -1210,17 +1212,17 @@ public class DataGraphQLService {
 
     protected boolean hasImageField(Set<String> fields) {
         return fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_DEPARTMENT, DepartmentVO.Fields.LOGO))
-            || fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_PERSON, PersonVO.Fields.AVATAR));
+                || fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_PERSON, PersonVO.Fields.AVATAR));
     }
 
     protected boolean hasVesselFeaturesField(Set<String> fields) {
         return fields.contains(StringUtils.slashing(TripVO.Fields.VESSEL_SNAPSHOT, VesselSnapshotVO.Fields.EXTERIOR_MARKING))
-            || fields.contains(StringUtils.slashing(TripVO.Fields.VESSEL_SNAPSHOT, VesselSnapshotVO.Fields.NAME));
+                || fields.contains(StringUtils.slashing(TripVO.Fields.VESSEL_SNAPSHOT, VesselSnapshotVO.Fields.NAME));
     }
 
     protected boolean hasMetiersField(Set<String> fields) {
         return fields.contains(StringUtils.slashing(TripVO.Fields.METIERS, ReferentialVO.Fields.ID))
-            || fields.contains(StringUtils.slashing(TripVO.Fields.METIERS, ReferentialVO.Fields.LABEL));
+                || fields.contains(StringUtils.slashing(TripVO.Fields.METIERS, ReferentialVO.Fields.LABEL));
     }
 
     protected <T extends IRootDataVO<?>> List<T> fillImages(final List<T> results) {
@@ -1291,8 +1293,7 @@ public class DataGraphQLService {
             if (user != null) {
                 result.setRecorderDepartmentId(null);
                 result.setRecorderPersonId(user.getId());
-            }
-            else {
+            } else {
                 result.setRecorderPersonId(-999); // Hide all. Should never occur
             }
         }

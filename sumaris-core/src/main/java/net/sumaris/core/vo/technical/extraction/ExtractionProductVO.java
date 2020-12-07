@@ -61,6 +61,7 @@ public class ExtractionProductVO implements IReferentialVO, IExtractionFormat,
     private Date updateDate;
     private Date creationDate;
     private Boolean isSpatial;
+    private String filter;
 
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;

@@ -29,7 +29,6 @@ import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.service.ExtractionProductService;
 import net.sumaris.core.extraction.vo.*;
@@ -55,7 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -81,14 +79,14 @@ public class AggregationGraphQLService {
     public AggregationTypeVO getAggregationType(@GraphQLArgument(name = "id") int id,
                                                 @GraphQLEnvironment() Set<String> fields) {
         securityService.checkReadAccess(id);
-        return aggregationService.get(id, getFetchOptions(fields));
+        return aggregationService.getTypeById(id, getFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "aggregationTypes", description = "Get all available aggregation types")
     public List<AggregationTypeVO> getAllAggregationTypes(@GraphQLArgument(name = "filter") AggregationTypeFilterVO filter,
                                                           @GraphQLEnvironment() Set<String> fields) {
         filter = fillFilterDefaults(filter);
-        return aggregationService.findByFilter(filter, getFetchOptions(fields));
+        return aggregationService.findTypesByFilter(filter, getFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "aggregationRows", description = "Read an aggregation")
@@ -103,7 +101,7 @@ public class AggregationGraphQLService {
         // Check access right
         securityService.checkReadAccess(type);
 
-        return aggregationService.read(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
+        return aggregationService.getAggBySpace(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
     }
 
     @GraphQLQuery(name = "aggregationColumns", description = "Read columns from aggregation")
@@ -112,7 +110,7 @@ public class AggregationGraphQLService {
                                                                @GraphQLEnvironment() Set<String> fields) {
 
         // Check type
-        type = aggregationService.getByFormat(type);
+        type = aggregationService.getTypeByFormat(type);
 
         // Check access right
         securityService.checkReadAccess(type);
@@ -135,7 +133,7 @@ public class AggregationGraphQLService {
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         // Check type
-        final AggregationTypeVO type = aggregationService.getByFormat(format);
+        final AggregationTypeVO type = aggregationService.getTypeByFormat(format);
 
         // Check access right
         securityService.checkReadAccess(type);
@@ -168,26 +166,41 @@ public class AggregationGraphQLService {
         }
 
         // Get data
-        AggregationResultVO data = aggregationService.read(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
+        AggregationResultVO data = aggregationService.getAggBySpace(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
 
         // Convert to GeoJSON
         return geoJsonConverter.toFeatureCollection(data, strata.getSpatialColumnName());
     }
 
     @GraphQLQuery(name = "aggregationTech", description = "Execute an aggregation and return as GeoJson")
-    public Map<String, Object> getAggregationByTech(@GraphQLArgument(name = "type") AggregationTypeVO format,
-                                                      @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
-                                                      @GraphQLArgument(name = "strata") AggregationStrataVO strata,
-                                                      @GraphQLArgument(name = "sortBy") String sort,
-                                                      @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+    public AggregationTechResultVO getAggregationByTech(@GraphQLArgument(name = "type") AggregationTypeVO format,
+                                                        @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                                        @GraphQLArgument(name = "strata") AggregationStrataVO strata,
+                                                        @GraphQLArgument(name = "sortBy") String sort,
+                                                        @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         // Check type
-        final AggregationTypeVO type = aggregationService.getByFormat(format);
+        final AggregationTypeVO type = aggregationService.getTypeByFormat(format);
 
         // Check access right
         securityService.checkReadAccess(type);
 
-        return aggregationService.readTech(type, filter, strata, sort, SortDirection.fromString(direction));
+        return aggregationService.getAggByTech(type, filter, strata, sort, SortDirection.fromString(direction));
+    }
+
+
+    @GraphQLQuery(name = "aggregationTechMinMax", description = "Execute an aggregation and return as GeoJson")
+    public MinMaxVO getAggregationByTech(@GraphQLArgument(name = "type") AggregationTypeVO format,
+                                         @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                         @GraphQLArgument(name = "strata") AggregationStrataVO strata) {
+
+        // Check type
+        final AggregationTypeVO type = aggregationService.getTypeByFormat(format);
+
+        // Check access right
+        securityService.checkReadAccess(type);
+
+        return aggregationService.getAggMinMaxByTech(type, filter, strata);
     }
 
     @GraphQLMutation(name = "saveAggregation", description = "Create or update a data aggregation")
