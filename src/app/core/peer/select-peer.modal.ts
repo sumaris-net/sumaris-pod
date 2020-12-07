@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, EventEmitter, Output} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {Peer} from "../services/model/peer.model";
 import {Observable, Subject, Subscription} from "rxjs";
@@ -24,6 +24,7 @@ export class SelectPeerModal implements OnDestroy {
 
   @Input() canCancel = true;
   @Input() allowSelectDownPeer = true;
+  @Input() onRefresh = new EventEmitter<UIEvent>();
 
   constructor(
 
@@ -54,6 +55,22 @@ export class SelectPeerModal implements OnDestroy {
     }
   }
 
+
+  /**
+   *  Check the min pod version, defined by the app
+   * @param peer
+   */
+  isCompatible(peer: Peer): boolean {
+    return !this.peerMinVersion || (peer && peer.softwareVersion && VersionUtils.isCompatible(this.peerMinVersion, peer.softwareVersion));
+  }
+
+  refresh(event: UIEvent) {
+    this.loading = true;
+    this.onRefresh.emit(event);
+  }
+
+  /* -- protected methods -- */
+
   async refreshPeers(peers: Peer[]) {
     peers = peers || [];
 
@@ -81,9 +98,8 @@ export class SelectPeerModal implements OnDestroy {
 
     this._subscription.add(
       this.$peers
-        .subscribe(() => {
-          this.cd.markForCheck();
-        }));
+        .subscribe(() => this.cd.markForCheck())
+    );
 
     try {
       await jobs;
@@ -93,14 +109,6 @@ export class SelectPeerModal implements OnDestroy {
     }
     this.loading = false;
     this.cd.markForCheck();
-  }
-
-  /**
-   *  Check the min pod version, defined by the app
-   * @param peer
-   */
-  isCompatible(peer: Peer): boolean {
-    return !this.peerMinVersion || (peer && peer.softwareVersion && VersionUtils.isCompatible(this.peerMinVersion, peer.softwareVersion));
   }
 
   protected async refreshPeer(peer: Peer): Promise<Peer> {
@@ -120,5 +128,9 @@ export class SelectPeerModal implements OnDestroy {
       peer.status = 'DOWN';
     }
     return peer;
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

@@ -1,17 +1,20 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {AppEntityEditor, isNil} from "../../core/core.module";
-import {ExtractionColumn} from "../services/model/extraction.model";
+import {AppEntityEditor, isNil} from "../../../core/core.module";
+import {ExtractionColumn} from "../../services/model/extraction.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
-import {ExtractionService} from "../services/extraction.service";
+import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
+import {ExtractionService} from "../../services/extraction.service";
 import {Router} from "@angular/router";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {AggregationTypeForm} from "./aggregation-type.form";
-import {AccountService} from "../../core/services/account.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {AggregationType} from "../services/model/aggregation-type.model";
+import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {AggregationTypeForm} from "../form/aggregation-type.form";
+import {AccountService} from "../../../core/services/account.service";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {AggregationType} from "../../services/model/aggregation-type.model";
+import {Alerts} from "../../../shared/alerts";
+import {isEmptyArray} from "../../../shared/functions";
+import {AggregationService} from "../../services/aggregation.service";
 
 @Component({
   selector: 'app-aggregation-type-page',
@@ -36,6 +39,7 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
               protected router: Router,
               protected formBuilder: FormBuilder,
               protected extractionService: ExtractionService,
+              protected aggregationService: AggregationService,
               protected accountService: AccountService,
               protected validatorService: AggregationTypeValidatorService,
               protected settings: LocalSettingsService) {
@@ -43,10 +47,10 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
       AggregationType,
       // Data service
       {
-        load: (id: number, options) => extractionService.loadAggregationType(id, options),
-        delete: (type, options) => extractionService.deleteAggregations([type]),
-        save: (type, options) => extractionService.saveAggregation(type),
-        listenChanges: (id, options) => undefined
+        load: (id: number, options) => aggregationService.load(id, options),
+        delete: (type, _) => aggregationService.deleteAll([type]),
+        save: (type, _) => aggregationService.save(type),
+        listenChanges: (id, _) => undefined
       },
       // Editor options
       {
@@ -69,14 +73,36 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
     }
   }
 
+  async openMap(event?: UIEvent) {
+    if (this.dirty) {
+      // Ask user confirmation
+      const confirmation = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate);
+      if (confirmation) {
+        await this.save(event);
+      }
+    }
+
+    if (!this.data || isEmptyArray(this.data.stratum)) return; // Unable to load the map
+
+    return setTimeout(() => {
+      // open the map
+      return this.router.navigate(['../../map'],
+        {
+          relativeTo: this.route,
+          queryParams: {
+            category: this.data.category,
+            label: this.data.label,
+            sheet: this.data.stratum[0].sheetName
+          }
+        });
+    }, 200); // Add a delay need by matTooltip to be hide
+  }
+
   /* -- protected -- */
 
   protected setValue(data: AggregationType) {
-
-    const json = data.asObject();
-
     // Apply data to form
-    this.typeForm.value = json;
+    this.typeForm.value = data.asObject();
   }
 
   protected async getValue(): Promise<AggregationType> {
@@ -119,17 +145,13 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
   }
 
   protected async onEntityLoaded(data: AggregationType, options?: EntityServiceLoadOptions): Promise<void> {
-    super.onEntityLoaded(data, options);
-
-    this.typeForm.updateLists(data);
+    await this.typeForm.updateLists(data);
 
     // Define default back link
     this.defaultBackHref = '/extraction?category=product&label=' + data.label;
   }
 
   protected async onEntityDeleted(data: AggregationType): Promise<void> {
-    super.onEntityDeleted(data);
-
     // Change back href
     this.defaultBackHref = '/extraction';
   }

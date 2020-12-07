@@ -182,9 +182,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.landingForm.showObservers = false;
   }
 
-  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
-    return super.addToPageHistory({ ...page, icon: 'flag'}, opts);
-  }
 
   async save(event?: Event, options?: any): Promise<boolean> {
     return super.save(event, options);
@@ -231,6 +228,13 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return titlePrefix + (await this.translate.get('AUCTION_CONTROL.EDIT.TITLE', {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
     }).toPromise());
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'flag'
+    };
   }
 
   protected computePageUrl(id: number|'new') {

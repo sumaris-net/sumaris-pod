@@ -959,8 +959,11 @@
     "COMMENTS": "Commentaires",
     "STATUS": "Etat",
     "RANK_ORDER": "#",
+    "UPDATE_DATE": "Date de mise à jour",
+    "CREATION_DATE": "Date de création",
     "EXTERIOR_MARKING": "Marquage extérieur",
     "REGISTRATION_CODE": "Immatriculation",
+    "PAGE_HISTORY_SUBTITLE": "Référentiel",
     "BASE_PORT_LOCATION": {
       "LABEL": "Code port d'attache",
       "NAME": "Libellé port d'attache"
@@ -1042,7 +1045,7 @@
       "PARAMETER": "Paramètres",
       "USER_PROFILE": "Profils utilisateur",
       "VESSEL_TYPE": "Types de navire",
-      "PMFM": "Paramètres collectés",
+      "PMFM": "Quadruplets PSFM",
       "MATRIX": "Supports de mesure",
       "FRACTION": "Fractions du support",
       "QUALITATIVE_VALUE": "Valeurs qualitatives",
@@ -1169,6 +1172,8 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
+        "BTN_OPEN_MAP": "Voir la carte",
+        "BTN_PREVIEW_DOC": "Prévisualiser la doc",
         "STRATUM_DOTS": "Strates :",
         "FORMAT_DOTS": "Documentation :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
@@ -1236,8 +1241,12 @@
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
       "TECH_CHART_TITLE": "{{aggColumnName}} par {{techColumnName}}",
-      "TECH_CHART_ALL_LABELS": "Figer les libellés",
+      "FREEZE_VALUES": "Figer les valeurs",
       "LEGEND": "Légende",
+      "SCALE_LINEAR" : "Linéaire",
+      "SCALE_LOGARITHMIC":  "Logarithmique",
+      "CHART_AXIS_Y": "Echelle Y (gauche)",
+      "CHART_AXIS_X": "Echelle X (bas)",
       "LEGEND_FORM": {
         "TITLE": "Paramètres",
         "OPACITY_PLACEHOLDER": "Opacité (%)",
@@ -1252,8 +1261,8 @@
       },
       "CHART_SORT_BY": {
         "TITLE": "Trier par",
-        "LABEL" : "Libellé",
-        "VALUE":  "Valeur"
+        "LABEL" : "Libellé (asc)",
+        "VALUE":  "Valeur (desc)"
       },
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",
@@ -1343,7 +1352,9 @@
       "LOAD_ROWS_ERROR": "Erreur de chargement des lignes de données.",
       "DOWNLOAD_FILE_ERROR": "Erreur de téléchargement du fichier d'extraction.",
       "LOAD_GEO_TYPES_ERROR": "Erreur de chargement des types de données spatiale",
-      "LOAD_GEO_DATA_ERROR": "Erreur de chargement des données spatiales"
+      "LOAD_GEO_JSON_ERROR": "Erreur de chargement des données spatiales",
+      "LOAD_TECH_ERROR": "Erreur de chargement des données du graphiques",
+      "LOAD_MIN_MAX_ERROR": "Erreur de chargement des bornes"
     }
   },
   "NETWORK": {
@@ -1354,7 +1365,7 @@
     "PEER": {
       "OFFLINE": "Nœud injoignable",
       "SELECT_MODAL": {
-        "TITLE": "Nœud réseau",
+        "TITLE": "Nœuds réseau",
         "HELP": "Veuillez choisir un nœud réseau auquel vous connecter :",
         "NOT_COMPATIBLE_HELP": "Version requise : v{{version}} ou +"
       }
@@ -1471,6 +1482,7 @@
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",
     "ACTION_IMMEDIATE": "Cette action est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
+    "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
     "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"

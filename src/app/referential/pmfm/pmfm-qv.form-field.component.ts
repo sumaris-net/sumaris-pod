@@ -102,10 +102,10 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   @Output('keyup.enter')
-  onPressEnter: EventEmitter<any> = new EventEmitter<any>();
+  onPressEnter = new EventEmitter<any>();
 
   @Output()
-  onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  onBlur = new EventEmitter<FocusEvent>();
 
   @ViewChild('matInput') matInput: ElementRef;
 

@@ -23,8 +23,8 @@ export class PersonValidatorService implements ValidatorService {
 
     // Use account validator as base form group definition
     // BUT add more flexibility (e.g. 'pubkey' become optional)
-    // This is need to be able to store person that are not using SUMARiS tools (e.g. onboard obsevers)
-    const formConfig = this.accountValidatorService.getFormGroupConfig(data && Account.fromObject(data.asObject));
+    // This is need to be able to store person that are not using SUMARiS tools (e.g. onboard observers)
+    const formConfig = this.accountValidatorService.getFormGroupConfig(data && Account.fromObject(data.asObject()));
     formConfig.pubkey = [data && data.pubkey || null, SharedValidators.pubkey];
     formConfig.avatar = [''];
 

@@ -30,15 +30,30 @@
     <ion-row class="ion-no-padding ion-padding-top">
       <ion-col>
         <!-- form -->
-
-        <app-aggregation-type-form #typeForm [showError]="false">
-
+        <app-aggregation-type-form #typeForm
+                                   [showError]="false">
         </app-aggregation-type-form>
 
       </ion-col>
 
       <ion-col class="ion-no-padding" size="12" size-xl="3">
-        <app-entity-metadata [value]="data"></app-entity-metadata>
+        <app-entity-metadata [value]="data">
+
+          <!-- open map button -->
+          <ion-button color="secondary" size="full"
+                      *ngIf="form.controls.isSpatial.value"
+                      [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
+                      (click)="openMap($event)">
+            <mat-icon slot="start">
+              <ion-icon name="earth"></ion-icon>
+            </mat-icon>
+            <ion-label>
+            {{'EXTRACTION.AGGREGATION.EDIT.BTN_OPEN_MAP'|translate}}
+            </ion-label>
+          </ion-button>
+        </app-entity-metadata>
+
+
       </ion-col>
 
     </ion-row>

@@ -375,6 +375,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }).toPromise();
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'boat'
+    };
+  }
+
   protected async getJsonValueToSave(): Promise<any> {
     const json = await super.getJsonValueToSave();
 
@@ -398,10 +405,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
 
     return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
-  }
-
-  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
-    return super.addToPageHistory({...page, icon: 'boat'}, opts);
   }
 
   protected markForCheck() {

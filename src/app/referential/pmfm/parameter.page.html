@@ -5,7 +5,9 @@
 
 <ion-content>
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden"
+                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'REFERENTIAL.PMFM.TAB_GENERAL'|translate}}">
@@ -74,7 +76,9 @@
       </ng-template>
 
       <app-referential-table #qualitativeValuesTable entityName="QualitiveValue"
-                             [canEdit]="canEdit" [canDelete]="canEdit">
+                             [canEdit]="canEdit"
+                             [canDelete]="canEdit"
+                             [showUpdateDateColumn]="false">
       </app-referential-table>
 
       <!-- final space-->

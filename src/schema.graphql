@@ -40,6 +40,10 @@ type AggregationResultVO {
   type: ExtractionTypeVO
 }
 
+type AggregationTechResultVO {
+  data: Map_String_ObjectScalar
+}
+
 type AggregationTypeVO {
   category: ExtractionCategoryEnum
   comments: String
@@ -359,6 +363,11 @@ type MetierVO {
   validityStatusId: Int
 }
 
+type MinMaxVO {
+  max: Float
+  min: Float
+}
+
 "Mutation root"
 type Mutation {
   "Confirm an account email"
@@ -391,6 +400,8 @@ type Mutation {
   deleteReferential(entityName: String, id: Int!): Boolean!
   "Delete many referential (by ids)"
   deleteReferentials(entityName: String, ids: [Int]): Boolean!
+  "Delete an entity from the trash"
+  deleteTrashEntity(entityName: String, id: String): Boolean!
   "Delete a trip"
   deleteTrip(id: Int!): Boolean!
   "Delete many trips"
@@ -442,9 +453,9 @@ type Mutation {
   "Save a software configuration"
   saveSoftware(software: SoftwareVOInput): SoftwareVO
   "Create or update a trip"
-  saveTrip(saveOptions: TripSaveOptionsInput, trip: TripVOInput, withOperation: Boolean): TripVO @deprecated(reason : "Please use saveTrip(TripVO, TripSaveOptions)")
+  saveTrip(saveOptions: TripSaveOptionsInput, trip: TripVOInput, withOperation: Boolean = false): TripVO
   "Create or update many trips"
-  saveTrips(saveOptions: TripSaveOptionsInput, trips: [TripVOInput]): [TripVO]
+  saveTrips(saveOptions: TripSaveOptionsInput, trips: [TripVOInput], withOperation: Boolean = false): [TripVO]
   "Sent data to admin, for debug"
   saveUserEvent(userEvent: UserEventVOInput): UserEventVO
   "Create or update a vessel"
@@ -814,7 +825,9 @@ type Query {
   "Read an aggregation"
   aggregationRows(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: AggregationTypeVOInput): AggregationResultVO
   "Execute an aggregation and return as GeoJson"
-  aggregationTech(filter: ExtractionFilterVOInput, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: AggregationTypeVOInput): Map_String_ObjectScalar
+  aggregationTech(filter: ExtractionFilterVOInput, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: AggregationTypeVOInput): AggregationTechResultVO
+  "Execute an aggregation and return as GeoJson"
+  aggregationTechMinMax(filter: ExtractionFilterVOInput, strata: AggregationStrataVOInput, type: AggregationTypeVOInput): MinMaxVO
   "Get one aggregation type"
   aggregationType(id: Int!): AggregationTypeVO
   "Get all available aggregation types"
@@ -898,7 +911,9 @@ type Query {
   "Search in taxon names"
   taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
   "Get trash content"
-  trash(entityName: String, offset: Int = 0, size: Int = 1000, sortBy: String = "updateDate", sortDirection: String = "desc"): [String]
+  trashEntities(entityName: String, offset: Int = 0, size: Int = 1000, sortBy: String = "updateDate", sortDirection: String = "desc"): [String]
+  "Get trash file content"
+  trashEntity(entityName: String, id: String): String
   "Get a trip, by id"
   trip(id: Int!): TripVO
   "Search in trips"

@@ -48,6 +48,10 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
   @Input() canEdit = false;
   @Input() canDelete = false;
 
+  @Input() set showUpdateDateColumn(value: boolean) {
+    this.setShowColumn('updateDate', value);
+  }
+
 
   constructor(
     protected route: ActivatedRoute,
@@ -70,6 +74,7 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
           'name',
           'description',
           'status',
+          'updateDate',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
       Referential,
@@ -88,6 +93,7 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
     this.autoLoad = false; // waiting parent to load
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
+    this.showUpdateDateColumn = false;
 
     // Fill statusById
     this.statusById = {};
@@ -107,8 +113,6 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
       Object.assign(row.currentData, defaultValues);
     }
   }
-
-  referentialToString = referentialToString;
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -107,7 +107,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
-    this.pageSize = -1; // Do not use paginator
+    this.defaultPageSize = -1; // Do not use paginator
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
