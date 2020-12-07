@@ -210,13 +210,13 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.loadEotps();
 
     // Calcified type combo ------------------------------------------------------------
-    // this.registerAutocompleteField('calcifiedType', {
-    //   attributes: ['name'],
-    //   columnNames: [ 'REFERENTIAL.NAME'],
-    //   items: this._calcifiedTypeSubject,
-    //   mobile: this.mobile
-    // });
-    // this.loadCalcifiedType();
+    this.registerAutocompleteField('calcifiedType', {
+      attributes: ['name'],
+      columnNames: [ 'REFERENTIAL.NAME'],
+      items: this._calcifiedTypeSubject,
+      mobile: this.mobile
+    });
+    this.loadCalcifiedType();
 
     //set current date to year field
     this.form.get('creationDate').setValue(moment());
@@ -298,17 +298,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       let sampleRowValue = data.label.replace(/_/g, "-");
       sampleRowCodeControl.patchValue(sampleRowValue);
 
-    //   // EOTP
-    //   if (this.enableEotpFilter)
-    //   {
-    //     this.toggleFilteredItems('eotp');
-    //   }
-    //   const eotpControl = this.form.get("eotp");
-    //   let eotp = simpleStrategy.analyticReference;
-    //   let eotpValues = this._eotpSubject.getValue();
-    //   let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
-
-    //   eotpControl.patchValue(eotpObject);
+      // EOTP
+      const eotpControl = this.form.get("analyticReference");
+      let eotp = data.analyticReference;
+      let eotpValues = this._eotpSubject.getValue();
+      let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
+      eotpControl.patchValue(eotpObject);
 
       // LABORATORIES
       const laboratoriesControl = this.laboratoriesForm;
@@ -443,13 +438,13 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
         // CALCIFIED TYPES
-    //   const calcifiedTypesControl = this.form.get("calcifiedTypes");
-    //   let calcifiedTypesPmfmStrategy = (simpleStrategy.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
-      //
-    //   if (calcifiedTypesPmfmStrategy)
-    //   {
-    //     let calcifiedTypesFractionIds = calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.fractionId;});
-      //
+      const calcifiedTypesControl = this.form.get("calcifiedTypes");
+      let calcifiedTypesPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
+
+      if (calcifiedTypesPmfmStrategy)
+      {
+        let calcifiedTypesFractionIds = calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.fractionId;});
+
     //     // Not initialiezd since loadCalcifiedTypes ares loaded asynchronously
     //     //this._calcifiedTypeSubject.getValue();
     //     // @ts-ignore
@@ -458,7 +453,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //     //  item.toString();
     //    // }
     //     //calcifiedTypesControl.patchValue(calcifiedTypesFractionId);
-    //   }
+      }
 
 
     console.debug(data.entityName);
