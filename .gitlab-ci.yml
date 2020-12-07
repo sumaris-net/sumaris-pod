@@ -1,4 +1,4 @@
-image: node:latest
+image: trion/ng-cli
 
 stages:
     - build
@@ -8,7 +8,42 @@ stages:
     - release
     - deploy
 
-build_develop:
+build_dev:
+  extends: .build
+  only:
+    - develop
+    - develop-ifremer
+  except:
+    - schedules
+
+schedule-build:
+  extends: .build_and_zip
+  only:
+    - schedules
+
+build_dev_and_zip:
+  extends: .build_and_zip
+  only:
+    - develop
+    - develop-ifremer
+  when: manual
+
+.build_and_zip:
+  extends: .build
+  after_script:
+    - echo "Creating web artifact in progress"
+    - PROJECT_DIR=`pwd`
+    - mkdir -p "${PROJECT_DIR}/dist"
+    - ZIP_FILE=${PROJECT_DIR}/dist/${CI_PROJECT_NAME}.zip
+    - cd $PROJECT_DIR/www
+    - zip -q -r $ZIP_FILE .
+  artifacts:
+      paths:
+        - dist
+  only:
+    - schedules
+
+.build:
   stage: build
   tags:
     - sih_public_runner
@@ -18,13 +53,6 @@ build_develop:
     - npm run build
   environment:
     name: test
-  artifacts:
-    paths:
-      - dist
-  only:
-    - develop
-    - develop-ifremer
-  when: always
 
 sonarqube:
     stage: test
@@ -39,13 +67,14 @@ sonarqube:
     script:
       - echo "Sonarqube analysis in progress"
       - sonar-scanner
-        -Dsonar.projectKey=wao
+        -Dsonar.projectKey=imagine-app
         -Dsonar.host.url=$SONAR_HOST_URL
         -Dsonar.login=$SONAR_TOKEN
         -Dsonar.sourceEncoding=UTF-8
         -Dsonar.java.binaries=.
         -Dsonar.java.libraries=.
     only:
+        - develop
         - develop-ifremer
     when: manual
 
@@ -67,6 +96,7 @@ pages:
         paths:
             - public
     only:
+        - develop
         - develop-ifremer
     when: manual
 
