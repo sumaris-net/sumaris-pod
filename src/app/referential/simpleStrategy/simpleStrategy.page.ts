@@ -153,11 +153,36 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       entityNameControl.setValue(this.entityName);
     }*/
     // Propagate value to planification form when automatic binding isn't set in super.setValue()
+   // this.planificationForm.entityName= 'strategy';
     this.planificationForm.setValueSimpleStrategy(data, opts);
 
 
     this.markAsPristine();
   }
+
+
+
+  protected async getJsonValueToSave(): Promise<any> {
+
+    const data = await super.getJsonValueToSave();
+    // TODO : get programId rom router
+    data.programId=40;
+    //Sample row code
+    data.label =  this.planificationForm.form.get("label").value;
+    //eotp
+    data.analyticReference=this.planificationForm.form.get("analyticReference").value;
+    //comments
+    data.description = this.planificationForm.form.get("description").value;
+
+
+
+
+
+    return data
+  }
+
+
+
 
 }
 

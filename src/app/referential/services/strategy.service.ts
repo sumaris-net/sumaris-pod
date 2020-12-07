@@ -279,6 +279,10 @@ const SaveStrategy: any = gql`
   ${StrategyFragments.referential}
   ${ReferentialFragments.fullPmfm}
   ${StrategyFragments.taxonName}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.fullReferential}
+
 `;
 const LoadAllStrategies: any = gql`
   query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
@@ -365,14 +369,15 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
   async save(entity: Strategy, options?: any): Promise<Strategy> {
 
     if (!entity) return entity;
+    //TODO : get current programId
+    entity.programId=40;
 
     // Clean cache
     //this.clearCache();
 
     // Fill default properties
     this.fillDefaultProperties(entity);
-    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-
+    const json = entity; //this.asObject(entity, SAVE_AS_OBJECT_OPTIONS); //
     const now = Date.now();
     if (this._debug) console.debug("[strategy-service] Saving strategy...", json);
 
@@ -546,11 +551,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     return res && res.suggestedStrategyNextLabel;
   }
 
-  protected copyIdAndUpdateDate(source: Strategy | undefined | any, target: Strategy) {
-    if (!source) return;
-    // Update (id and updateDate)
-    EntityUtils.copyIdAndUpdateDate(source, target);
-  }
+
   protected asObject(entity: Strategy, opts?: DataEntityAsObjectOptions): any {
     opts = {...MINIFY_OPTIONS, ...opts};
     const copy: any = entity.asObject(opts);
@@ -571,5 +572,34 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
         strategy.programId = isNotNil(program.id) ? program.id : undefined;
       });
       }*/
+  }
+  protected copyIdAndUpdateDate(source: Strategy, target: Strategy) {
+
+    EntityUtils.copyIdAndUpdateDate(source, target);
+
+    // Update strategies
+
+    // Make sure tp copy programId (need by equals)
+    target.programId = source.id;
+
+    const savedStrategy = source;
+    EntityUtils.copyIdAndUpdateDate(savedStrategy, target);
+
+    // Update pmfm strategy (id)
+    if (savedStrategy.pmfmStrategies && savedStrategy.pmfmStrategies.length > 0) {
+
+      target.pmfmStrategies.forEach(targetPmfmStrategy => {
+
+        // Make sure to copy strategyId (need by equals)
+        targetPmfmStrategy.strategyId = savedStrategy.id;
+
+        const savedPmfmStrategy = target.pmfmStrategies.find(srcPmfmStrategy => targetPmfmStrategy.equals(srcPmfmStrategy));
+        targetPmfmStrategy.id = savedPmfmStrategy.id;
+      });
+    }
+
+
+
+
   }
 }
