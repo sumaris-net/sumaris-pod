@@ -125,10 +125,10 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
   @Input() tabindex: number;
 
   @Output()
-  onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  onBlur = new EventEmitter<FocusEvent>();
 
   @Output()
-  onFocus: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  onFocus = new EventEmitter<FocusEvent>();
 
   @ViewChild('inputElement') inputElement: ElementRef;
 

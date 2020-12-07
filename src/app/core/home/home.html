@@ -151,7 +151,7 @@
                       mat-icon-button class="ion-float-start ion-no-margin">
                 <mat-icon>close</mat-icon>
               </button>
-              <ion-label [innerHTML]="page.subtitle"></ion-label>
+              <ion-label [innerHTML]="page.subtitle|translate"></ion-label>
               <ion-text class="ion-float-end" [title]="page.time|dateFormat:{time: true}">
                 <small><ion-icon name="time-outline"></ion-icon>&nbsp;{{ page.time|dateFromNow }}</small>&nbsp;
               </ion-text>
@@ -167,7 +167,7 @@
                 <ion-icon *ngIf="page.icon"    slot="start" [name]="page.icon"></ion-icon>
                 <mat-icon *ngIf="page.matIcon" slot="start">{{page.matIcon}}</mat-icon>
 
-                <ion-label color="primary" [innerHTML]="page.title"></ion-label>
+                <ion-label color="primary" [title]="page.title">{{page.title}}</ion-label>
               </ion-item>
             </ion-card-title>
           </ion-card-header>

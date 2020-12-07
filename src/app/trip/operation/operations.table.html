@@ -40,8 +40,8 @@
 </ion-item>
 
 <mat-table [dataSource]="dataSource" matSort
-           [matSortActive]="sortBy"
-           [matSortDirection]="sortDirection"
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">

@@ -20,6 +20,7 @@ import {animate, AnimationEvent, state, style, transition, trigger} from "@angul
 import {debounceTime, filter, first} from "rxjs/operators";
 import {AppFormHolder} from "../../core/form/form.utils";
 import {ProgramProperties} from "../services/config/program.config";
+import {HistoryPageReference} from "../../core/services/model/history.model";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -215,6 +216,15 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // Existing data
     return this.translate.get('PROGRAM.EDIT.TITLE', data).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      icon: 'contract',
+      title: `${this.data.label} - ${this.data.name}`,
+      subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
+    };
   }
 
   protected getFirstInvalidTabIndex(): number {

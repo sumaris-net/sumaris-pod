@@ -69,7 +69,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() listenStatusChanges: boolean;
 
   @Output('keyup.enter')
-  onPressEnter: EventEmitter<any> = new EventEmitter<any>();
+  onPressEnter = new EventEmitter<any>();
 
   get value(): any {
     return this.formControl.value;

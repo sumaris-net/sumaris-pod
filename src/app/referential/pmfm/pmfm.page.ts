@@ -16,6 +16,7 @@ import {MatAutocompleteFieldConfig} from "../../shared/material/material.autocom
 import {ParameterService} from "../services/parameter.service";
 import {filter, mergeMap} from "rxjs/operators";
 import {Observable} from "rxjs";
+import {HistoryPageReference} from "../../core/services/model/history.model";
 
 @Component({
   selector: 'app-pmfm',
@@ -236,6 +237,15 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
 
     // Existing data
     return this.translate.get('REFERENTIAL.PMFM.EDIT.TITLE', data).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      title: `${this.data.label} - ${this.data.name}`,
+      subtitle: 'REFERENTIAL.ENTITY.PMFM',
+      icon: 'list'
+    };
   }
 
   protected getFirstInvalidTabIndex(): number {

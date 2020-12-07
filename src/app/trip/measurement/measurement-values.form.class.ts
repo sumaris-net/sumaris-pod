@@ -44,7 +44,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   @Input() requiredGear = false;
 
   @Output()
-  valueChanges: EventEmitter<any> = new EventEmitter<any>();
+  valueChanges = new EventEmitter<any>();
 
   @Input()
   set program(value: string) {

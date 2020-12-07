@@ -38,7 +38,7 @@ export class TypedExpenseForm extends MeasurementsForm {
     this.setPmfms(pmfms);
   }
 
-  @Output() totalValueChanges: EventEmitter<any> = new EventEmitter<any>();
+  @Output() totalValueChanges = new EventEmitter<any>();
 
   get total(): number {
     return this.$totalPmfm.getValue() && this.form.get(this.$totalPmfm.getValue().pmfmId.toString()).value || 0;

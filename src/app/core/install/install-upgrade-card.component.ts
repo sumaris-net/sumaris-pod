@@ -27,7 +27,13 @@ import {ConfigOptions} from "../services/config/core.config";
 import {VersionUtils} from "../../shared/version/versions";
 
 
-export declare type InstallAppLink = { name: string; url: string; platform?: 'android' | 'ios'; version?: string; };
+export declare interface InstallAppLink {
+  name: string;
+  url: string;
+  platform?: 'android' | 'ios';
+  version?: string;
+  downloadFilename?: string;
+}
 
 @Component({
   selector: 'app-install-upgrade-card',
@@ -133,14 +139,16 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
     this._subscription.unsubscribe();
   }
 
-  downloadApp(event: UIEvent, link: InstallAppLink) {
-    event.preventDefault();
+  openDownloadLink(event: UIEvent, url: string) {
+    if (!url) return; // Skip
 
-    if (link && link.url) {
-      console.info(`[install] Opening App download link: ${link.url}`);
-      this.platform.open(link.url, '_system', 'location=yes');
-      return false;
+    if (event) {
+      event.preventDefault();
     }
+
+    console.info(`[install] Opening App download link: ${url}`);
+    this.platform.open(url, '_system', 'location=yes');
+    return false;
   }
 
   tryOnline() {
@@ -162,12 +170,16 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
   getPlatformName(platform: 'android'|'ios') {
     switch (platform) {
       case 'android':
-        return 'Android'
+        return 'Android';
       case 'ios':
-        return 'iOS'
+        return 'iOS';
       default:
-        return ''
+        return '';
     }
+  }
+
+  getAppFileName(): string {
+    return
   }
 
   /* -- protected method  -- */
@@ -210,9 +222,14 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
       let url = config.getProperty(ConfigOptions.ANDROID_INSTALL_URL);
       const name: string = isNotNilOrBlank(url) && config.label || environment.defaultAppName || 'SUMARiS';
       let version;
+      const filename = name;
       if (isNilOrBlank(url)) {
         url = environment.defaultAndroidInstallUrl || null;
       }
+      else {
+        version = config.getProperty(ConfigOptions.APP_MIN_VERSION);
+      }
+
       result.push({ name, url, platform: 'android', version });
     }
 

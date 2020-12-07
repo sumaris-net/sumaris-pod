@@ -10,6 +10,7 @@ import * as moment from "moment";
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
 import {SharedValidators} from "../../../shared/validator/validators";
+import {HistoryPageReference} from "../../../core/services/model/history.model";
 
 @Component({
   selector: 'app-vessel-page',
@@ -113,6 +114,14 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     }
 
     return await this.translate.get('VESSEL.EDIT.TITLE', data.features).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      icon: 'boat',
+      subtitle: 'MENU.VESSELS'
+    };
   }
 
   async cancel(): Promise<void> {
