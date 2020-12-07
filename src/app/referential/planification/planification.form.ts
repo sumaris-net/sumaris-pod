@@ -431,14 +431,14 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
       // this.pmfmStrategiesHelper.resize(0);
       // this.pmfmStrategiesHelper.add();
-      const sexControl = this.form.get("sex");
-      let sexPmfmStrategy =  data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
-      if (sexPmfmStrategy) {
-            // sexControl.patchValue(true);
-        }
-      else {
-        // sexControl.patchValue(false);
-      }
+      // const sexControl = this.form.get("sex");
+      // let sexPmfmStrategy =  data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
+      // if (sexPmfmStrategy) {
+      //       // sexControl.patchValue(true);
+      //   }
+      // else {
+      //   // sexControl.patchValue(false);
+      // }
 
 
       // MATURITY PMFMS
@@ -454,14 +454,14 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
       // AGE
-      const ageControl = this.form.get("age");
-      let agePmfmStrategy =  (data.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===   "AGE");
-      if (agePmfmStrategy) {
-        // ageControl.patchValue(true);
-      }
-      else {
-        // ageControl.patchValue(false);
-      }
+      // const ageControl = this.form.get("age");
+      // let agePmfmStrategy =  (data.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===   "AGE");
+      // if (agePmfmStrategy) {
+      //   // ageControl.patchValue(true);
+      // }
+      // else {
+      //   // ageControl.patchValue(false);
+      // }
 
 
         // CALCIFIED TYPES
