@@ -326,14 +326,14 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     super.setValue(data, opts);
     console.log(this.form);
 
-
+    if (data.label) {
       // SAMPLE ROW CODE
       const sampleRowCodeControl = this.form.get("label");
 
       // FIX Replace '_' by '-'
       let sampleRowValue = data.label.replace(/_/g, "-");
       sampleRowCodeControl.patchValue(sampleRowValue);
-
+    }
       // EOTP
       const eotpControl = this.form.get("analyticReference");
       let eotp = data.analyticReference;
