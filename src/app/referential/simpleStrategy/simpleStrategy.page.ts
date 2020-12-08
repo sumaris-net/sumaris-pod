@@ -174,8 +174,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     //comments
     data.description = this.planificationForm.form.get("description").value;
 
-
-
+    // FIXME A Adapter pour la création
+    data.name='test;'
+    data.statusId=1;
 
 
     return data
