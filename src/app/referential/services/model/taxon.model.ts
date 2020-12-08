@@ -1,4 +1,4 @@
-import {Entity, IReferentialRef, isNil, Referential, ReferentialRef} from "../../../core/core.module";
+import {Entity, IReferentialRef, isNil, isNotNil, Referential, ReferentialRef} from "../../../core/core.module";
 import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {uncapitalizeFirstLetter} from "../../../shared/functions";
 
@@ -30,7 +30,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
   }
 
   static equalsOrSameReferenceTaxon(v1: TaxonNameRef, v2: TaxonNameRef): boolean {
-    return ReferentialUtils.equals(v1, v2) || (v1 && v2 && v1.referenceTaxonId === v2.referenceTaxonId);
+    return ReferentialUtils.equals(v1, v2) || (v1 && v2 && isNotNil(v1.referenceTaxonId) && v1.referenceTaxonId === v2.referenceTaxonId);
   }
 
   label: string;

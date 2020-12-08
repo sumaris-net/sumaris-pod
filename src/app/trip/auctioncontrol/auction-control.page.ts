@@ -15,7 +15,6 @@ import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-auction-control',

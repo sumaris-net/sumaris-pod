@@ -62,22 +62,22 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected alertCtrl: AlertController,
-    protected toastController: ToastController,
-    protected translate: TranslateService,
+    route: ActivatedRoute,
+    router: Router,
+    alertCtrl: AlertController,
+    toastController: ToastController,
+    translate: TranslateService,
+    accountService: AccountService,
+    service: ExtractionService,
+    settings: LocalSettingsService,
+    formBuilder: FormBuilder,
+    platform: PlatformService,
+    modalCtrl: ModalController,
     protected location: Location,
-    protected modalCtrl: ModalController,
-    protected accountService: AccountService,
-    protected service: ExtractionService,
     protected aggregationService: AggregationService,
-    protected settings: LocalSettingsService,
-    protected formBuilder: FormBuilder,
-    protected platform: PlatformService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform);
+    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
@@ -114,7 +114,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
           this.paginator.pageIndex = 0;
         }
 
-        return this.loadData();
+        return this.loadGeoData();
       });
   }
 
@@ -365,22 +365,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   }
 
-  async openHelpModal(event?: UIEvent) {
-    const modal = await this.modalCtrl.create({
-      component: ExtractionHelpModal,
-      componentProps: {
-        type: this.type
-      },
-      keyboardClose: true,
-      cssClass: 'modal-large'
-    });
-
-    // Open the modal
-    await modal.present();
-
-    // Wait until closed
-    await modal.onDidDismiss();
-  }
 
   /* -- protected method -- */
 
@@ -398,7 +382,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       );
   }
 
-  async loadData() {
+  async loadGeoData() {
 
     if (!this.type || !this.type.category || !this.type.label) return; // skip
 
