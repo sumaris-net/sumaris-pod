@@ -47,7 +47,7 @@
   <!-- Change base layer -->
   <button mat-menu-item [matMenuTriggerFor]="baseLayerMenu" translate>EXTRACTION.MAP.BASE_LAYER</button>
   <mat-menu #baseLayerMenu="matMenu">
-    <button mat-menu-item *ngFor="let item of baseLayers" (click)="setBaseLayer(item.layer)">
+    <button mat-menu-item *ngFor="let item of availableBaseLayers" (click)="setBaseLayer(item.layer)">
       <ion-icon *ngIf="baseLayer === item.layer" name="checkmark"></ion-icon>
       {{item.title|translate}}
     </button>
@@ -57,6 +57,12 @@
   <button mat-menu-item (click)="toggleGraticule()">
     <ion-icon *ngIf="showGraticule" name="checkmark"></ion-icon>
     <span translate> EXTRACTION.MAP.SHOW_GRATICULE</span>
+  </button>
+
+  <!-- Show countries layer -->
+  <button mat-menu-item (click)="toggleShowCountriesLayer()">
+    <ion-icon *ngIf="!showCountriesLayer" name="checkmark"></ion-icon>
+    <span translate> EXTRACTION.MAP.SHOW_INVALID_GEOMETRIES</span>
   </button>
 </mat-menu>
 
@@ -406,7 +412,7 @@
                   *ngIf="showLegend"
                   [ngStyle]="legendStyle"
                   @fadeInAnimation>
-          <ion-card-header (click)="openLegendForm($event)">
+          <ion-card-header (click)="openLegendForm($event)" [matTooltip]="'EXTRACTION.MAP.BTN_EDIT_LEGEND_HELP'|translate">
             <ion-card-subtitle>
               <ion-label>
                 <span translate>EXTRACTION.MAP.LEGEND</span>
@@ -553,8 +559,11 @@
   <!-- Leaflet map -->
   <div *ngIf="ready"
        leaflet
+       class="leaflet-reset-pane-z-index"
        (leafletMapReady)="onMapReady($event)"
        [leafletOptions]="mapOptions">
+
+    <div *ngIf="showCountriesLayer" [leafletLayer]="countriesLayer"></div>
 
     <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
 

@@ -1230,6 +1230,7 @@
       "BTN_ANIMATION_PLAY": "Play animation",
       "BTN_ANIMATION_PAUSE": "Stop animation",
       "BTN_CHART_SERIES_HELP": "Click here to change chart series",
+      "BTN_EDIT_LEGEND_HELP": "Customize legend",
       "LAYER": "Layer",
       "LAYERS": "Data layers",
       "BASE_LAYER": "Base layer",

@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  NgZone,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, ViewChild} from "@angular/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {ExtractionService} from "../services/extraction.service";
 import {BehaviorSubject, Observable, Subject, Subscription, timer} from "rxjs";
@@ -18,7 +10,8 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNumber,
-  isNumberRange, sleep
+  isNumberRange,
+  sleep
 } from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion} from "../services/model/extraction.model";
@@ -26,7 +19,7 @@ import {Location} from "@angular/common";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
-import {CRS, point, WMSParams} from 'leaflet';
+import {CRS, GeoJSON, MapOptions, WMSParams} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -40,7 +33,7 @@ import {AggregationTypeValidatorService} from "../services/validator/aggregation
 import {AppFormUtils} from "../../core/core.module";
 import {MatExpansionPanel} from "@angular/material/expansion";
 import {Label, SingleOrMultiDataSet} from "ng2-charts";
-import {ChartLegendOptions, ChartOptions, ChartType, LinearScale} from "chart.js";
+import {ChartLegendOptions, ChartOptions, ChartType} from "chart.js";
 import {DEFAULT_CRITERION_OPERATOR} from "../table/extraction-table.page";
 import {DurationPipe} from "../../shared/pipes/duration.pipe";
 import {AggregationStrata, AggregationType, IAggregationStrata} from "../services/model/aggregation-type.model";
@@ -68,13 +61,13 @@ const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:sche
   '   <sld:NamedLayer>' +
   '      <sld:Name>ESPACES_TERRESTRES_P</sld:Name>' +
   '      <sld:UserStyle>' +
-  '         <sld:Name>pointSymbolizer</sld:Name>' +
-  '         <sld:Title>pointSymbolizer</sld:Title>' +
+  '         <sld:Name>polygonSymbolizer</sld:Name>' +
+  '         <sld:Title>polygonSymbolizer</sld:Title>' +
   '         <sld:FeatureTypeStyle>' +
   '            <sld:Rule>' +
   '               <sld:PolygonSymbolizer>' +
   '                  <sld:Fill>' +
-  '                     <sld:CssParameter name="fill">#666666</sld:CssParameter>' + // 8C8C8C
+  '                     <sld:CssParameter name="fill">#8C8C8C</sld:CssParameter>' +
   '                     <sld:CssParameter name="fill-opacity">1</sld:CssParameter>' +
   '                  </sld:Fill>' +
   '               </sld:PolygonSymbolizer>' +
@@ -114,39 +107,40 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     crs: CRS.EPSG3857,
     format: "image/png",
     transparent: true,
-    attribution: "<a href='https://www.ifremer.fr'>Ifremer</a>"
+    zIndex: 9999, // Important, to bring this layer to top
+    attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
   }).setParams({
     layers: "ESPACES_TERRESTRES_P",
     service: 'WMS',
     sld_body: BASE_LAYER_SLD_BODY
   } as WMSParams);
-
-  sextantGraticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
+  graticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
     maxZoom: 18,
     version: '1.3.0',
     crs: CRS.EPSG3857,
     format: "image/png",
     transparent: true,
-    attribution: "<a href='https://www.ifremer.fr'>Ifremer</a>"
+    attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
   }).setParams({
     layers: "graticule_4326",
     service: 'WMS'
   });
-  mapOptions = {
-    layers: [this.sextantBaseLayer],
+  baseLayer: L.TileLayer = this.sextantBaseLayer;
+  availableBaseLayers = [
+    {title: 'Sextant (Ifremer)', layer: this.sextantBaseLayer},
+    {title: 'Open Street Map', layer: this.osmBaseLayer}
+  ];
+  mapOptions: MapOptions = {
+    preferCanvas: false,
+    layers: [this.baseLayer],
     maxZoom: 10, // max zoom to sextant layer
     zoom: 5,
     center: L.latLng(46.879966, -10) // Atlantic centric
   };
-  baseLayer: L.TileLayer = this.mapOptions.layers[0];
-  baseLayers = [
-    {title: 'Sextant (Ifremer)', layer: this.sextantBaseLayer},
-    {title: 'Open Street Map', layer: this.osmBaseLayer}
-  ];
   map: L.Map;
-  $layers = new BehaviorSubject<L.GeoJSON<L.Polygon>[]>(null);
+  $layers = new BehaviorSubject<L.Layer[]>(null);
   showGraticule = false;
-
+  showCountriesLayer = true;
 
   // -- Legend card --
   showLegend = false;
@@ -332,11 +326,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
       this.onRefresh.pipe(
         // avoid multiple load)
         filter(() => this.ready && isNotNil(this.type) && (!this.loading || !!this.animation)),
-        switchMap(() => {
-          console.debug('[extraction-map] Refreshing...');
-          return this.loadGeoData();
-        })
+        switchMap(() => this.loadGeoData())
       ).subscribe(() => this.markAsPristine()));
+
   }
 
   ngOnInit() {
@@ -362,6 +354,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
 
   onMapReady(leafletMap: L.Map) {
     this.map = leafletMap;
+
     this.zone.run(() => {
       this.start.bind(this);
     });
@@ -638,9 +631,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
       let offset = 0;
       const size = 3000;
 
-      const layers = [];
       const layer = L.geoJSON(null, {
-        onEachFeature: this.onEachFeature.bind(this)
+        onEachFeature: this.onEachFeature.bind(this),
+        style: {
+          className: 'geojson-shape'
+        }
       });
       let total = 0;
       const aggColumnName = strata.aggColumnName;
@@ -680,8 +675,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
 
       if (total === 0) {
         console.debug(`[extraction-map] No data found, in ${Date.now() - now}ms`);
-
-        this.$layers.next(layers);
+        // Clean layers
+        this.$layers.next([]);
+        // Hide chart
         this.$tech.next(null);
       } else {
 
@@ -700,19 +696,19 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
         layer.setStyle(this.getFeatureStyleFn(scale, aggColumnName));
         this.updateLegendStyle(scale);
 
-        // Remove existing layers
-        (this.$layers.getValue() || []).forEach(layer => layer.remove());
-
         // Refresh layers
         this.$layers.next([layer]);
+
+        // Refresh layers
         console.debug(`[extraction-map] ${total} geometries loaded in ${Date.now() - now}ms (${Math.floor(offset / size)} slices)`);
 
         // Load tech data (wait end if animation is running)
         if (this.showTechChart) {
           await this.loadTechData(this.type, strata, filter);
         }
-
       }
+
+
 
     } catch (err) {
       console.error(err);
@@ -826,13 +822,22 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
   fitToBounds() {
     if (!this.started) return;
 
-    // Fit to bounds (only first)
     const layers = this.$layers.getValue();
-    if (layers.length) {
-      const bounds = layers[0].getBounds();
-      if (bounds.isValid()) {
-        this.map.fitBounds(bounds, {maxZoom: 10});
+    if (isEmptyArray(layers)) return; // Skip
+
+    const done = (layers || []).findIndex(layer => {
+      // Find the first GeoJSON layer, then fit to bounds
+      if (layer && layer instanceof GeoJSON) {
+        const bounds = layer.getBounds();
+        if (bounds.isValid()) {
+          this.map.fitBounds(bounds, {maxZoom: 10});
+          return true;
+        }
       }
+      return false;
+    }) !== -1;
+    if (!done) {
+      console.warn("[extraction-map] Cannot fit to bound. GeoJSON layer not found.");
     }
   }
 
@@ -1036,19 +1041,24 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
   toggleGraticule() {
 
     // Make sure value is correct
-    this.showGraticule = this.showGraticule && this.map.hasLayer(this.sextantGraticuleLayer);
+    this.showGraticule = this.showGraticule && this.map.hasLayer(this.graticuleLayer);
 
     // Inverse value
     this.showGraticule = !this.showGraticule;
 
     // Add or remove layer
     if (this.showGraticule) {
-      this.sextantGraticuleLayer.addTo(this.map);
+      this.graticuleLayer.addTo(this.map);
       this.showGraticule = true;
     }
     else {
-      this.map.removeLayer(this.sextantGraticuleLayer);
+      this.map.removeLayer(this.graticuleLayer);
     }
+  }
+
+  toggleShowCountriesLayer() {
+    this.showCountriesLayer = !this.showCountriesLayer;
+    this.markForCheck();
   }
 
   setTechChartOption(value: Partial<TechChartOptions>, opts?: { emitEvent?: boolean; }) {
@@ -1100,7 +1110,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
 
     if (this.map.hasLayer(layer)) return; // Skip
 
-    this.baseLayers.forEach(item => {
+    this.availableBaseLayers.forEach(item => {
       if (item.layer === layer) {
         this.map.addLayer(item.layer);
         this.baseLayer = layer;
