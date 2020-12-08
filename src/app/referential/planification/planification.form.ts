@@ -207,7 +207,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // fishingArea autocomplete
     this.registerAutocompleteField('fishingArea', {
       suggestFn: (value, filter) => this.suggest(value, {
-          ...filter, statusId : 0, levelId : 111
+          ...filter, statusId : 1, Id : 111
         },
         'Location',
         this.enableFishingAreaFilter),
