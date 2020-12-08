@@ -123,7 +123,9 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    @Cacheable(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT, condition = " #format != null", unless = "#result == null")
+    @Cacheable(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT,
+            key = "#format.category + #format.label + #format.version",
+            condition = " #format != null", unless = "#result == null")
     public AggregationTypeVO getTypeByFormat(IExtractionFormat format) {
         return ExtractionFormats.findOneMatch(getAllAggregationTypes(null), format);
     }

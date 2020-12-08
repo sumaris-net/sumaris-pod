@@ -37,7 +37,6 @@ import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
@@ -115,8 +114,6 @@ public class ProgramGraphQLService {
         return referentialService.countByFilter(Program.class.getSimpleName(), filter);
     }
 
-
-
     @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")
     public ReferentialVO getProgramTaxonGroupType(@GraphQLContext ProgramVO program) {
         if (program.getTaxonGroupTypeId() != null && program.getTaxonGroupType() == null) {
@@ -165,7 +162,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
     public List<TaxonNameVO> getTaxonGroupTaxonNames(@GraphQLContext TaxonGroupVO taxonGroup) {
         if (taxonGroup.getId() != null) {
-            return taxonNameService.getAllByTaxonGroup(taxonGroup.getId());
+            return taxonNameService.getAllByTaxonGroupId(taxonGroup.getId());
         }
         return null;
     }
