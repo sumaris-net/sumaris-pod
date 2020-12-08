@@ -1,4 +1,4 @@
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {fromDateISOString, isNil, isNilOrBlank, isNotNil, toDateISOString} from "../../../shared/functions";
 import {
   NOT_MINIFY_OPTIONS,

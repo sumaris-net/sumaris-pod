@@ -1,4 +1,4 @@
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
 import {PredefinedColors} from "@ionic/core";
 import {fromDateISOString} from "../../../shared/functions";

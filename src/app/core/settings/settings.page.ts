@@ -6,7 +6,7 @@ import {Peer} from '../services/model/peer.model';
 import {referentialToString} from '../services/model/referential.model';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AppForm} from '../form/form.class';
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {FormArrayHelper} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";

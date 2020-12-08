@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";

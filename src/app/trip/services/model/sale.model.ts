@@ -1,6 +1,6 @@
 import {Person} from "../../../core/services/model/person.model";
 import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {Sample} from "./sample.model";
 import {Measurement, MeasurementUtils} from "./measurement.model";

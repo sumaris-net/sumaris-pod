@@ -10,7 +10,9 @@ import {AppTableDataSourceOptions, EntitiesTableDataSource} from "./entities-tab
 import {AppTable} from "./table.class";
 import {Entity} from "../services/model/entity.model";
 
+// @dynamic
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends AppTable<T, F> {
 
   @Input() canEdit = false;
@@ -28,7 +30,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
     return this._dirty || this.memoryDataService.dirty;
   }*/
 
-  constructor(
+  protected constructor(
     protected injector: Injector,
     protected columns: string[],
     protected dataType: new () => T,

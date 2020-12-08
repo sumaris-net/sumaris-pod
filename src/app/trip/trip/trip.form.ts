@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/validator/trip.validator";
 import {ModalController} from "@ionic/angular";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocationLevelIds,} from "../../referential/services/model/model.enum";
 

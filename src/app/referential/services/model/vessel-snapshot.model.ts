@@ -1,4 +1,4 @@
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
 import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
 import {Vessel} from "./vessel.model";

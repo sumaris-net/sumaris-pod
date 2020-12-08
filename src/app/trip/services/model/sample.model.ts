@@ -5,7 +5,7 @@ import {
   ReferentialRef, referentialToString,
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {ITreeItemEntity} from "../../../core/services/model/entity.model";

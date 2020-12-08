@@ -1,11 +1,10 @@
 import {Component, Inject, InjectionToken, Optional} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
-import {APP_MENU_ITEMS, MenuItem} from "../../../core/menu/menu.component";
 import {TranslateService} from "@ngx-translate/core";
 
 export declare interface TestingPage {
   label: string;
-  page; string
+  page: string;
 }
 
 export const APP_TESTING_PAGES = new InjectionToken<TestingPage[]>('testingPages');
