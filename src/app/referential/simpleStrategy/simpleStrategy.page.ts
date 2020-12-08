@@ -170,7 +170,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     //Sample row code
     data.label =  this.planificationForm.form.get("label").value;
     //eotp
-    data.analyticReference=this.planificationForm.form.get("analyticReference").value;
+    data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
     //comments
     data.description = this.planificationForm.form.get("description").value;
 
