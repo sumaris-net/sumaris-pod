@@ -3,7 +3,7 @@ import {Directive, Injector, OnInit} from '@angular/core';
 import {ReferentialRef} from '../../core/core.module';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {isNil, isNotNil, isNotNilOrBlank} from '../../shared/functions';
-import {distinctUntilChanged, filter, switchMap} from "rxjs/operators";
+import {distinctUntilChanged, filter, switchMap, tap} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
 import {ProgramService} from "../../referential/services/program.service";
 import {EntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
@@ -32,7 +32,7 @@ export abstract class AppRootDataEditor<
   autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
   programSubject = new BehaviorSubject<string>(null);
-  onProgramChanged = new Subject<Program>();
+  onProgramChanged = new BehaviorSubject<Program>(null);
 
   protected constructor(
     injector: Injector,
@@ -66,10 +66,10 @@ export abstract class AppRootDataEditor<
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel))
+          switchMap(programLabel => this.programService.watchByLabel(programLabel)),
+          tap(program => this.onProgramChanged.next(program))
         )
-        .subscribe(program => this.onProgramChanged.next(program))
-    );
+        .subscribe());
   }
 
   async load(id?: number, options?: EntityServiceLoadOptions) {
@@ -105,21 +105,19 @@ export abstract class AppRootDataEditor<
     return isNil(data.validationDate) && this.programService.canUserWrite(data);
   }
 
+  /**
+   * Listen program changes (only if new data)
+   * @protected
+   */
   protected startListenProgramChanges() {
-
-    // If new entity
-    if (this.isNewData) {
-
-      // Listen program changes (only if new data)
-      this.registerSubscription(this.form.controls['program'].valueChanges
+    this.registerSubscription(
+      this.form.controls.program.valueChanges
         .subscribe(program => {
           if (ReferentialUtils.isNotEmpty(program)) {
             console.debug("[root-data-editor] Propagate program change: " + program.label);
             this.programSubject.next(program.label);
           }
-        })
-      );
-    }
+        }));
   }
 
   /**

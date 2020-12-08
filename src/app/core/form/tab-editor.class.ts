@@ -139,7 +139,9 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
               this.selectedTabIndex = this.queryParams[this.queryTabIndexParamName];
             }
           }
-          this.tabGroup.realignInkBar();
+
+          // Realign tab, after a delay because the tab can be disabled when component is created
+          setTimeout(() => this.tabGroup.realignInkBar(), 500);
         }));
     }
 

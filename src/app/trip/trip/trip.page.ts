@@ -24,10 +24,11 @@ import {PromiseEvent} from "../../shared/events";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {filter} from "rxjs/operators";
+import {debounceTime, filter} from "rxjs/operators";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {Alerts} from "../../shared/alerts";
+import {Program} from "../../referential/services/model/program.model";
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -88,34 +89,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(program => {
-          if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
-          this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
-          this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
-          if (!this.tripForm.showObservers) {
-            this.data.observers = []; // make sure to reset data observers, if any
-          }
-          this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
-          if (!this.tripForm.showMetiers) {
-            this.data.metiers = []; // make sure to reset data metiers, if any
-          }
-          this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
-          this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
-          this.operationTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
-
-          if (this.isNewData) {
-            // If new data, enable gears tab
-            this.showGearTable = true;
-            // BUT leave operation gear have been filled
-            this.showOperationTable = false;
-          }
-        })
-    );
+      this.onProgramChanged.subscribe(program => this.setProgram(program)));
 
     // Cascade refresh to operation tables
-    this.onUpdateView.subscribe(() => this.operationTable.onRefresh.emit());
+    this.registerSubscription(
+      this.onUpdateView
+        .pipe(debounceTime(200))
+        .subscribe(() => this.operationTable.onRefresh.emit()));
 
+    // Before delete gears, check if used in operations
     this.registerSubscription(
       this.physicalGearTable.onBeforeDeleteRows
         .subscribe(async (event) => {
@@ -124,7 +106,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           const usedGears = rows.map(row => row.currentData)
             .filter(gear => usedGearIds.includes(gear.id));
 
-          const canDelete = (usedGears.length == 0);
+          const canDelete = (usedGears.length === 0);
           event.detail.success(canDelete);
           if (!canDelete) {
             await Alerts.showError('TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE_USED_GEAR_HELP',
@@ -134,6 +116,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           }
         }));
 
+    // Allow to show operations tab, when add gear
     this.registerSubscription(
       this.physicalGearTable.onConfirmEditCreateRow
         .subscribe((_) => this.showOperationTable = true));
@@ -144,6 +127,32 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.tripForm, this.saleForm, this.measurementsForm,
       this.physicalGearTable
     ]);
+  }
+
+  protected setProgram(program: Program) {
+    if (!program) return; // Skip
+
+    if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
+    this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
+    this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
+    if (!this.tripForm.showObservers) {
+      this.data.observers = []; // make sure to reset data observers, if any
+    }
+    this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
+    if (!this.tripForm.showMetiers) {
+      this.data.metiers = []; // make sure to reset data metiers, if any
+    }
+    this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
+    this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
+    this.operationTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+
+    if (this.isNewData) {
+      // If new data, enable gears tab
+      this.showGearTable = true;
+      // BUT leave operation gear have been filled
+      this.showOperationTable = false;
+    }
+    this.markForCheck();
   }
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
@@ -204,8 +213,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Enable gears tab if a program has been selected
     this.showGearTable = !this.isNewData || ReferentialUtils.isNotEmpty(this.programSubject.getValue());
 
-    // ENable operation tab if has gears
-    this.showOperationTable = this.showGearTable && isNotEmptyArray(data.gears);
+    // Enable operations tab if has gears
+    this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
   protected async setValue(data: Trip): Promise<void> {
