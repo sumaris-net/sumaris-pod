@@ -9,7 +9,7 @@ export const SHARED_ROUTE_OPTIONS: ExtraOptions = {
     useHash: false,
     onSameUrlNavigation: 'reload',
     preloadingStrategy: QuicklinkStrategy,
-    relativeLinkResolution: "legacy"
+    relativeLinkResolution: "corrected"
 };
 
 @Injectable()

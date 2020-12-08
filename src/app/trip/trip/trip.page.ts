@@ -254,7 +254,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.loading = true;
       this.markForCheck();
       try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
+        await this.router.navigate(['operations', 'new'], {
+          relativeTo: this.route
+        });
       }
       finally {
         this.loading = false;
