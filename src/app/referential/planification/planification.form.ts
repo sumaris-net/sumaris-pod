@@ -442,7 +442,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       // SEX
 
       const pmfmStrategiesControl = this.pmfmStrategiesForm;
-      this.pmfmStrategiesHelper.resize(5);
+      this.pmfmStrategiesHelper.resize(2);
 
       let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "AGE");
       let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
@@ -459,7 +459,8 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         // this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy || [];
       }
 
-    let pmfmStrategies = [ sex ? true : false, age ? true : false, weightPmfmStrategy, sizePmfmStrategy, maturityPmfmStrategy]
+    // let pmfmStrategies = [ sex ? true : false, age ? true : false, weightPmfmStrategy, sizePmfmStrategy, maturityPmfmStrategy];
+    let pmfmStrategies = [ sex ? true : false, age ? true : false];
     pmfmStrategiesControl.patchValue(pmfmStrategies);
 
 
