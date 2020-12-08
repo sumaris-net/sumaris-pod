@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {base58, CryptoService, KeyPair} from "./crypto.service";
+import {CryptoService, KeyPair} from "./crypto.service";
 import {Department} from "./model/department.model";
 import {Account} from "./model/account.model";
 import {Person, PersonUtils, UserProfileLabel} from "./model/person.model";
@@ -20,6 +20,7 @@ import {NetworkService} from "./network.service";
 import {FileService} from "../../shared/file/file.service";
 import {Referential, ReferentialUtils} from "./model/referential.model";
 import {StatusIds} from "./model/model.enum";
+import {Base58} from "./base58";
 
 
 export declare interface AccountHolder {
@@ -393,7 +394,7 @@ export class AccountService extends BaseEntityService {
 
     try {
       const keypair = await this.cryptoService.scryptKeypair(data.username, data.password);
-      data.account.pubkey = base58.encode(keypair.publicKey);
+      data.account.pubkey = Base58.encode(keypair.publicKey);
 
       // Default values
       data.account.settings.locale = this.settings.locale;
@@ -443,7 +444,7 @@ export class AccountService extends BaseEntityService {
     }
 
     // Store pubkey+keypair
-    this.data.pubkey = base58.encode(keypair.publicKey);
+    this.data.pubkey = Base58.encode(keypair.publicKey);
     this.data.keypair = keypair;
 
     // Try to load previous token
@@ -594,8 +595,8 @@ export class AccountService extends BaseEntityService {
 
     this.data.pubkey = pubkey;
     this.data.keypair = seckey && {
-      publicKey: base58.decode(pubkey),
-      secretKey: base58.decode(seckey)
+      publicKey: Base58.decode(pubkey),
+      secretKey: Base58.decode(seckey)
     } || null;
 
     // Online mode: try to connect to pod
@@ -658,7 +659,7 @@ export class AccountService extends BaseEntityService {
 
     // Convert account to json
     const jsonAccount = this.data.account.asObject({keepTypename: true});
-    const seckey = this.data.keypair && this.data.keypair.secretKey && base58.encode(this.data.keypair.secretKey) || null;
+    const seckey = this.data.keypair && this.data.keypair.secretKey && Base58.encode(this.data.keypair.secretKey) || null;
 
     // Convert avatar URL to dataUrl (e.g. 'data:image/png:<base64 content>')
     const hasAvatarUrl = jsonAccount.avatar && !jsonAccount.avatar.endsWith(DEFAULT_AVATAR_IMAGE) &&
@@ -810,7 +811,7 @@ export class AccountService extends BaseEntityService {
    * @param keyPair
    */
   public async saveAccount(account: Account, keyPair: KeyPair): Promise<Account> {
-    account.pubkey = account.pubkey || base58.encode(keyPair.publicKey);
+    account.pubkey = account.pubkey || Base58.encode(keyPair.publicKey);
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[account] Saving account {${account.pubkey.substring(0, 6)}} remotely...`);

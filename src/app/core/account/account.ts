@@ -7,7 +7,7 @@ import {UserSettingsValidatorService} from '../services/validator/user-settings.
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {AccountValidatorService} from '../services/validator/account.validator';
 import {AppForm} from '../form/form.class';
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {AppFormUtils} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";

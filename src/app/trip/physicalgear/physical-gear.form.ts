@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {distinctUntilChanged, filter} from 'rxjs/operators';
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";

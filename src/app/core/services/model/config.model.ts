@@ -1,4 +1,4 @@
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {fromDateISOString, isNotNil, toDateISOString} from "../../../shared/functions";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {Entity, EntityAsObjectOptions, EntityUtils, IEntity} from "./entity.model";

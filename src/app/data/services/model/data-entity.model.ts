@@ -1,4 +1,4 @@
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
 import {IWithRecorderDepartmentEntity} from "./model.utils";
 import {Entity} from "../../../core/services/model/entity.model";

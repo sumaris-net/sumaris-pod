@@ -1,4 +1,4 @@
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {fromDateISOString, toDateISOString} from "../../../shared/functions";
 import {ReferentialAsObjectOptions} from "./referential.model";
 import {Entity} from "./entity.model";

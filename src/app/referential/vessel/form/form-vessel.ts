@@ -3,7 +3,7 @@ import {VesselValidatorService} from "../../services/validator/vessel.validator"
 import {Vessel} from "../../services/model/vessel.model";
 import {LocationLevelIds} from "../../services/model/model.enum";
 import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {AppForm, AppFormUtils, StatusIds} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';

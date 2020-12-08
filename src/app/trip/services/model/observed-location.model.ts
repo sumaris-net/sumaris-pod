@@ -1,5 +1,5 @@
 import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Landing} from "./landing.model";
 import {
