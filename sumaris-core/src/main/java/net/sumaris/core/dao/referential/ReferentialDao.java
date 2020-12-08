@@ -23,7 +23,6 @@ package net.sumaris.core.dao.referential;
  */
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -56,11 +55,11 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public interface ReferentialDao {
 
-    Map<String, Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES = Maps.uniqueIndex(
-            ImmutableList.of(
+    List<Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES = ImmutableList.of(
                     Status.class,
                     Department.class,
                     Location.class,
@@ -113,17 +112,30 @@ public interface ReferentialDao {
                     // Technical
                     SystemVersion.class,
                     OriginItemType.class
-            ), Class::getSimpleName);
+            );
 
-    //interface QueryVisitor<R, T> {
-    //    Expression<Boolean> apply(CriteriaQuery<R> query, Root<T> root);
-    //}
+    List<Class<? extends IReferentialEntity>> LAST_UPDATE_DATE_CLASSES_EXCLUDES = ImmutableList.of(
+            // Product
+            ExtractionProduct.class,
+            ExtractionProductTable.class,
+            // Software
+            Software.class,
+            // Technical
+            SystemVersion.class
+    );
+
+    Collection<String> LAST_UPDATE_DATE_ENTITY_NAMES = REFERENTIAL_CLASSES
+            .stream().filter(c -> !LAST_UPDATE_DATE_CLASSES_EXCLUDES.contains(c))
+            .map(Class::getSimpleName)
+            .collect(Collectors.toList());
 
     ReferentialVO get(String entityName, int id);
 
     ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id);
 
-    Date getLastUpdateDate();
+    default Date getLastUpdateDate() {
+        return getLastUpdateDate(LAST_UPDATE_DATE_ENTITY_NAMES);
+    }
 
     Date getLastUpdateDate(Collection<String> entityNames);
 

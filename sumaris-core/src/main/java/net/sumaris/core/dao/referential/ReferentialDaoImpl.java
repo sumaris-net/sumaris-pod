@@ -24,6 +24,7 @@ package net.sumaris.core.dao.referential;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -84,7 +85,9 @@ public class ReferentialDaoImpl
 
     private static final Logger log = LoggerFactory.getLogger(ReferentialDaoImpl.class);
 
-
+    private final Map<String, Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES_BY_NAME = Maps.uniqueIndex(
+            REFERENTIAL_CLASSES,
+            Class::getSimpleName);
 
     private final Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
 
@@ -128,7 +131,7 @@ public class ReferentialDaoImpl
         Map<String, PropertyDescriptor> result = new HashMap<>();
 
         // Detect level properties, by name
-        REFERENTIAL_CLASSES.values().forEach((clazz) -> {
+        REFERENTIAL_CLASSES.forEach((clazz) -> {
             PropertyDescriptor[] pds = BeanUtils.getPropertyDescriptors(clazz);
             Arrays.stream(pds)
                 .filter(propertyDescriptor -> propertyDescriptor.getName().matches("^.*[Ll]evel([A−Z].*)?$"))
@@ -220,11 +223,6 @@ public class ReferentialDaoImpl
     }
 
     @Override
-    public Date getLastUpdateDate() {
-        return getLastUpdateDate(REFERENTIAL_CLASSES.keySet());
-    }
-
-    @Override
     public Date getLastUpdateDate(Collection<String> entityNames) {
         return entityNames.parallelStream()
             .map(entityName -> {
@@ -243,7 +241,7 @@ public class ReferentialDaoImpl
     @Override
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
     public List<ReferentialTypeVO> getAllTypes() {
-        return REFERENTIAL_CLASSES.keySet().stream()
+        return REFERENTIAL_CLASSES_BY_NAME.keySet().stream()
             .map(this::getTypeByEntityName)
             .collect(Collectors.toList());
     }
@@ -770,7 +768,7 @@ public class ReferentialDaoImpl
         Preconditions.checkNotNull(entityName);
 
         // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = REFERENTIAL_CLASSES.get(entityName);
+        Class<? extends IReferentialEntity> entityClass = REFERENTIAL_CLASSES_BY_NAME.get(entityName);
         if (entityClass == null)
             throw new IllegalArgumentException(String.format("Referential entity [%s] not exists", entityName));
 

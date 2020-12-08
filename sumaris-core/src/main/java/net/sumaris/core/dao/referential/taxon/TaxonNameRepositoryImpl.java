@@ -101,6 +101,7 @@ public class TaxonNameRepositoryImpl
             TaxonNameFilterVO.builder()
                 .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()})
                 .taxonGroupId(taxonGroupId)
+                .withSynonyms(false)
                 .build(),
             Pageable.unpaged()
         );
@@ -135,5 +136,21 @@ public class TaxonNameRepositoryImpl
                 .createNamedQuery("TaxonName.referenceTaxonIdById", Integer.class)
                 .setParameter("id", id)
                 .getSingleResult();
+    }
+
+    @Override
+    protected void toVO(TaxonName source, TaxonNameVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
+        super.toVO(source, target, fetchOptions, copyIfNull);
+
+        // Convert boolean -> Boolean
+        target.setIsReferent(source.isReferent());
+        target.setIsNaming(source.isNaming());
+        target.setIsVirtual(source.isVirtual());
+
+         // Reference taxon id
+        target.setReferenceTaxonId(source.getReferenceTaxon().getId());
+
+        // Taxonomic level id
+        target.setTaxonomicLevelId(source.getTaxonomicLevel().getId());
     }
 }
