@@ -36,7 +36,7 @@
     "BTN_UNDO": "Annuler les modifications",
     "BTN_TABLE_EDIT": "Editer dans le tableau",
     "BTN_TABLE_OPEN": "Editer dans un formulaire",
-    "BTN_SHOW_HELP": "Voir l'aide",
+    "BTN_SHOW_HELP": "Aide en ligne",
     "BTN_HIDE": "Masquer",
     "BTN_HIDE_MENU": "Masquer le menu",
     "BTN_SHOW_MENU": "Afficher le menu",
@@ -200,7 +200,7 @@
     "MAP": "Cartes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "LOCAL_SETTINGS": "Paramètres",
-    "SERVER": "Gestion du serveur",
+    "SERVER": "Configuration serveur",
     "LOGOUT": "Se déconnecter",
     "ABOUT": "À propos"
   },
@@ -1177,7 +1177,7 @@
         "STRATUM_DOTS": "Strates :",
         "FORMAT_DOTS": "Documentation :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
-        "FORMAT_PLACEHOLDER": "Documentation du format",
+        "FORMAT_PLACEHOLDER": "Describe the output format...",
         "FORMAT_PREVIEW": "Prévisualisation",
         "STRATA": {
           "SHEET_NAME": "Onglet",
@@ -1222,16 +1222,20 @@
     },
     "MAP": {
       "BTN_SELECT_TYPE": "Liste des cartes",
+      "BTN_SELECT_TYPE_HELP": "Affiche la liste des cartes disponibles",
       "BTN_SELECT_AGG": "Indicateur ?",
-      "BTN_ADD_TECH_GRAPH": "Ajouter un graphique",
+      "BTN_ADD_CHART": "Graphique...",
+      "BTN_ADD_CHART_HELP": "Ajouter un graphique",
       "BTN_EDIT": "Editer",
       "BTN_ANIMATION_PLAY": "Lancer l'animation",
       "BTN_ANIMATION_PAUSE": "Stopper l'animation",
-      "TITLE_PREFIX": "Carte",
+      "BTN_CHART_SERIES_HELP": "Cliquez ici pour changer la série du graphique",
+      "BTN_EDIT_LEGEND_HELP": "Paramétrer la légende",
       "LAYER": "Couche",
       "LAYERS": "Couches de données",
       "BASE_LAYER": "Fond de carte",
       "SHOW_GRATICULE": "Afficher le graticule",
+      "SHOW_INVALID_GEOMETRIES": "Voir tous les géométries",
       "FILTER": "Filtrage",
       "YEAR": "Année",
       "SPACE": "Géométrie",
@@ -1240,7 +1244,7 @@
       "DISPLAY_OPTIONS": "Options d'affichage",
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
-      "TECH_CHART_TITLE": "{{aggColumnName}} par {{techColumnName}}",
+      "TECH_CHART_TITLE": "{{aggColumnName}} par <b>{{techColumnName}}</b>",
       "FREEZE_VALUES": "Figer les valeurs",
       "LEGEND": "Légende",
       "SCALE_LINEAR" : "Linéaire",
@@ -1266,7 +1270,7 @@
       },
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",
-        "HELP": "Vo ici la liste des cartes disponibles :"
+        "HELP": "Veuillez choisir la carte à afficher :"
       }
     },
     "CATEGORY": {
@@ -1299,7 +1303,12 @@
       "NUMBER_AT_LENGTH": "Nombre d'individu",
       "INDIVIDUAL_SEX": "Sex individu",
       "SEX": "Sex",
+      "WEIGHT": "Poids (kg)",
+      "SUBSAMPLING_WEIGHT": "Poids échantillonné (kg)",
+      "SUBSAMPLING_CATEGORY": "Catégorie de sous-échantillonnage",
       "STATION_COUNT": "Nombre de station",
+      "TRIP_COUNT_BY_STATION": "Nb de marées, par station",
+      "TRIP_COUNT_BY_FISHING_TIME": "Nb de marées, par temps de peche",
       "VESSEL_COUNT": "Nombre de navires",
       "FISHING_TIME": "Temps de pêche (h. dec)",
       "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",
@@ -1471,7 +1480,7 @@
     "BAD_APP_VERSION": "Veuillez mettre à jour l'application. La récupération et l'envoi de données avec la version actuelle risque de ne pas fonctionner.</small>",
     "LOAD_TRASH_ENTITY_ERROR": "Erreur de chargement du fichier de corbeille",
     "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille",
-    "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données",
+    "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données locale",
     "STARTUP_FAILED": "Echec du lancement"
   },
   "CONFIRM": {
@@ -1482,7 +1491,6 @@
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",
     "ACTION_IMMEDIATE": "Cette action est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
-    "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
     "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"

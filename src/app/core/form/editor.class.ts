@@ -1,4 +1,13 @@
-import {ChangeDetectorRef, Directive, EventEmitter, Injector, OnDestroy, OnInit, Optional} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Directive,
+  EventEmitter,
+  Injector,
+  OnDestroy,
+  OnInit,
+  Optional
+} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ToastController} from "@ionic/angular";
 
@@ -27,6 +36,7 @@ import {ErrorCodes, ServerErrorCodes} from "../services/errors";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;
+  autoLoadDelay?: number;
   pathIdAttribute?: string;
   enableListenChanges?: boolean;
 
@@ -48,12 +58,13 @@ export abstract class AppEntityEditor<
   S extends EntityService<T> = EntityService<T>
   >
   extends AppTabEditor<T, EntityServiceLoadOptions>
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy, AfterViewInit {
 
   private _usageMode: UsageMode;
   private readonly _enableListenChanges: boolean;
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad: boolean;
+  private readonly _autoLoadDelay: number;
   private readonly _autoUpdateRoute: boolean;
   private _autoOpenNextTab: boolean;
 
@@ -108,6 +119,7 @@ export abstract class AppEntityEditor<
       enableListenChanges: (environment.listenRemoteChanges === true),
       pathIdAttribute: 'id',
       autoLoad: true,
+      autoLoadDelay: 0,
       autoUpdateRoute: true,
 
       // Following options are override inside ngOnInit()
@@ -124,6 +136,7 @@ export abstract class AppEntityEditor<
     this._enableListenChanges = options.enableListenChanges;
     this._pathIdAttribute = options.pathIdAttribute;
     this._autoLoad = options.autoLoad;
+    this._autoLoadDelay = options.autoLoadDelay;
     this._autoUpdateRoute = options.autoUpdateRoute;
     this._autoOpenNextTab = options.autoOpenNextTab;
 
@@ -143,10 +156,12 @@ export abstract class AppEntityEditor<
 
     // Disable page, during load
     this.disable();
+  }
 
+  async ngAfterViewInit() {
     // Load data
     if (this._autoLoad) {
-      this.loadFromRoute();
+      setTimeout(() => this.loadFromRoute(), this._autoLoadDelay);
     }
   }
 

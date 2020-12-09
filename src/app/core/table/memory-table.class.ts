@@ -58,7 +58,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
     super.ngOnInit();
   }
 
-  setValue(value: T[]) {
+  setValue(value: T[], opts?: { emitEvent?: boolean; }) {
     // Reset previous error
     if (this.error) {
       this.error = null;
@@ -66,7 +66,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
     }
     const firstCall = isEmptyArray(this.memoryDataService.value);
     this.memoryDataService.value = value;
-    if (firstCall) {
+    if (firstCall || (opts && opts.emitEvent !== false)) {
       this.onRefresh.emit();
     }
   }

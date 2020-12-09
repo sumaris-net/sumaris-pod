@@ -25,6 +25,7 @@ import {StatusIds} from "../services/model/model.enum";
 })
 export class AccountPage extends AppForm<Account> implements OnDestroy {
 
+  loading = true;
   isLogin: boolean;
   changesSubscription: Subscription;
   account: Account;
@@ -74,6 +75,9 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
       if (accountService.isLogin()) {
         this.onLogin(this.accountService.account);
       }
+      else {
+        this.loading = false;
+      }
     }));
   }
 
@@ -95,6 +99,8 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.markAsPristine();
 
     this.startListenChanges();
+
+    this.loading = false;
   }
 
   onLogout() {
@@ -107,6 +113,14 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.disable();
 
     this.stopListenChanges();
+  }
+
+  async refresh(event?: UIEvent) {
+
+    this.disable();
+    this.loading = true;
+
+    return this.accountService.refresh();
   }
 
   startListenChanges() {
@@ -145,6 +159,10 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   }
 
   async save(event: MouseEvent) {
+    if (this.saving) return;
+
+    await AppFormUtils.waitWhilePending(this.form);
+
     if (this.form.invalid) {
       AppFormUtils.logFormErrors(this.form);
       return;

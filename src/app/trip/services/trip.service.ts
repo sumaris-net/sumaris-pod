@@ -1293,14 +1293,12 @@ export class TripService extends RootDataService<Trip, TripFilter>
       defer(() =>  this.personService.executeImport(jobOpts)),
       defer(() => this.vesselSnapshotService.executeImport(jobOpts)),
       defer(() => this.programService.executeImport(jobOpts)),
-      // Save data to local storage
-      defer(() =>
-        timer()
-          .pipe(
-            switchMap(() => this.entities.persist()),
-            map(() => jobOpts.maxProgression as number)
-          )
-      )
+      // Save data to local storage, then set progression to the max
+      defer(() => timer()
+        .pipe(
+          switchMap(() => this.entities.persist()),
+          map(() => jobOpts.maxProgression as number)
+        ))
     ];
     const jobCount = jobDefers.length;
     jobOpts.maxProgression = Math.trunc(maxProgression / jobCount);

@@ -5,7 +5,7 @@ import {Vessel} from '../../services/model/vessel.model';
 import {AccountService} from "../../../core/services/account.service";
 import {AppEntityEditor} from "../../../core/form/editor.class";
 import {FormGroup, Validators} from "@angular/forms";
-import {DateFormatPipe, EntityServiceLoadOptions} from "../../../shared/shared.module";
+import {DateFormatPipe, EntityServiceLoadOptions, isNotNil} from "../../../shared/shared.module";
 import * as moment from "moment";
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
@@ -52,17 +52,19 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     private dateAdapter: DateFormatPipe
   ) {
     super(injector, Vessel, vesselService);
+    this.defaultBackHref = '/referential/vessels';
   }
 
   ngOnInit() {
     // Make sure template has a form
-    if (!this.form) throw "[VesselPage] no form for value setting";
+    if (!this.form) throw new Error("No form for value setting");
     this.form.disable();
 
     super.ngOnInit();
   }
 
-  ngAfterViewInit(): void {
+  async ngAfterViewInit() {
+    await super.ngAfterViewInit();
 
     this.registerSubscription(
       this.onUpdateView.subscribe(() => {
@@ -173,8 +175,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.previousVessel = undefined;
     this.form.enable();
 
-    // disable registration start date
-    this.form.get("registration.startDate").disable();
+    // disable registration start date, if already exists (must not change it)
+    const registrationStartDate = this.form.get("registration.startDate").value;
+    if (isNotNil(registrationStartDate)) {
+      this.form.get("registration.startDate").disable();
+    }
 
     // disable features controls
     this.form.get("features").disable();

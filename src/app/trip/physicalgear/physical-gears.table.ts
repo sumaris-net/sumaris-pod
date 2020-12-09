@@ -147,7 +147,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
           inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));
         }
       },
-      keyboardClose: true
+      keyboardClose: true,
+      backdropDismiss: false
     });
 
     // Open the modal

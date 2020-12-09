@@ -94,6 +94,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       tabCount: 3,
       autoUpdateRoute: !platform.mobile,
       autoOpenNextTab: !platform.mobile
+      //autoLoadDelay: platform.mobile ? 400 /*  */ : undefined /*default*/
     });
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
@@ -129,7 +130,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this._lastOperationsTripId = tripId; // Remember new trip id
 
             // Update back href
-            this.defaultBackHref = `/trips/${tripId}?tab=2`
+            this.defaultBackHref = `/trips/${tripId}?tab=2`;
             this.markForCheck();
 
             return this.dataService.watchAll(
@@ -140,7 +141,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
                 withSamples: false,
                 computeRankOrder: false,
                 fetchPolicy: 'cache-first'
-              })
+              });
           }),
           map(res => res && res.data || [])
       )
@@ -148,12 +149,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     );
   }
 
-  async ngAfterViewInit(): Promise<void> {
+  async ngAfterViewInit() {
+    await super.ngAfterViewInit();
 
     this.registerSubscription(
       this.form.get('physicalGear').valueChanges
+        .pipe(
+          // skip if loading
+          filter(() => !this.loading)
+        )
         .subscribe((res) => {
-          if (this.loading) return; // SKip during loading
           const gearId = res && res.gear && res.gear.id || null;
           this.measurementsForm.gearId = gearId;
           this.batchTree.gearId = gearId;
@@ -332,10 +337,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           this.setDefaultTaxonGroups(autoFillBatch);
         })
     );
-  }
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
   }
 
   async onNewEntity(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
@@ -558,14 +559,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Applying program to tables (async)
-    if (program) {
-      this.programSubject.next(program)
-    }
+    if (program) this.programSubject.next(program);
   }
 
   isCurrentData(other: IEntity<any>): boolean {
     return (this.isNewData && isNil(other.id))
-      || (this.data && this.data.id == other.id);
+      || (this.data && this.data.id === other.id);
   }
 
   /* -- protected method -- */
@@ -733,7 +732,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected async updateRoute(data: Operation, queryParams: any): Promise<boolean> {
     const id = data && isNotNil(data.id) ? data.id : 'new';
-    return await this.router.navigate([`/trips/${this.trip.id}/operations/${id}`], {
+    return await this.router.navigate(['trips', this.trip.id, 'operations', id], {
       replaceUrl: true,
       queryParams: queryParams,
       queryParamsHandling: "preserve"

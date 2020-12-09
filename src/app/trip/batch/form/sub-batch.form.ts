@@ -442,8 +442,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
   }
 
-  onTaxonNameButtonClick(event: UIEvent|undefined, value: TaxonNameRef, minTabindex: number) {
-    this.form.get('taxonName').setValue(value);
+  onTaxonNameButtonClick(event: UIEvent|undefined, taxonName: TaxonNameRef, minTabindex: number) {
+    this.form.patchValue({taxonName});
     if (event) {
       event.preventDefault();
       event.stopPropagation();
