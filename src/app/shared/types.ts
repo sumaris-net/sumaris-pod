@@ -1,8 +1,8 @@
-export declare type ObjectMap<O = any> = {
+export declare interface ObjectMap<O = any> {
   [key: string]: O;
 }
 
-export declare type ObjectMapEntry<O = any> = {
+export declare interface ObjectMapEntry<O = any> {
   key: string;
   value?: O;
 }
@@ -13,4 +13,3 @@ export declare type Property = ObjectMapEntry<string>;
 
 export declare type PropertiesArray = Property[];
 
-export declare type DisplayFn = (obj: any) => string;
