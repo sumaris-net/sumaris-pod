@@ -98,6 +98,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
   pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
+  pmfmStrategiesFocusIndex = -1;
 
 
   public sampleRowMask = ['2', '0', '2', '0', '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
@@ -442,7 +443,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       // SEX
 
       const pmfmStrategiesControl = this.pmfmStrategiesForm;
-      this.pmfmStrategiesHelper.resize(2);
+      this.pmfmStrategiesHelper.resize(6);
 
       let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "AGE");
       let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
@@ -551,7 +552,14 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     );
     // Create at least one fishing Area
     if (this.pmfmStrategiesHelper.size() === 0) {
-      this.pmfmStrategiesHelper.resize(2);
+      this.pmfmStrategiesHelper.resize(6);
+    }
+  }
+
+  addPmfmStrategies() {
+    this.pmfmStrategiesHelper.add();
+    if (!this.mobile) {
+      this.pmfmStrategiesFocusIndex = this.pmfmStrategiesHelper.size() - 1;
     }
   }
 
