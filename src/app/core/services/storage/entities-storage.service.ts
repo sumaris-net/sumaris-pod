@@ -51,7 +51,7 @@ export class EntitiesStorage
 
     // For DEV only
     this._debug = !environment.production;
-    if (this._debug) console.debug('[entity-storage] Creating entity storage');
+    if (this._debug) console.debug('[entities-storage] Creating service');
   }
 
   watchAll<T extends Entity<T>>(entityName: string,
@@ -88,7 +88,7 @@ export class EntitiesStorage
     // Make sure store is ready
     if (!this._started) await this.ready();
 
-    if (this._debug) console.debug(`[entity-storage] Loading ${entityName}...`);
+    if (this._debug) console.debug(`[entities-storage] Loading ${entityName}...`);
 
     const entityStore = this.getEntityStore<T>(entityName, {create: false});
     if (!entityStore) return {data: [], total: 0}; // No store for this entity name
@@ -118,7 +118,7 @@ export class EntitiesStorage
     for (let i = 0; i < entityCount - 1; i++) {
       store.nextValue();
     }
-    if (this._debug) console.debug(`[entity-storage] Reserving range [${firstValue},${store.currentValue()}] for ${entityName}'s sequence`);
+    if (this._debug) console.debug(`[entities-storage] Reserving range [${firstValue},${store.currentValue()}] for ${entityName}'s sequence`);
     return firstValue;
   }
 
@@ -362,7 +362,7 @@ export class EntitiesStorage
     if (this._started) return Promise.resolve();
 
     const now = Date.now();
-    console.info(`[entity-storage] Starting entity storage...`);
+    console.info(`[entities-storage] Starting entity storage...`);
 
     // Restore sequences
     this._startPromise = this.restoreLocally()
@@ -382,7 +382,7 @@ export class EntitiesStorage
         this._started = true;
         this._startPromise = undefined;
 
-        console.info(`[entity-storage] Starting [OK] in ${Date.now() - now}ms`);
+        console.info(`[entities-storage] Starting [OK] in ${Date.now() - now}ms`);
 
         // Emit event
         this.onStart.next();
@@ -413,7 +413,7 @@ export class EntitiesStorage
   }): EntityStore<T> {
     let store = this._stores[name];
     if (!store && (!opts || opts.create !== false)) {
-      if (this._debug) console.debug(`[entity-storage] Creating store ${name}`);
+      if (this._debug) console.debug(`[entities-storage] Creating store ${name}`);
       const typePolicy = this._typePolicies[name];
       store = new EntityStore<T>(name, this.storage, typePolicy);
       this._stores[name] = store;
@@ -436,14 +436,14 @@ export class EntitiesStorage
     if (!entityNames) return;
 
     const now = this._debug && Date.now();
-    if (this._debug) console.info("[entity-storage] Restoring entities...");
+    if (this._debug) console.info("[entities-storage] Restoring entities...");
     let entitiesCount = (await Promise.all<number>(
       entityNames
         .map(name => this.getEntityStore<any>(name))
         .map((store: EntityStore<any>) => store.restore()))
     ).reduce((res, count) => (res + count), 0);
 
-    if (this._debug) console.debug(`[entity-storage] Restoring entities [OK] ${entitiesCount} entities found in ${Date.now() - now}ms`);
+    if (this._debug) console.debug(`[entities-storage] Restoring entities [OK] ${entitiesCount} entities found in ${Date.now() - now}ms`);
   }
 
   protected async storeLocally(): Promise<any> {
@@ -451,7 +451,7 @@ export class EntitiesStorage
 
     // Saving progress: report this save later
     if (this._saving) {
-      if (this._debug) console.debug("[entity-storage] Previous persist not finished. Waiting...");
+      if (this._debug) console.debug("[entities-storage] Previous persist not finished. Waiting...");
       this._$save.emit();
       return;
     }
@@ -461,7 +461,7 @@ export class EntitiesStorage
     const entityNames = this._stores && Object.keys(this._stores) || [];
 
     const now = Date.now();
-    if (this._debug) console.debug("[entity-storage] Persisting...");
+    if (this._debug) console.debug("[entities-storage] Persisting...");
 
     let currentEntityName;
     return concat(
@@ -471,7 +471,7 @@ export class EntitiesStorage
             const entityStore = this.getEntityStore(entityName, {create: false});
 
             if (!entityStore) {
-              console.warn(`[entity-storage] Persisting ${entityName}: store not found!`);
+              console.warn(`[entities-storage] Persisting ${entityName}: store not found!`);
               return;
             }
             return entityStore.persist()
@@ -490,7 +490,7 @@ export class EntitiesStorage
             this.storage.set(ENTITIES_STORAGE_KEY_PREFIX, entityNames);
         }),
         defer(() =>  {
-          if (this._debug) console.debug(`[entity-storage] Persisting [OK] ${entityNames.length} stores saved in ${Date.now() - now}ms...`);
+          if (this._debug) console.debug(`[entities-storage] Persisting [OK] ${entityNames.length} stores saved in ${Date.now() - now}ms...`);
           this._saving = false;
         })
       )
@@ -498,10 +498,10 @@ export class EntitiesStorage
         catchError(err => {
           this._saving = false;
           if (currentEntityName) {
-            console.error(`[entity-storage] Error while persisting ${currentEntityName}`, err);
+            console.error(`[entities-storage] Error while persisting ${currentEntityName}`, err);
           }
           else {
-            console.error(`[entity-storage] Error while persisting: ${err && err.message || err}`, err);
+            console.error(`[entities-storage] Error while persisting: ${err && err.message || err}`, err);
           }
           return err;
         })
