@@ -949,7 +949,6 @@ export class AccountService extends BaseEntityService {
     }).subscribe({
         async next({updateAccount}) {
           if (!updateAccount) return;
-          console.log("TODO received account:" + JSON.stringify(updateAccount));
           const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
           if (existingUpdateDate !== updateAccount.updateDate) {
             console.debug("[account] [WS] Detected update on {" + updateAccount.updateDate + "}");

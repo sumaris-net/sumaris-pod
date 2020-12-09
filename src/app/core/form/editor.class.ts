@@ -327,8 +327,6 @@ export abstract class AppEntityEditor<
     openTabIndex?: number;
   }): Promise<boolean> {
 
-    console.log("TODO: check updateTabAndRoute")
-
     this.queryParams = this.queryParams || {};
 
     // Open the tab group
