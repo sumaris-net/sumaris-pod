@@ -119,13 +119,14 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
-            if (filter != null) {
-                filterInfo.append("with filter:").append(tripFilter.toString("\n - "));
+            String filterStr = filter != null ? tripFilter.toString("\n - ") : null;
+            if (StringUtils.isNotBlank(filterStr)) {
+                filterInfo.append("with filter:").append(filterStr);
             }
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting extraction %s-%s (raw data / trips)... %s", context.getLabel(), context.getId(), filterInfo.toString()));
+            log.info(String.format("Starting extraction #%s-%s (raw data / trips)... %s", context.getLabel(), context.getId(), filterInfo.toString()));
         }
 
         // Fill context table names

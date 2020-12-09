@@ -25,6 +25,9 @@ package net.sumaris.rdf.service.store;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.crypto.CryptoService;
 import net.sumaris.core.util.file.FileContentReplacer;
@@ -57,6 +60,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import org.tdwg.rs.DWC;
@@ -123,13 +127,16 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     @PostConstruct
     public void init() {
         // Register external loaders
-        registerNameModel(mnhnTaxonLoader,10000L); // FIXME MNHN endpoint has problem when offset >= 10000
+        registerNameModel(mnhnTaxonLoader, 10000L); // FIXME MNHN endpoint has problem when offset >= 10000
         registerNameModel(sandreTaxonLoader, -1L);
         registerNameModel(sandreDepartmentLoader, -1L);
 
         // Init the query dataset
         this.dataset = createDataset();
+    }
 
+    @EventListener({ConfigurationReadyEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
         // If auto import, load dataset
         if (config.isRdfImportEnable()) {
             if (!containsAllTypes(this.dataset, W3NS.Org.Organization, DWC.Voc.TaxonName)) {
