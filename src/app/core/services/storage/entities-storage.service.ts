@@ -3,11 +3,12 @@ import {EventEmitter, Inject, Injectable, InjectionToken, Optional} from "@angul
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../../environments/environment";
-import {catchError, switchMap, throttleTime} from "rxjs/operators";
+import {catchError, first, switchMap, throttleTime} from "rxjs/operators";
 import {Entity} from "../model/entity.model";
 import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
 import {ENTITIES_STORAGE_KEY_PREFIX, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
+import {ProgressBarService} from "../../../shared/services/progress-bar.service";
 
 
 export interface EntitiesStorageTypePolicies {
@@ -17,9 +18,7 @@ export interface EntitiesStorageTypePolicies {
 export const APP_LOCAL_STORAGE_TYPE_POLICIES = new InjectionToken<EntitiesStorageTypePolicies>('localStorageTypePolicies');
 
 @Injectable({providedIn: 'root'})
-export class EntitiesStorage
-  // TODO: implements EntityService<T, EntitiesStorageLoadOption>
-  {
+export class EntitiesStorage {
 
   public static TRASH_PREFIX = "Trash#";
 
@@ -35,7 +34,6 @@ export class EntitiesStorage
   private _dirty = false;
   private _saving = false;
 
-
   onStart = new Subject<void>();
 
   get dirty(): boolean {
@@ -44,6 +42,7 @@ export class EntitiesStorage
 
   public constructor(
     private platform: Platform,
+    private progressBarService: ProgressBarService,
     private storage: Storage,
     @Optional() @Inject(APP_LOCAL_STORAGE_TYPE_POLICIES) typePolicies: EntitiesStorageTypePolicies
   ) {
@@ -70,9 +69,14 @@ export class EntitiesStorage
         .pipe(switchMap(() => this.watchAll<T>(entityName, variables, opts))); // Loop
     }
 
+    this.progressBarService.increase();
     const storeName = variables && variables.trash ? (EntitiesStorage.TRASH_PREFIX + entityName) : entityName;
-    return this.getEntityStore<T>(storeName, {create: true})
+    const result = this.getEntityStore<T>(storeName, {create: true})
       .watchAll(variables, opts);
+
+    result.pipe(first()).subscribe(() => this.progressBarService.decrease());
+
+    return result;
   }
 
   async loadAll<T extends Entity<T>>(entityName: string,
@@ -88,19 +92,33 @@ export class EntitiesStorage
     // Make sure store is ready
     if (!this._started) await this.ready();
 
-    if (this._debug) console.debug(`[entities-storage] Loading ${entityName}...`);
+    try {
+      this.progressBarService.increase();
+      if (this._debug) console.debug(`[entities-storage] Loading ${entityName}...`);
 
-    const entityStore = this.getEntityStore<T>(entityName, {create: false});
-    if (!entityStore) return {data: [], total: 0}; // No store for this entity name
+      const entityStore = this.getEntityStore<T>(entityName, {create: false});
+      if (!entityStore) return {data: [], total: 0}; // No store for this entity name
 
-    return entityStore.loadAll(variables, opts);
+      return entityStore.loadAll(variables, opts);
+    }
+    finally {
+      this.progressBarService.decrease();
+    }
   }
 
   async load<T extends Entity<T>>(id: number, entityName: string, opts?: EntityStorageLoadOptions): Promise<T> {
     await this.ready();
-    const entityStore = this.getEntityStore<T>(entityName, {create: false});
-    if (!entityStore) return undefined;
-    return entityStore.load(id, opts);
+
+    try {
+      this.progressBarService.increase();
+
+      const entityStore = this.getEntityStore<T>(entityName, {create: false});
+      if (!entityStore) return undefined;
+      return entityStore.load(id, opts);
+    }
+    finally {
+      this.progressBarService.decrease();
+    }
   }
 
   async nextValue(entityOrName: string | any): Promise<number> {
@@ -135,15 +153,22 @@ export class EntitiesStorage
 
     await this.ready();
 
-    this._dirty = true;
-    let storeName = opts && opts.entityName || this.detectEntityName(entity);
-    this.getEntityStore<T>(storeName)
-      .save(entity, opts);
+    try {
+      this.progressBarService.increase();
 
-    // Ask to save
-    this._$save.emit();
+      this._dirty = true;
+      const storeName = opts && opts.entityName || this.detectEntityName(entity);
+      this.getEntityStore<T>(storeName)
+        .save(entity, opts);
 
-    return entity;
+      // Ask to save
+      this._$save.emit();
+
+      return entity;
+    }
+    finally {
+      this.progressBarService.decrease();
+    }
   }
 
   async saveAll<T extends Entity<T>>(entities: T[], opts?: {
@@ -155,9 +180,16 @@ export class EntitiesStorage
 
     await this.ready();
 
-    this._dirty = true;
-    const entityName = opts && opts.entityName || this.detectEntityName(entities[0]);
-    return this.getEntityStore<T>(entityName).saveAll(entities, opts);
+    try {
+      this.progressBarService.increase();
+
+      this._dirty = true;
+      const entityName = opts && opts.entityName || this.detectEntityName(entities[0]);
+      return this.getEntityStore<T>(entityName).saveAll(entities, opts);
+    }
+    finally {
+      this.progressBarService.decrease();
+    }
   }
 
   async delete<T extends Entity<T>>(entity: T, opts?: {
@@ -182,22 +214,28 @@ export class EntitiesStorage
     if (!opts || isNilOrBlank(opts.entityName)) throw new Error("Missing argument 'opts' or 'entityName'");
     //if (id >= 0) throw new Error('Invalid id a local entity (not a negative number): ' + id);
 
-    const entityStore = this.getEntityStore<T>(opts.entityName, {create: false});
-    if (!entityStore) return undefined;
+    try {
+      this.progressBarService.increase();
+      const entityStore = this.getEntityStore<T>(opts.entityName, {create: false});
+      if (!entityStore) return undefined;
 
-    const deletedEntity = entityStore.delete(id, opts);
+      const deletedEntity = entityStore.delete(id, opts);
 
-    // If something deleted
-    if (deletedEntity) {
+      // If something deleted
+      if (deletedEntity) {
 
-      // Mark as dirty
-      this._dirty = true;
+        // Mark as dirty
+        this._dirty = true;
 
-      // Ask to save
-      this._$save.emit();
+        // Ask to save
+        this._$save.emit();
+      }
+
+      return deletedEntity;
     }
-
-    return deletedEntity;
+    finally {
+      this.progressBarService.decrease();
+    }
   }
 
   async deleteMany<T extends Entity<T>>(ids: number[], opts: {
@@ -208,24 +246,29 @@ export class EntitiesStorage
 
     if (!opts || isNilOrBlank(opts.entityName)) throw new Error("Missing argument 'opts' or 'opts.entityName'");
 
-    const entityStore = this.getEntityStore<T>(opts.entityName, {create: false});
-    if (!entityStore) return undefined;
+    try {
+      this.progressBarService.increase();
+      const entityStore = this.getEntityStore<T>(opts.entityName, {create: false});
+      if (!entityStore) return undefined;
 
-    // Do deletion
-    const deletedEntities = entityStore.deleteMany(ids, opts);
+      // Do deletion
+      const deletedEntities = entityStore.deleteMany(ids, opts);
 
-    // If something deleted
-    if (deletedEntities.length > 0) {
+      // If something deleted
+      if (deletedEntities.length > 0) {
 
-      // Mark as dirty
-      this._dirty = true;
+        // Mark as dirty
+        this._dirty = true;
 
-      // Mark as save need
-      this._$save.emit();
+        // Mark as save need
+        this._$save.emit();
 
+      }
+
+      return deletedEntities;
+    } finally {
+       this.progressBarService.decrease();
     }
-
-    return deletedEntities;
   }
 
   async deleteFromTrash<T extends Entity<T>>(entity: T, opts?: {
@@ -458,6 +501,7 @@ export class EntitiesStorage
 
     this._saving = true;
     this._dirty = false;
+    this.progressBarService.increase();
     const entityNames = this._stores && Object.keys(this._stores) || [];
 
     const now = Date.now();
@@ -492,11 +536,13 @@ export class EntitiesStorage
         defer(() =>  {
           if (this._debug) console.debug(`[entities-storage] Persisting [OK] ${entityNames.length} stores saved in ${Date.now() - now}ms...`);
           this._saving = false;
+          this.progressBarService.decrease();
         })
       )
       .pipe(
         catchError(err => {
           this._saving = false;
+          this.progressBarService.decrease();
           if (currentEntityName) {
             console.error(`[entities-storage] Error while persisting ${currentEntityName}`, err);
           }

@@ -827,7 +827,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
 
     return await this.router.navigate([id], {
-      relativeTo: this.route
+      relativeTo: this.route,
+      queryParams: {}
     });
   }
 
