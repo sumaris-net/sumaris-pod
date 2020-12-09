@@ -43,6 +43,7 @@ export * from './src/app/shared/services/memory-entity-service.class';
 export * from './src/app/shared/services/progress-bar.service';
 
 // Shared other
+export * from './src/app/shared/types';
 export * from './src/app/shared/functions';
 export * from './src/app/shared/observables';
 export * from './src/app/shared/hotkeys/shared-hotkeys.module';
