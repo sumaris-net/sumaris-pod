@@ -453,27 +453,22 @@ public class ReferentialDaoImpl
         return source;
     }
 
-    @Cacheable(cacheNames = CacheNames.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE)
+    @Cacheable(cacheNames = CacheNames.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName")
     public Date maxUpdateDate(String entityName) {
         Preconditions.checkNotNull(entityName, "Missing entityName argument");
 
-        // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
-
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Timestamp> criteriaQuery = builder.createQuery(Timestamp.class);
-        Root<? extends IReferentialEntity> root = criteriaQuery.from(entityClass);
-        criteriaQuery.select(root.get(IReferentialEntity.Fields.UPDATE_DATE));
-        criteriaQuery.orderBy(builder.desc(root.get(IReferentialEntity.Fields.UPDATE_DATE)));
-
         try {
-            return IterableUtils.first(getEntityManager().createQuery(criteriaQuery)
-                    .setMaxResults(1)
-                    .getResultList() // DO NOT use getSingleResult, because table can be null
-                    );
+            // Get entity class from entityName
+            Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+            String hql = String.format("SELECT max(%s) FROM %s",
+                    IReferentialEntity.Fields.UPDATE_DATE,
+                    entityClass.getSimpleName());
+
+            return (Timestamp)getEntityManager().createQuery(hql).getSingleResult();
         }
         catch (Exception e) {
-            // Table is empty: return null
+            logger.error("Error while getting max(updateDate) from " + entityName, e);
             return null;
         }
     }
