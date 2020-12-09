@@ -127,6 +127,20 @@ public class AggregationRdbTripDaoImpl<
         context.setSpeciesLengthMapTableName(String.format(HL_MAP_TABLE_NAME_PATTERN, context.getId()));
         context.setLandingTableName(String.format(CL_TABLE_NAME_PATTERN, context.getId()));
 
+        if (log.isInfoEnabled()) {
+            StringBuilder filterInfo = new StringBuilder();
+            String filterStr = (filter != null) ? Beans.getStream(filter.getCriteria())
+                        .map(ExtractionFilterCriterionVO::toString)
+                        .collect(Collectors.joining("\n - ")) : null;
+            if (StringUtils.isNotBlank(filterStr)) {
+                filterInfo.append("with filter:\n - ").append(filterStr);
+            } else {
+                filterInfo.append("(without filter)");
+            }
+            log.info(String.format("Starting aggregation #%s-%s... %s", context.getLabel(), context.getId(), filterInfo.toString()));
+        }
+
+
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
 

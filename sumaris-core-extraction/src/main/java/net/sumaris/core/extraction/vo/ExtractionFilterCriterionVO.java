@@ -22,6 +22,7 @@ package net.sumaris.core.extraction.vo;
  * #L%
  */
 
+import com.google.common.base.Joiner;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,4 +39,18 @@ public class ExtractionFilterCriterionVO {
     private String operator;
     private String value;
     private String[] values;
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (this.getSheetName() != null) sb.append("Sheet: ").append(this.getSheetName());
+        if (this.getName() != null && this.getOperator() != null){
+            sb.append(", ").append(this.getName()).append(this.getOperator());
+        }
+        else {
+            sb.append(", ").append("Value: ");
+        }
+        if (this.getValue() != null) sb.append(this.getValue());
+        if (this.getValues() != null) sb.append('[').append(Joiner.on(',').join(this.getValues())).append(']');
+        return sb.toString();
+    }
 }

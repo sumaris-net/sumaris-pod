@@ -39,6 +39,7 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
+import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
@@ -77,9 +78,11 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
@@ -91,6 +94,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -144,7 +148,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected TaskExecutor taskExecutor = null;
 
     @Autowired
-    private ExtractionService self;
+    protected ApplicationContext applicationContext;
 
     @Autowired
     protected DatabaseSchemaDao databaseSchemaDao;
@@ -315,10 +319,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public void clean(ExtractionContextVO context) {
-        if (context == null) return;
-        if (context instanceof ExtractionRdbTripContextVO) {
-            extractionRdbTripDao.clean((ExtractionRdbTripContextVO) context);
-        }
+        clean(context, false);
     }
 
     @Override
@@ -441,9 +442,20 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
 
         // Remove created tables
-        asyncClean(context);
+        clean(context, true);
 
         return outputFile;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> asyncClean(ExtractionContextVO context) {
+        try {
+            clean(context);
+            return CompletableFuture.completedFuture(Boolean.TRUE);
+        } catch (Exception e) {
+            log.warn(String.format("Error while cleaning extraction #%s: %s", context.getId(), e.getMessage()), e);
+            return CompletableFuture.completedFuture(Boolean.FALSE);
+        }
     }
 
     /* -- protected -- */
@@ -511,7 +523,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             return read(context, filter, offset, size, sort, direction);
         } finally {
             // Clean created tables
-            asyncClean(context);
+            clean(context, true);
         }
     }
 
@@ -615,23 +627,6 @@ public class ExtractionServiceImpl implements ExtractionService {
             null,
             null);
 
-    }
-
-    public void asyncClean(ExtractionContextVO context) {
-        if (taskExecutor == null) {
-            clean(context);
-        } else {
-            taskExecutor.execute(() -> {
-                try {
-                    Thread.sleep(2000); // Wait 2 s, to to sure the table is not used anymore
-
-                    // Call self, to be sure to have a transaction
-                    self.clean(context);
-                } catch (Exception e) {
-                    log.warn("Error while cleaning extraction tables", e);
-                }
-            });
-        }
     }
 
     protected boolean initRectangleLocations() {
@@ -745,5 +740,24 @@ public class ExtractionServiceImpl implements ExtractionService {
         } finally {
             DataSourceUtils.releaseConnection(conn, dataSource);
         }
+    }
+
+    protected void clean(ExtractionContextVO context, boolean async) {
+        if (context == null) return;
+        if (async && taskExecutor != null) {
+            taskExecutor.execute(() -> getSelfBean().clean(context));
+        }
+        else if (context instanceof ExtractionRdbTripContextVO) {
+            log.info("Cleaning extraction #{}-{}", context.getLabel(), context.getId());
+            extractionRdbTripDao.clean((ExtractionRdbTripContextVO) context);
+        }
+    }
+
+    /**
+     * Get self bean, to be able to use new transation
+     * @return
+     */
+    protected ExtractionService getSelfBean() {
+        return applicationContext.getBean("extractionService", ExtractionService.class);
     }
 }

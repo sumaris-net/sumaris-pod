@@ -38,6 +38,7 @@ import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.util.ExtractionFormats;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
@@ -60,6 +61,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -67,6 +69,7 @@ import javax.annotation.Nullable;
 import javax.annotation.Resource;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -99,10 +102,10 @@ public class AggregationServiceImpl implements AggregationService {
     protected TaskExecutor taskExecutor = null;
 
     @Autowired
-    private AggregationService self;
+    private ObjectMapper objectMapper;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ApplicationContext applicationContext;
 
     @Override
     public List<AggregationTypeVO> findTypesByFilter(AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
@@ -278,7 +281,7 @@ public class AggregationServiceImpl implements AggregationService {
             return getAggBySpace(context, readFilter, strata, offset, size, sort, direction);
         } finally {
             // Clean created tables
-            asyncClean(context);
+            clean(context, true);
         }
     }
 
@@ -291,8 +294,13 @@ public class AggregationServiceImpl implements AggregationService {
         }
         finally {
             // Delete aggregation tables, after dump
-            asyncClean(context);
+            clean(context, true);
         }
+    }
+
+    @Override
+    public CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
+        return CompletableFuture.completedFuture(save(type, filter));
     }
 
     @Override
@@ -468,33 +476,24 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public void asyncClean(AggregationContextVO context) {
-        if (taskExecutor == null) {
+    public CompletableFuture<Boolean> asyncClean(AggregationContextVO context) {
+        try {
             clean(context);
-        } else {
-            taskExecutor.execute(() -> {
-                try {
-                    Thread.sleep(2000); // Wait 2 s, to to sure the table is not used anymore
-
-                    // Call self, to be sure to have a transaction
-                    self.clean(context);
-                } catch (Exception e) {
-                    log.warn("Error while cleaning extraction tables", e);
-                }
-            });
+            return CompletableFuture.completedFuture(Boolean.TRUE);
+        } catch (Exception e) {
+            log.warn(String.format("Error while cleaning aggregation #%s: %s", context.getId(), e.getMessage()), e);
+            return CompletableFuture.completedFuture(Boolean.FALSE);
         }
     }
 
     @Override
     public void clean(AggregationContextVO context) {
-        if (context == null) return;
-        if (context instanceof AggregationRdbTripContextVO) {
-            aggregationRdbTripDao.clean((AggregationRdbTripContextVO) context);
-        }
+        clean(context, false);
     }
 
 
     /* -- protected methods -- */
+
 
     protected AggregationTypeVO toAggregationType(ExtractionProductVO source) {
         AggregationTypeVO target = new AggregationTypeVO();
@@ -639,4 +638,25 @@ public class AggregationServiceImpl implements AggregationService {
             throw new SumarisTechnicalException(e);
         }
     }
+
+
+    protected void clean(AggregationContextVO context, boolean async) {
+        if (context == null) return;
+        if (async) {
+            getSelfBean().asyncClean(context);
+        }
+        else if (context instanceof AggregationRdbTripContextVO) {
+            log.info("Cleaning aggregation #{}-{}", context.getLabel(), context.getId());
+            aggregationRdbTripDao.clean((AggregationRdbTripContextVO) context);
+        }
+    }
+
+    /**
+     * Get self bean, to be able to use new transation
+     * @return
+     */
+    protected AggregationService getSelfBean() {
+        return applicationContext.getBean("aggregationService", AggregationService.class);
+    }
+
 }

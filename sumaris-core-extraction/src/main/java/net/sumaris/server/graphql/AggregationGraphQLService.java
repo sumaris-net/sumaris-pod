@@ -49,12 +49,14 @@ import net.sumaris.server.geojson.ExtractionGeoJsonConverter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @Transactional
@@ -76,6 +78,7 @@ public class AggregationGraphQLService {
     /* -- aggregation service -- */
 
     @GraphQLQuery(name = "aggregationType", description = "Get one aggregation type")
+    @Transactional(readOnly = true)
     public AggregationTypeVO getAggregationType(@GraphQLArgument(name = "id") int id,
                                                 @GraphQLEnvironment() Set<String> fields) {
         securityService.checkReadAccess(id);
@@ -83,6 +86,7 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLQuery(name = "aggregationTypes", description = "Get all available aggregation types")
+    @Transactional(readOnly = true)
     public List<AggregationTypeVO> getAllAggregationTypes(@GraphQLArgument(name = "filter") AggregationTypeFilterVO filter,
                                                           @GraphQLEnvironment() Set<String> fields) {
         filter = fillFilterDefaults(filter);
@@ -90,6 +94,7 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLQuery(name = "aggregationRows", description = "Read an aggregation")
+    @Transactional(readOnly = true)
     public AggregationResultVO getAggregationRows(@GraphQLArgument(name = "type") AggregationTypeVO type,
                                                   @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                   @GraphQLArgument(name = "strata") AggregationStrataVO strata,
@@ -105,6 +110,7 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLQuery(name = "aggregationColumns", description = "Read columns from aggregation")
+    @Transactional(readOnly = true)
     public List<ExtractionTableColumnVO> getAggregationColumns(@GraphQLArgument(name = "type") AggregationTypeVO type,
                                                                @GraphQLArgument(name = "sheet") String sheetName,
                                                                @GraphQLEnvironment() Set<String> fields) {
@@ -124,6 +130,7 @@ public class AggregationGraphQLService {
 
 
     @GraphQLQuery(name = "aggregationGeoJson", description = "Execute an aggregation and return as GeoJson")
+    @Transactional(readOnly = true)
     public Object getGeoJsonAggregation(@GraphQLArgument(name = "type") AggregationTypeVO format,
                                         @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                         @GraphQLArgument(name = "strata") AggregationStrataVO strata,
@@ -173,6 +180,7 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLQuery(name = "aggregationTech", description = "Execute an aggregation and return as GeoJson")
+    @Transactional(readOnly = true)
     public AggregationTechResultVO getAggregationByTech(@GraphQLArgument(name = "type") AggregationTypeVO format,
                                                         @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                         @GraphQLArgument(name = "strata") AggregationStrataVO strata,
@@ -190,6 +198,7 @@ public class AggregationGraphQLService {
 
 
     @GraphQLQuery(name = "aggregationTechMinMax", description = "Execute an aggregation and return as GeoJson")
+    @Transactional(readOnly = true)
     public MinMaxVO getAggregationByTech(@GraphQLArgument(name = "type") AggregationTypeVO format,
                                          @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                          @GraphQLArgument(name = "strata") AggregationStrataVO strata) {
@@ -204,9 +213,10 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLMutation(name = "saveAggregation", description = "Create or update a data aggregation")
+    @Async
     public AggregationTypeVO saveAggregation(@GraphQLArgument(name = "type") AggregationTypeVO type,
                                              @GraphQLArgument(name = "filter") ExtractionFilterVO filter
-    ) {
+    ) throws ExecutionException, InterruptedException {
         boolean isNew = type.getId() == null;
         if (isNew) {
             securityService.checkWriteAccess();
@@ -215,7 +225,7 @@ public class AggregationGraphQLService {
             securityService.checkWriteAccess(type.getId());
         }
 
-        return aggregationService.save(type, filter);
+        return aggregationService.asyncSave(type, filter).get();
     }
 
     @GraphQLMutation(name = "deleteAggregations", description = "Delete some aggregations")
