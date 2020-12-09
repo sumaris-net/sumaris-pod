@@ -10,8 +10,8 @@ ion-card {
   ion-card-content {
     background-color: var(--ion-color-light-tint);
 
-    ion-label,
-    * ion-label {
+    ion-label.status,
+    * ion-label.status {
       font-size: 12px !important;
       color: var(--ion-color-step-850);
     }

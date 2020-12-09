@@ -1,4 +1,4 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
+import {ModuleWithProviders, NgModule, Optional} from '@angular/core';
 import {RouterModule} from '@angular/router';
 import {AccountValidatorService} from './services/validator/account.validator';
 import {UserSettingsValidatorService} from './services/validator/user-settings.validator';
@@ -175,11 +175,10 @@ export {
 export class CoreModule {
 
   static forRoot(): ModuleWithProviders<CoreModule> {
-
     console.info("[core] Creating module (root)");
     return {
       ngModule: CoreModule,
       providers: [ PlatformService ]
-    }
+    };
   }
 }

@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import {ProgressBarService, ProgressMode} from '../services/progress-bar.service';
 import {Router} from "@angular/router";
-import {IonBackButton, IonRouterOutlet, IonSearchbar} from "@ionic/angular";
+import {IonRouterOutlet, IonSearchbar} from "@ionic/angular";
 import {isNotNil, isNotNilOrBlank, toBoolean} from "../functions";
 import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
@@ -108,7 +108,7 @@ export class ToolbarComponent implements OnInit {
       .pipe(
         startWith<ProgressMode, ProgressMode>('none' as ProgressMode),
         debounceTime(100), // wait 100ms, to group changes
-        distinctUntilChanged((mode1, mode2) => mode1 == mode2)
+        distinctUntilChanged()
       );
   }
 

@@ -2,14 +2,17 @@
 
   <ion-title>{{'TRIP.TABLE.TITLE'|translate}}</ion-title>
 
-  <ion-buttons slot="end">
+  <ion-buttons slot="end" *ngIf="synchronizationStatus as syncStatus">
 
     <!-- Synchronization status -->
     <ion-button *ngIf="hasOfflineMode"
-                [color]="synchronizationStatus==='SYNC' ? 'secondary' : 'accent'"
+                [color]="syncStatus==='SYNC' ? 'secondary' : 'accent'"
                 fill="solid"
                 [matMenuTriggerFor]="syncStatusMenu">
-      <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
+      <ion-icon slot="start" *ngIf="syncStatus === 'SYNC'" name="cloud-done"></ion-icon>
+      <ion-icon slot="start" *ngIf="syncStatus === 'DIRTY'" name="cloud-offline"></ion-icon>
+      <ion-label>
+        {{ 'NETWORK.SYNCHRONIZATION_STATUS.' + syncStatus | translate}}</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
     </ion-button>
   </ion-buttons>
@@ -41,7 +44,7 @@
   <button mat-menu-item
           *ngIf="hasOfflineMode"
           (click)="prepareOfflineMode($event)">
-    <mat-icon>cloud_download</mat-icon>
+    <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
     <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
   </button>
 

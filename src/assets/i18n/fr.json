@@ -200,7 +200,7 @@
     "MAP": "Cartes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "LOCAL_SETTINGS": "Paramètres",
-    "SERVER": "Gestion du serveur",
+    "SERVER": "Configuration serveur",
     "LOGOUT": "Se déconnecter",
     "ABOUT": "À propos"
   },
@@ -1235,7 +1235,7 @@
       "LAYERS": "Couches de données",
       "BASE_LAYER": "Fond de carte",
       "SHOW_GRATICULE": "Afficher le graticule",
-      "SHOW_INVALID_GEOMETRIES": "Voir les rectangles invalides",
+      "SHOW_INVALID_GEOMETRIES": "Voir tous les géométries",
       "FILTER": "Filtrage",
       "YEAR": "Année",
       "SPACE": "Géométrie",

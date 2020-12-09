@@ -139,7 +139,9 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
               this.selectedTabIndex = this.queryParams[this.queryTabIndexParamName];
             }
           }
-          this.tabGroup.realignInkBar();
+
+          // Realign tab, after a delay because the tab can be disabled when component is created
+          setTimeout(() => this.tabGroup.realignInkBar(), 500);
         }));
     }
 
@@ -215,6 +217,20 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){
     this._dirty = true;
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
+  }
+
+  markAsLoading(opts?: { emitEvent?: boolean; }){
+    if (!this.loading) {
+      this.loading = true;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
+  markAsLoaded(opts?: { emitEvent?: boolean; }){
+    if (this.loading) {
+      this.loading = false;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
   }
 
   onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string): boolean {

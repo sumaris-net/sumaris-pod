@@ -61,8 +61,8 @@ export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntity
 
   asObject(opts?: O): any {
     const target = super.asObject(opts);
-    if ((!opts || opts.keepRemoteId === false) && target.id >= 0) delete target.id;
-    if ((!opts || opts.keepUpdateDate === false) && target.id >= 0) delete target.updateDate;
+    if (opts && opts.keepRemoteId === false && target.id >= 0) delete target.id;
+    if (opts && opts.keepUpdateDate === false && target.id >= 0) delete target.updateDate;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts) || undefined;
     target.controlDate = toDateISOString(this.controlDate);
     target.qualificationDate = toDateISOString(this.qualificationDate);

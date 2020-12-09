@@ -43,4 +43,9 @@ import {ChartsModule} from "ng2-charts";
     AggregationTypePage
   ]
 })
-export class ExtractionModule { }
+export class ExtractionModule {
+
+  constructor() {
+    console.debug('[extraction] Creating module');
+  }
+}
