@@ -513,7 +513,7 @@
                              [cpSaveClickOutside]="true"
                              [cpOutputFormat]="'rgba'"
                              required/>
-                      <mat-error *ngIf="legendForm.get('endColor').hasError('required')" translate>
+                      <mat-error *ngIf="legendForm.controls.endColor.hasError('required')" translate>
                         ERROR.FIELD_REQUIRED
                       </mat-error>
                     </mat-form-field>
@@ -527,7 +527,7 @@
                              placeholder="Max"
                              step="1"
                              formControlName="max">
-                      <mat-error *ngIf="legendForm.get('max').hasError('required')" translate>
+                      <mat-error *ngIf="legendForm.controls.max.hasError('required')" translate>
                         ERROR.FIELD_REQUIRED
                       </mat-error>
                     </mat-form-field>

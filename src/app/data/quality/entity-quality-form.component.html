@@ -1,4 +1,4 @@
-<ion-label class="ion-text-wrap" *ngIf="!loading">
+<ion-label class="ion-text-wrap status" *ngIf="!loading">
   <br *ngIf="data.updateDate"/>
   <!-- local entity -->
   <ion-text *ngIf="data.id < 0">
@@ -10,7 +10,7 @@
     <ion-icon name="checkmark"></ion-icon>&nbsp;
     <span translate>QUALITY.CONTROLLED_ON</span>
     <span>
-      <b>{{ data.controlDate | dateFormat: {pattern: 'L LT'} }}</b>
+      <b>{{ data.controlDate | dateFormat: {time: true} }}</b>
     </span>
   </ion-text>
   <!-- validation date -->
@@ -19,7 +19,7 @@
     <ion-icon name="checkmark-circle"></ion-icon>&nbsp;
     <span translate>QUALITY.VALIDATED_ON</span>
     <span>
-      <b>{{ data.validationDate | dateFormat: {pattern: 'L LT'} }}</b>
+      <b>{{ data.validationDate | dateFormat: {time: true} }}</b>
     </span>
   </ion-text>
 </ion-label>
@@ -35,9 +35,11 @@
 
   <!-- Terminate -->
   <ion-button mat-icon-button *ngIf="canTerminate"
-              (click)="terminate($event)" expand="block" color="tertiary">
+              (click)="terminate($event)"
+              expand="block" color="tertiary"
+              class="large-text">
     <ion-icon slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
-    <ion-text translate>QUALITY.BTN_TERMINATE</ion-text>
+    <ion-text class="ion-text-wrap" translate>QUALITY.BTN_TERMINATE</ion-text>
   </ion-button>
 
   <!-- synchronize -->
@@ -65,7 +67,7 @@
 
       <!-- flags menu -->
       <mat-menu #qualityFlagMenu="matMenu" class="ion-text-center">
-        <ion-label class="ion-padding " translate>QUALITY.QUALITY_FLAG</ion-label>
+        <ion-label class="ion-padding status" translate>QUALITY.QUALITY_FLAG</ion-label>
         <ion-button  *ngFor="let qualityFlag of qualityFlags"
                      size="small" expand="block"
                      [color]="qualityFlagToColor(qualityFlag.id)"
@@ -83,13 +85,13 @@
 
       <!-- if already qualified -->
       <ng-container *ngIf="canUnqualify">
-        <ion-label class="ion-text-wrap">
+        <ion-label class="ion-text-wrap status">
           <ion-text>
             <ion-icon name="ribbon"></ion-icon>&nbsp;
             <span translate>QUALITY.QUALIFIED_ON</span>
             <span>
-                <b>{{ data.qualificationDate | dateFormat: {pattern: 'L LT'} }}</b>
-              </span>
+                <b>{{ data.qualificationDate | dateFormat: {time: true} }}</b>
+            </span>
           </ion-text>
           <br/>
         </ion-label>

@@ -241,13 +241,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
-      this.loading = true;
-      try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
-      }
-      finally {
-        this.loading = false;
-      }
+      this.markAsLoading();
+
+     setTimeout(async () => {
+        await this.router.navigate(['trips', this.data.id, 'operations', id], {
+          queryParams: {}
+        });
+
+       this.markAsLoaded();
+      });
     }
   }
 
@@ -260,17 +262,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
-      this.loading = true;
-      this.markForCheck();
-      try {
-        await this.router.navigate(['operations', 'new'], {
-          relativeTo: this.route
+      this.markAsLoading();
+
+      setTimeout(async () => {
+        await this.router.navigate(['trips', this.data.id, 'operations', 'new'], {
+          queryParams: {}
         });
-      }
-      finally {
-        this.loading = false;
-        this.markForCheck();
-      }
+        this.markAsLoaded();
+      });
     }
   }
 

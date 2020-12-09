@@ -219,6 +219,20 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
+  markAsLoading(opts?: { emitEvent?: boolean; }){
+    if (!this.loading) {
+      this.loading = true;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
+  markAsLoaded(opts?: { emitEvent?: boolean; }){
+    if (this.loading) {
+      this.loading = false;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
   onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string): boolean {
     queryTabIndexParamName = queryTabIndexParamName || this.queryTabIndexParamName;
 

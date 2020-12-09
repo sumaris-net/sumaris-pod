@@ -200,7 +200,7 @@
     "MAP": "Maps",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "LOCAL_SETTINGS": "Settings",
-    "SERVER": "Server management",
+    "SERVER": "Server settings",
     "LOGOUT": "Logout",
     "ABOUT": "About"
   },
@@ -1235,6 +1235,7 @@
       "LAYERS": "Data layers",
       "BASE_LAYER": "Base layer",
       "SHOW_GRATICULE": "Show graticule",
+      "SHOW_INVALID_GEOMETRIES": "Show all shapes",
       "FILTER": "Filter",
       "YEAR": "Year",
       "SPACE": "Geometry",
