@@ -4,7 +4,7 @@ import {LocationLevelIds, PmfmIds} from "../../referential/services/model/model.
 import {LandingPage} from "../landing/landing.page";
 import {LandingValidatorService} from "../services/validator/landing.validator";
 import {debounceTime, filter, map, mergeMap, startWith, switchMap} from "rxjs/operators";
-import {from, Subscription} from "rxjs";
+import {defer, forkJoin, Subscription} from "rxjs";
 import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
@@ -46,12 +46,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.filterForm = this.formBuilder.group({
       taxonGroup: [null]
     });
-    this.registerAutocompleteField('taxonGroupFilter', {
-      service: referentialRefService,
-      filter: {
-        entityName: 'TaxonGroup'
-      }
-    })
   }
 
   ngOnInit() {
@@ -63,53 +57,82 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     // Configure sample table
     this.samplesTable.inlineEdition = !this.mobile;
 
+    this.registerAutocompleteField('taxonGroupFilter', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'TaxonGroup'
+      }
+    });
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    await super.ngAfterViewInit();
+
+    // Call program's specific code
+    this.ngAfterViewInitExtension();
+  }
+
+  /**
+   * Configure specific behavior (program specific)
+   */
+  protected ngAfterViewInitExtension() {
+
+    // Get the CONTROLLED_SPECIES pmfm
+    const controllerSpeciesPmfm$ = this.pmfms
+      .pipe(
+        map(pmfms => pmfms.find(p => p.pmfmId === PmfmIds.CONTROLLED_SPECIES || p.label === 'TAXON_GROUP')),
+        filter(isNotNil)
+      );
+
+    // Get program taxon groups
+    const programTaxonGroups$ = defer(() => this.landingForm.ready())
+      .pipe(
+        map(() => this.landingForm.program),
+        mergeMap(programLabel => this.programService.loadTaxonGroups(programLabel))
+      );
+
     // Get the taxon group, by the PMFM 'CONTROLLED_SPECIES'
     this.registerSubscription(
-      this.pmfms
-        .pipe(
-          map(pmfms => pmfms.find(p => p.pmfmId === PmfmIds.CONTROLLED_SPECIES || p.label === 'TAXON_GROUP')),
-          filter(isNotNil),
-          mergeMap(async (taxonGroupPmfm) => {
-            await this.landingForm.ready();
-            return taxonGroupPmfm;
-          }),
-          mergeMap((taxonGroupPmfm) => {
-            // Load program taxon groups
-            return from(this.programService.loadTaxonGroups(this.landingForm.program))
-              .pipe(
-                switchMap((taxonGroups) => {
+      forkJoin([
+        controllerSpeciesPmfm$,
+        programTaxonGroups$
+      ])
+      .pipe(
+        switchMap(([pmfm, taxonGroups]) => {
 
-                  // Update all qualitative values
-                  taxonGroupPmfm.qualitativeValues = (taxonGroupPmfm.qualitativeValues || [])
-                    .map(qv => {
-                      const tg = taxonGroups.find(tg => tg.label === qv.label);
-                      // If not found in strategies, remove the QV
-                      if (!tg) return null;
-                      // Replace the QV name, using the taxon group name
-                      qv.name = tg.name;
-                      qv.entityName = tg.entityName || 'QualitativeValue';
-                      return qv;
-                    })
-                    .filter(isNotNil);
+          // Update all qualitative value names, in the CONTROLLED_SPECIES pmfm
+          pmfm.qualitativeValues = (pmfm.qualitativeValues || [])
+            .map(qv => {
+              const tg = taxonGroups.find(tg => tg.label === qv.label);
+              // If not found in strategies, remove the QV
+              if (!tg) {
+                console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of programe ${this.landingForm.program})`)
+                return null;
+              }
+              // Replace the QV name, using the taxon group name
+              qv.name = tg.name;
+              qv.entityName = tg.entityName || 'QualitativeValue';
+              return qv;
+            })
+            // Remove wrong QV (label not match any taxon group)
+            .filter(isNotNil);
 
-                  const control = this.form.get( 'measurementValues.' + taxonGroupPmfm.pmfmId);
-                  // Listen every form value changes, to update default value
-                  return control.valueChanges
-                    .pipe(
-                      debounceTime(500)
-                    )
-                    .pipe(
-                      startWith(control.value),
-                      map(qv => {
-                        return ReferentialUtils.isNotEmpty(qv)
-                        && taxonGroups.find(tg => tg.label === qv.label)
-                        || undefined;
-                      })
-                    );
-                })
-              );
-          })
-        )
+          // Listen every form value changes, to update the default value
+          const control = this.form.get( `measurementValues.${pmfm.pmfmId}`);
+          return control.valueChanges
+            .pipe(
+              debounceTime(500)
+            )
+            .pipe(
+              startWith(defer(() => control.value)),
+              map(qv => {
+                return ReferentialUtils.isNotEmpty(qv)
+                && taxonGroups.find(tg => tg.label === qv.label)
+                || undefined;
+              })
+            );
+        })
+      )
         .subscribe(taxonGroup => {
           console.debug('[control] Changing taxon group to:', taxonGroup);
           if (taxonGroup && !taxonGroup.entityName) {

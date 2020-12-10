@@ -111,7 +111,7 @@
                 [required]="required"
                 [tabindex]="tabindex"
                 (keyup.enter)="onKeyupEnter.emit($event)">
-      <mat-option *ngFor="let item of definition.values" [value]="item.key">{{ item.value | translate }}</mat-option>
+      <mat-option *ngFor="let item of definition.values" [value]="item.key || item">{{ (item.value || item) | translate }}</mat-option>
     </mat-select>
 
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

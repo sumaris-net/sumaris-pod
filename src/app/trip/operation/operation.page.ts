@@ -13,7 +13,7 @@ import {
   isNotEmptyArray,
   isNotNil
 } from '../../shared/shared.module';
-import {BehaviorSubject, Subject, Subscription} from 'rxjs';
+import {BehaviorSubject, Subject} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
@@ -32,7 +32,6 @@ import {ProgramService} from "../../referential/services/program.service";
 import {IEntity} from "../../core/services/model/entity.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {BatchTreeComponent} from "../batch/batch-tree.component";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-operation-page',
@@ -186,6 +185,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     this.ngAfterViewInitExtension();
 
+    // Configure page, from Program's properties
+    this.registerSubscription(
+      this.onProgramChanged.subscribe(program => this.setProgram(program))
+    );
+
     // Manage tab group
     const queryParams = this.route.snapshot.queryParams;
     const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
@@ -317,26 +321,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
                 })
             );
           }
-
         });
     }
+  }
 
-    // Configure page, from Program's properties
-    this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(program => {
-          if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
-          this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
-          this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
+  protected async setProgram(program: Program) {
+    if (!program) return; // Skip
+    if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
+    this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
+    this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
 
-          this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
-          this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
+    this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
+    this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
 
-          // Autofill batch group table (e.g. with taxon groups found in strategies)
-          const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
-          this.setDefaultTaxonGroups(autoFillBatch);
-        })
-    );
+    // Autofill batch group table (e.g. with taxon groups found in strategies)
+    const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+    await this.setDefaultTaxonGroups(autoFillBatch);
   }
 
   async onNewEntity(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {

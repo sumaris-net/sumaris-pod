@@ -9,7 +9,7 @@ import {
   ReferentialRef,
   referentialToString,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
+  RESERVED_START_COLUMNS, toDateISOString,
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/validator/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
@@ -553,15 +553,14 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       if (lastSynchronizationDate && lastSynchronizationDate
             .isBefore(moment().add(-10, 'minute'))) {
 
-        // Get peer last update date
-        let remoteUpdateDate = await this.referentialRefService.lastUpdateDate();
-        if (isNotNil(remoteUpdateDate) && moment.isMoment(remoteUpdateDate)) {
-
-          // Compare dates, to kwown if an update if need
-          console.debug('[trips] Last synchronization:', lastSynchronizationDate);
-          console.debug('[trips] Peer last update:', remoteUpdateDate);
-          needUpdate = remoteUpdateDate.isAfter(lastSynchronizationDate);
+        // Get peer last update date, then compare
+        const remoteUpdateDate = await this.referentialRefService.lastUpdateDate();
+        if (isNotNil(remoteUpdateDate)) {
+          // Compare dates, to known if an update if need
+          needUpdate = lastSynchronizationDate.isBefore(remoteUpdateDate);
         }
+
+        console.info(`[trips] Checking referential last update dates: {local: '${toDateISOString(lastSynchronizationDate)}', remote: '${toDateISOString(remoteUpdateDate)}'} - Need upgrade: ${needUpdate}`);
       }
     }
 

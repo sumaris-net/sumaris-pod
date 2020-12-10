@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
 import {fadeInOutAnimation, isNil, isNotNil, toBoolean} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
@@ -22,7 +22,7 @@ import {firstNotNilPromise} from "../../shared/observables";
 import {filter} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {Program} from "../../referential/services/model/program.model";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -30,12 +30,11 @@ import {AddToPageHistoryOptions} from "../../core/services/local-settings.servic
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> implements OnInit {
+export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> {
 
   aggregatedLandings: boolean;
   allowAddNewVessel: boolean;
-
-  $childLoaded = new BehaviorSubject<boolean>(false);
+  $ready = new BehaviorSubject<boolean>(false);
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
 
@@ -71,33 +70,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.debug = !environment.production;
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  async ngAfterViewInit(): Promise<void> {
+    await super.ngAfterViewInit();
 
     // Configure using program properties
-    this.onProgramChanged
-      .subscribe(program => {
-        if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
-        this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
-        this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
-        this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
-        this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-        this.cd.detectChanges();
-
-        if (this.landingsTable) {
-          this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
-          const editorName = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-          this.landingsTable.detailEditor = (editorName === 'landing' || editorName === 'control' || editorName === 'trip') ? editorName : 'landing';
-
-        } else if (this.aggregatedLandingsTable) {
-
-          this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
-          this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
-        }
-
-        this.$childLoaded.next(true);
-        // this.registerAdditionalFormsAndTables();
-      });
+    this.onProgramChanged.subscribe(program => this.setProgram(program));
   }
 
   protected get form(): FormGroup {
@@ -112,6 +89,31 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       () => this.aggregatedLandingsTable
     ]);
   }
+
+  protected setProgram(program: Program) {
+    if (!program) return; // Skip
+
+    if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
+    this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
+    this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+    this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
+    this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
+    this.cd.detectChanges();
+
+    if (this.landingsTable) {
+      this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
+      const editorName = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+      this.landingsTable.detailEditor = (editorName === 'landing' || editorName === 'control' || editorName === 'trip') ? editorName : 'landing';
+
+    } else if (this.aggregatedLandingsTable) {
+
+      this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
+      this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+    }
+
+    this.$ready.next(true);
+  }
+
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
@@ -154,9 +156,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected async ready(): Promise<void> {
     // Wait child loaded
-    if (this.$childLoaded.getValue() !== true) {
+    if (this.$ready.getValue() !== true) {
       if (this.debug) console.debug('[observed-location] waiting child to be ready...');
-      await firstNotNilPromise(this.$childLoaded
+      await firstNotNilPromise(this.$ready
         .pipe(
           filter((childLoaded) => childLoaded === true)
         ));
