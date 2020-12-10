@@ -1,4 +1,5 @@
 <div class="numpad-backdrop-overlay"
+     *ngIf="!noBackdrop"
      (click)="overlayClick($event)"
      [@numpadBackdrop]="backdropState">
 </div>

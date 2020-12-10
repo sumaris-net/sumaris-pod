@@ -248,12 +248,12 @@
         <span translate>REFERENTIAL.UPDATE_DATE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" class="mat-form-field-disabled">
-        <ion-text class="ion-text-end" color="dark" *ngIf="row.id!==-1">
-          <small [matTooltip]="'REFERENTIAL.CREATION_DATE'|translate">
-            <ion-icon name="calendar"></ion-icon> {{row.validator.controls.creationDate.value | dateFormat: {time: true} }}
+        <ion-text class="ion-text-end" color="medium" *ngIf="row.id!==-1">
+          <small [matTooltip]="'REFERENTIAL.CREATION_DATE'|translate" *ngIf="row.currentData.updateDate; let creationDate">
+            <ion-icon name="calendar"></ion-icon> {{ creationDate | dateFormat: {time: true} }}
           </small><br/>
-          <small [matTooltip]="'REFERENTIAL.UPDATE_DATE'|translate">
-            <ion-icon name="time-outline"></ion-icon> {{row.validator.controls.updateDate.value | dateFormat: {time: true} }}
+          <small [matTooltip]="'REFERENTIAL.UPDATE_DATE'|translate" *ngIf="row.currentData.updateDate; let updateDate">
+            <ion-icon name="time-outline"></ion-icon> {{ updateDate | dateFormat: {time: true} }}
           </small>
         </ion-text>
       </mat-cell>

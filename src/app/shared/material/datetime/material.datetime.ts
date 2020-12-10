@@ -3,10 +3,13 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  EventEmitter,
   forwardRef,
-  Input, OnDestroy,
+  Input,
+  OnDestroy,
   OnInit,
   Optional,
+  Output,
   QueryList,
   ViewChild,
   ViewChildren
@@ -35,8 +38,7 @@ import {InputElement, setTabIndex} from "../../inputs";
 import {isFocusableElement} from "../../focusable";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
-import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
-import {firstNotNilPromise} from "../../observables";
+import {isNil, isNilOrBlank, isNotNil, sleep, toBoolean, toDateISOString} from "../../functions";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -77,15 +79,15 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   protected writing = true;
   protected disabling = false;
   protected _tabindex: number;
-  protected keyboardHideDelay: number;
+  protected waitHideKeyboardDelay: number;
 
   form: FormGroup;
   displayPattern: string;
   dayPattern: string;
   _value: Moment;
   locale: string;
-  dayMask = DAY_MASK;
-  hourMask = HOUR_MASK;
+  readonly dayMask = DAY_MASK;
+  readonly hourMask = HOUR_MASK;
 
   @Input() mobile: boolean;
 
@@ -124,6 +126,10 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
 
   @Input() clearable = false;
 
+  // For DEBUG ---
+  @Input() debug = false;
+  @Output() onLogDebug = new EventEmitter<string>();
+
   @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
   @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
   @ViewChild('timePicker') timePicker: NgxTimePicker;
@@ -135,7 +141,7 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   }
 
   constructor(
-    platform: Platform,
+    private platform: Platform,
     private dateAdapter: DateAdapter<Moment>,
     private translate: TranslateService,
     private formBuilder: FormBuilder,
@@ -143,14 +149,13 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective,
   ) {
-    // Workaround because ion-datetime has issue (do not returned a ISO date)
-    this.mobile = platform.is('mobile');
-    this.keyboardHideDelay = this.mobile && KEYBOARD_HIDE_DELAY_MS || 0;
-
     this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
   }
 
   ngOnInit() {
+
+    this.mobile = isNil(this.mobile) ? this.platform.is('mobile') : this.mobile;
+    this.waitHideKeyboardDelay = this.mobile && KEYBOARD_HIDE_DELAY_MS || 0;
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time-field>.");
@@ -160,15 +165,13 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     const dayValidator: ValidatorFn = (_) => $error.getValue();
 
     this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
+    this.form = this.formBuilder.group({});
+    this.form.addControl('day', this.formBuilder.control(null, dayValidator));
     if (this.displayTime) {
-      this.form = this.formBuilder.group({
-        day: [dayValidator],
-        hour: ['', this.required ? Validators.compose([Validators.required, Validators.pattern(HOUR_TIME_PATTERN)]) : Validators.pattern(HOUR_TIME_PATTERN)]
-      });
-    } else {
-      this.form = this.formBuilder.group({
-        day: [dayValidator]
-      });
+      const hourValidator = this.required ?
+        (this.mobile ? Validators.required : Validators.compose([Validators.required, Validators.pattern(HOUR_TIME_PATTERN)])) :
+        (this.mobile ? null : Validators.pattern(HOUR_TIME_PATTERN));
+      this.form.addControl('hour', this.formBuilder.control(null, hourValidator));
     }
 
     // Add custom 'validDate' validator
@@ -210,7 +213,8 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
 
   writeValue(obj: any): void {
 
-    if (this.writing) return;
+    if (this.writing) return; // Skip
+    if (this.debug) this.logDebug("writeValue(obj) with obj:", obj);
 
     if (isNilOrBlank(obj)) {
       this.writing = true;
@@ -229,8 +233,11 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
       return;
     }
 
+    if (this.debug) this.logDebug("writeValue(obj) parsing...");
+
     this._value = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
     if (!this._value) { // invalid date
+      if (this.debug) this.logDebug("writeValue(obj) parse result: invalid !");
       return;
     }
 
@@ -273,7 +280,7 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   }
 
   setDisabledState(isDisabled: boolean): void {
-    if (this.disabling) return;
+    if (this.disabling) return; // Skip
 
     this.disabling = true;
     this.disabled = isDisabled;
@@ -354,6 +361,8 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   }
 
   onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
+    if (this.debug) this.logDebug("onDatePickerChange");
+
     if (this.writing || !(event && event.value)) return; // Skip if call by self
     this.writing = true;
 
@@ -403,7 +412,7 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     this.preventEvent(event);
 
     // Make sure the keyboard is closed
-    await this.waitKeyboardHide(false);
+    await this.hideKeyboard(false);
 
     // Open the picker
     this.openDatePicker(null, datePicker);
@@ -424,29 +433,43 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   async openTimePickerIfMobile(event: UIEvent) {
     if (!this.mobile || event.defaultPrevented) return;
 
-    this.preventEvent(event);
+    //this.preventEvent(event);
 
     // Make sure the keyboard is closed
-    await this.waitKeyboardHide(true);
+    await this.hideKeyboard(true);
 
     // Open the picker
     this.openTimePicker(null);
   }
 
   openTimePicker(event: UIEvent) {
+    if (!this.timePicker) return; // Skip
 
-    if (this.timePicker) {
+    if (this.debug) this.logDebug("openTimePicker() event:", event);
 
-      if (event) this.preventEvent(event);
+    this.preventEvent(event);
 
-      this.timePicker.open();
-    }
+    this.timePicker.open();
   }
 
   onTimePickerChange(value: string) {
-    if (this.form.controls['hour'].value !== value) {
-      this.form.controls['hour'].patchValue(value, {emitEvent: false});
+    if (this.form.controls.hour.value !== value) {
+      this.form.controls.hour.patchValue(value, {emitEvent: false});
+      if (this.debug) {
+        this.logDebug("onTimePickerChange() new value:", value);
+        if (this.form.controls.hour.invalid) {
+          this.logDebug("hour errors:", this.form.controls.hour.errors);
+        }
+      }
       this.markForCheck();
+    }
+    else {
+      if (this.debug) {
+        this.logDebug("onTimePickerChange(): no changes", this.form.controls.hour.value);
+        if (this.form.controls.hour.invalid) {
+          this.logDebug("hour errors:", this.form.controls.hour.errors);
+        }
+      }
     }
   }
 
@@ -493,7 +516,7 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
 
   /* -- protected method -- */
 
-  protected async waitKeyboardHide(waitKeyboardDelay: boolean) {
+  protected async hideKeyboard(waitIsHidden: boolean) {
 
     if (!this.keyboard.isVisible) return; // ok, already hidden
 
@@ -504,8 +527,8 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     await this.keyboard.onKeyboardHide().pipe(first()).toPromise();
 
     // Wait an additional delay if need (depending on the OS)
-    if (this.keyboardHideDelay > 0 && waitKeyboardDelay) {
-      await sleep(this.keyboardHideDelay);
+    if (this.waitHideKeyboardDelay > 0 && waitIsHidden) {
+      await sleep(this.waitHideKeyboardDelay);
     }
   }
 
@@ -524,5 +547,12 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  protected logDebug(message: string, obj?: any) {
+    if (!this.debug) return; // Silent
+    console.debug("[mat-date-time-field] " + message, obj);
+    this.onLogDebug.emit("[mat-date-time-field] " + message + (obj !== undefined ? (' ' + JSON.stringify(obj)) : ''));
+  }
+
 }
 

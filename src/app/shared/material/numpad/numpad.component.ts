@@ -18,9 +18,9 @@ export class MatNumpadComponent implements MatNumpadRef {
   @Input() decimal: boolean = true
 
   @Input() appendToInput: boolean;
-  @Input() disableAnimation: boolean = false;
-  @Input() noBackdrop: boolean = false;
-  @Input() position: string = 'bottom';
+  @Input() disableAnimation = false;
+  @Input() noBackdrop = false;
+  @Input() position = 'bottom';
 
   @Output() keypress = new EventEmitter<KeyboardEvent>();
   @Output() closed = new EventEmitter<null>();
@@ -61,6 +61,8 @@ export class MatNumpadComponent implements MatNumpadRef {
       noBackdrop: this.noBackdrop,
       position: this.position
     });
+
+    this._opened = true;
   }
 
   close() {

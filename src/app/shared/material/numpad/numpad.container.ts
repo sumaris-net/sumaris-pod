@@ -2,7 +2,6 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnD
 import {MatNumpadConfig, MatNumpadEvent, MatNumpadKey, MatNumpadKeymap, MatNumpadRef} from "./numpad.model";
 import {BehaviorSubject} from "rxjs";
 import {animate, AnimationEvent, state, style, transition, trigger} from '@angular/animations';
-import {matDatepickerAnimations} from "@angular/material/datepicker";
 
 export enum AnimationState {
   ENTER = 'enter',

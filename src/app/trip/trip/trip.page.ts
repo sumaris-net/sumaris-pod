@@ -43,7 +43,7 @@ const TripPageTabs = {
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
+export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
@@ -84,12 +84,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.debug = !environment.production;
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  async ngAfterViewInit(): Promise<void> {
+    await super.ngAfterViewInit();
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged.subscribe(program => this.setProgram(program)));
+      this.onProgramChanged.subscribe(program => this.setProgram(program))
+    );
 
     // Cascade refresh to operation tables
     this.registerSubscription(

@@ -228,7 +228,7 @@ export class NetworkService {
     this._startPromise = undefined;
 
     // Stop timer if cannot refresh anymore
-    if (this._timerRefreshCondition() == false) {
+    if (this._timerRefreshCondition() === false) {
       this.stopRefreshTimer();
     }
 
@@ -660,8 +660,17 @@ export class NetworkService {
 
         // Change to offline
         if (this._deviceConnectionType === 'none') {
-          // Alert the user
-          this.showToast({message: 'NETWORK.INFO.OFFLINE'});
+          if (this._mobile) {
+            // Force offline mode
+            this._forceOffline = true;
+
+            // Alert the user
+            this.showToast({message: 'NETWORK.INFO.OFFLINE_HELP'});
+          }
+          else {
+            // Alert the user
+            this.showToast({message: 'NETWORK.INFO.OFFLINE'});
+          }
 
           // Stop the network service
           this.stop();

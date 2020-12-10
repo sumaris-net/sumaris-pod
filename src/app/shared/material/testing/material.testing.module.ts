@@ -10,6 +10,7 @@ import {ReactiveFormsModule} from "@angular/forms";
 import {NumpadTestPage} from "../numpad/testing/numpad.test";
 import {SwipeTestPage} from "../swipe/testing/swipe.test";
 import {TranslateModule} from "@ngx-translate/core";
+import {DateTimeTestPage} from "../datetime/testing/mat-date-time.test";
 
 
 const routes: Routes = [
@@ -22,6 +23,11 @@ const routes: Routes = [
     path: 'autocomplete',
     pathMatch: 'full',
     component: AutocompleteTestPage
+  },
+  {
+    path: 'datetime',
+    pathMatch: 'full',
+    component: DateTimeTestPage
   },
   {
     path: 'latlong',
@@ -51,6 +57,7 @@ const routes: Routes = [
   ],
   declarations: [
     MaterialTestingPage,
+    DateTimeTestPage,
     AutocompleteTestPage,
     LatLongTestPage,
     NumpadTestPage,
@@ -59,6 +66,7 @@ const routes: Routes = [
   exports: [
     SharedMaterialModule,
     RouterModule,
+    DateTimeTestPage,
     MaterialTestingPage,
     AutocompleteTestPage,
     LatLongTestPage,
