@@ -49,21 +49,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
 
-
-  private eotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-    {id: '1', label: 'P101-0001-01-DF', name: 'GRAND PORT MARITIME DE GUADELOUPE - FCT', statusId:1,entityName:"Eotp"},
-    {id: '2', label: 'P101-0002-01-RE', name: 'SOCLE HALIEUTIQUE - RE', statusId:1,entityName:"Eotp"},
-    {id: '3', label: 'P101-0003-01-RE', name: 'DCF- Recettes',statusId:1,entityName:"Eotp"},
-    {id: '4', label: 'P101-0005-01-DF', name: 'CONV TRIPARTITE AAMP-DPMA-IFR-FCT',statusId:1,entityName:"Eotp"},
-    {id: '5', label: 'P101-0006-01-DF', name: 'APP EMR DGEC - état des lieux - DF',statusId:1,entityName:"Eotp"}
-  ];
-
-  private FiltredEotpList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-    {id: '1', label: 'P101-0001-01-DF', name: 'GRAND PORT MARITIME DE GUADELOUPE - FCT', statusId:1,entityName:"Eotp"},
-    {id: '3', label: 'P101-0003-01-RE', name: 'DCF- Recettes',statusId:1,entityName:"Eotp"},
-    {id: '5', label: 'P101-0006-01-DF', name: 'APP EMR DGEC - état des lieux - DF',statusId:1,entityName:"Eotp"}
-  ];
-
   mobile: boolean;
   programId = -1;
 
@@ -733,20 +718,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   }
   // EOTP  ---------------------------------------------------------------------------------------------------
 
-  protected  loadEotps() {
-    const eotpAreaControl = this.form.get('analyticReference');
-    eotpAreaControl.enable();
-
-    if (this.enableEotpFilter) {
-      // Refresh filtred eotp
-      const eotps =  this.FiltredEotpList;
-      this._eotpSubject.next(eotps);
-    }
-    else {
-      // Refresh eotp
-      const eotps =  this.eotpList;
-      this._eotpSubject.next(eotps);
-    }
+  protected async loadEotps() {
+    const res = await this.strategyService.LoadAllAnalyticReferencesQuery(0, 200, null, null, null);
+    this._eotpSubject.next(res);
   }
 
   protected markForCheck() {
