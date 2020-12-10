@@ -1,9 +1,8 @@
-import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
 import {Account} from '../services/model/account.model';
 import {Locales} from '../services/model/settings.model';
-import {referentialToString} from '../services/model/referential.model';
 import {UserSettingsValidatorService} from '../services/validator/user-settings.validator';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {AccountValidatorService} from '../services/validator/account.validator';
@@ -50,7 +49,8 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     protected validatorService: AccountValidatorService,
     protected settingsValidatorService: UserSettingsValidatorService,
     protected translate: TranslateService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getFormGroup(accountService.account), settings);
 
@@ -212,5 +212,8 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.markForCheck();
   }
 
-  referentialToString = referentialToString;
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
 }
