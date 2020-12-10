@@ -39,7 +39,7 @@ export const DEFAULT_KEYMAP: MatNumpadKeymap = [
   [{key: '1'}, {key: '2'}, {key: '3'}, {key: 'Backspace', icon: 'backspace', color: 'light'}],
   [{key: '4'}, {key: '5'}, {key: '6'}, {key: 'Tab', label: 'COMMON.BTN_NEXT_SHORT', color: 'light'}],
   [{key: '7'}, {key: '8'}, {key: '9'}, {key: '.', label: 'COMMON.BTN_DECIMAL_SEPARATOR', color: 'light'}],
-  [null, {key: '0'}, null]
+  [null, {key: '0'}, null,  {key: 'Enter', icon: 'checkmark', color: 'tertiary'}]
 ];
 
 //export declare type MatNumpadEventDetail = MatNumpadKey & {target: any};
