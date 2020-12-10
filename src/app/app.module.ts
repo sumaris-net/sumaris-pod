@@ -37,11 +37,15 @@ import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {SharedModule} from "./shared/shared.module";
 import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
 import {MarkdownModule, MarkedOptions} from "ngx-markdown";
-import {APP_LOCAL_STORAGE_TYPE_POLICIES} from "./core/services/storage/entities-storage.service";
+import {
+  APP_LOCAL_STORAGE_TYPE_POLICIES,
+  EntitiesStorageTypePolicies
+} from "./core/services/storage/entities-storage.service";
 import {AppGestureConfig} from "./shared/gesture/gesture-config";
 import {TypePolicies} from "@apollo/client/core";
 import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
 import {SocialModule} from "./social/social.module";
+import {TRIP_TESTING_PAGES} from "./trip/trip.testing.module";
 
 
 @NgModule({
@@ -161,7 +165,7 @@ import {SocialModule} from "./social/social.module";
 
         // Settings
         {title: '' /*empty divider*/, cssClass: 'flex-spacer'},
-        {title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'ADMIN'},
+        {title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR'},
         {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium'},
         {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-mobile'},
 
@@ -227,12 +231,14 @@ import {SocialModule} from "./social/social.module";
       }
     },
 
-    // Entities options
-    { provide: APP_LOCAL_STORAGE_TYPE_POLICIES, useValue: { ...TRIP_STORAGE_TYPE_POLICIES}},
+    // Entities storage options
+    { provide: APP_LOCAL_STORAGE_TYPE_POLICIES, useValue: <EntitiesStorageTypePolicies>{
+      ...TRIP_STORAGE_TYPE_POLICIES
+    }},
 
-    // Test pages link
+    // Testing pages
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
-      {label: 'Batch tree', page: '/testing/trip/batchTree'}
+        ...TRIP_TESTING_PAGES
     ]},
   ],
   bootstrap: [AppComponent],
