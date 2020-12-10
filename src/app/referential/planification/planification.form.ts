@@ -174,10 +174,15 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         .subscribe(async (date : Moment) => {
           //update mask
           let year = "2020";
-          // if (date && date.year())
-          // {
-          //   year = date.year().toString();
-          // }
+          if (date && (typeof date === 'object') && (date.year()))
+          {
+            year = date.year().toString();
+          }
+          else if (date && (typeof date === 'string'))
+          {
+            let dateAsString = date as string;
+            year = dateAsString.split('-')[0];
+          }
           this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
           // set sample row code
           //TODO : replace 40 with this.program.id
