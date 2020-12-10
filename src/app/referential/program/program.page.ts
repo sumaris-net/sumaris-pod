@@ -20,8 +20,7 @@ import {StrategyForm} from "../strategy/strategy.form";
 import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
 import {debounceTime, filter, first} from "rxjs/operators";
 import {ProgramProperties} from "../services/config/program.config";
-import {isNotNilOrBlank} from "../../shared/functions";
-
+import {ActivatedRoute} from "@angular/router";
 
 
 export enum AnimationState {
@@ -76,7 +75,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     protected validatorService: ProgramValidatorService,
     dataService: ProgramService,
     protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected activatedRoute : ActivatedRoute
   ) {
     super(injector,
       Program,
@@ -92,6 +92,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   ngOnInit() {
     super.ngOnInit();
+    console.log("programId : " + this.activatedRoute.snapshot.paramMap.get('id'));
 
     // update simpleStrategiesOption when UpdateView
     this.onUpdateView

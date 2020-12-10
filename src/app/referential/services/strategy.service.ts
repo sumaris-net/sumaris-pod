@@ -369,8 +369,6 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
   async save(entity: Strategy, options?: any): Promise<Strategy> {
 
     if (!entity) return entity;
-    //TODO : get current programId
-    entity.programId=40;
 
     // Clean cache
     //this.clearCache();

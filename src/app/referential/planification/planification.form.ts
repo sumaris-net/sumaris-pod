@@ -98,8 +98,8 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
   pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
+  appliedStrategiesHelper: FormArrayHelper<AppliedStrategy>;
   pmfmStrategiesFocusIndex = -1;
-
 
   public sampleRowMask = ['2', '0', '2', '0', '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
 
@@ -122,6 +122,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   get pmfmStrategiesForm(): FormArray {
     return this.form.controls.pmfmStrategies as FormArray;
+  }
+
+  get appliedStrategiesForm(): FormArray {
+    return this.form.controls.appliedStrategies as FormArray;
   }
 
   @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
@@ -170,10 +174,15 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         .subscribe(async (date : Moment) => {
           //update mask
           let year = "2020";
-          // if (date && date.year())
-          // {
-          //   year = date.year().toString();
-          // }
+          if (date && (typeof date === 'object') && (date.year()))
+          {
+            year = date.year().toString();
+          }
+          else if (date && (typeof date === 'string'))
+          {
+            let dateAsString = date as string;
+            year = dateAsString.split('-')[0];
+          }
           this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
           // set sample row code
           //TODO : replace 40 with this.program.id
@@ -259,9 +268,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //init helpers
     // this.initCalcifiedTypeHelper();
     this.initLaboratoryHelper();
-    this.initFishingAreaHelper();
+    //this.initFishingAreaHelper();
     this.initTaxonNameHelper();
     this.initPmfmStrategiesHelper();
+    this.initAppliedStrategiesHelper();
 
   }
 
@@ -349,13 +359,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       this.laboratoryHelper.resize(Math.max(1, data.strategyDepartments.length));
       laboratoriesControl.patchValue(laboratories);
 
-      // FISHING AREA
-      const fishingAreaControl = this.fishingAreasForm;
-      // applied_strategy.location_fk + program2location (zones en mer / configurables)
-      let fishingAreaAppliedStrategies = data.appliedStrategies;
-      let fishingArea = fishingAreaAppliedStrategies.map(appliedStrategy => { return appliedStrategy.location;
-      });
-      fishingAreaControl.patchValue(fishingArea);
 
 
     //   // TAXONS
@@ -371,9 +374,21 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //   // YEAR
     //   //  Automatic binding
 
+
+    // FISHING AREA
+    // applied_strategy.location_fk + program2location (zones en mer / configurables)
+    let fishingAreaAppliedStrategies = data.appliedStrategies;
+    let fishingArea = fishingAreaAppliedStrategies.map(appliedStrategy => { return appliedStrategy.location;});
+
+
+
       // EFFORT
     //   const appliedStrategiesControl = this.form.get("appliedStrategies");
       let appliedStrategies = data.appliedStrategies;
+    let quarterEffort1 = null;
+    let quarterEffort2 = null;
+    let quarterEffort3 = null;
+    let quarterEffort4 = null;
       if (appliedStrategies)
       {
         // We keep the first applied period of the array as linked to fishing area
@@ -392,28 +407,34 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
               if (startDateMonth >= 0 && endDateMonth < 3)
               {
                 // First quarter
-                let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+                quarterEffort1 = fishingAreaAppliedPeriod.acquisitionNumber;
               }
               else if (startDateMonth >= 3 && endDateMonth < 6)
               {
                 // Second quarter
-                let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+                quarterEffort2 = fishingAreaAppliedPeriod.acquisitionNumber;
               }
               else if (startDateMonth >= 6 && endDateMonth < 9)
               {
                 // Third quarter
-                let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+                quarterEffort3 = fishingAreaAppliedPeriod.acquisitionNumber;
               }
               else if (startDateMonth >= 9 && endDateMonth < 12)
               {
                 // Fourth quarter
-                let quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+                quarterEffort4 = fishingAreaAppliedPeriod.acquisitionNumber;
               }
 
             }
           }
         }
       }
+    const appliedStrategiesControl = this.appliedStrategiesForm;
+
+    let appliedStrategiesValues = [quarterEffort1, quarterEffort2, quarterEffort3, quarterEffort4];
+    appliedStrategiesValues = appliedStrategiesValues.concat(fishingArea);
+    this.appliedStrategiesHelper.resize(appliedStrategiesValues.length);
+    appliedStrategiesControl.patchValue(appliedStrategiesValues);
 
 
       // WEIGHT PMFMS
@@ -443,7 +464,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       // SEX
 
       const pmfmStrategiesControl = this.pmfmStrategiesForm;
-      this.pmfmStrategiesHelper.resize(6);
+      this.pmfmStrategiesHelper.resize(2);
 
       let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "AGE");
       let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
@@ -580,30 +601,54 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     }
   }
 
+  // appliedStrategies Helper -----------------------------------------------------------------------------------------------
+  protected initAppliedStrategiesHelper() {
+    // appliedStrategies => appliedStrategies.location ?
+    this.appliedStrategiesHelper = new FormArrayHelper<AppliedStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
+      (appliedStrategy) => this.formBuilder.control(appliedStrategy || null, [Validators.required, SharedValidators.entity]),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false
+      }
+    );
+    // Create at least one fishing Area
+    if (this.appliedStrategiesHelper.size() === 0) {
+      this.appliedStrategiesHelper.resize(7);
+    }
+  }
+  addFishingArea() {
+    this.appliedStrategiesHelper.add();
+    if (!this.mobile) {
+      this.fishingAreaFocusIndex = this.appliedStrategiesHelper.size() - 1 -4;
+    }
+  }
+
 
   // fishingArea Helper -----------------------------------------------------------------------------------------------
-  protected initFishingAreaHelper() {
-    // appliedStrategies => appliedStrategies.location ?
-      this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
-        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
-        (fishingArea) => this.formBuilder.control(fishingArea || null, [Validators.required, SharedValidators.entity]),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
-        {
-          allowEmptyArray: false
-        }
-      );
-      // Create at least one fishing Area
-      if (this.fishingAreaHelper.size() === 0) {
-        this.fishingAreaHelper.resize(1);
-      }
-    }
-    addFishingArea() {
-      this.fishingAreaHelper.add();
-      if (!this.mobile) {
-        this.fishingAreaFocusIndex = this.fishingAreaHelper.size() - 1;
-      }
-    }
+  // protected initFishingAreaHelper() {
+  //   // appliedStrategies => appliedStrategies.location ?
+  //     this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
+  //       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
+  //       (fishingArea) => this.formBuilder.control(fishingArea || null, [Validators.required, SharedValidators.entity]),
+  //       ReferentialUtils.equals,
+  //       ReferentialUtils.isEmpty,
+  //       {
+  //         allowEmptyArray: false
+  //       }
+  //     );
+  //     // Create at least one fishing Area
+  //     if (this.fishingAreaHelper.size() === 0) {
+  //       this.fishingAreaHelper.resize(1);
+  //     }
+  //   }
+  //   addFishingArea() {
+  //     this.fishingAreaHelper.add();
+  //     if (!this.mobile) {
+  //       this.fishingAreaFocusIndex = this.fishingAreaHelper.size() - 1;
+  //     }
+  //   }
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
   protected initLaboratoryHelper() {
