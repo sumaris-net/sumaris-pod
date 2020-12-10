@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {LoadResult, EntitiesService, EntityService, isNil, isNotNil, isNotEmptyArray} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils} from "../../core/core.module";
+import {BaseEntityService, EntityUtils, Referential, ReferentialRef} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 
 import {GraphqlService} from "../../core/services/graphql.service";
@@ -17,6 +17,9 @@ import {EntitiesStorage} from 'src/app/core/services/entities-storage.service';
 import {ReferentialFragments} from "./referential.fragments";
 import {isEmptyArray} from "../../shared/functions";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+
+import {ReferentialRefFilter} from "./referential-ref.service";
+import {ReferentialFilter} from "./referential.service";
 
 import {
   DataEntityAsObjectOptions,
@@ -222,6 +225,15 @@ const FindStrategyNextLabel: any = gql`
   query SuggestedStrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
     suggestedStrategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
   }
+`;
+
+const LoadAllAnalyticReferencesQuery: any = gql`
+  query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+      ...ReferentialFragment
+    }
+  }
+  ${ReferentialFragments.referential}
 `;
 
 const LoadQuery: any = gql`
@@ -544,11 +556,36 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
         labelPrefix: labelPrefix,
         nbDigit: nbDigit
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"}
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"},
+      fetchPolicy: 'network-only'
     });
     return res && res.suggestedStrategyNextLabel;
   }
 
+  async LoadAllAnalyticReferencesQuery(offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: ReferentialRefFilter): Promise<ReferentialRef[]> {
+    if (this._debug) console.debug(`[strategy-service] Loading strategy analytic references...`);
+
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: ReferentialFilter.asPodObject(filter)
+    };
+
+    const res = await this.graphql.query<{ analyticReferences: Referential[] }>({
+      query: LoadAllAnalyticReferencesQuery,
+      variables: variables,
+      error: { code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_REFERENCES_ERROR" },
+      fetchPolicy: 'cache-first'
+    });
+
+    return (res && res.analyticReferences || []) as ReferentialRef[];
+  }
 
   protected asObject(entity: Strategy, opts?: DataEntityAsObjectOptions): any {
     opts = {...MINIFY_OPTIONS, ...opts};

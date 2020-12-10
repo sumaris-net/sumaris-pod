@@ -1168,6 +1168,7 @@
       },
       "ERROR": {
         "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy label",
+        "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy analytic references",
         "LOAD_STRATEGY_ERROR": "Error while loading stategy",
         "SAVE_STRATEGY_ERROR": "Error while saving stategy"
       }
