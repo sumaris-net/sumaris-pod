@@ -213,7 +213,6 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLMutation(name = "saveAggregation", description = "Create or update a data aggregation")
-    @Async
     public AggregationTypeVO saveAggregation(@GraphQLArgument(name = "type") AggregationTypeVO type,
                                              @GraphQLArgument(name = "filter") ExtractionFilterVO filter
     ) throws ExecutionException, InterruptedException {
