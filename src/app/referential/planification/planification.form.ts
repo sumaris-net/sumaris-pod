@@ -483,7 +483,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     // let pmfmStrategies = [ sex ? true : false, age ? true : false, weightPmfmStrategy, sizePmfmStrategy, maturityPmfmStrategy];
     let pmfmStrategies : any[] = [ sex ? true : false, age ? true : false];
-    
+
 
 
 
@@ -603,10 +603,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   // appliedStrategies Helper -----------------------------------------------------------------------------------------------
   protected initAppliedStrategiesHelper() {
-    // appliedStrategies => appliedStrategies.location ?
+    // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
     this.appliedStrategiesHelper = new FormArrayHelper<AppliedStrategy>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
-      (appliedStrategy) => this.formBuilder.control(appliedStrategy || null, [Validators.required, SharedValidators.entity]),
+      (appliedStrategy) => this.formBuilder.control(appliedStrategy || null),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
