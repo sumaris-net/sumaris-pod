@@ -45,7 +45,7 @@ export class Strategy extends Referential<Strategy> {
   constructor(data?: {
     id?: number,
     label?: string,
-    name?: string
+    name?: string,
   }) {
     super();
     this.id = data && data.id;
@@ -75,7 +75,6 @@ export class Strategy extends Referential<Strategy> {
     target.gears = this.gears && this.gears.map(s => s.asObject(opts));
     target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-
     return target;
   }
 
@@ -95,7 +94,7 @@ export class Strategy extends Referential<Strategy> {
     // Taxon groups, sorted by priority level
     this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
-
+    this.programId=source.programId;
   }
 
   equals(other: Strategy): boolean {

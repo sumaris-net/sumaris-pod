@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, isNil, Referential} from "../../core/core.module";
+import {AppEntityEditor, EntityUtils, isNil, Referential, ReferentialRef} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
-import {Strategy} from "../services/model/strategy.model";
+import {AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from "../services/model/strategy.model";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {
   fadeInOutAnimation
@@ -17,6 +17,9 @@ import {animate, state, style, transition, trigger} from "@angular/animations";
 import {ProgramProperties} from "../services/config/program.config";
 import {StrategyService} from "../services/strategy.service";
 import {PlanificationForm} from "../planification/planification.form";
+import {ActivatedRoute} from "@angular/router";
+import {TaxonNameRef} from "../services/model/taxon.model";
+import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 
 
 export enum AnimationState {
@@ -66,7 +69,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     protected validatorService: ProgramValidatorService,
     dataService: StrategyService,
     protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected activatedRoute : ActivatedRoute
   ) {
     super(injector,
       Strategy,
@@ -162,28 +166,92 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
 
 
-  protected async getJsonValueToSave(): Promise<any> {
+  protected async getJsonValueToSave(): Promise<Strategy> {
 
     const data = await super.getJsonValueToSave();
-    // TODO : get programId rom router
+    // TODO : get programId
     data.programId=40;
+   // data.__typename="StrategyVO";
+
     //Sample row code
     data.label =  this.planificationForm.form.get("label").value;
+    data.name = this.planificationForm.form.get("label").value;
+    //statusId
+    data.statusId=1;
+
     //eotp
+    data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
+
     data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
     //comments
     data.description = this.planificationForm.form.get("description").value;
 
-    // FIXME A Adapter pour la création
-    data.name='test;'
-    data.statusId=1;
+
+   // get Id program from route
+    console.log("programId : " + this.activatedRoute.snapshot.paramMap.get('id'));
+
+    //get Laboratories -------------------------------------------------------------------------------------------------
+
+    let laboratories =  this.planificationForm.laboratoriesForm.value;
+    let strategyDepartment: StrategyDepartment = new StrategyDepartment();
+    let strategyDepartments: StrategyDepartment [] =[];
+
+
+    if(laboratories){
+
+      strategyDepartments   = this.planificationForm.laboratoriesForm.value.map(lab => ({
+        strategyId : data.id,
+        location : null,
+        privilege :null, //FIXME : get observer from referential ?
+        department : lab
+      })) ;
+
+      const result = strategyDepartments as StrategyDepartment [];
+      data.strategyDepartments = result;
+    }
+
+    //TaxonNames -------------------------------------------------------------------------------------------------------
+
+    let taxonNameStrategy =  this.planificationForm.taxonNamesForm.value;
+    let taxonName: TaxonNameStrategy = new TaxonNameStrategy();
+    let taxonNameStrategies: TaxonNameStrategy [] =[];
+
+    if(taxonNameStrategy){
+      taxonName.strategyId= data.id;
+      taxonName.priorityLevel=null;
+      taxonName.taxonName=taxonNameStrategy[0];
+
+      taxonNameStrategies.push(taxonName);
+      data.taxonNames =taxonNameStrategies;
+    }
+
+    //Fishig Area ----------------------------------------------------------------------------------------------------
+
+    let fishingArea = this.planificationForm.fishingAreasForm.value;
+    let fishingAreas : AppliedStrategy [] = [];
+
+    if (fishingArea) {
+      fishingAreas = fishingArea.map(fish => ({
+          strategyId: data.id,
+          location: fish,
+          appliedPeriods: null //FIXME : get appliedPeriods ?
+        })
+      );
+    }
+
+    const result = fishingAreas as AppliedStrategy [];
+    data.appliedStrategies = result;
+
+    //calcified type ---------------------------------------------------------------------------------------------------
+    let calcifiedType = this.planificationForm.calcifiedTypesForm.value;
+    let calcifiedTypes : PmfmStrategy [] = [];
+
+
+
 
 
     return data
   }
-
-
-
 
 }
 
