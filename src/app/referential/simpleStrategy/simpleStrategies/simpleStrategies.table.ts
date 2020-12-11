@@ -111,7 +111,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
     return taxonName;
   }
 
-  effortToString(data: Strategy, quarter : int) {
+  effortToString(data: Strategy, quarter) {
     let efforts;
     let appliedStrategies = data.appliedStrategies;
     let quarterEffort = null;
@@ -127,7 +127,6 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
         if (fishingAreaAppliedPeriodsAsObject)
         {
           let fishingAreaAppliedPeriods = fishingAreaAppliedPeriodsAsObject as AppliedPeriod[];
-          console.log(fishingAreaAppliedPeriods);
           for (let fishingAreaAppliedPeriod of fishingAreaAppliedPeriods) {
             let startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
             let endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
@@ -178,12 +177,6 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
 
       agePmfmStrategy = (data.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "AGE");
     }
-
-    console.log(weightPmfmStrategy)
-    console.log(sizePmfmStrategy)
-    console.log(sexPmfmStrategy)
-    console.log(maturityPmfmStrategy)
-    console.log(agePmfmStrategy)
 
     let parameters = []
     if (weightPmfmStrategy && weightPmfmStrategy.length !== 0)
