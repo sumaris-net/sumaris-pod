@@ -210,7 +210,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     //get Laboratories -------------------------------------------------------------------------------------------------
 
-    let laboratories =  this.planificationForm.laboratoriesForm.value;
+    let laboratories =  this.planificationForm.strategyDepartmentFormArray.value;
 
     let strategyDepartment: StrategyDepartment = new StrategyDepartment();
     let strategyDepartments: StrategyDepartment [] =[];
