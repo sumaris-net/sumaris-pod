@@ -61,7 +61,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   enableLaboratoryFilter = true;
   canFilterLaboratory = true;
-  laboratoryHelper: FormArrayHelper<ReferentialRef>;
+  strategyDepartmentHelper: FormArrayHelper<StrategyDepartment>;
   laboratoryFocusIndex = -1;
 
   enableFishingAreaFilter = true;
@@ -92,7 +92,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     return this.form.controls.calcifiedTypes as FormArray;
   }
 
-  get laboratoriesForm(): FormArray {
+  get strategyDepartmentFormArray(): FormArray {
     return this.form.controls.strategyDepartments as FormArray;
   }
 
@@ -252,7 +252,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     //init helpers
     // this.initCalcifiedTypeHelper();
-    this.initLaboratoryHelper();
+    this.initDepartmentHelper();
     //this.initFishingAreaHelper();
     this.initTaxonNameHelper();
     this.initPmfmStrategiesHelper();
@@ -318,6 +318,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     console.log(data);
 
+    // Resize strategy department array
+    this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
+
     super.setValue(data, opts);
     console.log(this.form);
 
@@ -336,12 +339,11 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       // let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
       // eotpControl.patchValue(eotpObject);
 
-      // LABORATORIES
-      const laboratoriesControl = this.laboratoriesForm;
-      let strategyDepartments = data.strategyDepartments;
-      let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;});
-      this.laboratoryHelper.resize(Math.max(1, data.strategyDepartments.length));
-      laboratoriesControl.patchValue(laboratories);
+      // const laboratoriesControl = this.laboratoriesForm;
+      // let strategyDepartments = data.strategyDepartments;
+      // let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;});
+      // this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
+      // laboratoriesControl.patchValue(laboratories);
 
 
 
@@ -474,12 +476,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : null);
     this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
 
-    //SIZES 
+    //SIZES
     const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
     let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
     pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : null);
     this.sizePmfmStrategiesTable.value = sizePmfmStrategy.length > 0 ? sizePmfmStrategy : [new PmfmStrategy()];
-    
+
 
     const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
     let maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
@@ -647,10 +649,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   //   }
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
-  protected initLaboratoryHelper() {
-    this.laboratoryHelper = new FormArrayHelper<ReferentialRef>(
+  protected initDepartmentHelper() {
+    this.strategyDepartmentHelper = new FormArrayHelper<StrategyDepartment>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'strategyDepartments'),
-      (laboratory) => this.formBuilder.control(laboratory || null, [Validators.required, SharedValidators.entity]),
+      (department) => this.validatorService.getStrategyDepartmentsControl(department),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
@@ -658,14 +660,14 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       }
     );
     // Create at least one laboratory
-    if (this.laboratoryHelper.size() === 0) {
-      this.laboratoryHelper.resize(1);
+    if (this.strategyDepartmentHelper.size() === 0) {
+      this.strategyDepartmentHelper.resize(1);
     }
   }
-  addLaboratory() {
-    this.laboratoryHelper.add();
+  addStrategyDepartment() {
+    this.strategyDepartmentHelper.add();
     if (!this.mobile) {
-      this.laboratoryFocusIndex = this.laboratoryHelper.size() - 1;
+      this.laboratoryFocusIndex = this.strategyDepartmentHelper.size() - 1;
     }
   }
   // CalcifiedTypeHelper -----------------------------------------------------------------------------------------------

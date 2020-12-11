@@ -192,14 +192,14 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     //get Laboratories -------------------------------------------------------------------------------------------------
 
-    let laboratories =  this.planificationForm.laboratoriesForm.value;
+    let laboratories =  this.planificationForm.strategyDepartmentFormArray.value;
     let strategyDepartment: StrategyDepartment = new StrategyDepartment();
     let strategyDepartments: StrategyDepartment [] =[];
 
 
     if(laboratories){
 
-      strategyDepartments   = this.planificationForm.laboratoriesForm.value.map(lab => ({
+      strategyDepartments   = this.planificationForm.strategyDepartmentFormArray.value.map(lab => ({
         strategyId : data.id,
         location : null,
         privilege :null, //FIXME : get observer from referential ?
