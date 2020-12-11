@@ -361,9 +361,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Column: individual count
     const individualCount = toNumber(data.individualCount, null);
-    if (data.qualityFlagId === QualityFlagIds.BAD){
+    /*if (data.qualityFlagId === QualityFlagIds.BAD){
       //console.log('TODO Invalid individual count !', individualCount);
-    }
+    }*/
     measurementValues[i++] = individualCount;
 
     // Sampling batch
@@ -378,10 +378,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
       // Column: sampling individual count
       const samplingIndividualCount: any = toNumber(samplingChild.individualCount, null);
-      if (samplingChild.qualityFlagId === QualityFlagIds.BAD) {
+      /*if (samplingChild.qualityFlagId === QualityFlagIds.BAD) {
         //console.log('TODO Invalid sampling individual count !', samplingIndividualCount);
         //samplingIndividualCount = '~' + samplingIndividualCount;
-      }
+      }*/
       measurementValues[i++] = samplingIndividualCount;
     }
     // No sampling batch: clean values
