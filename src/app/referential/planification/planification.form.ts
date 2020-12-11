@@ -290,7 +290,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     switch (fieldName) {
       case 'eotp':
         this.enableEotpFilter = value = !this.enableEotpFilter;
-        this.loadEotps();
         break;
       case 'laboratory':
         this.enableLaboratoryFilter = value = !this.enableLaboratoryFilter;
@@ -731,7 +730,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   // EOTP  ---------------------------------------------------------------------------------------------------
 
   protected async loadEotps() {
-    const res = await this.strategyService.LoadAllAnalyticReferencesQuery(0, 200, null, null, null);
+    const res = await this.strategyService.LoadAllAnalyticReferencesQuery(0, 30, null, null, null);
     this._eotpSubject.next(res);
   }
 
