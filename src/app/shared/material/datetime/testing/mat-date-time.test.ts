@@ -3,6 +3,9 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import * as moment from "moment/moment";
 import {Platform} from "@ionic/angular";
 import {debounceTime} from "rxjs/operators";
+import {SharedFormGroupValidators} from "../../../validator/validators";
+import {toDateISOString} from "../../../functions";
+import {AppFormUtils} from "../../../../core/form/form.utils";
 
 @Component({
   selector: 'app-data-time-test',
@@ -12,8 +15,8 @@ import {debounceTime} from "rxjs/operators";
 export class DateTimeTestPage implements OnInit {
 
 
-  showDebugPanel = false;
-  debugPanelContent = '';
+  showLogPanel = true;
+  logContent = '';
 
   form: FormGroup;
 
@@ -26,6 +29,8 @@ export class DateTimeTestPage implements OnInit {
       empty: [null, Validators.required],
       enable: [null, Validators.required],
       disable: [null, Validators.required]
+    }, {
+      validators: SharedFormGroupValidators.dateRange('empty', 'enable')
     });
 
     const disableControl = this.form.get('disable');
@@ -35,10 +40,7 @@ export class DateTimeTestPage implements OnInit {
     this.form.get('enable').valueChanges.subscribe(value => disableControl.setValue(value));
 
     const mobile = platform.is('mobile');
-    if (mobile) {
-      this.showDebugPanel = true;
-
-    }
+    this.showLogPanel = this.showLogPanel || mobile;
 
   }
 
@@ -53,35 +55,48 @@ export class DateTimeTestPage implements OnInit {
   async loadData() {
     const now = moment();
     const data = {
-      empty: null,
-      enable: now,
+      empty: toDateISOString(now.clone().add(2, 'hours')),
+      enable: toDateISOString(now),
       disable: now,
     };
 
     this.form.setValue(data);
 
-    this.logDebug("[test-page] Data loaded: " + JSON.stringify(data));
+    this.log("[test-page] Data loaded: " + JSON.stringify(data));
 
     this.form.get('empty').valueChanges
       .pipe(debounceTime(300))
-      .subscribe(value => this.logDebug("[test-page] Value n°1: " + JSON.stringify(value)));
+      .subscribe(value => this.log("[test-page] Value n°1: " + JSON.stringify(value)));
 
     this.form.get('enable').valueChanges
       .pipe(debounceTime(300))
-      .subscribe(value => this.logDebug("[test-page] Value n°2: " + JSON.stringify(value)));
+      .subscribe(value => this.log("[test-page] Value n°2: " + JSON.stringify(value)));
   }
 
   doSubmit(event) {
-    this.logDebug("[test-page] Form content: " + JSON.stringify(this.form.value));
+    this.form.markAllAsTouched();
+    this.log("[test-page] Form content: " + JSON.stringify(this.form.value));
+    this.log("[test-page] Form status: " + this.form.status);
+    if (this.form.invalid) {
+      this.log("[test-page] Form errors: " + JSON.stringify(this.form.errors));
+
+      // DEBUG
+      AppFormUtils.logFormErrors(this.form);
+    }
   }
 
-  logDebug(message: string) {
+  log(message: string) {
     console.debug(message);
 
-    if (this.showDebugPanel) {
-      this.debugPanelContent += message + '<br/>';
+    if (this.showLogPanel) {
+      this.logContent += message + '<br/>';
       this.cd.markForCheck();
     }
+  }
+
+  clearLogPanel() {
+    this.logContent = "";
+    this.cd.markForCheck();
   }
 
   stringify = JSON.stringify;

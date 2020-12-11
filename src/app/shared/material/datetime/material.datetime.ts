@@ -21,11 +21,8 @@ import {
   ControlValueAccessor,
   FormBuilder,
   FormControl,
-  FormGroup,
   FormGroupDirective,
   NG_VALUE_ACCESSOR,
-  ValidationErrors,
-  ValidatorFn,
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
@@ -33,12 +30,21 @@ import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
 import {SharedValidators} from '../../validator/validators';
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {first} from "rxjs/operators";
+import {debounceTime, filter, first, tap} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
 import {isFocusableElement} from "../../focusable";
-import {BehaviorSubject, Subscription} from "rxjs";
+import {merge, Subscription, zip} from "rxjs";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
-import {isNil, isNilOrBlank, isNotNil, sleep, toBoolean, toDateISOString} from "../../functions";
+import {
+  fromDateISOString,
+  isNil,
+  isNilOrBlank,
+  isNotNilOrBlank,
+  sleep,
+  toBoolean,
+  toDateISOString
+} from "../../functions";
+import {isMoment} from "moment";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -48,8 +54,8 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
 
 const DAY_MASK = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
 
-const HOUR_TIME_PATTERN = /[0-2]\d:[0-5]\d/;
-const HOUR_MASK = [/[0-2]/, /\d/, ':', /[0-5]/, /\d/];
+const HOUR_REGEXP = /^[012][0-9][:][012345][0-9]$/;
+const HOUR_MASK = [/[012]/, /\d/, ':', /[012345]/, /\d/];
 
 const noop = () => {
 };
@@ -57,9 +63,7 @@ const noop = () => {
 declare interface NgxTimePicker {
   selectedHour: { time: number };
   selectedMinute: { time: number };
-
   open();
-
   close();
 }
 
@@ -79,25 +83,22 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   protected writing = true;
   protected disabling = false;
   protected _tabindex: number;
+  protected _onDestroy = new EventEmitter<any>();
   protected waitHideKeyboardDelay: number;
 
-  form: FormGroup;
+  dateFormControl: FormControl;
+  timeFormControl: FormControl;
   displayPattern: string;
   dayPattern: string;
-  _value: Moment;
   locale: string;
   readonly dayMask = DAY_MASK;
   readonly hourMask = HOUR_MASK;
 
   @Input() mobile: boolean;
 
-  @Input() disabled = false;
-
   @Input() formControl: FormControl;
 
   @Input() formControlName: string;
-
-  @Input() displayTime = true;
 
   @Input() placeholder: string;
 
@@ -122,23 +123,18 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     return this._tabindex;
   }
 
+  get value(): any {
+    return this.formControl.value;
+  }
+
   @Input() startDate: Date;
 
   @Input() clearable = false;
 
-  // For DEBUG ---
-  @Input() debug = false;
-  @Output() onLogDebug = new EventEmitter<string>();
-
-  @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
-  @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
+  @ViewChild('datePicker') datePicker: MatDatepicker<Moment>;
   @ViewChild('timePicker') timePicker: NgxTimePicker;
 
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
-
-  get value(): any {
-    return toDateISOString(this._value);
-  }
 
   constructor(
     private platform: Platform,
@@ -160,47 +156,50 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time-field>.");
 
-    // Redirect errors from main control, into day sub control
-    const $error = new BehaviorSubject<ValidationErrors>(null);
-    const dayValidator: ValidatorFn = (_) => $error.getValue();
-
     this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
-    this.form = this.formBuilder.group({});
-    this.form.addControl('day', this.formBuilder.control(null, dayValidator));
-    if (this.displayTime) {
-      const hourValidator = this.required ?
-        (this.mobile ? Validators.required : Validators.compose([Validators.required, Validators.pattern(HOUR_TIME_PATTERN)])) :
-        (this.mobile ? null : Validators.pattern(HOUR_TIME_PATTERN));
-      this.form.addControl('hour', this.formBuilder.control(null, hourValidator));
+
+    // Add 'validDate' validator (when existing validator are null or required, to be sure to keep it)
+    if (!this.formControl.validator || this.formControl.validator === Validators.required) {
+      this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.validDate] : SharedValidators.validDate);
+    }
+    else {
+      this.formControl.setValidators(this.required ? [this.formControl.validator, Validators.required, SharedValidators.validDate] :
+        [this.formControl.validator, SharedValidators.validDate]);
     }
 
-    // Add custom 'validDate' validator
-    this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.validDate] : SharedValidators.validDate);
+    // Create the date control
+    this.dateFormControl = this.formBuilder.control(null,
+      this.required ? Validators.required : null
+    );
+
+    // Create the time control
+    const timeValidator = this.required ?
+      (this.mobile ? Validators.required : Validators.compose([Validators.required, Validators.pattern(HOUR_REGEXP)])) :
+      (this.mobile ? null : Validators.pattern(HOUR_REGEXP));
+    this.timeFormControl = this.formBuilder.control(null, timeValidator);
 
     // Get patterns to display date and date+time
-    //this.updatePattern(this.translate.instant(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN']))
     this._subscription.add(
         this.translate.get(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN'])
             .subscribe((patterns) => this.updatePattern(patterns))
     );
 
     this._subscription.add(
-      this.form.valueChanges.subscribe((value) => this.onFormChange(value)));
+      merge(
+        this.dateFormControl.valueChanges,
+        this.timeFormControl.valueChanges
+      )
+        .subscribe((event) => this.onFormChange(event))
+    );
 
-    // Listen status changes outside the component (e.g. when setErrors() is calling on the formControl)
+    // Listen status changes (when done outside the component  - e.g. when setErrors() is calling on the formControl)
     this._subscription.add(
       this.formControl.statusChanges
-        .subscribe((status) => {
-          if (this.readonly || this.writing || this.disabling) return; // Skip
-          if (status === 'INVALID') {
-            $error.next(this.formControl.errors);
-          }
-          else if (status === 'VALID') {
-            $error.next(null);
-          }
-          this.form.controls.day.updateValueAndValidity({onlySelf: true, emitEvent: false});
-          this.markForCheck();
-        }));
+        .pipe(
+          filter((_) => !this.readonly && !this.writing && !this.disabling) // Skip
+        )
+        .subscribe(() => this.markForCheck())
+    );
 
     this.updateTabIndex();
 
@@ -209,66 +208,93 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
+    this._onDestroy.emit();
   }
 
-  writeValue(obj: any): void {
-
+  writeValue(valueStr: any): void {
     if (this.writing) return; // Skip
-    if (this.debug) this.logDebug("writeValue(obj) with obj:", obj);
-
-    if (isNilOrBlank(obj)) {
-      this.writing = true;
-      if (this.displayTime) {
-        this.form.patchValue({day: null, hour: null}, {emitEvent: false});
-      } else {
-        this.form.patchValue({day: null}, {emitEvent: false});
-      }
-      this._value = undefined;
-      if (this.formControl.value) {
-        this.formControl.patchValue(null, {emitEvent: false});
-        this._onChangeCallback(null);
-      }
-      this.writing = false;
-      this.markForCheck();
-      return;
-    }
-
-    if (this.debug) this.logDebug("writeValue(obj) parsing...");
-
-    this._value = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
-    if (!this._value) { // invalid date
-      if (this.debug) this.logDebug("writeValue(obj) parse result: invalid !");
-      return;
-    }
-
     this.writing = true;
 
-    // With time
-    if (this.displayTime) {
+    // DEBUG
+    // console.debug("[mat-date-time] writeValue() with:", valueStr);
 
-      // Format hh
-      let hour: number | string = this._value.hour();
-      hour = hour < 10 ? ('0' + hour) : hour;
-      // Format mm
-      let minutes: number | string = this._value.minutes();
-      minutes = minutes < 10 ? ('0' + minutes) : minutes;
-      // Set form value
-      this.form.patchValue({
-        day: this.dateAdapter.format(this._value.clone().startOf('day'), this.dayPattern),
-        hour: `${hour}:${minutes}`
-      }, {emitEvent: false});
+    const value = fromDateISOString(valueStr);
+
+    if (!value || !value.isValid()) {
+      this.dateFormControl.patchValue(null, {emitEvent: false});
+      this.timeFormControl.patchValue(null, {emitEvent: false});
     }
-
-    // Without time
     else {
-      //console.log("call writeValue()", this.date, this.formControl);
-      // Set form value
-      this.form.patchValue({
-        day: this.dateAdapter.format(this._value.clone().startOf('day'), this.dayPattern)
-      }, {emitEvent: false});
+      // Parse day
+      const day = value.clone().startOf('day');
+      const dayStr = this.dateAdapter.format(day, this.dayPattern);
+
+      // Parse time
+      // - Format hh
+      let hour: number | string = value.hour();
+      hour = hour < 10 ? ('0' + hour) : hour;
+      // - Format mm
+      let minutes: number | string = value.minutes();
+      minutes = minutes < 10 ? ('0' + minutes) : minutes;
+      const timeStr = `${hour}:${minutes}`;
+
+      // Update controls
+      this.dateFormControl.patchValue(dayStr, {emitEvent: false});
+      this.timeFormControl.patchValue(timeStr, {emitEvent: false});
     }
+
     this.writing = false;
     this.markForCheck();
+  }
+
+  private onFormChange(event?: any) {
+    if (this.writing) return; // Skip if call by self
+    this.writing = true;
+
+    let dayStr = this.dateFormControl.value;
+    const time = this.timeFormControl.value;
+
+    // DEBUG
+    //console.debug(`[mat-date-time] onFormChange() from event: ${event} - controls values: `, [dayStr, time]);
+
+    const incompleteValue = isNilOrBlank(time) !== isNilOrBlank(dayStr);
+    if (incompleteValue || this.dateFormControl.invalid || this.timeFormControl.invalid) {
+      this.formControl.markAsPending({onlySelf: true});
+      this.formControl.setErrors({
+        validDate: incompleteValue,
+        ...this.formControl.errors,
+        ...this.dateFormControl.errors,
+        ...this.timeFormControl.errors
+      });
+      this.formControl.markAsDirty();
+      // Reset the value
+      //this.emitChange(null);
+      this.writing = false;
+      return;
+    }
+
+
+    // Make to remove placeholder chars
+    while (dayStr && dayStr.indexOf(this.placeholderChar) !== -1) {
+      dayStr = dayStr.replace(this.placeholderChar, '');
+    }
+
+    // Parse day
+    const day: Moment = dayStr && this.dateAdapter.parse(dayStr, this.dayPattern) || null;
+
+    // Parse time
+    const hourParts = (time || '').split(':');
+    const hour = parseInt(hourParts[0] || 0);
+    const minutes = parseInt(hourParts[1] || 0);
+    const dateTime = day && day
+      .locale(this.locale) // set as time as locale time
+      .hour(hour).minute(minutes)// Set local hour
+      .seconds(0).millisecond(0) // Reset seconds/millisecond
+      .utc(); // Convert to UTC (avoid TZ offset in final string)
+
+    // Set model value
+    this.emitChange(dateTime);
+    this.writing = false;
   }
 
   registerOnChange(fn: any): void {
@@ -283,11 +309,12 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     if (this.disabling) return; // Skip
 
     this.disabling = true;
-    this.disabled = isDisabled;
     if (isDisabled) {
-      this.form.disable({onlySelf: true, emitEvent: false});
+      this.dateFormControl.disable({emitEvent: false});
+      this.timeFormControl.disable({emitEvent: false});
     } else {
-      this.form.enable({onlySelf: true, emitEvent: false});
+      this.dateFormControl.enable({emitEvent: false});
+      this.timeFormControl.enable({emitEvent: false});
     }
     this.disabling = false;
 
@@ -295,115 +322,49 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   }
 
   private updatePattern(patterns: {[key: string]: string}) {
-    this.displayPattern = (this.displayTime) ?
-      (patterns['COMMON.DATE_TIME_PATTERN'] !== 'COMMON.DATE_TIME_PATTERN' ? patterns['COMMON.DATE_TIME_PATTERN'] : 'L LT') :
-      (patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+    this.displayPattern = (patterns['COMMON.DATE_TIME_PATTERN'] !== 'COMMON.DATE_TIME_PATTERN' ? patterns['COMMON.DATE_TIME_PATTERN'] : 'L LT');
     this.dayPattern = (patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
   }
 
-  private onFormChange(json): void {
-    if (this.writing) return; // Skip if call by self
-    this.writing = true;
-
-    if (this.form.invalid) {
-      this.formControl.markAsPending();
-      const errors = {};
-
-      if (!this.displayTime) {
-        Object.assign(errors, this.form.controls.day.errors);
-      } else {
-        Object.assign(errors, this.form.controls.day.errors, this.form.controls.hour.errors);
-      }
-      this.formControl.setErrors(errors);
-      this.writing = false;
-      return;
-    }
-
-    // Make to remove placeholder chars
-    while (json.day && json.day.indexOf(this.placeholderChar) !== -1) {
-      json.day = json.day.replace(this.placeholderChar, '');
-    }
-
-    let date: Moment;
-
-    // Parse day string
-    date = json.day && this.dateAdapter.parse(json.day, this.dayPattern) || null;
-
-    // If time
-    if (this.displayTime) {
-
-      const hourParts = (json.hour || '').split(':');
-      date = date && date
-      // set as time as locale time
-        .locale(this.locale)
-        .hour(parseInt(hourParts[0] || 0))
-        .minute(parseInt(hourParts[1] || 0))
-        .seconds(0).millisecond(0)
-        // then change in UTC, to avoid TZ offset in final string
-        .utc();
-    } else {
-      // Reset time
-      date = date && date.utc(true).hour(0).minute(0).seconds(0).millisecond(0);
-    }
-
-    // update date picker
-    this._value = date && this.dateAdapter.parse(date.clone(), DATE_ISO_PATTERN);
-
-    // Get the model value
-    const dateStr = date && date.isValid() && this.dateAdapter.format(date, DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
-    //console.debug("[mat-date-time] Setting date: ", dateStr);
-    this.formControl.patchValue(dateStr, {emitEvent: false});
-    //this.formControl.updateValueAndValidity();
-    this.writing = false;
-    this.markForCheck();
-
-    this._onChangeCallback(dateStr);
-  }
-
   onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
-    if (this.debug) this.logDebug("onDatePickerChange");
-
-    if (this.writing || !(event && event.value)) return; // Skip if call by self
-    this.writing = true;
-
-    let date = event.value;
-    date = typeof date === 'string' && this.dateAdapter.parse(date, DATE_ISO_PATTERN) || date;
-    let day;
-    if (this.displayTime) {
-      // Keep original day (to avoid to have a offset of 1 day - fix #33)
-      day = date && date.clone().locale(this.locale).hour(0).minute(0).seconds(0).millisecond(0).utc(true);
-      const hourParts = (this.form.controls.hour.value || '').split(':');
-      date = date && date
-      // set as time as locale time
-        .locale(this.locale)
-        .hour(parseInt(hourParts[0] || 0))
-        .minute(parseInt(hourParts[1] || 0))
-        .seconds(0).millisecond(0)
-        // then change in UTC, to avoid TZ offset in final string
-        .utc();
-    } else {
-      // avoid to have TZ offset
-      date = date && date.utc(true).hour(0).minute(0).seconds(0).millisecond(0);
-      day = date && date.clone().startOf('day');
+    // Make sure event is valid
+    if (!event || (event.value !== null && !isMoment(event.value))) {
+      console.warn("Invalid MatDatepicker event. Skipping", event);
+      return; // Skip
     }
 
-    // update day value
-    this.form.controls.day.setValue(day && this.dateAdapter.format(day, this.dayPattern), {emitEvent: false});
+    // Convert to usable date, then convert to day pattern (e.g DD/MM/YYYY)
+    const day = event.value && event.value
+      .locale(this.locale) // set as time as locale time
+      .hour(0).minute(0).seconds(0).millisecond(0) // Reset hour
+      .utc(true);
+    const dayStr = day && this.dateAdapter.format(day, this.dayPattern) || null;
 
-    // Get the model value
-    const dateStr = date && this.dateAdapter.format(date, DATE_ISO_PATTERN).replace('+00:00', 'Z');
-    this.formControl.patchValue(dateStr, {emitEvent: false});
-    this.writing = false;
-    this.markForCheck();
+    // Update the day control
+    if (this.dateFormControl.value !== dayStr) {
 
-    this._onChangeCallback(dateStr);
+      // DEBUG
+      // console.debug("[mat-date-time] onDatePickerChange() new value:", dayStr);
+
+      this.dateFormControl.setValue(dayStr, {
+        emitEvent: true // Will call onFormChange
+      });
+    }
   }
 
-  checkIfTouched() {
-    if (this.form.touched) {
-      this.markForCheck();
-      this._onTouchedCallback();
+
+  onTimePickerChange(timeStr: string) {
+    // Update the time control, if need
+    if (this.timeFormControl.value !== timeStr) {
+
+      // DEBUG
+      // console.debug("[mat-date-time] onTimePickerChange() new value:", timeStr);
+
+      this.timeFormControl.setValue(timeStr, {
+        emitEvent: true // Will call onFormChange
+      });
     }
+
   }
 
   async openDatePickerIfMobile(event: UIEvent, datePicker?: MatDatepicker<any>) {
@@ -419,7 +380,7 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   }
 
   public openDatePicker(event?: UIEvent, datePicker?: MatDatepicker<any>) {
-    datePicker = datePicker || this.datePicker1 || this.datePicker2;
+    datePicker = datePicker || this.datePicker;
     if (datePicker) {
 
       if (event) this.preventEvent(event);
@@ -433,7 +394,7 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   async openTimePickerIfMobile(event: UIEvent) {
     if (!this.mobile || event.defaultPrevented) return;
 
-    //this.preventEvent(event);
+    this.preventEvent(event);
 
     // Make sure the keyboard is closed
     await this.hideKeyboard(true);
@@ -445,55 +406,9 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   openTimePicker(event: UIEvent) {
     if (!this.timePicker) return; // Skip
 
-    if (this.debug) this.logDebug("openTimePicker() event:", event);
-
     this.preventEvent(event);
 
     this.timePicker.open();
-  }
-
-  onTimePickerChange(value: string) {
-    if (this.form.controls.hour.value !== value) {
-      this.form.controls.hour.patchValue(value, {emitEvent: false});
-      if (this.debug) {
-        this.logDebug("onTimePickerChange() new value:", value);
-        if (this.form.controls.hour.invalid) {
-          this.logDebug("hour errors:", this.form.controls.hour.errors);
-        }
-      }
-      this.markForCheck();
-    }
-    else {
-      if (this.debug) {
-        this.logDebug("onTimePickerChange(): no changes", this.form.controls.hour.value);
-        if (this.form.controls.hour.invalid) {
-          this.logDebug("hour errors:", this.form.controls.hour.errors);
-        }
-      }
-    }
-  }
-
-  onTimePickerKeyup(event: KeyboardEvent) {
-    if (!this.timePicker) return;
-    if (event.key === 'Enter') {
-      // Format hour
-      let hour: number | string = this.timePicker.selectedHour.time;
-      hour = hour < 10 ? ('0' + hour) : hour;
-      // Format minutes
-      let minutes: number | string = this.timePicker.selectedMinute.time;
-      minutes = minutes < 10 ? ('0' + minutes) : minutes;
-      // Notify the changes (will update the value)
-      this.onTimePickerChange(`${hour}:${minutes}`);
-      event.preventDefault();
-      event.stopPropagation();
-      // Close the picker
-      this.timePicker.close();
-    } else if (event.key === 'Escape') {
-      // Close the picker
-      event.preventDefault();
-      event.stopPropagation();
-      this.timePicker.close();
-    }
   }
 
   preventEvent(event: UIEvent) {
@@ -501,6 +416,13 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     event.preventDefault();
     if (event.stopPropagation) event.stopPropagation();
     event.returnValue = false;
+  }
+
+  checkIfTouched() {
+    if (this.dateFormControl.touched || this.timeFormControl.touched) {
+      this._onTouchedCallback();
+      this.markForCheck();
+    }
   }
 
   focus() {
@@ -514,7 +436,32 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     });
   }
 
+  clear() {
+    this.formControl.setValue(null);
+    this.markAsTouched();
+    this.markAsDirty();
+  }
+
   /* -- protected method -- */
+
+  protected emitChange(value: Moment) {
+
+    // Get the model value
+    const dateStr = toDateISOString(value) || null;
+
+
+    if (this.formControl.value !== dateStr) {
+
+      // DEBUG
+      //console.debug('[matèdate-time] Emit new value: ' + dateStr);
+
+      // Changes comes from inside function: use the callback
+      this._onChangeCallback(dateStr);
+
+      // Check if need to update controls
+      this.checkIfTouched();
+    }
+  }
 
   protected async hideKeyboard(waitIsHidden: boolean) {
 
@@ -544,14 +491,19 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
     });
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
+  protected markAsTouched() {
+    this.dateFormControl.markAsTouched();
+    this.timeFormControl.markAsTouched();
+    this._onTouchedCallback();
+    this.markForCheck();
   }
 
-  protected logDebug(message: string, obj?: any) {
-    if (!this.debug) return; // Silent
-    console.debug("[mat-date-time-field] " + message, obj);
-    this.onLogDebug.emit("[mat-date-time-field] " + message + (obj !== undefined ? (' ' + JSON.stringify(obj)) : ''));
+  protected markAsDirty(opts?: any) {
+    this.formControl.markAsDirty(opts);
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 
 }

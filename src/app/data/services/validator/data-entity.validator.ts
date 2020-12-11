@@ -1,5 +1,5 @@
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {AbstractControlOptions, FormBuilder, FormGroup} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {DataEntity} from "../model/data-entity.model";
 import {toBoolean, toNumber} from "../../../shared/functions";
@@ -47,10 +47,8 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>, O exte
     };
   }
 
-  getFormGroupOptions(data?: T, opts?: O): {
-    [key: string]: any;
-  } {
-    return {};
+  getFormGroupOptions(data?: T, opts?: O): AbstractControlOptions | null {
+    return null;
   }
 
   updateFormGroup(formGroup: FormGroup, opts?: O) {

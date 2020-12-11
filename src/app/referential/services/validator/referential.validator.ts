@@ -50,7 +50,7 @@ export class ReferentialValidatorService<T extends Referential = Referential>
     return controlsConfig;
   }
 
-  getFormGroupOptions(data?: T, opts?: any): AbstractControlOptions | any {
-    return {};
+  getFormGroupOptions(data?: T, opts?: any): AbstractControlOptions | null {
+    return null;
   }
 }

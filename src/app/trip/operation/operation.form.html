@@ -107,7 +107,7 @@
                                    [required]="usageMode|isNotOnField"
                                    [clearable]="usageMode|isOnField">
 
-                <mat-hint align="end" *ngIf="endDateTimeControl.value && !endDateTimeControl.errors">
+                <mat-hint align="end" *ngIf="endDateTimeControl.value && endDateTimeControl.valid">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls.startDateTime.value,
                   endValue: endDateTimeControl.value} | dateDiffDuration }}
                 </mat-hint>

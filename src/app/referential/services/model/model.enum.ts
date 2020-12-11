@@ -85,9 +85,22 @@ export const MethodIds = {
 };
 
 export const PmfmLabelPatterns = {
-  BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/
+  BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/,
+  LATITUDE: /^latitude$/i,
+  LONGITUDE: /^longitude$/i
 };
 
+export const UnitLabelPatterns = {
+  DECIMAL_HOURS: /^('h[. ]+dec[.]?|'hours)$/,
+  DATE_TIME: /^Date[ &]+Time$/
+};
+
+// TODO Should be override by config properties
+export const UnitLabel = {
+  DECIMAL_HOURS: 'h dec.',
+  DATE_TIME: 'Date & Time',
+  KG: 'kg'
+};
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
   GOOD: 1,

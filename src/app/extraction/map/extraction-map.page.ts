@@ -39,6 +39,7 @@ import {DurationPipe} from "../../shared/pipes/duration.pipe";
 import {AggregationStrata, AggregationType, IAggregationStrata} from "../services/model/aggregation-type.model";
 import {ExtractionUtils} from "../services/extraction.utils";
 import {AggregationService, AggregationTypeFilter} from "../services/aggregation.service";
+import {UnitLabel, UnitLabelPatterns} from "../../referential/services/model/model.enum";
 
 declare interface LegendOptions {
   min: number;
@@ -933,18 +934,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
         if (value) value += ` ${unit}`;
 
         // Try to compute other value, using unit
-        switch (unit) {
-          case 'hours':
-          case 'h.dec':
-          case 'h. dec':
-            // Days
-            otherValue = this.durationPipe.transform(parseFloat(aggValue), 'hours');
-            break;
-          case 'kg':
-            // Tons
-            otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' t';
-            break;
-          default:
+
+        if (UnitLabelPatterns.DECIMAL_HOURS.test(unit)) {
+          otherValue = this.durationPipe.transform(parseFloat(aggValue), 'hours');
+        }
+        else if (unit === UnitLabel.KG) {
+          otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' t';
         }
       }
     }
