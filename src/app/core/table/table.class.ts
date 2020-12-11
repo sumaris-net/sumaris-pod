@@ -45,6 +45,7 @@ import {
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
+import {environment} from "../../../environments/environment";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
@@ -270,7 +271,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.sort && this.sort.direction && (this.sort.direction === 'desc' ? 'desc' : 'asc') || undefined;
   }
 
-  @ViewChild(MatTable, {static: true}) table: MatTable<T>;
+  @ViewChild(MatTable, {static: false}) table: MatTable<T>;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
 
@@ -418,9 +419,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   ngAfterViewInit() {
-    if (!this.table) console.warn(`[table] Missing <mat-table> in the HTML template! Component: ${this.constructor.name}`);
+    if (!environment.production) {
+      // Warn if table not exists
+      if (!this.table) {
+        setTimeout(() => {
+          if (!this.table) {
+            console.warn(`[table] Missing <mat-table> in the HTML template (after waiting 500ms)! Component: ${this.constructor.name}`);
+          }
+        }, 500);
+      }
 
-    if (!this.displayedColumns) console.warn(`[table] Missing 'displayedColumns'. Did you call super.ngOnInit() in component ${this.constructor.name} ?`);
+      if (!this.displayedColumns) console.warn(`[table] Missing 'displayedColumns'. Did you call super.ngOnInit() in component ${this.constructor.name} ?`);
+    }
   }
 
   ngOnDestroy() {
