@@ -16,7 +16,7 @@ import {AccountService} from 'src/app/core/services/account.service';
 import {EntitiesStorage} from 'src/app/core/services/entities-storage.service';
 import {ReferentialFragments} from "./referential.fragments";
 import {isEmptyArray} from "../../shared/functions";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {MINIFY_OPTIONS, ReferentialUtils} from "../../core/services/model/referential.model";
 
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {ReferentialFilter} from "./referential.service";
@@ -562,7 +562,8 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     return res && res.suggestedStrategyNextLabel;
   }
 
-  async LoadAllAnalyticReferencesQuery(offset: number,
+  async LoadAllAnalyticReferences(
+    offset: number,
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
@@ -584,7 +585,25 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       fetchPolicy: 'cache-first'
     });
 
+    console.debug(`[strategy-service] Analytic references loaded: ${res.analyticReferences}`);
     return (res && res.analyticReferences || []) as ReferentialRef[];
+  }
+
+  async suggestAnalyticReferences(
+    value: any,
+    filter?: ReferentialRefFilter,
+    sortBy?: keyof Referential,
+    sortDirection?: SortDirection): Promise<ReferentialRef[]> {
+    if (this._debug) console.debug(`[strategy-service] Suggest strategy analytic references...`);
+      
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
+    value = (typeof value === "string" && value !== '*') && value || undefined;
+    const res = await this.LoadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
+      { ...filter, searchText: value}
+    );
+
+    console.debug(`[strategy-service] Analytic references suggested: ${res}`);
+    return res;
   }
 
   protected asObject(entity: Strategy, opts?: DataEntityAsObjectOptions): any {

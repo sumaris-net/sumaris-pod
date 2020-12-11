@@ -213,10 +213,13 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // eotp combo -------------------------------------------------------------------
     this.registerAutocompleteField('analyticReference', {
       columnSizes : [4,6],
-      items: this._eotpSubject,
-      mobile: this.mobile
+      suggestFn: (value, filter) => this.suggest(value, {
+          ...filter
+        },
+        'AnalyticReference',
+        this.enableEotpFilter),
+      mobile: this.settings.mobile
     });
-    this.loadEotps();
 
     // Calcified type combo ------------------------------------------------------------
     // this.registerAutocompleteField('calcifiedType', {
@@ -268,6 +271,19 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
    * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggest(value: string, filter: any, entityName: string, filtered: boolean) : Promise<IReferentialRef[]> {
+    
+    // Special case: AnalyticReference
+    if (entityName == "AnalyticReference") {
+      if (filtered) {
+        //TODO a remplacer par recuperation des donnees deja saisies
+        console.debug("[strategy-service] Suggest filtered ", value, filter);
+        return this.strategyService.LoadAllAnalyticReferences(0, 5, null, null, ...filter);
+      } else {
+        console.debug("[strategy-service] Suggest ", value, filter);
+        return this.strategyService.suggestAnalyticReferences(value, ...filter);
+      }
+    }
+
     if(filtered) {
       //TODO a remplacer par recuperation des donnees deja saisies
       const res = await this.referentialRefService.loadAll(0, 5, null, null,
@@ -290,7 +306,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     switch (fieldName) {
       case 'eotp':
         this.enableEotpFilter = value = !this.enableEotpFilter;
-        this.loadEotps();
         break;
       case 'laboratory':
         this.enableLaboratoryFilter = value = !this.enableLaboratoryFilter;
@@ -331,11 +346,11 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       sampleRowCodeControl.patchValue(sampleRowValue);
     }
       // EOTP
-      const eotpControl = this.form.get("analyticReference");
+      /*const eotpControl = this.form.get("analyticReference");
       let eotp = data.analyticReference;
       let eotpValues = this._eotpSubject.getValue();
       let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
-      eotpControl.patchValue(eotpObject);
+      eotpControl.patchValue(eotpObject);*/
 
       // LABORATORIES
       const laboratoriesControl = this.laboratoriesForm;
@@ -715,12 +730,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         searchText: "individu"
       });
     return res.data;
-  }
-  // EOTP  ---------------------------------------------------------------------------------------------------
-
-  protected async loadEotps() {
-    const res = await this.strategyService.LoadAllAnalyticReferencesQuery(0, 200, null, null, null);
-    this._eotpSubject.next(res);
   }
 
   protected markForCheck() {
