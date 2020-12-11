@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {
   SharedFormArrayValidators,
   SharedFormGroupValidators,
@@ -87,8 +87,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     return formConfig;
   }
 
-  getFormGroupOptions(data?: Trip, opts?: O): { [key: string]: any } {
-    return {
+  getFormGroupOptions(data?: Trip, opts?: O): AbstractControlOptions {
+    return <AbstractControlOptions>{
       validator: Validators.compose([
         SharedFormGroupValidators.dateRange('departureDateTime', 'returnDateTime'),
         SharedFormGroupValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),

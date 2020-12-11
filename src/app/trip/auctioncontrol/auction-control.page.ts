@@ -4,17 +4,18 @@ import {LocationLevelIds, PmfmIds} from "../../referential/services/model/model.
 import {LandingPage} from "../landing/landing.page";
 import {LandingValidatorService} from "../services/validator/landing.validator";
 import {debounceTime, filter, map, mergeMap, startWith, switchMap} from "rxjs/operators";
-import {defer, forkJoin, Subscription} from "rxjs";
+import {BehaviorSubject, defer, forkJoin, Observable, Subscription} from "rxjs";
 import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {fadeInOutAnimation, isNil, isNotNil} from "../../shared/shared.module";
+import {fadeInOutAnimation, isNil, isNotEmptyArray, isNotNil} from "../../shared/shared.module";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
 @Component({
   selector: 'app-auction-control',
@@ -32,6 +33,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   filterForm: FormGroup;
 
+  $pmfms: Observable<PmfmStrategy[]>;
+  $taxonGroupPmfm = new BehaviorSubject<PmfmStrategy>(null);
+
   constructor(
     injector: Injector,
     protected referentialRefService: ReferentialRefService,
@@ -47,6 +51,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       taxonGroup: [null]
     });
   }
+
 
   ngOnInit() {
     super.ngOnInit();
@@ -68,21 +73,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   async ngAfterViewInit(): Promise<void> {
     await super.ngAfterViewInit();
 
-    // Call program's specific code
-    this.ngAfterViewInitExtension();
-  }
-
-  /**
-   * Configure specific behavior (program specific)
-   */
-  protected ngAfterViewInitExtension() {
-
-    // Get the CONTROLLED_SPECIES pmfm
-    const controllerSpeciesPmfm$ = this.pmfms
-      .pipe(
-        map(pmfms => pmfms.find(p => p.pmfmId === PmfmIds.CONTROLLED_SPECIES || p.label === 'TAXON_GROUP')),
-        filter(isNotNil)
-      );
 
     // Get program taxon groups
     const programTaxonGroups$ = defer(() => this.landingForm.ready())
@@ -91,48 +81,70 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         mergeMap(programLabel => this.programService.loadTaxonGroups(programLabel))
       );
 
-    // Get the taxon group, by the PMFM 'CONTROLLED_SPECIES'
-    this.registerSubscription(
+    this.$pmfms =
       forkJoin([
-        controllerSpeciesPmfm$,
+        this.landingForm.$pmfms,
         programTaxonGroups$
       ])
       .pipe(
-        switchMap(([pmfm, taxonGroups]) => {
+        map(([pmfms, taxonGroups]) => pmfms.map(pmfm => {
 
-          // Update all qualitative value names, in the CONTROLLED_SPECIES pmfm
-          pmfm.qualitativeValues = (pmfm.qualitativeValues || [])
-            .map(qv => {
-              const tg = taxonGroups.find(tg => tg.label === qv.label);
-              // If not found in strategies, remove the QV
-              if (!tg) {
-                console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of programe ${this.landingForm.program})`)
-                return null;
+            // Controlled species PMFM
+            if (pmfm.pmfmId === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
+              console.debug(`[control] Replacing pmfm ${pmfm.label} qualitative values`);
+
+              if (isNotEmptyArray(taxonGroups) && isNotEmptyArray(pmfm.qualitativeValues)) {
+                pmfm = pmfm.clone(); // Clone (to keep unchanged the original pmfm)
+
+                // Replace QV.name
+                pmfm.qualitativeValues = pmfm.qualitativeValues.reduce((res, qv) => {
+                  const tg = taxonGroups.find(tg => tg.label === qv.label);
+                  // If not found in strategy's taxonGroups : ignore
+                  if (!tg) {
+                    console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of programe ${this.landingForm.program})`)
+                    return res;
+                  }
+                  // Replace the QV name, using the taxon group name
+                  qv.name = tg.name;
+                  qv.entityName = tg.entityName || 'QualitativeValue';
+                  return res.concat(qv);
+                }, []);
               }
-              // Replace the QV name, using the taxon group name
-              qv.name = tg.name;
-              qv.entityName = tg.entityName || 'QualitativeValue';
-              return qv;
-            })
-            // Remove wrong QV (label not match any taxon group)
-            .filter(isNotNil);
+              else {
+                console.debug(`[control] No qualitative values to replace, or no taxon groups in the strategy`);
+              }
 
-          // Listen every form value changes, to update the default value
-          const control = this.form.get( `measurementValues.${pmfm.pmfmId}`);
-          return control.valueChanges
-            .pipe(
-              debounceTime(500)
-            )
-            .pipe(
-              startWith(defer(() => control.value)),
-              map(qv => {
-                return ReferentialUtils.isNotEmpty(qv)
-                && taxonGroups.find(tg => tg.label === qv.label)
-                || undefined;
-              })
-            );
-        })
-      )
+              this.$taxonGroupPmfm.next(pmfm);
+            }
+
+            // Force other Pmfm to optional (if in on field)
+            else if (this.isOnFieldMode){
+              pmfm = pmfm.clone(); // Skip original pmfm safe
+              pmfm.required = false;
+            }
+            return pmfm;
+          }))
+      );
+
+    this.registerSubscription(
+      forkJoin([
+        this.$taxonGroupPmfm,
+        programTaxonGroups$
+      ])
+        .pipe(
+          mergeMap(([pmfm, taxonGroups]) => {
+            const control = this.form.get( `measurementValues.${pmfm.pmfmId}`);
+            return control.valueChanges.pipe(debounceTime(500))
+              .pipe(
+                startWith(control.value),
+                map(qv => {
+                  return ReferentialUtils.isNotEmpty(qv)
+                    && taxonGroups.find(tg => tg.label === qv.label)
+                    || undefined;
+                })
+              );
+          })
+        )
         .subscribe(taxonGroup => {
           console.debug('[control] Changing taxon group to:', taxonGroup);
           if (taxonGroup && !taxonGroup.entityName) {
@@ -143,8 +155,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           this.samplesTable.showTaxonGroupColumn = ReferentialUtils.isEmpty(taxonGroup);
           this.samplesTable.program = this.data.program && this.data.program.label;
           //this.samplesTable.markForCheck();
-        })
-    );
+        }));
   }
 
   onStartSampleEditingForm({form, pmfms}) {
@@ -260,7 +271,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   protected computePageUrl(id: number|'new') {
-    let parentUrl = this.getParentPageUrl();
+    const parentUrl = this.getParentPageUrl();
     return `${parentUrl}/control/${id}`;
   }
 

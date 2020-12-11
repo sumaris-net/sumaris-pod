@@ -141,7 +141,7 @@ export abstract class AppRootDataEditor<
   }
 
   protected computePageUrl(id: number|'new') {
-    let parentUrl = this.getParentPageUrl();
+    const parentUrl = this.getParentPageUrl();
     return `${parentUrl}/${id}`;
   }
 

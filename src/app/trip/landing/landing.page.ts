@@ -55,10 +55,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
 
-  get pmfms(): Observable<PmfmStrategy[]> {
-    return this.landingForm.$pmfms.pipe(filter(isNotNil));
-  }
-
   get form(): FormGroup {
     return this.landingForm.form;
   }
@@ -282,7 +278,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected computePageUrl(id: number|'new') {
-    let parentUrl = this.getParentPageUrl();
+    const parentUrl = this.getParentPageUrl();
     return `${parentUrl}/landing/${id}`;
   }
 

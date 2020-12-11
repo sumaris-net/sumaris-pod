@@ -1310,7 +1310,7 @@
       "TRIP_COUNT_BY_STATION": "Nb of trips, by station",
       "TRIP_COUNT_BY_FISHING_TIME": "Nb of trips, by fishing time",
       "VESSEL_COUNT": "Number of vessels",
-      "FISHING_TIME": "Fishing time (h)",
+      "FISHING_TIME": "Fishing time (h dec.)",
       "OFFICIAL_LANDINGS_VALUE": "Officiel landings value (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Officiel landings weight (kg)"
     },

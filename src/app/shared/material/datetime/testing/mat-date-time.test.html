@@ -39,9 +39,7 @@
                                    placeholder="Date/Time"
                                    [required]="true"
                                    [mobile]="true"
-                                   [clearable]="true"
-                                   [debug]="true"
-                                   (onLogDebug)="logDebug($event)">
+                                   [clearable]="true">
                 <ion-icon matPrefix name="calendar-outline"></ion-icon>
               </mat-date-time-field>
             </ion-card-content>
@@ -68,8 +66,7 @@
                                    placeholder="Date/Time"
                                    [required]="true"
                                    [mobile]="true"
-                                   [clearable]="true"
-                                   (onLogDebug)="logDebug($event)">
+                                   [clearable]="true">
                 <ion-icon matPrefix name="calendar-outline"></ion-icon>
               </mat-date-time-field>
             </ion-card-content>
@@ -105,11 +102,25 @@
       </ion-row>
       <!-- debug console -->
       <ion-row>
-        <ion-col>
-          <ion-text color="primary">Debug console:<br/></ion-text>
+        <!-- buttons -->
+        <ion-col size="2">
+          <!-- submit form -->
+          <ion-button (click)="doSubmit($event)"
+                      fill="outline">
+            <ion-icon name="checkmark" slot="icon-only"></ion-icon>
+          </ion-button>
+
+          <!-- clear log  -->
+          <ion-button (click)="clearLogPanel()"
+                      fill="outline">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-col>
+        <ion-col size="10" *ngIf="showLogPanel">
+          <ion-text color="primary">Log:<br/></ion-text>
           <div class="ion-padding-start">
             <ion-text color="medium">
-              <small [innerHTML]="debugPanelContent"></small>
+              <small [innerHTML]="logContent"></small>
             </ion-text>
           </div>
         </ion-col>

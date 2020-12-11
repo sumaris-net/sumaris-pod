@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {PositionValidatorService} from "./position.validator";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -62,7 +62,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       {
         __typename: [Operation.TYPENAME],
         startDateTime: [data && data.startDateTime || null, Validators.required],
-        endDateTime: [data && data.endDateTime || null, opts.isOnFieldMode ? null : Validators.required],
+        endDateTime: [data && data.endDateTime || null, opts.isOnFieldMode ?
+          SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration']) :
+          Validators.compose([Validators.required, SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])])],
         rankOrderOnPeriod: [data && data.rankOrderOnPeriod || null],
         startPosition: this.positionValidator.getFormGroup(null, {required: true}),
         endPosition: this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}),
@@ -74,9 +76,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     return formConfig;
   }
 
-  getFormGroupOptions(data?: Operation, opts?: O): { [p: string]: any } {
+  getFormGroupOptions(data?: Operation, opts?: O): AbstractControlOptions {
     return {
-      validator: Validators.compose([
+      validators: Validators.compose([
         SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime'),
         SharedFormGroupValidators.dateMaxDuration('startDateTime', 'endDateTime', 100, 'days')
       ])

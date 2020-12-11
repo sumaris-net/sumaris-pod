@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {toBoolean} from "../../../shared/functions";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -55,8 +55,8 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
     return formConfig;
   }
 
-  getFormGroupOptions(data?: Sale, opts?: SaleValidatorOptions): { [key: string]: any } {
-    return {
+  getFormGroupOptions(data?: Sale, opts?: SaleValidatorOptions): AbstractControlOptions {
+    return <AbstractControlOptions>{
       validator: Validators.compose([
         SharedFormGroupValidators.requiredIf('saleLocation', 'saleType'),
         SharedFormGroupValidators.requiredIf('startDateTime', 'saleType')

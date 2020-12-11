@@ -226,7 +226,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
       // Save table content
       this.data = this.form.value;
-      this.data.qualityFlagId = invalid ? QualityFlagIds.BAD : undefined;
+      //this.data.qualityFlagId = invalid ? QualityFlagIds.BAD : undefined;
 
       return this.data;
     }

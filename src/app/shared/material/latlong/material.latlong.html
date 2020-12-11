@@ -16,7 +16,7 @@
     <ion-row class="ion-no-padding no-wrap">
       <ion-col class="text ion-no-padding">
         <mat-form-field [floatLabel]="floatLabel"
-                        [class.mat-form-field-disabled]="disabled"
+                        [class.mat-form-field-disabled]="formControl.disabled"
                         [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
 
           <mat-label *ngIf="placeholder">{{placeholder}}</mat-label>

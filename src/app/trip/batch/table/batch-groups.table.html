@@ -237,7 +237,7 @@
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
   <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator.invalid || row.validator.controls.qualityFlagId.value === 4"
+           [class.mat-row-error]="row.validator.invalid"
            [class.mat-row-dirty]="row.validator.dirty"
            [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)">
@@ -400,7 +400,6 @@
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
-    <!-- [class.mat-row-error]="row.currentData.qualityFlagId === 4" -->
     <mat-row *matRowDef="let row; columns: displayedColumns;"
              class="mat-row-disabled"
              (click)="clickRow($event, row)">
