@@ -1,5 +1,5 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Inject, Injectable} from "@angular/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
@@ -10,13 +10,12 @@ import {
   ReferentialRef,
   ReferentialUtils
 } from "../../core/services/model/referential.model";
-
-import {FetchPolicy} from "@apollo/client/core";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {
   EntitiesService,
   fetchAllPagesWithProgress,
-  FilterFn, LoadResult,
+  FilterFn,
+  LoadResult,
   SuggestService
 } from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -31,6 +30,7 @@ import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {fromDateISOString, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];
@@ -89,9 +89,10 @@ export class ReferentialRefService extends BaseEntityService
     protected referentialService: ReferentialService,
     protected accountService: AccountService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**
@@ -443,7 +444,7 @@ export class ReferentialRefService extends BaseEntityService
           filter = {entityName, statusIds, levelIds: Object.values(LocationLevelIds)
               // Exclude rectangles (because more than 7200 rect exists !)
               // => Maybe find a way to add it, depending on the program properties ?
-              .filter(id => id != LocationLevelIds.ICES_RECTANGLE)};
+              .filter(id => id !== LocationLevelIds.ICES_RECTANGLE)};
           break;
         default:
           filter = {entityName, statusIds};

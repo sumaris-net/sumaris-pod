@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Inject, OnDestroy} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
 import {Account} from '../services/model/account.model';
-import {Locales} from '../services/model/settings.model';
+import {APP_LOCALES, LocaleConfig} from '../services/model/settings.model';
 import {referentialToString} from '../services/model/referential.model';
 import {UserSettingsValidatorService} from '../services/validator/user-settings.validator';
 import {FormBuilder, FormGroup} from '@angular/forms';
@@ -37,7 +37,6 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   additionalFields: FormFieldDefinition[];
   settingsForm: FormGroup;
   settingsContentForm: FormGroup;
-  locales = Locales;
   latLongFormats = LAT_LONG_PATTERNS;
   saving = false;
   submitted = false;
@@ -49,7 +48,8 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     protected validatorService: AccountValidatorService,
     protected settingsValidatorService: UserSettingsValidatorService,
     protected translate: TranslateService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    @Inject(APP_LOCALES) public locales: LocaleConfig[]
   ) {
     super(dateAdapter, validatorService.getFormGroup(accountService.account), settings);
 
@@ -138,7 +138,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
       console.debug("[account] Confirmation email sent.");
       this.email.sending = false;
     }
-    catch(err) {
+    catch (err) {
       this.email.sending = false;
       this.email.error = err && err.message || err;
     }

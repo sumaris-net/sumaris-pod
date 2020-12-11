@@ -1,4 +1,4 @@
-import {Injectable, Injector} from "@angular/core";
+import {Inject, Injectable, Injector} from "@angular/core";
 import {
   EntitiesService,
   EntitiesServiceWatchOptions,
@@ -10,7 +10,6 @@ import {
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {Moment} from "moment";
-import {environment} from "../../../environments/environment";
 import {gql} from "@apollo/client/core";
 import {Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
@@ -27,6 +26,7 @@ import {Trip} from "./model/trip.model";
 import {TripFilter} from "./trip.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {NetworkService} from "../../core/services/network.service";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 export class ObservedLocationFilter {
@@ -56,18 +56,18 @@ export class ObservedLocationFilter {
 
     // Location
     if (isNotNil(f.locationId)) {
-      filterFns.push(t => (t.location && t.location.id === f.locationId))
+      filterFns.push(t => (t.location && t.location.id === f.locationId));
     }
 
     // Start/end period
     const startDate = fromDateISOString(f.startDate);
     let endDate = fromDateISOString(f.endDate);
     if (startDate) {
-      filterFns.push(t => t.endDateTime ? startDate.isSameOrBefore(t.endDateTime) : startDate.isSameOrBefore(t.startDateTime))
+      filterFns.push(t => t.endDateTime ? startDate.isSameOrBefore(t.endDateTime) : startDate.isSameOrBefore(t.startDateTime));
     }
     if (endDate) {
       endDate = endDate.add(1, 'day');
-      filterFns.push(t => t.startDateTime && endDate.isAfter(t.startDateTime))
+      filterFns.push(t => t.startDateTime && endDate.isAfter(t.startDateTime));
     }
 
     // Recorder department
@@ -120,7 +120,7 @@ export const ObservedLocationFilterKeys: KeysEnum<ObservedLocationFilter> = {
   recorderDepartmentId: true,
   recorderPersonId: true,
   synchronizationStatus: true
-}
+};
 
 export const ObservedLocationFragments = {
   lightObservedLocation: gql`fragment LightObservedLocationFragment on ObservedLocationVO {
@@ -243,7 +243,8 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector);
 

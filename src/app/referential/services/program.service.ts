@@ -1,5 +1,5 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Inject, Injectable} from "@angular/core";
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {AcquisitionLevelCodes} from "./model/model.enum";
@@ -10,7 +10,9 @@ import {
   EntitiesService,
   EntityService,
   EntityServiceLoadOptions,
-  fetchAllPagesWithProgress, FilterFn, LoadResult
+  fetchAllPagesWithProgress,
+  FilterFn,
+  LoadResult
 } from "../../shared/services/entity-service.class";
 import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 import {
@@ -26,12 +28,12 @@ import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.ser
 import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
-import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {
   IReferentialRef,
   NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions, ReferentialRef,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
   ReferentialUtils,
   SAVE_AS_OBJECT_OPTIONS
 } from "../../core/services/model/referential.model";
@@ -43,6 +45,7 @@ import {IWithProgramEntity} from "../../data/services/model/model.utils";
 import {SortDirection} from "@angular/material/sort";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 export class ProgramFilter {
@@ -361,9 +364,10 @@ export class ProgramService extends BaseEntityService
     protected accountService: AccountService,
     protected referentialRefService: ReferentialRefService,
     protected cache: CacheService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
     if (this._debug) console.debug('[program-service] Creating service');
   }
 
@@ -374,6 +378,7 @@ export class ProgramService extends BaseEntityService
    * @param sortBy
    * @param sortDirection
    * @param dataFilter
+   * @param opts
    */
   watchAll(offset: number,
            size: number,
@@ -422,6 +427,7 @@ export class ProgramService extends BaseEntityService
    * @param sortBy
    * @param sortDirection
    * @param dataFilter
+   * @param opts
    */
   async loadAll(offset: number,
            size: number,
@@ -501,7 +507,7 @@ export class ProgramService extends BaseEntityService
   /**
    * Watch program by label
    * @param label
-   * @param toEntity
+   * @param opts
    */
   watchByLabel(label: string, opts?: {
     toEntity?: boolean;
@@ -707,7 +713,7 @@ export class ProgramService extends BaseEntityService
           })
         ),
         ProgramCacheKeys.CACHE_GROUP
-    )
+    );
 
     // Convert into model, after cache (convert by default)
     if (!opts || opts.toEntity !== false) {

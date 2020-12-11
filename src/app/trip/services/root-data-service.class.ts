@@ -9,6 +9,7 @@ import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {isNil} from "../../shared/functions";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
@@ -20,7 +21,7 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
   protected constructor(
     injector: Injector
   ) {
-    super(injector.get(GraphqlService));
+    super(injector.get(GraphqlService), injector.get(EnvironmentService));
 
     this.accountService = this.accountService || injector && injector.get(AccountService) || undefined;
   }

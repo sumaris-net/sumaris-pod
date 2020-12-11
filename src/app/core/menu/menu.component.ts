@@ -19,7 +19,6 @@ import {Configuration} from "../services/model/config.model";
 import {AccountService} from "../services/account.service";
 import {AboutModal} from '../about/modal-about';
 
-import {environment} from '../../../environments/environment';
 import {fadeInAnimation} from '../../shared/material/material.animations';
 import {TranslateService} from "@ngx-translate/core";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -28,6 +27,7 @@ import {ConfigService} from "../services/config.service";
 import {mergeMap, tap} from "rxjs/operators";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
 import {PlatformService} from "../services/platform.service";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export interface MenuItem {
   title: string;
@@ -37,13 +37,14 @@ export interface MenuItem {
   matIcon?: string;
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
-  color?: string,
+  color?: string;
   cssClass?: string;
   // A config property, to enable the menu item
   ifProperty?: string;
   // A config property, to override the title
   titleProperty?: string;
   titleArgs?: {[key: string]: string};
+  children?: MenuItem[];
 }
 
 export class MenuItems {
@@ -120,7 +121,7 @@ export class MenuComponent implements OnInit {
   $filteredItems = new BehaviorSubject<MenuItem[]>(undefined);
 
   @Input()
-  appVersion: String = environment.version;
+  appVersion: String = this.environment.version;
 
   @Input() side = "left";
 
@@ -136,6 +137,7 @@ export class MenuComponent implements OnInit {
     protected translate: TranslateService,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment,
     @Optional() @Inject(APP_MENU_ITEMS) public items: MenuItem[]
   ) {
 

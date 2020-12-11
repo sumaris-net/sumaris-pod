@@ -1,5 +1,5 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Inject, Injectable} from "@angular/core";
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -8,19 +8,20 @@ import {Pmfm} from "./model/pmfm.model";
 import {Observable, of} from "rxjs";
 import {ReferentialFragments} from "./referential.fragments";
 import {map} from "rxjs/operators";
-import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {
   EntitiesService,
   EntityService,
-  EntityServiceLoadOptions, LoadResult,
+  EntityServiceLoadOptions,
+  LoadResult,
   SuggestService
 } from "../../shared/services/entity-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 const LoadAllQuery: any = gql`
   query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -89,9 +90,10 @@ export class PmfmService extends BaseEntityService implements EntityService<Pmfm
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
-    protected referentialService: ReferentialService
+    protected referentialService: ReferentialService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {
@@ -120,6 +122,7 @@ export class PmfmService extends BaseEntityService implements EntityService<Pmfm
   /**
    * Save a pmfm entity
    * @param entity
+   * @param options
    */
   async save(entity: Pmfm, options?: EntityServiceLoadOptions): Promise<Pmfm> {
 
@@ -214,6 +217,7 @@ export class PmfmService extends BaseEntityService implements EntityService<Pmfm
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param opts
    */
   async loadAll(offset: number,
                 size: number,

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
 import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
@@ -18,7 +18,7 @@ import {isNil, joinPropertiesPath} from "../../shared/functions";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Component({
   selector: 'app-pmfm',
@@ -53,7 +53,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     protected validatorService: PmfmValidatorService,
     protected pmfmService: PmfmService,
     protected parameterService: ParameterService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       Pmfm,

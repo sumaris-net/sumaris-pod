@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit} from '@angular/core';
 import {DataEntity, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from '../services/model/data-entity.model';
 // import fade in animation
 import {AccountService} from "../../core/services/account.service";
@@ -12,7 +12,6 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
-import {environment} from "../../../environments/environment";
 import {AppRootDataEditor} from "../form/root-data-editor.class";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
 import {ReferentialRef} from "../../core/services/model/referential.model";
@@ -22,6 +21,7 @@ import {OverlayEventDetail} from "@ionic/core";
 import {isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {fadeInAnimation} from "../../shared/material/material.animations";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -70,7 +70,8 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     protected translate: TranslateService,
     public network: NetworkService,
     protected userEventService: UserEventService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
 
     this._debug = !environment.production;
@@ -211,7 +212,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       // Update the editor (Will refresh the component)
       this.updateEditor(data, {updateRoute: true});
     }
-    catch(error) {
+    catch (error) {
       this.editor.setError(error);
       const context = error && error.context || (() => this.data.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS));
       this.userEventService.showToastErrorWithContext({
@@ -313,7 +314,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
   }
 
 
-  protected async showToast<T=any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+  protected async showToast<T= any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return await Toasts.show(this.toastController, this.translate, opts);
   }

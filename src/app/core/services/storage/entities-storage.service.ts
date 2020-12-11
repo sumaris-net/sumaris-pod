@@ -2,12 +2,17 @@ import {concat, defer, merge, Observable, Subject, Subscription, timer} from "rx
 import {EventEmitter, Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
-import {environment} from "../../../../environments/environment";
 import {catchError, switchMap, throttleTime} from "rxjs/operators";
 import {Entity} from "../model/entity.model";
 import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
-import {ENTITIES_STORAGE_KEY_PREFIX, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
+import {
+  ENTITIES_STORAGE_KEY_PREFIX,
+  EntityStorageLoadOptions,
+  EntityStore,
+  EntityStoreTypePolicy
+} from "./entity-store.class";
+import {EnvironmentService} from "../../../../environments/environment.class";
 
 
 export interface EntitiesStorageTypePolicies {
@@ -45,6 +50,7 @@ export class EntitiesStorage
   public constructor(
     private platform: Platform,
     private storage: Storage,
+    @Inject(EnvironmentService) protected environment,
     @Optional() @Inject(APP_LOCAL_STORAGE_TYPE_POLICIES) typePolicies: EntitiesStorageTypePolicies
   ) {
     this._typePolicies = typePolicies || {};
@@ -136,7 +142,7 @@ export class EntitiesStorage
     await this.ready();
 
     this._dirty = true;
-    let storeName = opts && opts.entityName || this.detectEntityName(entity);
+    const storeName = opts && opts.entityName || this.detectEntityName(entity);
     this.getEntityStore<T>(storeName)
       .save(entity, opts);
 
@@ -437,7 +443,7 @@ export class EntitiesStorage
 
     const now = this._debug && Date.now();
     if (this._debug) console.info("[entity-storage] Restoring entities...");
-    let entitiesCount = (await Promise.all<number>(
+    const entitiesCount = (await Promise.all<number>(
       entityNames
         .map(name => this.getEntityStore<any>(name))
         .map((store: EntityStore<any>) => store.restore()))

@@ -1,9 +1,7 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
-import {
-  QualityFlagIds
-} from "./model/model.enum";
+import {QualityFlagIds} from "./model/model.enum";
 
 import {
   MINIFY_OPTIONS,
@@ -17,7 +15,6 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
-import {FetchPolicy} from "@apollo/client/core";
 import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
@@ -37,6 +34,7 @@ import {
   EntityServiceLoadOptions,
   LoadResult
 } from "../../shared/services/entity-service.class";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -198,8 +196,9 @@ export class VesselService
     private accountService: AccountService,
     private vesselFeatureService: VesselFeaturesService,
     private vesselRegistrationService: VesselRegistrationService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**
@@ -277,6 +276,7 @@ export class VesselService
   /**
    * Save many vessels
    * @param vessels
+   * @param options
    */
   async saveAll(vessels: Vessel[], options?: any): Promise<Vessel[]> {
 

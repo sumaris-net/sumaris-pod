@@ -1,6 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnInit,
+  ViewChild
+} from "@angular/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {environment} from "../../../environments/environment";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, Observable} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
@@ -11,6 +19,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {SampleForm} from "./sample.form";
 import {Sample} from "../services/model/sample.model";
 import {AppFormUtils} from "../../core/form/form.utils";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Component({
   selector: 'app-sample-modal',
@@ -74,7 +83,8 @@ export class SampleModal implements OnInit {
     protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {OperationValidatorService} from "../services/validator/operation.validator";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
@@ -15,7 +15,7 @@ import {AccountService} from "../../core/services/account.service";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {referentialToString} from "../../core/services/model/referential.model";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 @Component({
@@ -54,7 +54,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected accountService: AccountService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
@@ -73,6 +74,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
             'comments'])
         .concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Operation, OperationFilter, OperationServiceWatchOptions>(Operation, dataService,
+        environment,
         null,
         // DataSource options
         {
@@ -143,7 +145,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     super.ngAfterViewInit();
   }
 
-  setTripId(id: number, opts?: {emitEvent?: boolean;}) {
+  setTripId(id: number, opts?: {emitEvent?: boolean; }) {
     if (this.tripId !== id) {
       this.tripId = id;
       const filter = this.filter || {};

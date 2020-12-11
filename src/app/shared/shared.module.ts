@@ -31,6 +31,7 @@ import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
+import {Environment, EnvironmentService} from "../../environments/environment.class";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -85,12 +86,15 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
 })
 export class SharedModule {
 
-  static forRoot(): ModuleWithProviders<SharedModule> {
+  static forRoot(environment: Environment): ModuleWithProviders<SharedModule> {
     console.debug('[shared] Creating module (root)');
 
     return {
       ngModule: SharedModule,
       providers: [
+
+        { provide: EnvironmentService, useValue: environment },
+
         ProgressBarService,
         AudioProvider,
         FileService,
@@ -125,6 +129,6 @@ export class SharedModule {
           }
         }
       ]
-    }
+    };
   }
 }

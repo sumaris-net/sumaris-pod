@@ -1,16 +1,24 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import {OperationSaveOptions, OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {ReferentialUtils} from '../../core/services/model/referential.model';
 import {HistoryPageReference, UsageMode} from '../../core/services/model/settings.model';
-import {BehaviorSubject, Subject, Subscription} from 'rxjs';
+import {BehaviorSubject, Subject} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
 import * as momentImported from "moment";
-const moment = momentImported;
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
 import {Program} from "../../referential/services/model/program.model";
 import {SubSamplesTable} from "../sample/sub-samples.table";
@@ -29,7 +37,9 @@ import {AddToPageHistoryOptions} from "../../core/services/local-settings.servic
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor} from "../../core/form/editor.class";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-operation-page',
@@ -84,7 +94,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     protected dataService: OperationService,
     protected tripService: TripService,
     protected programService: ProgramService,
-    protected platform: PlatformService
+    protected platform: PlatformService,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
@@ -126,7 +137,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this._lastOperationsTripId = tripId; // Remember new trip id
 
             // Update back href
-            this.defaultBackHref = `/trips/${tripId}?tab=2`
+            this.defaultBackHref = `/trips/${tripId}?tab=2`;
             this.markForCheck();
 
             return this.dataService.watchAll(
@@ -137,7 +148,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
                 withSamples: false,
                 computeRankOrder: false,
                 fetchPolicy: 'cache-first'
-              })
+              });
           }),
           map(res => res && res.data || [])
       )
@@ -549,13 +560,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Applying program to tables (async)
     if (program) {
-      this.programSubject.next(program)
+      this.programSubject.next(program);
     }
   }
 
   isCurrentData(other: IEntity<any>): boolean {
     return (this.isNewData && isNil(other.id))
-      || (this.data && this.data.id == other.id);
+      || (this.data && this.data.id === other.id);
   }
 
   /* -- protected method -- */
@@ -629,7 +640,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected async getValue(): Promise<Operation> {
     const data = await super.getValue();
 
-    await this.batchTree.save()
+    await this.batchTree.save();
 
     // Get batch tree,rom the batch tree component
     data.catchBatch = this.batchTree.value;
@@ -653,7 +664,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
           return sample;
         });
-      console.log(data.samples);
+      console.info(data.samples);
 
     } else {
       data.samples = undefined;

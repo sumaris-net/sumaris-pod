@@ -1,7 +1,7 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
-import {VesselFeatures, VesselRegistration} from "./model/vessel.model";
+import {VesselFeatures} from "./model/vessel.model";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -10,6 +10,7 @@ import {VesselFilter} from "./vessel-service";
 import {SortDirection} from "@angular/material/sort";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export const VesselFeaturesFragments = {
     vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {
@@ -55,9 +56,10 @@ export class VesselFeaturesService
   implements EntitiesService<VesselFeatures, VesselFilter> {
 
   constructor(
-    protected graphql: GraphqlService
+    protected graphql: GraphqlService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
 

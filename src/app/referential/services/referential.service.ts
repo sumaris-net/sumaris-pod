@@ -1,14 +1,11 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Inject, Injectable} from "@angular/core";
+import {FetchPolicy, gql, MutationUpdaterFn} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-
-import {FetchPolicy, MutationUpdaterFn} from "@apollo/client/core";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
-import {environment} from "../../../environments/environment";
 import {Beans, isNotNil, KeysEnum} from "../../shared/functions";
 import {Referential, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
@@ -17,6 +14,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class ReferentialFilter {
   entityName: string;
@@ -140,9 +138,10 @@ export class ReferentialService extends BaseEntityService<Referential> implement
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
-    protected platform: PlatformService
+    protected platform: PlatformService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     platform.ready().then(() => {
       // No limit for updatable watch queries, if desktop
@@ -428,7 +427,7 @@ export class ReferentialService extends BaseEntityService<Referential> implement
     if (!entities.length) return;
 
     const entityName = entities[0].entityName;
-    const ids = entities.filter(e => e.entityName == entityName).map(t => t.id);
+    const ids = entities.filter(e => e.entityName === entityName).map(t => t.id);
 
     // Check that all entities have the same entityName
     if (entities.length > ids.length) {

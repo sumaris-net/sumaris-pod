@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {Strategy} from "../services/model/strategy.model";
@@ -7,8 +16,9 @@ import {toBoolean} from "../../shared/functions";
 import {DefaultStatusList, referentialToString} from "../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
+// tslint:disable-next-line:no-empty-interface
 export declare interface StrategyFilter {
 }
 
@@ -38,7 +48,8 @@ export class StrategiesTable extends AppInMemoryTable<Strategy, StrategyFilter> 
     protected injector: Injector,
     protected memoryDataService: InMemoryEntitiesService<Strategy, StrategyFilter>,
     protected validatorService: ValidatorService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       // columns

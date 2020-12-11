@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  Inject,
   Input,
   OnDestroy,
   OnInit,
@@ -14,15 +15,15 @@ import {Configuration} from '../services/model/config.model';
 import {ConfigService} from '../services/config.service';
 import {PlatformService} from "../services/platform.service";
 import {distinctUntilChanged, map} from "rxjs/operators";
-import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {ConfigOptions} from "../services/config/core.config";
 import {VersionUtils} from "../../shared/version/versions";
 import {fadeInAnimation, slideUpDownAnimation} from "../../shared/material/material.animations";
 import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank} from "../../shared/functions";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
-export declare type InstallAppLink = { name: string; url: string; platform?: 'android' | 'ios'; version?: string; };
+export declare interface InstallAppLink { name: string; url: string; platform?: 'android' | 'ios'; version?: string; }
 
 @Component({
   selector: 'app-install-upgrade-card',
@@ -50,13 +51,13 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
 
 
   @Input()
-  showUpgradeWarning: boolean = true;
+  showUpgradeWarning = true;
 
   @Input()
-  showOfflineWarning: boolean = true;
+  showOfflineWarning = true;
 
   @Input()
-  showInstallButton: boolean = false;
+  showInstallButton = false;
 
   @Input()
   set showUpdateOfflineFeature(value: boolean) {
@@ -77,7 +78,8 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
     private configService: ConfigService,
     private platform: PlatformService,
     private cd: ChangeDetectorRef,
-    public network: NetworkService
+    public network: NetworkService,
+    @Inject(EnvironmentService) protected environment
   ) {
 
   }
@@ -105,7 +107,7 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
           setTimeout(() => {
             this.loading = false;
             this.markForCheck();
-          }, 2000) // Add a delay, for animation
+          }, 2000); // Add a delay, for animation
         }));
 
     // Listen network changes
@@ -157,11 +159,11 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
   getPlatformName(platform: 'android'|'ios') {
     switch (platform) {
       case 'android':
-        return 'Android'
+        return 'Android';
       case 'ios':
-        return 'iOS'
+        return 'iOS';
       default:
-        return ''
+        return '';
     }
   }
 
@@ -183,7 +185,7 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
   private getCompatibleUpgradeLinks(installLinks: InstallAppLink[], config: Configuration): InstallAppLink[] {
     const appMinVersion = config.getProperty(ConfigOptions.APP_MIN_VERSION);
 
-    const needUpgrade = appMinVersion && !VersionUtils.isCompatible(appMinVersion, environment.version);
+    const needUpgrade = appMinVersion && !VersionUtils.isCompatible(appMinVersion, this.environment.version);
     if (!needUpgrade) return undefined;
 
     const upgradeLinks = installLinks
@@ -203,10 +205,10 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
     // Android
     {
       let url = config.getProperty(ConfigOptions.ANDROID_INSTALL_URL);
-      const name: string = isNotNilOrBlank(url) && config.label || environment.defaultAppName || 'SUMARiS';
+      const name: string = isNotNilOrBlank(url) && config.label || this.environment.defaultAppName || 'SUMARiS';
       let version;
       if (isNilOrBlank(url)) {
-        url = environment.defaultAndroidInstallUrl || null;
+        url = this.environment.defaultAndroidInstallUrl || null;
       }
       result.push({ name, url, platform: 'android', version });
     }

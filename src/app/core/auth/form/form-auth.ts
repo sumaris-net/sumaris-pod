@@ -1,9 +1,16 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, Output} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Inject,
+  OnInit,
+  Output
+} from "@angular/core";
 import {FormBuilder, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {RegisterModal} from '../../register/modal/modal-register';
 import {AuthData} from "../../services/account.service";
-import {environment} from "../../../../environments/environment";
 import {NetworkService} from "../../services/network.service";
 import {LocalSettingsService} from "../../services/local-settings.service";
 import {slideUpDownAnimation} from "../../../shared/material/material.animations";
@@ -12,6 +19,7 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {debounceTime} from "rxjs/operators";
 import {AppForm} from "../../form/form.class";
+import {EnvironmentService} from "../../../../environments/environment.class";
 
 
 @Component({
@@ -46,7 +54,8 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
     settings: LocalSettingsService,
     private modalCtrl: ModalController,
     public network: NetworkService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(dateAdapter,
       formBuilder.group({
@@ -63,7 +72,7 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
     // For DEV only
-    if (environment.production === false) {
+    if (this.environment.production === false) {
       this.form.patchValue({
         username: 'admin@sumaris.net',
         password: 'admin'

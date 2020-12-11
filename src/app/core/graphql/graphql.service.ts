@@ -15,7 +15,6 @@ import {
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "../services/errors";
 import {catchError, distinctUntilChanged, filter, first, map, mergeMap, throttleTime} from "rxjs/operators";
 
-import {environment} from '../../../environments/environment';
 import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import {ConnectionType, NetworkService} from "../services/network.service";
 import {WebSocketLink} from "@apollo/client/link/ws";
@@ -42,6 +41,7 @@ import {IonicStorageWrapper, persistCache} from "apollo3-cache-persist";
 import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 import {MutationBaseOptions} from "@apollo/client/core/watchQueryOptions";
 import {Cache} from "@apollo/client/cache/core/types/Cache";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export interface WatchQueryOptions<V> {
   query: any;
@@ -106,6 +106,7 @@ export class GraphqlService {
     private httpLink: HttpLink,
     private network: NetworkService,
     private storage: Storage,
+    @Inject(EnvironmentService) protected environment,
     @Optional() @Inject(APP_GRAPHQL_TYPE_POLICIES) private typePolicies: TypePolicies
   ) {
 
@@ -374,7 +375,7 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data:any = cache.readQuery(opts);
+      let data: any = cache.readQuery(opts);
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
@@ -387,7 +388,7 @@ export class GraphqlService {
         if (!newItems.length) return; // No new value
 
         // Append to array
-        data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], ...newItems]
+        data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], ...newItems];
 
         // Resort, if need
         if (opts.sortFn) {
@@ -681,7 +682,7 @@ export class GraphqlService {
       });
 
       // Add cache persistence
-      if (environment.persistCache) {
+      if (this.environment.persistCache) {
         console.debug("[graphql] Starting persistence cache...");
         await persistCache({
           cache,
@@ -759,14 +760,14 @@ export class GraphqlService {
               ])
             )
           ),
-        connectToDevTools: !environment.production
+        connectToDevTools: !this.environment.production
       });
 
       this.apollo.client = client;
     }
 
     // Enable tracked queries persistence
-    if (enableTrackMutationQueries && environment.persistCache) {
+    if (enableTrackMutationQueries && this.environment.persistCache) {
 
       try {
         await restoreTrackedQueries({

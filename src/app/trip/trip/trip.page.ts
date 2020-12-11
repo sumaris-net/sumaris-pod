@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
@@ -7,7 +7,6 @@ import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
 import * as momentImported from "moment";
-const moment = momentImported;
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
@@ -29,15 +28,17 @@ import {TableElement} from "@e-is/ngx-material-table";
 import {Alerts} from "../../shared/alerts";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {environment} from "../../../environments/environment";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {fromDateISOString, isNil, isNotEmptyArray} from "../../shared/functions";
+import {EnvironmentService} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 const TripPageTabs = {
   GENERAL: 0,
   PHYSICAL_GEARS: 1,
   OPERATIONS: 2
-}
+};
 
 @Component({
   selector: 'app-trip-page',
@@ -70,6 +71,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
+    @Inject(EnvironmentService) protected environment,
     public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
     super(injector,
@@ -128,7 +130,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           const usedGears = rows.map(row => row.currentData)
             .filter(gear => usedGearIds.includes(gear.id));
 
-          const canDelete = (usedGears.length == 0);
+          const canDelete = (usedGears.length === 0);
           event.detail.success(canDelete);
           if (!canDelete) {
             await Alerts.showError('TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE_USED_GEAR_HELP',

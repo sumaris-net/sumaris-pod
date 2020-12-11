@@ -2,14 +2,14 @@ import {TableDataSource, TableElement, ValidatorService} from '@e-is/ngx-materia
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Entity, IEntity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
-import {catchError, first, map, takeUntil} from "rxjs/operators";
+import {catchError, map, takeUntil} from "rxjs/operators";
 import {Directive, OnDestroy} from "@angular/core";
 import {EntitiesService, EntitiesServiceWatchOptions, LoadResult} from "../../shared/services/entity-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {CollectionViewer} from "@angular/cdk/collections";
 import {firstNotNilPromise} from "../../shared/observables";
-import {environment} from "../../../environments/environment";
 import {isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
+import {Environment} from "../../../environments/environment.class";
 
 
 export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> extends EntitiesServiceWatchOptions {
@@ -27,6 +27,7 @@ export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extend
 
 // @dynamic
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
     extends TableDataSource<T>
     implements OnDestroy {
@@ -59,14 +60,15 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
 
   /**
    * Creates a new TableDataSource instance, that can be used as datasource of `@angular/cdk` data-table.
-   * @param data Array containing the initial values for the TableDataSource. If not specified, then `dataType` must be specified.
    * @param dataService A service to load and save data
    * @param dataType Type of data contained by the Table. If not specified, then `data` with at least one element must be specified.
+   * @param environment
    * @param validatorService Service that create instances of the FormGroup used to validate row fields.
    * @param config Additional configuration for table.
    */
   constructor(dataType: new() => T,
               public readonly dataService: EntitiesService<T, F, O>,
+              environment: Environment,
               validatorService?: ValidatorService,
               config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);
@@ -311,8 +313,8 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
         try {
           await res;
         }
-        catch(err)  {
-          console.error(err && err.message | err, err);
+        catch (err)  {
+          console.error(err && err.message || err, err);
         }
       }
     }
@@ -329,7 +331,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     let errorsMessage = "";
     Object.getOwnPropertyNames(row.validator.controls)
       .forEach(key => {
-        let control = row.validator.controls[key];
+        const control = row.validator.controls[key];
         if (control.invalid) {
           errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unknown error') + "),";
         }

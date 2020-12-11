@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, defer, Observable} from 'rxjs';
 import {BaseEntityService} from "../../core/services/base.data-service.class";
@@ -14,12 +14,12 @@ import {
 } from "../../shared/services/entity-service.class";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {environment} from "../../../environments/environment";
 import {Beans, KeysEnum} from "../../shared/functions";
 import {Person} from "../../core/services/model/person.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -108,9 +108,10 @@ export class PersonService extends BaseEntityService<Person, PersonFilter>
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // for DEV only -----
     this._debug = !environment.production;

@@ -1,5 +1,5 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Inject, Injectable} from "@angular/core";
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 
@@ -12,9 +12,8 @@ import {
   ExtractionResult,
   ExtractionType
 } from "./model/extraction.model";
-import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
-import {GraphqlService, WatchQueryOptions} from "../../core/graphql/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "../../trip/services/trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
@@ -26,6 +25,7 @@ import {AggregationType, StrataAreaType, StrataTimeType} from "./model/aggregati
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 export const ExtractionFragments = {
@@ -87,7 +87,7 @@ export const ExtractionFragments = {
     description
     rankOrder
   }`
-}
+};
 
 export declare interface CustomAggregationStrata {
   spatialColumnName: StrataAreaType;
@@ -220,9 +220,10 @@ export class ExtractionService extends BaseEntityService {
 
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**
@@ -253,7 +254,7 @@ export class ExtractionService extends BaseEntityService {
             .filter(json => {
               // Workaround because saveAggregation() doest not add NEW extraction type correctly
               if (!json || isNil(json.label)) {
-                console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?')
+                console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?');
                 return false;
               }
               return true;
@@ -273,11 +274,13 @@ export class ExtractionService extends BaseEntityService {
 
   /**
    * Load many trips
+   * @param type
    * @param offset
    * @param size
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param options
    */
 
   async loadRows(
@@ -323,11 +326,9 @@ export class ExtractionService extends BaseEntityService {
 
   /**
    * Load columns metadata
-   * @param offset
-   * @param size
-   * @param sortBy
-   * @param sortDirection
-   * @param filter
+   * @param type
+   * @param sheetName
+   * @param options
    */
   async loadColumns(
     type: ExtractionType,
@@ -581,7 +582,7 @@ export class ExtractionService extends BaseEntityService {
       },
       error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"},
       update: (cache, {data}) => {
-        let savedEntity = data && data.saveAggregation;
+        const savedEntity = data && data.saveAggregation;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
         //if (this._debug)
           console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);

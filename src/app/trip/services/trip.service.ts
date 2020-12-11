@@ -1,14 +1,13 @@
-import {Injectable, Injector, Optional} from "@angular/core";
+import {Inject, Injectable, Injector, Optional} from "@angular/core";
 import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
+import * as momentImported from "moment";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {RootDataService} from "./root-data-service.class";
-import * as momentImported from "moment";
-const moment = momentImported;
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -22,7 +21,8 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {
   Beans,
   fromDateISOString,
-  isEmptyArray, isNil,
+  isEmptyArray,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   KeysEnum,
@@ -63,7 +63,9 @@ import {TrashRemoteService} from "../../core/services/trash-remote.service";
 import {TRIP_FEATURE_NAME} from "./config/trip.config";
 import {Entity, EntityUtils} from "../../core/services/model/entity.model";
 import {Department} from "../../core/services/model/department.model";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -330,7 +332,7 @@ export const TripFilterKeys: KeysEnum<TripFilter> = {
   recorderDepartmentId: true,
   recorderPersonId: true,
   synchronizationStatus: true
-}
+};
 
 export interface TripServiceLoadOptions extends EntityServiceLoadOptions {
   isLandedTrip?: boolean;
@@ -470,6 +472,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     protected validatorService: TripValidatorService,
     protected userEventService: UserEventService,
     protected trashRemoteService: TrashRemoteService,
+    @Inject(EnvironmentService) protected environment,
     @Optional() private translate: TranslateService,
     @Optional() private toastController: ToastController
   ) {
@@ -1214,6 +1217,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
   /**
    * Copy entities (local or remote) to the local storage
    * @param entities
+   * @param opts
    */
   copyAllLocally(entities: Trip[], opts?: TripServiceCopyOptions): Promise<Trip[]> {
     return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
@@ -1241,7 +1245,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
   /**
    * Copy an entity (local or remote) to the local storage
-   * @param entities
+   * @param source
+   * @param opts
    */
   async copyLocally(source: Trip, opts?: TripServiceCopyOptions): Promise<Trip> {
     console.debug("[trip-service] Copy trip locally...", source);

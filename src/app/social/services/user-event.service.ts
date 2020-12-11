@@ -1,9 +1,8 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {environment} from "../../../environments/environment";
 import {Observable, of} from "rxjs";
 import {UserEvent, UserEventAction, UserEventTypes} from "./model/user-event.model";
 import {SocialFragments} from "./social.fragments";
@@ -11,7 +10,8 @@ import {SortDirection} from "@angular/material/sort";
 import {
   EntitiesService,
   EntitiesServiceWatchOptions,
-  EntityServiceLoadOptions, LoadResult,
+  EntityServiceLoadOptions,
+  LoadResult,
   Page
 } from "../../shared/services/entity-service.class";
 import {map} from "rxjs/operators";
@@ -23,6 +23,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {NetworkService} from "../../core/services/network.service";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {Entity, EntityUtils} from "../../core/services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class UserEventFilter {
   issuer?: string;
@@ -81,9 +82,10 @@ export class UserEventService extends BaseEntityService<UserEvent>
     protected accountService: AccountService,
     protected network: NetworkService,
     protected translate: TranslateService,
-    protected toastController: ToastController
+    protected toastController: ToastController,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // For DEV only
     this._debug = !environment.production;
@@ -122,7 +124,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
     if (isNilOrBlank(filter.recipient) || !this.accountService.isAdmin()) {
       const recipient = this.accountService.account.pubkey;
       if (recipient !== filter.recipient) {
-        console.warn("[user-events-service] Force user event filter.recipient="+ recipient);
+        console.warn("[user-events-service] Force user event filter.recipient=" + recipient);
         filter.recipient = recipient;
       }
     }
@@ -197,14 +199,14 @@ export class UserEventService extends BaseEntityService<UserEvent>
 
           // Add to cache
           if (isNew) {
-            this.insertIntoMutableCachedQuery(proxy,{
+            this.insertIntoMutableCachedQuery(proxy, {
               query: LoadAllQuery,
               data: {
                 ...savedEntity,
                 content: null
               }
             });
-            this.insertIntoMutableCachedQuery(proxy,{
+            this.insertIntoMutableCachedQuery(proxy, {
               query: LoadAllWithContentQuery,
               data: savedEntity
             });
@@ -300,8 +302,8 @@ export class UserEventService extends BaseEntityService<UserEvent>
     message = this.translate.instant(message);
 
     // Clean details parts
-    if (message && message.indexOf('<small>') != -1) {
-      message = message.substr(0, message.indexOf('<small>') -1);
+    if (message && message.indexOf('<small>') !== -1) {
+      message = message.substr(0, message.indexOf('<small>') - 1);
     }
 
     const res = await this.showToast({
@@ -318,7 +320,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
 
     // Send debug data
     try {
-      if (this._debug) console.debug("Sending debug data...")
+      if (this._debug) console.debug("Sending debug data...");
 
       // Call content factory
       let context: any = opts && opts.context;
@@ -343,7 +345,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
         showCloseButton: true
       });
     }
-    catch(err) {
+    catch (err) {
       console.error("Error while sending debug data:", err);
     }
   }
@@ -372,7 +374,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
     }
   }
 
-  protected async showToast<T=any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+  protected async showToast<T= any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return await Toasts.show(this.toastController, this.translate, opts);
   }

@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable, Subject} from "rxjs";
 import {ErrorCodes} from "./errors";
@@ -7,6 +7,7 @@ import {Software} from "../../core/services/model/config.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {EntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 /* ------------------------------------
  * GraphQL queries
@@ -53,9 +54,10 @@ export class SoftwareService<T extends Software = Software>
   implements EntityService<T> {
 
   constructor(
-    protected graphql: GraphqlService
+    protected graphql: GraphqlService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     if (this._debug) console.debug("[software-service] Creating service");
   }

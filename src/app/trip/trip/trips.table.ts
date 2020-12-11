@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {TripValidatorService} from "../services/validator/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
@@ -29,12 +37,13 @@ import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
 import {HttpClient} from "@angular/common/http";
 import * as momentImported from "moment";
-const moment = momentImported;
 import {TRIP_FEATURE_NAME} from "../services/config/trip.config";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -94,7 +103,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
     protected http: HttpClient,
-    public accountService: AccountService
+    public accountService: AccountService,
+    @Inject(EnvironmentService) protected environment
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
@@ -109,7 +119,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, null, {
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, environment, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -341,7 +351,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   }
 
   async importFromFile(uri?: string) {
-    uri = uri || 'http://server.e-is.pro/downloads/trip_833.json'
+    uri = uri || 'http://server.e-is.pro/downloads/trip_833.json';
 
     // Download the JSON file
     let json: any;
@@ -537,7 +547,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
             .isBefore(moment().add(-10, 'minute'))) {
 
         // Get peer last update date
-        let remoteUpdateDate = await this.referentialRefService.lastUpdateDate();
+        const remoteUpdateDate = await this.referentialRefService.lastUpdateDate();
         if (isNotNil(remoteUpdateDate) && moment.isMoment(remoteUpdateDate)) {
 
           // Compare dates, to kwown if an update if need

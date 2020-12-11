@@ -2,14 +2,12 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
   Inject,
   InjectionToken,
   Injector,
   Input,
   OnDestroy,
-  OnInit,
-  Output
+  OnInit
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
@@ -26,9 +24,8 @@ import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
 import {getPmfmName, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {BatchModal} from "../modal/batch.modal";
-import {SubBatch} from "../../services/model/subbatch.model";
 import {IReferentialRef, ReferentialRef} from "../../../core/services/model/referential.model";
-import {environment} from "../../../../environments/environment";
+import {EnvironmentService} from "../../../../environments/environment.class";
 
 export interface BatchFilter {
   operationId?: number;
@@ -111,6 +108,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     injector: Injector,
     validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<T, F>,
+    @Inject(EnvironmentService) protected environment,
     @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
   ) {
     super(injector,

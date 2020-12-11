@@ -3,8 +3,9 @@
   <ion-menu id="menu" menuId="left" contentId="menu-content">
     <ion-header>
 
-      <mat-toolbar class="ion-padding" @fadeInAnimation *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
-        <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="150px;"/>
+      <mat-toolbar class="ion-padding" @fadeInAnimation *ngIf="!isLogin"
+                   style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
+        <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}" width="150px;"/>
         <span *ngIf="!logo" width="150px;">{{appName}}</span>
       </mat-toolbar>
 
@@ -22,7 +23,7 @@
               </button>
             </ion-col>
             <ion-col size="8" class="user-logo">
-              <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="108px;"/>
+              <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}" width="108px;"/>
               <span *ngIf="!logo" width="108px;">{{appName}}</span>
             </ion-col>
           </ion-row>
@@ -85,15 +86,15 @@
                             *ngIf="!loading && !item.path && !item.action">
             <ion-label translate>{{item.title}}</ion-label>
           </ion-item-divider>
+
         </ion-menu-toggle>
       </ion-list>
     </ion-content>
 
-
     <ion-footer class="hidden-xs hidden-sm">
       <ion-toolbar>
 
-        <ion-buttons slot="start" >
+        <ion-buttons slot="start">
           <ion-button mat-icon-button color="accent" (click)="openAboutModal($event)">
 <!--            <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>-->
             <mat-icon slot="icon-only">help_outline</mat-icon>
@@ -106,16 +107,16 @@
 
         <ion-buttons slot="end">
           <button mat-icon-button color="accent" (click)="toggleSplitPane($event)"
-                      class="hidden-xs hidden-sm hidden-md"
-                      [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
+                  class="hidden-xs hidden-sm hidden-md"
+                  [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
             <mat-icon><span>{{splitPaneOpened ? '&#xab;' : '&#xbb;'}}</span></mat-icon>
           </button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
+
   </ion-menu>
 
   <ng-content></ng-content>
 
 </ion-split-pane>
-

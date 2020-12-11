@@ -1,8 +1,7 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import * as momentImported from "moment";
-const moment = momentImported;
 import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
@@ -35,8 +34,10 @@ import {Landing} from "../services/model/landing.model";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {ReferentialRef} from "../../core/services/model/referential.model";
-import {environment} from "../../../environments/environment";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {EnvironmentService} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -86,7 +87,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
-    protected formBuilder: FormBuilder
+    protected formBuilder: FormBuilder,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       Trip,

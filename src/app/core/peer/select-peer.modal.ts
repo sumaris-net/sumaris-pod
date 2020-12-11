@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {Peer} from "../services/model/peer.model";
 import {Observable, Subject, Subscription} from "rxjs";
@@ -6,7 +6,7 @@ import {fadeInAnimation} from "../../shared/material/material.animations";
 import {HttpClient} from "@angular/common/http";
 import {NetworkUtils, NodeInfo} from "../services/network.utils";
 import {VersionUtils} from "../../shared/version/versions";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Component({
   selector: 'select-peer-modal',
@@ -20,7 +20,7 @@ export class SelectPeerModal implements OnDestroy {
   private _subscription = new Subscription();
   loading = true;
   $peers = new Subject<Peer[]>();
-  peerMinVersion = environment.peerMinVersion;
+  peerMinVersion = this.environment.peerMinVersion;
 
   @Input() canCancel = true;
   @Input() allowSelectDownPeer = true;
@@ -29,7 +29,8 @@ export class SelectPeerModal implements OnDestroy {
 
     private viewCtrl: ModalController,
     private cd: ChangeDetectorRef,
-    private http: HttpClient
+    private http: HttpClient,
+    @Inject(EnvironmentService) protected environment
   ) {
   }
 
@@ -88,7 +89,7 @@ export class SelectPeerModal implements OnDestroy {
     try {
       await jobs;
     }
-    catch(err) {
+    catch (err) {
       if (!this._subscription.closed) console.error(err);
     }
     this.loading = false;

@@ -19,7 +19,7 @@ import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearFilter} from "../services/physic
 import {createPromiseEventEmitter} from "../../shared/events";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {EntitiesService} from "../../shared/services/entity-service.class";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -67,7 +67,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
       null, // No validator = no inline edition
       {
         prependNewElements: false,
-        suppressErrors: environment.production,
+        suppressErrors: injector.get(EnvironmentService).production,
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)

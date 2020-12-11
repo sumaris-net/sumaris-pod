@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit} from '@angular/core';
 import {AccountService} from '../services/account.service';
 import {EntityUtils} from '../services/model/entity.model';
-import {Locales, LocalSettings, UsageMode} from '../services/model/settings.model';
+import {APP_LOCALES, LocaleConfig, LocalSettings, UsageMode} from '../services/model/settings.model';
 import {Peer} from '../services/model/peer.model';
 import {referentialToString} from '../services/model/referential.model';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
@@ -37,7 +37,6 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   mobile: boolean;
   loading = true;
   saving = false;
-  locales = Locales;
   usageModes: UsageMode[] = ['FIELD', 'DESK'];
 
   propertyDefinitions: FormFieldDefinition[];
@@ -69,7 +68,8 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    public network: NetworkService
+    public network: NetworkService,
+    @Inject(APP_LOCALES) public locales: LocaleConfig[]
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
 
@@ -163,7 +163,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     const json: any = {...data};
 
     // Transform properties map into array
-    json.properties = EntityUtils.getMapAsArray(data.properties|| {});
+    json.properties = EntityUtils.getMapAsArray(data.properties || {});
     this.propertiesFormHelper.resize(json.properties.length);
 
     this.form.patchValue(json, {emitEvent: false});

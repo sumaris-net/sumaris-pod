@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {Moment} from 'moment';
 import {BehaviorSubject, Subject} from 'rxjs';
@@ -16,7 +16,7 @@ import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -57,7 +57,8 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected validatorService: PhysicalGearValidatorService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
     this._enable = true;

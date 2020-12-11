@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {Trip} from "../../services/model/trip.model";
@@ -11,14 +20,14 @@ import {TripFilter, TripService} from "../../services/trip.service";
 import {FormBuilder} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
-import {environment} from "../../../../environments/environment";
 import {TableElement} from "@e-is/ngx-material-table";
-import {SynchronizationStatus, SynchronizationStatusEnum} from "../../../data/services/model/root-data-entity.model";
+import {SynchronizationStatus} from "../../../data/services/model/root-data-entity.model";
 import {isEmptyArray, isNotNil, toBoolean} from "../../../shared/functions";
 import {OperationService} from "../../services/operation.service";
 import {EntitiesStorage} from "../../../core/services/storage/entities-storage.service";
 import {TrashRemoteService} from "../../../core/services/trash-remote.service";
 import {chainPromises} from "../../../shared/observables";
+import {EnvironmentService} from "../../../../environments/environment.class";
 
 @Component({
   selector: 'app-trip-trash-modal',
@@ -62,7 +71,8 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
-    protected viewCtrl: ModalController
+    protected viewCtrl: ModalController,
+    @Inject(EnvironmentService) protected environment
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
@@ -77,7 +87,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, null, {
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, environment, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -131,14 +141,14 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
   async closeAndRestore(event: UIEvent, rows: TableElement<Trip>[]) {
 
-    const done = await this.restore(event, rows)
+    const done = await this.restore(event, rows);
     if (done) return this.close();
   }
 
   async restore(event: UIEvent, rows: TableElement<Trip>[]): Promise<boolean> {
     if (this.loading) return; // Skip
 
-    const confirm = await this.askRestoreConfirmation()
+    const confirm = await this.askRestoreConfirmation();
     if (!confirm) return false;
 
     if (event) {
@@ -155,7 +165,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
       // If online: get trash data full content
       if (this.isOnlineMode) {
         entities = (await chainPromises(entities.map(e => () => this.trashRemoteService.load('Trip', e.id))))
-          .map(Trip.fromObject)
+          .map(Trip.fromObject);
       }
 
       // Copy locally
@@ -178,7 +188,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
       return true;
     }
-    catch(err) {
+    catch (err) {
       console.error(err && err.message || err, err);
       this.error = err && err.message || err;
       return false;
@@ -263,7 +273,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
       this.onRefresh.emit();
     }
-    catch(err) {
+    catch (err) {
       console.error(err && err.message || err, err);
       this.error = err && err.message || err;
     }

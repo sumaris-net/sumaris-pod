@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  Inject,
   Injector,
   Input,
   OnDestroy,
@@ -22,8 +23,8 @@ import {PlatformService} from "../../../core/services/platform.service";
 import {Alerts} from "../../../shared/alerts";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {environment} from "../../../../environments/environment";
 import {AppFormUtils} from "../../../core/form/form.utils";
+import {EnvironmentService} from "../../../../environments/environment.class";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -111,7 +112,8 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -123,7 +125,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   ngOnInit() {
 
-    this.isNew = toBoolean(this.isNew, !this.data)
+    this.isNew = toBoolean(this.isNew, !this.data);
     this.data = this.data || new BatchGroup();
     this.form.setValue(this.data);
 
@@ -177,7 +179,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
       if (isNil(saveBeforeLeave) || event && event.defaultPrevented) return; // User cancelled
 
       // Ask a second confirmation, if observed individual count > 0
-      if (saveBeforeLeave == false && this.isNew && this.data.observedIndividualCount > 0) {
+      if (saveBeforeLeave === false && this.isNew && this.data.observedIndividualCount > 0) {
         saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
         if (isNil(saveBeforeLeave) || event && event.defaultPrevented) return; // User cancelled
       }

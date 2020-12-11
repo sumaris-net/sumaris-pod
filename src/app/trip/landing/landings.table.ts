@@ -3,7 +3,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter, HostListener,
+  EventEmitter,
   Injector,
   Input,
   OnDestroy,
@@ -23,10 +23,10 @@ import {LandingValidatorService} from "../services/validator/landing.validator";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
-import {environment} from "../../../environments/environment";
 import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -107,7 +107,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       injector.get(ValidatorService),
       {
         prependNewElements: false,
-        suppressErrors: environment.production,
+        suppressErrors: injector.get(EnvironmentService).production,
         reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
         reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
@@ -125,7 +125,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.debug = !injector.get(EnvironmentService).production;
   }
 
   ngOnInit() {

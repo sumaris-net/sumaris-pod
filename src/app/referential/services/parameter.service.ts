@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -12,6 +12,7 @@ import {EntityService, EntityServiceLoadOptions} from "../../shared/services/ent
 import {isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){
@@ -39,9 +40,10 @@ export class ParameterService extends BaseEntityService implements EntityService
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
-    protected referentialService: ReferentialService
+    protected referentialService: ReferentialService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {
@@ -70,6 +72,7 @@ export class ParameterService extends BaseEntityService implements EntityService
   /**
    * Save a parameter entity
    * @param entity
+   * @param options
    */
   async save(entity: Parameter, options?: EntityServiceLoadOptions): Promise<Parameter> {
 

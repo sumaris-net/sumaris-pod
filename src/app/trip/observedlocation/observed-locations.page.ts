@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ModalController} from "@ionic/angular";
@@ -23,7 +23,7 @@ import {SharedValidators} from "../../shared/validator/validators";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {isNil} from "../../shared/functions";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Component({
   selector: 'app-observed-locations-page',
@@ -57,7 +57,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
@@ -70,7 +71,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
+      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, environment, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -93,8 +94,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.autoLoad = false;
-    this.sortBy='startDateTime';
-    this.sortDirection='desc';
+    this.sortBy = 'startDateTime';
+    this.sortDirection = 'desc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

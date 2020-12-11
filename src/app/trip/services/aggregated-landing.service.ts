@@ -1,4 +1,4 @@
-import {Injectable, Injector} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {AggregatedLanding} from "./model/aggregated-landing.model";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
@@ -17,7 +17,7 @@ import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.m
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class AggregatedLandingFilter {
   programLabel?: string;
@@ -37,7 +37,7 @@ export class AggregatedLandingFilter {
         f1.synchronizationStatus === f2.synchronizationStatus &&
         ((!f1.startDate && !f2.startDate) || (f1.startDate.isSame(f2.startDate))) &&
         ((!f1.endDate && !f2.endDate) || (f1.endDate.isSame(f2.endDate)))
-      )
+      );
   }
 
   static isEmpty(f: AggregatedLandingFilter | any): boolean {
@@ -115,11 +115,12 @@ export class AggregatedLandingService
   private _lastFilter;
 
   constructor(
-    injector: Injector,
+    protected graphqlService: GraphqlService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(injector.get(GraphqlService));
+    super(graphqlService, environment);
 
     // FOR DEV ONLY
     this._debug = !environment.production;

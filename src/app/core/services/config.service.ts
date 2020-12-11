@@ -1,11 +1,9 @@
 import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {Configuration} from "./model/config.model";
-import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
-import {FetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../graphql/graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {isNotEmptyArray, isNotNil} from "../../shared/functions";
@@ -20,6 +18,7 @@ import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
 import {filter} from "rxjs/operators";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -131,9 +130,10 @@ export class ConfigService extends SoftwareService<Configuration> {
     protected file: FileService,
     protected toastController: ToastController,
     protected translate: TranslateService,
+    @Inject(EnvironmentService) protected environment,
     @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     this._debug = !environment.production;
     if (this._debug) console.debug("[config] Creating service");
@@ -308,7 +308,7 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   delete(data: Configuration, options?: any): Promise<any> {
-    throw new Error("Not implemented yet!")
+    throw new Error("Not implemented yet!");
   }
 
   listenChanges(id: number, options?: any): Observable<Configuration | undefined> {
@@ -370,7 +370,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     }
 
     // Make sure label has been filled
-    data.label = data.label || environment.name;
+    data.label = data.label || this.environment.name;
 
     // Reset name (if same as label)
     data.name = (data.name !== data.label) ? data.name : undefined;
@@ -411,7 +411,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     // Or load default value, from the environment
     if (!data) {
       console.debug("[config] No configuration found. Using environment...");
-      data = Configuration.fromObject(environment as any);
+      data = Configuration.fromObject(this.environment as any);
     }
 
     return data;
@@ -497,7 +497,7 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   private updateModelEnumerations(config: Configuration) {
-    console.log("[config] Updating model enumerations...");
+    console.info("[config] Updating model enumerations...");
 
     // Location Levels
     LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_COUNTRY_ID);

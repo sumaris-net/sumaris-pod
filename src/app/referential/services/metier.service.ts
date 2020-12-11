@@ -1,8 +1,7 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Inject, Injectable} from "@angular/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {FetchPolicy} from "@apollo/client/core";
 import {FilterFn, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Metier} from "./model/taxon.model";
@@ -17,7 +16,7 @@ import {SortDirection} from "@angular/material/sort";
 import {isNil, isNotNil} from "../../shared/functions";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class MetierFilter extends ReferentialRefFilter {
 
@@ -46,7 +45,7 @@ export class MetierFilter extends ReferentialRefFilter {
 
   constructor() {
     super();
-    this.entityName = ''
+    this.entityName = '';
   }
 
   programLabel?: string;
@@ -85,9 +84,10 @@ export class MetierService extends BaseEntityService
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // -- For DEV only
     this._debug = !environment.production;

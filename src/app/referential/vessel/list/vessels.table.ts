@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {VesselValidatorService} from "../../services/validator/vessel.validator";
 import {VesselFilter, VesselService} from "../../services/vessel-service";
@@ -18,7 +18,7 @@ import {isNil, isNotNil, toBoolean} from "../../../shared/functions";
 import {statusToColor} from "../../../data/services/model/model.utils";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
-import {environment} from "../../../../environments/environment";
+import {EnvironmentService} from "../../../../environments/environment.class";
 
 @Component({
   selector: 'app-vessels-table',
@@ -64,7 +64,8 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     protected vesselService: VesselService,
     protected cd: ChangeDetectorRef,
     formBuilder: FormBuilder,
-    injector: Injector
+    injector: Injector,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       // columns
@@ -80,7 +81,7 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
           'features.basePortLocation',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
+      new EntitiesTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, environment, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

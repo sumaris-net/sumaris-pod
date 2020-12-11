@@ -1,8 +1,16 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnInit,
+  Output
+} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {environment} from "../../../environments/environment";
 import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {ReferentialRefService} from "../services/referential-ref.service";
@@ -18,6 +26,7 @@ import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {Program} from "../services/model/program.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class PmfmStrategyFilter {
 
@@ -54,7 +63,7 @@ export class PmfmStrategyFilter {
       }
 
       return true;
-    }
+    };
   }
 
   static isEmpty(aFilter: PmfmStrategyFilter|any): boolean {
@@ -121,7 +130,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     protected validatorService: ValidatorService,
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       // columns
@@ -198,7 +208,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         items: this.$pmfms,
         attributes: pmfmAttributes,
         columnSizes: pmfmAttributes.map(attr => {
-          switch(attr) {
+          switch (attr) {
             case 'label':
               return 2;
             case 'name':
@@ -255,7 +265,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             switchMap(row => {
               const control = row.validator && row.validator.get('pmfm');
               if (control) {
-                return control.valueChanges.pipe(startWith(control.value))
+                return control.valueChanges.pipe(startWith(control.value));
               } else {
                 return of(row.currentData.pmfm);
               }
@@ -287,18 +297,18 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const pmfms = this.$pmfms.getValue();
     //const gears = this.$gears.getValue();
     return data.map(source => {
-      const target:any = source instanceof PmfmStrategy ? source.asObject() : source;
+      const target: any = source instanceof PmfmStrategy ? source.asObject() : source;
       target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
 
       const pmfm = pmfms.find(i => i.id === target.pmfmId);
       target.pmfm = pmfm;
       delete target.pmfmId;
 
-      if (isNotNil(target.defaultValue)) console.log("TODO check reading default value", target.defaultValue);
+      if (isNotNil(target.defaultValue)) console.info("TODO check reading default value", target.defaultValue);
       target.defaultValue = PmfmValueUtils.fromModelValue(target.defaultValue, pmfm);
 
       return target;
-    })
+    });
   }
 
   protected async onSave(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
@@ -312,7 +322,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
     const target = new PmfmStrategyFilter();
-    Object.assign(target, source)
+    Object.assign(target, source);
     super.setFilter(target, opts);
   }
 
@@ -326,7 +336,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const taxonGroupIds = filter && filter.taxonGroupIds;
     const referenceTaxonIds = filter && filter.referenceTaxonIds;
 
-    let rankOrder:number = null;
+    let rankOrder: number = null;
     if (acquisitionLevel) {
       rankOrder = ((await this.getMaxRankOrder(acquisitionLevel)) || 0) + 1;
     }
@@ -336,7 +346,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       gearIds,
       taxonGroupIds,
       referenceTaxonIds
-    }
+    };
 
     // Applying defaults
     if (row.validator) {
@@ -360,7 +370,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       key: fieldName,
       label: this.i18nColumnPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
       ...def
-    }
+    };
     if (intoMap === true) {
       this.fieldDefinitionsMap[fieldName] = definition;
     }
@@ -391,7 +401,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       ]);
 
       console.debug("[pmfm-strategy-table] Loaded referential items");
-    } catch(err) {
+    } catch (err) {
       this.error = err && err.message || err;
       this.markForCheck();
     }
@@ -404,7 +414,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const res = await this.referentialRefService.loadAll(0, 100, null, null, {
       entityName: 'AcquisitionLevel'
     }, {withTotal: false});
-    this.$acquisitionLevels.next(res && res.data || undefined)
+    this.$acquisitionLevels.next(res && res.data || undefined);
   }
 
   protected async loadPmfms() {
@@ -413,7 +423,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         withTotal: false,
         withDetails: true
       });
-    this.$pmfms.next(res && res.data || [])
+    this.$pmfms.next(res && res.data || []);
   }
 
   protected async loadGears() {
@@ -428,7 +438,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   }
 
   protected startEditingRow() {
-    console.log("TODO start edit")
+    console.info("TODO start edit");
   }
 
   protected markForCheck() {

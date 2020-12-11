@@ -1,6 +1,5 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from '@angular/core';
 import * as momentImported from "moment";
-const moment = momentImported;
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
@@ -23,8 +22,10 @@ import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings
 import {showError} from "../../shared/alerts";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {environment} from "../../../environments/environment";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
+import {EnvironmentService} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-observed-location-page',
@@ -56,7 +57,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   constructor(
     injector: Injector,
     dataService: ObservedLocationService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       ObservedLocation,

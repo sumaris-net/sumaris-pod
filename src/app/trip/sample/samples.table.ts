@@ -14,7 +14,6 @@ import {SampleValidatorService} from "../services/validator/sample.validator";
 import {isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
 import * as momentImported from "moment";
-const moment = momentImported;
 import {Moment} from "moment";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
@@ -26,7 +25,9 @@ import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {IReferentialRef, ReferentialRef} from "../../core/services/model/referential.model";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 export interface SampleFilter {
   operationId?: number;
@@ -102,7 +103,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       injector.get(ValidatorService),
       {
         prependNewElements: false,
-        suppressErrors: environment.production,
+        suppressErrors: injector.get(EnvironmentService).production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS
       }
@@ -117,7 +118,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE; // Default value, can be override by subclasses
 
     //this.debug = false;
-    this.debug = !environment.production;
+    this.debug = !injector.get(EnvironmentService).production;
 
     // If init form callback exists, apply it when start row edition
     if (this.onInitForm) {

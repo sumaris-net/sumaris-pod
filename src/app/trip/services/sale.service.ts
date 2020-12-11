@@ -1,11 +1,10 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Inject, Injectable} from "@angular/core";
+import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {AccountService} from "../../core/services/account.service";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
@@ -15,6 +14,7 @@ import {SortDirection} from "@angular/material/sort";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
@@ -120,7 +120,7 @@ const UpdateSubscription = gql`
   ${SaleFragments.sale}
 `;
 
-const sortByStartDateFn = (n1: Sale, n2: Sale) => { return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1); };
+const sortByStartDateFn = (n1: Sale, n2: Sale) => n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1);
 
 const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
   const d1 = n1.endDateTime || n1.startDateTime;
@@ -133,9 +133,10 @@ export class SaleService extends BaseEntityService<Sale, SaleFilter> implements 
 
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // -- For DEV only
     //this._debug = !environment.production;
@@ -191,7 +192,7 @@ export class SaleService extends BaseEntityService<Sale, SaleFilter> implements 
                 .forEach(o => o.rankOrder = rankOrder++);
 
               // sort by rankOrder (aka id)
-              if (!sortBy || sortBy == 'id') {
+              if (!sortBy || sortBy === 'id') {
                 const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
                 data.sort((a, b) => {
                   const valueA = a.rankOrder;
@@ -356,7 +357,7 @@ export class SaleService extends BaseEntityService<Sale, SaleFilter> implements 
    */
   async deleteAll(entities: Sale[]): Promise<any> {
 
-    let ids = entities && entities
+    const ids = entities && entities
       .map(t => t.id)
       .filter(id => (id > 0));
 
@@ -370,7 +371,7 @@ export class SaleService extends BaseEntityService<Sale, SaleFilter> implements 
       },
       update: (proxy) => {
         // Remove from cache
-        this.removeFromMutableCachedQueryByIds(proxy,{
+        this.removeFromMutableCachedQueryByIds(proxy, {
           query: LoadAllQuery,
           ids
         });

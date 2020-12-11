@@ -1,4 +1,4 @@
-import {Component, Injector, OnDestroy, OnInit} from "@angular/core";
+import {Component, Inject, Injector, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {debounceTime, filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
@@ -15,7 +15,7 @@ import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {isNil, isNotNil, isNotNilOrBlank, sort} from "../../shared/functions";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 @Component({
@@ -62,7 +62,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     protected validatorService: ReferentialValidatorService,
     protected referentialService: ReferentialService,
     protected formBuilder: FormBuilder,
-    protected translate: TranslateService
+    protected translate: TranslateService,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       // columns
@@ -74,7 +75,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           'status',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
+      new EntitiesTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, environment, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -126,7 +127,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // FOR DEV ONLY
     this.debug = true;
-  };
+  }
 
   ngOnInit() {
 

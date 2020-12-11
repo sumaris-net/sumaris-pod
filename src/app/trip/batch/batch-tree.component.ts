@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Inject, Input, OnInit, ViewChild} from '@angular/core';
 import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from '../../shared/functions';
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, defer} from "rxjs";
@@ -22,10 +22,9 @@ import {firstTruePromise} from "../../shared/observables";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {SubBatch, SubBatchUtils} from "../services/model/subbatch.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {fromPromise} from "rxjs/internal/observable/fromPromise";
 import {AppTabEditor} from "../../core/form/tab-editor.class";
-import {environment} from "../../../environments/environment";
 import {AppTableUtils} from "../../core/table/table.utils";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Component({
   selector: 'app-batch-tree',
@@ -104,7 +103,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     protected tripService: TripService,
     protected operationService: OperationService,
     protected modalCtrl: ModalController,
-    protected platform: PlatformService
+    protected platform: PlatformService,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(route, router, alertCtrl, translate,
           {
@@ -262,7 +262,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // Make sure this is catch batch
     if (catchBatch && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
-      throw new Error('Catch batch should have label=' + AcquisitionLevelCodes.CATCH_BATCH)
+      throw new Error('Catch batch should have label=' + AcquisitionLevelCodes.CATCH_BATCH);
     }
 
     catchBatch = catchBatch || Batch.fromObject({
@@ -296,7 +296,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         this.subBatchesTable.setAvailableParents(batchGroups, {
           emitEvent: false,
           linkDataToParent: false // Not need here
-        })
+        });
         this.subBatchesTable.value = subBatches;
       } else {
         this.subBatchesService.value = subBatches;

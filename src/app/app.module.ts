@@ -20,7 +20,7 @@ import {Camera} from "@ionic-native/camera/ngx";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
 import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
-import {LocalSettings} from "./core/services/model/settings.model";
+import {APP_LOCALES, LocalSettings} from "./core/services/model/settings.model";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
 import {TRIP_CONFIG_OPTIONS, TRIP_STORAGE_TYPE_POLICIES} from "./trip/services/config/trip.config";
@@ -34,7 +34,6 @@ import {IonicModule} from "@ionic/angular";
 import {CacheModule} from "ionic-cache";
 import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {SharedModule} from "./shared/shared.module";
-import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
 import {MarkdownModule, MarkedOptions} from "ngx-markdown";
 import {APP_LOCAL_STORAGE_TYPE_POLICIES} from "./core/services/storage/entities-storage.service";
 import {AppGestureConfig} from "./shared/gesture/gesture-config";
@@ -42,6 +41,7 @@ import {TypePolicies} from "@apollo/client/core";
 import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
 import {SocialModule} from "./social/social.module";
 import {DATE_ISO_PATTERN} from "./shared/constants";
+import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 
 
 @NgModule({
@@ -61,7 +61,13 @@ import {DATE_ISO_PATTERN} from "./shared/constants";
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: HttpTranslateLoaderFactory.build,
+        useFactory: (httpClient) => {
+          if (environment.production) {
+            // This is need to force a reload, after an app update
+            return new TranslateHttpLoader(httpClient, './assets/i18n/', `-${environment.version}.json`);
+          }
+          return new TranslateHttpLoader(httpClient, './assets/i18n/', `.json`);
+        },
         deps: [HttpClient]
       }
     }),
@@ -82,7 +88,7 @@ import {DATE_ISO_PATTERN} from "./shared/constants";
 
     // functional modules
     CoreModule.forRoot(),
-    SharedModule.forRoot(),
+    SharedModule.forRoot(environment),
     SocialModule.forRoot(),
     HammerModule,
     AppRoutingModule
@@ -100,6 +106,27 @@ import {DATE_ISO_PATTERN} from "./shared/constants";
 
     {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
+
+    {provide: APP_LOCALES, useValue:
+        [
+          {
+            key: 'fr',
+            value: 'Français',
+            country: 'fr'
+          },
+          {
+            key: 'en',
+            value: 'English (UK)',
+            country: 'gb'
+          },
+          {
+            key: 'en-US',
+            value: 'English (US)',
+            country: 'us'
+          }
+        ]
+    },
+
     {provide: MAT_DATE_LOCALE, useValue: 'en'},
     {
       provide: MAT_DATE_FORMATS, useValue: {

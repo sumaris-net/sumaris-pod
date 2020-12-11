@@ -1,5 +1,5 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Inject, Injectable} from "@angular/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {EMPTY, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {ErrorCodes} from "./trip.errors";
@@ -16,7 +16,7 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from "./model/trip.model";
+import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
@@ -28,16 +28,15 @@ import {
   EntitiesServiceWatchOptions,
   EntityService,
   EntityServiceLoadOptions,
-  FilterFn, LoadResult
+  FilterFn,
+  LoadResult
 } from "../../shared/services/entity-service.class";
 import {BaseEntityService, QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {chainPromises, firstNotNilPromise} from "../../shared/observables";
-import {FetchPolicy} from "@apollo/client/core";
-import {EntityStoreTypePolicy} from "../../core/services/storage/entity-store.class";
 import {Department} from "../../core/services/model/department.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -244,9 +243,10 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected accountService: AccountService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     this._mutableWatchQueriesMaxCount = 2;
 
@@ -306,7 +306,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     const variables: QueryVariables<OperationFilter> = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,
-      sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
+      sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
       trash: opts && opts.trash || false,
       filter: dataFilter
@@ -539,7 +539,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     }
 
     // Get remote ids, then delete remotely
-    const remoteEntities = (entities || []).filter(EntityUtils.isRemote)
+    const remoteEntities = (entities || []).filter(EntityUtils.isRemote);
     if (isNotEmptyArray(remoteEntities)) {
 
       const remoteIds = remoteEntities.map(e => e.id);
@@ -631,7 +631,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
           data,
           total: data.length
         };
-      }))
+      }));
   }
 
   /**
@@ -657,7 +657,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     return this.watchAllByTrip({tripId}, opts)
       .pipe(
         map(res => {
-          const existingOperation = (res && res.data ||[]).find(o => o.id === source.id);
+          const existingOperation = (res && res.data || []).find(o => o.id === source.id);
           return existingOperation ? existingOperation.rankOrderOnPeriod : null;
         })
       );
@@ -667,7 +667,8 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
   /**
    * Save an operation on the local storage
-   * @param data
+   * @param entity
+   * @param opts
    */
   protected async saveLocally(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
     if (entity.tripId >= 0) throw new Error('Must be a local entity');

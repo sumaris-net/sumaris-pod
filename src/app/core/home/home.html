@@ -9,8 +9,8 @@
 <mat-menu #matmenu="matMenu">
   <button *ngFor="let item of locales"
           mat-menu-item
-          (click)="changeLanguage(item.id)">
-    <ion-label>{{item.name}}</ion-label>
+          (click)="changeLanguage(item.key)">
+    <ion-label>{{item.value}}</ion-label>
   </button>
 </mat-menu>
 

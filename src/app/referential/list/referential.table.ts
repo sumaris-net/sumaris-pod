@@ -1,18 +1,17 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {Referential} from "../../core/services/model/referential.model";
+import {DefaultStatusList, Referential} from "../../core/services/model/referential.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {ReferentialFilter} from "../services/referential.service";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 @Component({
@@ -61,7 +60,8 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<Referential, ReferentialFilter>,
     protected cd: ChangeDetectorRef,
-    protected injector: Injector
+    protected injector: Injector,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       // columns

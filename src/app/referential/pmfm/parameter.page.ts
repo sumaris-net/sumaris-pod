@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
 import {ReferentialForm} from "../form/referential.form";
@@ -14,7 +14,7 @@ import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {isNil} from "../../shared/functions";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Component({
   selector: 'app-parameter',
@@ -47,7 +47,8 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
     protected accountService: AccountService,
     protected validatorService: ParameterValidatorService,
     protected parameterService: ParameterService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       Parameter,

@@ -1,12 +1,11 @@
-import {Injectable, InjectionToken} from "@angular/core";
+import {Inject, Injectable, InjectionToken} from "@angular/core";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
-import {LoadResult, EntitiesService} from "../../shared/services/entity-service.class";
+import {EntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {PhysicalGear, Trip} from "./model/trip.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {environment} from "../../../environments/environment";
 import {Moment} from "moment";
 import {EMPTY, Observable} from "rxjs";
 import {fromDateISOString, isNil} from "../../shared/functions";
@@ -17,6 +16,7 @@ import {gql} from "@apollo/client/core";
 import {PhysicalGearFragments} from "./trip.queries";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {SortDirection} from "@angular/material/sort";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 export class PhysicalGearFilter {
@@ -64,9 +64,10 @@ export class PhysicalGearService extends BaseEntityService
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected accountService: AccountService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // -- For DEV only
     this._debug = !environment.production;

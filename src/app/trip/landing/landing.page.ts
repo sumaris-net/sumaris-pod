@@ -1,8 +1,7 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import * as momentImported from "moment";
-const moment = momentImported;
 import {Moment} from "moment";
 import {LandingForm} from "./landing.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
@@ -23,9 +22,11 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {Landing} from "../services/model/landing.model";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {environment} from "../../../environments/environment";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AppEditorOptions} from "../../core/form/editor.class";
+import {EnvironmentService} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-landing-page',
@@ -76,7 +77,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.debug = !injector.get(EnvironmentService).production;
   }
 
   ngOnInit() {
@@ -280,7 +281,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected computePageUrl(id: number|'new') {
-    let parentUrl = this.getParentPageUrl();
+    const parentUrl = this.getParentPageUrl();
     return `${parentUrl}/landing/${id}`;
   }
 

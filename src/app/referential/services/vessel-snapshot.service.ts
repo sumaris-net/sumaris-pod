@@ -1,11 +1,10 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {Inject, Injectable} from "@angular/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 
 import {ErrorCodes} from "./errors";
 import {fetchAllPagesWithProgress, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
-import {FetchPolicy} from "@apollo/client/core";
 import {VesselFilter} from "./vessel-service";
 import {BehaviorSubject, Observable} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";
@@ -16,6 +15,7 @@ import {SortDirection} from "@angular/material/sort";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {isNotNil} from "../../shared/functions";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export const VesselSnapshotFragments = {
   lightVesselSnapshot: gql`fragment LightVesselSnapshotFragment on VesselSnapshotVO {
@@ -81,8 +81,9 @@ export class VesselSnapshotService
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**
