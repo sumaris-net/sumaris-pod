@@ -1,9 +1,22 @@
 import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, isNil, Referential, ReferentialRef} from "../../core/core.module";
+import {
+  AppEntityEditor,
+  EntityUtils,
+  IReferentialRef,
+  isNil,
+  Referential,
+  ReferentialRef
+} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
-import {AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from "../services/model/strategy.model";
+import {
+  AppliedPeriod,
+  AppliedStrategy,
+  Strategy,
+  StrategyDepartment,
+  TaxonNameStrategy
+} from "../services/model/strategy.model";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {
   fadeInOutAnimation
@@ -20,7 +33,8 @@ import {PlanificationForm} from "../planification/planification.form";
 import {ActivatedRoute} from "@angular/router";
 import {TaxonNameRef} from "../services/model/taxon.model";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-
+import {Moment} from "moment";
+import * as moment from 'moment'
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -171,7 +185,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     const data = await super.getJsonValueToSave();
     // TODO : get programId
     data.programId=40;
-   // data.__typename="StrategyVO";
 
     //Sample row code
     data.label =  this.planificationForm.form.get("label").value;
@@ -182,32 +195,43 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     //eotp
     data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
 
-    data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
     //comments
     data.description = this.planificationForm.form.get("description").value;
 
 
-   // get Id program from route
+    // get Id program from route
     console.log("programId : " + this.activatedRoute.snapshot.paramMap.get('id'));
+
+    //get date ---------------------------------------------------------------------------------------------------------
+    let newDate = this.planificationForm.form.get("creationDate").value;
+    let year = new Date(newDate).getFullYear();
 
     //get Laboratories -------------------------------------------------------------------------------------------------
 
     let laboratories =  this.planificationForm.laboratoriesForm.value;
+
     let strategyDepartment: StrategyDepartment = new StrategyDepartment();
     let strategyDepartments: StrategyDepartment [] =[];
 
 
     if(laboratories){
 
-      strategyDepartments   = this.planificationForm.laboratoriesForm.value.map(lab => ({
+      let observer : IReferentialRef = new ReferentialRef();
+      observer.id =2;
+      observer.label ="Observer";
+      observer.name ="Observer privilege";
+      observer.statusId =1;
+      observer.entityName ="ProgramPrivilege";
+
+
+      strategyDepartments   = laboratories.map(lab => ({
         strategyId : data.id,
         location : null,
-        privilege :null, //FIXME : get observer from referential ?
+        privilege :observer, //FIXME : get observer from referential ?
         department : lab
       })) ;
 
-      const result = strategyDepartments as StrategyDepartment [];
-      data.strategyDepartments = result;
+      data.strategyDepartments = strategyDepartments;
     }
 
     //TaxonNames -------------------------------------------------------------------------------------------------------
@@ -220,37 +244,123 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       taxonName.strategyId= data.id;
       taxonName.priorityLevel=null;
       taxonName.taxonName=taxonNameStrategy[0];
-
+      //set reference TaxonId
+      taxonName.taxonName.referenceTaxonId = taxonName.taxonName.id;
       taxonNameStrategies.push(taxonName);
       data.taxonNames =taxonNameStrategies;
     }
 
-    //Fishig Area ----------------------------------------------------------------------------------------------------
+    //Fishig Area + Efforts --------------------------------------------------------------------------------------------
 
     let fishingArea = this.planificationForm.fishingAreasForm.value;
     let fishingAreas : AppliedStrategy [] = [];
+    let appliedPeriods: AppliedPeriod[] = [];
+
 
     if (fishingArea) {
+
+      // get quarters
+      for(let i =0; i< 4;i++){
+        let appliedPeriod: AppliedPeriod = new AppliedPeriod();
+        appliedPeriod.appliedStrategyId =data.id;
+        appliedPeriod.acquisitionNumber =fishingArea[i];
+
+        //quarter 1
+        if(i == 0){
+          appliedPeriod.startDate = moment(year+"-01-01");
+          appliedPeriod.endDate = moment(year+"-03-31");
+        }
+
+        //quarter 2
+        if(i == 1){
+          appliedPeriod.startDate =moment(year+"-04-01");
+          appliedPeriod.endDate = moment(year+"-06-30");
+        }
+
+        //quarter 3
+        if(i == 2){
+          appliedPeriod.startDate = moment(year+"-07-01");
+          appliedPeriod.endDate = moment(year+"-09-30");
+        }
+
+        //quarter 4
+        if(i == 3){
+          appliedPeriod.startDate = moment(year+"-10-01");
+          appliedPeriod.endDate = moment(year+"-12-31");
+        }
+
+        //push only when acquisitionNumber is not null
+        if(fishingArea[i] == null){
+             console.log("dont push a null value");
+        } else {
+          appliedPeriods.push(appliedPeriod);
+        }
+
+        delete fishingArea[i];
+      }
+
+
       fishingAreas = fishingArea.map(fish => ({
           strategyId: data.id,
           location: fish,
-          appliedPeriods: null //FIXME : get appliedPeriods ?
+          appliedPeriods: appliedPeriods
         })
       );
+
+      data.appliedStrategies = fishingAreas;
     }
 
-    const result = fishingAreas as AppliedStrategy [];
-    data.appliedStrategies = result;
-
-    //calcified type ---------------------------------------------------------------------------------------------------
-    let calcifiedType = this.planificationForm.calcifiedTypesForm.value;
-    let calcifiedTypes : PmfmStrategy [] = [];
 
 
+    //PMFM + Fractions -------------------------------------------------------------------------------------------------
+
+    /*let pmfmStrategie = this.planificationForm.pmfmStrategiesForm.value;
+    let pmfmStrategies : PmfmStrategy [] = [];
 
 
+    let sex = pmfmStrategie[0];
+    let age = pmfmStrategie[1];
+
+
+    for( let i = 0; i < pmfmStrategie.length; i++){
+      // i == 0 age
+      // i == 1 sex
+
+      if(  i == 2){
+        //push
+        pmfmStrategies.push(pmfmStrategie[i]);
+      }
+      if( i == 3){
+        //push
+        pmfmStrategies.push(pmfmStrategie[i]);
+      }
+      //push
+      if( i == 4){
+        //push
+        pmfmStrategies.push(pmfmStrategie[i]);
+      }
+      // fractions
+      if(i > 4) {
+        let calcifiedTypes : PmfmStrategy = new PmfmStrategy();
+        calcifiedTypes.strategyId = data.id;
+        calcifiedTypes.acquisitionLevel =
+        calcifiedTypes.pmfm = null;
+        calcifiedTypes.fractionId = pmfmStrategie[i].id;
+        calcifiedTypes.qualitativeValues =undefined;
+        calcifiedTypes.acquisitionLevel='SAMPLE'
+        calcifiedTypes.acquisitionNumber=1;
+        calcifiedTypes.isMandatory = false;
+        calcifiedTypes.rankOrder = 1; //FIXME
+
+        pmfmStrategies.push(calcifiedTypes);
+      }
+    }
+
+
+    data.pmfmStrategies= pmfmStrategies;*/
 
     return data
+
   }
 
 }
