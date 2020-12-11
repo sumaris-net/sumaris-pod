@@ -185,6 +185,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     const data = await super.getJsonValueToSave();
     // TODO : get programId
     data.programId=40;
+   // data.__typename="StrategyVO";
 
     //Sample row code
     data.label =  this.planificationForm.form.get("label").value;
@@ -195,6 +196,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     //eotp
     data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
 
+    data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
     //comments
     data.description = this.planificationForm.form.get("description").value;
 
