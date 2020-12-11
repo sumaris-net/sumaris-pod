@@ -91,7 +91,7 @@ export const PmfmLabelPatterns = {
 };
 
 export const UnitLabelPatterns = {
-  DECIMAL_HOURS: /^('h[. ]+dec[.]?|'hours)$/,
+  DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
   DATE_TIME: /^Date[ &]+Time$/
 };
 
