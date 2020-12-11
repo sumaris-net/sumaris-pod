@@ -334,8 +334,8 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       const eotpControl = this.form.get("analyticReference");
       let eotp = data.analyticReference;
       let eotpValues = this._eotpSubject.getValue();
-      let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
-      eotpControl.patchValue(eotpObject);
+      // let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
+      // eotpControl.patchValue(eotpObject);
 
       // LABORATORIES
       const laboratoriesControl = this.laboratoriesForm;
@@ -364,6 +364,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // applied_strategy.location_fk + program2location (zones en mer / configurables)
     let fishingAreaAppliedStrategies = data.appliedStrategies;
     let fishingArea = fishingAreaAppliedStrategies.map(appliedStrategy => { return appliedStrategy.location;});
+    if (fishingArea.length === 0) {fishingArea.push(null)}
 
 
 

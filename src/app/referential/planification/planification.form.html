@@ -92,7 +92,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field [formControl]="appliedStrategiesHelper.at(i+4)"
-                                [placeholder]="('PLANIFICATION.FISHING_AREA'|translate) + (i)"
+                                [placeholder]="('PLANIFICATION.FISHING_AREA'|translate) + (i+1)"
                                 [config]="autocompleteFields.fishingArea"
                                 [tabindex]="tabindex+10+i*3"
                                 [required]="true">
