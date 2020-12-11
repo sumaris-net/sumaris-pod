@@ -4,9 +4,9 @@
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {StatusIds} from "../model/model.enum";
 import {PRIORITIZED_USER_PROFILES} from "../model/person.model";
-import {Locales} from "../model/settings.model";
 import {LocationLevelIds} from "../../../referential/services/model/model.enum";
 import {Property} from "../../../shared/types";
+import {APP_LOCALES} from "../model/settings.model";
 
 export const CORE_CONFIG_OPTIONS = Object.freeze({
     LOGO: <FormFieldDefinition>{
@@ -23,10 +23,7 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
         key: 'sumaris.defaultLocale',
         label: 'CONFIGURATION.OPTIONS.DEFAULT_LOCALE',
         type: 'enum',
-        values: Locales.map(l => <Property>{
-          key: l.id,
-          value: l.name
-        })
+        values: APP_LOCALES
     },
     DEFAULT_LAT_LONG_FORMAT: <FormFieldDefinition>{
         key: 'sumaris.defaultLatLongFormat',

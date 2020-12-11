@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {Platform} from "@ionic/angular";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {OperationFilter} from "../services/operation.service";
@@ -11,7 +20,7 @@ import {MetierService} from "../../referential/services/metier.service";
 import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -56,7 +65,8 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationFilter>,
     protected metierService: MetierService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       OperationGroup,

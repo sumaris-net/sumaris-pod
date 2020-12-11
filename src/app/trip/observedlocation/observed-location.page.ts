@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Inject, Injector, ViewChild} from '@angular/core';
 import {
   changeCaseToUnderscore,
   fadeInOutAnimation,
@@ -35,6 +35,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {TripsPageSettingsEnum} from "../trip/trips.table";
 import {ObservedLocationsPageSettingsEnum} from "./observed-locations.page";
 import {Trip} from "../services/model/trip.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 const ObservedLocationPageTabs = {
@@ -74,6 +75,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     dataService: ObservedLocationService,
     protected modalCtrl: ModalController,
     protected platform: PlatformService
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       ObservedLocation,

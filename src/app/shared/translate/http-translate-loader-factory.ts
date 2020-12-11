@@ -2,6 +2,7 @@ import {HttpClient} from "@angular/common/http";
 import {environment} from "../../../environments/environment";
 import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 
+// deprecated because of static environment
 export class HttpTranslateLoaderFactory {
 
   static build(http: HttpClient) {

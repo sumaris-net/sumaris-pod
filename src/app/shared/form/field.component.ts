@@ -4,7 +4,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  forwardRef,
+  forwardRef, InjectionToken, Injector,
   Input,
   OnInit,
   Optional,
@@ -88,6 +88,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
   constructor(
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
+    protected injector: Injector,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
 
@@ -109,6 +110,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
     if (this.type === "double") {
       this.numberInputStep = this.computeNumberInputStep(this._definition);
+    } else if (this.type === "enum" && this._definition.values instanceof InjectionToken) {
+      this._definition.values = this.computeValuesFromToken(this._definition.values);
     }
   }
 
@@ -196,6 +199,11 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     } else {
       return "1";
     }
+  }
+
+  protected computeValuesFromToken(token: InjectionToken<any>): any[] {
+    const values = this.injector.get(token);
+    return values instanceof Array ? values : [];
   }
 
   protected checkAndResolveFormControl() {

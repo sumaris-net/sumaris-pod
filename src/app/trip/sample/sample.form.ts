@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit} from "@angular/core";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
@@ -10,13 +10,13 @@ import {IReferentialRef} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {environment} from "../../../environments/environment";
 import {isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {PlatformService} from "../../core/services/platform.service";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AppFormUtils} from "../../core/form/form.utils";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Component({
   selector: 'app-sample-form',
@@ -55,7 +55,8 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     protected cd: ChangeDetectorRef,
     protected validatorService: SampleValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
       validatorService.getFormGroup()

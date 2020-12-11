@@ -12,7 +12,6 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ToastController} from "@ionic/angular";
 
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
 import {
   DateFormatPipe,
@@ -34,6 +33,10 @@ import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ErrorCodes, ServerErrorCodes} from "../services/errors";
 import {toNumber} from "../../shared/functions";
+import {EntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
+import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;
@@ -132,7 +135,7 @@ export abstract class AppEntityEditor<
       options);
     options = <AppEditorOptions>{
       // Default options
-      enableListenChanges: (environment.listenRemoteChanges === true),
+      enableListenChanges: (injector.get(EnvironmentService).listenRemoteChanges === true),
       pathIdAttribute: 'id',
       autoLoad: true,
       autoLoadDelay: 0,

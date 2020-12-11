@@ -1,4 +1,4 @@
-import {Injectable, Injector} from "@angular/core";
+import {Inject, Injectable, Injector} from "@angular/core";
 import {
   EntitiesServiceWatchOptions,
   EntityServiceLoadOptions, FilterFn,
@@ -7,9 +7,8 @@ import {
   LoadResult
 } from "../../shared/services/entity-service.class";
 import {BehaviorSubject, EMPTY, Observable} from "rxjs";
-import {environment} from "../../../environments/environment";
 import {Landing} from "./model/landing.model";
-import {gql} from "@apollo/client/core";
+import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";
@@ -42,6 +41,8 @@ import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {JobUtils} from "../../shared/services/job.utils";
+import {EnvironmentService} from "../../../environments/environment.class";
+
 
 export class LandingFilter {
 
@@ -328,7 +329,8 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
   constructor(
     injector: Injector,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       null // TODO: add root mutations ? (control, validate, unvalidate, qualify)

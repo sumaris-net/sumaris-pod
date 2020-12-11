@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Inject, Injector, OnInit} from '@angular/core';
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {VesselValidatorService} from "../../services/validator/vessel.validator";
 import {AppTable} from "../../../core/table/table.class";
@@ -10,11 +10,11 @@ import {AccountService} from "../../../core/services/account.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {VesselFilter} from "../../services/vessel-service";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
-import {environment} from "../../../../environments/environment";
 import {VesselRegistrationService} from "../../services/vessel-registration.service";
 import {VesselRegistrationValidatorService} from "../../services/validator/vessel-registration.validator";
 import {VesselRegistration} from "../../services/model/vessel.model";
 import {referentialToString} from "../../../core/services/model/referential.model";
+import {EnvironmentService} from "../../../../environments/environment.class";
 
 @Component({
   selector: 'app-vessel-registration-history-table',
@@ -40,7 +40,8 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     protected settings: LocalSettingsService,
     protected vesselRegistrationValidator: VesselRegistrationValidatorService,
     protected vesselRegistrationService: VesselRegistrationService,
-    protected cd: ChangeDetectorRef) {
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment) {
 
     super(route, router, platform, location, modalCtrl, settings,
       // columns
@@ -50,7 +51,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
         'registrationCode',
         'registrationLocation']
       ,
-      new EntitiesTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselRegistrationService, vesselRegistrationValidator, {
+      new EntitiesTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselRegistrationService, environment, vesselRegistrationValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

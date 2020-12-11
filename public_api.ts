@@ -1,3 +1,7 @@
+// Environment
+export * from './src/environments/environment.class';
+
+// Shared
 export * from './src/app/shared/constants';
 export * from './src/app/shared/shared.module';
 export * from './src/app/shared/shared-routing.module';
@@ -21,6 +25,7 @@ export * from './src/app/shared/form/field.model';
 export * from './src/app/shared/toolbar/toolbar';
 export * from './src/app/shared/toolbar/modal-toolbar';
 export * from './src/app/shared/interceptors/progess.interceptor';
+export * from './src/app/shared/toasts';
 
 // Shared directives
 export * from './src/app/shared/directives/directives.module';
@@ -49,13 +54,11 @@ export * from './src/app/shared/observables';
 export * from './src/app/shared/hotkeys/shared-hotkeys.module';
 export * from './src/app/shared/hotkeys/hotkeys.service';
 export * from './src/app/shared/hotkeys/dialog/hotkeys-dialog.component';
-export * from './src/app/shared/translate/http-translate-loader-factory';
 export * from './src/app/shared/graph/colors.utils';
 export * from './src/app/shared/gesture/gesture-config';
 
 // Shared test
 export * from './src/app/shared/shared.testing.module';
-// export * from './src/app/shared/material/testing/material.testing.module';
 export * from './src/app/shared/material/testing/material.testing.page';
 
 // Core
@@ -65,7 +68,10 @@ export * from './src/app/core/core.module';
 export * from './src/app/core/services/model/entity.model';
 export * from './src/app/core/services/model/model.enum';
 export * from './src/app/core/services/model/referential.model';
+export * from './src/app/core/services/model/account.model';
+export * from './src/app/core/services/model/department.model';
 export * from './src/app/core/services/model/settings.model';
+export * from './src/app/core/services/model/config.model';
 
 // GraphQL
 export * from './src/app/core/graphql/graphql.module';
@@ -81,6 +87,8 @@ export * from './src/app/core/services/network.service';
 export * from './src/app/core/services/config.service';
 export {ConfigOptions} from './src/app/core/services/config/core.config';
 export * from './src/app/core/services/local-settings.service';
+export * from './src/app/core/services/account.service';
+export * from './src/app/core/services/auth-guard.service';
 export * from './src/app/core/services/crypto.service';
 export * from './src/app/core/services/base58';
 export * from './src/app/core/services/base.data-service.class';

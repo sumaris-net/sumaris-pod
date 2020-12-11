@@ -9,6 +9,7 @@ import {LocalSettingsService} from "../services/local-settings.service";
 import {AppTableDataSourceOptions, EntitiesTableDataSource} from "./entities-table-datasource.class";
 import {AppTable} from "./table.class";
 import {Entity} from "../services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 // @dynamic
 @Directive()
@@ -46,7 +47,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
       injector.get(ModalController),
       injector.get(LocalSettingsService),
       columns,
-      new EntitiesTableDataSource<T, F>(dataType, memoryDataService, validatorService, {
+      new EntitiesTableDataSource<T, F>(dataType, memoryDataService, injector.get(EnvironmentService), validatorService, {
         suppressErrors: true,
         prependNewElements: false,
         ...options

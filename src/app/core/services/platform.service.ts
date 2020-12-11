@@ -1,4 +1,4 @@
-import {Injectable, Optional} from '@angular/core';
+import {Inject, Injectable, Optional} from '@angular/core';
 import {Platform, ToastController} from "@ionic/angular";
 import {NetworkService} from "./network.service";
 import {Platforms} from "@ionic/core";
@@ -16,13 +16,14 @@ import {EntitiesStorage} from "./storage/entities-storage.service";
 import {StorageUtils} from "../../shared/services/storage.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
-import {environment} from "../../../environments/environment";
 import * as momentImported from "moment";
-const moment = momentImported;
 import {DateAdapter} from "@angular/material/core";
 import {AccountService} from "./account.service";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
+import {EnvironmentService} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -57,6 +58,7 @@ export class PlatformService {
     private cache: CacheService,
     private storage: Storage,
     private audioProvider: AudioProvider,
+    @Inject(EnvironmentService) protected environment,
     @Optional() private browser: InAppBrowser
   ) {
 
@@ -122,7 +124,7 @@ export class PlatformService {
     .then(() => {
       this._started = true;
       this._startPromise = undefined;
-      console.info(`[platform] Starting platform [OK] {mobile: ${this._mobile}, touchUi: ${this.touchUi}} in ${Date.now()-now}ms`);
+      console.info(`[platform] Starting platform [OK] {mobile: ${this._mobile}, touchUi: ${this.touchUi}} in ${Date.now() - now}ms`);
 
       // Update cache configuration when network changed
       this.networkService.onNetworkStatusChanges.subscribe((type) => this.configureCache(type !== 'none'));
@@ -197,7 +199,7 @@ export class PlatformService {
     console.info("[platform] Configuring translate...");
 
     // this language will be used as a fallback when a translation isn't found in the current language
-    this.translate.setDefaultLang(environment.defaultLocale);
+    this.translate.setDefaultLang(this.environment.defaultLocale);
 
     // When locale changes, apply to date adapter
     this.translate.onLangChange.subscribe(event => {
@@ -237,7 +239,7 @@ export class PlatformService {
         if (accountLocale && accountLocale !== this.settings.locale) {
           this.settings.apply({
             locale: accountLocale
-          })
+          });
         }
       }
     });

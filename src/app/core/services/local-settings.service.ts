@@ -14,20 +14,24 @@ import {
   isNotNilOrBlank,
   toBoolean
 } from "../../shared/functions";
-import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
 import {Platform} from "@ionic/angular";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import * as momentImported from "moment";
-const moment = momentImported;
+import {Moment} from "moment";
 import {Moment} from "moment";
 import {debounceTime, filter} from "rxjs/operators";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
 import {CORE_LOCAL_SETTINGS_OPTIONS} from "./config/core.config";
+import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
+
+const moment = momentImported;
 
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
 
+// fixme: this constant points to static environment
 const DEFAULT_SETTINGS: LocalSettings = {
   accountInheritance: true,
   locale: environment.defaultLocale,
@@ -99,6 +103,7 @@ export class LocalSettingsService {
     private translate: TranslateService,
     private platform: Platform,
     private storage: Storage,
+    @Inject(EnvironmentService) protected environment,
     @Optional() @Inject(APP_LOCAL_SETTINGS) private readonly defaultSettings: LocalSettings,
     @Optional() @Inject(APP_LOCAL_SETTINGS_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {
@@ -452,7 +457,7 @@ export class LocalSettingsService {
     this.data.usageMode = undefined;
     this.data.pageHistory = [];
 
-    const defaultPeer = environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
+    const defaultPeer = this.environment.defaultPeer && Peer.fromObject(this.environment.defaultPeer);
     this.data.peerUrl = defaultPeer && defaultPeer.url || undefined;
 
     if (this._started) this.onChange.next(this.data);

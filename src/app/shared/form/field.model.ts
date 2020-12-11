@@ -1,6 +1,7 @@
 import {MatAutocompleteFieldAddOptions} from "../material/material.autocomplete";
 import {ObjectMap, Property} from "../types";
 import {isNotNil} from "../functions";
+import {InjectionToken} from "@angular/core";
 
 export declare type DisplayFn = (obj: any) => string;
 
@@ -16,7 +17,7 @@ export declare interface FormFieldDefinition<T = any> {
   maximumNumberDecimals?: number;
   defaultValue?: any;
   isTransient?: boolean; // Useful only for remote configuration
-  values?: (string|Property)[];
+  values?: (string|Property)[] | InjectionToken<(string|Property)[]>;
   type: FormFieldType;
   autocomplete?: MatAutocompleteFieldAddOptions<T>;
   disabled?: boolean;

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -8,7 +8,7 @@ import {ReferentialRefFilter, ReferentialRefService} from "../services/referenti
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {debounceTime, filter} from "rxjs/operators";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 @Component({
@@ -50,7 +50,8 @@ export class ReferentialRefTable extends AppTable<ReferentialRef, ReferentialRef
     protected injector: Injector,
     protected referentialRefService: ReferentialRefService,
     formBuilder: FormBuilder,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector.get(ActivatedRoute),
       injector.get(Router),

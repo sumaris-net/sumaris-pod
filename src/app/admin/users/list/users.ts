@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
-import { Person, PRIORITIZED_USER_PROFILES} from "../../../core/services/model/person.model";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, OnInit} from "@angular/core";
+import {Person, PRIORITIZED_USER_PROFILES} from "../../../core/services/model/person.model";
 import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/validator/person.validator";
@@ -13,9 +13,10 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {PlatformService} from "../../../core/services/platform.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {debounceTime, filter, tap} from "rxjs/operators";
+import {debounceTime, filter} from "rxjs/operators";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
 import {isNotNil} from "../../../shared/functions";
+import {EnvironmentService} from "../../../../environments/environment.class";
 
 @Component({
   selector: 'app-users-table',
@@ -49,7 +50,8 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     protected dataService: PersonService,
     protected cd: ChangeDetectorRef,
     formBuilder: FormBuilder,
-    injector: Injector
+    injector: Injector,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
@@ -64,7 +66,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
         ])
         .concat(accountService.additionalFields.map(field => field.key))
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
+      new EntitiesTableDataSource<Person, PersonFilter>(Person, dataService, environment, validatorService, {
         prependNewElements: false,
         suppressErrors: true,
         dataServiceOptions: {
