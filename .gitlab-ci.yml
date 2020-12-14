@@ -8,13 +8,40 @@ stages:
     - release
     - deploy
 
-build_develop:
+build-dev:
+    extends: .build
+    only:
+        - develop
+        - develop-ifremer
+        - feature-oracle-adagio
+    except:
+        - schedules
+
+schedule-build:
+    extends: .build
+    artifacts:
+        paths:
+            - sumaris-server/target/*.war
+    only:
+        - schedules
+
+.build:
     stage: build
     tags: 
         - sih_public_runner
     script:
-        - echo "Test compilation in progress"
+        - echo "Test dev build in progress"
         - mvn -s ./settings.xml clean install -DskipTests
+    environment:
+        name: test
+
+build_val:
+    stage: build
+    tags:
+        - sih_public_runner
+    script:
+        - echo "Test oracle build  in progress"
+        - mvn -s ./settings.xml clean install -DskipTests -Dspring.liquibase.enabled=false -Dsumaris.name=SUMARiS -Dsumaris.persistence.sequence.increment=1 -Dlogging.level.org.hibernate.SQL=debug
     environment:
         name: test
     artifacts:
@@ -23,8 +50,8 @@ build_develop:
     only:
         - develop
         - develop-ifremer
-    when: always
-
+        - feature-oracle-adagio
+    when: manual
 
 sonarqube:
     stage: test

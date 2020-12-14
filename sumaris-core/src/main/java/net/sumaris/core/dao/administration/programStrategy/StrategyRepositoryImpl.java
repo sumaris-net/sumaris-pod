@@ -337,32 +337,6 @@ public class StrategyRepositoryImpl
                 target.getGears().addAll(loadAllAsSet(Gear.class, gearIds, true));
             }
         }
-
-        // Taxon Group strategy
-        if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonGroups())) {
-            saveTaxonGroupStrategiesByStrategy(source.getTaxonGroups(), target);
-        }
-
-        // Reference Names strategy
-        if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonNames())) {
-            saveReferenceTaxonStrategiesByStrategy(source.getTaxonNames(), target);
-        }
-
-        // Applied strategies
-        if (copyIfNull || CollectionUtils.isNotEmpty(source.getAppliedStrategies())) {
-            saveAppliedStrategiesByStrategy(source.getAppliedStrategies(), target);
-        }
-
-        // Strategy departments
-        if (copyIfNull || CollectionUtils.isNotEmpty(source.getStrategyDepartments())) {
-            saveStrategyDepartmentsByStrategy(source.getStrategyDepartments(), target);
-        }
-
-        // Pmfm Strategies
-        /*if (copyIfNull || CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
-            savePmfmStrategiesByStrategy(source.getPmfmStrategies(), target);
-        }*/
-
     }
 
     protected List<TaxonNameStrategyVO> getTaxonNameStrategies(Strategy source) {
@@ -420,7 +394,15 @@ public class StrategyRepositoryImpl
             .collect(Collectors.toList());
     }
 
-    protected void saveTaxonGroupStrategiesByStrategy(List<TaxonGroupStrategyVO> sources, Strategy parent) {
+    public List<TaxonGroupStrategyVO> saveTaxonGroupStrategiesByStrategyId(int strategyId, List<TaxonGroupStrategyVO> sources) {
+        Preconditions.checkNotNull(sources);
+
+        Strategy parent = getOne(Strategy.class, strategyId);
+
+        sources.forEach(source -> {
+            source.setStrategyId(strategyId);
+        });
+
         EntityManager em = getEntityManager();
 
         // Remember existing entities
@@ -448,16 +430,23 @@ public class StrategyRepositoryImpl
             return target;
         }).collect(Collectors.toList());
 
-        // Update the target strategy
-        parent.setTaxonGroups(result);
-
         // Remove unused entities
         if (MapUtils.isNotEmpty(sourcesToRemove)) {
             sourcesToRemove.values().forEach(em::remove);
         }
+
+        return sources.isEmpty() ? null : sources;
     }
 
-    protected void saveReferenceTaxonStrategiesByStrategy(List<TaxonNameStrategyVO> sources, Strategy parent) {
+    public List<TaxonNameStrategyVO> saveReferenceTaxonStrategiesByStrategyId(int strategyId, List<TaxonNameStrategyVO> sources) {
+        Preconditions.checkNotNull(sources);
+
+        Strategy parent = getOne(Strategy.class, strategyId);
+
+        sources.forEach(source -> {
+            source.setStrategyId(strategyId);
+        });
+
         EntityManager em = getEntityManager();
 
         // Remember existing entities
@@ -486,13 +475,12 @@ public class StrategyRepositoryImpl
             return target;
         }).collect(Collectors.toList());
 
-        // Update the target strategy
-        parent.setReferenceTaxons(result);
-
         // Remove unused entities
         if (MapUtils.isNotEmpty(sourcesToRemove)) {
             sourcesToRemove.values().forEach(em::remove);
         }
+
+        return sources.isEmpty() ? null : sources;
     }
 
     protected List<AppliedStrategyVO> getAppliedStrategies(Strategy source) {
@@ -523,17 +511,24 @@ public class StrategyRepositoryImpl
                 .collect(Collectors.toList());
     }
 
-    protected void saveAppliedStrategiesByStrategy(List<AppliedStrategyVO> sources, Strategy parent) {
+    public List<AppliedStrategyVO> saveAppliedStrategiesByStrategyId(int strategyId, List<AppliedStrategyVO> sources) {
+        Preconditions.checkNotNull(sources);
+
+        Strategy parent = getOne(Strategy.class, strategyId);
+
+        sources.forEach(source -> {
+            source.setStrategyId(strategyId);
+        });
+
         EntityManager em = getEntityManager();
 
         // Remember existing entities
-        Map<Integer, AppliedStrategy> sourcesToRemove = Beans.splitByProperty(parent.getAppliedStrategies(),
-                AppliedStrategy.Fields.ID);
+        Map<Integer, AppliedStrategy> sourcesToRemove = Beans.splitById(parent.getAppliedStrategies());
 
         // Save each applied strategy
         List<AppliedStrategy> result = Beans.getStream(sources).map(source -> {
             Integer appliedStrategyId = source.getId();
-            if (appliedStrategyId == null) throw new DataIntegrityViolationException("Missing id in a AppliedStrategyVO");
+            //if (appliedStrategyId == null) throw new DataIntegrityViolationException("Missing id in a AppliedStrategyVO");
             AppliedStrategy target = sourcesToRemove.remove(appliedStrategyId);
             boolean isNew = target == null;
             if (isNew) {
@@ -544,64 +539,58 @@ public class StrategyRepositoryImpl
                 target.setLocation(load(Location.class, source.getLocation().getId()));
             }
 
-            // AppliedPeriod
-            saveAppliedPeriodsByAppliedStrategy(source.getAppliedPeriods(), target);
-
             if (isNew) {
                 em.persist(target);
             }
             else {
                 em.merge(target);
             }
+
+            // AppliedPeriod
+            saveAppliedPeriodsByAppliedStrategyId(target.getId(), source.getAppliedPeriods());
+
             return target;
         }).collect(Collectors.toList());
-
-        // Update the target strategy
-        parent.setAppliedStrategies(result);
 
         // Remove unused entities
         if (MapUtils.isNotEmpty(sourcesToRemove)) {
             sourcesToRemove.values().forEach(em::remove);
         }
+
+        return sources.isEmpty() ? null : sources;
     }
 
-    protected void saveAppliedPeriodsByAppliedStrategy(List<AppliedPeriodVO> sources, AppliedStrategy parent) {
+    protected List<AppliedPeriodVO> saveAppliedPeriodsByAppliedStrategyId(int appliedStrategyId, List<AppliedPeriodVO> sources) {
+        Preconditions.checkNotNull(sources);
+
+        AppliedStrategy parent = getOne(AppliedStrategy.class, appliedStrategyId);
+
+        sources.forEach(source -> {
+            source.setAppliedStrategyId(appliedStrategyId);
+        });
+
         EntityManager em = getEntityManager();
 
-        // Remember existing entities
-        Map<Date, AppliedPeriod> sourcesToRemove = Beans.splitByProperty(parent.getAppliedPeriods(),
-                AppliedPeriod.Fields.START_DATE);
+        // Remove existing entities
+        List<AppliedPeriod> sourcesToRemove = parent.getAppliedPeriods();
+        if (CollectionUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.forEach(em::remove);
+        }
 
         // Save each applied period
         List<AppliedPeriod> result = Beans.getStream(sources).map(source -> {
-            Date appliedPeriodStartDate = source.getStartDate();
-            if (appliedPeriodStartDate == null) throw new DataIntegrityViolationException("Missing startDate in a AppliedPeriodVO");
-            AppliedPeriod target = sourcesToRemove.remove(appliedPeriodStartDate);
-            boolean isNew = target == null;
-            if (isNew) {
-                target = new AppliedPeriod();
-                target.setAppliedStrategy(parent);
-                target.setStartDate(appliedPeriodStartDate);
-            }
+            if (source.getStartDate() == null) throw new DataIntegrityViolationException("Missing startDate in a AppliedPeriodVO");
+            AppliedPeriod target = new AppliedPeriod();
+            target.setAppliedStrategy(parent);
+            target.setStartDate(source.getStartDate());
             target.setEndDate(source.getEndDate());
             target.setAcquisitionNumber(source.getAcquisitionNumber());
 
-            if (isNew) {
-                em.persist(target);
-            }
-            else {
-                em.merge(target);
-            }
+            em.persist(target);
             return target;
         }).collect(Collectors.toList());
 
-        // Update the target strategy
-        parent.setAppliedPeriods(result);
-
-        // Remove unused entities
-        if (MapUtils.isNotEmpty(sourcesToRemove)) {
-            sourcesToRemove.values().forEach(em::remove);
-        }
+        return sources.isEmpty() ? null : sources;
     }
 
     protected List<StrategyDepartmentVO> getStrategyDepartments(Strategy source) {
@@ -627,22 +616,30 @@ public class StrategyRepositoryImpl
                 .collect(Collectors.toList());
     }
 
-    protected void saveStrategyDepartmentsByStrategy(List<StrategyDepartmentVO> sources, Strategy parent) {
+    public List<StrategyDepartmentVO> saveStrategyDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources) {
+        Preconditions.checkNotNull(sources);
+
+        Strategy parent = getOne(Strategy.class, strategyId);
+
+        sources.forEach(source -> {
+            source.setStrategyId(strategyId);
+        });
+
         EntityManager em = getEntityManager();
 
         // Remember existing entities
-        Map<Integer, StrategyDepartment> sourcesToRemove = Beans.splitByProperty(parent.getStrategyDepartments(),
-                StrategyDepartment.Fields.ID);
+        Map<Integer, StrategyDepartment> sourcesToRemove = Beans.splitById(parent.getStrategyDepartments());
 
         // Save each strategy department
         List<StrategyDepartment> result = Beans.getStream(sources).map(source -> {
             Integer strategyDepartmentId = source.getId();
-            if (strategyDepartmentId == null) throw new DataIntegrityViolationException("Missing id in a StrategyDepartmentVO");
+            //if (strategyDepartmentId == null) throw new DataIntegrityViolationException("Missing id in a StrategyDepartmentVO");
             StrategyDepartment target = sourcesToRemove.remove(strategyDepartmentId);
             boolean isNew = target == null;
             if (isNew) {
                 target = new StrategyDepartment();
                 target.setStrategy(parent);
+                target.setUpdateDate(getDatabaseCurrentTimestamp());
             }
             if (source.getLocation() != null) {
                 target.setLocation(load(Location.class, source.getLocation().getId()));
@@ -663,13 +660,12 @@ public class StrategyRepositoryImpl
             return target;
         }).collect(Collectors.toList());
 
-        // Update the target strategy
-        parent.setStrategyDepartments(result);
-
         // Remove unused entities
         if (MapUtils.isNotEmpty(sourcesToRemove)) {
             sourcesToRemove.values().forEach(em::remove);
         }
+
+        return sources.isEmpty() ? null : sources;
     }
 
 }

@@ -181,6 +181,11 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean analyticReferenceByLabelCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.ANALYTIC_REFERENCES_BY_FILTER, 100);
+    }
+
+    @Bean
     public EhCacheFactoryBean productByLabelCache() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCT_BY_LABEL, 100);
     }
