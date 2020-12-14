@@ -3,18 +3,12 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {
   AppEntityEditor,
-  EntityUtils,
-  IReferentialRef,
   isNil,
-  Referential,
-  ReferentialRef
 } from "../../core/core.module";
-import {Program} from "../services/model/program.model";
 import {
   AppliedPeriod,
   AppliedStrategy,
   Strategy,
-  StrategyDepartment,
   TaxonNameStrategy
 } from "../services/model/strategy.model";
 import {ProgramValidatorService} from "../services/validator/program.validator";
@@ -31,10 +25,9 @@ import {ProgramProperties} from "../services/config/program.config";
 import {StrategyService} from "../services/strategy.service";
 import {PlanificationForm} from "../planification/planification.form";
 import {ActivatedRoute} from "@angular/router";
-import {TaxonNameRef} from "../services/model/taxon.model";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {Moment} from "moment";
 import * as moment from 'moment'
+import {PmfmService} from "../services/pmfm.service";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -84,7 +77,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     dataService: StrategyService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
-    protected activatedRoute : ActivatedRoute
+    protected activatedRoute : ActivatedRoute,
+    protected pmfmService: PmfmService,
+
   ) {
     super(injector,
       Strategy,
@@ -92,7 +87,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     this.form = validatorService.getFormGroup();
     // default values
     this.defaultBackHref = "/referential?entity=Program";
-    //this.defaultBackHref = "/referential/program/10?tab=2"; =>TODO : remplace 10 by id row
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -101,10 +95,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   ngOnInit() {
     //  Call editor routing
   super.ngOnInit();
-
     // Set entity name (required for referential form validator)
     this.planificationForm.entityName = 'planificationForm';
-
 
    }
 
@@ -330,24 +322,67 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
         calcifiedTypes.acquisitionLevel='SAMPLE'
         calcifiedTypes.acquisitionNumber=1;
         calcifiedTypes.isMandatory = false;
-        calcifiedTypes.rankOrder = 1; //FIXME
+        calcifiedTypes.rankOrder = 1;
 
         pmfmStrategies.push(calcifiedTypes);
       }
     }
 
     if(sex){
-      // TODO add pmfm sex
-     // pmfmStrategies.push();
+      let pmfmStrategySex : PmfmStrategy = new PmfmStrategy();
+      let pmfmSex = await this.getPmfms("SEX");
+
+      pmfmStrategySex.strategyId = data.id;
+      pmfmStrategySex.pmfm = pmfmSex[0];
+      pmfmStrategySex.fractionId = null;
+      pmfmStrategySex.qualitativeValues =undefined;
+      pmfmStrategySex.acquisitionLevel='SAMPLE'
+      pmfmStrategySex.acquisitionNumber=1;
+      pmfmStrategySex.isMandatory = false;
+      pmfmStrategySex.rankOrder = 1;
+
+      pmfmStrategies.push(pmfmStrategySex);
     }
     if(age){
-      // TODO add pmfm age
-     // pmfmStrategies.push();
+      let pmfmStrategyAge : PmfmStrategy = new PmfmStrategy();
+      let pmfmAge = await this.getPmfms("AGE");
+
+      pmfmStrategyAge.strategyId = data.id;
+      pmfmStrategyAge.pmfm = pmfmAge[0];
+      pmfmStrategyAge.fractionId = null;
+      pmfmStrategyAge.qualitativeValues =undefined;
+      pmfmStrategyAge.acquisitionLevel='SAMPLE'
+      pmfmStrategyAge.acquisitionNumber=1;
+      pmfmStrategyAge.isMandatory = false;
+      pmfmStrategyAge.rankOrder = 1;
+
+      pmfmStrategies.push(pmfmStrategyAge);
+
     }
     data.pmfmStrategies= pmfmStrategies;
   //--------------------------------------------------------------------------------------------------------------------
 
     return data;
   }
+
+  /**
+   * get pmfm
+   * @param label
+   * @protected
+   */
+   protected async getPmfms(label : string){
+     const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+         entityName: 'Pmfm',
+         levelLabels: [label]
+         // searchJoin: "Parameter" is implied in pod filter
+       },
+       {
+         withTotal: false,
+         withDetails: true
+       });
+     return res.data;
+     //this.$pmfms.next(res && res.data || [])
+   }
+
 }
 
