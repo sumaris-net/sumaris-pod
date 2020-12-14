@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Vi
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ControlValueAccessor, FormBuilder, FormArray, Validators} from "@angular/forms";
+import {FormBuilder, FormArray, Validators} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StrategyService} from "../services/strategy.service";
 import {
@@ -10,27 +10,20 @@ import {
   ReferentialRef,
   IReferentialRef,
   FormArrayHelper,
-  Referential, toDateISOString, fromDateISOString
+  fromDateISOString,
+  EntityUtils
 } from '../../core/core.module';
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject} from "rxjs";
 import { Program } from '../services/model/program.model';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
-import { InputElement } from 'src/app/shared/shared.module';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
-import {SimpleStrategyValidatorService} from "../services/validator/simpleStrategy.validator";
-import {SimpleStrategy} from "../services/model/simpleStrategy.model";
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment} from "../services/model/strategy.model";
-import {filter, map} from "rxjs/operators";
-import {Pmfm} from "../services/model/pmfm.model";
-import {removeDuplicatesFromArray} from "../../shared/functions";
+import {isNil} from "../../shared/functions";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {AppFormHolder, IAppForm, IAppFormFactory} from "../../core/form/form.utils";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { SharedValidators } from 'src/app/shared/validator/validators';
 import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
-import {AppListForm} from "../../core/form/list.form";
-import {MatBooleanField} from "../../shared/material/boolean/material.boolean";
 
 
 
@@ -61,16 +54,13 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   enableLaboratoryFilter = true;
   canFilterLaboratory = true;
-  laboratoryHelper: FormArrayHelper<ReferentialRef>;
+  strategyDepartmentHelper: FormArrayHelper<StrategyDepartment>;
   laboratoryFocusIndex = -1;
 
   enableFishingAreaFilter = true;
   canFilterFishingArea = true;
   fishingAreaHelper: FormArrayHelper<ReferentialRef>;
   fishingAreaFocusIndex = -1;
-
-
-  nbPmfms = 2;
 
   enableCalcifiedTypeFilter = true;
   canFilterCalcifiedType = true;
@@ -95,7 +85,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     return this.form.controls.calcifiedTypes as FormArray;
   }
 
-  get laboratoriesForm(): FormArray {
+  get strategyDepartmentFormArray(): FormArray {
     return this.form.controls.strategyDepartments as FormArray;
   }
 
@@ -158,19 +148,13 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     const pmfms = [];
     pmfms.push(this.pmfmStrategiesHelper.at(0).value);
     pmfms.push(this.pmfmStrategiesHelper.at(1).value);
-    this.weightPmfmStrategiesTable.value?.forEach(v => {
-      pmfms.push(v);
-    });
-    this.sizePmfmStrategiesTable.value?.forEach(v => {
-      pmfms.push(v);
-    });
-    this.maturityPmfmStrategiesTable.value?.forEach(v => {
-      pmfms.push(v);
-    });
-    for (let i = this.nbPmfms; i < this.pmfmStrategiesForm.value.lenght; i++) {
+    pmfms.push(this.weightPmfmStrategiesTable.value);
+    pmfms.push(this.sizePmfmStrategiesTable.value);
+    pmfms.push(this.maturityPmfmStrategiesTable.value);
+
+    for (let i = 5; i < this.pmfmStrategiesForm.value.lenght; i++) {
       pmfms.push(this.pmfmStrategiesHelper.at(i).value);
     }
-    this.nbPmfms = 2 + this.weightPmfmStrategiesTable.value.length + this.sizePmfmStrategiesTable.value.length + this.maturityPmfmStrategiesTable.value.length;
     return pmfms;
   }
 
@@ -308,7 +292,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     //init helpers
     // this.initCalcifiedTypeHelper();
-    this.initLaboratoryHelper();
+    this.initDepartmentHelper();
     //this.initFishingAreaHelper();
     this.initTaxonNameHelper();
     this.initPmfmStrategiesHelper();
@@ -374,6 +358,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     console.log(data);
 
+    // Resize strategy department array
+    this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
+
     super.setValue(data, opts);
     console.log(this.form);
 
@@ -392,12 +379,11 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       // let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
       // eotpControl.patchValue(eotpObject);
 
-      // LABORATORIES
-      const laboratoriesControl = this.laboratoriesForm;
-      let strategyDepartments = data.strategyDepartments;
-      let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;});
-      this.laboratoryHelper.resize(Math.max(1, data.strategyDepartments.length));
-      laboratoriesControl.patchValue(laboratories);
+      // const laboratoriesControl = this.laboratoriesForm;
+      // let strategyDepartments = data.strategyDepartments;
+      // let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;});
+      // this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
+      // laboratoriesControl.patchValue(laboratories);
 
 
 
@@ -523,30 +509,27 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //   }
 
     // let pmfmStrategies = [ sex ? true : false, age ? true : false, weightPmfmStrategy, sizePmfmStrategy, maturityPmfmStrategy];
-    let pmfmStrategies : any[] = [ sex ? true : false, age ? true : false];
+    let pmfmStrategies : any[] = [ sex.length>0 ? true : false, age.length>0 ? true : false];
 
 
     let weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
-    weightPmfmStrategy.length > 0 ? pmfmStrategies = pmfmStrategies.concat(weightPmfmStrategy) : pmfmStrategies.push(null);
+    pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
     this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
 
-    this.nbPmfms += weightPmfmStrategy.length > 0 ? weightPmfmStrategy.length : 1;
 
     //SIZES 
     const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
     let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
-    pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : null);
+    pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : []);
     this.sizePmfmStrategiesTable.value = sizePmfmStrategy.length > 0 ? sizePmfmStrategy : [new PmfmStrategy()];
-
-    this.nbPmfms += sizePmfmStrategy.length > 0 ? sizePmfmStrategy.length : 1;
     
+
 
     const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
     let maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
-    pmfmStrategies.push(maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : {});
+    pmfmStrategies.push(maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : []);
     this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : [new PmfmStrategy()];
 
-    this.nbPmfms += maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy.length : 1;
 
         // CALCIFIED TYPES
       // const calcifiedTypesControl = this.calcifiedTypesForm;
@@ -589,16 +572,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         // calcifiedTypesControl.patchValue(calcifiedTypesFractionRefIds);
       }
 
-      console.log(pmfmStrategies.length);
-      console.log(this.nbPmfms);
 
-      this.pmfmStrategiesHelper.resize(pmfmStrategies.length);
+      this.pmfmStrategiesHelper.resize(Math.max(6, pmfmStrategies.length));
       pmfmStrategiesControl.patchValue(pmfmStrategies);
-
-      console.log(this.pmfmStrategiesForm.value);
-
-
-    console.debug(data.entityName);
   }
 
   // save button
@@ -715,25 +691,25 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   //   }
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
-  protected initLaboratoryHelper() {
-    this.laboratoryHelper = new FormArrayHelper<ReferentialRef>(
+  protected initDepartmentHelper() {
+    this.strategyDepartmentHelper = new FormArrayHelper<StrategyDepartment>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'strategyDepartments'),
-      (laboratory) => this.formBuilder.control(laboratory || null, [Validators.required, SharedValidators.entity]),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
+      (department) => this.validatorService.getStrategyDepartmentsControl(department),
+      (d1, d2) => EntityUtils.equals(d1.department, d2.department, 'label'),
+      value => isNil(value) && isNil(value.department),
       {
         allowEmptyArray: false
       }
     );
     // Create at least one laboratory
-    if (this.laboratoryHelper.size() === 0) {
-      this.laboratoryHelper.resize(1);
+    if (this.strategyDepartmentHelper.size() === 0) {
+      this.strategyDepartmentHelper.resize(1);
     }
   }
-  addLaboratory() {
-    this.laboratoryHelper.add();
+  addStrategyDepartment() {
+    this.strategyDepartmentHelper.add(new StrategyDepartment());
     if (!this.mobile) {
-      this.laboratoryFocusIndex = this.laboratoryHelper.size() - 1;
+      this.laboratoryFocusIndex = this.strategyDepartmentHelper.size() - 1;
     }
   }
   // CalcifiedTypeHelper -----------------------------------------------------------------------------------------------

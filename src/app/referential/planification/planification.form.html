@@ -45,13 +45,13 @@
     </ion-row>
 
     <!-- LABORATORIES -->
-    <ion-row *ngFor="let laboratoryForm of laboratoriesForm?.controls; index as i; first as first">
+    <ion-row *ngFor="let strategyDepartmentForm of strategyDepartmentFormArray?.controls; index as i; first as first">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
-      <ion-col>
+      <ion-col [formGroup]="strategyDepartmentHelper.at(i)">
         <mat-autocomplete-field
-          [formControl]="laboratoryHelper.at(i)"
+          formControlName="department"
           [placeholder]="('PLANIFICATION.LABORATORY'|translate) + (i+1)"
           [config]="autocompleteFields.laboratory"
           [tabindex]="tabindex+10+i*3"
@@ -71,14 +71,14 @@
         <button matAfter type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addLaboratory()">
+                (click)="addStrategyDepartment()">
           <mat-icon>add</mat-icon>
         </button>
 
         <button matAfter type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="laboratoryHelper.removeAt(i)">
+                (click)="strategyDepartmentHelper.removeAt(i)">
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
@@ -308,13 +308,13 @@
         </ion-row>
 
     <!-- Calcified Pmfms -->
-    <ion-row *ngFor="let calcifiedTypeForm of pmfmStrategiesForm?.controls.slice(nbPmfms); index as i; first as first">
+    <ion-row *ngFor="let calcifiedTypeForm of pmfmStrategiesForm?.controls.slice(5); index as i; first as first">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label  class="ion-float-end" *ngIf="!i" translate>PLANIFICATION.CALCIFIED_TYPE</ion-label>
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          [formControl]="pmfmStrategiesHelper.at(i+nbPmfms)"
+          [formControl]="pmfmStrategiesHelper.at(i+5)"
           [placeholder]="('PLANIFICATION.CALCIFIED_TYPE'|translate) + (i+1)"
           [appAutofocus]="calcifiedTypeFocusIndex === i"
           [config]="autocompleteFields.calcifiedType"
@@ -344,7 +344,7 @@
         <button type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="calcifiedTypeHelper.removeAt(i)">
+                (click)="pmfmStrategiesHelper.removeAt(i+5)">
           <mat-icon>close</mat-icon>
         </button>
 
