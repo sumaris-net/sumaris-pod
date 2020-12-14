@@ -252,11 +252,14 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     // eotp combo -------------------------------------------------------------------
     this.registerAutocompleteField('analyticReference', {
+      suggestFn: (value, filter) => this.suggest(value, {
+          ...filter, statusIds : [0,1]
+        },
+        'AnalyticReference',
+        this.enableEotpFilter),
       columnSizes : [4,6],
-      items: this._eotpSubject,
-      mobile: this.mobile
+      mobile: this.settings.mobile
     });
-    this.loadEotps();
 
     // Calcified type combo ------------------------------------------------------------
     // this.registerAutocompleteField('calcifiedType', {
@@ -308,6 +311,17 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
    * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggest(value: string, filter: any, entityName: string, filtered: boolean) : Promise<IReferentialRef[]> {
+
+    // Special case: AnalyticReference
+    if (entityName == "AnalyticReference") {
+      if (filtered) {
+        //TODO a remplacer par recuperation des donnees deja saisies
+        return this.strategyService.LoadAllAnalyticReferences(0, 5, null, null, filter);
+      } else {
+        return this.strategyService.suggestAnalyticReferences(value, filter);
+      }
+    }
+
     if(filtered) {
       //TODO a remplacer par recuperation des donnees deja saisies
       const res = await this.referentialRefService.loadAll(0, 5, null, null,
@@ -373,11 +387,11 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       sampleRowCodeControl.patchValue(sampleRowValue);
     }
       // EOTP
-      const eotpControl = this.form.get("analyticReference");
+      /*const eotpControl = this.form.get("analyticReference");
       let eotp = data.analyticReference;
       let eotpValues = this._eotpSubject.getValue();
-      // let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
-      // eotpControl.patchValue(eotpObject);
+      let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
+      eotpControl.patchValue(eotpObject);*/
 
       // const laboratoriesControl = this.laboratoriesForm;
       // let strategyDepartments = data.strategyDepartments;
@@ -770,12 +784,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         searchText: "individu"
       });
     return res.data;
-  }
-  // EOTP  ---------------------------------------------------------------------------------------------------
-
-  protected async loadEotps() {
-    const res = await this.strategyService.LoadAllAnalyticReferencesQuery(0, 30, null, null, null);
-    this._eotpSubject.next(res);
   }
 
   protected markForCheck() {
