@@ -212,12 +212,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     // eotp combo -------------------------------------------------------------------
     this.registerAutocompleteField('analyticReference', {
-      columnSizes : [4,6],
       suggestFn: (value, filter) => this.suggest(value, {
-          ...filter
+          ...filter, statusIds : [0,1]
         },
         'AnalyticReference',
         this.enableEotpFilter),
+      columnSizes : [4,6],
       mobile: this.settings.mobile
     });
 
@@ -276,11 +276,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     if (entityName == "AnalyticReference") {
       if (filtered) {
         //TODO a remplacer par recuperation des donnees deja saisies
-        console.debug("[strategy-service] Suggest filtered ", value, filter);
-        return this.strategyService.LoadAllAnalyticReferences(0, 5, null, null, ...filter);
+        return this.strategyService.LoadAllAnalyticReferences(0, 5, null, null, filter);
       } else {
-        console.debug("[strategy-service] Suggest ", value, filter);
-        return this.strategyService.suggestAnalyticReferences(value, ...filter);
+        return this.strategyService.suggestAnalyticReferences(value, filter);
       }
     }
 
