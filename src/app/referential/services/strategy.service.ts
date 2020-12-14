@@ -19,7 +19,8 @@ import {isEmptyArray} from "../../shared/functions";
 import {
   MINIFY_OPTIONS,
   NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions
+  ReferentialAsObjectOptions,
+  ReferentialUtils
 } from "../../core/services/model/referential.model";
 
 import {ReferentialRefFilter} from "./referential-ref.service";
@@ -568,12 +569,12 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     return res && res.suggestedStrategyNextLabel;
   }
 
-  async LoadAllAnalyticReferencesQuery(offset: number,
+  async LoadAllAnalyticReferences(
+    offset: number,
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: ReferentialRefFilter): Promise<ReferentialRef[]> {
-    if (this._debug) console.debug(`[strategy-service] Loading strategy analytic references...`);
 
     const variables: any = {
       offset: offset || 0,
@@ -583,6 +584,9 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       filter: ReferentialFilter.asPodObject(filter)
     };
 
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[strategy-service] Loading analytic references items...`, variables);
+
     const res = await this.graphql.query<{ analyticReferences: Referential[] }>({
       query: LoadAllAnalyticReferencesQuery,
       variables: variables,
@@ -590,7 +594,17 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       fetchPolicy: 'cache-first'
     });
 
+    if (this._debug) console.debug(`[strategy-service] Analytic references items loaded in ${Date.now() - now}ms`);
     return (res && res.analyticReferences || []) as ReferentialRef[];
+  }
+
+  async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<ReferentialRef[]> {
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
+    value = (typeof value === "string" && value !== '*') && value || undefined;
+    const res = await this.LoadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
+      { ...filter, searchText: value}
+    );
+    return res;
   }
 
   protected asObject(source: Strategy, opts?: ReferentialAsObjectOptions): any {
