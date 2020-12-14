@@ -462,7 +462,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     //   }
 
     // let pmfmStrategies = [ sex ? true : false, age ? true : false, weightPmfmStrategy, sizePmfmStrategy, maturityPmfmStrategy];
-    let pmfmStrategies : any[] = [ sex ? true : false, age ? true : false];
+    let pmfmStrategies : any[] = [ sex.length>0 ? true : false, age.length>0 ? true : false];
 
 
     let weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
