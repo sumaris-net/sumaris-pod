@@ -178,6 +178,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // TODO : get programId
     data.programId=40;
 
+
+    console.log(data);
+
     //Sample row code
     data.label =  this.planificationForm.form.get("label").value;
     data.name = this.planificationForm.form.get("label").value;

@@ -216,7 +216,8 @@
       </ion-col>
       <ion-col>
         <ion-card class="ion-no-margin">
-          <app-pmfm-strategies-table #weightPmfmStrategiesTable
+          <app-pmfm-strategies-table 
+                                     #weightPmfmStrategiesTable
                                      [title]=""
                                      [program]="program"
                                      [canEdit]="enabled"
@@ -343,7 +344,7 @@
         <button type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="calcifiedTypeHelper.removeAt(i)">
+                (click)="pmfmStrategiesHelper.removeAt(i+5)">
           <mat-icon>close</mat-icon>
         </button>
 
