@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Vi
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ControlValueAccessor, FormBuilder, FormArray, Validators} from "@angular/forms";
+import {FormBuilder, FormArray, Validators} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StrategyService} from "../services/strategy.service";
 import {
@@ -10,27 +10,20 @@ import {
   ReferentialRef,
   IReferentialRef,
   FormArrayHelper,
-  Referential, toDateISOString, fromDateISOString
+  fromDateISOString,
+  EntityUtils
 } from '../../core/core.module';
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject} from "rxjs";
 import { Program } from '../services/model/program.model';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
-import { InputElement } from 'src/app/shared/shared.module';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
-import {SimpleStrategyValidatorService} from "../services/validator/simpleStrategy.validator";
-import {SimpleStrategy} from "../services/model/simpleStrategy.model";
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment} from "../services/model/strategy.model";
-import {filter, map} from "rxjs/operators";
-import {Pmfm} from "../services/model/pmfm.model";
-import {removeDuplicatesFromArray} from "../../shared/functions";
+import {isNil} from "../../shared/functions";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {AppFormHolder, IAppForm, IAppFormFactory} from "../../core/form/form.utils";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { SharedValidators } from 'src/app/shared/validator/validators';
 import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
-import {AppListForm} from "../../core/form/list.form";
-import {MatBooleanField} from "../../shared/material/boolean/material.boolean";
 
 
 
@@ -653,8 +646,8 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.strategyDepartmentHelper = new FormArrayHelper<StrategyDepartment>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'strategyDepartments'),
       (department) => this.validatorService.getStrategyDepartmentsControl(department),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
+      (d1, d2) => EntityUtils.equals(d1.department, d2.department, 'label'),
+      value => isNil(value) && isNil(value.department),
       {
         allowEmptyArray: false
       }
@@ -665,7 +658,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     }
   }
   addStrategyDepartment() {
-    this.strategyDepartmentHelper.add();
+    this.strategyDepartmentHelper.add(new StrategyDepartment());
     if (!this.mobile) {
       this.laboratoryFocusIndex = this.strategyDepartmentHelper.size() - 1;
     }
