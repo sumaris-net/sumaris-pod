@@ -69,6 +69,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   fishingAreaHelper: FormArrayHelper<ReferentialRef>;
   fishingAreaFocusIndex = -1;
 
+
+  nbPmfms = 2;
+
   enableCalcifiedTypeFilter = true;
   canFilterCalcifiedType = true;
   calcifiedTypeHelper: FormArrayHelper<ReferentialRef>;
@@ -151,8 +154,61 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     throw new Error('Method not implemented.');
   }
 
+  setPmfmStrategies() {
+    const pmfms = [];
+    pmfms.push(this.pmfmStrategiesHelper.at(0).value);
+    pmfms.push(this.pmfmStrategiesHelper.at(1).value);
+    this.weightPmfmStrategiesTable.value?.forEach(v => {
+      pmfms.push(v);
+    });
+    this.sizePmfmStrategiesTable.value?.forEach(v => {
+      pmfms.push(v);
+    });
+    this.maturityPmfmStrategiesTable.value?.forEach(v => {
+      pmfms.push(v);
+    });
+    for (let i = this.nbPmfms; i < this.pmfmStrategiesForm.value.lenght; i++) {
+      pmfms.push(this.pmfmStrategiesHelper.at(i).value);
+    }
+    this.nbPmfms = 2 + this.weightPmfmStrategiesTable.value.length + this.sizePmfmStrategiesTable.value.length + this.maturityPmfmStrategiesTable.value.length;
+    return pmfms;
+  }
+
+
   ngOnInit() {
     super.ngOnInit();
+
+    this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
+      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
+      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
+
+      // this.form.controls.updateDate.setValue(new Date());
+      //this.form.markAsPristine();
+      this.markAsDirty();
+    });
+
+    this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
+      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
+      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
+
+      // this.form.controls.updateDate.setValue(new Date());
+      //this.form.markAsPristine();
+      this.markAsDirty();
+    });
+
+    this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
+      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
+      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
+
+      // this.form.controls.updateDate.setValue(new Date());
+      //this.form.markAsPristine();
+      this.markAsDirty();
+    });
+
+
+
+
+
     // register year field changes
     this.registerSubscription(
       this.form.get('creationDate').valueChanges
@@ -449,7 +505,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       // SEX
 
       const pmfmStrategiesControl = this.pmfmStrategiesForm;
-      this.pmfmStrategiesHelper.resize(6);
+      
 
       let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "AGE");
       let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
@@ -471,20 +527,26 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
     let weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
-    pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : null);
+    weightPmfmStrategy.length > 0 ? pmfmStrategies = pmfmStrategies.concat(weightPmfmStrategy) : pmfmStrategies.push(null);
     this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
+
+    this.nbPmfms += weightPmfmStrategy.length > 0 ? weightPmfmStrategy.length : 1;
 
     //SIZES 
     const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
     let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
     pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : null);
     this.sizePmfmStrategiesTable.value = sizePmfmStrategy.length > 0 ? sizePmfmStrategy : [new PmfmStrategy()];
+
+    this.nbPmfms += sizePmfmStrategy.length > 0 ? sizePmfmStrategy.length : 1;
     
 
     const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
     let maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
     pmfmStrategies.push(maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : {});
     this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : [new PmfmStrategy()];
+
+    this.nbPmfms += maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy.length : 1;
 
         // CALCIFIED TYPES
       // const calcifiedTypesControl = this.calcifiedTypesForm;
@@ -527,7 +589,13 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         // calcifiedTypesControl.patchValue(calcifiedTypesFractionRefIds);
       }
 
+      console.log(pmfmStrategies.length);
+      console.log(this.nbPmfms);
+
+      this.pmfmStrategiesHelper.resize(pmfmStrategies.length);
       pmfmStrategiesControl.patchValue(pmfmStrategies);
+
+      console.log(this.pmfmStrategiesForm.value);
 
 
     console.debug(data.entityName);

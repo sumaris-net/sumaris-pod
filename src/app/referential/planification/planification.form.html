@@ -216,7 +216,8 @@
       </ion-col>
       <ion-col>
         <ion-card class="ion-no-margin">
-          <app-pmfm-strategies-table #weightPmfmStrategiesTable
+          <app-pmfm-strategies-table 
+                                     #weightPmfmStrategiesTable
                                      [title]=""
                                      [program]="program"
                                      [canEdit]="enabled"
@@ -307,13 +308,13 @@
         </ion-row>
 
     <!-- Calcified Pmfms -->
-    <ion-row *ngFor="let calcifiedTypeForm of pmfmStrategiesForm?.controls.slice(5); index as i; first as first">
+    <ion-row *ngFor="let calcifiedTypeForm of pmfmStrategiesForm?.controls.slice(nbPmfms); index as i; first as first">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label  class="ion-float-end" *ngIf="!i" translate>PLANIFICATION.CALCIFIED_TYPE</ion-label>
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          [formControl]="pmfmStrategiesHelper.at(i+5)"
+          [formControl]="pmfmStrategiesHelper.at(i+nbPmfms)"
           [placeholder]="('PLANIFICATION.CALCIFIED_TYPE'|translate) + (i+1)"
           [appAutofocus]="calcifiedTypeFocusIndex === i"
           [config]="autocompleteFields.calcifiedType"
