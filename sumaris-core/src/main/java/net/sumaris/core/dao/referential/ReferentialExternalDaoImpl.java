@@ -35,6 +35,7 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Repository("referentialExternalDao")
@@ -61,14 +63,24 @@ public class ReferentialExternalDaoImpl extends HibernateDaoSupport implements R
                                             int size,
                                             String sortAttribute,
                                             SortDirection sortDirection) {
+
+        BufferedReader content = requestAnalyticReferenceService(urlStr, authStr);
+        List<ReferentialVO> results = parseAnalyticReferencesToVO(content);
+
+        return results.stream()
+                .filter(getAnalyticReferencesPredicate(filter))
+                .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
+                .skip(offset)
+                .limit((size < 0) ? results.size() : size)
+                .collect(Collectors.toList()
+                );
+    }
+
+    private BufferedReader requestAnalyticReferenceService(String urlStr, String authStr) {
         Preconditions.checkNotNull(urlStr, "Missing 'urlStr' argument");
         Preconditions.checkNotNull(authStr, "Missing 'authStr' argument");
-        Preconditions.checkNotNull(urlStr, "Missing 'filter' argument");
-
-        List<ReferentialVO> results = new ArrayList<>();
         BufferedReader content;
 
-        // Request service
         try {
             URL url = new URL(urlStr);
             String encoding = Base64.getEncoder().encodeToString(authStr.getBytes("utf-8"));
@@ -80,7 +92,12 @@ public class ReferentialExternalDaoImpl extends HibernateDaoSupport implements R
             throw new SumarisTechnicalException(String.format("Unable to get analytic references"), e);
         }
 
-        // Parse response
+        return content;
+    }
+
+    private List<ReferentialVO> parseAnalyticReferencesToVO(BufferedReader content) {
+        List<ReferentialVO> results = new ArrayList<>();
+
         try {
             JsonElement json = new JsonParser().parse(content);
             JsonArray sources = json.getAsJsonObject().get("d").getAsJsonObject().get("results").getAsJsonArray();
@@ -101,20 +118,20 @@ public class ReferentialExternalDaoImpl extends HibernateDaoSupport implements R
             throw new SumarisTechnicalException(String.format("Unable to parse analytic references"), e);
         }
 
-        // Filter results
-        return results.stream()
-                .filter(s -> (filter.getId() == null || filter.getId().equals(s.getId()))
-                        && (filter.getLabel() == null || filter.getLabel().equals(s.getLabel()))
-                        && (filter.getName() == null || filter.getName().equals(s.getName()))
-                        && (filter.getLevelId() == null || filter.getLevelId().equals(s.getLevelId()))
-                        && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
-                        && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
-                )
-                .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
-                .skip(offset)
-                .limit((size < 0) ? results.size() : size)
-                .collect(Collectors.toList()
-                );
+        return results;
+    }
+
+    private Predicate<ReferentialVO> getAnalyticReferencesPredicate(ReferentialFilterVO filter) {
+        Preconditions.checkNotNull(filter, "Missing 'filter' argument");
+        filter.setSearchText(StringUtils.trimToNull(filter.getSearchText()));
+
+        return s -> (filter.getId() == null || filter.getId().equals(s.getId()))
+                && (filter.getLabel() == null || filter.getLabel().equals(s.getLabel()))
+                && (filter.getName() == null || filter.getName().equals(s.getName()))
+                && (filter.getLevelId() == null || filter.getLevelId().equals(s.getLevelId()))
+                && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
+                && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
+                && (filter.getSearchText() == null || s.getLabel().startsWith(filter.getSearchText()) || s.getName().contains(filter.getSearchText()));
     }
 
 }
