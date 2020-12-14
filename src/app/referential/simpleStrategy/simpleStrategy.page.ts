@@ -185,59 +185,36 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     const data = await super.getJsonValueToSave();
     // TODO : get programId
     data.programId=40;
-   // data.__typename="StrategyVO";
 
     //Sample row code
     data.label =  this.planificationForm.form.get("label").value;
     data.name = this.planificationForm.form.get("label").value;
-    //statusId
     data.statusId=1;
 
     //eotp
-    data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
+    if(this.planificationForm.form.get("analyticReference").value){
+      data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
+    }
 
-    data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
     //comments
     data.description = this.planificationForm.form.get("description").value;
 
-
-    // get Id program from route
+    // get Id program from route ?
     console.log("programId : " + this.activatedRoute.snapshot.paramMap.get('id'));
 
-    //get date ---------------------------------------------------------------------------------------------------------
-    let newDate = this.planificationForm.form.get("creationDate").value;
-    let year = new Date(newDate).getFullYear();
+    //get creationDate -------------------------------------------------------------------------------------------------
+    let creationDate = this.planificationForm.form.get("creationDate").value;
+    let year = new Date(creationDate).getFullYear();
 
     //get Laboratories -------------------------------------------------------------------------------------------------
 
     let laboratories =  this.planificationForm.strategyDepartmentFormArray.value;
 
-    let strategyDepartment: StrategyDepartment = new StrategyDepartment();
-    let strategyDepartments: StrategyDepartment [] =[];
-
-
     if(laboratories){
-
-      let observer : IReferentialRef = new ReferentialRef();
-      observer.id =2;
-      observer.label ="Observer";
-      observer.name ="Observer privilege";
-      observer.statusId =1;
-      observer.entityName ="ProgramPrivilege";
-
-
-      strategyDepartments   = laboratories.map(lab => ({
-        strategyId : data.id,
-        location : null,
-        privilege :observer, //FIXME : get observer from referential ?
-        department : lab
-      })) ;
-
-      data.strategyDepartments = strategyDepartments;
+      data.strategyDepartments = laboratories;
     }
 
     //TaxonNames -------------------------------------------------------------------------------------------------------
-
     let taxonNameStrategy =  this.planificationForm.taxonNamesForm.value;
     let taxonName: TaxonNameStrategy = new TaxonNameStrategy();
     let taxonNameStrategies: TaxonNameStrategy [] =[];
@@ -246,21 +223,19 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       taxonName.strategyId= data.id;
       taxonName.priorityLevel=null;
       taxonName.taxonName=taxonNameStrategy[0];
-      //set reference TaxonId
       taxonName.taxonName.referenceTaxonId = taxonName.taxonName.id;
       taxonNameStrategies.push(taxonName);
+
       data.taxonNames =taxonNameStrategies;
     }
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
-
     let fishingArea = this.planificationForm.fishingAreasForm.value;
     let fishingAreas : AppliedStrategy [] = [];
     let appliedPeriods: AppliedPeriod[] = [];
-
+    let fishingAreasResult : AppliedStrategy [] = [];
 
     if (fishingArea) {
-
       // get quarters
       for(let i =0; i< 4;i++){
         let appliedPeriod: AppliedPeriod = new AppliedPeriod();
@@ -292,60 +267,63 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
         }
 
         //push only when acquisitionNumber is not null
-        if(fishingArea[i] == null){
-             console.log("dont push a null value");
-        } else {
+        if(fishingArea[i] !== null){
           appliedPeriods.push(appliedPeriod);
         }
-
-        delete fishingArea[i];
       }
-
 
       fishingAreas = fishingArea.map(fish => ({
           strategyId: data.id,
           location: fish,
-          appliedPeriods: appliedPeriods
+          appliedPeriods: null
         })
       );
 
-      data.appliedStrategies = fishingAreas;
+
+      // i = 0 => effort quarter 1
+      // i = 1 => effort quarter 2
+      // i = 2 => effort quarter 3
+      // i = 3 => effort quarter 4
+      // set fishing areas
+      fishingAreasResult = fishingAreas.slice(4);
+      // put effort on first fishing area
+      fishingAreasResult[0].appliedPeriods = appliedPeriods;
+
+      data.appliedStrategies = fishingAreasResult;
     }
 
 
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
-
-    /*let pmfmStrategie = this.planificationForm.pmfmStrategiesForm.value;
+    let pmfmStrategie = this.planificationForm.pmfmStrategiesForm.value;
     let pmfmStrategies : PmfmStrategy [] = [];
-
 
     let sex = pmfmStrategie[0];
     let age = pmfmStrategie[1];
 
+    // i == 0 age
+    // i == 1 sex
+
+    let lengthList = pmfmStrategie[2];
+    let sizeList = pmfmStrategie[3];
+    let maturityList = pmfmStrategie[4];
+
+    for( let  i =0; i<lengthList.length;i++){
+      pmfmStrategies.push(lengthList[i]);
+    }
+    for( let  i =0; i<sizeList.length;i++){
+      pmfmStrategies.push(sizeList[i]);
+    }
+    for( let  i =0; i<maturityList.length;i++){
+      pmfmStrategies.push(maturityList[i]);
+    }
+
 
     for( let i = 0; i < pmfmStrategie.length; i++){
-      // i == 0 age
-      // i == 1 sex
-
-      if(  i == 2){
-        //push
-        pmfmStrategies.push(pmfmStrategie[i]);
-      }
-      if( i == 3){
-        //push
-        pmfmStrategies.push(pmfmStrategie[i]);
-      }
-      //push
-      if( i == 4){
-        //push
-        pmfmStrategies.push(pmfmStrategie[i]);
-      }
       // fractions
       if(i > 4) {
         let calcifiedTypes : PmfmStrategy = new PmfmStrategy();
         calcifiedTypes.strategyId = data.id;
-        calcifiedTypes.acquisitionLevel =
         calcifiedTypes.pmfm = null;
         calcifiedTypes.fractionId = pmfmStrategie[i].id;
         calcifiedTypes.qualitativeValues =undefined;
@@ -358,12 +336,18 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       }
     }
 
+    if(sex){
+      // TODO add pmfm sex
+     // pmfmStrategies.push();
+    }
+    if(age){
+      // TODO add pmfm age
+     // pmfmStrategies.push();
+    }
+    data.pmfmStrategies= pmfmStrategies;
+  //--------------------------------------------------------------------------------------------------------------------
 
-    data.pmfmStrategies= pmfmStrategies;*/
-
-    return data
-
+    return data;
   }
-
 }
 
