@@ -299,9 +299,14 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // i == 0 age
     // i == 1 sex
 
-    let lengthList = pmfmStrategie[2];
-    let sizeList = pmfmStrategie[3];
-    let maturityList = pmfmStrategie[4];
+    await this.planificationForm.weightPmfmStrategiesTable.save();
+    await this.planificationForm.sizePmfmStrategiesTable.save();
+    await this.planificationForm.maturityPmfmStrategiesTable.save();
+    
+
+    let lengthList = this.planificationForm.weightPmfmStrategiesTable.value;
+    let sizeList = this.planificationForm.sizePmfmStrategiesTable.value;
+    let maturityList = this.planificationForm.maturityPmfmStrategiesTable.value;
 
     for( let  i =0; i<lengthList.length;i++){
       pmfmStrategies.push(lengthList[i]);
