@@ -309,9 +309,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     for( let  i =0; i<sizeList.length;i++){
       pmfmStrategies.push(sizeList[i]);
     }
-    // for( let  i =0; i<maturityList.length;i++){
-    //   pmfmStrategies.push(maturityList[i]);
-    // }
+    for( let  i =0; i<maturityList.length;i++){
+      pmfmStrategies.push(maturityList[i]);
+    }
 
 
     for( let i = 0; i < pmfmStrategie.length; i++){
