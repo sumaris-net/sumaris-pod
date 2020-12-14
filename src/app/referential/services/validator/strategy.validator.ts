@@ -91,7 +91,8 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
     return this.formBuilder.group({
       strategyId: [toNumber(data && data.strategyId, null)],
       location: [data && data.location, SharedValidators.entity],
-      privilege: [data && data.privilege, Validators.compose([Validators.required, SharedValidators.entity])],
+      //privilege: [data && data.privilege, Validators.compose([Validators.required, SharedValidators.entity])],
+      privilege: [data && data.privilege],
       department: [data && data.department, Validators.compose([Validators.required, SharedValidators.entity])]
     });
   }

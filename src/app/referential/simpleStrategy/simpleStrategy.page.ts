@@ -2,8 +2,8 @@ import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} 
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {
-  AppEntityEditor,
-  isNil,
+  AppEntityEditor, IReferentialRef,
+  isNil, ReferentialRef,
 } from "../../core/core.module";
 import {
   AppliedPeriod,
@@ -206,6 +206,21 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     let laboratories =  this.planificationForm.strategyDepartmentFormArray.value;
 
     if(laboratories){
+       // FIXME
+      let observer : ReferentialRef = new ReferentialRef();
+      observer.id =2;
+      observer.label ="Observer";
+      observer.name ="Observer privilege";
+      observer.statusId =1;
+      observer.entityName ="ProgramPrivilege";
+
+
+
+      // set strategyId and provilege
+      for( let i =0;i <laboratories.length; i++){
+        laboratories[i].strategyId = data.id;
+        laboratories[i].privilege= observer;
+      }
       data.strategyDepartments = laboratories;
     }
 
@@ -373,6 +388,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     return data;
   }
 
+
   /**
    * get pmfm
    * @param label
@@ -389,7 +405,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
          withDetails: true
        });
      return res.data;
-     //this.$pmfms.next(res && res.data || [])
    }
 
 }
