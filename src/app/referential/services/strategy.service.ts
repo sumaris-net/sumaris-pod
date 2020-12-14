@@ -16,7 +16,12 @@ import {AccountService} from 'src/app/core/services/account.service';
 import {EntitiesStorage} from 'src/app/core/services/entities-storage.service';
 import {ReferentialFragments} from "./referential.fragments";
 import {isEmptyArray} from "../../shared/functions";
-import {MINIFY_OPTIONS, ReferentialUtils} from "../../core/services/model/referential.model";
+import {
+  MINIFY_OPTIONS,
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialUtils
+} from "../../core/services/model/referential.model";
 
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {ReferentialFilter} from "./referential.service";
@@ -382,12 +387,14 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
 
     if (!entity) return entity;
 
-    // Clean cache
-    //this.clearCache();
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
 
-    // Fill default properties
-    this.fillDefaultProperties(entity);
-    const json = entity; //this.asObject(entity, SAVE_AS_OBJECT_OPTIONS); //
+    if(json.taxonNames) {
+      // not need
+      delete json.taxonNames[0].taxonGroup;
+      delete json.taxonNames[0].taxonName.__typename;
+    }
+
     const now = Date.now();
     if (this._debug) console.debug("[strategy-service] Saving strategy...", json);
 
@@ -600,26 +607,17 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     return res;
   }
 
-  protected asObject(entity: Strategy, opts?: DataEntityAsObjectOptions): any {
-    opts = {...MINIFY_OPTIONS, ...opts};
-    const copy: any = entity.asObject(opts);
-    return copy;
+  protected asObject(source: Strategy, opts?: ReferentialAsObjectOptions): any {
+
+    return source.asObject(
+      <ReferentialAsObjectOptions>{
+        ...opts,
+        ...NOT_MINIFY_OPTIONS, // Force NOT minify, because program is a referential that can be minify in just an ID
+      });
   }
 
   //TODO : implements fillDefaultProperties here
   protected fillDefaultProperties(entity: Strategy, options?: Partial<StrategySaveOptions>) {
-    /*  program.statusId = isNotNil(program.statusId) ? program.statusId : StatusIds.ENABLE;
-
-      // Update strategies
-      (program.strategies || []).forEach(strategy => {
-
-        strategy.statusId = isNotNil(strategy.statusId) ? strategy.statusId : StatusIds.ENABLE;
-
-        // Force a valid programId
-        // (because a bad copy can leave an old value)
-        strategy.programId = isNotNil(program.id) ? program.id : undefined;
-      });
-      }*/
   }
   protected copyIdAndUpdateDate(source: Strategy, target: Strategy) {
 

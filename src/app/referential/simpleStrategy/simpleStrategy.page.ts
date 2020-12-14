@@ -1,9 +1,16 @@
 import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, isNil, Referential, ReferentialRef} from "../../core/core.module";
-import {Program} from "../services/model/program.model";
-import {AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from "../services/model/strategy.model";
+import {
+  AppEntityEditor,
+  isNil,
+} from "../../core/core.module";
+import {
+  AppliedPeriod,
+  AppliedStrategy,
+  Strategy,
+  TaxonNameStrategy
+} from "../services/model/strategy.model";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {
   fadeInOutAnimation
@@ -18,9 +25,9 @@ import {ProgramProperties} from "../services/config/program.config";
 import {StrategyService} from "../services/strategy.service";
 import {PlanificationForm} from "../planification/planification.form";
 import {ActivatedRoute} from "@angular/router";
-import {TaxonNameRef} from "../services/model/taxon.model";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-
+import * as moment from 'moment'
+import {PmfmService} from "../services/pmfm.service";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -70,7 +77,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     dataService: StrategyService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
-    protected activatedRoute : ActivatedRoute
+    protected activatedRoute : ActivatedRoute,
+    protected pmfmService: PmfmService,
+
   ) {
     super(injector,
       Strategy,
@@ -78,7 +87,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     this.form = validatorService.getFormGroup();
     // default values
     this.defaultBackHref = "/referential?entity=Program";
-    //this.defaultBackHref = "/referential/program/10?tab=2"; =>TODO : remplace 10 by id row
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -87,10 +95,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   ngOnInit() {
     //  Call editor routing
   super.ngOnInit();
-
     // Set entity name (required for referential form validator)
     this.planificationForm.entityName = 'planificationForm';
-
 
    }
 
@@ -171,47 +177,36 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     const data = await super.getJsonValueToSave();
     // TODO : get programId
     data.programId=40;
-   // data.__typename="StrategyVO";
 
     //Sample row code
     data.label =  this.planificationForm.form.get("label").value;
     data.name = this.planificationForm.form.get("label").value;
-    //statusId
     data.statusId=1;
 
     //eotp
-    data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
+    if(this.planificationForm.form.get("analyticReference").value){
+      data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
+    }
 
-    data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
     //comments
     data.description = this.planificationForm.form.get("description").value;
 
-
-   // get Id program from route
+    // get Id program from route ?
     console.log("programId : " + this.activatedRoute.snapshot.paramMap.get('id'));
+
+    //get creationDate -------------------------------------------------------------------------------------------------
+    let creationDate = this.planificationForm.form.get("creationDate").value;
+    let year = new Date(creationDate).getFullYear();
 
     //get Laboratories -------------------------------------------------------------------------------------------------
 
-    let laboratories =  this.planificationForm.laboratoriesForm.value;
-    let strategyDepartment: StrategyDepartment = new StrategyDepartment();
-    let strategyDepartments: StrategyDepartment [] =[];
-
+    let laboratories =  this.planificationForm.strategyDepartmentFormArray.value;
 
     if(laboratories){
-
-      strategyDepartments   = this.planificationForm.laboratoriesForm.value.map(lab => ({
-        strategyId : data.id,
-        location : null,
-        privilege :null, //FIXME : get observer from referential ?
-        department : lab
-      })) ;
-
-      const result = strategyDepartments as StrategyDepartment [];
-      data.strategyDepartments = result;
+      data.strategyDepartments = laboratories;
     }
 
     //TaxonNames -------------------------------------------------------------------------------------------------------
-
     let taxonNameStrategy =  this.planificationForm.taxonNamesForm.value;
     let taxonName: TaxonNameStrategy = new TaxonNameStrategy();
     let taxonNameStrategies: TaxonNameStrategy [] =[];
@@ -220,38 +215,174 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       taxonName.strategyId= data.id;
       taxonName.priorityLevel=null;
       taxonName.taxonName=taxonNameStrategy[0];
-
+      taxonName.taxonName.referenceTaxonId = taxonName.taxonName.id;
       taxonNameStrategies.push(taxonName);
+
       data.taxonNames =taxonNameStrategies;
     }
 
-    //Fishig Area ----------------------------------------------------------------------------------------------------
-
+    //Fishig Area + Efforts --------------------------------------------------------------------------------------------
     let fishingArea = this.planificationForm.fishingAreasForm.value;
     let fishingAreas : AppliedStrategy [] = [];
+    let appliedPeriods: AppliedPeriod[] = [];
+    let fishingAreasResult : AppliedStrategy [] = [];
 
     if (fishingArea) {
+      // get quarters
+      for(let i =0; i< 4;i++){
+        let appliedPeriod: AppliedPeriod = new AppliedPeriod();
+        appliedPeriod.appliedStrategyId =data.id;
+        appliedPeriod.acquisitionNumber =fishingArea[i];
+
+        //quarter 1
+        if(i == 0){
+          appliedPeriod.startDate = moment(year+"-01-01");
+          appliedPeriod.endDate = moment(year+"-03-31");
+        }
+
+        //quarter 2
+        if(i == 1){
+          appliedPeriod.startDate =moment(year+"-04-01");
+          appliedPeriod.endDate = moment(year+"-06-30");
+        }
+
+        //quarter 3
+        if(i == 2){
+          appliedPeriod.startDate = moment(year+"-07-01");
+          appliedPeriod.endDate = moment(year+"-09-30");
+        }
+
+        //quarter 4
+        if(i == 3){
+          appliedPeriod.startDate = moment(year+"-10-01");
+          appliedPeriod.endDate = moment(year+"-12-31");
+        }
+
+        //push only when acquisitionNumber is not null
+        if(fishingArea[i] !== null){
+          appliedPeriods.push(appliedPeriod);
+        }
+      }
+
       fishingAreas = fishingArea.map(fish => ({
           strategyId: data.id,
           location: fish,
-          appliedPeriods: null //FIXME : get appliedPeriods ?
+          appliedPeriods: null
         })
       );
+
+
+      // i = 0 => effort quarter 1
+      // i = 1 => effort quarter 2
+      // i = 2 => effort quarter 3
+      // i = 3 => effort quarter 4
+      // set fishing areas
+      fishingAreasResult = fishingAreas.slice(4);
+      // put effort on first fishing area
+      fishingAreasResult[0].appliedPeriods = appliedPeriods;
+
+      data.appliedStrategies = fishingAreasResult;
     }
 
-    const result = fishingAreas as AppliedStrategy [];
-    data.appliedStrategies = result;
-
-    //calcified type ---------------------------------------------------------------------------------------------------
-    let calcifiedType = this.planificationForm.calcifiedTypesForm.value;
-    let calcifiedTypes : PmfmStrategy [] = [];
 
 
+    //PMFM + Fractions -------------------------------------------------------------------------------------------------
+    let pmfmStrategie = this.planificationForm.pmfmStrategiesForm.value;
+    let pmfmStrategies : PmfmStrategy [] = [];
+
+    let sex = pmfmStrategie[0];
+    let age = pmfmStrategie[1];
+
+    // i == 0 age
+    // i == 1 sex
+
+    let lengthList = pmfmStrategie[2];
+    let sizeList = pmfmStrategie[3];
+    let maturityList = pmfmStrategie[4];
+
+    for( let  i =0; i<lengthList.length;i++){
+      pmfmStrategies.push(lengthList[i]);
+    }
+    for( let  i =0; i<sizeList.length;i++){
+      pmfmStrategies.push(sizeList[i]);
+    }
+    for( let  i =0; i<maturityList.length;i++){
+      pmfmStrategies.push(maturityList[i]);
+    }
 
 
+    for( let i = 0; i < pmfmStrategie.length; i++){
+      // fractions
+      if(i > 4) {
+        let calcifiedTypes : PmfmStrategy = new PmfmStrategy();
+        calcifiedTypes.strategyId = data.id;
+        calcifiedTypes.pmfm = null;
+        calcifiedTypes.fractionId = pmfmStrategie[i].id;
+        calcifiedTypes.qualitativeValues =undefined;
+        calcifiedTypes.acquisitionLevel='SAMPLE'
+        calcifiedTypes.acquisitionNumber=1;
+        calcifiedTypes.isMandatory = false;
+        calcifiedTypes.rankOrder = 1;
 
-    return data
+        pmfmStrategies.push(calcifiedTypes);
+      }
+    }
+
+    if(sex){
+      let pmfmStrategySex : PmfmStrategy = new PmfmStrategy();
+      let pmfmSex = await this.getPmfms("SEX");
+
+      pmfmStrategySex.strategyId = data.id;
+      pmfmStrategySex.pmfm = pmfmSex[0];
+      pmfmStrategySex.fractionId = null;
+      pmfmStrategySex.qualitativeValues =undefined;
+      pmfmStrategySex.acquisitionLevel='SAMPLE'
+      pmfmStrategySex.acquisitionNumber=1;
+      pmfmStrategySex.isMandatory = false;
+      pmfmStrategySex.rankOrder = 1;
+
+      pmfmStrategies.push(pmfmStrategySex);
+    }
+    if(age){
+      let pmfmStrategyAge : PmfmStrategy = new PmfmStrategy();
+      let pmfmAge = await this.getPmfms("AGE");
+
+      pmfmStrategyAge.strategyId = data.id;
+      pmfmStrategyAge.pmfm = pmfmAge[0];
+      pmfmStrategyAge.fractionId = null;
+      pmfmStrategyAge.qualitativeValues =undefined;
+      pmfmStrategyAge.acquisitionLevel='SAMPLE'
+      pmfmStrategyAge.acquisitionNumber=1;
+      pmfmStrategyAge.isMandatory = false;
+      pmfmStrategyAge.rankOrder = 1;
+
+      pmfmStrategies.push(pmfmStrategyAge);
+
+    }
+    data.pmfmStrategies= pmfmStrategies;
+  //--------------------------------------------------------------------------------------------------------------------
+
+    return data;
   }
+
+  /**
+   * get pmfm
+   * @param label
+   * @protected
+   */
+   protected async getPmfms(label : string){
+     const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+         entityName: 'Pmfm',
+         levelLabels: [label]
+         // searchJoin: "Parameter" is implied in pod filter
+       },
+       {
+         withTotal: false,
+         withDetails: true
+       });
+     return res.data;
+     //this.$pmfms.next(res && res.data || [])
+   }
 
 }
 
