@@ -144,8 +144,55 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     throw new Error('Method not implemented.');
   }
 
+  setPmfmStrategies() {
+    const pmfms = [];
+    pmfms.push(this.pmfmStrategiesHelper.at(0).value);
+    pmfms.push(this.pmfmStrategiesHelper.at(1).value);
+    pmfms.push(this.weightPmfmStrategiesTable.value);
+    pmfms.push(this.sizePmfmStrategiesTable.value);
+    pmfms.push(this.maturityPmfmStrategiesTable.value);
+
+    for (let i = 5; i < this.pmfmStrategiesForm.value.lenght; i++) {
+      pmfms.push(this.pmfmStrategiesHelper.at(i).value);
+    }
+    return pmfms;
+  }
+
+
   ngOnInit() {
     super.ngOnInit();
+
+    this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
+      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
+      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
+
+      // this.form.controls.updateDate.setValue(new Date());
+      //this.form.markAsPristine();
+      this.markAsDirty();
+    });
+
+    this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
+      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
+      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
+
+      // this.form.controls.updateDate.setValue(new Date());
+      //this.form.markAsPristine();
+      this.markAsDirty();
+    });
+
+    this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
+      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
+      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
+
+      // this.form.controls.updateDate.setValue(new Date());
+      //this.form.markAsPristine();
+      this.markAsDirty();
+    });
+
+
+
+
+
     // register year field changes
     this.registerSubscription(
       this.form.get('creationDate').valueChanges
@@ -205,11 +252,14 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     // eotp combo -------------------------------------------------------------------
     this.registerAutocompleteField('analyticReference', {
+      suggestFn: (value, filter) => this.suggest(value, {
+          ...filter, statusIds : [0,1]
+        },
+        'AnalyticReference',
+        this.enableEotpFilter),
       columnSizes : [4,6],
-      items: this._eotpSubject,
-      mobile: this.mobile
+      mobile: this.settings.mobile
     });
-    this.loadEotps();
 
     // Calcified type combo ------------------------------------------------------------
     // this.registerAutocompleteField('calcifiedType', {
@@ -261,6 +311,17 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
    * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggest(value: string, filter: any, entityName: string, filtered: boolean) : Promise<IReferentialRef[]> {
+
+    // Special case: AnalyticReference
+    if (entityName == "AnalyticReference") {
+      if (filtered) {
+        //TODO a remplacer par recuperation des donnees deja saisies
+        return this.strategyService.LoadAllAnalyticReferences(0, 5, null, null, filter);
+      } else {
+        return this.strategyService.suggestAnalyticReferences(value, filter);
+      }
+    }
+
     if(filtered) {
       //TODO a remplacer par recuperation des donnees deja saisies
       const res = await this.referentialRefService.loadAll(0, 5, null, null,
@@ -326,11 +387,11 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       sampleRowCodeControl.patchValue(sampleRowValue);
     }
       // EOTP
-      const eotpControl = this.form.get("analyticReference");
+      /*const eotpControl = this.form.get("analyticReference");
       let eotp = data.analyticReference;
       let eotpValues = this._eotpSubject.getValue();
-      // let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
-      // eotpControl.patchValue(eotpObject);
+      let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
+      eotpControl.patchValue(eotpObject);*/
 
       // const laboratoriesControl = this.laboratoriesForm;
       // let strategyDepartments = data.strategyDepartments;
@@ -444,7 +505,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       // SEX
 
       const pmfmStrategiesControl = this.pmfmStrategiesForm;
-      this.pmfmStrategiesHelper.resize(6);
+      
 
       let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "AGE");
       let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
@@ -466,20 +527,23 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
     let weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
-    pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : null);
+    pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
     this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
 
-    //SIZES
+
+    //SIZES 
     const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
     let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
-    pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : null);
+    pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : []);
     this.sizePmfmStrategiesTable.value = sizePmfmStrategy.length > 0 ? sizePmfmStrategy : [new PmfmStrategy()];
+    
 
 
     const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
     let maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
-    pmfmStrategies.push(maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : {});
+    pmfmStrategies.push(maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : []);
     this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : [new PmfmStrategy()];
+
 
         // CALCIFIED TYPES
       // const calcifiedTypesControl = this.calcifiedTypesForm;
@@ -522,10 +586,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         // calcifiedTypesControl.patchValue(calcifiedTypesFractionRefIds);
       }
 
+
+      this.pmfmStrategiesHelper.resize(Math.max(6, pmfmStrategies.length));
       pmfmStrategiesControl.patchValue(pmfmStrategies);
-
-
-    console.debug(data.entityName);
   }
 
   // save button
@@ -721,12 +784,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         searchText: "individu"
       });
     return res.data;
-  }
-  // EOTP  ---------------------------------------------------------------------------------------------------
-
-  protected async loadEotps() {
-    const res = await this.strategyService.LoadAllAnalyticReferencesQuery(0, 30, null, null, null);
-    this._eotpSubject.next(res);
   }
 
   protected markForCheck() {
