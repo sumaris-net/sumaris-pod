@@ -2,7 +2,7 @@
             color="primary"
             [hasValidate]="!loading"
             (onValidate)="save($event)"
-            [defaultBackHref]="defaultBackHref"
+            [backHref]="defaultBackHref"
             [canGoBack]="true">
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>

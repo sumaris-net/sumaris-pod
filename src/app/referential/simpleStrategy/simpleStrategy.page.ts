@@ -402,15 +402,13 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
    protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
 
     // Update back href
-    // Define default back link
-    // const observedLocationId = data.parent && this.parent.id || data && data.observedLocationId;
     this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${data.programId}?tab=2` : undefined;
+    this.markForCheck();
 
   }
 
   protected addToPageHistory(page: HistoryPageReference) {
     super.addToPageHistory({ ...page, icon: 'reader-outline'});
   }
-
 }
 
