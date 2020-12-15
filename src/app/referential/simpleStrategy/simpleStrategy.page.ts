@@ -331,7 +331,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     await this.planificationForm.weightPmfmStrategiesTable.save();
     await this.planificationForm.sizePmfmStrategiesTable.save();
     await this.planificationForm.maturityPmfmStrategiesTable.save();
-    
+
 
     let lengthList = this.planificationForm.weightPmfmStrategiesTable.value;
     let sizeList = this.planificationForm.sizePmfmStrategiesTable.value;
@@ -431,7 +431,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   }
 
   protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'reader-outline'});
+    super.addToPageHistory({ ...page, icon: 'list-outline'});
   }
 }
 
