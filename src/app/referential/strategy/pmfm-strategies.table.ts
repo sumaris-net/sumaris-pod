@@ -267,7 +267,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     // Default pmfm column name according to displayed strategy when parameter isn't set in application settings.
     const defaultPmfmColumnName: string = this.canDisplaySimpleStrategyValidators ? 'SHORT_COLUMN_TITLE' :'LONG_COLUMN_TITLE';
     const pmfmStrategyParameterColumnNameFormat = this.settings.getFieldDisplayAttributes('pmfmStrategyParameterColumnName', [defaultPmfmColumnName]);
-    const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
+    let basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
+    if (pmfmStrategyParameterColumnNameFormat.includes('SHORT_COLUMN_TITLE')) {
+      basePmfmAttributes = ['name'];
+    }
     const pmfmAttributes = basePmfmAttributes
       .map(attr => attr === 'name' ? 'parameter.name' : attr)
       .concat(['unit.label', 'matrix.name', 'fraction.name', 'method.name']);
