@@ -254,10 +254,22 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     }
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
-    // let fishingArea = this.planificationForm.fishingAreasForm.value;
+    const fishingArea = this.planificationForm.fishingAreasForm.value;
     // let fishingAreas : AppliedStrategy [] = [];
     // let appliedPeriods: AppliedPeriod[] = [];
     // let fishingAreasResult : AppliedStrategy [] = [];
+
+    const fishingAreas = fishingArea.map(fish => ({
+        strategyId: data.id,
+        location: fish,
+        appliedPeriods: null
+      })
+    );
+
+    // TODO efforts
+    // fishingAreasResult[0].appliedPeriods = appliedPeriods;
+
+    data.appliedStrategies = fishingAreas;
 
     // if (fishingArea) {
       // get quarters
