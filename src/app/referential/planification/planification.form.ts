@@ -10,7 +10,6 @@ import {
   ReferentialRef,
   IReferentialRef,
   FormArrayHelper,
-  fromDateISOString,
   EntityUtils
 } from '../../core/core.module';
 import {BehaviorSubject} from "rxjs";
@@ -19,7 +18,7 @@ import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment} from "../services/model/strategy.model";
-import {isNil, isNotNil} from "../../shared/functions";
+import {fromDateISOString, isNil, isNotNil} from "../../shared/functions";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { SharedValidators } from 'src/app/shared/validator/validators';
@@ -369,25 +368,69 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // Resize strategy department array
     this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
 
-    // EFFORT
+    // Resize strategy department array
+    this.appliedPeriodHelper.resize(4);
+
+    // simulation for tests
+    // let ap1 = new AppliedPeriod();
+    // ap1.appliedStrategyId = data.appliedStrategies[0].strategyId;
+    // ap1.acquisitionNumber = 2;
+    // ap1.startDate = moment("01/01/2020");
+    // ap1.endDate = moment("03/01/2020");
+    // let ap2 = new AppliedPeriod();
+    // ap2.appliedStrategyId = data.appliedStrategies[0].strategyId;
+    // ap2.acquisitionNumber = 5;
+    // ap2.startDate = moment("04/01/2020");
+    // ap2.endDate = moment("06/01/2020");
+    // let ap3 = new AppliedPeriod();
+    // ap3.appliedStrategyId = data.appliedStrategies[0].strategyId;
+    // ap3.acquisitionNumber = 10;
+    // ap3.startDate = moment("07/01/2020");
+    // ap3.endDate = moment("09/01/2020");
+    // let ap4 = new AppliedPeriod();
+    // ap4.appliedStrategyId = data.appliedStrategies[0].strategyId;
+    // ap4.acquisitionNumber = 8;
+    // ap4.startDate = moment("10/01/2020");
+    // ap4.endDate = moment("12/01/2020");
+    // let appliedStrategiesValues = [ap1, ap2, ap4];
+    // data.appliedStrategies[0].appliedPeriods = appliedStrategiesValues;
+
+    // APPLIED_PERIODS
+    // get model appliedPeriods which are stored in first applied strategy
     const appliedPeriodControl = this.appliedPeriodsForm;
-    if(appliedPeriodControl){
-      let appliedStrategieWithPeriods = data.appliedStrategies[0];
-      if(appliedStrategieWithPeriods){
-        if (appliedStrategieWithPeriods.appliedPeriods.length) {
-          // let appliedStrategiesValues = [quarterEffort1, quarterEffort2, quarterEffort3, quarterEffort4];
-          appliedPeriodControl.patchValue(appliedStrategieWithPeriods.appliedPeriods);
-        } else {
-          const appliedPeriod = new AppliedPeriod();
-          appliedPeriod.appliedStrategyId = appliedStrategieWithPeriods.strategyId;
-          appliedPeriod.acquisitionNumber = 1;
-          appliedPeriod.startDate = moment();
-          appliedPeriod.endDate = moment();
-          let appliedStrategiesValues = [appliedPeriod, appliedPeriod, appliedPeriod, appliedPeriod];
-          appliedPeriodControl.patchValue(appliedStrategiesValues);
-        }
-      }
-    }
+    const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
+
+    // format periods for applied conrol period in view and init default period if no set
+    const quarter1 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 1) || {
+      appliedStrategyId: data.appliedStrategies[0].strategyId,
+      startDate: moment("01/01/2020"),
+      endDate: moment("03/01/2020"),
+      acquisitionNumber: undefined
+    };
+    const quarter2 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 4) || {
+      appliedStrategyId: data.appliedStrategies[0].strategyId,
+      startDate: moment("04/01/2020"),
+      endDate: moment("06/01/2020"),
+      acquisitionNumber: undefined
+    };
+    const quarter3 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 7) || {
+      appliedStrategyId: data.appliedStrategies[0].strategyId,
+      startDate: moment("07/01/2020"),
+      endDate: moment("09/01/2020"),
+      acquisitionNumber: undefined
+    };
+    const quarter4 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 10) || {
+      appliedStrategyId: data.appliedStrategies[0].strategyId,
+      startDate: moment("10/01/2020"),
+      endDate: moment("12/01/2020"),
+      acquisitionNumber: undefined
+    };
+    const formattedAppliedPeriods = [quarter1,quarter2,quarter3,quarter4];
+
+    // patch the control value
+    appliedPeriodControl.patchValue(formattedAppliedPeriods);
+
+
 
     super.setValue(data, opts);
     console.log(this.form);
@@ -419,73 +462,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     let taxons = taxonsNames.map(taxonsNames => { return taxonsNames.taxonName;});
     this.taxonNameHelper.resize(Math.max(1, data.taxonNames.length));
     taxonNamesControl.patchValue(taxons);
-
-    // EFFORT
-    // // const appliedStrategiesControl = this.form.get("appliedStrategies");
-    // let appliedStrategieWithPeriods = data.appliedStrategies[0];
-    // if(appliedStrategieWithPeriods){
-    //   if (appliedStrategieWithPeriods.appliedPeriods.length) {
-    //     // let appliedStrategiesValues = [quarterEffort1, quarterEffort2, quarterEffort3, quarterEffort4];
-    //     appliedPeriodControl.patchValue(appliedStrategieWithPeriods.appliedPeriods);
-    //   } else {
-    //     const appliedPeriod = new AppliedPeriod();
-    //     appliedPeriod.appliedStrategyId = appliedStrategieWithPeriods.strategyId;
-    //     appliedPeriod.acquisitionNumber = 1;
-    //     appliedPeriod.startDate = moment();
-    //     appliedPeriod.endDate = moment();
-    //     let appliedStrategiesValues = [appliedPeriod, appliedPeriod, appliedPeriod, appliedPeriod];
-    //     appliedPeriodControl.patchValue(appliedStrategiesValues);
-    //   }
-    // }
-
-      // EFFORT
-    //   const appliedStrategiesControl = this.form.get("appliedStrategies");
-    // let appliedStrategies = data.appliedStrategies;
-    // let quarterEffort1 = null;
-    // let quarterEffort2 = null;
-    // let quarterEffort3 = null;
-    // let quarterEffort4 = null;
-    //   if (appliedStrategies)
-    //   {
-    //     // We keep the first applied period of the array as linked to fishing area
-    //     let fishingAreaAppliedStrategyAsObject = appliedStrategies[0];
-    //     if (fishingAreaAppliedStrategyAsObject)
-    //     {
-    //       // We iterate over applied periods in order to retrieve quarters acquisition numbers
-    //       let fishingAreaAppliedStrategy = fishingAreaAppliedStrategyAsObject as AppliedStrategy;
-    //       let fishingAreaAppliedPeriodsAsObject = fishingAreaAppliedStrategy.appliedPeriods;
-    //       if (fishingAreaAppliedPeriodsAsObject)
-    //       {
-    //         let fishingAreaAppliedPeriods = fishingAreaAppliedPeriodsAsObject as AppliedPeriod[];
-    //         for (let fishingAreaAppliedPeriod of fishingAreaAppliedPeriods) {
-    //           let startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
-    //           let endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
-    //           if (startDateMonth >= 0 && endDateMonth < 3)
-    //           {
-    //             // First quarter
-    //             quarterEffort1 = fishingAreaAppliedPeriod.acquisitionNumber;
-    //           }
-    //           else if (startDateMonth >= 3 && endDateMonth < 6)
-    //           {
-    //             // Second quarter
-    //             quarterEffort2 = fishingAreaAppliedPeriod.acquisitionNumber;
-    //           }
-    //           else if (startDateMonth >= 6 && endDateMonth < 9)
-    //           {
-    //             // Third quarter
-    //             quarterEffort3 = fishingAreaAppliedPeriod.acquisitionNumber;
-    //           }
-    //           else if (startDateMonth >= 9 && endDateMonth < 12)
-    //           {
-    //             // Fourth quarter
-    //             quarterEffort4 = fishingAreaAppliedPeriod.acquisitionNumber;
-    //           }
-
-    //         }
-    //       }
-    //     }
-    //   }
-
 
     // let appliedStrategiesValues = [quarterEffort1, quarterEffort2, quarterEffort3, quarterEffort4];
     // // appliedStrategiesValues = appliedStrategiesValues.concat(fishingArea);
