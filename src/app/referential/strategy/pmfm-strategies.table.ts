@@ -119,10 +119,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input()
   set showPMFMDetailsColumns(value: boolean) {
     // Display PMFM details or other columns
-    this.setShowColumn('parameter', value);
-    this.setShowColumn('matrix', value);
-    this.setShowColumn('fraction', value);
-    this.setShowColumn('method', value);
+    this.setShowColumn('parameterId', value);
+    this.setShowColumn('matrixId', value);
+    this.setShowColumn('fractionId', value);
+    this.setShowColumn('methodId', value);
 
     this.setShowColumn('acquisitionLevel', !value);
     this.setShowColumn('rankOrder', !value);
@@ -171,10 +171,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           'acquisitionLevel',
           'rankOrder',
           'pmfm',
-          'parameter',
-          'matrix',
-          'fraction',
-          'method',
+          'parameterId',
+          'matrixId',
+          'fractionId',
+          'methodId',
           'isMandatory',
           'acquisitionNumber',
           'minValue',
@@ -210,6 +210,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
 
   protected getDisplayColumns(): string[] {
+
     let userColumns = this.getUserColumns();
 
     // No user override: use defaults
@@ -304,10 +305,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     // PMFM.PARAMETER
     const pmfmParameterAttributes = ['label', 'name'];
-    this.registerFormField('parameter', {
+    this.registerFormField('parameterId', {
       type: 'entity',
       required: false,
-      autocomplete: this.registerAutocompleteField('parameter', {
+      autocomplete: this.registerAutocompleteField('parameterId', {
         items: this.$pmfms
         .pipe(
           filter(isNotNil),
@@ -326,10 +327,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     // PMFM.MATRIX
     const mfmAttributes = ['name'];
-    this.registerFormField('matrix', {
+    this.registerFormField('matrixId', {
       type: 'entity',
       required: false,
-      autocomplete: this.registerAutocompleteField('matrix', {
+      autocomplete: this.registerAutocompleteField('matrixId', {
         items: this.$pmfms
         .pipe(
           filter(isNotNil),
@@ -345,10 +346,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // PMFM.FRACTION
-    this.registerFormField('fraction', {
+    this.registerFormField('fractionId', {
       type: 'entity',
       required: false,
-      autocomplete: this.registerAutocompleteField('fraction', {
+      autocomplete: this.registerAutocompleteField('fractionId', {
         items: this.$pmfms
         .pipe(
           filter(isNotNil),
@@ -366,10 +367,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
 
     // PMFM.METHOD
-    this.registerFormField('method', {
+    this.registerFormField('methodId', {
       type: 'entity',
       required: false,
-      autocomplete: this.registerAutocompleteField('method', {
+      autocomplete: this.registerAutocompleteField('methodId', {
         items: this.$pmfms
         .pipe(
           filter(isNotNil),
