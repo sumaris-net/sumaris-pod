@@ -370,13 +370,27 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     if (!data) return;
 
 
-    console.log(data);
+    console.log("data1", data);
+
+
+    data.pmfmStrategies.forEach(p => {
+      if (p.matrixId) p['matrix'] = p.matrixId;
+      if (p.fractionId) p['fraction'] = p.fractionId;
+      if (p.methodId) p['method'] = p.methodId;
+      if (p.parameterId) p['parameter'] = p.parameterId;
+    })
 
     // Resize strategy department array
     this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
 
     super.setValue(data, opts);
-    console.log(this.form);
+
+
+    console.log("data2", data);
+
+
+
+    data.pmfmStrategies[2].matrixId = 2;
 
     if (data.label) {
       // SAMPLE ROW CODE
@@ -589,6 +603,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
       this.pmfmStrategiesHelper.resize(Math.max(6, pmfmStrategies.length));
       pmfmStrategiesControl.patchValue(pmfmStrategies);
+
+
+      console.log(this.form);
   }
 
   // save button

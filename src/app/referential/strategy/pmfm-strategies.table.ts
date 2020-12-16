@@ -313,6 +313,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           })
         ),
         attributes: pmfmParameterAttributes,
+        displayWith: this.displayParameter,
         columnSizes: [4,8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
@@ -334,6 +335,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           })
         ),
         attributes: ['name'],
+        displayWith: this.displayMatrix,
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-medium-size'
       })
@@ -352,6 +354,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           })
         ),
         attributes: mfmAttributes,
+        displayWith: this.displayFraction,
         class: 'mat-autocomplete-panel-medium-size',
         showAllOnFocus: false
       })
@@ -372,6 +375,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           })
         ),
         attributes: mfmAttributes,
+        displayWith: this.displayMethod,
         class: 'mat-autocomplete-panel-medium-size',
         showAllOnFocus: false
       })
@@ -723,5 +727,41 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
+  }
+
+  displayMatrix(id) {
+    if (id) {
+      id = id && id.id ? id.id : id;
+      const t = this['items']['source']['source']['value'];
+      return t.find(pmfm => pmfm.matrix?.id === id) ? t.find(pmfm => pmfm.matrix?.id === id).matrix.name : "";
+    }
+    return "";
+  }
+
+  displayFraction(id) {
+    if (id) {
+      id = id && id.id ? id.id : id;
+      const t = this['items']['source']['source']['value'];
+      return t.find(pmfm => pmfm.fraction?.id === id) ? t.find(pmfm => pmfm.fraction?.id === id).fraction.name : "";
+    }
+    return "";
+  }
+
+  displayParameter(id) {
+    if (id) {
+      id = id && id.id ? id.id : id;
+      const t = this['items']['source']['source']['value'];
+      return t.find(pmfm => pmfm.parameter?.id === id) ? t.find(pmfm => pmfm.parameter?.id === id).parameter.name : "";
+    }
+    return "";
+  }
+
+  displayMethod(id) {
+    if (id) {
+      id = id && id.id ? id.id : id;
+      const t = this['items']['source']['source']['value'];
+      return t.find(pmfm => pmfm.method?.id === id) ? t.find(pmfm => pmfm.method?.id === id).method.name : "";
+    }
+    return "";
   }
 }
