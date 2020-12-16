@@ -1,0 +1,200 @@
+<mat-toolbar>
+  <button mat-icon-button
+          hidden-xs hidden-sm hidden-mobile
+          *ngIf="canEdit && !selection.hasValue() && enabled"
+          [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+    <mat-icon>add</mat-icon>
+  </button>
+  <button mat-icon-button *ngIf="!selection.hasValue()"
+          [title]="'COMMON.BTN_REFRESH'|translate"
+          (click)="onRefresh.emit()">
+    <mat-icon>refresh</mat-icon>
+  </button>
+  <button mat-icon-button *ngIf="canDelete && selection.hasValue() && enabled"
+          [title]="'COMMON.BTN_DELETE'|translate"
+          (click)="deleteSelection($event)">
+    <mat-icon>delete</mat-icon>
+  </button>
+
+  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <div class="toolbar-spacer"></div>
+
+  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+</mat-toolbar>
+
+<!-- error -->
+<ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+  <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+  <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+</ion-item>
+
+<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
+           matSortDisableClear [trackBy]="trackByFn">
+
+  <ng-container matColumnDef="select">
+    <mat-header-cell *matHeaderCellDef
+                     class="hidden-xs hidden-sm"
+                     [class.cdk-visually-hidden]="!canEdit">
+      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                    [indeterminate]="selection.hasValue() && !isAllSelected()">
+      </mat-checkbox>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row"
+              class="hidden-xs hidden-sm"
+              [class.cdk-visually-hidden]="!canEdit">
+      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+      </mat-checkbox>
+    </mat-cell>
+  </ng-container>
+
+  <!-- rankOrder Column = id -->
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label>#</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder || row.currentData?.id }}</mat-cell>
+  </ng-container>
+
+  <!-- Vessel Column -->
+  <ng-container matColumnDef="vessel">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>LANDING.TABLE.VESSEL</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{referentialToString(row.currentData?.vesselSnapshot, autocompleteFields.vesselSnapshot.attributes)}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Vessel type Column -->
+  <ng-container matColumnDef="vesselType">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>LANDING.TABLE.VESSEL_TYPE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.vesselType, ['name'])}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Vessel base port Column -->
+  <ng-container matColumnDef="vesselBasePortLocation">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.basePortLocation)}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
+  <!-- date time  -->
+  <ng-container matColumnDef="dateTime">
+    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <span translate>LANDING.TABLE.DATE_TIME</span>
+    </mat-header-cell>
+    <mat-cell class="mat-cell-date-time" *matCellDef="let row">
+      {{ getLandingDate(row.currentData) | dateFormat: {time: true} }}
+    </mat-cell>
+  </ng-container>
+
+  <!-- Observers -->
+  <ng-container matColumnDef="observers">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>LANDING.TABLE.OBSERVERS</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ personsToString(row.currentData?.observers) }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Pmfm columns -->
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
+      <ion-label>{{getPmfmColumnHeader(pmfm)}}
+        <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
+      </ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row"
+              [class.mat-cell-date-time]="pmfm.isDate"
+              [class.mat-cell-computed]="pmfm.isComputed">
+      <app-pmfm-field
+        [readonly]="!row.editing"
+        [pmfm]="pmfm"
+        [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId.toString()]"
+        floatLabel="never"></app-pmfm-field>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Comment column --><!-- Comments column -->
+  <ng-container matColumnDef="comments">
+    <mat-header-cell *matHeaderCellDef>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-icon color="medium" name="chatbox" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Actions buttons column -->
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+      <ion-spinner *ngIf="row.validator.pending" name="dots"
+                   [ngClass]="{'center':true}"></ion-spinner>
+
+      <!-- undo or delete  -->
+      <button mat-icon-button color="light" *ngIf="row.validator.invalid"
+              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+              (click)="cancelOrDelete($event, row)">
+        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+      </button>
+      <!-- validate -->
+      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+              [title]="'COMMON.BTN_VALIDATE'|translate"
+              (click)="confirmEditCreate($event, row)">
+        <mat-icon>check</mat-icon>
+      </button>
+
+      <!-- edit trip -->
+      <button mat-icon-button color="light"
+              *ngIf="!row.editing && row.id !== -1 && isTripDetailEditor"
+              [title]="'COMMON.BTN_EDIT'|translate"
+              (click)="confirmAndEditTrip($event, row)">
+        <ion-icon name="boat" slot="icon-only" [color]="row.currentData.tripId ? undefined : 'medium'"></ion-icon>
+      </button>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"
+           [class.mat-row-error]="row.validator.invalid"
+           [class.mat-row-dirty]="row.validator.dirty"
+           [class.mat-row-disabled]="!row.editing"
+           (click)="clickRow($event, row)"></mat-row>
+
+</mat-table>
+
+<ion-row class="ion-no-padding">
+  <ion-col></ion-col>
+  <ion-col class="ion-no-padding" size="auto">
+    <mat-paginator [length]="resultsLength" [pageSize]="pageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+    </mat-paginator>
+  </ion-col>
+</ion-row>
+
+
+<!-- Add Button  -->
+<ion-fab slot="fixed"
+         vertical="bottom" horizontal="end"
+         *ngIf="enabled && showFabButton"
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
+
