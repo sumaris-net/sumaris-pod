@@ -13,7 +13,8 @@ import {
 } from "../services/model/strategy.model";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {
-  fadeInOutAnimation
+  EntityServiceLoadOptions,
+  fadeInOutAnimation, isNotNil
 } from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
@@ -28,6 +29,7 @@ import {ActivatedRoute} from "@angular/router";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import * as moment from 'moment'
 import {PmfmService} from "../services/pmfm.service";
+import { HistoryPageReference } from "src/app/core/services/model/settings.model";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -63,7 +65,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
-  i18nFieldPrefix = 'PROGRAM.';
+  i18nFieldPrefix = 'STRATEGY.';
   strategyFormState: AnimationState;
 
   @ViewChild('planificationForm', { static: true }) planificationForm: PlanificationForm;
@@ -94,11 +96,14 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   ngOnInit() {
     //  Call editor routing
-  super.ngOnInit();
+    super.ngOnInit();
     // Set entity name (required for referential form validator)
     this.planificationForm.entityName = 'planificationForm';
 
-   }
+    this.defaultBackHref =`/referential/program/101?tab=2`;
+    // this.defaultBackHref = isNotNil(data.programId) ? `/observations/${data.programId}?tab=2` : undefined;
+
+  }
 
    protected canUserWrite(data: Strategy): boolean {
     // TODO : check user is in program managers
@@ -107,16 +112,25 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   }
 
-  protected computeTitle(data: Strategy): Promise<string> {
-    // new data
+    /**
+   * Compute the title
+   * @param data
+   */
+  protected async computeTitle(data: Strategy, opts?: {
+    withPrefix?: boolean;
+  }): Promise<string> {
+
+    // new strategy
     if (!data || isNil(data.id)) {
-      return this.translate.get('PROGRAM.NEW.TITLE').toPromise();
+      return await this.translate.get('PROGRAM.STRATEGY.NEW.SAMPLING_TITLE').toPromise();
     }
 
-    // Existing data
-    return this.translate.get('PROGRAM.EDIT.TITLE', data).toPromise();
-  }
+    // Existing strategy
+    return await this.translate.get('PROGRAM.STRATEGY.EDIT.SAMPLING_TITLE', {
+      label: data && data.label
+    }).toPromise() as string;
 
+  }
 
   protected getFirstInvalidTabIndex(): number {
     if (this.planificationForm.invalid) return 0;
@@ -317,7 +331,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     await this.planificationForm.weightPmfmStrategiesTable.save();
     await this.planificationForm.sizePmfmStrategiesTable.save();
     await this.planificationForm.maturityPmfmStrategiesTable.save();
-    
+
 
     let lengthList = this.planificationForm.weightPmfmStrategiesTable.value;
     let sizeList = this.planificationForm.sizePmfmStrategiesTable.value;
@@ -407,5 +421,17 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
      return res.data;
    }
 
+
+   protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+
+    // Update back href
+    this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${data.programId}?tab=2` : undefined;
+    this.markForCheck();
+
+  }
+
+  protected addToPageHistory(page: HistoryPageReference) {
+    super.addToPageHistory({ ...page, icon: 'list-outline'});
+  }
 }
 

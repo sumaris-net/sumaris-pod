@@ -19,7 +19,7 @@ import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment} from "../services/model/strategy.model";
-import {isNil} from "../../shared/functions";
+import {isNil, isNotNil} from "../../shared/functions";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { SharedValidators } from 'src/app/shared/validator/validators';
@@ -189,30 +189,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       this.markAsDirty();
     });
 
-
-
-
-
-    // register year field changes
+     // register year field changes
     this.registerSubscription(
       this.form.get('creationDate').valueChanges
-        .subscribe(async (date : Moment) => {
-          //update mask
-          let year = "2020";
-          if (date && (typeof date === 'object') && (date.year()))
-          {
-            year = date.year().toString();
-          }
-          else if (date && (typeof date === 'string'))
-          {
-            let dateAsString = date as string;
-            year = dateAsString.split('-')[0];
-          }
-          this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
-          // set sample row code
-          //TODO : replace 40 with this.program.id
-          this.label = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
-        })
+        .subscribe(async (date : Moment) => this.onDateChange(date) )
     );
 
     // taxonName autocomplete
@@ -290,8 +270,8 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         mobile: this.settings.mobile
     });
 
-    //set current date to year field
-    this.form.get('creationDate').setValue(moment());
+    // set default mask
+    this.sampleRowMask = [...moment().year().toString().split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
 
     //init helpers
     // this.initCalcifiedTypeHelper();
@@ -380,6 +360,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       if (p.parameterId) p['parameter'] = p.parameterId;
     })
 
+    // QUICKFIX label to remove as soon as possible
+    data.label = data.label.replace(/_/g, "-");
+
     // Resize strategy department array
     this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
 
@@ -392,20 +375,18 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     data.pmfmStrategies[2].matrixId = 2;
 
-    if (data.label) {
-      // SAMPLE ROW CODE
-      const sampleRowCodeControl = this.form.get("label");
-
-      // FIX Replace '_' by '-'
-      let sampleRowValue = data.label.replace(/_/g, "-");
-      sampleRowCodeControl.patchValue(sampleRowValue);
-    }
       // EOTP
       /*const eotpControl = this.form.get("analyticReference");
       let eotp = data.analyticReference;
       let eotpValues = this._eotpSubject.getValue();
       let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
       eotpControl.patchValue(eotpObject);*/
+
+      // fixme get eotp from referential by label = data.analyticReference
+      let  analyticReferenceToSet : IReferentialRef = new ReferentialRef();
+      analyticReferenceToSet.label = data.analyticReference;
+      this.form.get('analyticReference').setValue(analyticReferenceToSet);
+
 
       // const laboratoriesControl = this.laboratoriesForm;
       // let strategyDepartments = data.strategyDepartments;
@@ -519,7 +500,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       // SEX
 
       const pmfmStrategiesControl = this.pmfmStrategiesForm;
-      
+
 
       let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "AGE");
       let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
@@ -545,12 +526,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
 
 
-    //SIZES 
+    //SIZES
     const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
     let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
     pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : []);
     this.sizePmfmStrategiesTable.value = sizePmfmStrategy.length > 0 ? sizePmfmStrategy : [new PmfmStrategy()];
-    
+
 
 
     const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
@@ -607,6 +588,39 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
       console.log(this.form);
   }
+
+  protected async onDateChange(date : Moment) {
+
+    const labelControl = this.form.get('label');
+
+    //update mask
+    let year;
+    if (date && (typeof date === 'object') && (date.year()))
+    {
+      year = date.year().toString();
+    }
+    else if (date && (typeof date === 'string'))
+    {
+      let dateAsString = date as string;
+      year = dateAsString.split('-')[0];
+    }
+    this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+
+    const label = labelControl.value;
+    if(isNotNil(label)){
+      const oldYear = label.split('-').shift();
+
+      // get new label sample row code
+      //TODO : replace 40 with this.program.id
+      const updatedLabel = await this.strategyService.findStrategyNextLabel(40,`${year}-BIO-`, 4);
+
+      // Update the label, if year change
+      if (year && oldYear && year !== oldYear ) {
+        labelControl.setValue(updatedLabel);
+      }
+    }
+  }
+
 
   // save button
   save(){

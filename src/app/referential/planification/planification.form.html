@@ -12,7 +12,6 @@
                  autocomplete="off"
                  type="text"
                  [textMask]="{mask: sampleRowMask, keepCharPositions: true, showMask: true, guide: true}"
-                 [(ngModel)]="label"
                  placeholder="{{ 'PLANIFICATION.SAMPLE_ROW_TITLE' | translate }}" >
         </mat-form-field>
       </ion-col>
@@ -120,7 +119,7 @@
         <button matAfter type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="fishingAreaHelper.removeAt(i)">
+                (click)="appliedStrategiesHelper.removeAt(i+4)">
           <mat-icon>close</mat-icon>
         </button>
 
@@ -216,7 +215,7 @@
       </ion-col>
       <ion-col>
         <ion-card class="ion-no-margin">
-          <app-pmfm-strategies-table 
+          <app-pmfm-strategies-table
                                      #weightPmfmStrategiesTable
                                      [title]=""
                                      [program]="program"
