@@ -765,6 +765,8 @@
     "TITLE_PREFIX": "<small>{{location}} - Débarquement {{date}}<br/></small>",
     "TAB_GENERAL": "Détails",
     "PROGRAM": "Programme",
+    "SAMPLE_ROW_CODE": "Code de la ligne",
+    "FISHING_AREA" :"Zone de pêche",
     "VESSEL": "Navire",
     "LANDING": "Débarquement :",
     "DATE_TIME": "Date/Heure",

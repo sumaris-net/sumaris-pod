@@ -765,6 +765,8 @@
     "TITLE_PREFIX": "<small>{{location}} - Landing {{date}}<br/></small>",
     "TAB_GENERAL": "Details",
     "PROGRAM": "Program",
+    "SAMPLE_ROW_CODE": "Sample row code",
+    "FISHING_AREA" :"Fishing area",
     "VESSEL": "Vessel",
     "LANDING": "Landing:",
     "DATE_TIME": "Date/Time",
