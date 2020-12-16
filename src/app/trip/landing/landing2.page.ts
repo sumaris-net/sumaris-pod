@@ -25,6 +25,7 @@ import {ObservedLocation} from "../services/model/observed-location.model";
 import {environment} from "../../../environments/environment";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AppEditorOptions} from "../../core/form/editor.class";
+import {Landing2Form} from "./landing2.form";
 
 @Component({
   selector: 'app-landing-page2',
@@ -39,7 +40,7 @@ import {AppEditorOptions} from "../../core/form/editor.class";
     }
   ]
 })
-export class LandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit {
+export class Landing2Page extends AppRootDataEditor<Landing, LandingService> implements OnInit {
 
   protected parent: Trip | ObservedLocation;
   protected dataService: LandingService;
@@ -51,7 +52,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   mobile: boolean;
 
-  @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
+  @ViewChild('landingForm', { static: true }) landingForm: Landing2Form;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
 
   get pmfms(): Observable<PmfmStrategy[]> {

@@ -44,7 +44,7 @@ export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
+export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   implements OnInit, OnDestroy {
 
   protected cd: ChangeDetectorRef;

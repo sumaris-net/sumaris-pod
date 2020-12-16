@@ -29,7 +29,7 @@ import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
   styleUrls: ['./landing2.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingForm extends MeasurementValuesForm<Landing> implements OnInit {
+export class Landing2Form extends MeasurementValuesForm<Landing> implements OnInit {
 
   private _showObservers: boolean;
   observersHelper: FormArrayHelper<Person>;
@@ -39,9 +39,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() required = true;
 
   @Input() showProgram = true;
+  @Input() showSampleRowCode = true;
   @Input() showVessel = true;
   @Input() showDateTime = true;
   @Input() showLocation = true;
+  @Input() showFishingArea = true;
   @Input() showComment = true;
   @Input() showMeasurements = true;
   @Input() showError = true;
