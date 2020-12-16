@@ -254,54 +254,54 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     }
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
-    let fishingArea = this.planificationForm.fishingAreasForm.value;
-    let fishingAreas : AppliedStrategy [] = [];
-    let appliedPeriods: AppliedPeriod[] = [];
-    let fishingAreasResult : AppliedStrategy [] = [];
+    // let fishingArea = this.planificationForm.fishingAreasForm.value;
+    // let fishingAreas : AppliedStrategy [] = [];
+    // let appliedPeriods: AppliedPeriod[] = [];
+    // let fishingAreasResult : AppliedStrategy [] = [];
 
-    if (fishingArea) {
+    // if (fishingArea) {
       // get quarters
-      for(let i =0; i< 4;i++){
-        let appliedPeriod: AppliedPeriod = new AppliedPeriod();
-        appliedPeriod.appliedStrategyId =data.id;
-        appliedPeriod.acquisitionNumber =fishingArea[i];
+      // for(let i =0; i< 4;i++){
+      //   let appliedPeriod: AppliedPeriod = new AppliedPeriod();
+      //   appliedPeriod.appliedStrategyId =data.id;
+      //   appliedPeriod.acquisitionNumber =fishingArea[i];
 
-        //quarter 1
-        if(i == 0){
-          appliedPeriod.startDate = moment(year+"-01-01");
-          appliedPeriod.endDate = moment(year+"-03-31");
-        }
+      //   //quarter 1
+      //   if(i == 0){
+      //     appliedPeriod.startDate = moment(year+"-01-01");
+      //     appliedPeriod.endDate = moment(year+"-03-31");
+      //   }
 
-        //quarter 2
-        if(i == 1){
-          appliedPeriod.startDate =moment(year+"-04-01");
-          appliedPeriod.endDate = moment(year+"-06-30");
-        }
+      //   //quarter 2
+      //   if(i == 1){
+      //     appliedPeriod.startDate =moment(year+"-04-01");
+      //     appliedPeriod.endDate = moment(year+"-06-30");
+      //   }
 
-        //quarter 3
-        if(i == 2){
-          appliedPeriod.startDate = moment(year+"-07-01");
-          appliedPeriod.endDate = moment(year+"-09-30");
-        }
+      //   //quarter 3
+      //   if(i == 2){
+      //     appliedPeriod.startDate = moment(year+"-07-01");
+      //     appliedPeriod.endDate = moment(year+"-09-30");
+      //   }
 
-        //quarter 4
-        if(i == 3){
-          appliedPeriod.startDate = moment(year+"-10-01");
-          appliedPeriod.endDate = moment(year+"-12-31");
-        }
+      //   //quarter 4
+      //   if(i == 3){
+      //     appliedPeriod.startDate = moment(year+"-10-01");
+      //     appliedPeriod.endDate = moment(year+"-12-31");
+      //   }
 
-        //push only when acquisitionNumber is not null
-        if(fishingArea[i] !== null){
-          appliedPeriods.push(appliedPeriod);
-        }
-      }
+      //   //push only when acquisitionNumber is not null
+      //   if(fishingArea[i] !== null){
+      //     appliedPeriods.push(appliedPeriod);
+      //   }
+      // }
 
-      fishingAreas = fishingArea.map(fish => ({
-          strategyId: data.id,
-          location: fish,
-          appliedPeriods: null
-        })
-      );
+      // fishingAreas = fishingArea.map(fish => ({
+      //     strategyId: data.id,
+      //     location: fish,
+      //     appliedPeriods: null
+      //   })
+      // );
 
 
       // i = 0 => effort quarter 1
@@ -309,12 +309,12 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       // i = 2 => effort quarter 3
       // i = 3 => effort quarter 4
       // set fishing areas
-      fishingAreasResult = fishingAreas.slice(4);
-      // put effort on first fishing area
-      fishingAreasResult[0].appliedPeriods = appliedPeriods;
+      // fishingAreasResult = fishingAreas.slice(4);
+      // // put effort on first fishing area
+      // fishingAreasResult[0].appliedPeriods = appliedPeriods;
 
-      data.appliedStrategies = fishingAreasResult;
-    }
+      // data.appliedStrategies = fishingAreasResult;
+    // }
 
 
 
