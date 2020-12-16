@@ -26,12 +26,12 @@
           <ion-col class="ion-no-padding ion-padding-top">
 
             <!-- landing form-->
-            <app-landing-form #landingForm
+            <app-landing-form2 #landingForm
                               [program]="programSubject|async"
                               [showError]="false"
                               [debug]="debug"
                               (onSubmit)="save($event)">
-            </app-landing-form>
+            </app-landing-form2>
           </ion-col>
           <ion-col class="ion-no-padding" size="12" size-xl="3">
             <app-entity-metadata [value]="data">
@@ -59,7 +59,7 @@
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-samples-table #samplesTable
+        <app-samples-table2 #samplesTable
                            [program]="programSubject|async"
                            [showLabelColumn]="true"
                            [showDateTimeColumn]="false"
@@ -67,7 +67,7 @@
                            [showTaxonGroupColumn]="true"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
-                           [debug]="debug"></app-samples-table>
+                           [debug]="debug"></app-samples-table2>
 
         <!--        (onOpenRow)="onOpenSample($event)"-->
         <!--        (onNewRow)="onNewSample($event)"-->

@@ -24,9 +24,9 @@ import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.m
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 
 @Component({
-  selector: 'app-landing-form',
-  templateUrl: './landing.form.html',
-  styleUrls: ['./landing.form.scss'],
+  selector: 'app-landing-form2',
+  templateUrl: './landing2.form.html',
+  styleUrls: ['./landing2.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LandingForm extends MeasurementValuesForm<Landing> implements OnInit {
