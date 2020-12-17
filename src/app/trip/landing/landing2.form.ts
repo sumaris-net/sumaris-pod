@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
-import {FormArrayHelper, isNil, isNotNil, Person, referentialToString} from '../../core/core.module';
+import {FormArrayHelper, isNil, isNotNil, Person, ReferentialRef, referentialToString} from '../../core/core.module';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
@@ -35,6 +35,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   mobile: boolean;
+
+  enableTaxonNameFilter = true;
+  canFilterTaxonName = true;
 
   @Input() required = true;
 
@@ -228,6 +231,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   /* -- protected method -- */
 
+
   protected initObserversHelper() {
     if (isNil(this._showObservers)) return; // skip if not loading yet
     this.observersHelper = new FormArrayHelper<Person>(
@@ -251,5 +255,19 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+
+  toggleFilteredItems(fieldName: string){
+    let value : boolean;
+    switch (fieldName) {
+      case 'taxonName':
+        this.enableTaxonNameFilter = value = !this.enableTaxonNameFilter;
+        break;
+      default:
+        break;
+    }
+    this.markForCheck();
+    console.debug(`[landing] set enable filtered ${fieldName} items to ${value}`);
   }
 }
