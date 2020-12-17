@@ -368,6 +368,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // Resize strategy department array
     this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
 
+    // Resize pmfm strategy array
+    this.pmfmStrategiesHelper.resize(Math.max(1, data.pmfmStrategies.length));
+
     // Resize strategy department array
     this.appliedPeriodHelper.resize(4);
 
@@ -661,7 +664,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   // appliedStrategies => appliedStrategies.location ?
     this.pmfmStrategiesHelper = new FormArrayHelper<PmfmStrategy>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmStrategies'),
-      (pmfmStrategy) => this.formBuilder.control(pmfmStrategy || null, [Validators.required]),
+      (pmfmStrategy) => this.validatorService.getPmfmStrategiesControl(pmfmStrategy),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
