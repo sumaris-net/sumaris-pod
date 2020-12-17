@@ -35,6 +35,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
       taxonNames: this.getTaxonNameStrategyFormArray(data),
       pmfmStrategies: this.getPmfmStrategiesFormArray(data),
       appliedStrategies: this.getAppliedStrategiesFormArray(data),
+      appliedPeriods: this.getAppliedPeriodsFormArray(data && data.appliedStrategies[0]),
       strategyDepartments: this.getStrategyDepartmentsFormArray(data),
 
       //gears: [data && data.gears || null], // WARN: Do NOT use special validator here
