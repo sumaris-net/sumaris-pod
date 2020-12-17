@@ -34,16 +34,6 @@ schedule-build:
         - mvn -s ./settings.xml clean install -DskipTests
     environment:
         name: test
-
-build_val:
-    stage: build
-    tags:
-        - sih_public_runner
-    script:
-        - echo "Test oracle build  in progress"
-        - mvn -s ./settings.xml clean install -DskipTests -Dspring.liquibase.enabled=false -Dsumaris.name=SUMARiS -Dsumaris.persistence.sequence.increment=1 -Dlogging.level.org.hibernate.SQL=debug
-    environment:
-        name: test
     artifacts:
         paths:
             - sumaris-server/target/*.war
