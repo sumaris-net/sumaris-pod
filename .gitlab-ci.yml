@@ -27,11 +27,21 @@ schedule-build:
 
 .build:
     stage: build
-    tags: 
+    tags:
         - sih_public_runner
     script:
         - echo "Test dev build in progress"
         - mvn -s ./settings.xml clean install -DskipTests -P oracle
+    environment:
+        name: test
+
+build_val:
+    stage: build
+    tags:
+        - sih_public_runner
+    script:
+        - echo "Test oracle build  in progress"
+        - mvn -s ./settings.xml clean install -DskipTests -Dspring.liquibase.enabled=false -Dsumaris.name=SUMARiS -Dsumaris.persistence.sequence.increment=1 -Dlogging.level.org.hibernate.SQL=debug
     environment:
         name: test
     artifacts:
@@ -45,28 +55,28 @@ schedule-build:
 
 sonarqube:
     stage: test
-    tags: 
+    tags:
         - sih_public_runner
     variables:
-      SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
-      SONAR_HOST_URL: "http://visi-common-sonar:9000"
-    image: 
-      name: sonarsource/sonar-scanner-cli:latest
-      entrypoint: [""]
+        SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
+        SONAR_HOST_URL: "http://visi-common-sonar:9000"
+    image:
+        name: sonarsource/sonar-scanner-cli:latest
+        entrypoint: [""]
     script:
-      - echo "Sonarqube analysis in progress"
-      - sonar-scanner
-        -Dsonar.projectKey=imagine-pod
-        -Dsonar.host.url=$SONAR_HOST_URL 
-        -Dsonar.login=$SONAR_TOKEN
-        -Dsonar.sourceEncoding=UTF-8
-        -Dsonar.java.binaries=.
-        -Dsonar.java.libraries=.
+        - echo "Sonarqube analysis in progress"
+        - sonar-scanner
+            -Dsonar.projectKey=imagine-pod
+            -Dsonar.host.url=$SONAR_HOST_URL
+            -Dsonar.login=$SONAR_TOKEN
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.java.binaries=.
+            -Dsonar.java.libraries=.
     only:
         - develop
         - develop-ifremer
     when: manual
- 
+
 
 pages:
     stage: docs
@@ -88,11 +98,11 @@ pages:
         - develop
         - develop-ifremer
     when: manual
-   
+
 
 package:
     stage: prepare
-    tags: 
+    tags:
         - sih_public_runner
     before_script:
         - git checkout -B "$CI_BUILD_REF_NAME"
@@ -117,7 +127,7 @@ package:
 
 release:
     stage: release
-    tags: 
+    tags:
         - sih_public_runner
     image: registry.gitlab.com/gitlab-org/release-cli:latest
     needs:
@@ -137,7 +147,7 @@ release:
 
 deploy:
     stage: deploy
-    tags: 
+    tags:
         - sih_public_runner
     script:
         - echo "Deploy in progress"
