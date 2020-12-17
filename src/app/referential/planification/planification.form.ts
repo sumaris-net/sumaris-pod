@@ -162,27 +162,22 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // for (let i = 5; i < this.pmfmStrategiesForm.value.lenght; i++) {
     //   pmfms.push(this.pmfmStrategiesHelper.at(i).value);
     // }
-    return pmfms;
+    this.form.controls.pmfmStrategies.patchValue(pmfms);
+    this.markAsDirty();
   }
+
+
 
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
-      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
-      this.markAsDirty();
-    });
-
-    this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
-      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
-      this.markAsDirty();
-    });
-
-    this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
-      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
-      this.markAsDirty();
-    });
+    
+    this.weightPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.sizePmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.maturityPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
+    this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
+    this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
 
      // register year field changes
     this.registerSubscription(
