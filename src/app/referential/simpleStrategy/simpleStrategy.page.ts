@@ -67,6 +67,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   form: FormGroup;
   i18nFieldPrefix = 'STRATEGY.';
   strategyFormState: AnimationState;
+  programId: number;
 
   @ViewChild('planificationForm', { static: true }) planificationForm: PlanificationForm;
 
@@ -98,9 +99,13 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     //  Call editor routing
     super.ngOnInit();
     // Set entity name (required for referential form validator)
-    this.planificationForm.entityName = 'planificationForm';
 
-    this.defaultBackHref =`/referential/program/101?tab=2`;
+
+    // need to fix this
+    this.programId = 40 || this.activatedRoute.snapshot.params['id'];
+
+    this.planificationForm.entityName = 'planificationForm';
+    this.defaultBackHref = `/referential/program/${this.programId}?tab=2`
     // this.defaultBackHref = isNotNil(data.programId) ? `/observations/${data.programId}?tab=2` : undefined;
 
   }
@@ -157,16 +162,18 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     if (!data) return; // Skip
 
+    // init if not exist
+    data.programId = this.programId;
+    data.statusId= data.statusId || 1;
     this.planificationForm.value = data;
-    // this.planificationForm.setValue(data, opts);
 
   }
-
-
 
   protected async getJsonValueToSave(): Promise<Strategy> {
 
     const data = this.planificationForm.value;
+
+    data.name = data.name || data.label;
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
     const appliedStrategies = data.appliedStrategies;
@@ -258,8 +265,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     }
 
-
-
     data.pmfmStrategies= pmfmStrategies.map(p => {
       p.acquisitionLevel = 'SAMPLE';
       p.acquisitionNumber = 1;
@@ -295,7 +300,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
    protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
 
     // Update back href
-    this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${data.programId}?tab=2` : undefined;
+    this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${this.programId}?tab=2` : undefined;
     this.markForCheck();
 
   }
