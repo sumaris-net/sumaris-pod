@@ -52,12 +52,12 @@ export class PmfmStrategyValidatorService implements ValidatorService {
       controlsConfig.matrix = [data && data.pmfm.matrix || null];
       controlsConfig.fraction = [data && data.pmfm.fraction || null];
       controlsConfig.method = [data && data.pmfm.method || null];
-
+      
       // controlsConfig.pmfm = [data && data.pmfm || null, SharedValidators.entity];
-      // controlsConfig.parameterId = [data && data.parameterId || null, SharedValidators.integer];
-      // controlsConfig.matrixId = [data && data.matrixId || null, SharedValidators.integer];
-      // controlsConfig.fractionId = [data && data.fractionId || null, SharedValidators.integer];
-      // controlsConfig.methodId = [data && data.methodId || null, SharedValidators.integer];
+      controlsConfig.parameterId = [data && data.parameterId || null];
+      controlsConfig.matrixId = [data && data.matrixId || null];
+      controlsConfig.fractionId = [data && data.fractionId || null];
+      controlsConfig.methodId = [data && data.methodId || null];
     }
     if (!this.isSimpleStrategy) {
       controlsConfig.acquisitionLevel = [data && data.acquisitionLevel || null, Validators.required];

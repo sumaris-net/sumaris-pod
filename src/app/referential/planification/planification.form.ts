@@ -38,8 +38,8 @@ import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
 export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   // protected formBuilder: FormBuilder;
-  private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
-  private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  // private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  // private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
 
   mobile: boolean;
   programId = -1;
@@ -67,7 +67,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   enableCalcifiedTypeFilter = true;
   canFilterCalcifiedType = true;
-  calcifiedTypeHelper: FormArrayHelper<ReferentialRef>;
+  calcifiedTypeHelper: FormArrayHelper<PmfmStrategy>;
   calcifiedTypeFocusIndex = -1;
 
   @Input() program: Program;
@@ -83,9 +83,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   public sampleRowMask = ['2', '0', '2', '0', '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
 
-  get calcifiedTypesForm(): FormArray {
-    return this.form.controls.calcifiedTypes as FormArray;
-  }
 
   get strategyDepartmentFormArray(): FormArray {
     return this.form.controls.strategyDepartments as FormArray;
@@ -110,6 +107,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   get appliedPeriodsForm(): FormArray {
     return this.form.controls.appliedPeriods as FormArray;
+  }
+
+  get calcifiedTypesForm(): FormArray {
+    return this.form.controls.calcifiedTypes as FormArray;
   }
 
   @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
@@ -158,47 +159,30 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     pmfms.push(this.sizePmfmStrategiesTable.value);
     pmfms.push(this.maturityPmfmStrategiesTable.value);
 
-    for (let i = 5; i < this.pmfmStrategiesForm.value.lenght; i++) {
-      pmfms.push(this.pmfmStrategiesHelper.at(i).value);
-    }
-    return pmfms;
+    // for (let i = 5; i < this.pmfmStrategiesForm.value.lenght; i++) {
+    //   pmfms.push(this.pmfmStrategiesHelper.at(i).value);
+    // }
+    this.form.controls.pmfmStrategies.patchValue(pmfms);
+    this.markAsDirty();
   }
+
+
 
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
-      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
-      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
-
-      // this.form.controls.updateDate.setValue(new Date());
-      //this.form.markAsPristine();
-      this.markAsDirty();
-    });
-
-    this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
-      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
-      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
-
-      // this.form.controls.updateDate.setValue(new Date());
-      //this.form.markAsPristine();
-      this.markAsDirty();
-    });
-
-    this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
-      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
-      this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
-
-      // this.form.controls.updateDate.setValue(new Date());
-      //this.form.markAsPristine();
-      this.markAsDirty();
-    });
+    
+    this.weightPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.sizePmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.maturityPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
+    this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
+    this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
 
      // register year field changes
     this.registerSubscription(
       this.form.get('creationDate').valueChanges
-        .subscribe(async (date : Moment) => this.onDateChange(date) )
+        .subscribe(async (date : Moment) => this.onDateChange(date ? date : moment()))
     );
 
     // taxonName autocomplete
@@ -247,23 +231,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       mobile: this.settings.mobile
     });
 
-    // Calcified type combo ------------------------------------------------------------
-    // this.registerAutocompleteField('calcifiedType', {
-    //   attributes: ['name'],
-    //   columnNames: [ 'REFERENTIAL.NAME'],
-    //   items: this._calcifiedTypeSubject,
-    //   mobile: this.mobile
-    // });
-    // this.loadCalcifiedType();
-
-    // const res = await this.referentialRefService.loadAll(0, 200, null,null,
-    //   {
-    //     entityName: 'Fraction',
-    //     searchAttribute: "description",
-    //     searchText: "individu"
-    //   });
-    // return res.data;
-
     this.registerAutocompleteField('calcifiedType', {
         suggestFn: (value, filter) => this.suggest(value, {
             ...filter, statusId : 1
@@ -280,12 +247,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.sampleRowMask = [...moment().year().toString().split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
 
     //init helpers
-    // this.initCalcifiedTypeHelper();
     this.initDepartmentHelper();
     this.initTaxonNameHelper();
     this.initPmfmStrategiesHelper();
     this.initAppliedStrategiesHelper();
     this.initAppliedPeriodHelper();
+    this.initCalcifiedTypeHelper();
 
   }
 
@@ -355,11 +322,8 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     console.debug("[planification-form] Setting Strategy value", data);
     if (!data) return;
 
-
-    console.log(data);
-
     // QUICKFIX label to remove as soon as possible
-    data.label = data.label.replace(/_/g, "-");
+    data.label = data.label?.replace(/_/g, "-");
 
     // Resize strategy department array
     this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
@@ -415,7 +379,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
     super.setValue(data, opts);
-    console.log(this.form);
 
       // fixme get eotp from referential by label = data.analyticReference
       let  analyticReferenceToSet : IReferentialRef = new ReferentialRef();
@@ -506,6 +469,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : [new PmfmStrategy()];
 
 
+    this.pmfmStrategiesHelper.resize(Math.max(5, pmfmStrategies.length));
+    pmfmStrategiesControl.patchValue(pmfmStrategies);
+
+
         // CALCIFIED TYPES
       // const calcifiedTypesControl = this.calcifiedTypesForm;
       // let calcifiedTypesPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
@@ -517,39 +484,25 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // };
 
 
+    this.referentialRefService.loadAll(0, 0, null, null,
+      { 
+        entityName : 'Fraction'
+      },
+      { withTotal: false /* total not need */ }
+    ).then(res => {
+      const calcifiedTypeControl = this.calcifiedTypesForm;
+      const calcifiedTypes =  (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
+      const fractions = calcifiedTypes.map(cal => {
+        return {
+          id: cal.fractionId,
+          name : res.data.find(fraction => fraction.id === cal.fractionId).name,
+        }
+      });
+      
+      this.calcifiedTypeHelper.resize(Math.max(1, calcifiedTypes.length))
+      calcifiedTypeControl.patchValue(fractions);
+    })
 
-      let calcifiedTypesPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
-      if (calcifiedTypesPmfmStrategy)
-      {
-        calcifiedTypesPmfmStrategy.forEach(pmfmStrategy => {
-          pmfmStrategies.push({
-            id:pmfmStrategy.fractionId,
-            label:null,
-            name:null,
-            rankOrder:null
-          })
-        });
-        // calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {
-        //   return new ReferentialRef ({
-        //     id:pmfmStrategy.fractionId,
-        //     label:null, name:null,rankOrder:null}
-        //     );
-        // });
-
-    //     // Not initialiezd since loadCalcifiedTypes ares loaded asynchronously
-    //     //this._calcifiedTypeSubject.getValue();
-    //     // @ts-ignore
-    //     //for (let item of this._calcifiedTypeSubject.asObservable())
-    //     //{
-    //     //  item.toString();
-    //    // }
-        // this.calcifiedTypeHelper.resize(Math.max(1, calcifiedTypesPmfmStrategy.length));
-        // calcifiedTypesControl.patchValue(calcifiedTypesFractionRefIds);
-      }
-
-
-      this.pmfmStrategiesHelper.resize(Math.max(6, pmfmStrategies.length));
-      pmfmStrategiesControl.patchValue(pmfmStrategies);
   }
 
   protected async onDateChange(date : Moment) {
@@ -629,7 +582,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   // appliedStrategies => appliedStrategies.location ?
     this.pmfmStrategiesHelper = new FormArrayHelper<PmfmStrategy>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmStrategies'),
-      (pmfmStrategy) => this.formBuilder.control(pmfmStrategy || null, [Validators.required]),
+      (pmfmStrategy) => this.formBuilder.control(pmfmStrategy || null),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
@@ -713,64 +666,28 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       this.laboratoryFocusIndex = this.strategyDepartmentHelper.size() - 1;
     }
   }
+
   // CalcifiedTypeHelper -----------------------------------------------------------------------------------------------
-
-  // protected initCalcifiedTypeHelper() {
-  //   this.calcifiedTypeHelper = new FormArrayHelper<ReferentialRef>(
-  //     FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'calcifiedTypes'),
-  //     (calcifiedType) => this.formBuilder.control(calcifiedType || null, [Validators.required, SharedValidators.entity]),
-  //     ReferentialUtils.equals,
-  //     ReferentialUtils.isEmpty,
-  //     {
-  //       allowEmptyArray: false
-  //     }
-  //   );
-  //   // Create at least one calcifiedType
-  //   if (this.calcifiedTypeHelper.size() === 0) {
-  //     this.calcifiedTypeHelper.resize(1);
-  //   }
-  // }
-  // addCalcifiedType() {
-  //   this.calcifiedTypeHelper.add();
-  //   if (!this.mobile) {
-  //     this.calcifiedTypeFocusIndex = this.calcifiedTypeHelper.size() - 1;
-  //   }
-  // }
-
-  // Calcified Type ---------------------------------------------------------------------------------------------
-  protected async loadCalcifiedType() {
-    // const calcifiedTypeControl = this.form.get('calcifiedTypes');
-    // calcifiedTypeControl.enable();
-    // // Refresh filtred departments
-    // if (this.enableCalcifiedTypeFilter) {
-    //   const allcalcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
-    //   this._calcifiedTypeSubject.next(allcalcifiedTypes);
-    // } else {
-    //   // TODO Refresh filtred departments
-    //   const filtredCalcifiedTypes = await this.loadCalcifiedTypesMethod();
-    //   this._calcifiedTypeSubject.next(filtredCalcifiedTypes);
-    // }
-  }
-  // Load CalcifiedTypes Service
-  protected async loadCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null,
+  protected initCalcifiedTypeHelper() {
+    this.calcifiedTypeHelper = new FormArrayHelper<PmfmStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'calcifiedTypes'),
+      (calcifiedType) => this.formBuilder.control(calcifiedType || null, [Validators.required, SharedValidators.entity]),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
       {
-        entityName: 'Fraction',
-        searchAttribute: "description",
-        searchText: "individu"
-      });
-    return res.data;
+        allowEmptyArray: false
+      }
+    );
+    // Create at least one calcifiedType
+    if (this.calcifiedTypeHelper.size() === 0) {
+      this.calcifiedTypeHelper.resize(1);
+    }
   }
-
-  //TODO : Load filtred CalcifiedTypes Service : another service to implement
-  protected async loadFilteredCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 1, null,null,
-      {
-        entityName: 'Fraction',
-        searchAttribute: "description",
-        searchText: "individu"
-      });
-    return res.data;
+  addCalcifiedType() {
+    this.calcifiedTypeHelper.add();
+    if (!this.mobile) {
+      this.calcifiedTypeFocusIndex = this.calcifiedTypeHelper.size() - 1;
+    }
   }
 
   protected markForCheck() {
