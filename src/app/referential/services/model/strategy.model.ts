@@ -202,8 +202,8 @@ export class AppliedPeriod {
 
   fromObject(source: any) {
     this.appliedStrategyId = source.appliedStrategyId;
-    this.startDate = source.startDate;
-    this.endDate = source.endDate;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
     this.acquisitionNumber = source.acquisitionNumber;
   }
 }
@@ -250,8 +250,7 @@ export class TaxonNameStrategy {
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
-    if (!opts || opts.keepTypename !== true) delete target.__typename;
-    target.taxonGroup = this.taxonName && this.taxonName.asObject({ ...opts, ...MINIFY_OPTIONS });
+    if (!opts || opts.keepTypename !== true) delete target.taxonName.__typename;
     return target;
   }
 

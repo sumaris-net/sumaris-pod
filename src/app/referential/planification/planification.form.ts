@@ -399,30 +399,31 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // get model appliedPeriods which are stored in first applied strategy
     const appliedPeriodControl = this.appliedPeriodsForm;
     const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
+    const appliedStrategyId = data.appliedStrategies.length && data.appliedStrategies[0].strategyId || undefined;
 
-    // format periods for applied conrol period in view and init default period if no set
+    // format periods for applied conrol period in view and init default period by quarter if no set
     const quarter1 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 1) || {
-      appliedStrategyId: data.appliedStrategies[0].strategyId,
-      startDate: moment("01/01/2020"),
-      endDate: moment("03/01/2020"),
+      appliedStrategyId: appliedStrategyId,
+      startDate: moment("2020-01-01"),
+      endDate: moment("2020-03-31"),
       acquisitionNumber: undefined
     };
     const quarter2 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 4) || {
-      appliedStrategyId: data.appliedStrategies[0].strategyId,
-      startDate: moment("04/01/2020"),
-      endDate: moment("06/01/2020"),
+      appliedStrategyId: appliedStrategyId,
+      startDate: moment("2020-04-01"),
+      endDate: moment("2020-06-30"),
       acquisitionNumber: undefined
     };
     const quarter3 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 7) || {
-      appliedStrategyId: data.appliedStrategies[0].strategyId,
-      startDate: moment("07/01/2020"),
-      endDate: moment("09/01/2020"),
+      appliedStrategyId: appliedStrategyId,
+      startDate: moment("2020-07-01"),
+      endDate: moment("2020-09-30"),
       acquisitionNumber: undefined
     };
     const quarter4 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 10) || {
-      appliedStrategyId: data.appliedStrategies[0].strategyId,
-      startDate: moment("10/01/2020"),
-      endDate: moment("12/01/2020"),
+      appliedStrategyId: appliedStrategyId,
+      startDate: moment("2020-10-01"),
+      endDate: moment("2020-12-31"),
       acquisitionNumber: undefined
     };
     const formattedAppliedPeriods = [quarter1,quarter2,quarter3,quarter4];
