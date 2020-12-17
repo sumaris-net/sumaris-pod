@@ -193,8 +193,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     data.programId=40;
 
 
-    console.log(data);
-
+    
     //Sample row code
     data.label =  this.planificationForm.form.get("label").value;
     data.name = this.planificationForm.form.get("label").value;
@@ -396,9 +395,18 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       pmfmStrategies.push(pmfmStrategyAge);
 
     }
-    data.pmfmStrategies= pmfmStrategies;
-  //--------------------------------------------------------------------------------------------------------------------
 
+
+
+    data.pmfmStrategies= pmfmStrategies.map(p => {
+      p.acquisitionLevel = 'SAMPLE';
+      p.acquisitionNumber = 1;
+      p.isMandatory = false;
+      p.rankOrder =1;
+      return p}).filter(p => p.pmfm || p.fractionId);
+
+  //--------------------------------------------------------------------------------------------------------------------
+    console.log(data);
     return data;
   }
 

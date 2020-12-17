@@ -353,12 +353,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     console.log("data1", data);
 
 
-    data.pmfmStrategies.forEach(p => {
-      if (p.matrixId) p['matrix'] = p.matrixId;
-      if (p.fractionId) p['fraction'] = p.fractionId;
-      if (p.methodId) p['method'] = p.methodId;
-      if (p.parameterId) p['parameter'] = p.parameterId;
-    })
+    // data.pmfmStrategies.forEach(p => {
+    //   if (p.matrixId) p['matrix'] = p.matrixId;
+    //   if (p.fractionId) p['fraction'] = p.fractionId;
+    //   if (p.methodId) p['method'] = p.methodId;
+    //   if (p.parameterId) p['parameter'] = p.parameterId;
+    // })
 
     // QUICKFIX label to remove as soon as possible
     data.label = data.label.replace(/_/g, "-");
@@ -370,10 +370,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
     console.log("data2", data);
-
-
-
-    data.pmfmStrategies[2].matrixId = 2;
 
       // EOTP
       /*const eotpControl = this.form.get("analyticReference");
@@ -551,17 +547,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // };
 
 
-
+      
       let calcifiedTypesPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
       if (calcifiedTypesPmfmStrategy)
       {
         calcifiedTypesPmfmStrategy.forEach(pmfmStrategy => {
-          pmfmStrategies.push({
-            id:pmfmStrategy.fractionId,
-            label:null,
-            name:null,
-            rankOrder:null
-          })
+          pmfmStrategies.push(pmfmStrategy)
         });
         // calcifiedTypesPmfmStrategy.map(pmfmStrategy =>  {
         //   return new ReferentialRef ({
@@ -580,6 +571,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         // this.calcifiedTypeHelper.resize(Math.max(1, calcifiedTypesPmfmStrategy.length));
         // calcifiedTypesControl.patchValue(calcifiedTypesFractionRefIds);
       }
+
+      console.log(data.pmfmStrategies)
+
+
 
 
       this.pmfmStrategiesHelper.resize(Math.max(6, pmfmStrategies.length));
