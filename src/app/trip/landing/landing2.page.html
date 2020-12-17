@@ -1,0 +1,94 @@
+<app-toolbar [title]="title$ | async" color="primary" [hasValidate]="!loading && dirty" (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+</app-toolbar>
+
+<ion-content>
+
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+
+    <!-- TAB: general -->
+    <mat-tab label="{{'LANDING.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>LANDING.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && landing2Form.invalid"></ion-icon>
+      </ng-template>
+
+      <!-- error -->
+      <ion-item *ngIf="landing2Form.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+      </ion-item>
+
+      <ion-grid class="ion-no-padding">
+        <ion-row class="ion-no-padding">
+          <ion-col class="ion-no-padding ion-padding-top">
+
+            <!-- landing2 form-->
+            <app-landing2-form #landing2Form
+                               [program]="programSubject|async"
+                               [showError]="false"
+                               [debug]="debug"
+                               (onSubmit)="save($event)">
+            </app-landing2-form>
+          </ion-col>
+          <ion-col class="ion-no-padding" size="12" size-xl="3">
+            <app-entity-metadata [value]="data">
+              <app-entity-quality-form #qualityForm [editor]="this">
+              </app-entity-quality-form>
+            </app-entity-metadata>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </mat-tab>
+
+    <!-- TAB: samples 2-->
+    <mat-tab label="{{'LANDING.TAB_SAMPLES'|translate}}" >
+      <ng-template mat-tab-label>
+        <mat-icon>center_focus_strong</mat-icon>
+        <ion-label translate>LANDING.TAB_SAMPLES</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="samples2Table.invalid"></ion-icon>
+      </ng-template>
+
+      <div class="ion-no-padding">  -->
+
+        <!-- error -->
+        <ion-item *ngIf="samples2Table.error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="samples2Table.error|translate"></ion-label>
+        </ion-item>
+
+        <app-samples2-table #samples2Table
+                            [program]="programSubject|async"
+                            [showLabelColumn]="true"
+                            [showDateTimeColumn]="false"
+                            [showTaxonNameColumn]="false"
+                            [showTaxonGroupColumn]="true"
+                            [defaultSampleDate]="data?.dateTime"
+                            [usageMode]="usageMode"
+                            [debug]="debug"></app-samples2-table>
+
+        <!--        (onOpenRow)="onOpenSample($event)"-->
+        <!--        (onNewRow)="onNewSample($event)"-->
+
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+
+  </ion-content>
+
+  <ion-footer hidden-xs hidden-sm hidden-mobile>
+
+    <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
+                      [disabledCancel]="!dirty || loading">
+
+      <!-- error -->
+    <ion-item *ngIf="error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </form-buttons-bar>
+</ion-footer>
