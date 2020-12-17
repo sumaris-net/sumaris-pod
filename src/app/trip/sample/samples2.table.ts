@@ -36,7 +36,7 @@ export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 
 @Component({
-  selector: 'app-samples-table2',
+  selector: 'app-samples2-table',
   templateUrl: 'samples2.table.html',
   styleUrls: ['samples2.table.scss'],
   providers: [
@@ -122,9 +122,9 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     if (this.onInitForm) {
       this.registerSubscription(
         this.onStartEditingRow.subscribe(row => this.onInitForm.emit({
-              form: row.validator,
-              pmfms: this.$pmfms.getValue()
-            })));
+          form: row.validator,
+          pmfms: this.$pmfms.getValue()
+        })));
     }
   }
 
@@ -292,4 +292,3 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     this.cd.markForCheck();
   }
 }
-

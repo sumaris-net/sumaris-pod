@@ -31,9 +31,9 @@ export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType',
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
-  selector: 'app-landings-table',
-  templateUrl: 'landings.table.html',
-  styleUrls: ['landings.table.scss'],
+  selector: 'app-landings2-table',
+  templateUrl: 'landings2.table.html',
+  styleUrls: ['landings2.table.scss'],
   providers: [
     {provide: ValidatorService, useExisting: LandingValidatorService}
   ],
@@ -68,9 +68,9 @@ export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter>
     return this._detailEditor;
   }
 
-  get isTripDetailEditor(): boolean {
+  /*get isTripDetailEditor(): boolean {
     return this._detailEditor === 'trip';
-  }
+  }*/
 
   @Input()
   set showObserversColumn(value: boolean) {
@@ -180,14 +180,14 @@ export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter>
 
   addRow(event?: any): boolean {
 
-    if (this.isTripDetailEditor) {
+   /* if (this.isTripDetailEditor) {
       if (!this._enabled) return false;
       if (this.debug) console.debug("[landings-table] Asking for new landing...");
 
       // Force modal
       this.openNewRowDetail(event);
       return false;
-    }
+    }*/
 
     // default behavior
     return super.addRow(event);
@@ -216,4 +216,3 @@ export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter>
     this.cd.markForCheck();
   }
 }
-

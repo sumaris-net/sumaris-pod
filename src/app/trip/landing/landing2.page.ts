@@ -28,7 +28,7 @@ import {AppEditorOptions} from "../../core/form/editor.class";
 import {Landing2Form} from "./landing2.form";
 
 @Component({
-  selector: 'app-landing-page2',
+  selector: 'app-landing2-page',
   templateUrl: './landing2.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [

@@ -39,6 +39,9 @@ import {ReferentialModule} from "../referential/referential.module";
 import {TranslateModule} from "@ngx-translate/core";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {CommonModule} from "@angular/common";
+import {Landings2Table} from "./landing/landings2.table";
+import {Landing2Page} from "./landing/landing2.page";
+import {Landing2Form} from "./landing/landing2.form";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -55,9 +58,10 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     ObservedLocationPage,
     ObservedLocationsPage,
     LandingsTable,
+    Landings2Table,
     LandingPage,
-    LandingForm,
     Landing2Page,
+    LandingForm,
     Landing2Form,
     SelectLandingsModal,
     AggregatedLandingsTable,
@@ -84,9 +88,10 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
   exports: [
     TripModule,
     LandingsTable,
+    Landings2Table,
     LandingForm,
-    LandingPage,
     Landing2Form,
+    LandingPage,
     Landing2Page,
     SelectLandingsModal,
     AuctionControlPage
