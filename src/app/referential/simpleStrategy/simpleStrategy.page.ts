@@ -155,112 +155,28 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   //protected setValue(data: Strategy) {
   protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
-      if (!data) return; // Skip
-
-    this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
-
-    /*this.simpleStrategyForm.value = data;
-    //this.simpleStrategyForm.program = 40;*/
-    //this.simpleStrategyForm.statusList =
-   /* this.simpleStrategyForm.entityName= 'strategy';*/
-
+    if (!data) return; // Skip
 
     this.planificationForm.value = data;
-    //this.simpleStrategyForm.program = 40;
-    //this.simpleStrategyForm.statusList =
-    //this.planificationForm.entityName= 'strategy';
+    // this.planificationForm.setValue(data, opts);
 
-
-    // Make sure to set entityName if set from Input()
-    /*const entityNameControl = this.form.get('entityName');
-    if (entityNameControl && this.entityName && entityNameControl.value !== this.entityName) {
-      entityNameControl.setValue(this.entityName);
-    }*/
-    // Propagate value to planification form when automatic binding isn't set in super.setValue()
-   // this.planificationForm.entityName= 'strategy';
-    this.planificationForm.setValueSimpleStrategy(data, opts);
-
-
-    this.markAsPristine();
   }
 
 
 
   protected async getJsonValueToSave(): Promise<Strategy> {
 
-    const data = await super.getJsonValueToSave();
-    // TODO : get programId
-    data.programId=40;
-
-
-    console.log(data);
-
-    //Sample row code
-    data.label =  this.planificationForm.form.get("label").value;
-    data.name = this.planificationForm.form.get("label").value;
-    data.statusId=1;
-
-    //eotp
-    if(this.planificationForm.form.get("analyticReference").value){
-      data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
-    }
-
-    //comments
-    data.description = this.planificationForm.form.get("description").value;
-
-    // get Id program from route ?
-    console.log("programId : " + this.activatedRoute.snapshot.paramMap.get('id'));
-
-    //get creationDate -------------------------------------------------------------------------------------------------
-    let creationDate = this.planificationForm.form.get("creationDate").value;
-    let year = new Date(creationDate).getFullYear();
-
-    //get Laboratories -------------------------------------------------------------------------------------------------
-
-    let laboratories =  this.planificationForm.strategyDepartmentFormArray.value;
-
-    if(laboratories){
-       // FIXME
-      let observer : ReferentialRef = new ReferentialRef();
-      observer.id =2;
-      observer.label ="Observer";
-      observer.name ="Observer privilege";
-      observer.statusId =1;
-      observer.entityName ="ProgramPrivilege";
-
-
-
-      // set strategyId and provilege
-      for( let i =0;i <laboratories.length; i++){
-        laboratories[i].strategyId = data.id;
-        laboratories[i].privilege= observer;
-      }
-      data.strategyDepartments = laboratories;
-    }
-
-    //TaxonNames -------------------------------------------------------------------------------------------------------
-    let taxonNameStrategy =  this.planificationForm.taxonNamesForm.value;
-    let taxonName: TaxonNameStrategy = new TaxonNameStrategy();
-    let taxonNameStrategies: TaxonNameStrategy [] =[];
-
-    if(taxonNameStrategy){
-      taxonName.strategyId= data.id;
-      taxonName.priorityLevel=null;
-      taxonName.taxonName=taxonNameStrategy[0];
-      taxonName.taxonName.referenceTaxonId = taxonName.taxonName.id;
-      taxonNameStrategies.push(taxonName);
-
-      data.taxonNames =taxonNameStrategies;
-    }
+    const data = this.planificationForm.value;
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
-    const appliedStrategies = this.planificationForm.appliedStrategiesForm.value;
+    const appliedStrategies = data.appliedStrategies;
     // append efforts (trick is that effots are added to the first appliedStrategy of the array)
     if(appliedStrategies.length){
-      const appliedPeriods = this.planificationForm.appliedPeriodsForm.value as AppliedPeriod[];
+      const appliedPeriods = data.appliedPeriods;
       appliedStrategies[0].appliedPeriods = appliedPeriods.filter(period => isNotNil(period.acquisitionNumber));
     }
     data.appliedStrategies = appliedStrategies;
+    // delete data.appliedPeriods;
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
     let pmfmStrategie = this.planificationForm.pmfmStrategiesForm.value;
