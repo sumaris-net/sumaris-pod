@@ -38,8 +38,8 @@ import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
 export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   // protected formBuilder: FormBuilder;
-  private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
-  private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  // private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  // private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
 
   mobile: boolean;
   programId = -1;
@@ -170,36 +170,24 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     super.ngOnInit();
 
     this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
-      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
       this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
-
-      // this.form.controls.updateDate.setValue(new Date());
-      //this.form.markAsPristine();
       this.markAsDirty();
     });
 
     this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
-      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
       this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
-
-      // this.form.controls.updateDate.setValue(new Date());
-      //this.form.markAsPristine();
       this.markAsDirty();
     });
 
     this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(res => {
-      //this.form.controls.pmfmStrategies.setValue([res.currentData, res.currentData, res.currentData, res.currentData, res.currentData, res.currentData]);
       this.form.controls.pmfmStrategies.patchValue(this.setPmfmStrategies());
-
-      // this.form.controls.updateDate.setValue(new Date());
-      //this.form.markAsPristine();
       this.markAsDirty();
     });
 
      // register year field changes
     this.registerSubscription(
       this.form.get('creationDate').valueChanges
-        .subscribe(async (date : Moment) => this.onDateChange(date) )
+        .subscribe(async (date : Moment) => this.onDateChange(date ? date : moment()))
     );
 
     // taxonName autocomplete
@@ -248,23 +236,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       mobile: this.settings.mobile
     });
 
-    // Calcified type combo ------------------------------------------------------------
-    // this.registerAutocompleteField('calcifiedType', {
-    //   attributes: ['name'],
-    //   columnNames: [ 'REFERENTIAL.NAME'],
-    //   items: this._calcifiedTypeSubject,
-    //   mobile: this.mobile
-    // });
-    // this.loadCalcifiedType();
-
-    // const res = await this.referentialRefService.loadAll(0, 200, null,null,
-    //   {
-    //     entityName: 'Fraction',
-    //     searchAttribute: "description",
-    //     searchText: "individu"
-    //   });
-    // return res.data;
-
     this.registerAutocompleteField('calcifiedType', {
         suggestFn: (value, filter) => this.suggest(value, {
             ...filter, statusId : 1
@@ -282,7 +253,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     //init helpers
     this.initDepartmentHelper();
-    //this.initFishingAreaHelper();
     this.initTaxonNameHelper();
     this.initPmfmStrategiesHelper();
     this.initAppliedStrategiesHelper();
@@ -357,19 +327,8 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     console.debug("[planification-form] Setting Strategy value", data);
     if (!data) return;
 
-
-    console.log("data1", data);
-
-
-    // data.pmfmStrategies.forEach(p => {
-    //   if (p.matrixId) p['matrix'] = p.matrixId;
-    //   if (p.fractionId) p['fraction'] = p.fractionId;
-    //   if (p.methodId) p['method'] = p.methodId;
-    //   if (p.parameterId) p['parameter'] = p.parameterId;
-    // })
-
     // QUICKFIX label to remove as soon as possible
-    data.label = data.label.replace(/_/g, "-");
+    data.label = data.label?.replace(/_/g, "-");
 
     // Resize strategy department array
     this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
@@ -422,9 +381,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
     super.setValue(data, opts);
-
-
-    console.log("data2", data);
 
       // EOTP
       /*const eotpControl = this.form.get("analyticReference");
@@ -562,13 +518,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       calcifiedTypeControl.patchValue(fractions);
     })
 
-
-
-      
-      console.log(data.pmfmStrategies)
-
-
-      console.log(this.form);
   }
 
   protected async onDateChange(date : Moment) {
@@ -754,42 +703,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     if (!this.mobile) {
       this.calcifiedTypeFocusIndex = this.calcifiedTypeHelper.size() - 1;
     }
-  }
-
-  // Calcified Type ---------------------------------------------------------------------------------------------
-  protected async loadCalcifiedType() {
-    // const calcifiedTypeControl = this.form.get('calcifiedTypes');
-    // calcifiedTypeControl.enable();
-    // // Refresh filtred departments
-    // if (this.enableCalcifiedTypeFilter) {
-    //   const allcalcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
-    //   this._calcifiedTypeSubject.next(allcalcifiedTypes);
-    // } else {
-    //   // TODO Refresh filtred departments
-    //   const filtredCalcifiedTypes = await this.loadCalcifiedTypesMethod();
-    //   this._calcifiedTypeSubject.next(filtredCalcifiedTypes);
-    // }
-  }
-  // Load CalcifiedTypes Service
-  protected async loadCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null,
-      {
-        entityName: 'Fraction',
-        searchAttribute: "description",
-        searchText: "individu"
-      });
-    return res.data;
-  }
-
-  //TODO : Load filtred CalcifiedTypes Service : another service to implement
-  protected async loadFilteredCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 1, null,null,
-      {
-        entityName: 'Fraction',
-        searchAttribute: "description",
-        searchText: "individu"
-      });
-    return res.data;
   }
 
   protected markForCheck() {
