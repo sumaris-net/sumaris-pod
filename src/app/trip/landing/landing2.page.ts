@@ -238,9 +238,13 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       if (this.parent instanceof ObservedLocation) {
 
         this.landingForm.showProgram = false;
+        this.landingForm.showSampleRowCode = true;
         this.landingForm.showVessel = true;
-        this.landingForm.showLocation = false;
-        this.landingForm.showDateTime = true;
+        this.landingForm.showLocation = true;
+        this.landingForm.showDateTime = false;
+        this.landingForm.showFishingArea = true;
+        this.landingForm.showTargetSpecies = true;
+        this.landingForm.showComment = true;
         this.landingForm.showObservers = true;
 
       } else if (this.parent instanceof Trip) {

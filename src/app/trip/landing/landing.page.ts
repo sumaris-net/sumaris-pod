@@ -235,7 +235,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     if (this.parent) {
       if (this.parent instanceof ObservedLocation) {
-
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = true;
         this.landingForm.showLocation = false;

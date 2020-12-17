@@ -768,6 +768,7 @@
     "PROGRAM": "Program",
     "SAMPLE_ROW_CODE": "Sample row code",
     "FISHING_AREA" :"Fishing area",
+    "TARGET_SPECIES" :"Target species",
     "VESSEL": "Vessel",
     "LANDING": "Landing:",
     "DATE_TIME": "Date/Time",

@@ -44,6 +44,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   @Input() showDateTime = true;
   @Input() showLocation = true;
   @Input() showFishingArea = true;
+  @Input() showTargetSpecies = true;
   @Input() showComment = true;
   @Input() showMeasurements = true;
   @Input() showError = true;
