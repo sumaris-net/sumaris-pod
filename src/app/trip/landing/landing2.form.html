@@ -17,12 +17,12 @@
     <!-- Model landing_measurement.alphanumerical_value avec pmfm_fk -->
     <ion-row *ngIf="showSampleRowCode">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
+        <ion-label class="ion-float-end" translate>LANDING.SAMPLE_ROW_CODE_TITLE</ion-label>
       </ion-col>
       <ion-col>
 
         <ion-label class="ion-float-end" translate>LANDING.SAMPLE_ROW_CODE</ion-label>
-<!--        <mat-autocomplete-field formControlName="samplingRowCode"-->
+<!--        <mat-autocomplete-field formControlName="sampleRowCode"-->
 <!--                                [placeholder]="'LANDING.SAMPLING_ROW_CODE'|translate"-->
 <!--                                [config]="autocompleteFields.program"-->
 <!--                                [tabindex]="tabindex"-->
@@ -59,7 +59,7 @@
     <!-- Model observed_location.location_fk -->
     <ion-row *ngIf="showLocation">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>LANDING.LANDING</ion-label>
+        <ion-label></ion-label>
       </ion-col>
       <!-- location -->
       <ion-col *ngIf="showLocation">
@@ -75,14 +75,14 @@
 
   <!-- FISHING AREA readonly from strategy -->
     <!-- Model strategy -->
-<!--    <ion-row *ngIf="showFishingArea" *ngFor="let fishingAreaForm of appliedStrategiesForm?.controls.slice(4); index as i; first as first">-->
-    <ion-row *ngIf="showFishingArea" >
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
-      </ion-col>
-      <ion-col>
-        <ion-label class="ion-float-end" translate>LANDING.FISHING_AREA</ion-label>
-<!--        <mat-autocomplete-field [formControl]="appliedStrategiesHelper.at(i+4)"-->
+<!--    <ion-row *ngIf="showFishingArea" >-->
+<!--    <ion-row  *ngFor="let fishingAreaForm of fishingAreasForm?.controls; index as i; first as first">-->
+<!--      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">-->
+<!--        <ion-label>&nbsp;</ion-label>-->
+<!--      </ion-col>-->
+<!--      <ion-col>-->
+<!--        <ion-label class="ion-float-end" translate>LANDING.FISHING_AREA</ion-label>-->
+<!--        <mat-autocomplete-field [formControl]="fishingAreaHelper.at(i)"-->
 <!--                                [placeholder]="('PLANIFICATION.FISHING_AREA'|translate) + (i+1)"-->
 <!--                                [config]="autocompleteFields.fishingArea"-->
 <!--                                [tabindex]="tabindex+10+i*3"-->
@@ -97,22 +97,22 @@
 <!--          </button>-->
 <!--          <mat-icon matPrefix>room</mat-icon>-->
 <!--        </mat-autocomplete-field>-->
-      </ion-col>
+<!--      </ion-col>-->
 
-      <ion-col size="auto" class="ion-align-self-center">
-      </ion-col>
+<!--      <ion-col size="auto" class="ion-align-self-center">-->
+<!--      </ion-col>-->
 
-    </ion-row>
+<!--    </ion-row>-->
 
     <!-- Target species -->
     <!-- Model sample.reference_taxon_fk -->
     <ion-row *ngIf="showTargetSpecies" >
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
+        <ion-label class="ion-float-end" translate>LANDING.TARGET_SPECIES_TITLE</ion-label>
       </ion-col>
       <ion-col>
-        <ion-label class="ion-float-end" translate>LANDING.TARGET_SPECIES</ion-label>
-<!--        <mat-autocomplete-field [formControl]="sample.reference_taxon_fk"-->
+<!--        <ion-label class="ion-float-end" translate>LANDING.TARGET_SPECIES</ion-label>-->
+<!--        <mat-autocomplete-field formControlName="targetSpecies"-->
 <!--                                [placeholder]="'LANDING.TARGET_SPECIES'|translate"-->
 <!--                                [config]="autocompleteFields.taxonName"-->
 <!--                                [tabindex]="tabindex+1"-->

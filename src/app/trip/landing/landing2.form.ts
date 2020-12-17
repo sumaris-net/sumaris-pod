@@ -8,7 +8,7 @@ import {LandingValidatorService} from "../services/validator/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
@@ -22,6 +22,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Component({
   selector: 'app-landing-form2',
@@ -40,6 +41,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   canFilterTaxonName = true;
 
   @Input() required = true;
+
+  referenceTaxon : ReferentialRef;
+  fishingAreas : ReferentialRef[];
 
   @Input() showProgram = true;
   @Input() showSampleRowCode = true;
@@ -79,6 +83,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   get observersForm(): FormArray {
     return this.form.controls.observers as FormArray;
+  }
+
+  getReferenceTaxonControl(): FormControl {
+    return null; //this.form.controls.observers;
   }
 
   constructor(
@@ -161,6 +169,15 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: personToString
+    });
+
+    // Combo: taxon / targetSpecies
+    const targetSpeciesField = this.registerAutocompleteField('targetSpecies', {
+      service: this.vesselSnapshotService,
+      attributes: this.settings.getFieldDisplayAttributes('targetSpecies', ['exteriorMarking', 'name']),
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
     });
   }
 
