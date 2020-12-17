@@ -35,7 +35,7 @@ schedule-build:
     environment:
         name: test
 
-build_val:
+build_oracle:
     stage: build
     tags:
         - sih_public_runner
