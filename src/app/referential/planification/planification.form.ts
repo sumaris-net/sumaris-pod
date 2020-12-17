@@ -664,7 +664,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   // appliedStrategies => appliedStrategies.location ?
     this.pmfmStrategiesHelper = new FormArrayHelper<PmfmStrategy>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmStrategies'),
-      (pmfmStrategy) => this.validatorService.getPmfmStrategiesControl(pmfmStrategy),
+      (pmfmStrategy) => this.formBuilder.control(pmfmStrategy || null, [Validators.required]),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
