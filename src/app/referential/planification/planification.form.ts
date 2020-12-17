@@ -374,30 +374,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // Resize strategy department array
     this.appliedPeriodHelper.resize(4);
 
-    // simulation for tests
-    // let ap1 = new AppliedPeriod();
-    // ap1.appliedStrategyId = data.appliedStrategies[0].strategyId;
-    // ap1.acquisitionNumber = 2;
-    // ap1.startDate = moment("01/01/2020");
-    // ap1.endDate = moment("03/01/2020");
-    // let ap2 = new AppliedPeriod();
-    // ap2.appliedStrategyId = data.appliedStrategies[0].strategyId;
-    // ap2.acquisitionNumber = 5;
-    // ap2.startDate = moment("04/01/2020");
-    // ap2.endDate = moment("06/01/2020");
-    // let ap3 = new AppliedPeriod();
-    // ap3.appliedStrategyId = data.appliedStrategies[0].strategyId;
-    // ap3.acquisitionNumber = 10;
-    // ap3.startDate = moment("07/01/2020");
-    // ap3.endDate = moment("09/01/2020");
-    // let ap4 = new AppliedPeriod();
-    // ap4.appliedStrategyId = data.appliedStrategies[0].strategyId;
-    // ap4.acquisitionNumber = 8;
-    // ap4.startDate = moment("10/01/2020");
-    // ap4.endDate = moment("12/01/2020");
-    // let appliedStrategiesValues = [ap1, ap2, ap4];
-    // data.appliedStrategies[0].appliedPeriods = appliedStrategiesValues;
-
     // APPLIED_PERIODS
     // get model appliedPeriods which are stored in first applied strategy
     const appliedPeriodControl = this.appliedPeriodsForm;
