@@ -11,8 +11,6 @@ import {ObservedLocationsPage} from "./observedlocation/observed-locations.page"
 import {LandingsTable} from "./landing/landings.table";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
-import {Landing2Page} from "./landing/landing2.page";
-import {Landing2Form} from "./landing/landing2.form";
 import {SelectLandingsModal} from "./landing/select-landings.modal";
 import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
