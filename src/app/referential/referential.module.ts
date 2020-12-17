@@ -18,6 +18,7 @@ import {ProgramPage} from "./program/program.page";
 import {ProgramValidatorService} from "./services/validator/program.validator";
 import {StrategyValidatorService} from "./services/validator/strategy.validator";
 import {StrategiesTable} from "./strategy/strategies.table";
+import {SimpleStrategiesTable} from "../referential/simpleStrategy/simpleStrategies/simpleStrategies.table";
 import {SoftwarePage} from "./software/software.page";
 import {VesselFeaturesHistoryComponent} from "./vessel/page/vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registration-history.component";
@@ -31,6 +32,8 @@ import {ParameterService} from "./services/parameter.service";
 import {PmfmValidatorService} from "./services/validator/pmfm.validator";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {ParameterPage} from "./pmfm/parameter.page";
+import {SimpleStrategyPage} from "./simpleStrategy/simpleStrategy.page";
+import {PlanificationForm} from "./planification/planification.form";
 import {ParameterValidatorService} from "./services/validator/parameter.validator";
 import {ReferentialTable} from "./list/referential.table";
 import {ReferentialRoutingModule} from "./referential-routing.module";
@@ -41,24 +44,28 @@ import {ReferentialRefTable} from "./list/referential-ref.table";
 import {StrategyForm} from "./strategy/strategy.form";
 import {PmfmQvFormField} from "./pmfm/pmfm-qv.form-field.component";
 import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
-
+import {TextMaskModule} from "angular2-text-mask";
 
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule
+    CoreModule,
+    TextMaskModule
   ],
   declarations: [
     ReferentialsPage,
     ReferentialForm,
+    PlanificationForm,
     VesselsTable,
     VesselPage,
     VesselsPage,
     VesselForm,
     VesselModal,
     ProgramPage,
+    SimpleStrategyPage,
     StrategyForm,
     StrategiesTable,
+    SimpleStrategiesTable,
     PmfmStrategiesTable,
     SoftwarePage,
     VesselFeaturesHistoryComponent,
@@ -74,10 +81,12 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
   exports: [
     ReferentialsPage,
     ReferentialForm,
+    PlanificationForm,
     VesselsTable,
     VesselPage,
     VesselForm,
     ProgramPage,
+    SimpleStrategyPage,
     StrategyForm,
     SoftwarePage,
     VesselsPage,

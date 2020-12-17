@@ -5,7 +5,7 @@
 
 <ion-content>
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex"
+  <mat-tab-group  class="mat-tab-disabled-hidden" #tabGroup [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
                  dynamicHeight>
@@ -73,38 +73,67 @@
 
     </mat-tab>
 
-    <!-- TAB: strategies -->
-    <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="isNewData">
+    <!-- TAB: simpleStrategiesTable -->
+    <mat-tab    label="{{'PROGRAM.TAB_SIMPLE_STRATEGIES'|translate}}" [disabled]="!simpleStrategiesOption" >
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="contract"></ion-icon>
         </mat-icon>
-        <ion-label translate>PROGRAM.TAB_STRATEGIES</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable.invalid || (strategiesTable.editedRow && strategyForm.invalid)"></ion-icon>
+        <ion-label translate>PROGRAM.TAB_SIMPLE_STRATEGIES</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="simpleStrategiesTable.invalid || (simpleStrategiesTable.editedRow && strategyForm.invalid)"></ion-icon>
       </ng-template>
 
       <div class="ion-no-padding">
 
         <!-- error -->
-        <ion-item *ngIf="(strategiesTable.error || (strategiesTable.editedRow && strategyForm.error)) as strategyError" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="(simpleStrategiesTable.error || (simpleStrategiesTable.editedRow && strategyForm.error)) as strategyError" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="strategyError |translate"></ion-label>
         </ion-item>
 
         <!-- strategies table -->
-        <app-strategy-table #strategiesTable
+        <app-simpleStrategies-table  #simpleStrategiesTable              
                             [canEdit]="enabled"
                             [canDelete]="enabled">
-        </app-strategy-table>
-
-        <!-- strategy details-->
-        <app-strategy-form #strategyForm
-                           [@fadeIn]="strategyFormState"
-                           (@fadeIn.done)="onStrategyAnimationDone($event)"
-                           [showBaseForm]="false">
-        </app-strategy-form>
+        </app-simpleStrategies-table>
+       
       </div>
     </mat-tab>
+  
+
+ <!-- TAB: strategies   -->
+ <mat-tab  label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="simpleStrategiesOption" >
+  <ng-template mat-tab-label>
+    <mat-icon>
+      <ion-icon matPrefix slot="start" name="contract"></ion-icon>
+    </mat-icon>
+    <ion-label translate>PROGRAM.TAB_STRATEGIES</ion-label>
+    <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable.invalid || (strategiesTable.editedRow && strategyForm.invalid)"></ion-icon>
+  </ng-template>
+
+  <div class="ion-no-padding"> 
+
+    
+    <ion-item *ngIf="(strategiesTable.error || (strategiesTable.editedRow && strategyForm.error)) as strategyError" visible-xs visible-sm visible-mobile lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" class="error" [innerHTML]="strategyError |translate"></ion-label>
+    </ion-item> 
+
+  
+    <app-strategy-table #strategiesTable
+                        [canEdit]="enabled"
+                        [canDelete]="enabled">
+    </app-strategy-table> 
+
+    <app-strategy-form #strategyForm
+                       [@fadeIn]="strategyFormState"
+                       (@fadeIn.done)="onStrategyAnimationDone($event)"
+                       [showBaseForm]="false">
+    </app-strategy-form>
+  </div>
+</mat-tab> 
+
+
 
     <!-- TAB: access rights -->
     <mat-tab label="{{'PROGRAM.TAB_ACCESS_RIGHTS'|translate}}" [disabled]="isNewData">
@@ -127,7 +156,7 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
+<ion-footer  hidden-xs hidden-sm hidden-mobile>
 
   <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
@@ -141,11 +170,12 @@
   </form-buttons-bar>
 </ion-footer>
 
-<!-- FAB Button: add strategy -->
+
+<!--  FAB Button: add strategy  -->
 <ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="strategiesTable.addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+*ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
+visible-xs visible-sm visible-mobile>
+<ion-fab-button color="tertiary" (click)="strategiesTable.addRow()">
+<ion-icon name="add"></ion-icon>
+</ion-fab-button>
+</ion-fab> 

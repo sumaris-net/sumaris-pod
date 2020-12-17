@@ -1,0 +1,221 @@
+<mat-toolbar>
+  <button mat-icon-button
+          *ngIf="canEdit && !selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
+          hidden-xs hidden-sm hidden-mobile>
+    <mat-icon>add</mat-icon>
+  </button>
+  <button mat-icon-button color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+          (click)="deleteSelection($event)">
+    <mat-icon>delete</mat-icon>
+  </button>
+
+  <!-- refresh (debug only) -->
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+          (click)="onRefresh.emit()">
+    <mat-icon>refresh</mat-icon>
+  </button>
+
+  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <span class="toolbar-spacer"></span>
+
+  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+</mat-toolbar>
+
+<!-- error -->
+<ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+  <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+</ion-item>
+
+
+<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
+           matSortDisableClear [trackBy]="trackByFn">
+
+  <ng-container matColumnDef="select">
+    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                    [indeterminate]="selection.hasValue() && !isAllSelected()">
+      </mat-checkbox>
+    </mat-header-cell>
+    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+      </mat-checkbox>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Id column -->
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
+  </ng-container>
+
+  <!-- codeLine column -->
+  <ng-container matColumnDef="sampleRowCode">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.SAMPLE_ROW_CODE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      {{row.currentData.label}}
+    </mat-cell>
+  </ng-container>
+
+    <!-- eotp column -->
+    <ng-container matColumnDef="eotp">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.EOTP</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{row.currentData.analyticReference}}
+      </mat-cell>
+    </ng-container>
+
+    <!-- LABORATORY column -->
+    <ng-container matColumnDef="laboratory">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.LABORATORY</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{laboratoriesToString(row.currentData)}}
+      </mat-cell>
+    </ng-container>
+
+    <!-- FISHING_AREA column -->
+    <ng-container matColumnDef="fishingArea">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.FISHING_AREA</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{fishingAreasToString(row.currentData)}}
+      </mat-cell>
+    </ng-container>
+
+     <!-- TARGET_SPECIE column -->
+     <ng-container matColumnDef="targetSpecie">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.TARGET_SPECIE</span>
+      </mat-header-cell>
+       <mat-cell *matCellDef="let row">
+         {{taxonsNamesToString(row.currentData)}}
+       </mat-cell>
+    </ng-container>
+
+  <!-- comment column -->
+  <ng-container matColumnDef="comment">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.COMMENT</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-icon color="primary" *ngIf="row.currentData.description" [title]="row.currentData.description">description</mat-icon>
+    </mat-cell>
+  </ng-container>
+
+    <!-- PARAMETERS_TITLE column -->
+    <ng-container matColumnDef="parametersTitle">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.PARAMETERS_TITLE_TABLE</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{parametersToString(row.currentData)}}
+      </mat-cell>
+    </ng-container>
+
+  <!-- QUARTER_1_TABLE column -->
+  <ng-container matColumnDef="t1">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.QUARTER_1_TABLE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      {{effortToString(row.currentData, 1)}}
+    </mat-cell>
+  </ng-container>
+
+  <!-- QUARTER_2_TABLE column -->
+  <ng-container matColumnDef="t2">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.QUARTER_2_TABLE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      {{effortToString(row.currentData, 2)}}
+    </mat-cell>
+  </ng-container>
+
+  <!-- QUARTER_3_TABLE column -->
+  <ng-container matColumnDef="t3">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.QUARTER_3_TABLE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      {{effortToString(row.currentData, 3)}}
+    </mat-cell>
+  </ng-container>
+
+  <!-- QUARTER_4_TABLE column -->
+  <ng-container matColumnDef="t4">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.QUARTER_4_TABLE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      {{effortToString(row.currentData, 4)}}
+    </mat-cell>
+  </ng-container>
+
+	 <!-- Actions buttons column -->
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+<!--      <button mat-icon-button small color="light" *ngIf="row.editing && row.id != -1" [title]="'COMMON.BTN_UNDO'|translate"-->
+<!--              (click)="cancelOrDelete($event, row)">-->
+<!--        <mat-icon>undo</mat-icon>-->
+<!--      </button>-->
+<!--      <button mat-icon-button small color="light" *ngIf="row.editing && row.id == -1" [title]="'COMMON.BTN_ADD'|translate"-->
+<!--              (click)="confirmAndAddRow($event, row)">-->
+<!--        <mat-icon>add</mat-icon>-->
+<!--      </button>-->
+
+      <!-- undo or delete  -->
+      <button mat-icon-button small color="light" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+              (click)="cancelOrDelete($event, row)">
+        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+      </button>
+      <!-- validate -->
+      <button mat-icon-button small color="light"
+              [title]="'COMMON.BTN_VALIDATE'|translate"
+              (click)="confirmEditCreate($event, row)">
+        <mat-icon>check</mat-icon>
+      </button>
+      <!-- add -->
+      <button mat-icon-button small color="light"
+              [title]="'COMMON.BTN_ADD'|translate"
+              (click)="confirmAndAddRow($event, row)">
+        <mat-icon>add</mat-icon>
+      </button>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"
+           [class.mat-row-disabled]="true"
+           (click)="clickRow($event, row)"></mat-row>
+
+</mat-table>
+
+
+<!-- Add Button
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="enabled"
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>  -->
+

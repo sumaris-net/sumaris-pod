@@ -50,7 +50,8 @@
     "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
-    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_YEAR_PATTERN": "YYYY",
+    "DATE_YEAR_PLACEHOLDER": "yyyy",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
@@ -313,6 +314,13 @@
           "EXTERIOR_MARKING_NAME": "Marquage extérieur - Nom",
           "REGISTRATION_CODE_NAME": "Code d'immatriculation - Nom"
         }
+      },
+      "PMFM_STRATEGY": {
+        "NAME": "Stratégie > Paramètre PSFM",
+        "ATTRIBUTES": {
+          "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
+          "SHORT_COLUMN_TITLE": "PSFM"
+        }
       }
     },
     "ERROR": {
@@ -347,6 +355,38 @@
       }
     }
   },
+
+  "PLANIFICATION": {
+    "CREATE_SAMPLING_PLAN": "Création d'une ligne de plan d'échantillonnage",
+    "FISHING_AREA": "Zone (s) de pêche",
+    "SAMPLE_ROW_CODE": "Code de la ligne",
+    "SAMPLE_ROW_TITLE": "Code ligne de plan - incrément",
+    "EOTP": "EOTP",
+    "LABORATORY": "Laboratoire (s) saisisseur(s)",
+    "TARGET_SPECIE": "Espèce cible",
+    "LANDING_PORT": "Port de débarquement",
+    "SEX": "Sexe",
+    "AGE": "Age",
+    "YEAR": "Année",
+    "WEIGHT": "Poids : ",
+    "SIZE": "Tailles : ",
+    "MATURITY": "Maturités : ",
+    "CALCIFIED_TYPE": "Types de pièces calcifiées : ",
+    "SIZE_INCREMENT": "incrément de taille",
+    "EFFORT": "Effort : ",
+    "QUARTER_1": "Trimestre 1" ,
+    "QUARTER_2": "Trimestre 2",
+    "QUARTER_3": "Trimestre 3",
+    "QUARTER_4": "Trimestre 4",
+    "PARAMETERS_TITLE": "Paramètres à mesurer :",
+    "COMMENT" :"Commentaire",
+    "PARAMETERS_TITLE_TABLE": "Paramètres à mesurer",
+    "QUARTER_1_TABLE": "Efforts T1" ,
+    "QUARTER_2_TABLE": "Efforts T2",
+    "QUARTER_3_TABLE": "Efforts T3",
+    "QUARTER_4_TABLE": "Efforts T4"
+  },
+
   "TRIP": {
     "TITLE": "Marée",
     "PROGRAM": "Programme de collecte",
@@ -726,6 +766,8 @@
     "TITLE_PREFIX": "<small>{{location}} - Débarquement {{date}}<br/></small>",
     "TAB_GENERAL": "Détails",
     "PROGRAM": "Programme",
+    "SAMPLE_ROW_CODE": "Code de la ligne",
+    "FISHING_AREA" :"Zone de pêche",
     "VESSEL": "Navire",
     "LANDING": "Débarquement :",
     "DATE_TIME": "Date/Heure",
@@ -1070,6 +1112,7 @@
   "PROGRAM": {
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
+    "TAB_SIMPLE_STRATEGIES": "Simple stratégies",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Référentiel des espèces commerciales",
@@ -1113,7 +1156,11 @@
       "LANDING_EDITOR_TRIP": "Marée",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu"
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
+      "SIMPLE_STRATEGIES": "Simple strategies",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
@@ -1130,8 +1177,10 @@
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
         "PMFM": "Paramètre collecté (PMFM)",
+        "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
+        "SHORT_COLUMN_TITLE": "PSFM",
         "PARAMETER": "Paramètre",
-        "MATRIX": "Matrix",
+        "MATRIX": "Support",
         "FRACTION": "Fraction",
         "METHOD": "Méthode",
         "UNIT": "Unité",
@@ -1143,6 +1192,12 @@
         "TABLE": {
           "TITLE": "Paramètres collectés"
         }
+      },
+      "ERROR": {
+        "LOAD_STRATEGY_LABEL_ERROR": "Erreur lors de chargement du label de la stratégie",
+        "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
+        "LOAD_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
+        "SAVE_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie"
       }
     },
     "ERROR": {

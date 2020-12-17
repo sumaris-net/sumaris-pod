@@ -30,6 +30,9 @@ export class ReferentialFilter {
   levelId?: number;
   levelIds?: number[];
 
+  levelLabel?: string;
+  levelLabels?: string[];
+
   searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
   searchText?: string;
   searchAttribute?: string;
@@ -54,6 +57,7 @@ export class ReferentialFilter {
       searchAttribute: filter.searchAttribute,
       searchJoin: filter.searchJoin,
       levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
+      levelLabels: isNotNil(filter.levelLabel) ? [filter.levelLabel] : filter.levelLabels,
       statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
     };
   }
@@ -67,6 +71,8 @@ export const ReferentialFilterKeys: KeysEnum<ReferentialFilter> = {
   statusIds: true,
   levelId: true,
   levelIds: true,
+  levelLabel: true,
+  levelLabels: true,
   searchJoin: true,
   searchText: true,
   searchAttribute: true

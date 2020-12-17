@@ -70,6 +70,10 @@ export const environment: Environment = Object.freeze({
     {
       host: 'adap.e-is.pro',
       port: 443
+    },
+    {
+      host: 'visi-common-docker1.ifremer.fr',
+      port: 8080
     }
   ],
 

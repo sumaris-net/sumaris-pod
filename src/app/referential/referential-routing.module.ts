@@ -4,6 +4,7 @@ import {ReferentialsPage} from "./list/referentials";
 import {VesselsPage} from "./vessel/list/vessels.page";
 import {VesselPage} from "./vessel/page/vessel.page";
 import {ProgramPage} from "./program/program.page";
+import {SimpleStrategyPage} from "./simpleStrategy/simpleStrategy.page";
 import {SoftwarePage} from "./software/software.page";
 import {ParameterPage} from "./pmfm/parameter.page";
 import {PmfmPage} from "./pmfm/pmfm.page";
@@ -90,6 +91,19 @@ const routes: Routes = [
       }
     ]
   },
+  {
+  path: 'simpleStrategy/:id',
+  children: [
+    {
+      path: '',
+      pathMatch: 'full',
+      component: SimpleStrategyPage,
+      data: {
+        profile: 'ADMIN'
+      }
+    }
+  ]
+},
 ];
 
 @NgModule({

@@ -13,6 +13,7 @@ import {PhysicalGearForm} from './physicalgear/physical-gear.form';
 import {PhysicalGearTable} from './physicalgear/physical-gears.table';
 import {OperationsTable} from './operation/operations.table';
 import {SamplesTable} from './sample/samples.table';
+import {Samples2Table} from './sample/samples2.table';
 import {SubSamplesTable} from './sample/sub-samples.table';
 import {BatchGroupsTable} from './batch/table/batch-groups.table';
 import {BatchesTable} from './batch/table/batches.table';

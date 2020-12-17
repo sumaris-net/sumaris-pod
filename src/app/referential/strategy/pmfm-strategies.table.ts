@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {TableElement} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {environment} from "../../../environments/environment";
 import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
@@ -8,7 +8,7 @@ import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {filterNumberInput} from "../../shared/inputs";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, isNotNil, KeysEnum} from "../../shared/functions";
+import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, isNotNil, KeysEnum, removeDuplicatesFromArray} from "../../shared/functions";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmService} from "../services/pmfm.service";
@@ -20,11 +20,10 @@ import {
   ReferentialUtils
 } from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
-import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
+import {debounceTime, map, startWith, switchMap, filter} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-import {Program} from "../services/model/program.model";
-import {SelectionChange} from "@angular/cdk/collections";
+import {ProgramService} from "../services/program.service";
 
 export class PmfmStrategyFilter {
 
@@ -92,7 +91,7 @@ export const PmfmStrategyFilterKeys: KeysEnum<PmfmStrategyFilter> = {
   templateUrl: './pmfm-strategies.table.html',
   styleUrls: ['./pmfm-strategies.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: PmfmStrategyValidatorService}
+    {provide: PmfmStrategyValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -102,10 +101,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   $selectedPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   $acquisitionLevels = new BehaviorSubject<IReferentialRef[]>(undefined);
   $pmfms = new BehaviorSubject<Pmfm[]>(undefined);
-  $pmfmsParameters = new BehaviorSubject<IReferentialRef[]>(undefined);
-  $pmfmsMatrix = new BehaviorSubject<Pmfm[]>(undefined);
-  $pmfmsFractions = new BehaviorSubject<Pmfm[]>(undefined);
-  $pmfmsMethods = new BehaviorSubject<Pmfm[]>(undefined);
   $gears = new BehaviorSubject<IReferentialRef[]>(undefined);
   $loadingReferential = new BehaviorSubject<boolean>(true);
   $qualitativeValues = new BehaviorSubject<IReferentialRef[]>(undefined);
@@ -113,6 +108,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   fieldDefinitionsMap: FormFieldDefinitionMap = {};
   fieldDefinitions: FormFieldDefinition[] = [];
 
+  @Input() canDisplayToolbar = true;
+  @Input() canDisplayColumnsHeaders = true;
+  @Input() canDisplaySimpleStrategyValidators = true;
+  @Input() pmfmFilterApplied: string = 'all';
+  @Input() initializeOneRow = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
@@ -136,7 +136,19 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   @Input() title: string;
 
-  @Input() program: Program;
+  private _program: string;
+
+  @Input()
+    set program(value: string) {
+      if (this._program !== value && isNotNil(value)) {
+        this._program = value;
+        if (!this.loading) this.loadDefaultsFromProgram();
+      }
+    }
+
+    get program(): string {
+      return this._program;
+    }
 
   @Output() get selectionChanges(): Observable<TableElement<PmfmStrategy>[]> {
     return this.selection.changed.pipe(
@@ -146,10 +158,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   constructor(
     protected injector: Injector,
-    protected validatorService: ValidatorService,
+    protected validatorService: PmfmStrategyValidatorService,
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected programService: ProgramService
   ) {
     super(injector,
       // columns
@@ -191,6 +204,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     // Loading referential items
     this.loadReferential();
+
+    this.loadDefaultsFromProgram({emitEvent: false});
   }
 
 
@@ -198,7 +213,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     let userColumns = this.getUserColumns();
 
     // No user override: use defaults
-    if (!userColumns) return this.columns;
+    if (!userColumns)
+    {
+      userColumns = this.columns;
+    }
 
     // Get fixed start columns
     const fixedStartColumns = this.columns.filter(c => RESERVED_START_COLUMNS.includes(c));
@@ -218,6 +236,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
+    this.loadPmfms();
+
+    this.validatorService.isSimpleStrategy = this.canDisplaySimpleStrategyValidators;
 
     // Acquisition level
     this.registerFormField('acquisitionLevel', {
@@ -240,13 +263,20 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // Pmfm
-    const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
+    // INFO CLT Manage column header according to displayed strategy and application parameter.
+    // Default pmfm column name according to displayed strategy when parameter isn't set in application settings.
+    const defaultPmfmColumnName: string = this.canDisplaySimpleStrategyValidators ? 'SHORT_COLUMN_TITLE' :'LONG_COLUMN_TITLE';
+    const pmfmStrategyParameterColumnNameFormat = this.settings.getFieldDisplayAttributes('pmfmStrategyParameterColumnName', [defaultPmfmColumnName]);
+    let basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
+    if (pmfmStrategyParameterColumnNameFormat.includes('SHORT_COLUMN_TITLE')) {
+      basePmfmAttributes = ['name'];
+    }
     const pmfmAttributes = basePmfmAttributes
       .map(attr => attr === 'name' ? 'parameter.name' : attr)
       .concat(['unit.label', 'matrix.name', 'fraction.name', 'method.name']);
     const pmfmColumnNames = basePmfmAttributes.map(attr => 'REFERENTIAL.' + attr.toUpperCase())
       .concat(['REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
-    this.registerFormField('pmfm', {
+    this.registerFormFieldWithSettingsFieldName('pmfm', {
       type: 'entity',
       required: true,
       autocomplete: this.registerAutocompleteField('pmfm', {
@@ -269,96 +299,84 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
-    });
+    }, pmfmStrategyParameterColumnNameFormat[0]);
+
 
     // PMFM.PARAMETER
     const pmfmParameterAttributes = ['label', 'name'];
     this.registerFormField('parameter', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('parameter', {
-        items: this.$pmfmsParameters,
+        items: this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          map((pmfms: Pmfm[]) => {
+            return removeDuplicatesFromArray(pmfms.map(p => p.parameter), 'label');
+          })
+        ),
         attributes: pmfmParameterAttributes,
-        columnSizes: pmfmParameterAttributes.map(attr => {
-          switch(attr) {
-            case 'code':
-              return 3;
-            case 'label':
-              return 3;
-            case 'name':
-              return 4;
-            default: return undefined;
-          }
-        }),
+        columnSizes: [4,8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
+        class: 'mat-autocomplete-panel-xlarge-size'
       })
     });
 
     // PMFM.MATRIX
-    const pmfmMatrixAttributes = ['matrix.name', 'matrix.description'];
+    const mfmAttributes = ['name'];
     this.registerFormField('matrix', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('matrix', {
-        items: this.$pmfmsMatrix,
-        attributes: pmfmMatrixAttributes,
-        columnSizes: pmfmMatrixAttributes.map(attr => {
-          switch(attr) {
-            case 'matrix.name':
-              return 3;
-            case 'matrix.description':
-              return 4;
-            default: return undefined;
-          }
-        }),
+        items: this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          map((pmfms: Pmfm[]) => {
+            return removeDuplicatesFromArray(pmfms.map(p => p.matrix), 'name');
+          })
+        ),
+        attributes: ['name'],
         showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
+        class: 'mat-autocomplete-panel-medium-size'
       })
     });
 
     // PMFM.FRACTION
-    const pmfmFractionAttributes = ['fraction.name', 'fraction.description'];
     this.registerFormField('fraction', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('fraction', {
-        items: this.$pmfmsFractions,
-        attributes: pmfmFractionAttributes,
-        columnSizes: pmfmFractionAttributes.map(attr => {
-          switch(attr) {
-            case 'fraction.name':
-              return 3;
-            case 'fraction.description':
-              return 4;
-            default: return undefined;
-          }
-        }),
-        showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
+        items: this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          map((pmfms: Pmfm[]) => {
+            return removeDuplicatesFromArray(pmfms.map(p => p.fraction), 'name');
+          })
+        ),
+        attributes: mfmAttributes,
+        class: 'mat-autocomplete-panel-medium-size',
+        showAllOnFocus: false
       })
     });
 
+
+
     // PMFM.METHOD
-    const pmfmMethodAttributes = ['method.name', 'method.description'];
     this.registerFormField('method', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('method', {
-        items: this.$pmfmsMethods,
-        attributes: pmfmMethodAttributes,
-        columnSizes: pmfmMethodAttributes.map(attr => {
-          switch(attr) {
-            case 'method.name':
-              return 3;
-            case 'method.description':
-              return 4;
-            default: return undefined;
-          }
-        }),
-        showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
+        items: this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          map((pmfms: Pmfm[]) => {
+            return removeDuplicatesFromArray(pmfms.map(p => p.method), 'name');
+          })
+        ),
+        attributes: mfmAttributes,
+        class: 'mat-autocomplete-panel-medium-size',
+        showAllOnFocus: false
       })
     });
 
@@ -425,6 +443,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     //    .subscribe((pmfmsUnits) => this.onPmfmsUnitsChanged(pmfmsUnits))
     //);
 
+    if (this.initializeOneRow)
+    {
+      this.addRow();
+    }
+
   }
 
 
@@ -481,6 +504,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     console.debug("[pmfm-strategy-table] Adapt loaded data to table...");
 
     const acquisitionLevels = this.$acquisitionLevels.getValue();
+    await this.loadPmfms();
     const pmfms = this.$pmfms.getValue();
     //const gears = this.$gears.getValue();
     return data.map(source => {
@@ -552,6 +576,21 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       .reduce((res, data) => Math.max(res, data.rankOrder || 0), 0);
   }
 
+  protected registerFormFieldWithSettingsFieldName(fieldName: string, def: Partial<FormFieldDefinition>, fieldTitle: string, intoMap?: boolean) {
+    const definition = <FormFieldDefinition>{
+      key: fieldName,
+      label: this.i18nColumnPrefix + fieldTitle,
+      ...def
+    }
+    if (intoMap === true) {
+      this.fieldDefinitionsMap[fieldName] = definition;
+    }
+    else {
+      this.fieldDefinitions.push(definition);
+    }
+  }
+
+
   protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>, intoMap?: boolean) {
     const definition = <FormFieldDefinition>{
       key: fieldName,
@@ -583,12 +622,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     try {
       await Promise.all([
         this.loadAcquisitionLevels(),
-        this.loadPmfms(),
-        this.loadPmfmsParameters(),
-        this.loadPmfmsMatrix(),
-        this.loadPmfmsFractions(),
-        this.loadPmfmsMethods(),
-        //this.loadGears(),
+        // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
+        //this.loadPmfms(),
       ]);
 
       console.debug("[pmfm-strategy-table] Loaded referential items");
@@ -608,62 +643,65 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$acquisitionLevels.next(res && res.data || undefined)
   }
 
-  protected async loadPmfms() {
-    const res = await this.pmfmService.loadAll(0, 1000, null, null, null,
-      {
-        withTotal: false,
-        withDetails: true
-      });
-    this.$pmfms.next(res && res.data || [])
-  }
 
-    protected async loadPmfmsMatrix() {
-        const res = await this.pmfmService.loadAllPmfmsMatrix(0, 1000, null, null, null,
+  protected async loadPmfms() {
+      if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
+      {
+        // We add a filter on pmfm with parameter in ('WEIGHT')
+        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+          entityName: 'Pmfm',
+          levelLabels: ['WEIGHT']
+          // searchJoin: "Parameter" is implied in pod filter
+        },
           {
             withTotal: false,
             withDetails: true
           });
-        this.$pmfmsMatrix.next(res && res.data || [])
+          this.$pmfms.next(res && res.data || [])
+      }
+      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'size')
+      {
+        // We add a filter on pmfm with parameter in specific size list
+        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+          entityName: 'Pmfm',
+          levelLabels: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE']
+          // searchJoin: "Parameter" is implied in pod filter
+        },
+          {
+            withTotal: false,
+            withDetails: true
+          });
+          this.$pmfms.next(res && res.data || [])
+      }
+      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'maturity')
+      {
+        // We add a filter on pmfm with parameter in specific maturity list
+        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+          entityName: 'Pmfm',
+          levelLabels: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL']
+          // searchJoin: "Parameter" is implied in pod filter
+        },
+          {
+            withTotal: false,
+            withDetails: true
+          });
+          this.$pmfms.next(res && res.data || [])
+      }
+      else {
+        const res = await this.pmfmService.loadAll(0, 1000, null, null, null,
+        {
+          withTotal: false,
+          withDetails: true
+        });
+        this.$pmfms.next(res && res.data || [])
       }
 
-      protected async loadPmfmsFractions() {
-          const res = await this.pmfmService.loadAllPmfmsFractions(0, 1000, null, null, null,
-            {
-              withTotal: false,
-              withDetails: true
-            });
-          this.$pmfmsFractions.next(res && res.data || [])
-        }
 
-        protected async loadPmfmsMethods() {
-            const res = await this.pmfmService.loadAllPmfmsMethods(0, 1000, null, null, null,
-              {
-                withTotal: false,
-                withDetails: true
-              });
-            this.$pmfmsMethods.next(res && res.data || [])
-          }
-
-  protected async loadPmfmsParameters() {
-      const res = await this.referentialRefService.loadAll(0, 1000, null, null, {
-          entityName: 'Parameter'
-        },
-        {
-          withTotal: false
-        });
-      this.$pmfmsParameters.next(res && res.data || []);
-    }
-
-  protected async loadGears() {
-    const res = await this.referentialRefService.loadAll(0, 1000, null, null, {
-        entityName: 'Gear',
-        levelId: this.program && this.program.gearClassification && this.program.gearClassification.id
-      },
-      {
-        withTotal: false
-      });
-    this.$gears.next(res && res.data || []);
   }
+
+
+
+
 
   protected startEditingRow() {
     console.log("TODO start edit")
@@ -675,5 +713,18 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected async loadDefaultsFromProgram(opts?: {emitEvent?: boolean; }) {
+    if (!this._program) return; // Skip
+
+    const program = await this.programService.loadByLabel(this._program);
+    if (!program) return; //  Program not found
+
+
+    // Emit event
+    if (!opts || opts.emitEvent !== false) {
+      this.markForCheck();
+    }
   }
 }

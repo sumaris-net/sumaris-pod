@@ -4,6 +4,7 @@ import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {isNotNil, toNumber} from "../../../shared/functions";
 import { PmfmValue, PmfmValueUtils} from "./pmfm-value.model";
 import {MethodIds} from "./model.enum";
+import {DataEntity, DataEntityAsObjectOptions,} from "../../../data/services/model/data-entity.model";
 
 
 export function getPmfmName(pmfm: PmfmStrategy, opts?: {
@@ -17,18 +18,30 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
   return name;
 }
 
-export class PmfmStrategy extends Entity<PmfmStrategy> {
 
-  static fromObject(source: any): PmfmStrategy {
+export interface PmfmStrategyAsObjectOptions extends DataEntityAsObjectOptions {
+  batchAsTree?: boolean;
+}
+export interface PmfmStrategyFromObjectOptions {
+}
+
+export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectOptions, PmfmStrategyFromObjectOptions> {
+
+  static TYPENAME = 'PmfmStrategyVO';
+
+  static fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
     if (!source || source instanceof PmfmStrategy) return source;
     const res = new PmfmStrategy();
-    res.fromObject(source);
+    res.fromObject(source, opts);
     return res;
   }
 
   pmfmId: number;
   pmfm: Pmfm;
 
+  parameterId: number;
+  matrixId: number;
+  fractionId: number;
   methodId: number;
   label: string;
   name: string;
@@ -55,11 +68,12 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   constructor() {
     super();
+    this.__typename = PmfmStrategy.TYPENAME;
   }
 
   clone(): PmfmStrategy {
     const target = new PmfmStrategy();
-    target.fromObject(this);
+    target.fromObject(this.asObject());
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
     return target;
   }
@@ -79,11 +93,14 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     return target;
   }
 
-  fromObject(source: any) {
-    super.fromObject(source);
+  fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
+    super.fromObject(source, opts);
 
     this.pmfmId = source.pmfmId;
     this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
+    this.parameterId = source.parameterId;
+    this.matrixId = source.matrixId;
+    this.fractionId = source.fractionId;
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name;
@@ -104,6 +121,8 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
       || this.pmfm && (this.pmfm.qualitativeValues || this.pmfm.parameter && this.pmfm.parameter.qualitativeValues)
       || undefined;
     this.strategyId = source.strategyId;
+
+    return this;
   }
 
   get required(): boolean {

@@ -205,6 +205,7 @@ export class AppComponent {
         } as FormFieldDefinition;
       }));
 
+
     this.settings.registerAdditionalField({
       key: 'sumaris.field.vesselSnapshot.attributes',
       label: 'SETTINGS.FIELDS.VESSEL.NAME',
@@ -212,6 +213,17 @@ export class AppComponent {
       values: [
         {key: 'exteriorMarking,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME'},
         {key: 'registrationCode,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME'}
+      ]});
+
+
+
+    this.settings.registerAdditionalField({
+      key: 'sumaris.field.pmfmStrategyParameterColumnName.attributes',
+      label: 'SETTINGS.FIELDS.PMFM_STRATEGY.NAME',
+      type: 'enum',
+      values: [
+        {key: 'LONG_COLUMN_TITLE',   value: 'SETTINGS.FIELDS.PMFM_STRATEGY.ATTRIBUTES.LONG_COLUMN_TITLE'},
+        {key: 'SHORT_COLUMN_TITLE',   value: 'SETTINGS.FIELDS.PMFM_STRATEGY.ATTRIBUTES.SHORT_COLUMN_TITLE'}
       ]});
   }
 

@@ -24,7 +24,7 @@ import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.m
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 
 @Component({
-  selector: 'app-landing2-form',
+  selector: 'app-landing-form2',
   templateUrl: './landing2.form.html',
   styleUrls: ['./landing2.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -39,9 +39,11 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   @Input() required = true;
 
   @Input() showProgram = true;
+  @Input() showSampleRowCode = true;
   @Input() showVessel = true;
   @Input() showDateTime = true;
   @Input() showLocation = true;
+  @Input() showFishingArea = true;
   @Input() showComment = true;
   @Input() showMeasurements = true;
   @Input() showError = true;

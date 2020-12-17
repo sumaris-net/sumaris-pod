@@ -236,7 +236,6 @@ export const ProgramProperties = Object.freeze({
   },
 
   /* -- Landed trip options -- */
-
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID: <FormFieldDefinition>{
     key: 'sumaris.landedTrip.fishingArea.locationLevel.id',
     label: 'CONFIGURATION.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID',
@@ -249,5 +248,32 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
   },
+   
+  // simple strategies
+  SIMPLE_STRATEGIES: <FormFieldDefinition>{
+    key: "sumaris.simple.strategies.enable",
+    label: "PROGRAM.OPTIONS.SIMPLE_STRATEGIES",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+
+
+  // PROGRAM STRATEGY EDITOR
+    PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
+      key: 'sumaris.program.strategy.editor.pmfm.table.column.name',
+      label: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME',
+      type: 'enum',
+      values: [
+        {
+          key: 'shortName',
+          value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME'
+        },
+        {
+          key: 'longName',
+          value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME'
+        }
+      ],
+      defaultValue: 'longName'
+    },
 });
 

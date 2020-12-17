@@ -97,11 +97,11 @@
       <span translate>LANDING.TABLE.DATE_TIME</span>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      <!-- {{ getLandingDate(row.currentData) | dateFormat: {time: true} }} -->
-     </mat-cell>
-   </ng-container>
+      {{ getLandingDate(row.currentData) | dateFormat: {time: true} }}
+    </mat-cell>
+  </ng-container>
 
-   <!-- Observers -->
+  <!-- Observers -->
   <ng-container matColumnDef="observers">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>LANDING.TABLE.OBSERVERS</ion-label>
@@ -197,3 +197,4 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+

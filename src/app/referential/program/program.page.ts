@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild, OnDestroy, ComponentFactoryResolver} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
@@ -8,6 +8,7 @@ import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
+import {SimpleStrategiesTable} from "../simpleStrategy/simpleStrategies/simpleStrategies.table";
 import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
@@ -18,8 +19,9 @@ import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/fie
 import {StrategyForm} from "../strategy/strategy.form";
 import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
 import {debounceTime, filter, first} from "rxjs/operators";
-import {AppFormHolder} from "../../core/form/form.utils";
 import {ProgramProperties} from "../services/config/program.config";
+import {ActivatedRoute} from "@angular/router";
+
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -57,9 +59,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
+  detailsPathSimpleStrategy = "/referential/simpleStrategy/:id"
+  simpleStrategiesOption = false;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
+  @ViewChild('simpleStrategiesTable', { static: true }) simpleStrategiesTable: SimpleStrategiesTable;
   @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
   @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
 
@@ -70,7 +75,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     protected validatorService: ProgramValidatorService,
     dataService: ProgramService,
     protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected activatedRoute : ActivatedRoute
   ) {
     super(injector,
       Program,
@@ -78,17 +84,35 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/list?entity=Program";
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
-
-
 
     //this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
+    console.log("programId : " + this.activatedRoute.snapshot.paramMap.get('id'));
+
+    // update simpleStrategiesOption when UpdateView
+    this.onUpdateView
+      .subscribe(async option => {
+        this.simpleStrategiesOption=  option.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
+        this.markForCheck();
+      }
+  );
+
+    this.registerSubscription(this.simpleStrategiesTable.onOpenRow
+      .subscribe(row => this.onOpenSimpleStrategy(row)));
+    this.registerSubscription(this.simpleStrategiesTable.onNewRow
+      .subscribe((event) => this.addSimpleStrategy(event)));
+    this.registerSubscription(this.strategiesTable.onStartEditingRow
+        .subscribe(row => this.onStartEditStrategy(row)));
+    this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
+        .subscribe(row => this.onConfirmEditCreateStrategy(row)));
+    this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
+        .subscribe(row => this.onCancelOrDeleteStrategy(row)));
+
 
     // Set entity name (required for referential form validator)
     this.referentialForm.entityName = 'Program';
@@ -121,19 +145,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       }
     });
 
-    // Listen start editing strategy
-    this.registerSubscription(this.strategiesTable.onStartEditingRow
-      .subscribe(row => this.onStartEditStrategy(row)));
-    this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
-      .subscribe(row => this.onConfirmEditCreateStrategy(row)));
-    this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
-      .subscribe(row => this.onCancelOrDeleteStrategy(row)));
   }
 
-
   /* -- protected methods -- */
-
-
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
@@ -168,41 +182,56 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.addChildForms([
       this.referentialForm,
       this.propertiesForm,
-      this.strategiesTable,
-      this.strategyForm
+      this.simpleStrategiesTable,
+      this.strategiesTable
     ]);
-  }
+}
 
   protected setValue(data: Program) {
     if (!data) return; // Skip
 
     this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
-
     this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
+
+    // simples strategies
+    this.simpleStrategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
 
     // strategies
     this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
 
-    this.markAsPristine();
+    this.markForCheck();
   }
 
   protected async getJsonValueToSave(): Promise<any> {
-
     const data = await super.getJsonValueToSave();
 
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
     data.properties = this.propertiesForm.value;
 
-    // Finish edition of strategy
+    // Finish edition of simple strategies
+    if(this.simpleStrategiesOption){
+    if (this.simpleStrategiesTable.dirty) {
+      if (this.simpleStrategiesTable.editedRow) {
+        await this.onConfirmEditCreateStrategy(this.simpleStrategiesTable.editedRow);
+      }
+      await this.simpleStrategiesTable.save();
+    }
+    data.strategies = this.simpleStrategiesTable.value;
+  }
+
+  // Finish edition of strategy
+  if(!this.simpleStrategiesOption){
     if (this.strategiesTable.dirty) {
+
       if (this.strategiesTable.editedRow) {
+
         await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
       }
       await this.strategiesTable.save();
     }
-
     data.strategies = this.strategiesTable.value;
+  }
 
     return data;
   }
@@ -221,10 +250,47 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     if (this.referentialForm.invalid) return 0;
     if (this.propertiesForm.invalid) return 1;
     if (this.strategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
-    return 0;
+        return 0;
   }
 
+
+  async onOpenSimpleStrategy(row: TableElement<Strategy>){
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      this.loading = true;
+      try {
+        await this.router.navigateByUrl(`/referential/simpleStrategy/${row.id}`);
+      }
+      finally {
+        this.loading = false;
+      }
+    }
+  }
+
+  async  addSimpleStrategy(event?: any) {
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? this.save(event)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm();
+
+    const savedOrContinue = await savePromise;
+    if (savedOrContinue) {
+      this.loading = true;
+      this.markForCheck();
+      try {
+        await this.router.navigateByUrl('/referential/simpleStrategy/new');
+      }
+      finally {
+        this.loading = false;
+        this.markForCheck();
+      }
+    }
+  }
+
+
   protected async onStartEditStrategy(row: TableElement<Strategy>) {
+
     if (!row) return; // skip
 
     const strategy = this.loadOrCreateStrategy(row.currentData);
@@ -345,4 +411,3 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
 }
-

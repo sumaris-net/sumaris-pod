@@ -52,15 +52,15 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
   mobile: boolean;
 
-  @ViewChild('landing2Form', { static: true }) landing2Form: Landing2Form;
-  //@ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
+  @ViewChild('landingForm', { static: true }) landingForm: Landing2Form;
+  @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
 
   get pmfms(): Observable<PmfmStrategy[]> {
-    return this.landing2Form.$pmfms.pipe(filter(isNotNil));
+    return this.landingForm.$pmfms.pipe(filter(isNotNil));
   }
 
   get form(): FormGroup {
-    return this.landing2Form.form;
+    return this.landingForm.form;
   }
 
   constructor(
@@ -87,22 +87,22 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.onProgramChanged
         .subscribe(program => {
           if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-          this.landing2Form.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+          this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
           //this.markForCheck();
         }));
 
     // Use landing date as default dateTime for samples
-   /* this.registerSubscription(
+    this.registerSubscription(
       this.landingForm.form.controls['dateTime'].valueChanges
         .pipe(throttleTime(200), filter(isNotNil))
         .subscribe((dateTime) => {
           this.samplesTable.defaultSampleDate = dateTime as Moment;
         })
-    );*/
+    );
   }
 
   protected registerForms() {
-    this.addChildForms([this.landing2Form/*, this.samplesTable*/]);
+    this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -206,10 +206,10 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   protected async getValue(): Promise<Landing> {
     const data = await super.getValue();
 
-    /*if (this.samplesTable.dirty) {
+    if (this.samplesTable.dirty) {
       await this.samplesTable.save();
     }
-    data.samples = this.samplesTable.value;*/
+    data.samples = this.samplesTable.value;
 
     return data;
   }
@@ -221,10 +221,10 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.programSubject.next(data.program.label);
     }
 
-    this.landing2Form.program = data.program.label;
-    this.landing2Form.value = data;
+    this.landingForm.program = data.program.label;
+    this.landingForm.value = data;
 
-   // this.samplesTable.value = data.samples || [];
+    this.samplesTable.value = data.samples || [];
   }
 
   updateView(data: Landing | null, opts?: {
@@ -237,27 +237,27 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     if (this.parent) {
       if (this.parent instanceof ObservedLocation) {
 
-        this.landing2Form.showProgram = false;
-        this.landing2Form.showVessel = true;
-        this.landing2Form.showLocation = false;
-        this.landing2Form.showDateTime = true;
-        this.landing2Form.showObservers = true;
+        this.landingForm.showProgram = false;
+        this.landingForm.showVessel = true;
+        this.landingForm.showLocation = false;
+        this.landingForm.showDateTime = true;
+        this.landingForm.showObservers = true;
 
       } else if (this.parent instanceof Trip) {
 
         // Hide some fields
-        this.landing2Form.showProgram = false;
-        this.landing2Form.showVessel = false;
-        this.landing2Form.showLocation = true;
-        this.landing2Form.showDateTime = true;
-        this.landing2Form.showObservers = true;
+        this.landingForm.showProgram = false;
+        this.landingForm.showVessel = false;
+        this.landingForm.showLocation = true;
+        this.landingForm.showDateTime = true;
+        this.landingForm.showObservers = true;
       }
     } else {
 
-      this.landing2Form.showVessel = true;
-      this.landing2Form.showLocation = true;
-      this.landing2Form.showDateTime = true;
-      this.landing2Form.showObservers = true;
+      this.landingForm.showVessel = true;
+      this.landingForm.showLocation = true;
+      this.landingForm.showDateTime = true;
+      this.landingForm.showObservers = true;
     }
   }
 
@@ -285,8 +285,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   }
 
   protected getFirstInvalidTabIndex(): number {
-  //  return this.landingForm.invalid ? 0 : (this.samplesTable.invalid ? 1 : -1);
-    return 0;
+    return this.landingForm.invalid ? 0 : (this.samplesTable.invalid ? 1 : -1);
   }
 
   protected computeUsageMode(landing: Landing): UsageMode {

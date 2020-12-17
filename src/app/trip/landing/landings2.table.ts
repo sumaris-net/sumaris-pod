@@ -64,7 +64,6 @@ export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter>
     }
   }
 
-
   get detailEditor(): LandingEditor {
     return this._detailEditor;
   }

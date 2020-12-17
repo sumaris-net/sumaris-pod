@@ -50,7 +50,8 @@
     "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
-    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_YEAR_PATTERN": "YYYY",
+    "DATE_YEAR_PLACEHOLDER": "yyyy",
     "DATE_PLACEHOLDER": "dd/mm/yyyy",
     "DATE_TIME_PLACEHOLDER": "dd/mm/yyyy hh:mm",
 
@@ -313,6 +314,13 @@
           "EXTERIOR_MARKING_NAME": "Exterior marking - Name",
           "REGISTRATION_CODE_NAME": "Registration code - Name"
         }
+      },
+      "PMFM_STRATEGY": {
+        "NAME": "Strategy > PMFM Parameter",
+        "ATTRIBUTES": {
+          "LONG_NAME": "PMFM Parameter (PMFM)",
+          "SHORT_NAME": "PMFM"
+        }
       }
     },
     "ERROR": {
@@ -347,6 +355,38 @@
       }
     }
   },
+
+  "PLANIFICATION": {
+    "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
+    "FISHING_AREA" :"Fishing area (s)",
+    "SAMPLE_ROW_CODE":"Sample row code",
+    "SAMPLE_ROW_TITLE":"Sample row code",
+    "EOTP":"EOTP",
+    "LABORATORY": "Laboratory",
+    "TARGET_SPECIE": "Target specie",
+    "LANDING_PORT": "Landing port",
+    "SEX": "Sexe",
+    "AGE": "Age",
+    "YEAR": "Year",
+    "WEIGHT": "Weights : ",
+    "SIZE": "Sizes : ",
+    "MATURITY": "Maturities : ",
+    "CALCIFIED_TYPE": "Types of calcified parts : " ,
+    "SIZE_INCREMENT": "Size increment",
+    "EFFORT": "Effort : ",
+    "QUARTER_1": "Quarter 1" ,
+    "QUARTER_2": "Quarter 2",
+    "QUARTER_3": "Quarter 3",
+    "QUARTER_4": "Quarter 4",
+    "PARAMETERS_TITLE": "Mesured parameters :",
+    "COMMENT" :"Comment",
+    "PARAMETERS_TITLE_TABLE": "Mesured parameters",
+    "QUARTER_1_TABLE": "Efforts T1" ,
+    "QUARTER_2_TABLE": "Efforts T2",
+    "QUARTER_3_TABLE": "Efforts T3",
+    "QUARTER_4_TABLE": "Efforts T4"
+  },
+
   "TRIP": {
     "TITLE": "Fishing trip",
     "PROGRAM": "Data collection programme",
@@ -726,6 +766,8 @@
     "TITLE_PREFIX": "<small>{{location}} - Landing {{date}}<br/></small>",
     "TAB_GENERAL": "Details",
     "PROGRAM": "Program",
+    "SAMPLE_ROW_CODE": "Sample row code",
+    "FISHING_AREA" :"Fishing area",
     "VESSEL": "Vessel",
     "LANDING": "Landing:",
     "DATE_TIME": "Date/Time",
@@ -1056,6 +1098,7 @@
   "PROGRAM": {
     "TAB_GENERAL": "Details",
     "TAB_STRATEGIES": "Strategies",
+    "TAB_SIMPLE_STRATEGIES": "Simple strategies",
     "TAB_ACCESS_RIGHTS": "Access rights",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Referential for taxon groups",
@@ -1099,10 +1142,49 @@
       "LANDING_EDITOR_TRIP": "Fishing trip",
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)"
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
+      "SIMPLE_STRATEGIES": "Simple strategies",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
+      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)"
     },
     "STRATEGY": {
-
+      "ACQUISITION_LEVELS": "Acquisition levels",
+      "LOCATIONS": "Locations",
+      "GEARS": "Gears",
+      "TAXON_GROUPS": "Taxon groups",
+      "TAXON_NAMES": "Taxon names",
+      "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFMs",
+      "BTN_REMOVE_TO_SELECTED_PMFM": "Remove to selected PMFMs",
+      "NEW": {
+        "TITLE": "New strategy"
+      },
+      "PMFM_STRATEGY": {
+        "ACQUISITION_LEVEL": "Acquisition level",
+        "RANK_ORDER": "Order",
+        "PMFM": "Collected parameters (PMFM)",
+        "LONG_COLUMN_TITLE": "Collected parameter (PMFM)",
+        "SHORT_COLUMN_TITLE": "PSFM",
+        "PARAMETER": "Parameter",
+        "MATRIX": "Matrix",
+        "FRACTION": "Fraction",
+        "METHOD": "Method",
+        "UNIT": "Unit",
+        "IS_MANDATORY": "Required ?",
+        "ACQUISITION_NUMBER": "Acquisition number",
+        "MIN_VALUE": "Min",
+        "MAX_VALUE": "Max",
+        "DEFAULT_VALUE": "default value",
+        "TABLE": {
+          "TITLE": "Collected parameters"
+        }
+      },
+      "ERROR": {
+        "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy label",
+        "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy analytic references",
+        "LOAD_STRATEGY_ERROR": "Error while loading stategy",
+        "SAVE_STRATEGY_ERROR": "Error while saving stategy"
+      }
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Error while loading program",
