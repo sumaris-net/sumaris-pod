@@ -10,7 +10,6 @@ import {
   ReferentialRef,
   IReferentialRef,
   FormArrayHelper,
-  fromDateISOString,
   EntityUtils
 } from '../../core/core.module';
 import {BehaviorSubject} from "rxjs";
@@ -19,7 +18,7 @@ import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment} from "../services/model/strategy.model";
-import {isNil, isNotNil} from "../../shared/functions";
+import {fromDateISOString, isNil, isNotNil} from "../../shared/functions";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { SharedValidators } from 'src/app/shared/validator/validators';
@@ -59,8 +58,12 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   enableFishingAreaFilter = true;
   canFilterFishingArea = true;
-  fishingAreaHelper: FormArrayHelper<ReferentialRef>;
-  fishingAreaFocusIndex = -1;
+  appliedStrategiesHelper: FormArrayHelper<AppliedStrategy>;
+  appliedStrategiesIndex = -1;
+
+  appliedPeriodHelper: FormArrayHelper<AppliedPeriod>;
+  appliedPeriodIndex = -1;
+
 
   enableCalcifiedTypeFilter = true;
   canFilterCalcifiedType = true;
@@ -76,7 +79,6 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
   pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
-  appliedStrategiesHelper: FormArrayHelper<AppliedStrategy>;
   pmfmStrategiesFocusIndex = -1;
 
   public sampleRowMask = ['2', '0', '2', '0', '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
@@ -104,6 +106,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   get appliedStrategiesForm(): FormArray {
     return this.form.controls.appliedStrategies as FormArray;
+  }
+
+  get appliedPeriodsForm(): FormArray {
+    return this.form.controls.appliedPeriods as FormArray;
   }
 
   @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
@@ -280,6 +286,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.initTaxonNameHelper();
     this.initPmfmStrategiesHelper();
     this.initAppliedStrategiesHelper();
+    this.initAppliedPeriodHelper();
 
   }
 
@@ -366,6 +373,53 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // Resize strategy department array
     this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
 
+    // Resize strategy department array
+    this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
+
+    // Resize pmfm strategy array
+    this.pmfmStrategiesHelper.resize(Math.max(1, data.pmfmStrategies.length));
+
+    // Resize strategy department array
+    this.appliedPeriodHelper.resize(4);
+
+    // APPLIED_PERIODS
+    // get model appliedPeriods which are stored in first applied strategy
+    const appliedPeriodControl = this.appliedPeriodsForm;
+    const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
+    const appliedStrategyId = data.appliedStrategies.length && data.appliedStrategies[0].strategyId || undefined;
+
+    // format periods for applied conrol period in view and init default period by quarter if no set
+    const quarter1 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 1) || {
+      appliedStrategyId: appliedStrategyId,
+      startDate: moment("2020-01-01"),
+      endDate: moment("2020-03-31"),
+      acquisitionNumber: undefined
+    };
+    const quarter2 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 4) || {
+      appliedStrategyId: appliedStrategyId,
+      startDate: moment("2020-04-01"),
+      endDate: moment("2020-06-30"),
+      acquisitionNumber: undefined
+    };
+    const quarter3 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 7) || {
+      appliedStrategyId: appliedStrategyId,
+      startDate: moment("2020-07-01"),
+      endDate: moment("2020-09-30"),
+      acquisitionNumber: undefined
+    };
+    const quarter4 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 10) || {
+      appliedStrategyId: appliedStrategyId,
+      startDate: moment("2020-10-01"),
+      endDate: moment("2020-12-31"),
+      acquisitionNumber: undefined
+    };
+    const formattedAppliedPeriods = [quarter1,quarter2,quarter3,quarter4];
+
+    // patch the control value
+    appliedPeriodControl.patchValue(formattedAppliedPeriods);
+
+
+
     super.setValue(data, opts);
 
 
@@ -399,74 +453,11 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     this.taxonNameHelper.resize(Math.max(1, data.taxonNames.length));
     taxonNamesControl.patchValue(taxons);
 
-
-
-
-    //   // YEAR
-    //   //  Automatic binding
-
-
-    // FISHING AREA
-    // applied_strategy.location_fk + program2location (zones en mer / configurables)
-    let fishingAreaAppliedStrategies = data.appliedStrategies;
-    let fishingArea = fishingAreaAppliedStrategies.map(appliedStrategy => { return appliedStrategy.location;});
-    if (fishingArea.length === 0) {fishingArea.push(null)}
-
-
-
-      // EFFORT
-    //   const appliedStrategiesControl = this.form.get("appliedStrategies");
-      let appliedStrategies = data.appliedStrategies;
-    let quarterEffort1 = null;
-    let quarterEffort2 = null;
-    let quarterEffort3 = null;
-    let quarterEffort4 = null;
-      if (appliedStrategies)
-      {
-        // We keep the first applied period of the array as linked to fishing area
-        let fishingAreaAppliedStrategyAsObject = appliedStrategies[0];
-        if (fishingAreaAppliedStrategyAsObject)
-        {
-          // We iterate over applied periods in order to retrieve quarters acquisition numbers
-          let fishingAreaAppliedStrategy = fishingAreaAppliedStrategyAsObject as AppliedStrategy;
-          let fishingAreaAppliedPeriodsAsObject = fishingAreaAppliedStrategy.appliedPeriods;
-          if (fishingAreaAppliedPeriodsAsObject)
-          {
-            let fishingAreaAppliedPeriods = fishingAreaAppliedPeriodsAsObject as AppliedPeriod[];
-            for (let fishingAreaAppliedPeriod of fishingAreaAppliedPeriods) {
-              let startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
-              let endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
-              if (startDateMonth >= 0 && endDateMonth < 3)
-              {
-                // First quarter
-                quarterEffort1 = fishingAreaAppliedPeriod.acquisitionNumber;
-              }
-              else if (startDateMonth >= 3 && endDateMonth < 6)
-              {
-                // Second quarter
-                quarterEffort2 = fishingAreaAppliedPeriod.acquisitionNumber;
-              }
-              else if (startDateMonth >= 6 && endDateMonth < 9)
-              {
-                // Third quarter
-                quarterEffort3 = fishingAreaAppliedPeriod.acquisitionNumber;
-              }
-              else if (startDateMonth >= 9 && endDateMonth < 12)
-              {
-                // Fourth quarter
-                quarterEffort4 = fishingAreaAppliedPeriod.acquisitionNumber;
-              }
-
-            }
-          }
-        }
-      }
-    const appliedStrategiesControl = this.appliedStrategiesForm;
-
-    let appliedStrategiesValues = [quarterEffort1, quarterEffort2, quarterEffort3, quarterEffort4];
-    appliedStrategiesValues = appliedStrategiesValues.concat(fishingArea);
-    this.appliedStrategiesHelper.resize(appliedStrategiesValues.length);
-    appliedStrategiesControl.patchValue(appliedStrategiesValues);
+    // let appliedStrategiesValues = [quarterEffort1, quarterEffort2, quarterEffort3, quarterEffort4];
+    // // appliedStrategiesValues = appliedStrategiesValues.concat(fishingArea);
+    // // this.appliedStrategiesHelper.resize(appliedStrategiesValues.length);
+    // const appliedPeriodControl = this.appliedPeriodsForm;
+    // appliedPeriodControl.patchValue(appliedStrategiesValues);
 
 
       // WEIGHT PMFMS
@@ -686,49 +677,42 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
     this.appliedStrategiesHelper = new FormArrayHelper<AppliedStrategy>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
-      (appliedStrategy) => this.formBuilder.control(appliedStrategy || null),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
+      (appliedStrategy) => this.validatorService.getAppliedStrategiesControl(appliedStrategy),
+      (s1, s2) => EntityUtils.equals(s1.location, s2.location, 'label'),
+      value => isNil(value) && isNil(value.location),
       {
         allowEmptyArray: false
       }
     );
     // Create at least one fishing Area
     if (this.appliedStrategiesHelper.size() === 0) {
-      this.appliedStrategiesHelper.resize(7);
+      this.strategyDepartmentHelper.resize(1);
     }
   }
-  addFishingArea() {
-    this.appliedStrategiesHelper.add();
+  addAppliedStrategy() {
+    this.appliedStrategiesHelper.add(new AppliedStrategy());
     if (!this.mobile) {
-      this.fishingAreaFocusIndex = this.appliedStrategiesHelper.size() - 1 -4;
+      this.appliedStrategiesIndex = this.appliedStrategiesHelper.size() - 1;
     }
   }
 
-
-  // fishingArea Helper -----------------------------------------------------------------------------------------------
-  // protected initFishingAreaHelper() {
-  //   // appliedStrategies => appliedStrategies.location ?
-  //     this.fishingAreaHelper = new FormArrayHelper<ReferentialRef>(
-  //       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
-  //       (fishingArea) => this.formBuilder.control(fishingArea || null, [Validators.required, SharedValidators.entity]),
-  //       ReferentialUtils.equals,
-  //       ReferentialUtils.isEmpty,
-  //       {
-  //         allowEmptyArray: false
-  //       }
-  //     );
-  //     // Create at least one fishing Area
-  //     if (this.fishingAreaHelper.size() === 0) {
-  //       this.fishingAreaHelper.resize(1);
-  //     }
-  //   }
-  //   addFishingArea() {
-  //     this.fishingAreaHelper.add();
-  //     if (!this.mobile) {
-  //       this.fishingAreaFocusIndex = this.fishingAreaHelper.size() - 1;
-  //     }
-  //   }
+  // appliedStrategies Helper -----------------------------------------------------------------------------------------------
+  protected initAppliedPeriodHelper() {
+    // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
+    this.appliedPeriodHelper = new FormArrayHelper<AppliedPeriod>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedPeriods'),
+      (appliedPeriod) => this.validatorService.getAppliedPeriodsControl(appliedPeriod),
+      (p1, p2) => EntityUtils.equals(p1, p2, 'startDate'),
+      value => isNil(value),
+      {
+        allowEmptyArray: false
+      }
+    );
+    // Create at least one fishing Area
+    if (this.appliedStrategiesHelper.size() === 0) {
+      this.strategyDepartmentHelper.resize(1);
+    }
+  }
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
   protected initDepartmentHelper() {
