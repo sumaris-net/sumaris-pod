@@ -291,21 +291,22 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     }
 
 
-    for( let i = 0; i < pmfmStrategie.length; i++){
-      // fractions
-      if(i > 4) {
-        let calcifiedTypes : PmfmStrategy = new PmfmStrategy();
-        calcifiedTypes.strategyId = data.id;
-        calcifiedTypes.pmfm = null;
-        calcifiedTypes.fractionId = pmfmStrategie[i].id;
-        calcifiedTypes.qualitativeValues =undefined;
-        calcifiedTypes.acquisitionLevel='SAMPLE'
-        calcifiedTypes.acquisitionNumber=1;
-        calcifiedTypes.isMandatory = false;
-        calcifiedTypes.rankOrder = 1;
+    let calcifiedTypes = this.planificationForm.calcifiedTypesForm.value;
 
-        pmfmStrategies.push(calcifiedTypes);
-      }
+    for( let i = 0; i < calcifiedTypes.length; i++){
+
+        let calcifiedType : PmfmStrategy = new PmfmStrategy();
+        calcifiedType.strategyId = data.id;
+        calcifiedType.pmfm = null;
+        calcifiedType.fractionId = calcifiedTypes[i].id;
+        calcifiedType.qualitativeValues =undefined;
+        calcifiedType.acquisitionLevel='SAMPLE'
+        calcifiedType.acquisitionNumber=1;
+        calcifiedType.isMandatory = false;
+        calcifiedType.rankOrder = 1;
+
+        pmfmStrategies.push(calcifiedType);
+      
     }
 
     if(sex){
