@@ -311,14 +311,15 @@
                       QUALITY_FLAG_FK="0"
                       NUMERICAL_VALUE="7"/>
   <!-- code morse -->
-  <!--SAMPLE_MEASUREMENT ID="52"
+  <SAMPLE_MEASUREMENT ID="52"
                       SAMPLE_FK="5"
                       RECORDER_DEPARTMENT_FK="2"
                       PMFM_FK="358"
                       QUALITY_FLAG_FK="0"
-                      ALPHANUMERICAL_VALUE="TitiX00032"/-->
+                      ALPHANUMERICAL_VALUE="TitiX00032"/>
 
   <!-- autres -->
+  <!-- mettre une fraction -->
   <!--SAMPLE_MEASUREMENT ID="53"
                       SAMPLE_FK="5"
                       RECORDER_DEPARTMENT_FK="2"
