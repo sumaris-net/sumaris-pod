@@ -247,5 +247,83 @@
   <LANDING ID="11" TRIP_FK="11" VESSEL_FK="1" RANK_ORDER_ON_VESSEL="1" OBSERVED_LOCATION_FK="11" PROGRAM_FK="30" LANDING_DATE_TIME="2020-10-01 12:00:00.000" LANDING_LOCATION_FK="23" CREATION_DATE="2010-10-01" RECORDER_DEPARTMENT_FK="11" QUALITY_FLAG_FK="0" COMMENTS="ObservedLanding #11" RECORDER_PERSON_FK="2"/>
   <LANDING_MEASUREMENT ID="21" LANDING_FK="11" PMFM_FK="136" RANK_ORDER="1" QUALITATIVE_VALUE_FK="409" UPDATE_DATE="2020-10-01" RECORDER_DEPARTMENT_FK="11" QUALITY_FLAG_FK="0"/>
 
+  <!-- PARAM BIO -->
+  <!-- mettre 2 observations avec au moins 2 landings -->
+  <!-- sample : c'est le tableau -->
+  <!-- il manque 2 pmfms : les créer dans common.xml -->
+  <OBSERVED_LOCATION ID="12"
+                     PROGRAM_FK="40"
+                     RECORDER_DEPARTMENT_FK="2"
+                     RECORDER_PERSON_FK="2"
+                     CREATION_DATE="2020-12-18"
+                     START_DATE_TIME="2020-12-01 16:00:00.000"
+                     END_DATE_TIME="2020-12-01 16:00:00.000"
+                     LOCATION_FK="30"
+                     QUALITY_FLAG_FK="0"/>
+  <OBSERVED_LOCATION2PERSON OBSERVED_LOCATION_FK="12"
+                            PERSON_FK="2"/>
+  <LANDING ID="3"
+           OBSERVED_LOCATION_FK="12"
+           PROGRAM_FK="40"
+           RECORDER_DEPARTMENT_FK="2"
+           RECORDER_PERSON_FK="2"
+           CREATION_DATE="2020-12-18"
+           LANDING_DATE_TIME="2020-12-01 16:00:00.000"
+           LANDING_LOCATION_FK="30"
+           QUALITY_FLAG_FK="0"
+           RANK_ORDER="1"
+           VESSEL_FK="1"
+           COMMENTS="landing test"/>
+  <LANDING_MEASUREMENT
+          ID="31"
+          LANDING_FK="3"
+          PMFM_FK="359"
+          RANK_ORDER="1"
+          ALPHANUMERICAL_VALUE="2020-BIO-0001"
+          UPDATE_DATE="2018-03-08"
+          RECORDER_DEPARTMENT_FK="2"
+          QUALITY_FLAG_FK="0"/>
+  <SAMPLE ID="5"
+          LANDING_FK="3"
+          PROGRAM_FK="40"
+          RECORDER_DEPARTMENT_FK="2"
+          RECORDER_PERSON_FK="2"
+          SAMPLE_DATE="2020-12-01 16:00:00.000"
+          CREATION_DATE="2020-12-18"
+          LABEL="01003"
+          RANK_ORDER="1"
+          MATRIX_FK="2"
+          QUALITY_FLAG_FK="0"
+          REFERENCE_TAXON_FK="1010"
+          COMMENTS="sample test"/>
+  <!-- poids -->
+  <SAMPLE_MEASUREMENT ID="50"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="356"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="4"/>
+  <!-- taille -->
+  <SAMPLE_MEASUREMENT ID="51"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="141"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="7"/>
+  <!-- code morse -->
+  <!--SAMPLE_MEASUREMENT ID="52"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="358"
+                      QUALITY_FLAG_FK="0"
+                      ALPHANUMERICAL_VALUE="TitiX00032"/-->
+
+  <!-- autres -->
+  <!--SAMPLE_MEASUREMENT ID="53"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="13"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="4"/-->
 
 </dataset>
