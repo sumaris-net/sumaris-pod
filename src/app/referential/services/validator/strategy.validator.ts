@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonGroupStrategy, TaxonNameStrategy} from "../model/strategy.model";
 import {PmfmStrategyValidatorService} from "./pmfm-strategy.validator";
-import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
+import {SharedValidators} from "../../../shared/validator/validators";
 import {toNumber} from "../../../shared/functions";
 import {ReferentialValidatorService} from "./referential.validator";
 
@@ -37,11 +37,6 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
       appliedStrategies: this.getAppliedStrategiesFormArray(data),
       appliedPeriods: this.getAppliedPeriodsFormArray(data && data.appliedStrategies[0]),
       strategyDepartments: this.getStrategyDepartmentsFormArray(data),
-
-      //gears: [data && data.gears || null], // WARN: Do NOT use special validator here
-      //taxonGroups: [data && data.taxonGroups || null], // WARN: Do NOT use special validator here
-      //taxonNames: [data && data.taxonNames || null], // WARN: Do NOT use special validator here
-      //pmfmStrategies: [data && data.pmfmStrategies || null], // WARN: Do NOT use special validator here
 
       programId: [toNumber(data && data.programId, null)],
     });
@@ -92,7 +87,6 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
     return this.formBuilder.group({
       strategyId: [toNumber(data && data.strategyId, null)],
       location: [data && data.location, SharedValidators.entity],
-      //privilege: [data && data.privilege, Validators.compose([Validators.required, SharedValidators.entity])],
       privilege: [data && data.privilege],
       department: [data && data.department, Validators.compose([Validators.required, SharedValidators.entity])]
     });

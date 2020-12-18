@@ -9,6 +9,7 @@ import {
   AppliedPeriod,
   AppliedStrategy,
   Strategy,
+  StrategyDepartment,
   TaxonNameStrategy
 } from "../services/model/strategy.model";
 import {ProgramValidatorService} from "../services/validator/program.validator";
@@ -67,6 +68,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   form: FormGroup;
   i18nFieldPrefix = 'STRATEGY.';
   strategyFormState: AnimationState;
+  programId: number;
 
   @ViewChild('planificationForm', { static: true }) planificationForm: PlanificationForm;
 
@@ -98,10 +100,13 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     //  Call editor routing
     super.ngOnInit();
     // Set entity name (required for referential form validator)
-    this.planificationForm.entityName = 'planificationForm';
 
-    this.defaultBackHref =`/referential/program/101?tab=2`;
-    // this.defaultBackHref = isNotNil(data.programId) ? `/observations/${data.programId}?tab=2` : undefined;
+
+    // get program id from route
+    this.programId =  40 || this.activatedRoute.snapshot.params['id'];
+
+    this.planificationForm.entityName = 'planificationForm';
+    this.defaultBackHref = `/referential/program/${this.programId}?tab=2`
 
   }
 
@@ -155,111 +160,45 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   //protected setValue(data: Strategy) {
   protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
-      if (!data) return; // Skip
+    if (!data) return; // Skip
 
-    this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
-
-    /*this.simpleStrategyForm.value = data;
-    //this.simpleStrategyForm.program = 40;*/
-    //this.simpleStrategyForm.statusList =
-   /* this.simpleStrategyForm.entityName= 'strategy';*/
-
-
+    // FIXME : must be set in onNewEntity
+    data.programId = this.programId;//data.programId ||
+    data.statusId= data.statusId || 1;
     this.planificationForm.value = data;
-    //this.simpleStrategyForm.program = 40;
-    //this.simpleStrategyForm.statusList =
-    //this.planificationForm.entityName= 'strategy';
 
-
-    // Make sure to set entityName if set from Input()
-    /*const entityNameControl = this.form.get('entityName');
-    if (entityNameControl && this.entityName && entityNameControl.value !== this.entityName) {
-      entityNameControl.setValue(this.entityName);
-    }*/
-    // Propagate value to planification form when automatic binding isn't set in super.setValue()
-   // this.planificationForm.entityName= 'strategy';
-    this.planificationForm.setValueSimpleStrategy(data, opts);
-
-
-    this.markAsPristine();
   }
-
-
 
   protected async getJsonValueToSave(): Promise<Strategy> {
 
-    const data = await super.getJsonValueToSave();
-    // TODO : get programId
-    data.programId=40;
+    const data = this.planificationForm.value;
 
+    data.name = data.name || data.label;
 
-    
-    //Sample row code
-    data.label =  this.planificationForm.form.get("label").value;
-    data.name = this.planificationForm.form.get("label").value;
-    data.statusId=1;
+    // FIXME : how to load referenceTaxonId previously ??
+    data.taxonNames[0].strategyId = data.taxonNames[0].strategyId || 30;
+    data.taxonNames[0].taxonName.referenceTaxonId = 1006;
 
-    //eotp
-    if(this.planificationForm.form.get("analyticReference").value){
-      data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
-    }
-
-    //comments
-    data.description = this.planificationForm.form.get("description").value;
-
-    // get Id program from route ?
-    console.log("programId : " + this.activatedRoute.snapshot.paramMap.get('id'));
-
-    //get creationDate -------------------------------------------------------------------------------------------------
-    let creationDate = this.planificationForm.form.get("creationDate").value;
-    let year = new Date(creationDate).getFullYear();
-
-    //get Laboratories -------------------------------------------------------------------------------------------------
-
-    let laboratories =  this.planificationForm.strategyDepartmentFormArray.value;
-
-    if(laboratories){
-       // FIXME
+    // FIXME : how to get privilege previously ??
+    data.strategyDepartments.map((dpt : StrategyDepartment) =>{
       let observer : ReferentialRef = new ReferentialRef();
       observer.id =2;
       observer.label ="Observer";
       observer.name ="Observer privilege";
       observer.statusId =1;
       observer.entityName ="ProgramPrivilege";
-
-
-
-      // set strategyId and provilege
-      for( let i =0;i <laboratories.length; i++){
-        laboratories[i].strategyId = data.id;
-        laboratories[i].privilege= observer;
-      }
-      data.strategyDepartments = laboratories;
-    }
-
-    //TaxonNames -------------------------------------------------------------------------------------------------------
-    let taxonNameStrategy =  this.planificationForm.taxonNamesForm.value;
-    let taxonName: TaxonNameStrategy = new TaxonNameStrategy();
-    let taxonNameStrategies: TaxonNameStrategy [] =[];
-
-    if(taxonNameStrategy){
-      taxonName.strategyId= data.id;
-      taxonName.priorityLevel=null;
-      taxonName.taxonName=taxonNameStrategy[0];
-      taxonName.taxonName.referenceTaxonId = taxonName.taxonName.id;
-      taxonNameStrategies.push(taxonName);
-
-      data.taxonNames =taxonNameStrategies;
-    }
+      dpt.privilege = observer;
+    });
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
-    const appliedStrategies = this.planificationForm.appliedStrategiesForm.value;
+    const appliedStrategies = data.appliedStrategies;
     // append efforts (trick is that effots are added to the first appliedStrategy of the array)
     if(appliedStrategies.length){
-      const appliedPeriods = this.planificationForm.appliedPeriodsForm.value as AppliedPeriod[];
+      const appliedPeriods = data.appliedPeriods;
       appliedStrategies[0].appliedPeriods = appliedPeriods.filter(period => isNotNil(period.acquisitionNumber));
     }
     data.appliedStrategies = appliedStrategies;
+    // delete data.appliedPeriods;
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
     let pmfmStrategie = this.planificationForm.pmfmStrategiesForm.value;
@@ -306,7 +245,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
         calcifiedType.rankOrder = 1;
 
         pmfmStrategies.push(calcifiedType);
-      
+
     }
 
     if(sex){
@@ -340,8 +279,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       pmfmStrategies.push(pmfmStrategyAge);
 
     }
-
-
 
     data.pmfmStrategies= pmfmStrategies.map(p => {
       p.acquisitionLevel = 'SAMPLE';
@@ -378,10 +315,35 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
    protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
 
     // Update back href
-    this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${data.programId}?tab=2` : undefined;
+    this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${this.programId}?tab=2` : undefined;
+
+    // data.id = 30;
     this.markForCheck();
 
   }
+
+
+  // protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+
+  //   // Read options and query params
+  //   console.info(options);
+  //   if (options && options.observedLocationId) {
+
+  //     console.debug("[landedTrip-page] New entity: settings defaults...");
+
+  //   } else {
+  //     throw new Error("[landedTrip-page] the observedLocationId must be present");
+  //   }
+
+  //   const queryParams = this.route.snapshot.queryParams;
+  //   // Load the vessel, if any
+  //   if (isNotNil(queryParams['strategy'])) {
+  //     const strategyId = +queryParams['strategy'];
+  //     console.debug(`[landedTrip-page] Loading vessel {${strategyId}}...`);
+  //     data.id = strategyId;
+  //   }
+
+  // }
 
   protected addToPageHistory(page: HistoryPageReference) {
     super.addToPageHistory({ ...page, icon: 'list-outline'});
