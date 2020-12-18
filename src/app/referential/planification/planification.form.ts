@@ -17,7 +17,7 @@ import { Program } from '../services/model/program.model';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { ReferentialUtils} from "../../core/services/model/referential.model";
 import * as moment from "moment";
-import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment} from "../services/model/strategy.model";
+import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from "../services/model/strategy.model";
 import {fromDateISOString, isNil, isNotNil} from "../../shared/functions";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
@@ -46,7 +46,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   enableTaxonNameFilter = true;
   canFilterTaxonName = true;
-  taxonNameHelper: FormArrayHelper<ReferentialRef>;
+  taxonNameHelper: FormArrayHelper<TaxonNameStrategy>;
 
   enableEotpFilter = true;
   canFilterEotp = true;
@@ -171,7 +171,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
-    
+
     this.weightPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
     this.sizePmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
     this.maturityPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
@@ -318,7 +318,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
     console.debug(`[planification] set enable filtered ${fieldName} items to ${value}`);
   }
 
-  setValueSimpleStrategy(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     console.debug("[planification-form] Setting Strategy value", data);
     if (!data) return;
 
@@ -330,6 +330,9 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     // Resize strategy department array
     this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
+
+    // Resize pmfm strategy array
+    this.taxonNameHelper.resize(Math.max(1, data.taxonNames.length));
 
     // Resize pmfm strategy array
     this.pmfmStrategiesHelper.resize(Math.max(1, data.pmfmStrategies.length));
@@ -377,33 +380,20 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     super.setValue(data, opts);
 
-      // EOTP
-      /*const eotpControl = this.form.get("analyticReference");
-      let eotp = data.analyticReference;
-      let eotpValues = this._eotpSubject.getValue();
-      let eotpObject = eotpValues.find(e => e.label && e.label === eotp);
-      eotpControl.patchValue(eotpObject);*/
+    // fixme get eotp from referential by label = data.analyticReference
+    let  analyticReferenceToSet : IReferentialRef = new ReferentialRef();
+    analyticReferenceToSet.label = data.analyticReference;
+    this.form.get('analyticReference').setValue(analyticReferenceToSet);
 
-      // fixme get eotp from referential by label = data.analyticReference
-      let  analyticReferenceToSet : IReferentialRef = new ReferentialRef();
-      analyticReferenceToSet.label = data.analyticReference;
-      this.form.get('analyticReference').setValue(analyticReferenceToSet);
-
-
-      // const laboratoriesControl = this.laboratoriesForm;
-      // let strategyDepartments = data.strategyDepartments;
-      // let laboratories = strategyDepartments.map(strategyDepartment => { return strategyDepartment.department;});
-      // this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
-      // laboratoriesControl.patchValue(laboratories);
 
 
 
     //   // TAXONS
-    const taxonNamesControl = this.taxonNamesForm;
-    let taxonsNames = data.taxonNames;
-    let taxons = taxonsNames.map(taxonsNames => { return taxonsNames.taxonName;});
-    this.taxonNameHelper.resize(Math.max(1, data.taxonNames.length));
-    taxonNamesControl.patchValue(taxons);
+    // const taxonNamesControl = this.taxonNamesForm;
+    // let taxonsNames = data.taxonNames;
+    // let taxons = taxonsNames.map(taxonsNames => { return taxonsNames.taxonName;});
+    // this.taxonNameHelper.resize(Math.max(1, data.taxonNames.length));
+    // taxonNamesControl.patchValue(taxons);
 
     // let appliedStrategiesValues = [quarterEffort1, quarterEffort2, quarterEffort3, quarterEffort4];
     // // appliedStrategiesValues = appliedStrategiesValues.concat(fishingArea);
@@ -495,7 +485,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
     this.referentialRefService.loadAll(0, 0, null, null,
-      { 
+      {
         entityName : 'Fraction'
       },
       { withTotal: false /* total not need */ }
@@ -508,7 +498,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
           name : res.data.find(fraction => fraction.id === cal.fractionId).name,
         }
       });
-      
+
       this.calcifiedTypeHelper.resize(Math.max(1, calcifiedTypes.length))
       calcifiedTypeControl.patchValue(fractions);
     })
@@ -572,11 +562,11 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
   // TaxonName Helper -----------------------------------------------------------------------------------------------
   protected initTaxonNameHelper() {
     // appliedStrategies => appliedStrategies.location ?
-      this.taxonNameHelper = new FormArrayHelper<ReferentialRef>(
+      this.taxonNameHelper = new FormArrayHelper<TaxonNameStrategy>(
         FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'taxonNames'),
-        (taxonName) => this.formBuilder.control(taxonName && taxonName.name || null, [Validators.required, SharedValidators.entity]),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
+        (ts) => this.validatorService.getTaxonNameStrategyControl(ts),
+        (t1, t2) => EntityUtils.equals(t1.taxonName, t2.taxonName, 'name'),
+        value => isNil(value) && isNil(value.taxonName),
         {
           allowEmptyArray: false
         }

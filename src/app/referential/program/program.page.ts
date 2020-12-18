@@ -259,7 +259,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     if (savedOrContinue) {
       this.loading = true;
       try {
-        await this.router.navigateByUrl(`/referential/program/${this.activatedRoute.snapshot.paramMap.get('id')}/simpleStrategy/${row.id}`);
+        await this.router.navigateByUrl(`/referential/program/${this.activatedRoute.snapshot.paramMap.get('id')}/strategy/${row.id}`);
       }
       finally {
         this.loading = false;
@@ -279,7 +279,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       this.loading = true;
       this.markForCheck();
       try {
-        await this.router.navigateByUrl(`/referential/program/${this.activatedRoute.snapshot.paramMap.get('id')}/simpleStrategy/new`);
+        await this.router.navigateByUrl(`/referential/program/${this.activatedRoute.snapshot.paramMap.get('id')}/strategy/new`);
       }
       finally {
         this.loading = false;
