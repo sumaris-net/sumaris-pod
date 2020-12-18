@@ -187,9 +187,21 @@ export const StrategyFragments = {
         ...FullPmfmFragment
       }
       parameterId
+      parameter {
+        ...ReferentialFragment
+      }
       matrixId
+      matrix {
+        ...ReferentialFragment
+      }
       fractionId
+      fraction {
+        ...ReferentialFragment
+      }
       methodId
+      method {
+        ...ReferentialFragment
+      }
       gearIds
       taxonGroupIds
       referenceTaxonIds

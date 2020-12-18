@@ -792,7 +792,11 @@
       "DATE_TIME": "Date/heure",
       "LOCATION": "Lieu de débarquement",
       "OBSERVERS": "Observateurs",
-      "COMMENTS": "Commentaires"
+      "COMMENTS": "Commentaires",
+      "SAMPLING_PLAN_CODE": "Lignes de plan",
+      "VESSEL_PORT_LOCATION": "Port",
+      "CREATION_DATE": "Date de création",
+      "RECORDER_PERSON" : "Saisisseur"
     },
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
