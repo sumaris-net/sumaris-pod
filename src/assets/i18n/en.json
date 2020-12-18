@@ -790,7 +790,11 @@
       "DATE_TIME": "Date/Time",
       "LOCATION": "Landing site",
       "OBSERVERS": "Observers",
-      "COMMENTS": "Comments"
+      "COMMENTS": "Comments",
+      "SAMPLING_PLAN_CODE": "Sampling plan",
+      "VESSEL_PORT_LOCATION": "Port",
+      "CREATION_DATE": "Creation date",
+      "RECORDER_PERSON" : "Recorder"
     },
     "SELECT_MODAL": {
       "TITLE": "Detail of observed vessels"

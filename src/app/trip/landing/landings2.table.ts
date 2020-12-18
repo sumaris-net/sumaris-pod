@@ -27,7 +27,7 @@ import {environment} from "../../../environments/environment";
 import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['samples','vessel', 'vesselPortLocation', 'creationDate', 'recorder'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
@@ -63,6 +63,7 @@ export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter>
       this.inlineEdition = value === 'trip';
     }
   }
+
 
   get detailEditor(): LandingEditor {
     return this._detailEditor;
@@ -180,14 +181,14 @@ export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter>
 
   addRow(event?: any): boolean {
 
-   /* if (this.isTripDetailEditor) {
-      if (!this._enabled) return false;
-      if (this.debug) console.debug("[landings-table] Asking for new landing...");
+    /* if (this.isTripDetailEditor) {
+       if (!this._enabled) return false;
+       if (this.debug) console.debug("[landings-table] Asking for new landing...");
 
-      // Force modal
-      this.openNewRowDetail(event);
-      return false;
-    }*/
+       // Force modal
+       this.openNewRowDetail(event);
+       return false;
+     }*/
 
     // default behavior
     return super.addRow(event);

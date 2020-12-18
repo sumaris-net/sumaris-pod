@@ -61,6 +61,17 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder || row.currentData?.id }}</mat-cell>
   </ng-container>
 
+  <!-- Sampling Plan  Column -->
+  <ng-container matColumnDef="samples">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>LANDING.TABLE.SAMPLING_PLAN_CODE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <!-- <ion-label>{{referentialToString(row.currentData?.vesselSnapshot, autocompleteFields.vesselSnapshot.attributes)}}</ion-label> -->
+    </mat-cell>
+  </ng-container>
+
+
   <!-- Vessel Column -->
   <ng-container matColumnDef="vessel">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -71,7 +82,7 @@
     </mat-cell>
   </ng-container>
 
-  <!-- Vessel type Column -->
+  <!-- Vessel type Column
   <ng-container matColumnDef="vesselType">
     <mat-header-cell *matHeaderCellDef>
       <span translate>LANDING.TABLE.VESSEL_TYPE</span>
@@ -79,19 +90,19 @@
     <mat-cell *matCellDef="let row">
       <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.vesselType, ['name'])}}</ion-label>
     </mat-cell>
-  </ng-container>
+  </ng-container> -->
 
   <!-- Vessel base port Column -->
-  <ng-container matColumnDef="vesselBasePortLocation">
+  <ng-container matColumnDef="vesselPortLocation">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</span>
+      <span translate>LANDING.TABLE.VESSEL_PORT_LOCATION</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.basePortLocation)}}</ion-label>
     </mat-cell>
   </ng-container>
 
-  <!-- date time  -->
+  <!-- date time
   <ng-container matColumnDef="dateTime">
     <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
       <span translate>LANDING.TABLE.DATE_TIME</span>
@@ -99,17 +110,37 @@
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
       {{ getLandingDate(row.currentData) | dateFormat: {time: true} }}
     </mat-cell>
+  </ng-container> -->
+
+  <!-- CREATION_DATE  -->
+  <ng-container matColumnDef="creationDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <span translate>LANDING.TABLE.CREATION_DATE</span>
+    </mat-header-cell>
+    <mat-cell class="mat-cell-date-time" *matCellDef="let row">
+      {{  row.currentData.creationDate | dateFormat: {time: false} }}
+    </mat-cell>
   </ng-container>
 
-  <!-- Observers -->
-  <ng-container matColumnDef="observers">
+  <!-- recorder -->
+  <ng-container matColumnDef="recorder">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>LANDING.TABLE.OBSERVERS</ion-label>
+      <ion-label translate>LANDING.TABLE.RECORDER_PERSON</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ personsToString(row.currentData?.observers) }}</ion-text>
     </mat-cell>
   </ng-container>
+
+  <!-- Observers
+ <ng-container matColumnDef="observers">
+   <mat-header-cell *matHeaderCellDef mat-sort-header>
+     <ion-label translate>LANDING.TABLE.OBSERVERS</ion-label>
+   </mat-header-cell>
+   <mat-cell *matCellDef="let row">
+     <ion-text>{{ personsToString(row.currentData?.observers) }}</ion-text>
+   </mat-cell>
+ </ng-container> -->
 
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
@@ -197,4 +228,3 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
-
