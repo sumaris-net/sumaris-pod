@@ -192,15 +192,19 @@ public class PmfmStrategyRepositoryImpl
         // Parameter, Matrix, Fraction, Method Ids
         if (source.getParameter() != null) {
             target.setParameterId(source.getParameter().getId());
+            target.setParameter(referentialDao.toVO(source.getParameter()));
         }
         if (source.getMatrix() != null) {
             target.setMatrixId(source.getMatrix().getId());
+            target.setMatrix(referentialDao.toVO(source.getMatrix()));
         }
         if (source.getFraction() != null) {
             target.setFractionId(source.getFraction().getId());
+            target.setFraction(referentialDao.toVO(source.getFraction()));
         }
         if (source.getMethod() != null) {
             target.setMethodId(source.getMethod().getId());
+            target.setMethod(referentialDao.toVO(source.getMethod()));
         }
 
         // Acquisition Level
@@ -276,25 +280,34 @@ public class PmfmStrategyRepositoryImpl
         }
 
         // Pmfm
-        Integer pmfmId = source.getPmfmId() != null ? source.getPmfmId() :
-            (source.getPmfm() != null ? source.getPmfm().getId() : null);
+        Integer pmfmId = source.getPmfmId() != null ? source.getPmfmId()
+                : (source.getPmfm() != null ? source.getPmfm().getId() : null);
         //if (pmfmId == null) throw new DataIntegrityViolationException("Missing pmfmId or pmfm.id in a PmfmStrategyVO");
         if (pmfmId != null) {
             target.setPmfm(load(Pmfm.class, pmfmId));
         }
 
         // Parameter, Matrix, Fraction, Method
-        if (source.getParameterId() != null) {
-            target.setParameter(load(Parameter.class, source.getParameterId()));
+        Integer parameterId = source.getParameterId() != null ? source.getParameterId()
+                : (source.getParameter() != null ? source.getParameter().getId() : null);
+        Integer matrixId = source.getMatrixId() != null ? source.getMatrixId()
+                : (source.getMatrix() != null ? source.getMatrix().getId() : null);
+        Integer fractionId = source.getFractionId() != null ? source.getFractionId()
+                : (source.getFraction() != null ? source.getFraction().getId() : null);
+        Integer methodId = source.getMethodId() != null ? source.getMethodId()
+                : (source.getMethod() != null ? source.getMethod().getId() : null);
+
+        if (parameterId != null) {
+            target.setParameter(load(Parameter.class, parameterId));
         }
-        if (source.getMatrixId() != null) {
-            target.setMatrix(load(Matrix.class, source.getMatrixId()));
+        if (matrixId != null) {
+            target.setMatrix(load(Matrix.class, matrixId));
         }
-        if (source.getFractionId() != null) {
-            target.setFraction(load(Fraction.class, source.getFractionId()));
+        if (fractionId != null) {
+            target.setFraction(load(Fraction.class, fractionId));
         }
-        if (source.getMethodId() != null) {
-            target.setMethod(load(Method.class, source.getMethodId()));
+        if (methodId != null) {
+            target.setMethod(load(Method.class, methodId));
         }
 
         // Acquisition Level
