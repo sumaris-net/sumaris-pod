@@ -224,7 +224,7 @@ public class StrategyRepositoryImpl
         super.onAfterSaveEntity(vo, savedEntity, isNew);
 
         // Save program locations
-        saveProgramLocations(savedEntity);
+//        saveProgramLocations(savedEntity);
 
         getEntityManager().flush();
         getEntityManager().clear();
