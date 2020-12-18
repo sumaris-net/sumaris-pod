@@ -1,6 +1,14 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
-import {FormArrayHelper, isNil, isNotNil, Person, ReferentialRef, referentialToString} from '../../core/core.module';
+import {
+  FormArrayHelper,
+  IReferentialRef,
+  isNil,
+  isNotNil,
+  Person,
+  ReferentialRef,
+  referentialToString
+} from '../../core/core.module';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
@@ -17,7 +25,7 @@ import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {toBoolean} from "../../shared/functions";
 import {Landing} from "../services/model/landing.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
@@ -89,6 +97,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     return null; //this.form.controls.observers;
   }
 
+  get fishingAreaFormArray(): FormArray {
+    return this.form.controls.fishingAreas as FormArray;
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -127,6 +139,27 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
         entityName: 'Program'
       }
     });
+
+    // Combo: sampleRowCode
+    const sampleRowCodeField = this.registerAutocompleteField('sampleRowCode', {
+      service: this.vesselSnapshotService,
+      attributes: this.settings.getFieldDisplayAttributes('sampleRowCode', ['exteriorMarking', 'name']),
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
+    });
+    // const programAttributes = this.settings.getFieldDisplayAttributes('program');
+    // this.registerAutocompleteField('program', {
+    //   service: this.referentialRefService,
+    //   attributes: programAttributes,
+    //   // Increase default column size, for 'label'
+    //   columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+    //   filter: <ReferentialRefFilter>{
+    //     entityName: 'Program'
+    //   },
+    //   mobile: this.mobile
+    // });
+
 
     // Combo: vessels
     const vesselField = this.registerAutocompleteField('vesselSnapshot', {
@@ -172,13 +205,30 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     });
 
     // Combo: taxon / targetSpecies
-    const targetSpeciesField = this.registerAutocompleteField('targetSpecies', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('targetSpecies', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
+    // const taxonNameAttributes = this.settings.getFieldDisplayAttributes('taxonName');
+    // const taxonNameField = this.registerAutocompleteField('taxonName', {
+    //   service: this.referentialRefService,
+    //   attributes: taxonNameAttributes,
+    //   // Increase default column size, for 'label'
+    //   columnSizes: taxonNameAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+    //   filter: <ReferentialRefFilter>{
+    //     entityName: 'TaxonName'
+    //   },
+    //   mobile: this.mobile
+    // });
+
+    this.registerAutocompleteField('taxonName', {
+      suggestFn: (value, filter) => this.suggest(value, {
+          ...filter, statusId : 1
+        },
+        'TaxonName',
+        this.enableTaxonNameFilter),
+      attributes: ['name'],
+      columnNames: [ 'REFERENTIAL.NAME'],
+      columnSizes: [2,10],
+      mobile: this.settings.mobile
     });
+
   }
 
   public setValue(value: Landing) {
@@ -286,5 +336,31 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
     this.markForCheck();
     console.debug(`[landing] set enable filtered ${fieldName} items to ${value}`);
+  }
+
+  /**
+   * Suggest autocomplete values
+   * @param value
+   * @param filter - filters to apply
+   * @param entityName - referential to request
+   * @param filtered - boolean telling if we load prefilled data
+   */
+  protected async suggest(value: string, filter: any, entityName: string, filtered: boolean) : Promise<IReferentialRef[]> {
+
+    if(filtered) {
+      //TODO a remplacer par recuperation des donnees deja saisies
+      const res = await this.referentialRefService.loadAll(0, 5, null, null,
+        { ...filter,
+          entityName : entityName
+        },
+        { withTotal: false /* total not need */ }
+      );
+      return res.data;
+    } else {
+      return this.referentialRefService.suggest(value, {
+        ...filter,
+        entityName : entityName
+      });
+    }
   }
 }
