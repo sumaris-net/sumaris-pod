@@ -44,7 +44,13 @@ public interface StrategyService {
 	StrategyVO get(int id);
 
 	@Transactional(readOnly = true)
+	StrategyVO get(int id, StrategyFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
 	StrategyVO getByLabel(String label);
+
+	@Transactional(readOnly = true)
+	StrategyVO getByLabel(String label, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<StrategyVO> getAll();
