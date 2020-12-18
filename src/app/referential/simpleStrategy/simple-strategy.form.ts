@@ -3,7 +3,7 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {FormBuilder, FormArray, Validators} from "@angular/forms";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {ReferentialRefService} from "../services/referential-ref.service";
 import {StrategyService} from "../services/strategy.service";
 import {
   AppForm,
@@ -27,15 +27,15 @@ import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
 
 
 @Component({
-  selector: 'form-planification',
-  templateUrl: './planification.form.html',
-  styleUrls: ['./planification.form.scss'],
+  selector: 'form-simple-strategy',
+  templateUrl: './simple-strategy.form.html',
+  styleUrls: ['./simple-strategy.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {provide: StrategyValidatorService}
   ],
 })
-export class PlanificationForm extends AppForm<Strategy> implements OnInit {
+export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   // protected formBuilder: FormBuilder;
   // private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
@@ -315,11 +315,11 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
         break;
     }
     this.markForCheck();
-    console.debug(`[planification] set enable filtered ${fieldName} items to ${value}`);
+    console.debug(`[simpleStrategy] set enable filtered ${fieldName} items to ${value}`);
   }
 
   setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    console.debug("[planification-form] Setting Strategy value", data);
+    console.debug("[simpleStrategy-form] Setting Strategy value", data);
     if (!data) return;
 
     // QUICKFIX label to remove as soon as possible

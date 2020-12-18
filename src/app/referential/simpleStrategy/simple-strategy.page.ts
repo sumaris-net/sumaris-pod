@@ -25,7 +25,7 @@ import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {animate, state, style, transition, trigger} from "@angular/animations";
 import {ProgramProperties} from "../services/config/program.config";
 import {StrategyService} from "../services/strategy.service";
-import {PlanificationForm} from "../planification/planification.form";
+import {SimpleStrategyForm} from "./simple-strategy.form";
 import {ActivatedRoute} from "@angular/router";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import * as moment from 'moment'
@@ -38,8 +38,8 @@ export enum AnimationState {
 }
 
 @Component({
-  selector: 'app-simpleStrategy',
-  templateUrl: 'simpleStrategy.page.html',
+  selector: 'app-simple-strategy',
+  templateUrl: 'simple-strategy.page.html',
   providers: [
     {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
@@ -70,7 +70,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   strategyFormState: AnimationState;
   programId: number;
 
-  @ViewChild('planificationForm', { static: true }) planificationForm: PlanificationForm;
+  @ViewChild('simpleStrategyForm', { static: true }) simpleStrategyForm: SimpleStrategyForm;
 
 
   constructor(
@@ -105,7 +105,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // get program id from route
     this.programId =  40 || this.activatedRoute.snapshot.params['id'];
 
-    this.planificationForm.entityName = 'planificationForm';
+    this.simpleStrategyForm.entityName = 'simpleStrategyForm';
     this.defaultBackHref = `/referential/program/${this.programId}?tab=2`
 
   }
@@ -138,14 +138,14 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   }
 
   protected getFirstInvalidTabIndex(): number {
-    if (this.planificationForm.invalid) return 0;
+    if (this.simpleStrategyForm.invalid) return 0;
    // TODO
     return 0;
   }
 
   protected registerForms() {
     this.addChildForms([
-      this.planificationForm
+      this.simpleStrategyForm
     ]);
   }
 
@@ -165,13 +165,13 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // FIXME : must be set in onNewEntity
     data.programId = this.programId;//data.programId ||
     data.statusId= data.statusId || 1;
-    this.planificationForm.value = data;
+    this.simpleStrategyForm.value = data;
 
   }
 
   protected async getJsonValueToSave(): Promise<Strategy> {
 
-    const data = this.planificationForm.value;
+    const data = this.simpleStrategyForm.value;
 
     data.name = data.name || data.label;
 
@@ -201,7 +201,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // delete data.appliedPeriods;
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
-    let pmfmStrategie = this.planificationForm.pmfmStrategiesForm.value;
+    let pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
     let pmfmStrategies : PmfmStrategy [] = [];
 
     let sex = pmfmStrategie[0];
@@ -210,14 +210,14 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // i == 0 age
     // i == 1 sex
 
-    await this.planificationForm.weightPmfmStrategiesTable.save();
-    await this.planificationForm.sizePmfmStrategiesTable.save();
-    await this.planificationForm.maturityPmfmStrategiesTable.save();
+    await this.simpleStrategyForm.weightPmfmStrategiesTable.save();
+    await this.simpleStrategyForm.sizePmfmStrategiesTable.save();
+    await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();
 
 
-    let lengthList = this.planificationForm.weightPmfmStrategiesTable.value;
-    let sizeList = this.planificationForm.sizePmfmStrategiesTable.value;
-    let maturityList = this.planificationForm.maturityPmfmStrategiesTable.value;
+    let lengthList = this.simpleStrategyForm.weightPmfmStrategiesTable.value;
+    let sizeList = this.simpleStrategyForm.sizePmfmStrategiesTable.value;
+    let maturityList = this.simpleStrategyForm.maturityPmfmStrategiesTable.value;
 
     for( let  i =0; i<lengthList.length;i++){
       pmfmStrategies.push(lengthList[i]);
@@ -230,7 +230,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     }
 
 
-    let calcifiedTypes = this.planificationForm.calcifiedTypesForm.value;
+    let calcifiedTypes = this.simpleStrategyForm.calcifiedTypesForm.value;
 
     for( let i = 0; i < calcifiedTypes.length; i++){
 
