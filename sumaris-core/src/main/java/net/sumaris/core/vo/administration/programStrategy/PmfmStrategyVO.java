@@ -62,9 +62,13 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IVa
 
     // Link to other PMFM entities
     private Integer parameterId;
+    private ReferentialVO parameter;
     private Integer matrixId;
+    private ReferentialVO matrix;
     private Integer fractionId;
+    private ReferentialVO fraction;
     private Integer methodId;
+    private ReferentialVO method;
 
     // **** Copy from PMFM or parameter
     private String unitLabel;
