@@ -12,7 +12,7 @@ import {
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
-import {LandingValidatorService} from "../services/validator/landing.validator";
+import {Landing2ValidatorService} from "../services/validator/landing2.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
@@ -31,6 +31,9 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {SharedValidators} from "../../shared/validator/validators";
+import {Sample} from "../services/model/sample.model";
+import {TaxonNameRef} from "../../referential/services/model/taxon.model";
+import {MeasurementModelValues} from "../services/model/measurement.model";
 
 @Component({
   selector: 'app-landing-form2',
@@ -45,13 +48,14 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   observerFocusIndex = -1;
   mobile: boolean;
 
-  enableTaxonNameFilter = true;
+  enableTaxonNameFilter = false;
   canFilterTaxonName = true;
 
   @Input() required = true;
 
   referenceTaxon : ReferentialRef;
   fishingAreas : ReferentialRef[];
+  fishingAreaHelper: FormArrayHelper<ReferentialRef>;
 
   @Input() showProgram = true;
   @Input() showSampleRowCode = true;
@@ -97,7 +101,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     return null; //this.form.controls.observers;
   }
 
-  get fishingAreaFormArray(): FormArray {
+  get fishingAreasFormArray(): FormArray {
     return this.form.controls.fishingAreas as FormArray;
   }
 
@@ -106,7 +110,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
-    protected validatorService: LandingValidatorService,
+    protected validatorService: Landing2ValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
@@ -141,13 +145,26 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     });
 
     // Combo: sampleRowCode
-    const sampleRowCodeField = this.registerAutocompleteField('sampleRowCode', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('sampleRowCode', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
+    // const sampleRowCodeField = this.registerAutocompleteField('sampleRowCode', {
+    //   service: this.vesselSnapshotService,
+    //   attributes: this.settings.getFieldDisplayAttributes('sampleRowCode', ['exteriorMarking', 'name']),
+    //   filter: {
+    //     statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+    //   }
+    // });
+// Combo: sampleRowCodes
+    const sampleRowCodeAttributes = this.settings.getFieldDisplayAttributes('sampleRowCode');
+    this.registerAutocompleteField('sampleRowCode', {
+      service: this.referentialRefService,
+      attributes: sampleRowCodeAttributes,
+      // Increase default column size, for 'label'
+      columnSizes: sampleRowCodeAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      filter: <ReferentialRefFilter>{
+        entityName: 'Program'
+      },
+      mobile: this.mobile
     });
+
     // const programAttributes = this.settings.getFieldDisplayAttributes('program');
     // this.registerAutocompleteField('program', {
     //   service: this.referentialRefService,
@@ -231,7 +248,54 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   }
 
+  // get value(): any {
+  //   const json = this.form.value;
+  //
+  //   // Add sampleRowCode, because if control disabled the value is missing
+  //   json.sampleRowCode = this.form.get('sampleRowCode').value;
+  //
+  //   return json;
+  // }
+
   public setValue(value: Landing) {
+    // FIXME CLT MOck object for Imagine - 119
+    // value.program => initiaized
+    // value.location => initiaized
+    // value.observer => initiaized
+    // value.dateTime => initiaized
+
+    // samples = empty array
+    let sample1 = new Sample();
+    let taxon = new TaxonNameRef();
+    taxon.__typename = "TaxonNameVO";
+    taxon.label = "NEP";
+    taxon.name = "Nephrops norvegicus";
+    taxon.statusId=1;
+    taxon.id=1043;
+    taxon.referenceTaxonId=1043;
+
+    let taxon2 = new TaxonNameRef();
+    taxon2.__typename = "TaxonNameVO";
+    taxon2.name = "Dipturus batis";
+    taxon2.statusId=1;
+    taxon2.id=17906;
+    taxon2.referenceTaxonId=17906;
+
+
+    sample1.taxonName = taxon2;
+    value.samples.push(sample1)
+
+    value.comments = "Test PYC";
+
+
+    value.measurementValues = value.measurementValues || {} ;
+    // MeasurementValuesUtils.normalizeValuesToForm(value.measurementValues as MeasurementModelValues, pmfms, {
+    //   // Keep extra pmfm values (not need to remove, when no validator used)
+    //   keepSourceObject: true,
+    //   onlyExistingPmfms: opts && opts.onlyExistingPmfms
+    // });
+
+
     if (!value) return;
 
     // Make sure to have (at least) one observer

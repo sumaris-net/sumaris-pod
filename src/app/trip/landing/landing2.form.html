@@ -20,11 +20,9 @@
         <ion-label class="ion-float-end" translate>LANDING.SAMPLE_ROW_CODE_TITLE</ion-label>
       </ion-col>
       <ion-col>
-
-<!--        <ion-label class="ion-float-end" translate>LANDING.SAMPLE_ROW_CODE</ion-label>-->
-        <mat-autocomplete-field formControlName="program"
+        <mat-autocomplete-field formControlName="sampleRowCode"
                                 [placeholder]="'LANDING.SAMPLE_ROW_CODE'|translate"
-                                [config]="autocompleteFields.program"
+                                [config]="autocompleteFields.sampleRowCode"
                                 [tabindex]="tabindex"
                                 required>
           <ion-icon matPrefix name="contract"></ion-icon>
@@ -75,7 +73,7 @@
 
   <!-- FISHING AREA readonly from strategy -->
     <!-- Model strategy -->
-<!--    <ion-row *ngFor="let fishingAreaForm of fishingAreaFormArray?.controls; index as i; first as first">-->
+<!--    <ion-row *ngFor="let fishingAreaForm of fishingAreasFormArray?.controls; index as i; first as first">-->
 <!--      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">-->
 <!--        <ion-label>&nbsp;</ion-label>-->
 <!--      </ion-col>-->
@@ -89,24 +87,24 @@
 <!--        </mat-autocomplete-field>-->
 <!--      </ion-col>-->
 <!--      <ion-col ></ion-col>-->
-
 <!--    </ion-row>-->
-    <ion-row *ngIf="showSampleRowCode">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label></ion-label>
-      </ion-col>
-      <ion-col>
 
-        <!--        <ion-label class="ion-float-end" translate>LANDING.SAMPLE_ROW_CODE</ion-label>-->
-        <mat-autocomplete-field formControlName="program"
-                                [placeholder]="'LANDING.FISHING_AREA'|translate"
-                                [config]="autocompleteFields.program"
-                                [tabindex]="tabindex"
-                                required>
-          <ion-icon matPrefix name="contract"></ion-icon>
-        </mat-autocomplete-field>
-      </ion-col>
-    </ion-row>
+<!--    <ion-row *ngIf="showSampleRowCode">-->
+<!--      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">-->
+<!--        <ion-label></ion-label>-->
+<!--      </ion-col>-->
+<!--      <ion-col>-->
+
+<!--        &lt;!&ndash;        <ion-label class="ion-float-end" translate>LANDING.SAMPLE_ROW_CODE</ion-label>&ndash;&gt;-->
+<!--        <mat-autocomplete-field formControlName="program"-->
+<!--                                [placeholder]="'LANDING.FISHING_AREA'|translate"-->
+<!--                                [config]="autocompleteFields.program"-->
+<!--                                [tabindex]="tabindex"-->
+<!--                                required>-->
+<!--          <ion-icon matPrefix name="contract"></ion-icon>-->
+<!--        </mat-autocomplete-field>-->
+<!--      </ion-col>-->
+<!--    </ion-row>-->
 
 
 
@@ -140,41 +138,28 @@
 <!--    </ion-row>-->
 
     <!-- Target species -->
-    <!-- Model sample.reference_taxon_fk -->
+    <!-- Model samples[0].reference_taxon_fk -->
     <ion-row *ngIf="showTargetSpecies" >
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end" translate>LANDING.TARGET_SPECIES_TITLE</ion-label>
       </ion-col>
       <ion-col>
 <!--        <ion-label class="ion-float-end" translate>LANDING.TARGET_SPECIES</ion-label>-->
-        <mat-autocomplete-field formControlName="program"
+        <mat-autocomplete-field formControlName="taxonName"
                                 [placeholder]="'LANDING.TARGET_SPECIES'|translate"
-                                [config]="autocompleteFields.program"
+                                [config]="autocompleteFields.taxonName"
                                 [tabindex]="tabindex"
                                 required>
           <ion-icon matPrefix name="contract"></ion-icon>
+          <button matAfter type="button" mat-icon-button
+                  tabindex="-1"
+                  [disabled]="!canFilterTaxonName"
+                  [title]="'PLANIFICATION.BTN_FILTER'|translate"
+                  (click)="toggleFilteredItems('taxonName')"
+                  [color]="enableTaxonNameFilter ? 'primary' : undefined">
+            <mat-icon>filter_list</mat-icon>
+          </button>
         </mat-autocomplete-field>
-<!--        <mat-autocomplete-field formControlName="taxonName"-->
-<!--                                [placeholder]="'LANDING.TARGET_SPECIES'|translate"-->
-<!--                                [config]="autocompleteFields.taxonName"-->
-<!--                                [required]="true">-->
-<!--          <ion-icon matPrefix name="contract"></ion-icon>-->
-<!--        </mat-autocomplete-field>-->
-<!--        <mat-autocomplete-field formControlName="targetSpecies"-->
-<!--                                [placeholder]="'LANDING.TARGET_SPECIES'|translate"-->
-<!--                                [config]="autocompleteFields.taxonName"-->
-<!--                                [tabindex]="tabindex+1"-->
-<!--                                [required]="true"-->
-<!--                                [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'">-->
-<!--          <button matAfter type="button" mat-icon-button-->
-<!--                  tabindex="-1"-->
-<!--                  [disabled]="!canFilterTaxonName"-->
-<!--                  [title]="'PLANIFICATION.BTN_FILTER'|translate"-->
-<!--                  (click)="toggleFilteredItems('taxonName')"-->
-<!--                  [color]="enableTaxonNameFilter ? 'primary' : undefined">-->
-<!--            <mat-icon>filter_list</mat-icon>-->
-<!--          </button>-->
-<!--        </mat-autocomplete-field>-->
       </ion-col>
 
       <ion-col size="auto" class="ion-align-self-center">
