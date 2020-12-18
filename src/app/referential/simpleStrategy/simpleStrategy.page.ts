@@ -31,6 +31,7 @@ import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import * as moment from 'moment'
 import {PmfmService} from "../services/pmfm.service";
 import { HistoryPageReference } from "src/app/core/services/model/settings.model";
+import { PlatformService } from "src/app/core/services/platform.service";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -68,7 +69,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   form: FormGroup;
   i18nFieldPrefix = 'STRATEGY.';
   strategyFormState: AnimationState;
-  programId: number;
 
   @ViewChild('planificationForm', { static: true }) planificationForm: PlanificationForm;
 
@@ -79,15 +79,18 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
     dataService: StrategyService,
-    protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController,
     protected activatedRoute : ActivatedRoute,
     protected pmfmService: PmfmService,
+    protected platform: PlatformService
 
   ) {
-    super(injector,
-      Strategy,
-      dataService);
+    super(injector, Strategy, dataService,
+      {
+        pathIdAttribute: 'strategyId',
+        tabCount: 3,
+        autoUpdateRoute: !platform.mobile,
+        autoOpenNextTab: !platform.mobile
+      });
     this.form = validatorService.getFormGroup();
     // default values
     this.defaultBackHref = "/referential?entity=Program";
@@ -100,13 +103,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     //  Call editor routing
     super.ngOnInit();
     // Set entity name (required for referential form validator)
-
-
-    // get program id from route
-    this.programId =  40 || this.activatedRoute.snapshot.params['id'];
-
     this.planificationForm.entityName = 'planificationForm';
-    this.defaultBackHref = `/referential/program/${this.programId}?tab=2`
 
   }
 
@@ -151,20 +148,11 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   updateView(data: Strategy | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
     super.updateView(data, opts);
-
-    //if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
-    //  this.batchTree.autoFill();
-    //}
   }
 
-  //protected setValue(data: Strategy) {
   protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
     if (!data) return; // Skip
-
-    // FIXME : must be set in onNewEntity
-    data.programId = this.programId;//data.programId ||
-    data.statusId= data.statusId || 1;
     this.planificationForm.value = data;
 
   }
@@ -292,30 +280,12 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     return data;
   }
 
-
-  /**
-   * get pmfm
-   * @param label
-   * @protected
-   */
-   protected async getPmfms(label : string){
-     const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-         entityName: 'Pmfm',
-         levelLabels: [label]
-         // searchJoin: "Parameter" is implied in pod filter
-       },
-       {
-         withTotal: false,
-         withDetails: true
-       });
-     return res.data;
-   }
-
-
    protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
 
     // Update back href
-    this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${this.programId}?tab=2` : undefined;
+    if(isNotNil(data.programId)){
+      this.defaultBackHref = `/referential/program/${data.programId}?tab=2`;
+    }
 
     // data.id = 30;
     this.markForCheck();
@@ -323,27 +293,52 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   }
 
 
-  // protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
 
-  //   // Read options and query params
-  //   console.info(options);
-  //   if (options && options.observedLocationId) {
+    // Read options and query params
+    console.info(options);
+    if (options && options.id) {
 
-  //     console.debug("[landedTrip-page] New entity: settings defaults...");
+      console.debug("[landedTrip-page] New entity: settings defaults...");
 
-  //   } else {
-  //     throw new Error("[landedTrip-page] the observedLocationId must be present");
-  //   }
+      // init new entity attributs
+      data.programId = this.activatedRoute.snapshot.params['id'];
+      data.statusId= data.statusId || 1;
 
-  //   const queryParams = this.route.snapshot.queryParams;
-  //   // Load the vessel, if any
-  //   if (isNotNil(queryParams['strategy'])) {
-  //     const strategyId = +queryParams['strategy'];
-  //     console.debug(`[landedTrip-page] Loading vessel {${strategyId}}...`);
-  //     data.id = strategyId;
-  //   }
+      this.defaultBackHref = `/referential/program/${data.programId}?tab=2`;
 
-  // }
+    } else {
+      throw new Error("[landedTrip-page] the observedLocationId must be present");
+    }
+
+    const queryParams = this.route.snapshot.queryParams;
+    // Load the vessel, if any
+    if (isNotNil(queryParams['program'])) {
+      const programId = +queryParams['program'];
+      console.debug(`[landedTrip-page] Loading vessel {${programId}}...`);
+      data.programId = programId;
+    }
+
+  }
+
+  /**
+ * get pmfm
+ * @param label
+ * @protected
+ */
+  protected async getPmfms(label : string){
+    const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+        entityName: 'Pmfm',
+        levelLabels: [label]
+        // searchJoin: "Parameter" is implied in pod filter
+      },
+      {
+        withTotal: false,
+        withDetails: true
+      });
+    return res.data;
+  }
+
 
   protected addToPageHistory(page: HistoryPageReference) {
     super.addToPageHistory({ ...page, icon: 'list-outline'});
