@@ -58,9 +58,20 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
+	public StrategyVO get(int id, StrategyFetchOptions fetchOptions) {
+		return strategyRepository.get(id, fetchOptions);
+	}
+
+	@Override
 	public StrategyVO getByLabel(String label) {
 		Preconditions.checkNotNull(label);
 		return strategyRepository.getByLabel(label);
+	}
+
+	@Override
+	public StrategyVO getByLabel(String label, StrategyFetchOptions fetchOptions) {
+		Preconditions.checkNotNull(label);
+		return strategyRepository.getByLabel(label, fetchOptions);
 	}
 
 	@Override
