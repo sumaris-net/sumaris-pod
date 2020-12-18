@@ -128,7 +128,7 @@
       <ion-label translate>LANDING.TABLE.RECORDER_PERSON</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ personsToString(row.currentData?.observers) }}</ion-text>
+      <ion-text>{{ personToString(row.currentData?.recorderPerson) }}</ion-text>
     </mat-cell>
   </ng-container>
 

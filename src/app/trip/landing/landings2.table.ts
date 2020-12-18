@@ -13,6 +13,7 @@ import {
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 
 import {personsToString} from "../../core/services/model/person.model";
+import {personToString} from "../../core/services/model/person.model";
 import {referentialToString} from "../../core/services/model/referential.model";
 import {LandingFilter, LandingService} from "../services/landing.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
@@ -166,6 +167,8 @@ export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter>
 
   referentialToString = referentialToString;
   personsToString = personsToString;
+  personToString = personToString;
+
 
   getLandingDate(landing?: Landing): Moment {
     if (!landing || !landing.dateTime) return undefined;
