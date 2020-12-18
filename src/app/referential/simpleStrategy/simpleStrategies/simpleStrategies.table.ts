@@ -67,7 +67,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
       null,
       {});
 
-    this.i18nColumnPrefix = 'PLANIFICATION.';
+    this.i18nColumnPrefix = 'PROGRAM.STRATEGY.';
     this.autoLoad = false; // waiting parent to load
 
     this.confirmBeforeDelete = true;
