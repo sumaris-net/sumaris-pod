@@ -1,29 +1,21 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material/core";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {FormBuilder, FormArray, Validators} from "@angular/forms";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {StrategyService} from "../services/strategy.service";
-import {
-  AppForm,
-  ReferentialRef,
-  IReferentialRef,
-  FormArrayHelper,
-  EntityUtils
-} from '../../core/core.module';
-import {BehaviorSubject} from "rxjs";
-import { Program } from '../services/model/program.model';
-import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
-import { ReferentialUtils} from "../../core/services/model/referential.model";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { FormArray, FormBuilder, Validators } from "@angular/forms";
+import { DateAdapter } from "@angular/material/core";
 import * as moment from "moment";
-import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from "../services/model/strategy.model";
-import {fromDateISOString, isNil, isNotNil} from "../../shared/functions";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { Moment } from 'moment/moment';
+import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { SharedValidators } from 'src/app/shared/validator/validators';
-import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
-
+import {AppForm,EntityUtils, FormArrayHelper, IReferentialRef, ReferentialRef} from '../../core/core.module';
+import { LocalSettingsService } from "../../core/services/local-settings.service";
+import { ReferentialUtils } from "../../core/services/model/referential.model";
+import { fromDateISOString, isNil, isNotNil } from "../../shared/functions";
+import { PmfmStrategy } from "../services/model/pmfm-strategy.model";
+import { Program } from '../services/model/program.model';
+import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy } from "../services/model/strategy.model";
+import { ReferentialRefService } from "../services/referential-ref.service";
+import { StrategyService } from "../services/strategy.service";
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { PmfmStrategiesTable } from "../strategy/pmfm-strategies.table";
 
 
 @Component({
@@ -37,9 +29,6 @@ import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
 })
 export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
-  // protected formBuilder: FormBuilder;
-  // private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
-  // private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
 
   mobile: boolean;
   programId = -1;
@@ -51,13 +40,13 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   enableEotpFilter = true;
   canFilterEotp = true;
 
-  enableLaboratoryFilter = true;
-  canFilterLaboratory = true;
+  enableStrategyDepartmentFilter = true;
+  canFilterStrategyDepartment = true;
   strategyDepartmentHelper: FormArrayHelper<StrategyDepartment>;
-  laboratoryFocusIndex = -1;
+  StrategyDepartmentFocusIndex = -1;
 
-  enableFishingAreaFilter = true;
-  canFilterFishingArea = true;
+  enableAppliedStrategyFilter = true;
+  canFilterAppliedStrategy = true;
   appliedStrategiesHelper: FormArrayHelper<AppliedStrategy>;
   appliedStrategiesIndex = -1;
 
@@ -65,10 +54,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   appliedPeriodIndex = -1;
 
 
-  enableCalcifiedTypeFilter = true;
-  canFilterCalcifiedType = true;
-  calcifiedTypeHelper: FormArrayHelper<PmfmStrategy>;
-  calcifiedTypeFocusIndex = -1;
+  enablePmfmStrategiesFractionFilter = true;
+  canFilterPmfmStrategiesFraction = true;
+  PmfmStrategiesFractionHelper: FormArrayHelper<PmfmStrategy>;
+  PmfmStrategiesFractionFocusIndex = -1;
+
+
+  pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
+  pmfmStrategiesFocusIndex = -1;
 
   @Input() program: Program;
   @Input() showError = true;
@@ -77,20 +70,11 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
-
-  pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
-  pmfmStrategiesFocusIndex = -1;
-
   public sampleRowMask = ['2', '0', '2', '0', '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
 
 
   get strategyDepartmentFormArray(): FormArray {
     return this.form.controls.strategyDepartments as FormArray;
-  }
-
-  get fishingAreasForm(): FormArray {
-    // appliedStrategies.location à la place de appliedStrategies
-    return this.form.controls.appliedStrategies as FormArray;
   }
 
   get taxonNamesForm(): FormArray {
@@ -109,8 +93,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     return this.form.controls.appliedPeriods as FormArray;
   }
 
-  get calcifiedTypesForm(): FormArray {
-    return this.form.controls.calcifiedTypes as FormArray;
+  get PmfmStrategiesFractionForm(): FormArray {
+    return this.form.controls.PmfmStrategiesFraction as FormArray;
   }
 
   @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
@@ -133,24 +117,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   hidden?: boolean;
   appliedYear: string ='';
 
-  focus() {
-    throw new Error('Method not implemented.');
-  }
-  writeValue(value: any): void {
-    //  if (value !== this.sampleRowCode) {
-    //       this.sampleRowCode = value;
-    //     }
-  }
-  registerOnChange(fn: any): void {
-    throw new Error('Method not implemented.');
-  }
-  registerOnTouched(fn: any): void {
-    throw new Error('Method not implemented.');
-  }
-  setDisabledState?(isDisabled: boolean): void {
-    throw new Error('Method not implemented.');
-  }
-
+  
   setPmfmStrategies() {
     const pmfms = [];
     pmfms.push(this.pmfmStrategiesHelper.at(0).value);
@@ -159,15 +126,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     pmfms.push(this.sizePmfmStrategiesTable.value);
     pmfms.push(this.maturityPmfmStrategiesTable.value);
 
-    // for (let i = 5; i < this.pmfmStrategiesForm.value.lenght; i++) {
-    //   pmfms.push(this.pmfmStrategiesHelper.at(i).value);
-    // }
     this.form.controls.pmfmStrategies.patchValue(pmfms);
     this.markAsDirty();
   }
-
-
-
 
   ngOnInit() {
     super.ngOnInit();
@@ -199,23 +160,23 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     });
 
     // laboratory autocomplete
-    this.registerAutocompleteField('laboratory', {
+    this.registerAutocompleteField('strategyDepartment', {
       suggestFn: (value, filter) => this.suggest(value, {
           ...filter, statusId : 1
         },
         'Department',
-        this.enableLaboratoryFilter),
+        this.enableStrategyDepartmentFilter),
       columnSizes : [4,6],
       mobile: this.settings.mobile
     });
 
-    // fishingArea autocomplete
-    this.registerAutocompleteField('fishingArea', {
+    // appliedStrategy autocomplete
+    this.registerAutocompleteField('appliedStrategy', {
       suggestFn: (value, filter) => this.suggest(value, {
           ...filter, statusId : 1, Id : 111
         },
         'Location',
-        this.enableFishingAreaFilter),
+        this.enableAppliedStrategyFilter),
       mobile: this.settings.mobile
     });
 
@@ -231,12 +192,12 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       mobile: this.settings.mobile
     });
 
-    this.registerAutocompleteField('calcifiedType', {
+    this.registerAutocompleteField('PmfmStrategiesFraction', {
         suggestFn: (value, filter) => this.suggest(value, {
             ...filter, statusId : 1
           },
           'Fraction',
-          this.enableCalcifiedTypeFilter),
+          this.enablePmfmStrategiesFractionFilter),
       attributes: ['name'],
       columnNames: [ 'REFERENTIAL.NAME'],
         columnSizes: [2,10],
@@ -252,7 +213,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.initPmfmStrategiesHelper();
     this.initAppliedStrategiesHelper();
     this.initAppliedPeriodHelper();
-    this.initCalcifiedTypeHelper();
+    this.initPmfmStrategiesFractionHelper();
 
   }
 
@@ -298,17 +259,17 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       case 'eotp':
         this.enableEotpFilter = value = !this.enableEotpFilter;
         break;
-      case 'laboratory':
-        this.enableLaboratoryFilter = value = !this.enableLaboratoryFilter;
+      case 'strategyDepartment':
+        this.enableStrategyDepartmentFilter = value = !this.enableStrategyDepartmentFilter;
         break;
-      case 'fishingArea':
-        this.enableFishingAreaFilter = value = !this.enableFishingAreaFilter;
+      case 'appliedStrategy':
+        this.enableAppliedStrategyFilter = value = !this.enableAppliedStrategyFilter;
         break;
       case 'taxonName':
         this.enableTaxonNameFilter = value = !this.enableTaxonNameFilter;
         break;
-      case 'calcifiedType':
-        this.enableCalcifiedTypeFilter = value = !this.enableCalcifiedTypeFilter;
+      case 'PmfmStrategiesFraction':
+        this.enablePmfmStrategiesFractionFilter = value = !this.enablePmfmStrategiesFractionFilter;
         //this.loadCalcifiedType();
         break;
       default:
@@ -387,46 +348,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
 
 
-
-    //   // TAXONS
-    // const taxonNamesControl = this.taxonNamesForm;
-    // let taxonsNames = data.taxonNames;
-    // let taxons = taxonsNames.map(taxonsNames => { return taxonsNames.taxonName;});
-    // this.taxonNameHelper.resize(Math.max(1, data.taxonNames.length));
-    // taxonNamesControl.patchValue(taxons);
-
-    // let appliedStrategiesValues = [quarterEffort1, quarterEffort2, quarterEffort3, quarterEffort4];
-    // // appliedStrategiesValues = appliedStrategiesValues.concat(fishingArea);
-    // // this.appliedStrategiesHelper.resize(appliedStrategiesValues.length);
-    // const appliedPeriodControl = this.appliedPeriodsForm;
-    // appliedPeriodControl.patchValue(appliedStrategiesValues);
-
-
-      // WEIGHT PMFMS
-    //   const weightPmfmsControl = this.form.get("weightPmfmStrategies");
-      //  let weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
-
-      // if (weightPmfmStrategy)
-      // {
-      //   let weightPmfm = weightPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
-        //weightPmfmsControl.patchValue(weightPmfm);
-    //     weightPmfmsControl.patchValue(weightPmfmStrategy);
-
-        // this.weightPmfmStrategiesTable.value = weightPmfmStrategy || [];
-      // }
-
-      // Size
-    //   const sizePmfmsControl = this.form.get("sizePmfmStrategies");
-    //   const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
-    //   let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
-    //   if (sizePmfmStrategy)
-    //   {
-    // //     let sizePmfm = sizePmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
-    // //     sizePmfmsControl.patchValue(sizePmfm);
-    //     // this.sizePmfmStrategiesTable.value = sizePmfmStrategy || [];
-    //   }
-
-      // SEX
+  
 
       const pmfmStrategiesControl = this.pmfmStrategiesForm;
 
@@ -435,18 +357,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label ===  "SEX");
 
 
-      // MATURITY PMFMS
-    //   const maturityPmfmsControl = this.form.get("maturityPmfmStrategies");
-    //   const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
-    //   let maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
-    //   if (maturityPmfmStrategy)
-    //   {
-    // //     let maturityPmfm = maturityPmfmStrategy.map(pmfmStrategy =>  {return pmfmStrategy.pmfm;});
-    // //     maturityPmfmsControl.patchValue(maturityPmfm);
-    //     // this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy || [];
-    //   }
-
-    // let pmfmStrategies = [ sex ? true : false, age ? true : false, weightPmfmStrategy, sizePmfmStrategy, maturityPmfmStrategy];
     let pmfmStrategies : any[] = [ sex.length>0 ? true : false, age.length>0 ? true : false];
 
 
@@ -473,15 +383,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     pmfmStrategiesControl.patchValue(pmfmStrategies);
 
 
-        // CALCIFIED TYPES
-      // const calcifiedTypesControl = this.calcifiedTypesForm;
-      // let calcifiedTypesPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
-
-    // return {
-    //   id: pmfmStrategy.fractionId,
-    //   entityName: "Fraction",
-    //   __typename: "ReferentialVO" || undefined
-    // };
 
 
     this.referentialRefService.loadAll(0, 0, null, null,
@@ -490,16 +391,16 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       },
       { withTotal: false /* total not need */ }
     ).then(res => {
-      const calcifiedTypeControl = this.calcifiedTypesForm;
-      const calcifiedTypes =  (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
-      const fractions = calcifiedTypes.map(cal => {
+      const calcifiedTypeControl = this.PmfmStrategiesFractionForm;
+      const PmfmStrategiesFraction =  (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
+      const fractions = PmfmStrategiesFraction.map(cal => {
         return {
           id: cal.fractionId,
           name : res.data.find(fraction => fraction.id === cal.fractionId).name,
         }
       });
 
-      this.calcifiedTypeHelper.resize(Math.max(1, calcifiedTypes.length))
+      this.PmfmStrategiesFractionHelper.resize(Math.max(1, PmfmStrategiesFraction.length))
       calcifiedTypeControl.patchValue(fractions);
     })
 
@@ -537,27 +438,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     }
   }
 
-
-  // save button
-  save(){
-    console.log("save work");
-
-    console.log(this.form.get("comments"));
-
-    /* console.log("comment : "+this.form.get("comment").value);*/
-  }
-
-  cancel(){
-    console.log("cancel works");
-  }
-
-  add(){
-    console.log("add works");
-  }
-
-  close(){
-    console.log("close works");
-  }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
   protected initTaxonNameHelper() {
@@ -663,30 +543,30 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   addStrategyDepartment() {
     this.strategyDepartmentHelper.add(new StrategyDepartment());
     if (!this.mobile) {
-      this.laboratoryFocusIndex = this.strategyDepartmentHelper.size() - 1;
+      this.StrategyDepartmentFocusIndex = this.strategyDepartmentHelper.size() - 1;
     }
   }
 
-  // CalcifiedTypeHelper -----------------------------------------------------------------------------------------------
-  protected initCalcifiedTypeHelper() {
-    this.calcifiedTypeHelper = new FormArrayHelper<PmfmStrategy>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'calcifiedTypes'),
-      (calcifiedType) => this.formBuilder.control(calcifiedType || null, [Validators.required, SharedValidators.entity]),
+  // PmfmStrategiesFractionHelper - Pièces calcifiées ------------------------------------------------------------------------------------------
+  protected initPmfmStrategiesFractionHelper() {
+    this.PmfmStrategiesFractionHelper = new FormArrayHelper<PmfmStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'PmfmStrategiesFraction'),
+      (pmfmStrategiesFraction) => this.formBuilder.control(pmfmStrategiesFraction || null, [Validators.required, SharedValidators.entity]),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
         allowEmptyArray: false
       }
     );
-    // Create at least one calcifiedType
-    if (this.calcifiedTypeHelper.size() === 0) {
-      this.calcifiedTypeHelper.resize(1);
+    // Create at least one PmfmStrategiesFraction
+    if (this.PmfmStrategiesFractionHelper.size() === 0) {
+      this.PmfmStrategiesFractionHelper.resize(1);
     }
   }
-  addCalcifiedType() {
-    this.calcifiedTypeHelper.add();
+  addPmfmStrategiesFraction() {
+    this.PmfmStrategiesFractionHelper.add();
     if (!this.mobile) {
-      this.calcifiedTypeFocusIndex = this.calcifiedTypeHelper.size() - 1;
+      this.PmfmStrategiesFractionFocusIndex = this.PmfmStrategiesFractionHelper.size() - 1;
     }
   }
 

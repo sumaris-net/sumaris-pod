@@ -1,36 +1,32 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import { animate, state, style, transition, trigger } from "@angular/animations";
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from "@angular/core";
+import { FormBuilder, FormGroup } from "@angular/forms";
+import { ActivatedRoute } from "@angular/router";
+import { ValidatorService } from "@e-is/ngx-material-table";
+import { ModalController } from "@ionic/angular";
+import { HistoryPageReference } from "src/app/core/services/model/settings.model";
 import {
-  AppEntityEditor, IReferentialRef,
-  isNil, ReferentialRef,
+  AppEntityEditor,
+  isNil, ReferentialRef
 } from "../../core/core.module";
-import {
-  AppliedPeriod,
-  AppliedStrategy,
-  Strategy,
-  StrategyDepartment,
-  TaxonNameStrategy
-} from "../services/model/strategy.model";
-import {ProgramValidatorService} from "../services/validator/program.validator";
+import { AccountService } from "../../core/services/account.service";
+import { ReferentialUtils } from "../../core/services/model/referential.model";
+import { FormFieldDefinitionMap } from "../../shared/form/field.model";
 import {
   EntityServiceLoadOptions,
   fadeInOutAnimation, isNotNil
 } from "../../shared/shared.module";
-import {AccountService} from "../../core/services/account.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {ModalController} from "@ionic/angular";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {animate, state, style, transition, trigger} from "@angular/animations";
-import {ProgramProperties} from "../services/config/program.config";
-import {StrategyService} from "../services/strategy.service";
-import {SimpleStrategyForm} from "./simple-strategy.form";
-import {ActivatedRoute} from "@angular/router";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import * as moment from 'moment'
-import {PmfmService} from "../services/pmfm.service";
-import { HistoryPageReference } from "src/app/core/services/model/settings.model";
+import { ProgramProperties } from "../services/config/program.config";
+import { PmfmStrategy } from "../services/model/pmfm-strategy.model";
+import {
+  Strategy,
+  StrategyDepartment
+} from "../services/model/strategy.model";
+import { PmfmService } from "../services/pmfm.service";
+import { ReferentialRefService } from "../services/referential-ref.service";
+import { StrategyService } from "../services/strategy.service";
+import { ProgramValidatorService } from "../services/validator/program.validator";
+import { SimpleStrategyForm } from "./simple-strategy.form";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -230,21 +226,21 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     }
 
 
-    let calcifiedTypes = this.simpleStrategyForm.calcifiedTypesForm.value;
+    let PmfmStrategiesFraction = this.simpleStrategyForm.PmfmStrategiesFractionForm.value;
 
-    for( let i = 0; i < calcifiedTypes.length; i++){
+    for( let i = 0; i < PmfmStrategiesFraction.length; i++){
 
-        let calcifiedType : PmfmStrategy = new PmfmStrategy();
-        calcifiedType.strategyId = data.id;
-        calcifiedType.pmfm = null;
-        calcifiedType.fractionId = calcifiedTypes[i].id;
-        calcifiedType.qualitativeValues =undefined;
-        calcifiedType.acquisitionLevel='SAMPLE'
-        calcifiedType.acquisitionNumber=1;
-        calcifiedType.isMandatory = false;
-        calcifiedType.rankOrder = 1;
+        let PmfmStrategiesFraction : PmfmStrategy = new PmfmStrategy();
+        PmfmStrategiesFraction.strategyId = data.id;
+        PmfmStrategiesFraction.pmfm = null;
+        PmfmStrategiesFraction.fractionId = PmfmStrategiesFraction[i].id;
+        PmfmStrategiesFraction.qualitativeValues =undefined;
+        PmfmStrategiesFraction.acquisitionLevel='SAMPLE'
+        PmfmStrategiesFraction.acquisitionNumber=1;
+        PmfmStrategiesFraction.isMandatory = false;
+        PmfmStrategiesFraction.rankOrder = 1;
 
-        pmfmStrategies.push(calcifiedType);
+        pmfmStrategies.push(PmfmStrategiesFraction);
 
     }
 

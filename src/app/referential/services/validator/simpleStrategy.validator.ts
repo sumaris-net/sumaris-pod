@@ -29,7 +29,7 @@ export class SimpleStrategyValidatorService extends StrategyValidatorService {
       taxonName: [data && data.taxonName || null, Validators.compose([Validators.required, SharedValidators.entity])],
       sex: [data && data.sex || null,Validators.nullValidator],
       age: [data && data.age || null,Validators.nullValidator],
-      calcifiedTypes : this.getCalcifiedTypesArray(data),
+      PmfmStrategiesFraction : this.getPmfmStrategiesFractionArray(data),
       laboratories : this.getLaboratoriesArray(data),
       fishingAreas : this.getFishingAreasArray(data),
       eotp: [data && data.eotp || null, Validators.compose([Validators.nullValidator, SharedValidators.entity])],
@@ -74,9 +74,9 @@ export class SimpleStrategyValidatorService extends StrategyValidatorService {
 
 
   // CalcifiedType Control -----------------------------------------------------------------------------------
-  getCalcifiedTypesArray(data?: SimpleStrategy) {
+  getPmfmStrategiesFractionArray(data?: SimpleStrategy) {
     return this.formBuilder.array(
-      (data && data.calcifiedTypes || []).map(calcifiedType => this.getControl(calcifiedType)),
+      (data && data.PmfmStrategiesFraction || []).map(PmfmStrategiesFraction => this.getControl(PmfmStrategiesFraction)),
       SharedFormArrayValidators.requiredArrayMinLength(1)
     );
   }

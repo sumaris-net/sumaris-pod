@@ -32,7 +32,7 @@ export class SimpleStrategy extends Strategy {
   taxonName: TaxonNameRef;
   laboratories: ReferentialRef [];
   fishingAreas: ReferentialRef [];
-  calcifiedTypes: ReferentialRef[];
+  PmfmStrategiesFraction: ReferentialRef[];
   sex : boolean;
   age : boolean;
 
@@ -48,7 +48,7 @@ export class SimpleStrategy extends Strategy {
     this.fishingAreas = [];
     this.sex = null;
     this.age =null;
-    this.calcifiedTypes = [];
+    this.PmfmStrategiesFraction = [];
 
   }
     clone(): SimpleStrategy {
@@ -69,8 +69,8 @@ export class SimpleStrategy extends Strategy {
     if (isEmptyArray(target.laboratories)) delete target.laboratories; // Clean is empty, for compat with previous version
     target.fishingAreas = this.fishingAreas && this.fishingAreas.filter(isNotNil).map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
     if (isEmptyArray(target.fishingAreas)) delete target.fishingAreas; // Clean is empty, for compat with previous version
-    target.calcifiedTypes = this.calcifiedTypes && this.calcifiedTypes.filter(isNotNil).map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
-    if (isEmptyArray(target.calcifiedTypes)) delete target.calcifiedTypes; // Clean is empty, for compat with previous version
+    target.PmfmStrategiesFraction = this.PmfmStrategiesFraction && this.PmfmStrategiesFraction.filter(isNotNil).map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
+    if (isEmptyArray(target.PmfmStrategiesFraction)) delete target.PmfmStrategiesFraction; // Clean is empty, for compat with previous version
     target.sex = this.sex;
     target.age = this.age;
 
@@ -85,7 +85,7 @@ export class SimpleStrategy extends Strategy {
     this.eotp = source.eotp;
     this.laboratories = source.laboratories && source.laboratories.map(ReferentialRef.fromObject) || [];
     this.fishingAreas = source.fishingAreas && source.fishingAreas.map(ReferentialRef.fromObject) || [];
-    this.calcifiedTypes = source.calcifiedTypes && source.calcifiedTypes.map(ReferentialRef.fromObject) || [];
+    this.PmfmStrategiesFraction = source.PmfmStrategiesFraction && source.PmfmStrategiesFraction.map(ReferentialRef.fromObject) || [];
     this.sex = source.sex  || undefined;
     this.age = source.age  || undefined;
   }
