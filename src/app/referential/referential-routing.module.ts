@@ -51,7 +51,11 @@ const routes: Routes = [
         }
       },
       {
-        path: 'simpleStrategy/:id',
+        path: 'strategy/:id',
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          pathIdParam: 'strategyId'
+        },
         children: [
           {
             path: '',
@@ -59,7 +63,8 @@ const routes: Routes = [
             component: SimpleStrategyPage,
             data: {
               profile: 'ADMIN'
-            }
+            },
+            runGuardsAndResolvers: 'pathParamsChange'
           }
         ]
       }

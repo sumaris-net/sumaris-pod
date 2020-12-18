@@ -171,7 +171,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
-    
+
     this.weightPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
     this.sizePmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
     this.maturityPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
@@ -380,10 +380,10 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
     super.setValue(data, opts);
 
-      // fixme get eotp from referential by label = data.analyticReference
-      let  analyticReferenceToSet : IReferentialRef = new ReferentialRef();
-      analyticReferenceToSet.label = data.analyticReference;
-      this.form.get('analyticReference').setValue(analyticReferenceToSet);
+    // fixme get eotp from referential by label = data.analyticReference
+    let  analyticReferenceToSet : IReferentialRef = new ReferentialRef();
+    analyticReferenceToSet.label = data.analyticReference;
+    this.form.get('analyticReference').setValue(analyticReferenceToSet);
 
 
 
@@ -485,7 +485,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
 
 
     this.referentialRefService.loadAll(0, 0, null, null,
-      { 
+      {
         entityName : 'Fraction'
       },
       { withTotal: false /* total not need */ }
@@ -498,7 +498,7 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
           name : res.data.find(fraction => fraction.id === cal.fractionId).name,
         }
       });
-      
+
       this.calcifiedTypeHelper.resize(Math.max(1, calcifiedTypes.length))
       calcifiedTypeControl.patchValue(fractions);
     })

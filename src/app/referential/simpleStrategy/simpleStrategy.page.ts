@@ -9,6 +9,7 @@ import {
   AppliedPeriod,
   AppliedStrategy,
   Strategy,
+  StrategyDepartment,
   TaxonNameStrategy
 } from "../services/model/strategy.model";
 import {ProgramValidatorService} from "../services/validator/program.validator";
@@ -101,12 +102,11 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // Set entity name (required for referential form validator)
 
 
-    // need to fix this
-    this.programId = 40 || this.activatedRoute.snapshot.params['id'];
+    // get program id from route
+    this.programId =  40 || this.activatedRoute.snapshot.params['id'];
 
     this.planificationForm.entityName = 'planificationForm';
     this.defaultBackHref = `/referential/program/${this.programId}?tab=2`
-    // this.defaultBackHref = isNotNil(data.programId) ? `/observations/${data.programId}?tab=2` : undefined;
 
   }
 
@@ -162,8 +162,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     if (!data) return; // Skip
 
-    // init if not exist
-    data.programId = this.programId;
+    // FIXME : must be set in onNewEntity
+    data.programId = this.programId;//data.programId ||
     data.statusId= data.statusId || 1;
     this.planificationForm.value = data;
 
@@ -174,6 +174,21 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     const data = this.planificationForm.value;
 
     data.name = data.name || data.label;
+
+    // FIXME : how to load referenceTaxonId previously ??
+    data.taxonNames[0].strategyId = data.taxonNames[0].strategyId || 30;
+    data.taxonNames[0].taxonName.referenceTaxonId = 1006;
+
+    // FIXME : how to get privilege previously ??
+    data.strategyDepartments.map((dpt : StrategyDepartment) =>{
+      let observer : ReferentialRef = new ReferentialRef();
+      observer.id =2;
+      observer.label ="Observer";
+      observer.name ="Observer privilege";
+      observer.statusId =1;
+      observer.entityName ="ProgramPrivilege";
+      dpt.privilege = observer;
+    });
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
     const appliedStrategies = data.appliedStrategies;
@@ -301,9 +316,34 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     // Update back href
     this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${this.programId}?tab=2` : undefined;
+
+    // data.id = 30;
     this.markForCheck();
 
   }
+
+
+  // protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+
+  //   // Read options and query params
+  //   console.info(options);
+  //   if (options && options.observedLocationId) {
+
+  //     console.debug("[landedTrip-page] New entity: settings defaults...");
+
+  //   } else {
+  //     throw new Error("[landedTrip-page] the observedLocationId must be present");
+  //   }
+
+  //   const queryParams = this.route.snapshot.queryParams;
+  //   // Load the vessel, if any
+  //   if (isNotNil(queryParams['strategy'])) {
+  //     const strategyId = +queryParams['strategy'];
+  //     console.debug(`[landedTrip-page] Loading vessel {${strategyId}}...`);
+  //     data.id = strategyId;
+  //   }
+
+  // }
 
   protected addToPageHistory(page: HistoryPageReference) {
     super.addToPageHistory({ ...page, icon: 'list-outline'});
