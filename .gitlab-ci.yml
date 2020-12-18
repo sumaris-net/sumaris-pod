@@ -31,7 +31,7 @@ schedule-build:
         - sih_public_runner
     script:
         - echo "Test dev build in progress"
-        - mvn -s ./settings.xml clean install -DskipTests
+        - mvn -s ./settings.xml clean install -DskipTests -P oracle
     environment:
         name: test
 
