@@ -61,7 +61,7 @@ export class Landing2ValidatorService<O extends Landing2ValidatorOptions = Landi
       tripId: [toNumber(data && data.tripId, null)],
       comments: [data && data.comments || null],
       sampleRowCode: [null, SharedValidators.entity],
-      fishingArea: this.getFishingAreasFormArray(data),
+      fishingArea:  [null, SharedValidators.entity],//this.getFishingAreasFormArray(data),
       taxonName: [data && data.samples[0] && data.samples[0].taxonName || null],
     });
 
