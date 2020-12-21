@@ -160,7 +160,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     const data = this.simpleStrategyForm.value;
 
-    data.name = data.name || data.label;
+    data.name = data.label || data.name;
 
     // FIXME : how to load referenceTaxonId previously ??
     data.taxonNames[0].strategyId = data.taxonNames[0].strategyId || 30;
