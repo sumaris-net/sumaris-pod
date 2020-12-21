@@ -12,8 +12,7 @@ import {AppliedPeriod, AppliedStrategy, Strategy} from "../services/model/strate
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
-
-
+import {strategyDepartmentsToString, appliedStategiesToString, taxonsNameStrategyToString} from "../../referential/services/model/strategy.model";
 
 export declare interface StrategyFilter {
 }
@@ -55,11 +54,11 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
           'fishingArea',
           'targetSpecie',
           'comment',
-          'parametersTitle',
-          't1',
-          't2',
-          't3',
-          't4'])
+          'parametersTitleTable',
+          'quarter_1_table',
+          'quarter_2_table',
+          'quarter_3_table',
+          'quarter_4_table'])
         .concat(RESERVED_END_COLUMNS),
       Strategy,
       memoryDataService,
@@ -84,30 +83,6 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
 
    //this.inlineEdition = toBoolean(this.inlineEdition, true);
     super.ngOnInit();
-  }
-
-  laboratoriesToString(data: Strategy) {
-    let strategyDepartments = data.strategyDepartments;
-    let laboratories = strategyDepartments.map(strategyDepartment => strategyDepartment.department.name);
-    return laboratories.join(', ');
-  }
-
-  fishingAreasToString(data: Strategy) {
-    let appliedStrategies = data.appliedStrategies;
-    let fishingArea = appliedStrategies.map(appliedStrategy => appliedStrategy.location.name);
-    return fishingArea.join(', ');
-  }
-
-  taxonsNamesToString(data: Strategy) {
-    let taxonNameStrategy = (data.taxonNames || []).find(t => t.taxonName.id);
-    let taxonName;
-    if (taxonNameStrategy) {
-      let taxon = taxonNameStrategy.taxonName;
-      if (taxon) {
-        taxonName = taxon.name;
-      }
-    }
-    return taxonName;
   }
 
   effortToString(data: Strategy, quarter) {
@@ -157,46 +132,31 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   }
 
   parametersToString(data: Strategy) {
-
-    let weightPmfmStrategy;
-    let sizePmfmStrategy;
-    let sexPmfmStrategy;
-    let maturityPmfmStrategy;
-    let agePmfmStrategy;
-    if(data.pmfmStrategies.length !== 0) {
-      weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
-
-      const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
-      sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
-
-      sexPmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "SEX");
-
-      const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
-      maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
-
-      agePmfmStrategy = (data.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "AGE");
+    let pmfmStrategies: string[] = [];
+    let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "AGE");
+    if(age.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.AGE'));
     }
-
-    let parameters = []
-    if (weightPmfmStrategy && weightPmfmStrategy.length !== 0)
-    {
-      parameters.push('Poids')
+    let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "SEX");
+    if(sex.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.SEX'));
     }
-    if (sizePmfmStrategy && sizePmfmStrategy.length !== 0)
-    {
-      parameters.push('Taille')
+    let weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
+    if(weightPmfmStrategy.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.WEIGHT_TABLE'));
     }
-    if (sexPmfmStrategy && sexPmfmStrategy.length !== 0) {
-        parameters.push('Sexe')
+    const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
+    let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
+    if(sizePmfmStrategy.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.SIZE_TABLE'));
     }
-    if (maturityPmfmStrategy && maturityPmfmStrategy.length !== 0)
-    {
-      parameters.push('Maturité')
+    const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
+    let maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
+    if(maturityPmfmStrategy.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.MATURITY_TABLE'));
     }
-    if (agePmfmStrategy && agePmfmStrategy.length !== 0) {
-      parameters.push('Âge')
-    }
-    return parameters.join(', ')
+    console.log(pmfmStrategies);
+    return pmfmStrategies.join(', ');
   }
 
   setValue(value: Strategy[]) {
@@ -204,6 +164,9 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   }
 
   referentialToString = referentialToString;
+  strategyDepartmentsToString = strategyDepartmentsToString;
+  appliedStategiesToString = appliedStategiesToString;
+  taxonsNameStrategyToString = taxonsNameStrategyToString;
 
   protected markForCheck() {
     this.cd.markForCheck();
