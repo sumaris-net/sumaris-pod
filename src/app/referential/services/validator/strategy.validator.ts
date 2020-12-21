@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonGroupStrategy, TaxonNameStrategy} from "../model/strategy.model";
 import {PmfmStrategyValidatorService} from "./pmfm-strategy.validator";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
 import {toNumber} from "../../../shared/functions";
 import {ReferentialValidatorService} from "./referential.validator";
 
@@ -79,7 +79,8 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
 
   getStrategyDepartmentsFormArray(data?: Strategy) {
     return this.formBuilder.array(
-      (data && data.strategyDepartments || []).map(sd => this.getStrategyDepartmentsControl(sd))
+      (data && data.strategyDepartments || []).map(sd => this.getStrategyDepartmentsControl(sd)),
+      SharedFormArrayValidators.requiredArrayMinLength(3)
     );
   }
 

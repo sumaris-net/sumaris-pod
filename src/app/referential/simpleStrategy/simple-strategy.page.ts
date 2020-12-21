@@ -27,6 +27,7 @@ import { StrategyService } from "../services/strategy.service";
 import { ProgramValidatorService } from "../services/validator/program.validator";
 import { SimpleStrategyForm } from "./simple-strategy.form";
 import * as moment from "moment";
+import { StrategyValidatorService } from "../services/validator/strategy.validator";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -73,7 +74,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     protected injector: Injector,
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
-    protected validatorService: ProgramValidatorService,
+    protected validatorService: StrategyValidatorService,
     dataService: StrategyService,
     protected activatedRoute: ActivatedRoute,
     protected pmfmService: PmfmService,
@@ -188,54 +189,49 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // delete data.appliedPeriods;
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
-    let pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
-    let pmfmStrategies: PmfmStrategy[] = [];
 
-    let sex = pmfmStrategie[0];
-    let age = pmfmStrategie[1];
+    const pmfmStrategieAgeSex = this.simpleStrategyForm.pmfmStrategiesAgeSexForm.value;
+    const sex = pmfmStrategieAgeSex[0];
+    const age = pmfmStrategieAgeSex[1];
 
     // i == 0 age
     // i == 1 sex
 
-    await this.simpleStrategyForm.weightPmfmStrategiesTable.save();
-    await this.simpleStrategyForm.sizePmfmStrategiesTable.save();
-    await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();
+
+    // const pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
+    let pmfmStrategies: PmfmStrategy[] = [];
 
 
-    let lengthList = this.simpleStrategyForm.weightPmfmStrategiesTable.value;
-    let sizeList = this.simpleStrategyForm.sizePmfmStrategiesTable.value;
-    let maturityList = this.simpleStrategyForm.maturityPmfmStrategiesTable.value;
+    if (this.simpleStrategyForm.weightPmfmStrategiesTable.dirty) {await this.simpleStrategyForm.weightPmfmStrategiesTable.save();}
+    if (this.simpleStrategyForm.sizePmfmStrategiesTable.dirty) {await this.simpleStrategyForm.sizePmfmStrategiesTable.save();}
+    if (this.simpleStrategyForm.maturityPmfmStrategiesTable.dirty) {await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();}
 
-    for (let i = 0; i < lengthList.length; i++) {
-      pmfmStrategies.push(lengthList[i]);
+    pmfmStrategies = pmfmStrategies
+    .concat(this.simpleStrategyForm.weightPmfmStrategiesTable.value.filter(p => p.pmfm))
+    .concat(this.simpleStrategyForm.sizePmfmStrategiesTable.value.filter(p => p.pmfm))
+    .concat(this.simpleStrategyForm.maturityPmfmStrategiesTable.value.filter(p => p.pmfm))
+
+
+
+    const pmfmStrategiesFractions = data.pmfmStrategiesFraction;
+
+    // Pièces calcifiées
+    for (let i = 0; i < pmfmStrategiesFractions.length; i++) {
+      const pmfmStrategiesFraction = this.createNewPmfmStrategy(data);
+      pmfmStrategiesFraction.fractionId = pmfmStrategiesFractions[i].id;
+      pmfmStrategies.push(pmfmStrategiesFraction);
     }
-    for (let i = 0; i < sizeList.length; i++) {
-      pmfmStrategies.push(sizeList[i]);
-    }
-    for (let i = 0; i < maturityList.length; i++) {
-      pmfmStrategies.push(maturityList[i]);
-    }
-
-
-    let PmfmStrategiesFractions = this.simpleStrategyForm.PmfmStrategiesFractionForm.value;
-
-    console.log(PmfmStrategiesFractions);
-
-    for (let i = 0; i < PmfmStrategiesFractions.length; i++) {
-      let PmfmStrategiesFraction = this.createNewPmfmStrategy(data);
-      PmfmStrategiesFraction.fractionId = PmfmStrategiesFractions[i].id;
-      pmfmStrategies.push(PmfmStrategiesFraction);
-    }
+    //
 
     if (sex) {
-      let pmfmStrategySex = this.createNewPmfmStrategy(data);
-      let pmfmSex = await this.getPmfms("SEX");
+      const pmfmStrategySex = this.createNewPmfmStrategy(data);
+      const pmfmSex = await this.getPmfms("SEX");
       pmfmStrategySex.pmfm = pmfmSex[0];
       pmfmStrategies.push(pmfmStrategySex);
     }
     if (age) {
-      let pmfmStrategyAge = this.createNewPmfmStrategy(data);
-      let pmfmAge = await this.getPmfms("AGE");
+      const pmfmStrategyAge = this.createNewPmfmStrategy(data);
+      const pmfmAge = await this.getPmfms("AGE");
       pmfmStrategyAge.pmfm = pmfmAge[0];
       pmfmStrategies.push(pmfmStrategyAge);
     }
@@ -246,25 +242,17 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       p.isMandatory = false;
       p.rankOrder = 1;
       return p
-    }).filter(p => p.pmfm || p.fractionId);
+    });
 
-    //--------------------------------------------------------------------------------------------------------------------
+
     console.log(data);
+    //--------------------------------------------------------------------------------------------------------------------
     return data;
   }
-
-
 
   createNewPmfmStrategy(data: Strategy): PmfmStrategy {
     const pmfmStrategy = new PmfmStrategy();
     pmfmStrategy.strategyId = data.id;
-    // pmfmStrategy.pmfm = null;
-    // pmfmStrategy.fractionId = null;
-    // pmfmStrategy.qualitativeValues = undefined;
-    // pmfmStrategy.acquisitionLevel = 'SAMPLE'
-    // pmfmStrategy.acquisitionNumber = 1;
-    // pmfmStrategy.isMandatory = false;
-    // pmfmStrategy.rankOrder = 1;
     return pmfmStrategy;
   }
 
