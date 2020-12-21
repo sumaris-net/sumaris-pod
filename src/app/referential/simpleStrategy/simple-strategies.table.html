@@ -60,7 +60,7 @@
   <!-- codeLine column -->
   <ng-container matColumnDef="sampleRowCode">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PLANIFICATION.SAMPLE_ROW_CODE</span>
+      <span translate>PROGRAM.STRATEGY.SAMPLE_ROW_CODE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       {{row.currentData.label}}
@@ -70,7 +70,7 @@
     <!-- eotp column -->
     <ng-container matColumnDef="eotp">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PLANIFICATION.EOTP</span>
+        <span translate>PROGRAM.STRATEGY.EOTP</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{row.currentData.analyticReference}}
@@ -80,7 +80,7 @@
     <!-- LABORATORY column -->
     <ng-container matColumnDef="laboratory">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PLANIFICATION.LABORATORY</span>
+        <span translate>PROGRAM.STRATEGY.LABORATORY</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{laboratoriesToString(row.currentData)}}
@@ -90,7 +90,7 @@
     <!-- FISHING_AREA column -->
     <ng-container matColumnDef="fishingArea">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PLANIFICATION.FISHING_AREA</span>
+        <span translate>PROGRAM.STRATEGY.FISHING_AREA</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{fishingAreasToString(row.currentData)}}
@@ -100,7 +100,7 @@
      <!-- TARGET_SPECIE column -->
      <ng-container matColumnDef="targetSpecie">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PLANIFICATION.TARGET_SPECIE</span>
+        <span translate>PROGRAM.STRATEGY.TARGET_SPECIE</span>
       </mat-header-cell>
        <mat-cell *matCellDef="let row">
          {{taxonsNamesToString(row.currentData)}}
@@ -110,7 +110,7 @@
   <!-- comment column -->
   <ng-container matColumnDef="comment">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PLANIFICATION.COMMENT</span>
+      <span translate>PROGRAM.STRATEGY.COMMENT</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-icon color="primary" *ngIf="row.currentData.description" [title]="row.currentData.description">description</mat-icon>
@@ -120,7 +120,7 @@
     <!-- PARAMETERS_TITLE column -->
     <ng-container matColumnDef="parametersTitle">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PLANIFICATION.PARAMETERS_TITLE_TABLE</span>
+        <span translate>PROGRAM.STRATEGY.PARAMETERS_TITLE_TABLE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{parametersToString(row.currentData)}}
@@ -130,7 +130,7 @@
   <!-- QUARTER_1_TABLE column -->
   <ng-container matColumnDef="t1">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PLANIFICATION.QUARTER_1_TABLE</span>
+      <span translate>PROGRAM.STRATEGY.QUARTER_1_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       {{effortToString(row.currentData, 1)}}
@@ -140,7 +140,7 @@
   <!-- QUARTER_2_TABLE column -->
   <ng-container matColumnDef="t2">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PLANIFICATION.QUARTER_2_TABLE</span>
+      <span translate>PROGRAM.STRATEGY.QUARTER_2_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       {{effortToString(row.currentData, 2)}}
@@ -150,7 +150,7 @@
   <!-- QUARTER_3_TABLE column -->
   <ng-container matColumnDef="t3">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PLANIFICATION.QUARTER_3_TABLE</span>
+      <span translate>PROGRAM.STRATEGY.QUARTER_3_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       {{effortToString(row.currentData, 3)}}
@@ -160,7 +160,7 @@
   <!-- QUARTER_4_TABLE column -->
   <ng-container matColumnDef="t4">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PLANIFICATION.QUARTER_4_TABLE</span>
+      <span translate>PROGRAM.STRATEGY.QUARTER_4_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       {{effortToString(row.currentData, 4)}}

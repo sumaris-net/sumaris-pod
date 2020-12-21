@@ -8,7 +8,7 @@ import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
-import {SimpleStrategiesTable} from "../simpleStrategy/simpleStrategies/simpleStrategies.table";
+import {SimpleStrategiesTable} from "../simpleStrategy/simple-strategies.table";
 import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
