@@ -33,19 +33,19 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   mobile: boolean;
   programId = -1;
 
-  enableTaxonNameFilter = true;
+  enableTaxonNameFilter = false;
   canFilterTaxonName = true;
   taxonNameHelper: FormArrayHelper<TaxonNameStrategy>;
 
-  enableEotpFilter = true;
+  enableEotpFilter = false;
   canFilterEotp = true;
 
-  enableStrategyDepartmentFilter = true;
+  enableStrategyDepartmentFilter = false;
   canFilterStrategyDepartment = true;
   strategyDepartmentHelper: FormArrayHelper<StrategyDepartment>;
   StrategyDepartmentFocusIndex = -1;
 
-  enableAppliedStrategyFilter = true;
+  enableAppliedStrategyFilter = false;
   canFilterAppliedStrategy = true;
   appliedStrategiesHelper: FormArrayHelper<AppliedStrategy>;
   appliedStrategiesIndex = -1;
@@ -54,7 +54,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   appliedPeriodIndex = -1;
 
 
-  enablePmfmStrategiesFractionFilter = true;
+  enablePmfmStrategiesFractionFilter = false;
   canFilterPmfmStrategiesFraction = true;
   PmfmStrategiesFractionHelper: FormArrayHelper<PmfmStrategy>;
   PmfmStrategiesFractionFocusIndex = -1;
@@ -70,7 +70,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
-  public sampleRowMask = ['2', '0', '2', '0', '_', 'B', 'I', '0', '_', /\d/, /\d/, /\d/, /\d/];
+  public sampleRowMask = ['2', '0', '2', '0', '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
 
 
   get appliedStrategiesForm(): FormArray {
@@ -142,7 +142,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // register year field changes
     this.registerSubscription(
       this.form.get('creationDate').valueChanges
-        .subscribe(async (date: Moment) => this.onDateChange(date ? date : moment()))
+        .subscribe(async (date: Moment) => this.onDateChange(date))
     );
 
     // taxonName autocomplete
@@ -202,9 +202,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       columnSizes: [2, 10],
       mobile: this.settings.mobile
     });
-
-    // set default mask
-    this.sampleRowMask = [...moment().year().toString().split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
 
     //init helpers
     this.initstrategyDepartmentHelper();
@@ -283,8 +280,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     console.debug("[simpleStrategy-form] Setting Strategy value", data);
     if (!data) return;
 
-    // QUICKFIX label to remove as soon as possible
-    data.label = data.label?.replace(/_/g, "-");
+    // TODO : look if it's possible to init programId in another way
+    this.programId = data.programId;
 
     // Resize strategy department array
     this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
@@ -346,12 +343,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     analyticReferenceToSet.label = data.analyticReference;
     this.form.get('analyticReference').setValue(analyticReferenceToSet);
 
-
-
-
-
     const pmfmStrategiesControl = this.pmfmStrategiesForm;
-
 
     let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "AGE");
     let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "SEX");
@@ -381,9 +373,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
     this.pmfmStrategiesHelper.resize(Math.max(5, pmfmStrategies.length));
     pmfmStrategiesControl.patchValue(pmfmStrategies);
-
-
-
 
     this.referentialRefService.loadAll(0, 0, null, null,
       {
@@ -421,14 +410,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     }
     this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
 
+    // get new label sample row code
+    const updatedLabel = await this.strategyService.findStrategyNextLabel(this.programId, `${year}-BIO-`, 4);
+
     const label = labelControl.value;
-    if (isNotNil(label)) {
+    if (isNil(label)) {
+      labelControl.setValue(updatedLabel);
+    } else {
       const oldYear = label.split('-').shift();
-
-      // get new label sample row code
-      //TODO : replace 40 with this.program.id
-      const updatedLabel = await this.strategyService.findStrategyNextLabel(40, `${year}-BIO-`, 4);
-
       // Update the label, if year change
       if (year && oldYear && year !== oldYear) {
         labelControl.setValue(updatedLabel);

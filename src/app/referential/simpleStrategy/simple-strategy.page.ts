@@ -3,8 +3,8 @@ import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from 
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { ValidatorService } from "@e-is/ngx-material-table";
-import { ModalController } from "@ionic/angular";
 import { HistoryPageReference } from "src/app/core/services/model/settings.model";
+import { PlatformService } from "src/app/core/services/platform.service";
 import {
   AppEntityEditor,
   isNil, ReferentialRef
@@ -23,10 +23,10 @@ import {
   StrategyDepartment
 } from "../services/model/strategy.model";
 import { PmfmService } from "../services/pmfm.service";
-import { ReferentialRefService } from "../services/referential-ref.service";
 import { StrategyService } from "../services/strategy.service";
 import { ProgramValidatorService } from "../services/validator/program.validator";
 import { SimpleStrategyForm } from "./simple-strategy.form";
+import * as moment from "moment";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -75,15 +75,17 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
     dataService: StrategyService,
-    protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController,
     protected activatedRoute: ActivatedRoute,
     protected pmfmService: PmfmService,
-
+    protected platform: PlatformService
   ) {
-    super(injector,
-      Strategy,
-      dataService);
+    super(injector, Strategy, dataService,
+      {
+        pathIdAttribute: 'strategyId',
+        tabCount: 3,
+        autoUpdateRoute: !platform.mobile,
+        autoOpenNextTab: !platform.mobile
+      });
     this.form = validatorService.getFormGroup();
     // default values
     this.defaultBackHref = "/referential?entity=Program";
@@ -95,14 +97,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   ngOnInit() {
     //  Call editor routing
     super.ngOnInit();
-    // Set entity name (required for referential form validator)
-
-
-    // get program id from route
-    this.programId = 40 || this.activatedRoute.snapshot.params['id'];
-
     this.simpleStrategyForm.entityName = 'simpleStrategyForm';
-    this.defaultBackHref = `/referential/program/${this.programId}?tab=2`
 
   }
 
@@ -157,10 +152,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
     if (!data) return; // Skip
-
-    // FIXME : must be set in onNewEntity
-    data.programId = this.programId;//data.programId ||
-    data.statusId = data.statusId || 1;
     this.simpleStrategyForm.value = data;
 
   }
@@ -169,7 +160,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     const data = this.simpleStrategyForm.value;
 
-    data.name = data.name || data.label;
+    data.name = data.label || data.name;
 
     // FIXME : how to load referenceTaxonId previously ??
     data.taxonNames[0].strategyId = data.taxonNames[0].strategyId || 30;
@@ -300,7 +291,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
 
     // Update back href
-    this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${this.programId}?tab=2` : undefined;
+    this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${data.programId}?tab=2` : this.defaultBackHref;
 
     // data.id = 30;
     this.markForCheck();
@@ -308,27 +299,34 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   }
 
 
-  // protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
 
-  //   // Read options and query params
-  //   console.info(options);
-  //   if (options && options.observedLocationId) {
+    // Read options and query params
+    console.info(options);
+    if (options && options.id) {
 
-  //     console.debug("[landedTrip-page] New entity: settings defaults...");
+      console.debug("[landedTrip-page] New entity: settings defaults...");
 
-  //   } else {
-  //     throw new Error("[landedTrip-page] the observedLocationId must be present");
-  //   }
+      // init new entity attributs
+      data.programId = data.programId || this.activatedRoute.snapshot.params['id'];
+      data.statusId= data.statusId || 1;
+      data.creationDate = moment();
 
-  //   const queryParams = this.route.snapshot.queryParams;
-  //   // Load the vessel, if any
-  //   if (isNotNil(queryParams['strategy'])) {
-  //     const strategyId = +queryParams['strategy'];
-  //     console.debug(`[landedTrip-page] Loading vessel {${strategyId}}...`);
-  //     data.id = strategyId;
-  //   }
+      this.defaultBackHref = `/referential/program/${data.programId}?tab=2`;
 
-  // }
+    } else {
+      throw new Error("[landedTrip-page] the observedLocationId must be present");
+    }
+
+    const queryParams = this.route.snapshot.queryParams;
+    // Load the vessel, if any
+    if (isNotNil(queryParams['program'])) {
+      const programId = +queryParams['program'];
+      console.debug(`[landedTrip-page] Loading vessel {${programId}}...`);
+      data.programId = programId;
+    }
+
+  }
 
   protected addToPageHistory(page: HistoryPageReference) {
     super.addToPageHistory({ ...page, icon: 'list-outline' });
