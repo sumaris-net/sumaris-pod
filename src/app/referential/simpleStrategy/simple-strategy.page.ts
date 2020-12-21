@@ -37,23 +37,23 @@ export enum AnimationState {
   selector: 'app-simple-strategy',
   templateUrl: 'simple-strategy.page.html',
   providers: [
-    {provide: ValidatorService, useExisting: ProgramValidatorService}
+    { provide: ValidatorService, useExisting: ProgramValidatorService }
   ],
   animations: [fadeInOutAnimation,
     // Fade in
     trigger('fadeIn', [
-      state('*', style({opacity: 0, display: 'none', visibility: 'hidden'})),
-      state(AnimationState.ENTER, style({opacity: 1, display: 'inherit', visibility: 'inherit'})),
-      state(AnimationState.LEAVE, style({opacity: 0, display: 'none', visibility: 'hidden'})),
+      state('*', style({ opacity: 0, display: 'none', visibility: 'hidden' })),
+      state(AnimationState.ENTER, style({ opacity: 1, display: 'inherit', visibility: 'inherit' })),
+      state(AnimationState.LEAVE, style({ opacity: 0, display: 'none', visibility: 'hidden' })),
       // Modal
       transition(`* => ${AnimationState.ENTER}`, [
-        style({display: 'inherit',  visibility: 'inherit', transform: 'translateX(50%)'}),
-        animate('0.4s ease-out', style({opacity: 1, transform: 'translateX(0)'}))
+        style({ display: 'inherit', visibility: 'inherit', transform: 'translateX(50%)' }),
+        animate('0.4s ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
       ]),
       transition(`${AnimationState.ENTER} => ${AnimationState.LEAVE}`, [
-        animate('0.2s ease-out', style({opacity: 0, transform: 'translateX(50%)'})),
-        style({display: 'none',  visibility: 'hidden'})
-      ]) ])
+        animate('0.2s ease-out', style({ opacity: 0, transform: 'translateX(50%)' })),
+        style({ display: 'none', visibility: 'hidden' })
+      ])])
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -77,7 +77,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     dataService: StrategyService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
-    protected activatedRoute : ActivatedRoute,
+    protected activatedRoute: ActivatedRoute,
     protected pmfmService: PmfmService,
 
   ) {
@@ -99,24 +99,24 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
 
     // get program id from route
-    this.programId =  40 || this.activatedRoute.snapshot.params['id'];
+    this.programId = 40 || this.activatedRoute.snapshot.params['id'];
 
     this.simpleStrategyForm.entityName = 'simpleStrategyForm';
     this.defaultBackHref = `/referential/program/${this.programId}?tab=2`
 
   }
 
-   protected canUserWrite(data: Strategy): boolean {
+  protected canUserWrite(data: Strategy): boolean {
     // TODO : check user is in program managers
     return (this.isNewData && this.accountService.isAdmin())
       || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
 
   }
 
-    /**
-   * Compute the title
-   * @param data
-   */
+  /**
+ * Compute the title
+ * @param data
+ */
   protected async computeTitle(data: Strategy, opts?: {
     withPrefix?: boolean;
   }): Promise<string> {
@@ -135,7 +135,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   protected getFirstInvalidTabIndex(): number {
     if (this.simpleStrategyForm.invalid) return 0;
-   // TODO
+    // TODO
     return 0;
   }
 
@@ -160,7 +160,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     // FIXME : must be set in onNewEntity
     data.programId = this.programId;//data.programId ||
-    data.statusId= data.statusId || 1;
+    data.statusId = data.statusId || 1;
     this.simpleStrategyForm.value = data;
 
   }
@@ -176,20 +176,20 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     data.taxonNames[0].taxonName.referenceTaxonId = 1006;
 
     // FIXME : how to get privilege previously ??
-    data.strategyDepartments.map((dpt : StrategyDepartment) =>{
-      let observer : ReferentialRef = new ReferentialRef();
-      observer.id =2;
-      observer.label ="Observer";
-      observer.name ="Observer privilege";
-      observer.statusId =1;
-      observer.entityName ="ProgramPrivilege";
+    data.strategyDepartments.map((dpt: StrategyDepartment) => {
+      let observer: ReferentialRef = new ReferentialRef();
+      observer.id = 2;
+      observer.label = "Observer";
+      observer.name = "Observer privilege";
+      observer.statusId = 1;
+      observer.entityName = "ProgramPrivilege";
       dpt.privilege = observer;
     });
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
     const appliedStrategies = data.appliedStrategies;
     // append efforts (trick is that effots are added to the first appliedStrategy of the array)
-    if(appliedStrategies.length){
+    if (appliedStrategies.length) {
       const appliedPeriods = data.appliedPeriods;
       appliedStrategies[0].appliedPeriods = appliedPeriods.filter(period => isNotNil(period.acquisitionNumber));
     }
@@ -198,7 +198,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
     let pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
-    let pmfmStrategies : PmfmStrategy [] = [];
+    let pmfmStrategies: PmfmStrategy[] = [];
 
     let sex = pmfmStrategie[0];
     let age = pmfmStrategie[1];
@@ -215,77 +215,64 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     let sizeList = this.simpleStrategyForm.sizePmfmStrategiesTable.value;
     let maturityList = this.simpleStrategyForm.maturityPmfmStrategiesTable.value;
 
-    for( let  i =0; i<lengthList.length;i++){
+    for (let i = 0; i < lengthList.length; i++) {
       pmfmStrategies.push(lengthList[i]);
     }
-    for( let  i =0; i<sizeList.length;i++){
+    for (let i = 0; i < sizeList.length; i++) {
       pmfmStrategies.push(sizeList[i]);
     }
-    for( let  i =0; i<maturityList.length;i++){
+    for (let i = 0; i < maturityList.length; i++) {
       pmfmStrategies.push(maturityList[i]);
     }
 
 
-    let PmfmStrategiesFraction = this.simpleStrategyForm.PmfmStrategiesFractionForm.value;
+    let PmfmStrategiesFractions = this.simpleStrategyForm.PmfmStrategiesFractionForm.value;
 
-    for( let i = 0; i < PmfmStrategiesFraction.length; i++){
-
-        let PmfmStrategiesFraction : PmfmStrategy = new PmfmStrategy();
-        PmfmStrategiesFraction.strategyId = data.id;
-        PmfmStrategiesFraction.pmfm = null;
-        PmfmStrategiesFraction.fractionId = PmfmStrategiesFraction[i].id;
-        PmfmStrategiesFraction.qualitativeValues =undefined;
-        PmfmStrategiesFraction.acquisitionLevel='SAMPLE'
-        PmfmStrategiesFraction.acquisitionNumber=1;
-        PmfmStrategiesFraction.isMandatory = false;
-        PmfmStrategiesFraction.rankOrder = 1;
-
-        pmfmStrategies.push(PmfmStrategiesFraction);
-
+    for (let i = 0; i < PmfmStrategiesFractions.length; i++) {
+      let PmfmStrategiesFraction = this.createNewPmfmStrategy(data);
+      PmfmStrategiesFraction.fractionId = PmfmStrategiesFractions[i].fractionId ? PmfmStrategiesFractions[i].fractionId : PmfmStrategiesFractions[i].id;
+      pmfmStrategies.push(PmfmStrategiesFraction);
     }
 
-    if(sex){
-      let pmfmStrategySex : PmfmStrategy = new PmfmStrategy();
+    if (sex) {
+      let pmfmStrategySex = this.createNewPmfmStrategy(data);
       let pmfmSex = await this.getPmfms("SEX");
-
-      pmfmStrategySex.strategyId = data.id;
       pmfmStrategySex.pmfm = pmfmSex[0];
-      pmfmStrategySex.fractionId = null;
-      pmfmStrategySex.qualitativeValues =undefined;
-      pmfmStrategySex.acquisitionLevel='SAMPLE'
-      pmfmStrategySex.acquisitionNumber=1;
-      pmfmStrategySex.isMandatory = false;
-      pmfmStrategySex.rankOrder = 1;
-
       pmfmStrategies.push(pmfmStrategySex);
     }
-    if(age){
-      let pmfmStrategyAge : PmfmStrategy = new PmfmStrategy();
+    if (age) {
+      let pmfmStrategyAge = this.createNewPmfmStrategy(data);
       let pmfmAge = await this.getPmfms("AGE");
-
-      pmfmStrategyAge.strategyId = data.id;
       pmfmStrategyAge.pmfm = pmfmAge[0];
-      pmfmStrategyAge.fractionId = null;
-      pmfmStrategyAge.qualitativeValues =undefined;
-      pmfmStrategyAge.acquisitionLevel='SAMPLE'
-      pmfmStrategyAge.acquisitionNumber=1;
-      pmfmStrategyAge.isMandatory = false;
-      pmfmStrategyAge.rankOrder = 1;
-
       pmfmStrategies.push(pmfmStrategyAge);
-
     }
 
-    data.pmfmStrategies= pmfmStrategies.map(p => {
+    data.pmfmStrategies = pmfmStrategies.map(p => {
       p.acquisitionLevel = 'SAMPLE';
       p.acquisitionNumber = 1;
       p.isMandatory = false;
-      p.rankOrder =1;
-      return p}).filter(p => p.pmfm || p.fractionId);
+      p.rankOrder = 1;
+      return p
+    }).filter(p => p.pmfm || p.fractionId);
 
-  //--------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------
     console.log(data);
     return data;
+  }
+
+
+
+  createNewPmfmStrategy(data: Strategy): PmfmStrategy {
+    const pmfmStrategy = new PmfmStrategy();
+    pmfmStrategy.strategyId = data.id;
+    // pmfmStrategy.pmfm = null;
+    // pmfmStrategy.fractionId = null;
+    // pmfmStrategy.qualitativeValues = undefined;
+    // pmfmStrategy.acquisitionLevel = 'SAMPLE'
+    // pmfmStrategy.acquisitionNumber = 1;
+    // pmfmStrategy.isMandatory = false;
+    // pmfmStrategy.rankOrder = 1;
+    return pmfmStrategy;
   }
 
 
@@ -294,21 +281,21 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
    * @param label
    * @protected
    */
-   protected async getPmfms(label : string){
-     const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-         entityName: 'Pmfm',
-         levelLabels: [label]
-         // searchJoin: "Parameter" is implied in pod filter
-       },
-       {
-         withTotal: false,
-         withDetails: true
-       });
-     return res.data;
-   }
+  protected async getPmfms(label: string) {
+    const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+      entityName: 'Pmfm',
+      levelLabels: [label]
+      // searchJoin: "Parameter" is implied in pod filter
+    },
+      {
+        withTotal: false,
+        withDetails: true
+      });
+    return res.data;
+  }
 
 
-   protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
 
     // Update back href
     this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${this.programId}?tab=2` : undefined;
@@ -342,7 +329,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   // }
 
   protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'list-outline'});
+    super.addToPageHistory({ ...page, icon: 'list-outline' });
   }
 }
 

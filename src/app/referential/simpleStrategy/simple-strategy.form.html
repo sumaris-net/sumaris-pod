@@ -98,10 +98,10 @@
           [required]="true">
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
-                  [disabled]="!canFilterStrategyDepartment"
+                  [disabled]="!canFilterAppliedStrategy"
                   [title]="'PROGRAM.STRATEGY.BTN_FILTER'|translate"
                   (click)="toggleFilteredItems('appliedStrategy')"
-                  [color]="enableStrategyDepartmentFilter ? 'primary' : undefined">
+                  [color]="enableAppliedStrategyFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
           </button>
         </mat-autocomplete-field>
@@ -313,7 +313,7 @@
         </ion-row>
 
     <!-- Calcified Pmfms -->
-    <ion-row *ngFor="let calcifiedTypeForm of PmfmStrategiesFractionForm?.controls; index as i; first as first">
+    <ion-row *ngFor="let PmfmStrategiesFraction of PmfmStrategiesFractionForm?.controls; index as i; first as first">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label  class="ion-float-end" *ngIf="!i" translate>PROGRAM.STRATEGY.CALCIFIED_TYPE</ion-label>
       </ion-col>
