@@ -44,6 +44,7 @@ import {MeasurementModelValues} from "../services/model/measurement.model";
 export class Landing2Form extends MeasurementValuesForm<Landing> implements OnInit {
 
   private _showObservers: boolean;
+  private _vessel: any;
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   mobile: boolean;
@@ -80,6 +81,17 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   get showObservers(): boolean {
     return this._showObservers;
+  }
+
+  @Input()
+  set vessel(value: string) {
+    if (this._vessel !== value && isNotNil(value)) {
+      this._vessel = value;
+    }
+  }
+
+  get vessel(): string {
+    return this._vessel;
   }
 
   get empty(): any {
@@ -221,6 +233,20 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       displayWith: personToString
     });
 
+
+    // Combo: fishingArea
+    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingArea');
+    this.registerAutocompleteField('fishingArea', {
+      service: this.referentialRefService,
+      attributes: fishingAreaAttributes,
+      // Increase default column size, for 'label'
+      columnSizes: sampleRowCodeAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      filter: <ReferentialRefFilter>{
+        entityName: 'Program'
+      },
+      mobile: this.mobile
+    });
+
     // Combo: taxon / targetSpecies
     // const taxonNameAttributes = this.settings.getFieldDisplayAttributes('taxonName');
     // const taxonNameField = this.registerAutocompleteField('taxonName', {
@@ -282,11 +308,12 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     taxon2.referenceTaxonId=17906;
 
 
-    sample1.taxonName = taxon2;
+    sample1.taxonName = taxon;
+    sample1.rankOrder=1;
     value.samples.push(sample1)
 
     value.comments = "Test PYC";
-
+    value.rankOrder=1;
 
     value.measurementValues = value.measurementValues || {} ;
     // MeasurementValuesUtils.normalizeValuesToForm(value.measurementValues as MeasurementModelValues, pmfms, {
