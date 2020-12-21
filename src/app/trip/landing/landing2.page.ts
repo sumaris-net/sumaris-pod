@@ -35,7 +35,7 @@ import {Landing2Form} from "./landing2.form";
     {
       provide: AppEditorOptions,
       useValue: {
-        pathIdAttribute: 'landingId'
+        pathIdAttribute: 'landing2Id'
       }
     }
   ]
