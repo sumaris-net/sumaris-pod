@@ -5,6 +5,11 @@
 
 <ion-content>
 
+  <ion-item >
+  <ion-item >
+    <ion-label class="ion-float-end" translate>WIP - LANDING2 page.html</ion-label>
+  </ion-item>
+
   <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
@@ -31,6 +36,7 @@
                               [showError]="false"
                                [showLocation]="true"
                               [debug]="debug"
+                               [vessel]="data?.vesselSnapshot"
                               (onSubmit)="save($event)">
             </app-landing-form2>
           </ion-col>
