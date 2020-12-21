@@ -23,6 +23,7 @@ import {filter} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
 import {Landings2Table} from "../landing/landings2.table";
+import {Program} from "../../referential/services/model/program.model";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -78,7 +79,17 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // Configure using program properties
     this.onProgramChanged
-      .subscribe(program => {
+      .subscribe(program1 => {
+        // FIXME CLT bug in PROGRAM providing from PARAM-BIO program
+        let program = program1;
+        if (program == undefined)
+        {
+          program = new Program();
+          program.id = 40;
+          program.label = "PARAM-BIO";
+          program.name = "PARAM-BIO";
+          this.$childLoaded.next(true);
+        }
         if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
