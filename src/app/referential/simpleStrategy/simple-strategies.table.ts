@@ -6,12 +6,12 @@ import {
   referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
-} from "../../../core/core.module";
-import {StrategyValidatorService} from "../../services/validator/strategy.validator";
-import {AppliedPeriod, AppliedStrategy, Strategy} from "../../services/model/strategy.model";
-import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
-import {DefaultStatusList} from "../../../core/services/model/referential.model";
-import {AppInMemoryTable} from "../../../core/table/memory-table.class";
+} from "../../core/core.module";
+import {StrategyValidatorService} from "../services/validator/strategy.validator";
+import {AppliedPeriod, AppliedStrategy, Strategy} from "../services/model/strategy.model";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {DefaultStatusList} from "../../core/services/model/referential.model";
+import {AppInMemoryTable} from "../../core/table/memory-table.class";
 
 
 
@@ -19,9 +19,9 @@ export declare interface StrategyFilter {
 }
 
 @Component({
-  selector: 'app-simpleStrategies-table',
-  templateUrl: 'simpleStrategies.table.html',
-  styleUrls: ['simpleStrategies.table.scss'],
+  selector: 'app-simple-strategies-table',
+  templateUrl: 'simple-strategies.table.html',
+  styleUrls: ['simple-strategies.table.scss'],
   providers: [
     {provide: ValidatorService, useExisting: StrategyValidatorService},
     {
@@ -67,7 +67,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
       null,
       {});
 
-    this.i18nColumnPrefix = 'PLANIFICATION.';
+    this.i18nColumnPrefix = 'PROGRAM.STRATEGY.';
     this.autoLoad = false; // waiting parent to load
 
     this.confirmBeforeDelete = true;

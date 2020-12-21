@@ -18,7 +18,7 @@ import {ProgramPage} from "./program/program.page";
 import {ProgramValidatorService} from "./services/validator/program.validator";
 import {StrategyValidatorService} from "./services/validator/strategy.validator";
 import {StrategiesTable} from "./strategy/strategies.table";
-import {SimpleStrategiesTable} from "../referential/simpleStrategy/simpleStrategies/simpleStrategies.table";
+import {SimpleStrategiesTable} from "./simpleStrategy/simple-strategies.table";
 import {SoftwarePage} from "./software/software.page";
 import {VesselFeaturesHistoryComponent} from "./vessel/page/vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registration-history.component";
@@ -32,8 +32,8 @@ import {ParameterService} from "./services/parameter.service";
 import {PmfmValidatorService} from "./services/validator/pmfm.validator";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {ParameterPage} from "./pmfm/parameter.page";
-import {SimpleStrategyPage} from "./simpleStrategy/simpleStrategy.page";
-import {PlanificationForm} from "./planification/planification.form";
+import {SimpleStrategyPage} from "./simpleStrategy/simple-strategy.page";
+import {SimpleStrategyForm} from "./simpleStrategy/simple-strategy.form";
 import {ParameterValidatorService} from "./services/validator/parameter.validator";
 import {ReferentialTable} from "./list/referential.table";
 import {ReferentialRoutingModule} from "./referential-routing.module";
@@ -55,7 +55,7 @@ import {TextMaskModule} from "angular2-text-mask";
   declarations: [
     ReferentialsPage,
     ReferentialForm,
-    PlanificationForm,
+    SimpleStrategyForm,
     VesselsTable,
     VesselPage,
     VesselsPage,
@@ -81,7 +81,7 @@ import {TextMaskModule} from "angular2-text-mask";
   exports: [
     ReferentialsPage,
     ReferentialForm,
-    PlanificationForm,
+    SimpleStrategyForm,
     VesselsTable,
     VesselPage,
     VesselForm,

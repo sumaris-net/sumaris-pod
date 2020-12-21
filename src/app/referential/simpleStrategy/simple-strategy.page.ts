@@ -1,36 +1,32 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import { animate, state, style, transition, trigger } from "@angular/animations";
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from "@angular/core";
+import { FormBuilder, FormGroup } from "@angular/forms";
+import { ActivatedRoute } from "@angular/router";
+import { ValidatorService } from "@e-is/ngx-material-table";
+import { ModalController } from "@ionic/angular";
+import { HistoryPageReference } from "src/app/core/services/model/settings.model";
 import {
-  AppEntityEditor, IReferentialRef,
-  isNil, ReferentialRef,
+  AppEntityEditor,
+  isNil, ReferentialRef
 } from "../../core/core.module";
-import {
-  AppliedPeriod,
-  AppliedStrategy,
-  Strategy,
-  StrategyDepartment,
-  TaxonNameStrategy
-} from "../services/model/strategy.model";
-import {ProgramValidatorService} from "../services/validator/program.validator";
+import { AccountService } from "../../core/services/account.service";
+import { ReferentialUtils } from "../../core/services/model/referential.model";
+import { FormFieldDefinitionMap } from "../../shared/form/field.model";
 import {
   EntityServiceLoadOptions,
   fadeInOutAnimation, isNotNil
 } from "../../shared/shared.module";
-import {AccountService} from "../../core/services/account.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {ModalController} from "@ionic/angular";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {animate, state, style, transition, trigger} from "@angular/animations";
-import {ProgramProperties} from "../services/config/program.config";
-import {StrategyService} from "../services/strategy.service";
-import {PlanificationForm} from "../planification/planification.form";
-import {ActivatedRoute} from "@angular/router";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import * as moment from 'moment'
-import {PmfmService} from "../services/pmfm.service";
-import { HistoryPageReference } from "src/app/core/services/model/settings.model";
+import { ProgramProperties } from "../services/config/program.config";
+import { PmfmStrategy } from "../services/model/pmfm-strategy.model";
+import {
+  Strategy,
+  StrategyDepartment
+} from "../services/model/strategy.model";
+import { PmfmService } from "../services/pmfm.service";
+import { ReferentialRefService } from "../services/referential-ref.service";
+import { StrategyService } from "../services/strategy.service";
+import { ProgramValidatorService } from "../services/validator/program.validator";
+import { SimpleStrategyForm } from "./simple-strategy.form";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -38,26 +34,26 @@ export enum AnimationState {
 }
 
 @Component({
-  selector: 'app-simpleStrategy',
-  templateUrl: 'simpleStrategy.page.html',
+  selector: 'app-simple-strategy',
+  templateUrl: 'simple-strategy.page.html',
   providers: [
-    {provide: ValidatorService, useExisting: ProgramValidatorService}
+    { provide: ValidatorService, useExisting: ProgramValidatorService }
   ],
   animations: [fadeInOutAnimation,
     // Fade in
     trigger('fadeIn', [
-      state('*', style({opacity: 0, display: 'none', visibility: 'hidden'})),
-      state(AnimationState.ENTER, style({opacity: 1, display: 'inherit', visibility: 'inherit'})),
-      state(AnimationState.LEAVE, style({opacity: 0, display: 'none', visibility: 'hidden'})),
+      state('*', style({ opacity: 0, display: 'none', visibility: 'hidden' })),
+      state(AnimationState.ENTER, style({ opacity: 1, display: 'inherit', visibility: 'inherit' })),
+      state(AnimationState.LEAVE, style({ opacity: 0, display: 'none', visibility: 'hidden' })),
       // Modal
       transition(`* => ${AnimationState.ENTER}`, [
-        style({display: 'inherit',  visibility: 'inherit', transform: 'translateX(50%)'}),
-        animate('0.4s ease-out', style({opacity: 1, transform: 'translateX(0)'}))
+        style({ display: 'inherit', visibility: 'inherit', transform: 'translateX(50%)' }),
+        animate('0.4s ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
       ]),
       transition(`${AnimationState.ENTER} => ${AnimationState.LEAVE}`, [
-        animate('0.2s ease-out', style({opacity: 0, transform: 'translateX(50%)'})),
-        style({display: 'none',  visibility: 'hidden'})
-      ]) ])
+        animate('0.2s ease-out', style({ opacity: 0, transform: 'translateX(50%)' })),
+        style({ display: 'none', visibility: 'hidden' })
+      ])])
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -70,7 +66,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   strategyFormState: AnimationState;
   programId: number;
 
-  @ViewChild('planificationForm', { static: true }) planificationForm: PlanificationForm;
+  @ViewChild('simpleStrategyForm', { static: true }) simpleStrategyForm: SimpleStrategyForm;
 
 
   constructor(
@@ -81,7 +77,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     dataService: StrategyService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
-    protected activatedRoute : ActivatedRoute,
+    protected activatedRoute: ActivatedRoute,
     protected pmfmService: PmfmService,
 
   ) {
@@ -103,24 +99,24 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
 
     // get program id from route
-    this.programId =  40 || this.activatedRoute.snapshot.params['id'];
+    this.programId = 40 || this.activatedRoute.snapshot.params['id'];
 
-    this.planificationForm.entityName = 'planificationForm';
+    this.simpleStrategyForm.entityName = 'simpleStrategyForm';
     this.defaultBackHref = `/referential/program/${this.programId}?tab=2`
 
   }
 
-   protected canUserWrite(data: Strategy): boolean {
+  protected canUserWrite(data: Strategy): boolean {
     // TODO : check user is in program managers
     return (this.isNewData && this.accountService.isAdmin())
       || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
 
   }
 
-    /**
-   * Compute the title
-   * @param data
-   */
+  /**
+ * Compute the title
+ * @param data
+ */
   protected async computeTitle(data: Strategy, opts?: {
     withPrefix?: boolean;
   }): Promise<string> {
@@ -138,14 +134,14 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   }
 
   protected getFirstInvalidTabIndex(): number {
-    if (this.planificationForm.invalid) return 0;
-   // TODO
+    if (this.simpleStrategyForm.invalid) return 0;
+    // TODO
     return 0;
   }
 
   protected registerForms() {
     this.addChildForms([
-      this.planificationForm
+      this.simpleStrategyForm
     ]);
   }
 
@@ -164,14 +160,14 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     // FIXME : must be set in onNewEntity
     data.programId = this.programId;//data.programId ||
-    data.statusId= data.statusId || 1;
-    this.planificationForm.value = data;
+    data.statusId = data.statusId || 1;
+    this.simpleStrategyForm.value = data;
 
   }
 
   protected async getJsonValueToSave(): Promise<Strategy> {
 
-    const data = this.planificationForm.value;
+    const data = this.simpleStrategyForm.value;
 
     data.name = data.name || data.label;
 
@@ -180,20 +176,20 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     data.taxonNames[0].taxonName.referenceTaxonId = 1006;
 
     // FIXME : how to get privilege previously ??
-    data.strategyDepartments.map((dpt : StrategyDepartment) =>{
-      let observer : ReferentialRef = new ReferentialRef();
-      observer.id =2;
-      observer.label ="Observer";
-      observer.name ="Observer privilege";
-      observer.statusId =1;
-      observer.entityName ="ProgramPrivilege";
+    data.strategyDepartments.map((dpt: StrategyDepartment) => {
+      let observer: ReferentialRef = new ReferentialRef();
+      observer.id = 2;
+      observer.label = "Observer";
+      observer.name = "Observer privilege";
+      observer.statusId = 1;
+      observer.entityName = "ProgramPrivilege";
       dpt.privilege = observer;
     });
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
     const appliedStrategies = data.appliedStrategies;
     // append efforts (trick is that effots are added to the first appliedStrategy of the array)
-    if(appliedStrategies.length){
+    if (appliedStrategies.length) {
       const appliedPeriods = data.appliedPeriods;
       appliedStrategies[0].appliedPeriods = appliedPeriods.filter(period => isNotNil(period.acquisitionNumber));
     }
@@ -201,8 +197,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // delete data.appliedPeriods;
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
-    let pmfmStrategie = this.planificationForm.pmfmStrategiesForm.value;
-    let pmfmStrategies : PmfmStrategy [] = [];
+    let pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
+    let pmfmStrategies: PmfmStrategy[] = [];
 
     let sex = pmfmStrategie[0];
     let age = pmfmStrategie[1];
@@ -210,86 +206,73 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // i == 0 age
     // i == 1 sex
 
-    await this.planificationForm.weightPmfmStrategiesTable.save();
-    await this.planificationForm.sizePmfmStrategiesTable.save();
-    await this.planificationForm.maturityPmfmStrategiesTable.save();
+    await this.simpleStrategyForm.weightPmfmStrategiesTable.save();
+    await this.simpleStrategyForm.sizePmfmStrategiesTable.save();
+    await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();
 
 
-    let lengthList = this.planificationForm.weightPmfmStrategiesTable.value;
-    let sizeList = this.planificationForm.sizePmfmStrategiesTable.value;
-    let maturityList = this.planificationForm.maturityPmfmStrategiesTable.value;
+    let lengthList = this.simpleStrategyForm.weightPmfmStrategiesTable.value;
+    let sizeList = this.simpleStrategyForm.sizePmfmStrategiesTable.value;
+    let maturityList = this.simpleStrategyForm.maturityPmfmStrategiesTable.value;
 
-    for( let  i =0; i<lengthList.length;i++){
+    for (let i = 0; i < lengthList.length; i++) {
       pmfmStrategies.push(lengthList[i]);
     }
-    for( let  i =0; i<sizeList.length;i++){
+    for (let i = 0; i < sizeList.length; i++) {
       pmfmStrategies.push(sizeList[i]);
     }
-    for( let  i =0; i<maturityList.length;i++){
+    for (let i = 0; i < maturityList.length; i++) {
       pmfmStrategies.push(maturityList[i]);
     }
 
 
-    let calcifiedTypes = this.planificationForm.calcifiedTypesForm.value;
+    let PmfmStrategiesFractions = this.simpleStrategyForm.PmfmStrategiesFractionForm.value;
 
-    for( let i = 0; i < calcifiedTypes.length; i++){
-
-        let calcifiedType : PmfmStrategy = new PmfmStrategy();
-        calcifiedType.strategyId = data.id;
-        calcifiedType.pmfm = null;
-        calcifiedType.fractionId = calcifiedTypes[i].id;
-        calcifiedType.qualitativeValues =undefined;
-        calcifiedType.acquisitionLevel='SAMPLE'
-        calcifiedType.acquisitionNumber=1;
-        calcifiedType.isMandatory = false;
-        calcifiedType.rankOrder = 1;
-
-        pmfmStrategies.push(calcifiedType);
-
+    for (let i = 0; i < PmfmStrategiesFractions.length; i++) {
+      let PmfmStrategiesFraction = this.createNewPmfmStrategy(data);
+      PmfmStrategiesFraction.fractionId = PmfmStrategiesFractions[i].fractionId ? PmfmStrategiesFractions[i].fractionId : PmfmStrategiesFractions[i].id;
+      pmfmStrategies.push(PmfmStrategiesFraction);
     }
 
-    if(sex){
-      let pmfmStrategySex : PmfmStrategy = new PmfmStrategy();
+    if (sex) {
+      let pmfmStrategySex = this.createNewPmfmStrategy(data);
       let pmfmSex = await this.getPmfms("SEX");
-
-      pmfmStrategySex.strategyId = data.id;
       pmfmStrategySex.pmfm = pmfmSex[0];
-      pmfmStrategySex.fractionId = null;
-      pmfmStrategySex.qualitativeValues =undefined;
-      pmfmStrategySex.acquisitionLevel='SAMPLE'
-      pmfmStrategySex.acquisitionNumber=1;
-      pmfmStrategySex.isMandatory = false;
-      pmfmStrategySex.rankOrder = 1;
-
       pmfmStrategies.push(pmfmStrategySex);
     }
-    if(age){
-      let pmfmStrategyAge : PmfmStrategy = new PmfmStrategy();
+    if (age) {
+      let pmfmStrategyAge = this.createNewPmfmStrategy(data);
       let pmfmAge = await this.getPmfms("AGE");
-
-      pmfmStrategyAge.strategyId = data.id;
       pmfmStrategyAge.pmfm = pmfmAge[0];
-      pmfmStrategyAge.fractionId = null;
-      pmfmStrategyAge.qualitativeValues =undefined;
-      pmfmStrategyAge.acquisitionLevel='SAMPLE'
-      pmfmStrategyAge.acquisitionNumber=1;
-      pmfmStrategyAge.isMandatory = false;
-      pmfmStrategyAge.rankOrder = 1;
-
       pmfmStrategies.push(pmfmStrategyAge);
-
     }
 
-    data.pmfmStrategies= pmfmStrategies.map(p => {
+    data.pmfmStrategies = pmfmStrategies.map(p => {
       p.acquisitionLevel = 'SAMPLE';
       p.acquisitionNumber = 1;
       p.isMandatory = false;
-      p.rankOrder =1;
-      return p}).filter(p => p.pmfm || p.fractionId);
+      p.rankOrder = 1;
+      return p
+    }).filter(p => p.pmfm || p.fractionId);
 
-  //--------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------
     console.log(data);
     return data;
+  }
+
+
+
+  createNewPmfmStrategy(data: Strategy): PmfmStrategy {
+    const pmfmStrategy = new PmfmStrategy();
+    pmfmStrategy.strategyId = data.id;
+    // pmfmStrategy.pmfm = null;
+    // pmfmStrategy.fractionId = null;
+    // pmfmStrategy.qualitativeValues = undefined;
+    // pmfmStrategy.acquisitionLevel = 'SAMPLE'
+    // pmfmStrategy.acquisitionNumber = 1;
+    // pmfmStrategy.isMandatory = false;
+    // pmfmStrategy.rankOrder = 1;
+    return pmfmStrategy;
   }
 
 
@@ -298,21 +281,21 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
    * @param label
    * @protected
    */
-   protected async getPmfms(label : string){
-     const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-         entityName: 'Pmfm',
-         levelLabels: [label]
-         // searchJoin: "Parameter" is implied in pod filter
-       },
-       {
-         withTotal: false,
-         withDetails: true
-       });
-     return res.data;
-   }
+  protected async getPmfms(label: string) {
+    const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+      entityName: 'Pmfm',
+      levelLabels: [label]
+      // searchJoin: "Parameter" is implied in pod filter
+    },
+      {
+        withTotal: false,
+        withDetails: true
+      });
+    return res.data;
+  }
 
 
-   protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
 
     // Update back href
     this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${this.programId}?tab=2` : undefined;
@@ -346,7 +329,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   // }
 
   protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'list-outline'});
+    super.addToPageHistory({ ...page, icon: 'list-outline' });
   }
 }
 
