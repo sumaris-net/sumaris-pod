@@ -219,9 +219,11 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     let PmfmStrategiesFractions = this.simpleStrategyForm.PmfmStrategiesFractionForm.value;
 
+    console.log(PmfmStrategiesFractions);
+
     for (let i = 0; i < PmfmStrategiesFractions.length; i++) {
       let PmfmStrategiesFraction = this.createNewPmfmStrategy(data);
-      PmfmStrategiesFraction.fractionId = PmfmStrategiesFractions[i].fractionId ? PmfmStrategiesFractions[i].fractionId : PmfmStrategiesFractions[i].id;
+      PmfmStrategiesFraction.fractionId = PmfmStrategiesFractions[i].id;
       pmfmStrategies.push(PmfmStrategiesFraction);
     }
 
