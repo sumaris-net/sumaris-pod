@@ -291,31 +291,31 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     // value.dateTime => initiaized
 
     // samples = empty array
-    let sample1 = new Sample();
-    let taxon = new TaxonNameRef();
-    taxon.__typename = "TaxonNameVO";
-    taxon.label = "NEP";
-    taxon.name = "Nephrops norvegicus";
-    taxon.statusId=1;
-    taxon.id=1043;
-    taxon.referenceTaxonId=1043;
-
-    let taxon2 = new TaxonNameRef();
-    taxon2.__typename = "TaxonNameVO";
-    taxon2.name = "Dipturus batis";
-    taxon2.statusId=1;
-    taxon2.id=17906;
-    taxon2.referenceTaxonId=17906;
-
-
-    sample1.taxonName = taxon;
-    sample1.rankOrder=1;
-    value.samples.push(sample1)
-
-    value.comments = "Test PYC";
-    value.rankOrder=1;
-
-    value.measurementValues = value.measurementValues || {} ;
+    // let sample1 = new Sample();
+    // let taxon = new TaxonNameRef();
+    // taxon.__typename = "TaxonNameVO";
+    // taxon.label = "NEP";
+    // taxon.name = "Nephrops norvegicus";
+    // taxon.statusId=1;
+    // taxon.id=1043;
+    // taxon.referenceTaxonId=1043;
+    //
+    // let taxon2 = new TaxonNameRef();
+    // taxon2.__typename = "TaxonNameVO";
+    // taxon2.name = "Dipturus batis";
+    // taxon2.statusId=1;
+    // taxon2.id=17906;
+    // taxon2.referenceTaxonId=17906;
+    //
+    //
+    // sample1.taxonName = taxon;
+    // sample1.rankOrder=1;
+    // value.samples.push(sample1)
+    //
+    // value.comments = "Test PYC";
+    // value.rankOrder=1;
+    //
+    // value.measurementValues = value.measurementValues || {} ;
     // MeasurementValuesUtils.normalizeValuesToForm(value.measurementValues as MeasurementModelValues, pmfms, {
     //   // Keep extra pmfm values (not need to remove, when no validator used)
     //   keepSourceObject: true,
