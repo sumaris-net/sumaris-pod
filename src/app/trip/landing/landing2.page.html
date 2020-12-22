@@ -5,6 +5,10 @@
 
 <ion-content>
 
+  <ion-item >
+    <ion-label class="ion-float-end" translate>WIP - LANDING2 page.html</ion-label>
+  </ion-item>
+
   <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
@@ -30,9 +34,9 @@
                                [program]="programSubject|async"
                                [showError]="false"
                                [showLocation]="true"
-                               [debug]="debug"
-                               (onSubmit)="save($event)">
-            </app-landing2-form>
+                              [debug]="debug"
+                              (onSubmit)="save($event)">
+            </app-landing-form2>
           </ion-col>
 
           <ion-col class="ion-no-padding" size="12" size-xl="3">
@@ -78,37 +82,6 @@
 
       </ion-grid>
     </mat-tab>
-
-    <!-- TAB: samples => A mettre à la suite sans le système d'onglets
-    <mat-tab label="{{'LANDING.TAB_SAMPLES'|translate}}" >
-      <ng-template mat-tab-label>
-        <mat-icon>center_focus_strong</mat-icon>
-        <ion-label translate>LANDING.TAB_SAMPLES</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
-      </ng-template>
-
-      <div class="ion-no-padding">
-
-        error
-        <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
-        </ion-item>
-
-        <app-samples-table #samplesTable
-                           [program]="programSubject|async"
-                           [showLabelColumn]="true"
-                           [showDateTimeColumn]="false"
-                           [showTaxonNameColumn]="false"
-                           [showTaxonGroupColumn]="true"
-                           [defaultSampleDate]="data?.dateTime"
-                           [usageMode]="usageMode"
-                           [debug]="debug"></app-samples-table>
-
-
-
-      </div>
-    </mat-tab> -->
 
   </mat-tab-group>
 

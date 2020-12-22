@@ -35,7 +35,7 @@ import {Samples2Table} from "../sample/samples2.table";
     {
       provide: AppEditorOptions,
       useValue: {
-        pathIdAttribute: 'landingId'
+        pathIdAttribute: 'landing2Id'
       }
     }
   ]
