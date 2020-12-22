@@ -16,10 +16,10 @@ import {SortDirection} from "@angular/material/sort";
 import {PlatformService} from "../../core/services/platform.service";
 import {FilterFn} from "../../shared/services/entity-service.class";
 
-export class ReferentialFilter {
+export class ReferentialFilter<ID = number> {
   entityName?: string;
 
-  id?: number;
+  id?: ID;
   label?: string;
   name?: string;
 

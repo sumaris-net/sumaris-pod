@@ -56,6 +56,7 @@ export * from './src/app/shared/hotkeys/hotkeys.service';
 export * from './src/app/shared/hotkeys/dialog/hotkeys-dialog.component';
 export * from './src/app/shared/graph/colors.utils';
 export * from './src/app/shared/gesture/gesture-config';
+export * from './src/app/shared/validator/validators';
 
 // Shared test
 export * from './src/app/shared/shared.testing.module';
@@ -98,6 +99,7 @@ export * from './src/app/core/services/validator/base.validator.class';
 // Core components
 export * from './src/app/core/form/form-buttons-bar.component';
 export * from './src/app/core/form/form.class';
+export * from './src/app/core/form/form.utils';
 export * from './src/app/core/table/table.class';
 export * from './src/app/core/table/memory-table.class';
 export * from './src/app/core/table/entities-table-datasource.class';
@@ -111,4 +113,3 @@ export * from './src/app/core/peer/select-peer.modal';
 export * from './src/app/social/social.module';
 export * from './src/app/social/services/user-event.service';
 export * from './src/app/social/list/user-events.table';
-
