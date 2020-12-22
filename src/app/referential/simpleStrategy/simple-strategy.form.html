@@ -220,6 +220,19 @@
         Name is required.
       </div>
     </ion-item> -->
+    <!-- <ion-item *ngIf="form.controls.pmfmStrategies.invalid && (form.touched)" lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item> -->
+    <ion-row>
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+      </ion-col>
+      <ion-col>
+        <mat-error *ngIf="form.touched && form.get('pmfmStrategies').hasError('minLength')">
+          {{'PROGRAM.STRATEGY.ERROR.MIN_LENGTH' | translate: form.get('pmfmStrategies').errors.minLength }}
+        </mat-error>
+      </ion-col>
+    </ion-row>
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end" translate>PROGRAM.STRATEGY.WEIGHT</ion-label>

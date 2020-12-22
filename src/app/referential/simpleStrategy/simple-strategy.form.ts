@@ -580,10 +580,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   requiredPmfmMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 2;
     return (array: FormArray): ValidationErrors | null => {
-      const values = array.value.flat();
-      console.log(values);
+      const values = array.value.flat().filter(pmfm => pmfm !== false);
       if (!values || values.length < minLength) {
-        return {required: true};
+        return {minLength: {minLength: minLength}};
       }
       return null;
     };

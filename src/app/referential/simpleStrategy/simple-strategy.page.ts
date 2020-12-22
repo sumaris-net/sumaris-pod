@@ -163,6 +163,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     data.name = data.label || data.name;
 
+    data.analyticReference = data.analyticReference && data.analyticReference.label ? data.analyticReference.label : data.analyticReference;
+
     // FIXME : how to load referenceTaxonId previously ??
     data.taxonNames[0].strategyId = data.taxonNames[0].strategyId || 30;
     data.taxonNames[0].taxonName.referenceTaxonId = 1006;
