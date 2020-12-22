@@ -85,6 +85,50 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
     super.ngOnInit();
   }
 
+  /* TODO
+    effortToString(data: Strategy, quarter) {
+    // APPLIED_PERIODS
+    // get model appliedPeriods which are stored in first applied strategy
+    const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
+    const appliedStrategyId = data.appliedStrategies.length && data.appliedStrategies[0].strategyId || undefined;
+
+    console.log("appliedPeriods")
+    console.log(appliedPeriods)
+
+    let startDateMonth = null;
+    let startDate = null;
+    let endDate = null;
+    if (quarter === 1) {
+      startDateMonth = 1;
+      startDate = "2020-01-01";
+      endDate = "2020-03-31";
+    }else if (quarter === 2) {
+      startDateMonth = 4;
+      startDate = "2020-03-31";
+      endDate = "2020-06-29";
+    }else if (quarter === 3) {
+      startDateMonth = 7;
+      startDate = "2020-06-29";
+      endDate = "2020-09-30";
+    }else if (quarter === 4) {
+      startDateMonth = 10;
+      startDate = "2020-10-01";
+      endDate = "2020-12-31";
+    }
+
+    const returnQuarter = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === startDateMonth) || {
+      appliedStrategyId: appliedStrategyId,
+      startDate: moment(startDate),
+      endDate: moment(endDate),
+      acquisitionNumber: undefined
+    };
+    //console.log("acquisitionNumber");
+    //console.log(returnQuarter);
+    //console.log(returnQuarter.acquisitionNumber);
+    return returnQuarter.acquisitionNumber;
+  }
+   */
+
   effortToString(data: Strategy, quarter) {
     let efforts;
     let appliedStrategies = data.appliedStrategies;
@@ -155,7 +199,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
     if(maturityPmfmStrategy.length > 0) {
       pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.MATURITY_TABLE'));
     }
-    console.log(pmfmStrategies);
+    //console.log(pmfmStrategies);
     return pmfmStrategies.join(', ');
   }
 
