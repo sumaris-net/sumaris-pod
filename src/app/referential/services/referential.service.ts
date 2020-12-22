@@ -16,10 +16,10 @@ import {EntitiesService, LoadResult} from "../../shared/services/entity-service.
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {EnvironmentService} from "../../../environments/environment.class";
 
-export class ReferentialFilter {
+export class ReferentialFilter<ID = number> {
   entityName: string;
 
-  id?: number;
+  id?: ID;
   label?: string;
   name?: string;
 
