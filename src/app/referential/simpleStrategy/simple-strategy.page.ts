@@ -190,9 +190,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
 
-    const pmfmStrategieAgeSex = this.simpleStrategyForm.pmfmStrategiesAgeSexForm.value;
-    const sex = pmfmStrategieAgeSex[0];
-    const age = pmfmStrategieAgeSex[1];
+    const pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
+    const sex = pmfmStrategie[0];
+    const age = pmfmStrategie[1];
 
     // i == 0 age
     // i == 1 sex
@@ -213,7 +213,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
 
 
-    const pmfmStrategiesFractions = data.pmfmStrategiesFraction;
+    const pmfmStrategiesFractions = data.pmfmStrategiesFraction.filter(p => p !== null);
 
     // Pièces calcifiées
     for (let i = 0; i < pmfmStrategiesFractions.length; i++) {

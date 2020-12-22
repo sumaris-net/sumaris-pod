@@ -63,9 +63,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
   pmfmStrategiesFocusIndex = -1;
 
-  pmfmStrategiesAgeSexHelper: FormArrayHelper<PmfmStrategy>;
-  pmfmStrategiesAgeSexFocusIndex = -1;
-
   @Input() program: Program;
   @Input() showError = true;
   @Input() entityName;
@@ -73,7 +70,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
-  public sampleRowMask = ['2', '0', '2', '0', '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+  public sampleRowMask = ['2', '0', '2', '0', '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
 
 
   get appliedStrategiesForm(): FormArray {
@@ -98,10 +95,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   get pmfmStrategiesFractionForm(): FormArray {
     return this.form.controls.pmfmStrategiesFraction as FormArray;
-  }
-
-  get pmfmStrategiesAgeSexForm(): FormArray {
-    return this.form.controls.pmfmStrategiesAgeSex as FormArray;
   }
 
   @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
@@ -130,6 +123,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     if (this.weightPmfmStrategiesTable.dirty) {await this.weightPmfmStrategiesTable.save();}
     if (this.sizePmfmStrategiesTable.dirty) {await this.sizePmfmStrategiesTable.save();}
     if (this.maturityPmfmStrategiesTable.dirty) {await this.maturityPmfmStrategiesTable.save();}
+    pmfms.push(this.pmfmStrategiesHelper.at(0).value);
+    pmfms.push(this.pmfmStrategiesHelper.at(1).value);
     pmfms.push(this.weightPmfmStrategiesTable.value.filter(p => p.pmfm));
     pmfms.push(this.sizePmfmStrategiesTable.value.filter(p => p.pmfm));
     pmfms.push(this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm));
@@ -219,7 +214,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.initAppliedStrategiesHelper();
     this.initAppliedPeriodHelper();
     this.initPmfmStrategiesFractionHelper();
-    this.initPmfmStrategiesAgeSexHelper();
 
 
     // this.form.reset()
@@ -357,17 +351,18 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.form.get('analyticReference').setValue(analyticReferenceToSet);
 
     
-    const pmfmStrategiesAgeSexControl = this.pmfmStrategiesAgeSexForm;
-
-    const age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "AGE");
-    const sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "SEX");
-
-    pmfmStrategiesAgeSexControl.patchValue([sex.length > 0 ? true : false, age.length > 0 ? true : false]);
-
-
-
     const pmfmStrategiesControl = this.pmfmStrategiesForm;
-    const pmfmStrategies: any[] = [];
+    let pmfmStrategies: any[];
+
+
+    // If new
+    if (!data.id) {
+      pmfmStrategies = [null, null];
+    } else {
+      const age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "AGE");
+      const sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "SEX");
+      pmfmStrategies = [sex.length > 0 ? true : false, age.length > 0 ? true : false];
+    }
 
 
     const weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
@@ -390,6 +385,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
     pmfmStrategiesControl.patchValue(pmfmStrategies);
 
+
+    // TODO
     this.referentialRefService.loadAll(0, 0, null, null,
       {
         entityName: 'Fraction'
@@ -461,27 +458,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   // pmfmStrategies Helper -----------------------------------------------------------------------------------------------
-  protected initPmfmStrategiesAgeSexHelper() {
-    // appliedStrategies => appliedStrategies.location ?
-    this.pmfmStrategiesAgeSexHelper = new FormArrayHelper<PmfmStrategy>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmStrategiesAgeSex'),
-      (pmfmStrategy) => this.formBuilder.control(pmfmStrategy || null),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
-      {
-        allowEmptyArray: false,
-        validators: [
-          SharedFormArrayValidators.requiredArrayMinLength(2)
-        ]
-      }
-    );
-    // Create at least one fishing Area
-    if (this.pmfmStrategiesAgeSexHelper.size() === 0) {
-      this.pmfmStrategiesAgeSexHelper.resize(2);
-    }
-  }
-
-  // pmfmStrategies Helper -----------------------------------------------------------------------------------------------
   protected initPmfmStrategiesHelper() {
     // appliedStrategies => appliedStrategies.location ?
     this.pmfmStrategiesHelper = new FormArrayHelper<PmfmStrategy>(
@@ -498,7 +474,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     );
     // Create at least one fishing Area
     if (this.pmfmStrategiesHelper.size() === 0) {
-      this.pmfmStrategiesHelper.resize(3);
+      this.pmfmStrategiesHelper.resize(5);
     }
   }
 
@@ -578,7 +554,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   protected initPmfmStrategiesFractionHelper() {
     this.PmfmStrategiesFractionHelper = new FormArrayHelper<PmfmStrategy>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmStrategiesFraction'),
-      (pmfmStrategiesFraction) => this.formBuilder.control(pmfmStrategiesFraction || null, [Validators.required, SharedValidators.entity]),
+      (pmfmStrategiesFraction) => this.formBuilder.control(pmfmStrategiesFraction || null, [SharedValidators.entity]),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
@@ -605,6 +581,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     minLength = minLength || 2;
     return (array: FormArray): ValidationErrors | null => {
       const values = array.value.flat();
+      console.log(values);
       if (!values || values.length < minLength) {
         return {required: true};
       }
