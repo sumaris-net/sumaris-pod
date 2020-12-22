@@ -12,6 +12,7 @@ import {filter, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {Pmfm} from "../../referential/services/model/pmfm.model";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
@@ -286,6 +287,18 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         })) || [];
+
+      // FIXME CLT Bug on program pmfms strategies fetch
+      if (!pmfms.length && this._program == 'PARAM-BIO')
+      {
+        let pmfmStrategyMock : PmfmStrategy = new PmfmStrategy();
+        pmfmStrategyMock.__typename= 'PmfmStrategyVO';
+        pmfmStrategyMock.id= 359;
+        pmfmStrategyMock.pmfmId= 359;
+        pmfmStrategyMock.label= 'SAMPLE_ROW_CODE';
+        pmfmStrategyMock.type= 'string';
+        pmfms.push(pmfmStrategyMock);
+      }
 
       if (!pmfms.length && this.debug) {
         console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
