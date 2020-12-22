@@ -672,6 +672,18 @@
         "COMMENTS": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement"
       }
+    },
+    "SAMPLE2": {
+      "TABLE": {
+        "SAMPLE_CODE": "Code prélèvement",
+        "MORSE_CODE": "Code Morse",
+        "COMMENT" : "Commentaire",
+        "WEIGHT": "Poids. unité (g)",
+        "TOTAL_LENGTH_CM" : "Longueur totale (LT). unité (cm)",
+        "TOTAL_LENGTH_MM" : "Longueur totale (LT). unité (mm)",
+        "INDEX_GREASE_RATE": "Indice de taux de graisse"
+
+      }
     }
   },
   "SALE": {

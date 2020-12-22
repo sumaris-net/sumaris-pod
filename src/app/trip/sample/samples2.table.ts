@@ -30,9 +30,8 @@ export interface SampleFilter {
   operationId?: number;
   landingId?: number;
 }
-
-export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
-export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
+export const SAMPLE2_RESERVED_START_COLUMNS: string[] = ['sampleCode','morseCode','comment','weight','totalLenghtCm','totalLenghtMm','indexGreaseRate'];
+export const SAMPLE2_RESERVED_END_COLUMNS: string[] = [];
 
 
 @Component({
@@ -62,10 +61,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
-  @Input() showCommentsColumn = true;
-  @Input() showDateTimeColumn = true;
+ // @Input() showCommentsColumn = true;
+ // @Input() showDateTimeColumn = true;
   @Input() showFabButton = false;
-
+/*
   @Input()
   set showTaxonGroupColumn(value: boolean) {
     this.setShowColumn('taxonGroup', value);
@@ -78,11 +77,11 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   @Input()
   set showTaxonNameColumn(value: boolean) {
     this.setShowColumn('taxonName', value);
-  }
+  }*/
 
-  get showTaxonNameColumn(): boolean {
+  /*get showTaxonNameColumn(): boolean {
     return this.getShowColumn('taxonName');
-  }
+  }*/
 
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
@@ -102,14 +101,14 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       {
         prependNewElements: false,
         suppressErrors: environment.production,
-        reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
-        reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS
+        reservedStartColumns: SAMPLE2_RESERVED_START_COLUMNS,
+        reservedEndColumns: SAMPLE2_RESERVED_END_COLUMNS
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
-    this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
+    this.i18nColumnPrefix = 'TRIP.SAMPLE2.TABLE.';
     this.inlineEdition = !this.mobile;
 
     // Set default value
@@ -132,19 +131,19 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     super.ngOnInit();
 
     this.setShowColumn('label', this.showLabelColumn);
-    this.setShowColumn('sampleDate', this.showDateTimeColumn);
-    this.setShowColumn('comments', this.showCommentsColumn);
+   // this.setShowColumn('sampleDate', this.showDateTimeColumn);
+  //  this.setShowColumn('comments', this.showCommentsColumn);
 
     // Taxon group combo
-    this.registerAutocompleteField('taxonGroup', {
+   /* this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
-    });
+    });*/
 
     // Taxon name combo
-    this.registerAutocompleteField('taxonName', {
+    /*this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
-    });
+  //  });
   }
 
   async getMaxRankOrder(): Promise<number> {
@@ -162,7 +161,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       });
   }
 
-  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+  /*protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
     const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
@@ -174,7 +173,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });
-  }
+  }*/
 
   protected async onNewEntity(data: Sample): Promise<void> {
     console.debug("[sample-table] Initializing new row data...");
@@ -255,8 +254,8 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         value: sample,
         isNew,
         showLabel: this.showLabelColumn,
-        showTaxonGroup: this.showTaxonGroupColumn,
-        showTaxonName: this.showTaxonNameColumn,
+      //  showTaxonGroup: this.showTaxonGroupColumn,
+     //   showTaxonName: this.showTaxonNameColumn,
         onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()})
       },
       keyboardClose: true

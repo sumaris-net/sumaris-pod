@@ -60,71 +60,55 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- label Column -->
-  <ng-container matColumnDef="label">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.SAMPLE.TABLE.LABEL</ion-label>
+
+
+  <!-- sample code  column -->
+<ng-container matColumnDef="sampleCode">
+  <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+    <span translate>TRIP.SAMPLE2.TABLE.SAMPLE_CODE</span>
+  </mat-header-cell>
+  <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+    <mat-form-field floatLabel="never">
+      <input matInput [formControl]="row.validator.controls.label"
+             [placeholder]="'TRIP.SAMPLE2.TABLE.SAMPLE_CODE'|translate"
+             [readonly]="!row.editing">
+    </mat-form-field>
+  </mat-cell>
+</ng-container>
+
+  <!-- Morse code column-->
+  <ng-container matColumnDef="morseCode">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>TRIP.SAMPLE2.TABLE.MORSE_CODE</span>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
       <mat-form-field floatLabel="never">
-        <input matInput autocomplete="off"
-               [formControl]="row.validator.controls['label']"
-               [placeholder]="'TRIP.SAMPLE.TABLE.LABEL_PLACEHOLDER'|translate"
-               (click)="$event.target.select()">
-        <mat-error *ngIf="row.validator.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
-        </mat-error>
-        <!-- Need by auction control (label as an additional validator) -->
-        <mat-error *ngIf="row.validator.controls.label.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN
-        </mat-error>
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.MORSE_CODE'|translate"
+               [readonly]="!row.editing">
       </mat-form-field>
     </mat-cell>
   </ng-container>
 
-  <!-- Taxon group  -->
-  <ng-container matColumnDef="taxonGroup">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_GROUP</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [appAutofocus]="row.id == -1 && row.editing"
-                              [formControl]="row.validator.controls.taxonGroup"
-                              [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
-                              [required]="showTaxonGroupColumn" [readonly]="!row.editing"
-                              [config]="autocompleteFields.taxonGroup">
-      </mat-autocomplete-field>
-    </mat-cell>
-  </ng-container>
 
-  <!-- Taxon name -->
-  <ng-container matColumnDef="taxonName">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_NAME</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [appAutofocus]="!showTaxonGroupColumn && row.id == -1 && row.editing"
-                              [formControl]="row.validator.controls.taxonName"
-                              [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
-                              [required]="true" [readonly]="!row.editing"
-                              [config]="autocompleteFields.taxonName">
-      </mat-autocomplete-field>
-    </mat-cell>
-  </ng-container>
+  <!-- Comment column -->
+ <ng-container matColumnDef="comment">
+   <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+     <span translate>TRIP.SAMPLE2.TABLE.COMMENT</span>
+   </mat-header-cell>
+   <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+     <mat-form-field floatLabel="never">
+       <input matInput [formControl]="row.validator.controls.comments"
+              [placeholder]="'TRIP.SAMPLE2.TABLE.COMMENT'|translate"
+              [readonly]="!row.editing">
+     </mat-form-field>
+   </mat-cell>
+ </ng-container>
 
-  <!-- Date -->
-  <ng-container matColumnDef="sampleDate">
-    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <ion-label translate>TRIP.SAMPLE.TABLE.SAMPLE_DATE</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="mat-cell-date-time">
-      <mat-date-time-field floatLabel="never" [formControl]="row.validator.controls.sampleDate"
-                           [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-                           [compact]="true" [readonly]="!row.editing" [required]="true"></mat-date-time-field>
-    </mat-cell>
-  </ng-container>
 
-  <!-- Pmfms columns -->
+
+ <!-- Set columns dynamically for Pmfms-->
+  <!-- Pmfms columns
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
       <ion-label>{{getPmfmColumnHeader(pmfm)}}
@@ -138,21 +122,70 @@
         [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
         [compact]="true" floatLabel="never"></app-pmfm-field>
     </mat-cell>
-  </ng-container>
+  </ng-container> -->
 
-  <!-- Comment column -->
-  <ng-container matColumnDef="comments">
+
+ <!-- FIXME  to remove replace with dynamically pmfms -------------------------------------------------------------- -->
+
+  < Weight  column
+  <ng-container matColumnDef="weight">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>REFERENTIAL.COMMENTS</span>
+      <span translate>TRIP.SAMPLE2.TABLE.WEIGHT</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.WEIGHT'|translate"
                [readonly]="!row.editing">
       </mat-form-field>
     </mat-cell>
   </ng-container>
+
+
+  <!-- Total lenght CM column-->
+  <ng-container matColumnDef="totalLenghtCm">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_CM</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_CM'|translate"
+               [readonly]="!row.editing">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Total lenght MM  column-->
+  <ng-container matColumnDef="totalLenghtMm">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_MM</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_MM'|translate"
+               [readonly]="!row.editing">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Index grease rate column-->
+  <ng-container matColumnDef="indexGreaseRate">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>TRIP.SAMPLE2.TABLE.INDEX_GREASE_RATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.INDEX_GREASE_RATE'|translate"
+               [readonly]="!row.editing">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
+
+  <!-- ------------------------------------------------------------------------------------------------------------- -->
+
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
@@ -186,6 +219,7 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
            [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)"></mat-row>

@@ -33,7 +33,7 @@ import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {SharedValidators} from "../../shared/validator/validators";
 
 @Component({
-  selector: 'app-landing-form2',
+  selector: 'app-landing2-form',
   templateUrl: './landing2.form.html',
   styleUrls: ['./landing2.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
