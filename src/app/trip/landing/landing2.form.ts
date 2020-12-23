@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
 import {
+  EntityUtils,
   FormArrayHelper,
   IReferentialRef,
   isNil,
@@ -30,10 +31,8 @@ import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
-import {SharedValidators} from "../../shared/validator/validators";
-import {Sample} from "../services/model/sample.model";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
-import {MeasurementModelValues} from "../services/model/measurement.model";
+import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 
 @Component({
   selector: 'app-landing2-form',
@@ -115,6 +114,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   get fishingAreasFormArray(): FormArray {
     return this.form.controls.fishingAreas as FormArray;
+  }
+  taxonNameHelper: FormArrayHelper<TaxonNameStrategy>;
+  get taxonNamesForm(): FormArray {
+    return this.form.controls.taxonNames as FormArray;
   }
 
   constructor(
@@ -272,6 +275,25 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       mobile: this.settings.mobile
     });
 
+    this.initTaxonNameHelper();
+  }
+
+  // TaxonName Helper -----------------------------------------------------------------------------------------------
+  protected initTaxonNameHelper() {
+    // appliedStrategies => appliedStrategies.location ?
+    this.taxonNameHelper = new FormArrayHelper<TaxonNameStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'taxonNames'),
+      (ts) => this.validatorService.getTaxonNameStrategyControl(ts),
+      (t1, t2) => EntityUtils.equals(t1.taxonName, t2.taxonName, 'name'),
+      value => isNil(value) && isNil(value.taxonName),
+      {
+        allowEmptyArray: false
+      }
+    );
+    // Create at least one fishing Area
+    if (this.taxonNameHelper.size() === 0) {
+      this.taxonNameHelper.resize(1);
+    }
   }
 
   // get value(): any {
@@ -331,8 +353,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     // Resize observers array
     if (this._showObservers) {
       this.observersHelper.resize(Math.max(1, value.observers.length));
-    }
-    else {
+    } else {
       this.observersHelper.removeAllEmpty();
     }
 
@@ -340,9 +361,20 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     if (value.program && value.program.label) {
       this.program = value.program.label;
     }
+//this.taxonNamesForm.value = value.samples[0].taxonName;
+    const taxonNameControl = this.taxonNamesForm;
+    if (value && value.samples[0] && value.samples[0].taxonName) {
+      const taxonName: TaxonNameRef = value.samples[0].taxonName as TaxonNameRef;
+      let taxonNameseStrategies: TaxonNameStrategy[] = [];
+      let taxonNameStrategy = new TaxonNameStrategy();
+      taxonNameStrategy.taxonName = taxonName;
+      taxonNameseStrategies.push(taxonNameStrategy);
+      taxonNameControl.patchValue(taxonNameseStrategies);
+  }
 
     // Send value for form
     super.setValue(value);
+
   }
 
   addObserver() {

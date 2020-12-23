@@ -7,7 +7,7 @@ import {MeasurementsValidatorService} from "./measurement.validator";
 import {Landing} from "../model/landing.model";
 import {DataRootEntityValidatorOptions} from "../../../data/services/validator/root-data-entity.validator";
 import {DataRootVesselEntityValidatorService} from "../../../data/services/validator/root-vessel-entity.validator";
-import {SimpleStrategy} from "../../../referential/services/model/simpleStrategy.model";
+import {TaxonNameStrategy} from "../../../referential/services/model/strategy.model";
 
 export interface Landing2ValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
@@ -83,6 +83,14 @@ export class Landing2ValidatorService<O extends Landing2ValidatorOptions = Landi
 
   getControl(value: any) {
     return this.formBuilder.control(value || null, [Validators.required, SharedValidators.entity]);
+  }
+
+  getTaxonNameStrategyControl(data?: TaxonNameStrategy): FormGroup {
+    return this.formBuilder.group({
+      strategyId: [toNumber(data && data.strategyId, null)],
+      priorityLevel: [data && data.priorityLevel, SharedValidators.integer],
+      taxonName: [data && data.taxonName, Validators.compose([Validators.required, SharedValidators.entity])]
+    });
   }
 
   protected fillDefaultOptions(opts?: O): O {
