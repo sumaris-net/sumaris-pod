@@ -12,8 +12,7 @@ import {AppliedPeriod, AppliedStrategy, Strategy} from "../services/model/strate
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
-
-
+import {strategyDepartmentsToString, appliedStategiesToString, taxonsNameStrategyToString} from "../../referential/services/model/strategy.model";
 
 export declare interface StrategyFilter {
 }
@@ -55,11 +54,11 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
           'fishingArea',
           'targetSpecie',
           'comment',
-          'parametersTitle',
-          't1',
-          't2',
-          't3',
-          't4'])
+          'parametersTitleTable',
+          'quarter_1_table',
+          'quarter_2_table',
+          'quarter_3_table',
+          'quarter_4_table'])
         .concat(RESERVED_END_COLUMNS),
       Strategy,
       memoryDataService,
@@ -86,117 +85,64 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
     super.ngOnInit();
   }
 
-  laboratoriesToString(data: Strategy) {
-    let strategyDepartments = data.strategyDepartments;
-    let laboratories = strategyDepartments.map(strategyDepartment => strategyDepartment.department.name);
-    return laboratories.join(', ');
-  }
-
-  fishingAreasToString(data: Strategy) {
-    let appliedStrategies = data.appliedStrategies;
-    let fishingArea = appliedStrategies.map(appliedStrategy => appliedStrategy.location.name);
-    return fishingArea.join(', ');
-  }
-
-  taxonsNamesToString(data: Strategy) {
-    let taxonNameStrategy = (data.taxonNames || []).find(t => t.taxonName.id);
-    let taxonName;
-    if (taxonNameStrategy) {
-      let taxon = taxonNameStrategy.taxonName;
-      if (taxon) {
-        taxonName = taxon.name;
-      }
-    }
-    return taxonName;
-  }
-
   effortToString(data: Strategy, quarter) {
-    let efforts;
-    let appliedStrategies = data.appliedStrategies;
+    const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
     let quarterEffort = null;
-    if (appliedStrategies)
-    {
-      // We keep the first applied period of the array as linked to fishing area
-      let fishingAreaAppliedStrategyAsObject = appliedStrategies[0];
-      if (fishingAreaAppliedStrategyAsObject)
+    for (let fishingAreaAppliedPeriod of appliedPeriods) {
+      let startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
+      let endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
+      if (startDateMonth >= 0 && endDateMonth < 3 && quarter === 1)
       {
-        // We iterate over applied periods in order to retrieve quarters acquisition numbers
-        let fishingAreaAppliedStrategy = fishingAreaAppliedStrategyAsObject as AppliedStrategy;
-        let fishingAreaAppliedPeriodsAsObject = fishingAreaAppliedStrategy.appliedPeriods;
-        if (fishingAreaAppliedPeriodsAsObject)
-        {
-          let fishingAreaAppliedPeriods = fishingAreaAppliedPeriodsAsObject as AppliedPeriod[];
-          for (let fishingAreaAppliedPeriod of fishingAreaAppliedPeriods) {
-            let startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
-            let endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
-            if (startDateMonth >= 0 && endDateMonth < 3 && quarter === 1)
-            {
-              quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-              return  quarterEffort
-            }
-            if (startDateMonth >= 3 && endDateMonth < 6 && quarter === 2)
-            {
-              quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-              return  quarterEffort
-            }
-            if (startDateMonth >= 6 && endDateMonth < 9 && quarter === 3)
-            {
-              quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-              return  quarterEffort
-            }
-            if (startDateMonth >= 9 && endDateMonth < 12 && quarter === 4)
-            {
-              quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-              return  quarterEffort
-            }
-          }
-        }
+        quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+      }
+      else if (startDateMonth >= 3 && endDateMonth < 6 && quarter === 2)
+      {
+        quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+      }
+      else if (startDateMonth >= 6 && endDateMonth < 9 && quarter === 3)
+      {
+        quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
+      }
+      else if (startDateMonth >= 9 && endDateMonth < 12 && quarter === 4)
+      {
+        quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
       }
     }
     return quarterEffort;
   }
 
   parametersToString(data: Strategy) {
-
-    let weightPmfmStrategy;
-    let sizePmfmStrategy;
-    let sexPmfmStrategy;
-    let maturityPmfmStrategy;
-    let agePmfmStrategy;
-    if(data.pmfmStrategies.length !== 0) {
-      weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
-
-      const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
-      sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
-
-      sexPmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "SEX");
-
-      const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
-      maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
-
-      agePmfmStrategy = (data.pmfmStrategies || []).find(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "AGE");
+    let pmfmStrategies: string[] = [];
+    console.log(data.pmfmStrategies);
+    let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "AGE");
+    //console.log(age);
+    if(age.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.AGE'));
     }
-
-    let parameters = []
-    if (weightPmfmStrategy && weightPmfmStrategy.length !== 0)
-    {
-      parameters.push('Poids')
+    let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "SEX");
+    //console.log(sex);
+    if(sex.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.SEX'));
     }
-    if (sizePmfmStrategy && sizePmfmStrategy.length !== 0)
-    {
-      parameters.push('Taille')
+    let weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
+    //console.log(weightPmfmStrategy);
+    if(weightPmfmStrategy.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.WEIGHT_TABLE'));
     }
-    if (sexPmfmStrategy && sexPmfmStrategy.length !== 0) {
-        parameters.push('Sexe')
+    const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
+    let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
+    //console.log(sizePmfmStrategy);
+    if(sizePmfmStrategy.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.SIZE_TABLE'));
     }
-    if (maturityPmfmStrategy && maturityPmfmStrategy.length !== 0)
-    {
-      parameters.push('Maturité')
+    const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
+    let maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
+    //console.log(maturityPmfmStrategy);
+    if(maturityPmfmStrategy.length > 0) {
+      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.MATURITY_TABLE'));
     }
-    if (agePmfmStrategy && agePmfmStrategy.length !== 0) {
-      parameters.push('Âge')
-    }
-    return parameters.join(', ')
+    //console.log(pmfmStrategies);
+    return pmfmStrategies.join(', ');
   }
 
   setValue(value: Strategy[]) {
@@ -204,11 +150,13 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   }
 
   referentialToString = referentialToString;
+  strategyDepartmentsToString = strategyDepartmentsToString;
+  appliedStategiesToString = appliedStategiesToString;
+  taxonsNameStrategyToString = taxonsNameStrategyToString;
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 
 }
 
