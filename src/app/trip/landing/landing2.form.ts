@@ -243,9 +243,11 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       service: this.referentialRefService,
       attributes: fishingAreaAttributes,
       // Increase default column size, for 'label'
-      columnSizes: sampleRowCodeAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      columnSizes: fishingAreaAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
       filter: <ReferentialRefFilter>{
-        entityName: 'Program'
+        entityName: 'Location',
+        statusIds: [StatusIds.ENABLE],
+        levelId: LocationLevelIds.PORT
       },
       mobile: this.mobile
     });
