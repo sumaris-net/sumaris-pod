@@ -776,12 +776,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.onEditRow(event, row);
   }
 
-
-  async openSelectColumnsModal(event?: UIEvent): Promise<any> {
+  getCurrentColumns(): { visible: boolean; name: string; label: string }[] {
     const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
     const hiddenColumns = this.columns.slice(fixedColumns.length)
       .filter(name => this.displayedColumns.indexOf(name) === -1);
-    const columns = this.displayedColumns.slice(fixedColumns.length)
+    return this.displayedColumns.slice(fixedColumns.length)
       .concat(hiddenColumns)
       .filter(name => name !== "actions")
       .filter(name => !this.excludesColumns.includes(name))
@@ -792,6 +791,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           visible: this.displayedColumns.indexOf(name) !== -1
         };
       });
+  }
+
+  async openSelectColumnsModal(event?: UIEvent): Promise<any> {
+
+    const columns = this.getCurrentColumns();
 
     const modal = await this.modalCtrl.create({
       component: TableSelectColumnsComponent,

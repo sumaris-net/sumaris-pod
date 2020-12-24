@@ -89,7 +89,6 @@ export * from './src/app/core/services/config.service';
 export {ConfigOptions} from './src/app/core/services/config/core.config';
 export * from './src/app/core/services/local-settings.service';
 export * from './src/app/core/services/account.service';
-export * from './src/app/core/services/auth-guard.service';
 export * from './src/app/core/services/crypto.service';
 export * from './src/app/core/services/base58';
 export * from './src/app/core/services/base.data-service.class';
