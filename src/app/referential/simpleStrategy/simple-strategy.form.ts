@@ -120,15 +120,33 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   async setPmfmStrategies() {
     const pmfms = [];
+    
+    // FIXME : Double sauvegarde obligatoire pour avoir les valeurs
     await this.weightPmfmStrategiesTable.save();
     await this.sizePmfmStrategiesTable.save();
     await this.maturityPmfmStrategiesTable.save();
+    await this.weightPmfmStrategiesTable.save();
+    await this.sizePmfmStrategiesTable.save();
+    await this.maturityPmfmStrategiesTable.save();
+
+    this.weightPmfmStrategiesTable.selection.clear();
+    this.sizePmfmStrategiesTable.selection.clear();
+    this.maturityPmfmStrategiesTable.selection.clear();
+
+    const weights = this.weightPmfmStrategiesTable.value.filter(p => p.pmfm);
+    const sizes = this.sizePmfmStrategiesTable.value.filter(p => p.pmfm);
+    const maturities = this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm);
+
     pmfms.push(this.pmfmStrategiesHelper.at(0).value);
     pmfms.push(this.pmfmStrategiesHelper.at(1).value);
-    pmfms.push(this.weightPmfmStrategiesTable.value.filter(p => p.pmfm));
-    pmfms.push(this.sizePmfmStrategiesTable.value.filter(p => p.pmfm));
-    pmfms.push(this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm));
-    console.log(pmfms);
+    pmfms.push(weights);
+    pmfms.push(sizes);
+    pmfms.push(maturities);
+
+    if(weights.length <= 0) {this.weightPmfmStrategiesTable.value = [new PmfmStrategy()];}
+    if(sizes.length <= 0) {this.sizePmfmStrategiesTable.value = [new PmfmStrategy()];}
+    if(maturities.length <= 0) {this.maturityPmfmStrategiesTable.value = [new PmfmStrategy()];}
+
     this.form.controls.pmfmStrategies.patchValue(pmfms);
     this.markAsDirty();
   }

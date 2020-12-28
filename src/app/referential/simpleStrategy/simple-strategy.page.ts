@@ -204,9 +204,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     let pmfmStrategies: PmfmStrategy[] = [];
 
 
-    if (this.simpleStrategyForm.weightPmfmStrategiesTable.dirty) {await this.simpleStrategyForm.weightPmfmStrategiesTable.save();}
-    if (this.simpleStrategyForm.sizePmfmStrategiesTable.dirty) {await this.simpleStrategyForm.sizePmfmStrategiesTable.save();}
-    if (this.simpleStrategyForm.maturityPmfmStrategiesTable.dirty) {await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();}
+    await this.simpleStrategyForm.weightPmfmStrategiesTable.save();
+    await this.simpleStrategyForm.sizePmfmStrategiesTable.save();
+    await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();
 
     pmfmStrategies = pmfmStrategies
     .concat(this.simpleStrategyForm.weightPmfmStrategiesTable.value.filter(p => p.pmfm))

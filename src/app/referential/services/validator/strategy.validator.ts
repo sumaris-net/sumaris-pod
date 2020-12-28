@@ -1,10 +1,10 @@
-import {Injectable} from "@angular/core";
-import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonGroupStrategy, TaxonNameStrategy} from "../model/strategy.model";
-import {PmfmStrategyValidatorService} from "./pmfm-strategy.validator";
-import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
-import {toNumber} from "../../../shared/functions";
-import {ReferentialValidatorService} from "./referential.validator";
+import { Injectable } from "@angular/core";
+import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { toNumber } from "../../../shared/functions";
+import { SharedValidators } from "../../../shared/validator/validators";
+import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonGroupStrategy, TaxonNameStrategy } from "../model/strategy.model";
+import { PmfmStrategyValidatorService } from "./pmfm-strategy.validator";
+import { ReferentialValidatorService } from "./referential.validator";
 
 @Injectable({providedIn: 'root'})
 export class StrategyValidatorService extends ReferentialValidatorService<Strategy> {
@@ -79,8 +79,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
 
   getStrategyDepartmentsFormArray(data?: Strategy) {
     return this.formBuilder.array(
-      (data && data.strategyDepartments || []).map(sd => this.getStrategyDepartmentsControl(sd)),
-      SharedFormArrayValidators.requiredArrayMinLength(3)
+      (data && data.strategyDepartments || []).map(sd => this.getStrategyDepartmentsControl(sd))
     );
   }
 
