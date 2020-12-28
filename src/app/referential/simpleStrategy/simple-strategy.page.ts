@@ -188,22 +188,15 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       appliedStrategies[0].appliedPeriods = appliedPeriods.filter(period => isNotNil(period.acquisitionNumber));
     }
     data.appliedStrategies = appliedStrategies;
-    // delete data.appliedPeriods;
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
-
     const pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
     const sex = pmfmStrategie[0];
     const age = pmfmStrategie[1];
 
-    // i == 0 age
-    // i == 1 sex
-
-
-    // const pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
     let pmfmStrategies: PmfmStrategy[] = [];
 
-
+    // Save before get PMFM values
     await this.simpleStrategyForm.weightPmfmStrategiesTable.save();
     await this.simpleStrategyForm.sizePmfmStrategiesTable.save();
     await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();
@@ -212,8 +205,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     .concat(this.simpleStrategyForm.weightPmfmStrategiesTable.value.filter(p => p.pmfm))
     .concat(this.simpleStrategyForm.sizePmfmStrategiesTable.value.filter(p => p.pmfm))
     .concat(this.simpleStrategyForm.maturityPmfmStrategiesTable.value.filter(p => p.pmfm))
-
-
 
     const pmfmStrategiesFractions = data.pmfmStrategiesFraction.filter(p => p !== null);
 
@@ -238,12 +229,13 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       pmfmStrategies.push(pmfmStrategyAge);
     }
 
-    data.pmfmStrategies = pmfmStrategies.map(p => {
-      p.acquisitionLevel = 'SAMPLE';
-      p.acquisitionNumber = 1;
-      p.isMandatory = false;
-      p.rankOrder = 1;
-      return p
+    // Add all mandatory fields
+    data.pmfmStrategies = pmfmStrategies.map(pmfm => {
+      pmfm.acquisitionLevel = 'SAMPLE';
+      pmfm.acquisitionNumber = 1;
+      pmfm.isMandatory = false;
+      pmfm.rankOrder = 1;
+      return pmfm
     });
 
 

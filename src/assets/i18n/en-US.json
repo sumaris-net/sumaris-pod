@@ -1149,6 +1149,7 @@
         "LOAD_STRATEGY_ERROR": "Error while loading stategy",
         "SAVE_STRATEGY_ERROR": "Error while saving stategy",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
+        "PARAMETERS.MATURITY": "Erreur saisie Age",
         "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}"
       },
       "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
@@ -1165,7 +1166,7 @@
       "WEIGHT": "Weight : ",
       "SIZE": "Size : ",
       "MATURITY": "Maturity : ",
-      "CALCIFIED_TYPE": "Type of calcified part " ,
+      "CALCIFIED_TYPE": "Type of calcified part : " ,
       "SIZE_INCREMENT": "Size increment",
       "EFFORT": "Effort : ",
       "QUARTER_1": "Quarter 1" ,
