@@ -120,14 +120,15 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   async setPmfmStrategies() {
     const pmfms = [];
-    if (this.weightPmfmStrategiesTable.dirty) {await this.weightPmfmStrategiesTable.save();}
-    if (this.sizePmfmStrategiesTable.dirty) {await this.sizePmfmStrategiesTable.save();}
-    if (this.maturityPmfmStrategiesTable.dirty) {await this.maturityPmfmStrategiesTable.save();}
+    await this.weightPmfmStrategiesTable.save();
+    await this.sizePmfmStrategiesTable.save();
+    await this.maturityPmfmStrategiesTable.save();
     pmfms.push(this.pmfmStrategiesHelper.at(0).value);
     pmfms.push(this.pmfmStrategiesHelper.at(1).value);
     pmfms.push(this.weightPmfmStrategiesTable.value.filter(p => p.pmfm));
     pmfms.push(this.sizePmfmStrategiesTable.value.filter(p => p.pmfm));
     pmfms.push(this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm));
+    console.log(pmfms);
     this.form.controls.pmfmStrategies.patchValue(pmfms);
     this.markAsDirty();
   }
@@ -350,7 +351,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     analyticReferenceToSet.label = data.analyticReference;
     this.form.get('analyticReference').setValue(analyticReferenceToSet);
 
-    
+
     const pmfmStrategiesControl = this.pmfmStrategiesForm;
     let pmfmStrategies: any[];
 
@@ -468,7 +469,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       {
         allowEmptyArray: false,
         validators: [
-          this.requiredPmfmMinLength(2)
+          this.requiredPmfmMinLength(2),
+          this.requiredMaturityIfAge()
         ]
       }
     );
@@ -518,7 +520,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       (p1, p2) => EntityUtils.equals(p1, p2, 'startDate'),
       value => isNil(value),
       {
-        allowEmptyArray: false
+        allowEmptyArray: false,
+        validators: [
+          this.requiredPeriodMinLength(1)
+        ]
       }
     );
     // Create at least one fishing Area
@@ -581,6 +586,30 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     minLength = minLength || 2;
     return (array: FormArray): ValidationErrors | null => {
       const values = array.value.flat().filter(pmfm => pmfm !== false);
+      if (!values || values.length < minLength) {
+        return {minLength: {minLength: minLength}};
+      }
+      return null;
+    };
+  }
+
+  requiredMaturityIfAge(): ValidatorFn {
+    return (array: FormArray): ValidationErrors | null => {
+      const age = array.value[1];
+    if (Array.isArray(array.value[4])) {
+        const maturity = (array.value[4] || []).filter(p => p.pmfm);
+        if (age && maturity && maturity.length <= 1) {
+          return {maturity: {maturity: false}};
+        }
+      }
+      return null;
+    };
+  }
+
+  requiredPeriodMinLength(minLength?: number): ValidatorFn {
+    minLength = minLength || 1;
+    return (array: FormArray): ValidationErrors | null => {
+      const values = array.value.flat().filter(period => period.acquisitionNumber && period.acquisitionNumber >= 0);
       if (!values || values.length < minLength) {
         return {minLength: {minLength: minLength}};
       }

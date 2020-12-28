@@ -1172,7 +1172,8 @@
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "LOAD_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
         "SAVE_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
-        "MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}"
+        "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
+        "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}"
       },
       "CREATE_SAMPLING_PLAN": "Création d'une ligne de plan d'échantillonnage",
       "FISHING_AREA": "Zone(s) de pêche",

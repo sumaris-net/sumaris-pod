@@ -1158,7 +1158,8 @@
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy analytic references",
         "LOAD_STRATEGY_ERROR": "Error while loading stategy",
         "SAVE_STRATEGY_ERROR": "Error while saving stategy",
-        "MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}"
+        "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
+        "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}"
       },
       "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
       "FISHING_AREA" :"Fishing area(s)",

@@ -33,7 +33,7 @@
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
                   [disabled]="!canFilterEotp"
-                  [title]="'PROGRAM.STRATEGY.BTN_FILTER'|translate"
+                  [title]="'COMMON.BTN_FILTER'|translate"
                   (click)="toggleFilteredItems('eotp')"
                   [color]="enableEotpFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
@@ -58,7 +58,7 @@
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
                   [disabled]="!canFilterStrategyDepartment"
-                  [title]="'PROGRAM.STRATEGY.BTN_FILTER'|translate"
+                  [title]="'COMMON.BTN_FILTER'|translate"
                   (click)="toggleFilteredItems('strategyDepartment')"
                   [color]="enableStrategyDepartmentFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
@@ -99,7 +99,7 @@
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
                   [disabled]="!canFilterAppliedStrategy"
-                  [title]="'PROGRAM.STRATEGY.BTN_FILTER'|translate"
+                  [title]="'COMMON.BTN_FILTER'|translate"
                   (click)="toggleFilteredItems('appliedStrategy')"
                   [color]="enableAppliedStrategyFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
@@ -140,7 +140,7 @@
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
                   [disabled]="!canFilterTaxonName"
-                  [title]="'PROGRAM.STRATEGY.BTN_FILTER'|translate"
+                  [title]="'COMMON.BTN_FILTER'|translate"
                   (click)="toggleFilteredItems('taxonName')"
                   [color]="enableTaxonNameFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
@@ -164,7 +164,7 @@
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
                   [disabled]="!canFilterTaxonName"
-                  [title]="'PROGRAM.STRATEGY.BTN_FILTER'|translate"
+                  [title]="'COMMON.BTN_FILTER'|translate"
                   (click)="toggleFilteredItems('taxonName')"
                   [color]="enableTaxonNameFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
@@ -189,6 +189,15 @@
 
     <!--quarters-->
     <ion-row>
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+      </ion-col>
+      <ion-col>
+        <mat-error *ngIf="form.touched && form.get('appliedPeriods').hasError('minLength')">
+          {{'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate: form.get('appliedPeriods').errors.minLength }}
+        </mat-error>
+      </ion-col>
+    </ion-row>
+    <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" translate>PROGRAM.STRATEGY.EFFORT</ion-label>
       </ion-col>
@@ -205,6 +214,7 @@
         </mat-form-field>
       </ion-col>
     </ion-row>
+
 
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
@@ -229,7 +239,7 @@
       </ion-col>
       <ion-col>
         <mat-error *ngIf="form.touched && form.get('pmfmStrategies').hasError('minLength')">
-          {{'PROGRAM.STRATEGY.ERROR.MIN_LENGTH' | translate: form.get('pmfmStrategies').errors.minLength }}
+          {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate: form.get('pmfmStrategies').errors.minLength }}
         </mat-error>
       </ion-col>
     </ion-row>
@@ -320,6 +330,15 @@
     <ion-row style="height: 15px"></ion-row>
 
     <!-- AGE -->
+    <ion-row>
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+      </ion-col>
+      <ion-col>
+        <mat-error *ngIf="form.touched && form.get('pmfmStrategies').hasError('maturity')">
+          <span translate>PROGRAM.STRATEGY.ERROR.PARAMETERS.MATURITY</span>
+        </mat-error>
+      </ion-col>
+    </ion-row>
         <ion-row>
           <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
             <ion-label>&nbsp;</ion-label>
@@ -346,7 +365,7 @@
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
                   [disabled]="!canFilterPmfmStrategiesFraction"
-                  [title]="'PROGRAM.STRATEGY.BTN_FILTER'|translate"
+                  [title]="'COMMON.BTN_FILTER'|translate"
                   (click)="toggleFilteredItems('pmfmStrategiesFraction')"
                   [color]="enablePmfmStrategiesFractionFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
