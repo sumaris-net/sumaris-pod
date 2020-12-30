@@ -138,9 +138,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   updateView(data: Strategy | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
     super.updateView(data, opts);
-    //if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
-    //  this.batchTree.autoFill();
-    //}
   }
 
   //protected setValue(data: Strategy) {
@@ -261,8 +258,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
     // Update back href
     this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${data.programId}?tab=2` : this.defaultBackHref;
-
-    // data.id = 30;
     this.markForCheck();
   }
 

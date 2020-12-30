@@ -51,12 +51,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   appliedPeriodHelper: FormArrayHelper<AppliedPeriod>;
   appliedPeriodIndex = -1;
 
-
   enablePmfmStrategiesFractionFilter = false;
   canFilterPmfmStrategiesFraction = true;
   PmfmStrategiesFractionHelper: FormArrayHelper<PmfmStrategy>;
   PmfmStrategiesFractionFocusIndex = -1;
-
 
   pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
   pmfmStrategiesFocusIndex = -1;
