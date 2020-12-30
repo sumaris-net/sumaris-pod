@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from 
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { ValidatorService } from "@e-is/ngx-material-table";
+import * as moment from "moment";
 import { HistoryPageReference } from "src/app/core/services/model/settings.model";
 import { PlatformService } from "src/app/core/services/platform.service";
 import {
@@ -25,9 +26,8 @@ import {
 import { PmfmService } from "../services/pmfm.service";
 import { StrategyService } from "../services/strategy.service";
 import { ProgramValidatorService } from "../services/validator/program.validator";
-import { SimpleStrategyForm } from "./simple-strategy.form";
-import * as moment from "moment";
 import { StrategyValidatorService } from "../services/validator/strategy.validator";
+import { SimpleStrategyForm } from "./simple-strategy.form";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -69,7 +69,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   @ViewChild('simpleStrategyForm', { static: true }) simpleStrategyForm: SimpleStrategyForm;
 
-
   constructor(
     protected injector: Injector,
     protected formBuilder: FormBuilder,
@@ -92,21 +91,18 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     this.defaultBackHref = "/referential?entity=Program";
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
-
   }
 
   ngOnInit() {
     //  Call editor routing
     super.ngOnInit();
     this.simpleStrategyForm.entityName = 'simpleStrategyForm';
-
   }
 
   protected canUserWrite(data: Strategy): boolean {
     // TODO : check user is in program managers
     return (this.isNewData && this.accountService.isAdmin())
       || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-
   }
 
   /**
@@ -126,7 +122,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     return await this.translate.get('PROGRAM.STRATEGY.EDIT.SAMPLING_TITLE', {
       label: data && data.label
     }).toPromise() as string;
-
   }
 
   protected getFirstInvalidTabIndex(): number {
@@ -143,7 +138,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   updateView(data: Strategy | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
     super.updateView(data, opts);
-
     //if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
     //  this.batchTree.autoFill();
     //}
@@ -151,10 +145,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   //protected setValue(data: Strategy) {
   protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
     if (!data) return; // Skip
     this.simpleStrategyForm.value = data;
-
   }
 
   protected async getJsonValueToSave(): Promise<Strategy> {
@@ -171,7 +163,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     // FIXME : how to get privilege previously ??
     data.strategyDepartments.map((dpt: StrategyDepartment) => {
-      let observer: ReferentialRef = new ReferentialRef();
+      const observer: ReferentialRef = new ReferentialRef();
       observer.id = 2;
       observer.label = "Observer";
       observer.name = "Observer privilege";
@@ -202,9 +194,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();
 
     pmfmStrategies = pmfmStrategies
-    .concat(this.simpleStrategyForm.weightPmfmStrategiesTable.value.filter(p => p.pmfm))
-    .concat(this.simpleStrategyForm.sizePmfmStrategiesTable.value.filter(p => p.pmfm))
-    .concat(this.simpleStrategyForm.maturityPmfmStrategiesTable.value.filter(p => p.pmfm))
+      .concat(this.simpleStrategyForm.weightPmfmStrategiesTable.value.filter(p => p.pmfm))
+      .concat(this.simpleStrategyForm.sizePmfmStrategiesTable.value.filter(p => p.pmfm))
+      .concat(this.simpleStrategyForm.maturityPmfmStrategiesTable.value.filter(p => p.pmfm))
 
     const pmfmStrategiesFractions = data.pmfmStrategiesFraction.filter(p => p !== null);
 
@@ -238,8 +230,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       return pmfm
     });
 
-
-    console.log(data);
     //--------------------------------------------------------------------------------------------------------------------
     return data;
   }
@@ -249,7 +239,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     pmfmStrategy.strategyId = data.id;
     return pmfmStrategy;
   }
-
 
   /**
    * get pmfm
@@ -269,29 +258,24 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     return res.data;
   }
 
-
   protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
-
     // Update back href
     this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${data.programId}?tab=2` : this.defaultBackHref;
 
     // data.id = 30;
     this.markForCheck();
-
   }
 
 
   protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
-
     // Read options and query params
     console.info(options);
     if (options && options.id) {
-
       console.debug("[landedTrip-page] New entity: settings defaults...");
 
       // init new entity attributs
       data.programId = data.programId || this.activatedRoute.snapshot.params['id'];
-      data.statusId= data.statusId || 1;
+      data.statusId = data.statusId || 1;
       data.creationDate = moment();
 
       this.defaultBackHref = `/referential/program/${data.programId}?tab=2`;
@@ -299,7 +283,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     } else {
       throw new Error("[landedTrip-page] the observedLocationId must be present");
     }
-
     const queryParams = this.route.snapshot.queryParams;
     // Load the vessel, if any
     if (isNotNil(queryParams['program'])) {
@@ -307,7 +290,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       console.debug(`[landedTrip-page] Loading vessel {${programId}}...`);
       data.programId = programId;
     }
-
   }
 
   protected addToPageHistory(page: HistoryPageReference) {

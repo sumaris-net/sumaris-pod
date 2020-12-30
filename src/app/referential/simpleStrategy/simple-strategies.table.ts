@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService,TableElement} from "@e-is/ngx-material-table";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from "@angular/core";
+import { ValidatorService } from "@e-is/ngx-material-table";
 import {
   environment,
   fromDateISOString,
@@ -7,13 +7,11 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
-import {StrategyValidatorService} from "../services/validator/strategy.validator";
-import {AppliedPeriod, AppliedStrategy, Strategy} from "../services/model/strategy.model";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
-import {AppInMemoryTable} from "../../core/table/memory-table.class";
-
-
+import { DefaultStatusList } from "../../core/services/model/referential.model";
+import { AppInMemoryTable } from "../../core/table/memory-table.class";
+import { InMemoryEntitiesService } from "../../shared/services/memory-entity-service.class";
+import { AppliedPeriod, AppliedStrategy, Strategy } from "../services/model/strategy.model";
+import { StrategyValidatorService } from "../services/validator/strategy.validator";
 
 export declare interface StrategyFilter {
 }
@@ -23,7 +21,7 @@ export declare interface StrategyFilter {
   templateUrl: 'simple-strategies.table.html',
   styleUrls: ['simple-strategies.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: StrategyValidatorService},
+    { provide: ValidatorService, useExisting: StrategyValidatorService },
     {
       provide: InMemoryEntitiesService,
       useFactory: () => new InMemoryEntitiesService<Strategy, StrategyFilter>(Strategy, {})
@@ -82,27 +80,27 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
 
   ngOnInit() {
 
-   //this.inlineEdition = toBoolean(this.inlineEdition, true);
+    //this.inlineEdition = toBoolean(this.inlineEdition, true);
     super.ngOnInit();
   }
 
   laboratoriesToString(data: Strategy) {
-    let strategyDepartments = data.strategyDepartments;
-    let laboratories = strategyDepartments.map(strategyDepartment => strategyDepartment.department.name);
+    const strategyDepartments = data.strategyDepartments;
+    const laboratories = strategyDepartments.map(strategyDepartment => strategyDepartment.department.name);
     return laboratories.join(', ');
   }
 
   fishingAreasToString(data: Strategy) {
-    let appliedStrategies = data.appliedStrategies;
-    let fishingArea = appliedStrategies.map(appliedStrategy => appliedStrategy.location.name);
+    const appliedStrategies = data.appliedStrategies;
+    const fishingArea = appliedStrategies.map(appliedStrategy => appliedStrategy.location.name);
     return fishingArea.join(', ');
   }
 
   taxonsNamesToString(data: Strategy) {
-    let taxonNameStrategy = (data.taxonNames || []).find(t => t.taxonName.id);
+    const taxonNameStrategy = (data.taxonNames || []).find(t => t.taxonName.id);
     let taxonName;
     if (taxonNameStrategy) {
-      let taxon = taxonNameStrategy.taxonName;
+      const taxon = taxonNameStrategy.taxonName;
       if (taxon) {
         taxonName = taxon.name;
       }
@@ -111,43 +109,35 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   }
 
   effortToString(data: Strategy, quarter) {
-    let efforts;
-    let appliedStrategies = data.appliedStrategies;
+    const appliedStrategies = data.appliedStrategies;
     let quarterEffort = null;
-    if (appliedStrategies)
-    {
+    if (appliedStrategies) {
       // We keep the first applied period of the array as linked to fishing area
-      let fishingAreaAppliedStrategyAsObject = appliedStrategies[0];
-      if (fishingAreaAppliedStrategyAsObject)
-      {
+      const fishingAreaAppliedStrategyAsObject = appliedStrategies[0];
+      if (fishingAreaAppliedStrategyAsObject) {
         // We iterate over applied periods in order to retrieve quarters acquisition numbers
-        let fishingAreaAppliedStrategy = fishingAreaAppliedStrategyAsObject as AppliedStrategy;
-        let fishingAreaAppliedPeriodsAsObject = fishingAreaAppliedStrategy.appliedPeriods;
-        if (fishingAreaAppliedPeriodsAsObject)
-        {
-          let fishingAreaAppliedPeriods = fishingAreaAppliedPeriodsAsObject as AppliedPeriod[];
-          for (let fishingAreaAppliedPeriod of fishingAreaAppliedPeriods) {
-            let startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
-            let endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
-            if (startDateMonth >= 0 && endDateMonth < 3 && quarter === 1)
-            {
+        const fishingAreaAppliedStrategy = fishingAreaAppliedStrategyAsObject as AppliedStrategy;
+        const fishingAreaAppliedPeriodsAsObject = fishingAreaAppliedStrategy.appliedPeriods;
+        if (fishingAreaAppliedPeriodsAsObject) {
+          const fishingAreaAppliedPeriods = fishingAreaAppliedPeriodsAsObject as AppliedPeriod[];
+          for (const fishingAreaAppliedPeriod of fishingAreaAppliedPeriods) {
+            const startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
+            const endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
+            if (startDateMonth >= 0 && endDateMonth < 3 && quarter === 1) {
               quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-              return  quarterEffort
+              return quarterEffort
             }
-            if (startDateMonth >= 3 && endDateMonth < 6 && quarter === 2)
-            {
+            if (startDateMonth >= 3 && endDateMonth < 6 && quarter === 2) {
               quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-              return  quarterEffort
+              return quarterEffort
             }
-            if (startDateMonth >= 6 && endDateMonth < 9 && quarter === 3)
-            {
+            if (startDateMonth >= 6 && endDateMonth < 9 && quarter === 3) {
               quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-              return  quarterEffort
+              return quarterEffort
             }
-            if (startDateMonth >= 9 && endDateMonth < 12 && quarter === 4)
-            {
+            if (startDateMonth >= 9 && endDateMonth < 12 && quarter === 4) {
               quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-              return  quarterEffort
+              return quarterEffort
             }
           }
         }
@@ -163,7 +153,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
     let sexPmfmStrategy;
     let maturityPmfmStrategy;
     let agePmfmStrategy;
-    if(data.pmfmStrategies.length !== 0) {
+    if (data.pmfmStrategies.length !== 0) {
       weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
 
       const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
@@ -178,19 +168,16 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
     }
 
     let parameters = []
-    if (weightPmfmStrategy && weightPmfmStrategy.length !== 0)
-    {
+    if (weightPmfmStrategy && weightPmfmStrategy.length !== 0) {
       parameters.push('Poids')
     }
-    if (sizePmfmStrategy && sizePmfmStrategy.length !== 0)
-    {
+    if (sizePmfmStrategy && sizePmfmStrategy.length !== 0) {
       parameters.push('Taille')
     }
     if (sexPmfmStrategy && sexPmfmStrategy.length !== 0) {
-        parameters.push('Sexe')
+      parameters.push('Sexe')
     }
-    if (maturityPmfmStrategy && maturityPmfmStrategy.length !== 0)
-    {
+    if (maturityPmfmStrategy && maturityPmfmStrategy.length !== 0) {
       parameters.push('Maturité')
     }
     if (agePmfmStrategy && agePmfmStrategy.length !== 0) {
@@ -208,7 +195,6 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 
 }
 
