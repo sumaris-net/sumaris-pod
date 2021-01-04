@@ -30,7 +30,7 @@ export interface SampleFilter {
   operationId?: number;
   landingId?: number;
 }
-export const SAMPLE2_RESERVED_START_COLUMNS: string[] = ['sampleCode','morseCode','comment','weight','totalLenghtCm','totalLenghtMm','indexGreaseRate'];
+export const SAMPLE2_RESERVED_START_COLUMNS: string[] = ['sampleCode','morseCode','comment'/*,'weight','totalLenghtCm','totalLenghtMm','indexGreaseRate'*/];
 export const SAMPLE2_RESERVED_END_COLUMNS: string[] = [];
 
 
@@ -50,10 +50,18 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
+  public appliedPmfmStrategies : PmfmStrategy []=[];
+
+
   @Input()
   set value(data: Sample[]) {
-    this.memoryDataService.value = data.filter(sample => !sample.taxonName);
+    this.memoryDataService.value = data/*.filter(sample => !sample.taxonName)*/;
     this.defaultTaxonName = data[0].taxonName;
+  }
+
+  @Input()
+  set appliedPmfmStrategy(data: PmfmStrategy[]) {
+    this.appliedPmfmStrategies = data;
   }
 
   get value(): Sample[] {

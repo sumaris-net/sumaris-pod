@@ -232,6 +232,14 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.landing2Form.value = data;
 
     this.samples2Table.value = data.samples || [];
+
+    //FIXME get pmfmStrategy  by label ---------------------------------------------------------------------------------
+    let pmfmStrategy =  await this.strategyService.loadByLabel( "2020-BIO-0001", { expandedPmfmStrategy : true});
+
+    this.samples2Table.appliedPmfmStrategy = pmfmStrategy.pmfmStrategies;
+    //------------------------------------------------------------------------------------------------------------------
+
+
   }
 
   updateView(data: Landing | null, opts?: {
