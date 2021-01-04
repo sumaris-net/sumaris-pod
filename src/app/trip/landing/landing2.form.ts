@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
 import {
+  EntityUtils,
   FormArrayHelper,
   IReferentialRef,
   isNil,
@@ -30,10 +31,8 @@ import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
-import {SharedValidators} from "../../shared/validator/validators";
-import {Sample} from "../services/model/sample.model";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
-import {MeasurementModelValues} from "../services/model/measurement.model";
+import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 
 @Component({
   selector: 'app-landing2-form',
@@ -115,6 +114,11 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   get fishingAreasFormArray(): FormArray {
     return this.form.controls.fishingAreas as FormArray;
+  }
+
+  taxonNameHelper: FormArrayHelper<TaxonNameStrategy>;
+  get taxonNamesForm(): FormArray {
+    return this.form.controls.samples as FormArray;
   }
 
   constructor(
@@ -240,9 +244,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       service: this.referentialRefService,
       attributes: fishingAreaAttributes,
       // Increase default column size, for 'label'
-      columnSizes: sampleRowCodeAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      columnSizes: fishingAreaAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
       filter: <ReferentialRefFilter>{
-        entityName: 'Program'
+        entityName: 'Location'
       },
       mobile: this.mobile
     });
@@ -272,6 +276,25 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       mobile: this.settings.mobile
     });
 
+    this.initTaxonNameHelper();
+  }
+
+  // TaxonName Helper -----------------------------------------------------------------------------------------------
+  protected initTaxonNameHelper() {
+    // appliedStrategies => appliedStrategies.location ?
+    this.taxonNameHelper = new FormArrayHelper<TaxonNameStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'samples'),
+      (ts) => this.validatorService.getTaxonNameStrategyControl(ts),
+      (t1, t2) => EntityUtils.equals(t1.taxonName, t2.taxonName, 'name'),
+      value => isNil(value) && isNil(value.taxonName),
+      {
+        allowEmptyArray: false
+      }
+    );
+    // Create at least one fishing Area
+    if (this.taxonNameHelper.size() === 0) {
+      this.taxonNameHelper.resize(1);
+    }
   }
 
   // get value(): any {
@@ -325,14 +348,20 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     if (!value) return;
 
+    const taxonNames = value.samples.filter(sample => sample.taxonName);
+
+    value.samples = value.samples.filter(sample => !sample.taxonName);
+
+    // Send value for form
+    super.setValue(value);
+
     // Make sure to have (at least) one observer
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
     // Resize observers array
     if (this._showObservers) {
       this.observersHelper.resize(Math.max(1, value.observers.length));
-    }
-    else {
+    } else {
       this.observersHelper.removeAllEmpty();
     }
 
@@ -341,8 +370,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       this.program = value.program.label;
     }
 
-    // Send value for form
-    super.setValue(value);
+    const taxonNameControl = this.taxonNamesForm;
+    taxonNameControl.patchValue(taxonNames);
+  
+
   }
 
   addObserver() {

@@ -210,7 +210,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     if (this.samples2Table.dirty) {
       await this.samples2Table.save();
     }
-    data.samples = this.samples2Table.value;
+    data.samples = data.samples.concat(this.samples2Table.value);
+    data.samples.map(s => s.rankOrder = 1);
 
     return data;
   }
