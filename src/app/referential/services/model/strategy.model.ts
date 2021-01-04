@@ -251,7 +251,7 @@ export class TaxonNameStrategy {
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
-    target.taxonGroup = this.taxonName && this.taxonName.asObject({ ...opts, ...MINIFY_OPTIONS });
+    target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...MINIFY_OPTIONS });
     return target;
   }
 

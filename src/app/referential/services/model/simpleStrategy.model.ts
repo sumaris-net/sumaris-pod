@@ -62,7 +62,7 @@ export class SimpleStrategy extends Strategy {
 
     target.year = toDateISOString(this.year);
     target.comments = this.comments;
-    target.taxonName = this.taxonName;
+    target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
     target.eotp = this.eotp;
     target.sampleRowCode = this.sampleRowCode;
     target.laboratories = this.laboratories && this.laboratories.filter(isNotNil).map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;

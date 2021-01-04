@@ -233,7 +233,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       taxonName.strategyId= data.id;
       taxonName.priorityLevel=null;
       taxonName.taxonName=taxonNameStrategy[0];
-      taxonName.taxonName.referenceTaxonId = taxonName.taxonName.id;
       taxonNameStrategies.push(taxonName);
 
       data.taxonNames =taxonNameStrategies;
