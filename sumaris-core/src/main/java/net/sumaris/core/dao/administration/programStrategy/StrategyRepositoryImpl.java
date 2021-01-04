@@ -30,6 +30,7 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
@@ -42,6 +43,7 @@ import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
+import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
@@ -76,6 +78,9 @@ public class StrategyRepositoryImpl
 
     @Autowired
     private PmfmStrategyRepository pmfmStrategyRepository;
+
+    @Autowired
+    private PmfmRepository pmfmRepository;
 
     @Autowired
     private TaxonNameRepository taxonNameRepository;
@@ -270,7 +275,7 @@ public class StrategyRepositoryImpl
     protected void toVO(Strategy source, StrategyVO target, StrategyFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
         StrategyFetchOptions finalFetchOptions = (fetchOptions != null) ? fetchOptions
-                : StrategyFetchOptions.builder().withPmfmStrategyInheritance(false).build();
+                : StrategyFetchOptions.builder().withPmfmStrategyInheritance(false).withPmfmStrategyExpanded(false).build();
 
         // Program
         target.setProgramId(source.getProgram().getId());
@@ -298,17 +303,7 @@ public class StrategyRepositoryImpl
         target.setStrategyDepartments(getStrategyDepartments(source));
 
         // Pmfm strategies
-        if (CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
-            List<PmfmStrategyVO> pmfmStrategies = source.getPmfmStrategies()
-                .stream()
-                // Transform to VO
-                .map(ps -> pmfmStrategyRepository.toVO(ps, finalFetchOptions))
-                .filter(Objects::nonNull)
-                // Sort by acquisitionLevel and rankOrder
-                .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
-                .collect(Collectors.toList());
-            target.setPmfmStrategies(pmfmStrategies);
-        }
+        target.setPmfmStrategies(getPmfmStrategies(source, finalFetchOptions));
     }
 
     @Override
@@ -666,6 +661,40 @@ public class StrategyRepositoryImpl
         }
 
         return sources.isEmpty() ? null : sources;
+    }
+
+    protected List<PmfmStrategyVO> getPmfmStrategies(Strategy source, StrategyFetchOptions fetchOptions) {
+        Preconditions.checkNotNull(fetchOptions);
+        if (CollectionUtils.isEmpty(source.getPmfmStrategies())) return null;
+        List<PmfmStrategyVO> pmfmStrategies = new ArrayList<>();
+
+        if (fetchOptions.isWithPmfmStrategyExpanded()) {
+            for (PmfmStrategy pmfmStrategy : source.getPmfmStrategies()) {
+                if (pmfmStrategy.getPmfm() != null) {
+                    pmfmStrategies.add(pmfmStrategyRepository.toVO(pmfmStrategy, fetchOptions));
+                } else {
+                    List<PmfmVO> targetPmfms = pmfmRepository.findAll(pmfmStrategy.getParameter(), pmfmStrategy.getMatrix(), pmfmStrategy.getFraction(), pmfmStrategy.getMethod());
+                    for (PmfmVO targetPmfm : targetPmfms) {
+                        PmfmStrategyVO targetPmfmStrategy = pmfmStrategyRepository.toVO(pmfmStrategy, fetchOptions);
+                        targetPmfmStrategy.setPmfm(targetPmfm);
+                        targetPmfmStrategy.setPmfmId(targetPmfm.getId());
+                        pmfmStrategies.add(targetPmfmStrategy);
+                    }
+                }
+            }
+        } else {
+            pmfmStrategies = source.getPmfmStrategies()
+                    .stream()
+                    .map(ps -> pmfmStrategyRepository.toVO(ps, fetchOptions))
+                    .collect(Collectors.toList());
+        }
+
+        return pmfmStrategies
+                .stream()
+                .filter(Objects::nonNull)
+                // Sort by acquisitionLevel and rankOrder
+                .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
+                .collect(Collectors.toList());
     }
 
 }

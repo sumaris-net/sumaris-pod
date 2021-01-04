@@ -26,6 +26,7 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -63,6 +64,14 @@ public class PmfmRepositoryImpl
     @Cacheable(cacheNames = CacheNames.PMFM_BY_ID, unless = "#result == null")
     public PmfmVO get(int id) {
         return super.get(id);
+    }
+
+    @Override
+    public List<PmfmVO> findAll(Parameter parameter, Matrix matrix, Fraction fraction, Method method) {
+        return findAll(BindableSpecification.where(hasPmfmPart(parameter, matrix, fraction, method)))
+                .stream()
+                .map(entity -> toVO(entity))
+                .collect(Collectors.toList());
     }
 
     @Override

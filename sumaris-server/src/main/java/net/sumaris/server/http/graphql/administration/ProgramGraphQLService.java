@@ -112,13 +112,14 @@ public class ProgramGraphQLService {
     @Transactional(readOnly = true)
     public StrategyVO getStrategy(
             @GraphQLArgument(name = "label") String label,
-            @GraphQLArgument(name = "id") Integer id
+            @GraphQLArgument(name = "id") Integer id,
+            @GraphQLArgument(name = "expandedPmfmStrategy", defaultValue = "false") Boolean expandedPmfmStrategy
     ) {
         Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
         if (id != null) {
-            return strategyService.get(id);
+            return strategyService.get(id, getFetchOptions(expandedPmfmStrategy));
         }
-        return strategyService.getByLabel(label);
+        return strategyService.getByLabel(label, getFetchOptions(expandedPmfmStrategy));
     }
 
     @GraphQLQuery(name = "strategies", description = "Search in strategies")
@@ -237,8 +238,14 @@ public class ProgramGraphQLService {
         return StrategyFetchOptions.builder()
                 .withPmfmStrategyInheritance(
                         fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.LABEL))
-                        && !fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.PMFM))
+                                && !fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.PMFM))
                 )
+                .build();
+    }
+
+    protected StrategyFetchOptions getFetchOptions(Boolean expandedPmfmStrategy) {
+        return StrategyFetchOptions.builder()
+                .withPmfmStrategyExpanded(expandedPmfmStrategy)
                 .build();
     }
 }

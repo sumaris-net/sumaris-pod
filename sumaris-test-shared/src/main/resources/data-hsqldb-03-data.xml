@@ -247,5 +247,225 @@
   <LANDING ID="11" TRIP_FK="11" VESSEL_FK="1" RANK_ORDER_ON_VESSEL="1" OBSERVED_LOCATION_FK="11" PROGRAM_FK="30" LANDING_DATE_TIME="2020-10-01 12:00:00.000" LANDING_LOCATION_FK="23" CREATION_DATE="2010-10-01" RECORDER_DEPARTMENT_FK="11" QUALITY_FLAG_FK="0" COMMENTS="ObservedLanding #11" RECORDER_PERSON_FK="2"/>
   <LANDING_MEASUREMENT ID="21" LANDING_FK="11" PMFM_FK="136" RANK_ORDER="1" QUALITATIVE_VALUE_FK="409" UPDATE_DATE="2020-10-01" RECORDER_DEPARTMENT_FK="11" QUALITY_FLAG_FK="0"/>
 
+  <!-- PARAM BIO -->
+  <OBSERVED_LOCATION ID="12"
+                     PROGRAM_FK="40"
+                     RECORDER_DEPARTMENT_FK="2"
+                     RECORDER_PERSON_FK="2"
+                     CREATION_DATE="2020-12-18"
+                     START_DATE_TIME="2020-12-01 16:00:00.000"
+                     END_DATE_TIME="2020-12-01 16:00:00.000"
+                     LOCATION_FK="30"
+                     COMMENTS="Param bio #1"
+                     QUALITY_FLAG_FK="0"/>
+  <OBSERVED_LOCATION2PERSON OBSERVED_LOCATION_FK="12"
+                            PERSON_FK="2"/>
+  <LANDING ID="3"
+           OBSERVED_LOCATION_FK="12"
+           PROGRAM_FK="40"
+           RECORDER_DEPARTMENT_FK="2"
+           RECORDER_PERSON_FK="2"
+           CREATION_DATE="2020-12-18"
+           LANDING_DATE_TIME="2020-12-01 16:00:00.000"
+           LANDING_LOCATION_FK="30"
+           QUALITY_FLAG_FK="0"
+           RANK_ORDER="1"
+           VESSEL_FK="1"
+           COMMENTS="landing test #1"/>
+  <LANDING_MEASUREMENT
+          ID="31"
+          LANDING_FK="3"
+          PMFM_FK="359"
+          RANK_ORDER="1"
+          ALPHANUMERICAL_VALUE="2020-BIO-0001"
+          UPDATE_DATE="2018-03-08"
+          RECORDER_DEPARTMENT_FK="2"
+          QUALITY_FLAG_FK="0"/>
+  <SAMPLE ID="5"
+          LANDING_FK="3"
+          PROGRAM_FK="40"
+          RECORDER_DEPARTMENT_FK="2"
+          RECORDER_PERSON_FK="2"
+          SAMPLE_DATE="2020-12-01 16:00:00.000"
+          CREATION_DATE="2020-12-18"
+          LABEL="XBL071220MERLMER0001"
+          RANK_ORDER="1"
+          MATRIX_FK="2"
+          QUALITY_FLAG_FK="0"
+          REFERENCE_TAXON_FK="1010"
+          COMMENTS="sample test #1"/>
+  <!-- code morse -->
+  <SAMPLE_MEASUREMENT ID="50"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="358"
+                      QUALITY_FLAG_FK="0"
+                      ALPHANUMERICAL_VALUE="TitiX00032"/>
+  <!-- poids -->
+  <SAMPLE_MEASUREMENT ID="51"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="356"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="4"/>
+  <!-- taille -->
+  <SAMPLE_MEASUREMENT ID="52"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="141"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="7"/>
 
+  <!-- autre -->
+  <SAMPLE_MEASUREMENT ID="53"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="350"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="14"/>
+  <!-- autre -->
+  <SAMPLE_MEASUREMENT ID="54"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="80"
+                      QUALITY_FLAG_FK="0"
+                      QUALITATIVE_VALUE_FK="185"/>
+
+  <OBSERVED_LOCATION ID="13"
+                     PROGRAM_FK="40"
+                     RECORDER_DEPARTMENT_FK="2"
+                     RECORDER_PERSON_FK="2"
+                     CREATION_DATE="2020-12-21"
+                     START_DATE_TIME="2020-12-02 16:00:00.000"
+                     END_DATE_TIME="2020-12-02 16:00:00.000"
+                     LOCATION_FK="30"
+                     COMMENTS="Param bio #2"
+                     QUALITY_FLAG_FK="0"/>
+  <OBSERVED_LOCATION2PERSON OBSERVED_LOCATION_FK="13"
+                            PERSON_FK="2"/>
+  <LANDING ID="4"
+           OBSERVED_LOCATION_FK="13"
+           PROGRAM_FK="40"
+           RECORDER_DEPARTMENT_FK="2"
+           RECORDER_PERSON_FK="2"
+           CREATION_DATE="2020-12-21"
+           LANDING_DATE_TIME="2020-12-02 16:00:00.000"
+           LANDING_LOCATION_FK="30"
+           QUALITY_FLAG_FK="0"
+           RANK_ORDER="1"
+           VESSEL_FK="2"
+           COMMENTS="landing test #2"/>
+  <LANDING_MEASUREMENT
+          ID="32"
+          LANDING_FK="4"
+          PMFM_FK="359"
+          RANK_ORDER="1"
+          ALPHANUMERICAL_VALUE="2020_BIO_0002"
+          UPDATE_DATE="2018-03-09"
+          RECORDER_DEPARTMENT_FK="2"
+          QUALITY_FLAG_FK="0"/>
+  <SAMPLE ID="6"
+          LANDING_FK="4"
+          PROGRAM_FK="40"
+          RECORDER_DEPARTMENT_FK="2"
+          RECORDER_PERSON_FK="2"
+          SAMPLE_DATE="2020-12-02 16:00:00.000"
+          CREATION_DATE="2020-12-21"
+          LABEL="XBL071220MERLMER0002"
+          RANK_ORDER="1"
+          MATRIX_FK="2"
+          QUALITY_FLAG_FK="0"
+          REFERENCE_TAXON_FK="1042"
+          COMMENTS="sample test #2"/>
+  <!-- code morse -->
+  <SAMPLE_MEASUREMENT ID="60"
+                      SAMPLE_FK="6"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="358"
+                      QUALITY_FLAG_FK="0"
+                      ALPHANUMERICAL_VALUE="code morse value #1"/>
+  <!-- poids -->
+  <SAMPLE_MEASUREMENT ID="61"
+                      SAMPLE_FK="6"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="357"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="15"/>
+  <!-- taille -->
+  <SAMPLE_MEASUREMENT ID="62"
+                      SAMPLE_FK="6"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="141"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="30"/>
+  <!-- autre -->
+  <SAMPLE_MEASUREMENT ID="63"
+                      SAMPLE_FK="6"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="350"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="12"/>
+  <!-- autre -->
+  <SAMPLE_MEASUREMENT ID="64"
+                      SAMPLE_FK="6"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="80"
+                      QUALITY_FLAG_FK="0"
+                      QUALITATIVE_VALUE_FK="185"/>
+
+  <LANDING ID="5"
+           OBSERVED_LOCATION_FK="13"
+           PROGRAM_FK="40"
+           RECORDER_DEPARTMENT_FK="2"
+           RECORDER_PERSON_FK="2"
+           CREATION_DATE="2020-12-21"
+           LANDING_DATE_TIME="2020-12-03 16:00:00.000"
+           LANDING_LOCATION_FK="30"
+           QUALITY_FLAG_FK="0"
+           RANK_ORDER="1"
+           VESSEL_FK="1"
+           COMMENTS="landing test #3"/>
+  <LANDING_MEASUREMENT
+          ID="33"
+          LANDING_FK="5"
+          PMFM_FK="359"
+          RANK_ORDER="1"
+          ALPHANUMERICAL_VALUE="2020_BIO_0002"
+          UPDATE_DATE="2018-03-09"
+          RECORDER_DEPARTMENT_FK="2"
+          QUALITY_FLAG_FK="0"/>
+  <SAMPLE ID="7"
+          LANDING_FK="5"
+          PROGRAM_FK="40"
+          RECORDER_DEPARTMENT_FK="2"
+          RECORDER_PERSON_FK="2"
+          SAMPLE_DATE="2020-12-02 16:00:00.000"
+          CREATION_DATE="2020-12-21"
+          LABEL="XBL071220MERLMER00013"
+          RANK_ORDER="1"
+          MATRIX_FK="2"
+          QUALITY_FLAG_FK="0"
+          REFERENCE_TAXON_FK="1061"
+          COMMENTS="sample test #3"/>
+  <!-- code morse -->
+  <SAMPLE_MEASUREMENT ID="70"
+                      SAMPLE_FK="7"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="358"
+                      QUALITY_FLAG_FK="0"
+                      ALPHANUMERICAL_VALUE="code morse value #2"/>
+  <!-- poids -->
+  <SAMPLE_MEASUREMENT ID="71"
+                      SAMPLE_FK="7"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="356"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="28"/>
+  <!-- taille -->
+  <SAMPLE_MEASUREMENT ID="72"
+                      SAMPLE_FK="7"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="84"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="75"/>
 </dataset>
