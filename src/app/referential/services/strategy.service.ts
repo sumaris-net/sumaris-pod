@@ -1,7 +1,15 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {LoadResult, EntitiesService, EntityService, isNil, isNotNil, isNotEmptyArray} from "../../shared/shared.module";
+import {
+  LoadResult,
+  EntitiesService,
+  EntityService,
+  isNil,
+  isNotNil,
+  isNotEmptyArray,
+  isNilOrBlank
+} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils, Referential, ReferentialRef} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 
@@ -272,6 +280,25 @@ const LoadQuery: any = gql`
   ${ReferentialFragments.taxonName}
   ${ReferentialFragments.fullReferential}
 `;
+const LoadQueryWithExpandedPmfmStrategy: any = gql`
+  query Strategy($label: String!, $expandedPmfmStrategy : Boolean!) {
+    strategy(label: $label, expandedPmfmStrategy : $expandedPmfmStrategy) {
+      ...StrategyFragment
+    }
+  }
+  ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.fullPmfm}
+  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.taxonName}
+  ${ReferentialFragments.fullReferential}
+`;
 
 const LoadAllQuery: any = gql`
 query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
@@ -389,6 +416,46 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     }
   }
 
+
+  /**
+   * load appliedPmfm by label
+   * @param label
+   * @param options : expandedPmfmStrategy
+   */
+
+  async loadByLabel(label: string, options?: EntityServiceLoadOptions): Promise<Strategy | null> {
+    if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[strategy-service] Loading strategy #${label}...`);
+    this.loading = true;
+
+    try {
+      let json: any;
+
+      // Load from pod
+        const res = await this.graphql.query<{ strategy: Strategy }>({
+          query: LoadQueryWithExpandedPmfmStrategy,
+          variables: {
+            label: label,
+            expandedPmfmStrategy: true
+          },
+
+          error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "STRATEGY.ERROR.LOAD_STRATEGY_ERROR"},
+          fetchPolicy: options && options.fetchPolicy || undefined,
+
+        });
+        json = res && res.strategy;
+
+
+      // Transform to entity
+      const data = Strategy.fromObject(json);
+      if (data && this._debug) console.debug(`[strategy-service] Strategy #${label} loaded in ${Date.now() - now}ms`, data);
+      return data;
+    } finally {
+      this.loading = false;
+    }
+  }
 
   /**
    * Save an strategy
