@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from 
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { ValidatorService } from "@e-is/ngx-material-table";
+import * as moment from "moment";
 import { HistoryPageReference } from "src/app/core/services/model/settings.model";
 import { PlatformService } from "src/app/core/services/platform.service";
 import {
@@ -25,8 +26,8 @@ import {
 import { PmfmService } from "../services/pmfm.service";
 import { StrategyService } from "../services/strategy.service";
 import { ProgramValidatorService } from "../services/validator/program.validator";
+import { StrategyValidatorService } from "../services/validator/strategy.validator";
 import { SimpleStrategyForm } from "./simple-strategy.form";
-import * as moment from "moment";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -68,12 +69,11 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   @ViewChild('simpleStrategyForm', { static: true }) simpleStrategyForm: SimpleStrategyForm;
 
-
   constructor(
     protected injector: Injector,
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
-    protected validatorService: ProgramValidatorService,
+    protected validatorService: StrategyValidatorService,
     dataService: StrategyService,
     protected activatedRoute: ActivatedRoute,
     protected pmfmService: PmfmService,
@@ -91,21 +91,18 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     this.defaultBackHref = "/referential?entity=Program";
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
-
   }
 
   ngOnInit() {
     //  Call editor routing
     super.ngOnInit();
     this.simpleStrategyForm.entityName = 'simpleStrategyForm';
-
   }
 
   protected canUserWrite(data: Strategy): boolean {
     // TODO : check user is in program managers
     return (this.isNewData && this.accountService.isAdmin())
       || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-
   }
 
   /**
@@ -125,7 +122,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     return await this.translate.get('PROGRAM.STRATEGY.EDIT.SAMPLING_TITLE', {
       label: data && data.label
     }).toPromise() as string;
-
   }
 
   protected getFirstInvalidTabIndex(): number {
@@ -142,18 +138,12 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   updateView(data: Strategy | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
     super.updateView(data, opts);
-
-    //if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
-    //  this.batchTree.autoFill();
-    //}
   }
 
   //protected setValue(data: Strategy) {
   protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
     if (!data) return; // Skip
     this.simpleStrategyForm.value = data;
-
   }
 
   protected async getJsonValueToSave(): Promise<Strategy> {
@@ -162,13 +152,15 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     data.name = data.label || data.name;
 
+    data.analyticReference = data.analyticReference && data.analyticReference.label ? data.analyticReference.label : data.analyticReference;
+
     // FIXME : how to load referenceTaxonId previously ??
     data.taxonNames[0].strategyId = data.taxonNames[0].strategyId || 30;
     data.taxonNames[0].taxonName.referenceTaxonId = 1006;
 
     // FIXME : how to get privilege previously ??
     data.strategyDepartments.map((dpt: StrategyDepartment) => {
-      let observer: ReferentialRef = new ReferentialRef();
+      const observer: ReferentialRef = new ReferentialRef();
       observer.id = 2;
       observer.label = "Observer";
       observer.name = "Observer privilege";
@@ -185,89 +177,65 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       appliedStrategies[0].appliedPeriods = appliedPeriods.filter(period => isNotNil(period.acquisitionNumber));
     }
     data.appliedStrategies = appliedStrategies;
-    // delete data.appliedPeriods;
 
     //PMFM + Fractions -------------------------------------------------------------------------------------------------
-    let pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
+    const pmfmStrategie = this.simpleStrategyForm.pmfmStrategiesForm.value;
+    const sex = pmfmStrategie[0];
+    const age = pmfmStrategie[1];
+
     let pmfmStrategies: PmfmStrategy[] = [];
 
-    let sex = pmfmStrategie[0];
-    let age = pmfmStrategie[1];
-
-    // i == 0 age
-    // i == 1 sex
-
+    // Save before get PMFM values
     await this.simpleStrategyForm.weightPmfmStrategiesTable.save();
     await this.simpleStrategyForm.sizePmfmStrategiesTable.save();
     await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();
 
+    pmfmStrategies = pmfmStrategies
+      .concat(this.simpleStrategyForm.weightPmfmStrategiesTable.value.filter(p => p.pmfm))
+      .concat(this.simpleStrategyForm.sizePmfmStrategiesTable.value.filter(p => p.pmfm))
+      .concat(this.simpleStrategyForm.maturityPmfmStrategiesTable.value.filter(p => p.pmfm))
 
-    let lengthList = this.simpleStrategyForm.weightPmfmStrategiesTable.value;
-    let sizeList = this.simpleStrategyForm.sizePmfmStrategiesTable.value;
-    let maturityList = this.simpleStrategyForm.maturityPmfmStrategiesTable.value;
+    const pmfmStrategiesFractions = data.pmfmStrategiesFraction.filter(p => p !== null);
 
-    for (let i = 0; i < lengthList.length; i++) {
-      pmfmStrategies.push(lengthList[i]);
+    // Pièces calcifiées
+    for (let i = 0; i < pmfmStrategiesFractions.length; i++) {
+      const pmfmStrategiesFraction = this.createNewPmfmStrategy(data);
+      pmfmStrategiesFraction.fractionId = pmfmStrategiesFractions[i].id;
+      pmfmStrategies.push(pmfmStrategiesFraction);
     }
-    for (let i = 0; i < sizeList.length; i++) {
-      pmfmStrategies.push(sizeList[i]);
-    }
-    for (let i = 0; i < maturityList.length; i++) {
-      pmfmStrategies.push(maturityList[i]);
-    }
-
-
-    let PmfmStrategiesFractions = this.simpleStrategyForm.PmfmStrategiesFractionForm.value;
-
-    console.log(PmfmStrategiesFractions);
-
-    for (let i = 0; i < PmfmStrategiesFractions.length; i++) {
-      let PmfmStrategiesFraction = this.createNewPmfmStrategy(data);
-      PmfmStrategiesFraction.fractionId = PmfmStrategiesFractions[i].id;
-      pmfmStrategies.push(PmfmStrategiesFraction);
-    }
+    //
 
     if (sex) {
-      let pmfmStrategySex = this.createNewPmfmStrategy(data);
-      let pmfmSex = await this.getPmfms("SEX");
+      const pmfmStrategySex = this.createNewPmfmStrategy(data);
+      const pmfmSex = await this.getPmfms("SEX");
       pmfmStrategySex.pmfm = pmfmSex[0];
       pmfmStrategies.push(pmfmStrategySex);
     }
     if (age) {
-      let pmfmStrategyAge = this.createNewPmfmStrategy(data);
-      let pmfmAge = await this.getPmfms("AGE");
+      const pmfmStrategyAge = this.createNewPmfmStrategy(data);
+      const pmfmAge = await this.getPmfms("AGE");
       pmfmStrategyAge.pmfm = pmfmAge[0];
       pmfmStrategies.push(pmfmStrategyAge);
     }
 
-    data.pmfmStrategies = pmfmStrategies.map(p => {
-      p.acquisitionLevel = 'SAMPLE';
-      p.acquisitionNumber = 1;
-      p.isMandatory = false;
-      p.rankOrder = 1;
-      return p
-    }).filter(p => p.pmfm || p.fractionId);
+    // Add all mandatory fields
+    data.pmfmStrategies = pmfmStrategies.map(pmfm => {
+      pmfm.acquisitionLevel = 'SAMPLE';
+      pmfm.acquisitionNumber = 1;
+      pmfm.isMandatory = false;
+      pmfm.rankOrder = 1;
+      return pmfm
+    });
 
     //--------------------------------------------------------------------------------------------------------------------
-    console.log(data);
     return data;
   }
-
-
 
   createNewPmfmStrategy(data: Strategy): PmfmStrategy {
     const pmfmStrategy = new PmfmStrategy();
     pmfmStrategy.strategyId = data.id;
-    // pmfmStrategy.pmfm = null;
-    // pmfmStrategy.fractionId = null;
-    // pmfmStrategy.qualitativeValues = undefined;
-    // pmfmStrategy.acquisitionLevel = 'SAMPLE'
-    // pmfmStrategy.acquisitionNumber = 1;
-    // pmfmStrategy.isMandatory = false;
-    // pmfmStrategy.rankOrder = 1;
     return pmfmStrategy;
   }
-
 
   /**
    * get pmfm
@@ -287,29 +255,22 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     return res.data;
   }
 
-
   protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
-
     // Update back href
     this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${data.programId}?tab=2` : this.defaultBackHref;
-
-    // data.id = 30;
     this.markForCheck();
-
   }
 
 
   protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
-
     // Read options and query params
     console.info(options);
     if (options && options.id) {
-
       console.debug("[landedTrip-page] New entity: settings defaults...");
 
       // init new entity attributs
       data.programId = data.programId || this.activatedRoute.snapshot.params['id'];
-      data.statusId= data.statusId || 1;
+      data.statusId = data.statusId || 1;
       data.creationDate = moment();
 
       this.defaultBackHref = `/referential/program/${data.programId}?tab=2`;
@@ -317,7 +278,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     } else {
       throw new Error("[landedTrip-page] the observedLocationId must be present");
     }
-
     const queryParams = this.route.snapshot.queryParams;
     // Load the vessel, if any
     if (isNotNil(queryParams['program'])) {
@@ -325,7 +285,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       console.debug(`[landedTrip-page] Loading vessel {${programId}}...`);
       data.programId = programId;
     }
-
   }
 
   protected addToPageHistory(page: HistoryPageReference) {

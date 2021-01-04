@@ -1157,10 +1157,13 @@
         "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy label",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy analytic references",
         "LOAD_STRATEGY_ERROR": "Error while loading stategy",
-        "SAVE_STRATEGY_ERROR": "Error while saving stategy"
+        "SAVE_STRATEGY_ERROR": "Error while saving stategy",
+        "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
+        "PARAMETERS.MATURITY": "Erreur saisie Age",
+        "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}"
       },
       "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
-      "FISHING_AREA" :"Fishing area (s)",
+      "FISHING_AREA" :"Fishing area(s)",
       "SAMPLE_ROW_CODE":"Sample row code",
       "SAMPLE_ROW_TITLE":"Sample row code",
       "EOTP":"EOTP",

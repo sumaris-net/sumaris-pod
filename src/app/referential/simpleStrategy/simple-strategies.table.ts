@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService,TableElement} from "@e-is/ngx-material-table";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from "@angular/core";
+import { ValidatorService } from "@e-is/ngx-material-table";
 import {
   environment,
   fromDateISOString,
@@ -22,7 +22,7 @@ export declare interface StrategyFilter {
   templateUrl: 'simple-strategies.table.html',
   styleUrls: ['simple-strategies.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: StrategyValidatorService},
+    { provide: ValidatorService, useExisting: StrategyValidatorService },
     {
       provide: InMemoryEntitiesService,
       useFactory: () => new InMemoryEntitiesService<Strategy, StrategyFilter>(Strategy, {})
@@ -81,7 +81,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
 
   ngOnInit() {
 
-   //this.inlineEdition = toBoolean(this.inlineEdition, true);
+    //this.inlineEdition = toBoolean(this.inlineEdition, true);
     super.ngOnInit();
   }
 
