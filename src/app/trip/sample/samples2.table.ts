@@ -7,7 +7,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  Output
+  Output, ViewChild
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
@@ -20,7 +20,7 @@ import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
-import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
+import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
@@ -53,6 +53,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   @Input()
   set value(data: Sample[]) {
     this.memoryDataService.value = data.filter(sample => !sample.taxonName);
+    this.defaultTaxonName = data[0].taxonName;
   }
 
   get value(): Sample[] {
@@ -152,14 +153,14 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   /* -- protected methods -- */
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+  /*protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
     //if (isNilOrBlank(value)) return [];
     return this.programService.suggestTaxonGroups(value,
       {
         program: this.program,
         searchAttribute: options && options.searchAttribute
       });
-  }
+  }*/
 
   /*protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
     const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
@@ -180,11 +181,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
     await super.onNewEntity(data);
 
-    // generate label
-    if (!this.showLabelColumn) {
-      data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
-    }
-
     // Default date
     if (isNotNil(this.defaultSampleDate)) {
       data.sampleDate = this.defaultSampleDate;
@@ -192,15 +188,14 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       data.sampleDate = moment();
     }
 
-    // Taxon group
+    // set  taxonName, taxonGroup
     if (isNotNil(this.defaultTaxonName)) {
       data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
+
+     let taxonGroup = await  this.getTaxoGroupByTaxonNameId(this.defaultTaxonName.id,  "TaxonGroup");
+      data.taxonGroup = TaxonNameRef.fromObject(taxonGroup[0]);
     }
 
-    // Default taxon group
-    if (isNotNil(this.defaultTaxonGroup)) {
-      data.taxonGroup = TaxonGroupRef.fromObject(this.defaultTaxonGroup);
-    }
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -289,5 +284,25 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   public markForCheck() {
     this.cd.markForCheck();
+  }
+
+
+  /**
+   * getTaxonGroup
+   * @param id
+   * @param entityName
+   * @protected
+   */
+  protected async getTaxoGroupByTaxonNameId(id : any, entityName : string){
+    const res = await this.referentialRefService.loadAll(0, 100, null,null,
+      {
+        entityName: entityName,
+        id : id
+      },
+      {
+        withTotal: false
+      });
+    return res.data;
+
   }
 }

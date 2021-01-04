@@ -26,6 +26,7 @@ import {AppEditorOptions} from "../../core/form/editor.class";
 import {Landing2Form} from "./landing2.form";
 import {MatTabGroup} from "@angular/material/tabs";
 import {Samples2Table} from "../sample/samples2.table";
+import {StrategyService} from "../../referential/services/strategy.service";
 
 @Component({
   selector: 'app-landing2-page',
@@ -49,6 +50,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   protected referentialRefService: ReferentialRefService;
   protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
+  protected strategyService: StrategyService;
+
 
   mobile: boolean;
 
@@ -74,6 +77,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
+    this.strategyService = injector.get(StrategyService);
+
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
