@@ -245,9 +245,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       // Increase default column size, for 'label'
       columnSizes: fishingAreaAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
       filter: <ReferentialRefFilter>{
-        entityName: 'Location',
-        levelId: LocationLevelIds.PORT
-        //levelId: LocationLevelIds.ICES_RECTANGLE
+        entityName: 'Location'
       },
       mobile: this.mobile
     });
