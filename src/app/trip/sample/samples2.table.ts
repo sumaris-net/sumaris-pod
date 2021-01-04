@@ -55,7 +55,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   @Input()
   set value(data: Sample[]) {
-    this.memoryDataService.value = data/*.filter(sample => !sample.taxonName)*/;
+    this.memoryDataService.value = data.filter(sample => !sample.taxonName);
     this.defaultTaxonName = data[0].taxonName;
   }
 
