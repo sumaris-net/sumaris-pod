@@ -418,7 +418,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
 
 
   /**
-   * load appliedPmfm by label
+   *
    * @param label
    * @param options : expandedPmfmStrategy
    */
