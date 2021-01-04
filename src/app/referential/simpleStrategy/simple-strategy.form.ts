@@ -466,7 +466,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
         allowEmptyArray: false,
         validators: [
           this.requiredPmfmMinLength(2),
-          this.requiredMaturityIfAge()
+          this.requiredMaturityIfAge(),
+          this.requiredSexIfMaturity()
         ]
       }
     );
@@ -596,6 +597,19 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
         const maturity = (array.value[4] || []).filter(p => p.pmfm);
         if (age && maturity && maturity.length <= 1) {
           return { maturity: { maturity: false } };
+        }
+      }
+      return null;
+    };
+  }
+
+  requiredSexIfMaturity(): ValidatorFn {
+    return (array: FormArray): ValidationErrors | null => {
+      const sex = array.value[0];
+      if (Array.isArray(array.value[4])) {
+        const maturity = (array.value[4] || []).filter(p => p.pmfm);
+        if (!sex && maturity && maturity.length >= 1) {
+          return { sex: { sex: false } };
         }
       }
       return null;
