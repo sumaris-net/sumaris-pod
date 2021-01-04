@@ -115,9 +115,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   get fishingAreasFormArray(): FormArray {
     return this.form.controls.fishingAreas as FormArray;
   }
+
   taxonNameHelper: FormArrayHelper<TaxonNameStrategy>;
   get taxonNamesForm(): FormArray {
-    return this.form.controls.taxonNames as FormArray;
+    return this.form.controls.samples as FormArray;
   }
 
   constructor(
@@ -282,7 +283,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   protected initTaxonNameHelper() {
     // appliedStrategies => appliedStrategies.location ?
     this.taxonNameHelper = new FormArrayHelper<TaxonNameStrategy>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'taxonNames'),
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'samples'),
       (ts) => this.validatorService.getTaxonNameStrategyControl(ts),
       (t1, t2) => EntityUtils.equals(t1.taxonName, t2.taxonName, 'name'),
       value => isNil(value) && isNil(value.taxonName),
@@ -347,6 +348,13 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     if (!value) return;
 
+    const taxonNames = value.samples.filter(sample => sample.taxonName);
+
+    value.samples = value.samples.filter(sample => !sample.taxonName);
+
+    // Send value for form
+    super.setValue(value);
+
     // Make sure to have (at least) one observer
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
@@ -361,19 +369,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     if (value.program && value.program.label) {
       this.program = value.program.label;
     }
-//this.taxonNamesForm.value = value.samples[0].taxonName;
-    const taxonNameControl = this.taxonNamesForm;
-    if (value && value.samples[0] && value.samples[0].taxonName) {
-      const taxonName: TaxonNameRef = value.samples[0].taxonName as TaxonNameRef;
-      let taxonNameseStrategies: TaxonNameStrategy[] = [];
-      let taxonNameStrategy = new TaxonNameStrategy();
-      taxonNameStrategy.taxonName = taxonName;
-      taxonNameseStrategies.push(taxonNameStrategy);
-      taxonNameControl.patchValue(taxonNameseStrategies);
-  }
 
-    // Send value for form
-    super.setValue(value);
+    const taxonNameControl = this.taxonNamesForm;
+    taxonNameControl.patchValue(taxonNames);
+  
 
   }
 
