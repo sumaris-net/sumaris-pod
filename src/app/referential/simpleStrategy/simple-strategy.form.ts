@@ -16,6 +16,7 @@ import { ReferentialRefService } from "../services/referential-ref.service";
 import { StrategyService } from "../services/strategy.service";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { PmfmStrategiesTable } from "../strategy/pmfm-strategies.table";
+import {TaxonNameRef} from "../services/model/taxon.model";
 
 @Component({
   selector: 'form-simple-strategy',
@@ -163,7 +164,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
-      suggestFn: (value, filter) => this.suggest(value, {
+      suggestFn: (value, filter) => this.suggestTaxonName(value, {
         ...filter, statusId: 1
       },
         'TaxonName',
@@ -261,6 +262,29 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
         ...filter,
         entityName: entityName
       });
+    }
+  }
+
+  protected async suggestTaxonName(value: string, filter: any, entityName: string, filtered: boolean): Promise<TaxonNameRef[]> {
+    if (filtered) {
+      // if TaxonNme filtred : //TODO a remplacer par recuperation des donnees deja saisies
+      const res = await this.referentialRefService.loadAllTaxonNames(0, 5, null, null,
+        {
+          ...filter,
+          entityName: entityName
+        },
+        { withTotal: false /* total not need */ }
+      );
+      return res;
+    }
+    else {
+      const res = await this.referentialRefService.suggestTaxonNames(value,
+        {
+          ...filter,
+          entityName: entityName
+        },
+      );
+      return res;
     }
   }
 

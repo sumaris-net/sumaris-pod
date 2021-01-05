@@ -622,7 +622,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     // Update strategies
 
     // Make sure tp copy programId (need by equals)
-    target.programId = source.id;
+    target.programId = source.programId;
 
     const savedStrategy = source;
     EntityUtils.copyIdAndUpdateDate(savedStrategy, target);
