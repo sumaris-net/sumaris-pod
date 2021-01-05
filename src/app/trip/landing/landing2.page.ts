@@ -228,15 +228,33 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.programSubject.next(data.program.label);
     }
 
+    const measurementValues = Object.entries(data.measurementValues).map(([key, value]) => {
+      return {
+        key,
+        value
+      };
+    });
+    let strategyLabel : string;
+    // FIXME CLT measurement Pmfm Code must be externalized
+    measurementValues.forEach((measurementValue) => {
+      if (measurementValue.key === "359") {
+        strategyLabel = measurementValue.value
+      }
+    });
+
+
     this.landing2Form.program = data.program.label;
     this.landing2Form.value = data;
-
+    this.landing2Form.strategyLabel = strategyLabel;
     this.samples2Table.value = data.samples || [];
 
-    //FIXME get pmfmStrategy  by label ---------------------------------------------------------------------------------
-    let pmfmStrategy =  await this.strategyService.loadByLabel( "2020-BIO-0001", { expandedPmfmStrategy : true});
+    let pmfmStrategy =  await this.strategyService.loadByLabel( strategyLabel, { expandedPmfmStrategy : true});
 
     this.samples2Table.appliedPmfmStrategy = pmfmStrategy.pmfmStrategies;
+    this.samples2Table.pmfms = pmfmStrategy.pmfmStrategies;
+
+    // Set fishing areas using strategy
+    // this.landing2Form.
     //------------------------------------------------------------------------------------------------------------------
 
 
