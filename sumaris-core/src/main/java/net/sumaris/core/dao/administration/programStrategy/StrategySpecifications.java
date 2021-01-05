@@ -71,4 +71,6 @@ public interface StrategySpecifications {
 
     List<StrategyDepartmentVO> saveStrategyDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources);
 
+    void saveProgramLocationsByStrategyId(int strategyId);
+
 }

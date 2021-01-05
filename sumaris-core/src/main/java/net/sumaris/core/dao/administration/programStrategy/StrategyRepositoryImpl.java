@@ -223,28 +223,27 @@ public class StrategyRepositoryImpl
     protected void onAfterSaveEntity(StrategyVO vo, Strategy savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
 
-        // Save program locations
-//        saveProgramLocations(savedEntity);
-
         getEntityManager().flush();
         getEntityManager().clear();
     }
 
-    protected void saveProgramLocations(Strategy savedEntity) {
+    public void saveProgramLocationsByStrategyId(int strategyId) {
         EntityManager em = getEntityManager();
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+
+        Strategy strategy = getOne(Strategy.class, strategyId);
 
         // Get existing locations
         Set<Location> programLocations = new HashSet<>();
         CriteriaQuery<Program2Location> query = cb.createQuery(Program2Location.class);
         Root<Program2Location> root = query.from(Program2Location.class);
-        query.where(cb.equal(root.get(Program2Location.Fields.PROGRAM), savedEntity.getProgram()));
+        query.where(cb.equal(root.get(Program2Location.Fields.PROGRAM), strategy.getProgram()));
         em.createQuery(query).getResultStream().forEach(p2l -> programLocations.add(p2l.getLocation()));
 
-        Beans.getList(savedEntity.getAppliedStrategies()).forEach(appliedStrategy -> {
+        Beans.getList(strategy.getAppliedStrategies()).forEach(appliedStrategy -> {
             if (appliedStrategy.getLocation() != null && !programLocations.contains(appliedStrategy.getLocation())) {
                 Program2Location p2l = new Program2Location();
-                p2l.setProgram(savedEntity.getProgram());
+                p2l.setProgram(strategy.getProgram());
                 p2l.setLocation(appliedStrategy.getLocation());
                 em.persist(p2l);
                 programLocations.add(appliedStrategy.getLocation());
