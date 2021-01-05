@@ -245,7 +245,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     this.landing2Form.program = data.program.label;
     this.landing2Form.value = data;
-    this.landing2Form.strategyLabel = strategyLabel;
+    // this.landing2Form.strategyLabel = strategyLabel;
     this.samples2Table.value = data.samples || [];
 
     let pmfmStrategy =  await this.strategyService.loadByLabel( strategyLabel, { expandedPmfmStrategy : true});
