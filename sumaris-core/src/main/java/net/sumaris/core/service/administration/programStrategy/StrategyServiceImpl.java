@@ -188,5 +188,8 @@ public class StrategyServiceImpl implements StrategyService {
 		// Save pmfm strategies
 		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(strategyId, Beans.getList(source.getPmfmStrategies()));
 		source.setPmfmStrategies(savedPmfmStrategies);
+
+		// Save program locations
+		strategyRepository.saveProgramLocationsByStrategyId(strategyId);
 	}
 }
