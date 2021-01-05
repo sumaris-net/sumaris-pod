@@ -66,7 +66,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
-  public sampleRowMask = ['2', '0', '2', '0', '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
+  public sampleRowMask = ['2', '0', '2', '1', '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
 
   get appliedStrategiesForm(): FormArray {
     return this.form.controls.appliedStrategies as FormArray;
@@ -419,7 +419,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       const dateAsString = date as string;
       year = moment(dateAsString).toDate().getFullYear().toString()
     }
-    this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+    this.sampleRowMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
 
     // get new label sample row code
     const updatedLabel = await this.strategyService.findStrategyNextLabel(this.programId, `${year}-BIO-`, 4);
