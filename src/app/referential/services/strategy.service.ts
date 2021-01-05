@@ -8,16 +8,16 @@ import {
   isNil,
   isNotNil,
   isNotEmptyArray,
-  isNilOrBlank
+  isNilOrBlank, SuggestService
 } from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, Referential, ReferentialRef} from "../../core/core.module";
+import {BaseEntityService, EntityUtils, Person, Referential, ReferentialRef, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 
 import {GraphqlService} from "../../core/services/graphql.service";
 import {SortDirection} from "@angular/material/sort";
 import {Strategy} from './model/strategy.model';
 import {StrategyFilter} from '../strategy/strategies.table';
-import {EntitiesServiceWatchOptions, EntityServiceLoadOptions} from 'src/app/shared/services/entity-service.class';
+import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, SuggestFn} from 'src/app/shared/services/entity-service.class';
 import {FetchPolicy} from 'apollo-client';
 import {NetworkService} from 'src/app/core/services/network.service';
 import {AccountService} from 'src/app/core/services/account.service';
@@ -43,6 +43,7 @@ import {
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS
 } from "../../core/services/model/referential.model";
+import {PersonFilter} from "../../admin/services/person.service";
 
 export declare interface StrategySaveOptions {
   programId?: number
@@ -90,18 +91,18 @@ export const StrategyFragments = {
     }
   `,
   lightStrategy: gql`
-  fragment LightStrategyFragment on StrategyVO {
-    id
-    label
-    name
-    description
-    comments
-    analyticReference
-    updateDate
-    creationDate
-    statusId
-    programId
-  }
+    fragment LightStrategyFragment on StrategyVO {
+      id
+      label
+      name
+      description
+      comments
+      analyticReference
+      updateDate
+      creationDate
+      statusId
+      programId
+    }
   `,
   strategy: gql`
     fragment StrategyFragment on StrategyVO {
@@ -214,20 +215,26 @@ export const StrategyFragments = {
       taxonGroupIds
       referenceTaxonIds
       strategyId
+      unitLabel
+      type
+      label
+      name
+      maximumNumberDecimals
+      signifFiguresNumber
       __typename
-  }`,
+    }`,
   taxonGroupStrategy: gql`
     fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
       strategyId
       priorityLevel
       taxonGroup {
-          id
-          label
-          name
-          entityName
-          taxonNames {
-              ...TaxonNameFragment
-          }
+        id
+        label
+        name
+        entityName
+        taxonNames {
+          ...TaxonNameFragment
+        }
       }
       __typename
     }
@@ -237,7 +244,7 @@ export const StrategyFragments = {
       strategyId
       priorityLevel
       taxonName {
-          ...TaxonNameFragment
+        ...TaxonNameFragment
       }
       __typename
     }
@@ -301,12 +308,12 @@ const LoadQueryWithExpandedPmfmStrategy: any = gql`
 `;
 
 const LoadAllQuery: any = gql`
-query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
-  strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-    ...LightStrategyFragment
+  query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
+    strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightStrategyFragment
+    }
   }
-}
-${StrategyFragments.lightStrategy}
+  ${StrategyFragments.lightStrategy}
 `;
 
 const LoadAllWithTotalQuery: any = gql`
@@ -320,11 +327,11 @@ const LoadAllWithTotalQuery: any = gql`
 `;
 
 const SaveStrategy: any = gql`
-    mutation SaveStrategy($strategy:StrategyVOInput){
-      saveStrategy(strategy: $strategy){
-        ...StrategyFragment
-      }
+  mutation SaveStrategy($strategy:StrategyVOInput){
+    saveStrategy(strategy: $strategy){
+      ...StrategyFragment
     }
+  }
   ${StrategyFragments.strategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
@@ -359,13 +366,13 @@ const LoadAllStrategies: any = gql`
 `;
 
 const DeleteStrategies: any = gql`
-    mutation deleteStrategies($ids:[Int]){
-      deleteStrategies(ids: $ids)
-    }
-  `;
+  mutation deleteStrategies($ids:[Int]){
+    deleteStrategies(ids: $ids)
+  }
+`;
 
 @Injectable({providedIn: 'root'})
-export class StrategyService extends BaseEntityService implements EntitiesService<Strategy, StrategyFilter>, EntityService<Strategy> {
+export class StrategyService extends BaseEntityService implements EntitiesService<Strategy, StrategyFilter>, EntityService<Strategy>, SuggestService<Strategy, StrategyFilter> {
 
   loading = false;
 
@@ -722,9 +729,17 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
         targetPmfmStrategy.id = savedPmfmStrategy.id;
       });
     }
+  }
 
-
-
-
+  async suggest(value: any, filter?: StrategyFilter): Promise<Strategy[]> {
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
+    value = (typeof value === "string" && value !== '*') && value || undefined;
+    const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
+      {
+        ...filter,
+        searchText: value as string
+      }
+    );
+    return res.data;
   }
 }
