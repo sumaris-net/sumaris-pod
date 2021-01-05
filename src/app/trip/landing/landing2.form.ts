@@ -139,7 +139,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     this.mobile = this.settings.mobile;
 
     // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
   }
 
   ngOnInit() {
@@ -372,7 +372,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     const taxonNameControl = this.taxonNamesForm;
     taxonNameControl.patchValue(taxonNames);
-  
+
 
   }
 

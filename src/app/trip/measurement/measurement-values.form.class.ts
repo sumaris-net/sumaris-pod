@@ -288,18 +288,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
           gearId: this._gearId
         })) || [];
 
-      // FIXME CLT Bug on program pmfms strategies fetch
-      if (!pmfms.length && this._program == 'PARAM-BIO')
-      {
-        let pmfmStrategyMock : PmfmStrategy = new PmfmStrategy();
-        pmfmStrategyMock.__typename= 'PmfmStrategyVO';
-        pmfmStrategyMock.id= 359;
-        pmfmStrategyMock.pmfmId= 359;
-        pmfmStrategyMock.label= 'SAMPLE_ROW_CODE';
-        pmfmStrategyMock.type= 'string';
-        pmfms.push(pmfmStrategyMock);
-      }
-
       if (!pmfms.length && this.debug) {
         console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
       }
