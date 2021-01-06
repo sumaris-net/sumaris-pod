@@ -30,7 +30,6 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
-import {AppFormUtils} from "../../core/core.module";
 import {MatExpansionPanel} from "@angular/material/expansion";
 import {Label, SingleOrMultiDataSet} from "ng2-charts";
 import {ChartLegendOptions, ChartOptions, ChartType} from "chart.js";
@@ -40,6 +39,8 @@ import {AggregationStrata, AggregationType, IAggregationStrata} from "../service
 import {ExtractionUtils} from "../services/extraction.utils";
 import {AggregationService, AggregationTypeFilter} from "../services/aggregation.service";
 import {UnitLabel, UnitLabelPatterns} from "../../referential/services/model/model.enum";
+import {fadeInAnimation, fadeInOutAnimation} from "../../shared/material/material.animations";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 declare interface LegendOptions {
   min: number;

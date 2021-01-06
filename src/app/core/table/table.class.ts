@@ -46,8 +46,7 @@ import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
 import {environment} from "../../../environments/environment";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {Sample} from "../../trip/services/model/sample.model";
+import {Environment, EnvironmentService} from "../../../environments/environment.class";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
@@ -93,6 +92,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
+  protected environment: Environment;
 
   excludesColumns: string[] = [];
   displayedColumns: string[];
@@ -306,8 +306,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
     this.toastController = injector && injector.get(ToastController);
+    this.environment = injector && injector.get(EnvironmentService);
     this._autocompleteConfigHolder = new MatAutocompleteConfigHolder({
-      getUserAttributes: (a,b) => settings.getFieldDisplayAttributes(a, b)
+      getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
     });
     this.autocompleteFields = this._autocompleteConfigHolder.fields;
   }
@@ -390,7 +391,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   ngAfterViewInit() {
-    if (!environment.production) {
+    if (!this.environment.production) {
       // Warn if table not exists
       if (!this.table) {
         setTimeout(() => {

@@ -8,7 +8,7 @@ import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {FormArrayHelper} from '../form/form.utils';
+import {AppFormUtils, FormArrayHelper} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocalSettingsValidatorService} from "../services/validator/local-settings.validator";
