@@ -36,7 +36,7 @@
     "BTN_UNDO": "Annuler les modifications",
     "BTN_TABLE_EDIT": "Editer dans le tableau",
     "BTN_TABLE_OPEN": "Editer dans un formulaire",
-    "BTN_SHOW_HELP": "Voir l'aide",
+    "BTN_SHOW_HELP": "Aide en ligne",
     "BTN_HIDE": "Masquer",
     "BTN_HIDE_MENU": "Masquer le menu",
     "BTN_SHOW_MENU": "Afficher le menu",
@@ -200,7 +200,7 @@
     "MAP": "Cartes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "LOCAL_SETTINGS": "Paramètres",
-    "SERVER": "Gestion du serveur",
+    "SERVER": "Configuration serveur",
     "LOGOUT": "Se déconnecter",
     "ABOUT": "À propos"
   },
@@ -959,8 +959,11 @@
     "COMMENTS": "Commentaires",
     "STATUS": "Etat",
     "RANK_ORDER": "#",
+    "UPDATE_DATE": "Date de mise à jour",
+    "CREATION_DATE": "Date de création",
     "EXTERIOR_MARKING": "Marquage extérieur",
     "REGISTRATION_CODE": "Immatriculation",
+    "PAGE_HISTORY_SUBTITLE": "Référentiel",
     "BASE_PORT_LOCATION": {
       "LABEL": "Code port d'attache",
       "NAME": "Libellé port d'attache"
@@ -1042,7 +1045,7 @@
       "PARAMETER": "Paramètres",
       "USER_PROFILE": "Profils utilisateur",
       "VESSEL_TYPE": "Types de navire",
-      "PMFM": "Paramètres collectés",
+      "PMFM": "Quadruplets PSFM",
       "MATRIX": "Supports de mesure",
       "FRACTION": "Fractions du support",
       "QUALITATIVE_VALUE": "Valeurs qualitatives",
@@ -1169,10 +1172,12 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
+        "BTN_OPEN_MAP": "Voir la carte",
+        "BTN_PREVIEW_DOC": "Prévisualiser la doc",
         "STRATUM_DOTS": "Strates :",
         "FORMAT_DOTS": "Documentation :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
-        "FORMAT_PLACEHOLDER": "Documentation du format",
+        "FORMAT_PLACEHOLDER": "Describe the output format...",
         "FORMAT_PREVIEW": "Prévisualisation",
         "STRATA": {
           "SHEET_NAME": "Onglet",
@@ -1217,16 +1222,20 @@
     },
     "MAP": {
       "BTN_SELECT_TYPE": "Liste des cartes",
+      "BTN_SELECT_TYPE_HELP": "Affiche la liste des cartes disponibles",
       "BTN_SELECT_AGG": "Indicateur ?",
-      "BTN_ADD_TECH_GRAPH": "Ajouter un graphique",
+      "BTN_ADD_CHART": "Graphique...",
+      "BTN_ADD_CHART_HELP": "Ajouter un graphique",
       "BTN_EDIT": "Editer",
       "BTN_ANIMATION_PLAY": "Lancer l'animation",
       "BTN_ANIMATION_PAUSE": "Stopper l'animation",
-      "TITLE_PREFIX": "Carte",
+      "BTN_CHART_SERIES_HELP": "Cliquez ici pour changer la série du graphique",
+      "BTN_EDIT_LEGEND_HELP": "Paramétrer la légende",
       "LAYER": "Couche",
       "LAYERS": "Couches de données",
       "BASE_LAYER": "Fond de carte",
       "SHOW_GRATICULE": "Afficher le graticule",
+      "SHOW_INVALID_GEOMETRIES": "Voir tous les géométries",
       "FILTER": "Filtrage",
       "YEAR": "Année",
       "SPACE": "Géométrie",
@@ -1235,9 +1244,13 @@
       "DISPLAY_OPTIONS": "Options d'affichage",
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
-      "TECH_CHART_TITLE": "{{aggColumnName}} par {{techColumnName}}",
-      "TECH_CHART_ALL_LABELS": "Figer les libellés",
+      "TECH_CHART_TITLE": "{{aggColumnName}} par <b>{{techColumnName}}</b>",
+      "FREEZE_VALUES": "Figer les valeurs",
       "LEGEND": "Légende",
+      "SCALE_LINEAR" : "Linéaire",
+      "SCALE_LOGARITHMIC":  "Logarithmique",
+      "CHART_AXIS_Y": "Echelle Y (gauche)",
+      "CHART_AXIS_X": "Echelle X (bas)",
       "LEGEND_FORM": {
         "TITLE": "Paramètres",
         "OPACITY_PLACEHOLDER": "Opacité (%)",
@@ -1252,12 +1265,12 @@
       },
       "CHART_SORT_BY": {
         "TITLE": "Trier par",
-        "LABEL" : "Libellé",
-        "VALUE":  "Valeur"
+        "LABEL" : "Libellé (asc)",
+        "VALUE":  "Valeur (desc)"
       },
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",
-        "HELP": "Vo ici la liste des cartes disponibles :"
+        "HELP": "Veuillez choisir la carte à afficher :"
       }
     },
     "CATEGORY": {
@@ -1290,9 +1303,14 @@
       "NUMBER_AT_LENGTH": "Nombre d'individu",
       "INDIVIDUAL_SEX": "Sex individu",
       "SEX": "Sex",
+      "WEIGHT": "Poids (kg)",
+      "SUBSAMPLING_WEIGHT": "Poids échantillonné (kg)",
+      "SUBSAMPLING_CATEGORY": "Catégorie de sous-échantillonnage",
       "STATION_COUNT": "Nombre de station",
+      "TRIP_COUNT_BY_STATION": "Nb de marées, par station",
+      "TRIP_COUNT_BY_FISHING_TIME": "Nb de marées, par temps de peche",
       "VESSEL_COUNT": "Nombre de navires",
-      "FISHING_TIME": "Temps de pêche (h. dec)",
+      "FISHING_TIME": "Temps de pêche (h dec.)",
       "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Poids officiel débarqué (kg)"
     },
@@ -1343,7 +1361,9 @@
       "LOAD_ROWS_ERROR": "Erreur de chargement des lignes de données.",
       "DOWNLOAD_FILE_ERROR": "Erreur de téléchargement du fichier d'extraction.",
       "LOAD_GEO_TYPES_ERROR": "Erreur de chargement des types de données spatiale",
-      "LOAD_GEO_DATA_ERROR": "Erreur de chargement des données spatiales"
+      "LOAD_GEO_JSON_ERROR": "Erreur de chargement des données spatiales",
+      "LOAD_TECH_ERROR": "Erreur de chargement des données du graphiques",
+      "LOAD_MIN_MAX_ERROR": "Erreur de chargement des bornes"
     }
   },
   "NETWORK": {
@@ -1354,7 +1374,7 @@
     "PEER": {
       "OFFLINE": "Nœud injoignable",
       "SELECT_MODAL": {
-        "TITLE": "Nœud réseau",
+        "TITLE": "Nœuds réseau",
         "HELP": "Veuillez choisir un nœud réseau auquel vous connecter :",
         "NOT_COMPATIBLE_HELP": "Version requise : v{{version}} ou +"
       }
@@ -1460,7 +1480,7 @@
     "BAD_APP_VERSION": "Veuillez mettre à jour l'application. La récupération et l'envoi de données avec la version actuelle risque de ne pas fonctionner.</small>",
     "LOAD_TRASH_ENTITY_ERROR": "Erreur de chargement du fichier de corbeille",
     "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille",
-    "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données",
+    "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données locale",
     "STARTUP_FAILED": "Echec du lancement"
   },
   "CONFIRM": {

@@ -42,6 +42,30 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
   @Input() program: string;
 
+  get sortActive(): string {
+    const sortActive = super.sortActive;
+    // Local sort
+    if (this.tripId < 0) {
+      switch (sortActive) {
+        case 'physicalGear':
+          return 'physicalGear.gear.' + this.displayAttributes.gear[0];
+        case 'targetSpecies':
+          return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
+        default:
+          return sortActive;
+      }
+    }
+    // Remote sort
+    else {
+      switch (sortActive) {
+        case 'targetSpecies':
+          return 'metier';
+        default:
+          return sortActive;
+      }
+    }
+  }
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -97,9 +121,9 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.saveBeforeDelete = false;
     this.autoLoad = false; // waiting parent to be loaded
 
-    this.pageSize = -1; // Do not use paginator
-    this.sortBy = this.mobile ? 'startDateTime' : 'endDateTime';
-    this.sortDirection = this.mobile ? 'desc' : 'asc';
+    this.defaultPageSize = -1; // Do not use paginator
+    this.defaultSortBy = this.mobile ? 'startDateTime' : 'endDateTime';
+    this.defaultSortDirection = this.mobile ? 'desc' : 'asc';
 
     settings.ready().then(() => {
       if (this.settings.settings.accountInheritance) {

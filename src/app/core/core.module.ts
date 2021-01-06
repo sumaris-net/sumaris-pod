@@ -1,4 +1,4 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
+import {ModuleWithProviders, NgModule, Optional} from '@angular/core';
 import {RouterModule} from '@angular/router';
 import {AuthForm} from './auth/form/form-auth';
 import {AuthModal} from './auth/modal/modal-auth';
@@ -103,11 +103,10 @@ import {LocalSettingsService} from "./services/local-settings.service";
 export class CoreModule {
 
   static forRoot(): ModuleWithProviders<CoreModule> {
-
     console.info("[core] Creating module (root)");
     return {
       ngModule: CoreModule,
       providers: [ PlatformService ]
-    }
+    };
   }
 }

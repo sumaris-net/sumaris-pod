@@ -370,18 +370,18 @@ export class ReferentialRefService extends BaseEntityService
     throw new Error('Not implemented yet');
   }
 
-  async lastUpdateDate(): Promise<Moment> {
+  async lastUpdateDate(opts?: {fetchPolicy?: FetchPolicy}): Promise<Moment> {
     try {
-      const res = await this.graphql.query<{lastUpdateDate: string}>({
+      const {lastUpdateDate} = await this.graphql.query<{lastUpdateDate: string}>({
         query: LastUpdateDate,
         variables: {},
-        fetchPolicy: "network-only"
+        fetchPolicy: opts && opts.fetchPolicy || 'network-only'
       });
 
-      return res && fromDateISOString(res.lastUpdateDate);
+      return fromDateISOString(lastUpdateDate);
     }
     catch (err) {
-      console.error('[referential-ref] Cannot get pod lastUpdateDate: ' + (err && err.message || err), err);
+      console.error('[referential-ref] Cannot get remote lastUpdateDate: ' + (err && err.message || err), err);
       return undefined;
     }
   }

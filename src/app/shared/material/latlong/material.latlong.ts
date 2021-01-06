@@ -40,7 +40,7 @@ import {DEFAULT_PLACEHOLDER_CHAR} from '../../constants';
 import {filter} from "rxjs/operators";
 import {isNil, isNotNil, isNotNilOrBlank} from "../../functions";
 import {getCaretPosition, moveInputCaretToSeparator, selectInputContent, selectInputRange} from "../../inputs";
-import {Subscription} from "rxjs";
+import {merge, Subscription} from "rxjs";
 import {TextMaskConfig} from "angular2-text-mask";
 
 const MASKS: {
@@ -80,7 +80,6 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
   private _subscription = new Subscription();
-  protected _disabled: boolean;
   protected disabling = false;
   protected writing = false;
 
@@ -125,10 +124,10 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
   @Input() tabindex: number;
 
   @Output()
-  onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  onBlur = new EventEmitter<FocusEvent>();
 
   @Output()
-  onFocus: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  onFocus = new EventEmitter<FocusEvent>();
 
   @ViewChild('inputElement') inputElement: ElementRef;
 
@@ -207,14 +206,11 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
     }
 
     this._subscription.add(
-      this.textFormControl.valueChanges
-        //.pipe(debounceTime(250))
-        .subscribe((value) => this.onFormChange(value))
-    );
-    this._subscription.add(
-      this.signFormControl.valueChanges
-        //.pipe(debounceTime(250))
-        .subscribe((value) => this.onFormChange(this.textFormControl.value))
+      merge(
+        this.textFormControl.valueChanges,
+        this.signFormControl.valueChanges
+      )
+        .subscribe((_) => this.onFormChange(this.textFormControl.value))
     );
 
     // Listen status changes (when done outside the component  - e.g. when setErrors() is calling on the formControl)
@@ -279,8 +275,6 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
     if (this.disabling) return;
 
     this.disabling = true;
-    this.writing = true;
-    this._disabled = isDisabled;
     if (isDisabled) {
       this.textFormControl.disable({onlySelf: true, emitEvent: false});
       this.signFormControl.disable({onlySelf: true, emitEvent: false});
@@ -288,7 +282,6 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
       this.textFormControl.enable({onlySelf: true, emitEvent: false});
       this.signFormControl.enable({onlySelf: true, emitEvent: false});
     }
-    this.writing = false;
     this.disabling = false;
     this.markForCheck();
   }
@@ -299,12 +292,16 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
 
     if (this.textFormControl.invalid || this.signFormControl.invalid) {
       this.formControl.markAsPending();
-      this.formControl.setErrors({...this.textFormControl.errors, ...this.signFormControl.errors});
+      this.formControl.setErrors({
+        ...this.formControl.errors,
+        ...this.textFormControl.errors,
+        ...this.signFormControl.errors
+      });
       this.writing = false;
       return;
     }
 
-    let parsedValue = isNotNilOrBlank(strValue) ? parseLatitudeOrLongitude(strValue, this.pattern, 7 /*=precision of the converted double value */, this.placeholderChar) : null;
+    const parsedValue = isNotNilOrBlank(strValue) ? parseLatitudeOrLongitude(strValue, this.pattern, 7 /*=precision of the converted double value */, this.placeholderChar) : null;
 
     // DEBUG
     //console.debug('parsedValue=', parsedValue);
@@ -333,7 +330,7 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
       this._onTouchedCallback();
       return true;
     }
-    return false
+    return false;
   }
 
   _onFocus(event: FocusEvent) {

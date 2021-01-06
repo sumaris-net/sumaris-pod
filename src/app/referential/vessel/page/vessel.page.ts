@@ -7,11 +7,14 @@ import {AppEntityEditor} from "../../../core/form/editor.class";
 import {FormGroup, Validators} from "@angular/forms";
 import * as momentImported from "moment";
 const moment = momentImported;
+import {DateFormatPipe, EntityServiceLoadOptions, isNotNil} from "../../../shared/shared.module";
+import * as moment from "moment";
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {DateFormatPipe} from "../../../shared/pipes/date-format.pipe";
 import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {HistoryPageReference} from "../../../core/services/model/history.model";
 
 @Component({
   selector: 'app-vessel-page',
@@ -53,17 +56,19 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     private dateAdapter: DateFormatPipe
   ) {
     super(injector, Vessel, vesselService);
+    this.defaultBackHref = '/referential/vessels';
   }
 
   ngOnInit() {
     // Make sure template has a form
-    if (!this.form) throw "[VesselPage] no form for value setting";
+    if (!this.form) throw new Error("No form for value setting");
     this.form.disable();
 
     super.ngOnInit();
   }
 
-  ngAfterViewInit(): void {
+  async ngAfterViewInit() {
+    await super.ngAfterViewInit();
 
     this.registerSubscription(
       this.onUpdateView.subscribe(() => {
@@ -117,6 +122,14 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     return await this.translate.get('VESSEL.EDIT.TITLE', data.features).toPromise();
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      icon: 'boat',
+      subtitle: 'MENU.VESSELS'
+    };
+  }
+
   async cancel(): Promise<void> {
     await this.reloadWithConfirmation();
   }
@@ -166,8 +179,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.previousVessel = undefined;
     this.form.enable();
 
-    // disable registration start date
-    this.form.get("registration.startDate").disable();
+    // disable registration start date, if already exists (must not change it)
+    const registrationStartDate = this.form.get("registration.startDate").value;
+    if (isNotNil(registrationStartDate)) {
+      this.form.get("registration.startDate").disable();
+    }
 
     // disable features controls
     this.form.get("features").disable();

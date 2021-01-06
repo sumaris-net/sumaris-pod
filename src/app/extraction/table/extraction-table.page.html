@@ -4,6 +4,7 @@
     <ion-button [matMenuTriggerFor]="selectTypeMenu"
                 *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
                 color="accent" fill="solid">
+      <ion-icon slot="start" name="server"></ion-icon>
       <ion-label translate>EXTRACTION.TABLE.BTN_SELECT_TYPE</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
     </ion-button>
@@ -50,7 +51,7 @@
 
 <!-- aggregate menu -->
 <mat-menu #aggregateMenu="matMenu" xPosition="before">
-  <button mat-menu-item *ngIf="!type?.isSpatial" (click)="aggregate()">
+  <button mat-menu-item *ngIf="!type?.isSpatial" (click)="createAggregation()">
     <ion-label translate>EXTRACTION.SPATIAL_AGGREGATION</ion-label>
   </button>
 </mat-menu>
@@ -61,11 +62,11 @@
     <mat-toolbar-row>
       <button mat-icon-button color="light" [matTooltip]="'COMMON.BTN_EDIT'|translate"
               *ngIf="canEdit"
-              (click)="openAggregationType(type)">
+              (click)="openAggregationTypeModal(type)">
         <mat-icon>edit</mat-icon>
       </button>
       <button mat-icon-button *ngIf="canEdit && isAdmin" [matTooltip]="'COMMON.BTN_DELETE'|translate"
-              (click)="deleteAggregation()">
+              (click)="delete($event)">
         <mat-icon>delete</mat-icon>
       </button>
 
@@ -86,7 +87,7 @@
 
       <!-- error -->
       <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
       </ion-item>
 
@@ -100,6 +101,7 @@
         <mat-icon>help_outline</mat-icon>
       </button>
 
+      <!-- open map -->
       <button mat-icon-button
               *ngIf="type?.isSpatial"
               [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
@@ -198,7 +200,7 @@
 
   <!-- error -->
   <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
@@ -231,7 +233,7 @@
   <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!data?.total">
     <ion-col></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="data?.total" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200, 500]"
+      <mat-paginator [length]="data?.total" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200, 500]"
                      showFirstLastButtons>
       </mat-paginator>
     </ion-col>
@@ -248,7 +250,7 @@
 
 <!--    &lt;!&ndash; error &ndash;&gt;-->
 <!--    <ion-item *ngIf="error">-->
-<!--      <ion-icon color="danger" slot="start" name="alert"></ion-icon>-->
+<!--      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>-->
 <!--      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>-->
 <!--    </ion-item>-->
 

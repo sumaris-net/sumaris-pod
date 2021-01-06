@@ -117,15 +117,19 @@ ion-card.chart {
   }
 
   ion-toolbar {
-    padding-left: unset;
+    padding-left: unset !important;
     padding-right: unset;
-    -webkit-padding-start: 8px;
-    padding-inline-start: 8px;
+    -webkit-padding-start: 8px !important;
+    padding-inline-start: 8px !important;
     -webkit-padding-end: 8px;
     padding-inline-end: 8px;
 
-    ion-label {
+    ion-label,
+    ion-text,
+    ion-title {
       cursor: pointer;
+      font-size: inherit;
+      font-weight: inherit;
 
       ion-icon,
       mat-icon {
@@ -138,6 +142,7 @@ ion-card.chart {
 
     &:hover {
       color: var(--ion-color-primary);
+      background: rgba(0, 0, 0, 0.04);
     }
   }
 
@@ -155,6 +160,7 @@ ion-card.chart {
 
 ion-card.legend {
 
+
   ion-card-header,
   ion-card-content {
     padding-left: unset;
@@ -168,8 +174,6 @@ ion-card.legend {
   ion-card-subtitle {
 
     ion-label {
-      cursor: pointer;
-
       ion-icon,
       mat-icon {
         visibility: hidden;
@@ -184,17 +188,22 @@ ion-card.legend {
         content: ' ';
       }
 
-      &:hover {
-        color: var(--ion-color-primary);
-        ion-icon,
-        mat-icon {
-          visibility: visible;
-        }
-      }
-    }
 
+    }
   }
 
+  ion-card-header:hover {
+    color: var(--ion-color-primary);
+    background: rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+
+    ion-card-subtitle ion-label {
+      ion-icon,
+      mat-icon {
+        visibility: visible;
+      }
+    }
+  }
 
   ion-row {
     padding-top: 0;

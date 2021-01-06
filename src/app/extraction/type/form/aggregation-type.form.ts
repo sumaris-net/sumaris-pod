@@ -1,17 +1,21 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
+import {AppForm, EntityUtils, FormArrayHelper, isNil, StatusIds} from "../../../core/core.module";
 import {
   ExtractionColumn
-} from "../services/model/extraction.model";
+} from "../../services/model/extraction.model";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
-import {ReferentialForm} from "../../referential/form/referential.form";
+import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
+import {ReferentialForm} from "../../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
-import {arraySize, isNil} from "../../shared/functions";
+import {arraySize, isNil} from "../../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ExtractionService} from "../services/extraction.service";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {ExtractionService} from "../../services/extraction.service";
 import {debounceTime} from "rxjs/operators";
+import {AggregationStrata, AggregationType} from "../../services/model/aggregation-type.model";
+import {ExtractionUtils} from "../../services/extraction.utils";
+import {AggregationService} from "../../services/aggregation.service";
 import {AggregationStrata, AggregationType} from "../services/model/aggregation-type.model";
 import {ExtractionUtils} from "../services/extraction.utils";
 import {AppForm} from "../../core/form/form.class";
@@ -19,7 +23,9 @@ import {FormArrayHelper} from "../../core/form/form.utils";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 
-declare type ColumnMap = {[sheetName: string]: ExtractionColumn[] };
+declare interface ColumnMap {
+  [sheetName: string]: ExtractionColumn[];
+}
 
 @Component({
   selector: 'app-aggregation-type-form',
@@ -78,6 +84,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
               protected settings: LocalSettingsService,
               protected validatorService: AggregationTypeValidatorService,
               protected extractionService: ExtractionService,
+              protected aggregationService: AggregationService,
               protected cd: ChangeDetectorRef) {
     super(dateAdapter,
       validatorService.getFormGroup(),
@@ -88,7 +95,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     this.stratumHelper = new FormArrayHelper<AggregationStrata>(
       this.stratumFormArray,
       (strata) => validatorService.getStrataFormGroup(strata),
-      (v1, v2) => EntityUtils.equals(v1, v2, 'id') || v1.sheetName == v2.sheetName,
+      (v1, v2) => EntityUtils.equals(v1, v2, 'id') || v1.sheetName === v2.sheetName,
       (strata) => !strata || isNil(strata.sheetName),
       {
         allowEmptyArray: false
@@ -114,7 +121,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
 
       const map: {[key: string]: ColumnMap} = {};
       await Promise.all(sheetNames.map(sheetName => {
-        return this.extractionService.loadColumns(type, sheetName)
+        return this.aggregationService.loadColumns(type, sheetName)
           .then(columns => {
             columns = columns || [];
             const columnMap = ExtractionUtils.dispatchColumns(columns);
@@ -123,7 +130,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
               m[sheetName] = columnMap[key];
               map[key] = m;
             });
-          })
+          });
       }));
 
       console.debug('[aggregation-type] Columns map:', map);
@@ -164,17 +171,17 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
         .subscribe(isSpatial => {
            // Not need stratum
            if (!isSpatial) {
-             this.stratumHelper.resize(0)
+             this.stratumHelper.resize(0);
              this.stratumHelper.allowEmptyArray = true;
            }
            else {
-             if (this.stratumHelper.size() == 0) {
+             if (this.stratumHelper.size() === 0) {
                this.stratumHelper.resize(1);
              }
              this.stratumHelper.allowEmptyArray = false;
            }
         })
-    )
+    );
   }
 
   toggleDocPreview() {

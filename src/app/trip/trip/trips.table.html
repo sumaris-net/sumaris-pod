@@ -2,14 +2,17 @@
 
   <ion-title>{{'TRIP.TABLE.TITLE'|translate}}</ion-title>
 
-  <ion-buttons slot="end">
+  <ion-buttons slot="end" *ngIf="synchronizationStatus as syncStatus">
 
     <!-- Synchronization status -->
     <ion-button *ngIf="hasOfflineMode"
-                [color]="synchronizationStatus==='SYNC' ? 'secondary' : 'accent'"
+                [color]="syncStatus==='SYNC' ? 'secondary' : 'accent'"
                 fill="solid"
                 [matMenuTriggerFor]="syncStatusMenu">
-      <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
+      <ion-icon slot="start" *ngIf="syncStatus === 'SYNC'" name="cloud-done"></ion-icon>
+      <ion-icon slot="start" *ngIf="syncStatus === 'DIRTY'" name="cloud-offline"></ion-icon>
+      <ion-label>
+        {{ 'NETWORK.SYNCHRONIZATION_STATUS.' + syncStatus | translate}}</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
     </ion-button>
   </ion-buttons>
@@ -41,7 +44,7 @@
   <button mat-menu-item
           *ngIf="hasOfflineMode"
           (click)="prepareOfflineMode($event)">
-    <mat-icon>cloud_download</mat-icon>
+    <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
     <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
   </button>
 
@@ -97,7 +100,7 @@
     showUpgradeWarning="true"
     showOfflineWarning="false"
     [showUpdateOfflineFeature]="showUpdateOfflineFeature"
-    (onUpdateOfflineModeClick)="prepareOfflineMode($event)"
+    (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
   >
   </app-install-upgrade-card>
 
@@ -286,8 +289,8 @@
 
   <!-- table -->
   <mat-table [dataSource]="dataSource" matSort
-             [matSortActive]="sortBy"
-             [matSortDirection]="sortDirection"
+             [matSortActive]="defaultSortBy"
+             [matSortDirection]="defaultSortDirection"
     matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
@@ -427,7 +430,7 @@
   <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!resultsLength">
     <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      <mat-paginator [length]="resultsLength" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>

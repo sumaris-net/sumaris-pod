@@ -2,7 +2,7 @@ import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, Va
 import * as momentImported from "moment";
 const moment = momentImported;
 import {DATE_ISO_PATTERN, PUBKEY_REGEXP} from "../constants";
-import {fromDateISOString, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN} from "../functions";
+import {fromDateISOString, isEmptyArray, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN} from "../functions";
 import {Moment} from "moment";
 
 // @dynamic
@@ -106,6 +106,42 @@ export class SharedValidators {
     };
   }
 
+  static dateRange(fieldName: string): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.parent) {
+        console.warn(`Cannot find brother control '${fieldName}': no parent form`);
+        return null;
+      }
+      const previousValue = fromDateISOString(control.parent.get(fieldName).value);
+      const value = fromDateISOString(control.value);
+      if (isNotNil(value) && isNotNil(previousValue) && value.isSameOrBefore(previousValue)) {
+        // Return the error
+        return {dateRange: true};
+      }
+      return null;
+    };
+  }
+
+  static copyParentErrors(errorNames?: string[]): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      // Skip if control already has some errors
+      if (control.errors) return null;
+
+      const errors = control.parent && control.parent.errors;
+
+      // No errors, or copy all errors
+      if (!errors || isEmptyArray(errorNames)) return errors;
+
+      // Copy only expected errors
+      return Object.keys(errors).reduce((res, key) => {
+        if (errorNames.includes(key)) {
+          res[key] = errors[key];
+        }
+        return res;
+      }, {});
+    };
+  }
+
   static clearError(control: AbstractControl, errorCode: string) {
     if (control.hasError(errorCode)) {
       const errors = control.errors;
@@ -133,18 +169,18 @@ export class SharedFormGroupValidators {
       const endField = group.get(endDateField);
       const startDate = fromDateISOString(group.get(startDateField).value);
       const endDate = fromDateISOString(endField.value);
-      if (isNotNil(startDate) && isNotNil(endDate) && startDate >= endDate) {
+      if (isNotNil(startDate) && isNotNil(endDate) && startDate.isAfter(endDate)) {
         // Update end field
-        const endFieldErrors: ValidationErrors = endField.errors || {};
-        endFieldErrors['dateRange'] = true;
-        endField.setErrors(endFieldErrors);
+        endField.markAsPending();
+        endField.setErrors({
+          ...endField.errors,
+          dateRange: true
+        });
         // Return the error (should be apply to the parent form)
         return {dateRange: true};
       }
       // OK: remove the existing on the end field
-      else {
-        SharedValidators.clearError(endField, 'dateRange');
-      }
+      SharedValidators.clearError(endField, 'dateRange');
       return null;
     };
   }
@@ -233,7 +269,6 @@ export class SharedFormGroupValidators {
       return null;
     };
   }
-
 }
 
 // @dynamic

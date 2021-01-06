@@ -65,9 +65,8 @@
 
         <ion-col size="auto">
 
-          <!-- Download app link -->
-          <ion-button color="tertiary" class="ion-float-end"
-                      (click)="downloadApp($event, link)">
+          <!-- Download button -->
+          <ion-button color="tertiary" class="ion-float-end" download [href]="link.url">
             <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
           </ion-button>
         </ion-col>
@@ -93,9 +92,9 @@
           </ion-text>
         </ion-col>
         <ion-col size="auto">
-          <!-- Display App download link -->
-          <ion-button color="tertiary" class="ion-float-end"
-                      (click)="downloadApp($event, link)">
+
+          <!-- Download button -->
+          <ion-button color="tertiary" class="ion-float-end" download [href]="link.url">
             <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
           </ion-button>
         </ion-col>

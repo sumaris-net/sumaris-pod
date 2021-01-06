@@ -14,6 +14,7 @@ import {BatchGroupsTable} from "./table/batch-groups.table";
 import {SubBatchesTable, SubBatchFilter} from "./table/sub-batches.table";
 import {CatchBatchForm} from "../catch/catch.form";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AppTabEditor, AppTableUtils, environment} from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {UsageMode} from "../../core/services/model/settings.model";

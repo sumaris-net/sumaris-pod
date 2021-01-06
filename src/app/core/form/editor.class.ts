@@ -1,4 +1,13 @@
-import {ChangeDetectorRef, Directive, EventEmitter, Injector, OnDestroy, OnInit, Optional} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Directive,
+  EventEmitter,
+  Injector,
+  OnDestroy,
+  OnInit,
+  Optional
+} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ToastController} from "@ionic/angular";
 
@@ -21,6 +30,7 @@ import {EnvironmentService} from "../../../environments/environment.class";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;
+  autoLoadDelay?: number;
   pathIdAttribute?: string;
   enableListenChanges?: boolean;
 
@@ -43,12 +53,13 @@ export abstract class AppEntityEditor<
   S extends EntityService<T> = EntityService<T>
   >
   extends AppTabEditor<T, EntityServiceLoadOptions>
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy, AfterViewInit {
 
   private _usageMode: UsageMode;
   private readonly _enableListenChanges: boolean;
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad: boolean;
+  private readonly _autoLoadDelay: number;
   private readonly _autoUpdateRoute: boolean;
   private _autoOpenNextTab: boolean;
 
@@ -61,6 +72,7 @@ export abstract class AppEntityEditor<
   saving = false;
   hasRemoteListener = false;
   defaultBackHref: string;
+  historyIcon: {icon?: string; matIcon?: string; };
   onUpdateView = new EventEmitter<T>();
 
   get usageMode(): UsageMode {
@@ -102,6 +114,7 @@ export abstract class AppEntityEditor<
       enableListenChanges: (injector.get(EnvironmentService).listenRemoteChanges === true),
       pathIdAttribute: 'id',
       autoLoad: true,
+      autoLoadDelay: 0,
       autoUpdateRoute: true,
 
       // Following options are override inside ngOnInit()
@@ -118,6 +131,7 @@ export abstract class AppEntityEditor<
     this._enableListenChanges = options.enableListenChanges;
     this._pathIdAttribute = options.pathIdAttribute;
     this._autoLoad = options.autoLoad;
+    this._autoLoadDelay = options.autoLoadDelay;
     this._autoUpdateRoute = options.autoUpdateRoute;
     this._autoOpenNextTab = options.autoOpenNextTab;
 
@@ -130,16 +144,19 @@ export abstract class AppEntityEditor<
 
     // Defaults
     this._autoOpenNextTab = toBoolean(this._autoOpenNextTab, !this.isOnFieldMode);
+    this.historyIcon = this.historyIcon || {icon: 'list'};
 
     // Register forms
     this.registerForms();
 
     // Disable page, during load
     this.disable();
+  }
 
+  async ngAfterViewInit() {
     // Load data
     if (this._autoLoad) {
-      this.loadFromRoute();
+      setTimeout(() => this.loadFromRoute(), this._autoLoadDelay);
     }
   }
 
@@ -599,20 +616,27 @@ export abstract class AppEntityEditor<
 
     // If NOT data, then add to page history
     if (!this.isNewData) {
-      return this.addToPageHistory({
-        title,
-        path: this.router.url
-      });
+      const page = await this.computePageHistory(title);
+      return this.addToPageHistory(page);
     }
   }
 
   protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    if (!page) return; // Skip
+
     return this.settings.addToPageHistory(page, {
       removePathQueryParams: true,
       removeTitleSmallTag: true,
       emitEvent: false,
       ...opts
     });
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      title,
+      path: this.router.url
+    };
   }
 
   protected async removePageHistory(opts?: { emitEvent?: boolean; }) {

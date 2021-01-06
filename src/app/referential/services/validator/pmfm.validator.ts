@@ -1,4 +1,4 @@
-import {FormBuilder, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormBuilder, Validators} from "@angular/forms";
 import {isNotNil, toNumber} from "../../../shared/functions";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {Injectable} from "@angular/core";
@@ -32,11 +32,10 @@ export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
     } ;
   }
 
-  getFormGroupOptions(data?: Pmfm, opts?: any): { [key: string]: any } {
-    return {
-      /*validator: Validators.compose([
-        SharedFormGroupValidators.requiredIf('fraction', 'matrix')
-      ])*/
-    };
+  getFormGroupOptions(data?: Pmfm, opts?: any): AbstractControlOptions {
+    /*return {validator: Validators.compose([
+      SharedFormGroupValidators.requiredIf('fraction', 'matrix')
+    ])}*/
+    return null;
   }
 }

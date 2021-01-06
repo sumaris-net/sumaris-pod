@@ -19,6 +19,7 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
 import {EnvironmentService} from "../../../environments/environment.class";
+import {HistoryPageReference} from "../../core/services/model/history.model";
 
 @Component({
   selector: 'app-pmfm',
@@ -240,6 +241,15 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
 
     // Existing data
     return this.translate.get('REFERENTIAL.PMFM.EDIT.TITLE', data).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      title: `${this.data.label} - ${this.data.name}`,
+      subtitle: 'REFERENTIAL.ENTITY.PMFM',
+      icon: 'list'
+    };
   }
 
   protected getFirstInvalidTabIndex(): number {

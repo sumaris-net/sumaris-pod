@@ -94,13 +94,25 @@
   </mat-boolean-field>
 
   <!-- date -->
-  <mat-date-time-field *ngSwitchCase="'date'" #matInput
+  <mat-date-field *ngSwitchCase="'date'" #matInput
+                   [formControl]="formControl"
+                   [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+                   [floatLabel]="floatLabel"
+                   [required]="required"
+                   [readonly]="readonly"
+                   [compact]="compact"
+                   [tabindex]="tabindex">
+    <div matSuffix>
+      <ng-content select="[matSuffix]"></ng-content>
+    </div>
+  </mat-date-field>
+
+  <mat-date-time-field *ngSwitchCase="'dateTime'" #matInput
                        [formControl]="formControl"
                        [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
                        [required]="required"
                        [readonly]="readonly"
-                       [displayTime]="displayTime()"
                        [compact]="compact"
                        [tabindex]="tabindex">
     <div matSuffix>

@@ -15,6 +15,8 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {isNil} from "../../shared/functions";
 import {EnvironmentService} from "../../../environments/environment.class";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {HistoryPageReference} from "../../core/services/model/history.model";
 
 @Component({
   selector: 'app-parameter',
@@ -61,7 +63,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
     // default values
     this.defaultBackHref = "/referential/list?entity=Parameter";
     this.canEdit = this.accountService.isAdmin();
-    this.tabCount = 1;
+    this.tabCount = 2;
 
     this.debug = !environment.production;
 
@@ -95,6 +97,12 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
   }
 
   /* -- protected methods -- */
+
+  updateView(data: Parameter | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+    super.updateView(data, opts);
+
+    this.tabCount = this.isQualitative ? 2 : 1;
+  }
 
   protected canUserWrite(data: Parameter): boolean {
     return (this.isNewData && this.accountService.isAdmin())
@@ -148,6 +156,15 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
 
     // Existing data
     return this.translate.get('REFERENTIAL.PARAMETER.EDIT.TITLE', data).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      title: `${this.data.label} - ${this.data.name}`,
+      subtitle: 'REFERENTIAL.ENTITY.PARAMETER',
+      icon: 'list'
+    };
   }
 
   protected getFirstInvalidTabIndex(): number {

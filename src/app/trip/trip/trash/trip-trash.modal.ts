@@ -107,8 +107,8 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false;
-    this.sortBy = 'updateDate';
-    this.sortDirection = 'desc';
+    this.defaultSortBy = 'updateDate';
+    this.defaultSortDirection = 'desc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

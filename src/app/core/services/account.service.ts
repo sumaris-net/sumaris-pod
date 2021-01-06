@@ -457,7 +457,7 @@ export class AccountService extends BaseEntityService {
       this.data.authToken = previousToken;
 
       // Make sure network if set as offline
-      this.network.setForceOffline(true, {displayToast: false});
+      this.network.setForceOffline(true, {showToast: false});
       console.info(`[account] Login [OK] {pubkey: ${this.data.pubkey.substr(0, 8)}}, {offline: true}`);
     }
 
@@ -476,7 +476,7 @@ export class AccountService extends BaseEntityService {
 
     // Load account data
     try {
-      await this.loadData({offline});
+      await this.loadData({offline, fetchPolicy: 'network-only'});
     }
     catch (err) {
       // If account not found, check if email is valid
@@ -516,7 +516,7 @@ export class AccountService extends BaseEntityService {
     return this.data.account;
   }
 
-  public async refresh(): Promise<Account> {
+  async refresh(): Promise<Account> {
     if (!this.data.pubkey) throw new Error("User not logged");
     if (this.network.offline) throw new Error("Cannot check account in offline mode");
 
@@ -609,7 +609,7 @@ export class AccountService extends BaseEntityService {
         // Offline feature are enable: continue in offline mode
         if (this.settings.hasOfflineFeature()) {
           console.warn("[account] Unable to authenticate on pod: forcing offline mode");
-          this.network.setForceOffline(true, {displayToast: false});
+          this.network.setForceOffline(true, {showToast: false});
           // Continue
         }
         // No offline features enable (=offline mode not allowed)
@@ -670,13 +670,14 @@ export class AccountService extends BaseEntityService {
         responseType: 'dataUrl'
       })
         .then(dataUrl => {
-          console.debug("[account] Image fetched: " + dataUrl);
+          if (dataUrl && this._debug) console.debug("[account] Image fetched: ", dataUrl.substring(0, 50));
+
+          // TODO: make sure to display Base64 image in the menu top header
           //jsonAccount.avatar = dataUrl;
         })
         .catch(err => {
           console.error(`[account] Error while fetching image: ${jsonAccount.avatar}: ${err}`);
         });
-
     }
 
     await Promise.all([
@@ -935,7 +936,7 @@ export class AccountService extends BaseEntityService {
 
     const self = this;
 
-    console.debug('[account] [WS] Listening changes on {/subscriptions/websocket}...');
+    console.debug('[account] [WS] Listening account changes');
 
     const subscription = this.graphql.subscribe<{updateAccount: any}>({
       query: UpdateSubscription,
@@ -948,13 +949,12 @@ export class AccountService extends BaseEntityService {
         message: 'ERROR.ACCOUNT.SUBSCRIBE_ACCOUNT_ERROR'
       }
     }).subscribe({
-        async next(data) {
-          if (data && data.updateAccount) {
-            const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
-            if (existingUpdateDate !== data.updateAccount.updateDate) {
-              console.debug("[account] [WS] Detected update on {" + data.updateAccount.updateDate + "}");
-              await self.refresh();
-            }
+        async next({updateAccount}) {
+          if (!updateAccount) return;
+          const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
+          if (existingUpdateDate !== updateAccount.updateDate) {
+            console.debug("[account] [WS] Detected update on {" + updateAccount.updateDate + "}");
+            await self.refresh();
           }
         },
       async error(err) {
@@ -976,7 +976,7 @@ export class AccountService extends BaseEntityService {
     });
 
     // Add log when closing WS
-    subscription.add(() => console.debug('[account] [WS] Stop to listen changes'));
+    subscription.add(() => console.debug('[account] [WS] Stop listening account changes'));
 
     return subscription;
   }

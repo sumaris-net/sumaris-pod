@@ -25,6 +25,7 @@ import {ObservedLocation} from "../services/model/observed-location.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AppEditorOptions} from "../../core/form/editor.class";
 import {EnvironmentService} from "../../../environments/environment.class";
+import {Program} from "../../referential/services/model/program.model";
 
 const moment = momentImported;
 
@@ -56,10 +57,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
 
-  get pmfms(): Observable<PmfmStrategy[]> {
-    return this.landingForm.$pmfms.pipe(filter(isNotNil));
-  }
-
   get form(): FormGroup {
     return this.landingForm.form;
   }
@@ -80,21 +77,17 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.debug = !injector.get(EnvironmentService).production;
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  async ngAfterViewInit(): Promise<void> {
+    await super.ngAfterViewInit();
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(program => {
-          if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-          this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
-          //this.markForCheck();
-        }));
+      this.onProgramChanged.subscribe(program => this.setProgram(program))
+    );
 
     // Use landing date as default dateTime for samples
     this.registerSubscription(
-      this.landingForm.form.controls['dateTime'].valueChanges
+      this.landingForm.form.get('dateTime').valueChanges
         .pipe(throttleTime(200), filter(isNotNil))
         .subscribe((dateTime) => {
           this.samplesTable.defaultSampleDate = dateTime as Moment;
@@ -104,6 +97,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected registerForms() {
     this.addChildForms([this.landingForm, this.samplesTable]);
+  }
+
+  protected async setProgram(program: Program) {
+    if (!program) return; // Skip
+    if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
+    this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {

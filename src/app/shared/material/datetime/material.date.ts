@@ -28,7 +28,7 @@ import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from
 import {SharedValidators} from '../../validator/validators';
 import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {first} from "rxjs/operators";
+import {filter, first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {FloatLabelType} from "@angular/material/form-field";
@@ -106,8 +106,7 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
 
   @Input() clearable = false;
 
-  @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
-  @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
+  @ViewChild('datePicker') datePicker: MatDatepicker<Moment>;
 
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 
@@ -145,10 +144,10 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.validDate] : SharedValidators.validDate);
 
     // Get patterns to display date
-    this.updatePattern(this.translate.instant(['COMMON.DATE_PATTERN']))
+    this.updatePattern(this.translate.instant('COMMON.DATE_PATTERN'));
     this._subscription.add(
-      this.translate.get(['COMMON.DATE_PATTERN'])
-        .subscribe((patterns) => this.updatePattern(patterns))
+      this.translate.get('COMMON.DATE_PATTERN')
+        .subscribe((pattern) => this.updatePattern(pattern))
     );
 
     this._subscription.add(
@@ -158,8 +157,8 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
     // Listen status changes outside the component (e.g. when setErrors() is calling on the formControl)
     this._subscription.add(
       this.formControl.statusChanges
+        .pipe(filter(() => !this.readonly && !this.writing && !this.disabling)) // Skip
         .subscribe((status) => {
-          if (this.readonly || this.writing || this.disabling) return; // Skip
           if (status === 'INVALID') {
             $error.next(this.formControl.errors);
           }
@@ -256,9 +255,13 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
     this._onChangeCallback(dateStr);
   }
 
-  private updatePattern(patterns: {[key: string]: string}) {
-    this.displayPattern = patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L';
-    this.dayPattern = (patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+  private updatePattern(pattern: string) {
+    pattern = pattern !== 'COMMON.DATE_PATTERN' ? pattern : 'L';
+    if (this.displayPattern !== pattern) {
+      this.displayPattern = pattern;
+      this.dayPattern = pattern;
+      this.markForCheck();
+    }
   }
 
   private onFormChange(dayValue): void {
@@ -321,7 +324,7 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
   }
 
   public openDatePicker(event?: UIEvent, datePicker?: MatDatepicker<any>) {
-    datePicker = datePicker || this.datePicker1 || this.datePicker2;
+    datePicker = datePicker || this.datePicker;
     if (datePicker) {
 
       if (event) this.preventEvent(event);

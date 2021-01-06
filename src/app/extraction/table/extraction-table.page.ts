@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
-import {arrayGroupBy, isNil, isNotNil} from '../../shared/functions';
+import {arrayGroupBy, isNil, isNotNil, sleep} from '../../shared/functions';
 import {TableDataSource} from "@e-is/ngx-material-table";
 import {
   ExtractionCategories,
@@ -10,10 +10,10 @@ import {
   ExtractionType
 } from "../services/model/extraction.model";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
-import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
+import {DEFAULT_PAGE_SIZE, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {delay, filter, map} from "rxjs/operators";
+import {filter, map} from "rxjs/operators";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionAbstractPage} from "../form/extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -30,8 +30,8 @@ import {MatSort} from "@angular/material/sort";
 import {MatExpansionPanel} from "@angular/material/expansion";
 import {ExtractionHelpModal} from "../help/help.modal";
 import {AggregationType} from "../services/model/aggregation-type.model";
+import {AggregationService} from "../services/aggregation.service";
 
-export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
@@ -42,6 +42,7 @@ export const DEFAULT_CRITERION_OPERATOR = '=';
 })
 export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> implements OnInit {
 
+  defaultPageSize = DEFAULT_PAGE_SIZE;
   data: ExtractionResult;
   $title = new Subject<string>();
   sortedColumns: ExtractionColumn[];
@@ -61,21 +62,22 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected alertCtrl: AlertController,
-    protected toastController: ToastController,
-    protected translate: TranslateService,
+    route: ActivatedRoute,
+    router: Router,
+    alertCtrl: AlertController,
+    toastController: ToastController,
+    translate: TranslateService,
+    accountService: AccountService,
+    service: ExtractionService,
+    settings: LocalSettingsService,
+    formBuilder: FormBuilder,
+    platform: PlatformService,
+    modalCtrl: ModalController,
     protected location: Location,
-    protected modalCtrl: ModalController,
-    protected accountService: AccountService,
-    protected service: ExtractionService,
-    protected settings: LocalSettingsService,
-    protected formBuilder: FormBuilder,
-    protected platform: PlatformService,
+    protected aggregationService: AggregationService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform);
+    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
@@ -97,7 +99,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       );
 
     // If the user changes the sort order, reset back to the first page.
-    this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+    if (this.sort && this.paginator) this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
     merge(
       this.sort && this.sort.sortChange || EMPTY,
@@ -112,7 +114,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
           this.paginator.pageIndex = 0;
         }
 
-        return this.loadData();
+        return this.loadGeoData();
       });
   }
 
@@ -170,7 +172,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   }
 
   setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
-    opts = opts || {emitEvent: !this.loading};
+    opts = {
+      emitEvent: !this.loading,
+        ...opts
+    };
 
     // Reset sort and paginator
     const resetPaginator = (opts.emitEvent !== false && isNotNil(sheetName) && this.sheetName !== sheetName);
@@ -237,20 +242,23 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   }
 
 
-  async aggregate() {
+  async createAggregation() {
     if (!this.type || !this.canAggregate) return; // Skip
 
     this.loading = true;
     this.error = null;
     this.markForCheck();
 
-    const extractionFilter = this.getFilterValue();
+    const filter = this.getFilterValue();
     this.disable();
 
     try {
 
-      const name = await this.translate.get('EXTRACTION.AGGREGATION.NEW_NAME', {name: this.type.name}).toPromise();
       // Compute a new name
+      const name = await this.translate.get('EXTRACTION.AGGREGATION.NEW_NAME',
+        {name: this.type.name})
+        .toPromise();
+
       const aggType = AggregationType.fromObject({
         label: `${this.type.label}-${this.accountService.account.id}-${Date.now()}`,
         category: this.type.category,
@@ -258,21 +266,17 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       });
 
       // Save aggregation
-      const savedAggType = await this.service.saveAggregation(aggType, extractionFilter);
+      const savedAggType = await this.aggregationService.save(aggType, filter);
 
       // Wait for types cache updates
-      await setTimeout(async() => {
+      await sleep(1000);
 
-        // Open the new aggregation
-        await this.openAggregationType(savedAggType);
+      // Open the new aggregation (no wait)
+      await this.openAggregationTypeModal(savedAggType);
 
-        // Change current type
-        await this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
+      // Change current type
+      await this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
 
-        this.loading = false;
-        this.markForCheck();
-
-      }, 1000);
 
     } catch (err) {
       console.error(err);
@@ -280,12 +284,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       this.loading = false;
       this.markAsDirty();
     } finally {
+      this.loading = false;
+      this.markForCheck();
       this.enable();
     }
 
   }
 
-  async deleteAggregation() {
+  async delete(event?: UIEvent) {
     if (!this.type || isNil(this.type.id)) return;
 
     if (this.type.category !== ExtractionCategories.PRODUCT) {
@@ -293,32 +299,39 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       return;
     }
 
-    if (!(await this.askDeleteConfirmation())) {
-      return; // user cancelled
-    }
+    const confirm = await this.askDeleteConfirmation(event);
+    if (!confirm) return; // user cancelled
 
+    // Mark as loading, and disable
     this.loading = true;
+    this.error = null;
+    this.markForCheck();
+
+    this.disable();
 
     try {
-      await this.service.deleteAggregations([this.type as AggregationType]);
+      const aggType = AggregationType.fromObject(this.type.asObject());
+      await this.aggregationService.delete(aggType);
 
       // Wait propagation to types
-      await delay(2000);
+      await sleep(4000);
 
-      // Choose another type
+      // Change type, to the first one
       const types = await firstNotNilPromise(this.$types);
       if (types && types.length) {
-        await this.setType(types[0], {emitEvent: true});
+        await this.setType(types[0], {emitEvent: false, skipLocationChange: false, sheetName: undefined});
       }
-      else {
-        this.loading = false;
-        this.markForCheck();
-      }
+
+      this.loading = false;
+      this.markForCheck();
+      this.enable();
     }
-    catch(err) {
+    catch (err) {
       console.error(err);
       this.error = err && err.message || err;
+      this.loading = true;
       this.markAsDirty();
+      this.enable();
     }
 
   }
@@ -337,10 +350,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
           relativeTo: this.route,
           queryParams: {...this.queryParams, ...this.getFilterAsQueryParams()}
         });
-    }, 200);
+    }, 200); // Add a delay need by matTooltip to be hide
   }
 
-  async openAggregationType(type?: ExtractionType) {
+  async openAggregationTypeModal(type?: ExtractionType) {
     type = type || this.type;
 
     if (!type) return; // skip if not a aggregation type
@@ -352,27 +365,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   }
 
-  async openHelpModal(event?: UIEvent) {
-    const modal = await this.modalCtrl.create({
-      component: ExtractionHelpModal,
-      componentProps: {
-        type: this.type
-      },
-      keyboardClose: true,
-      cssClass: 'modal-large'
-    });
-
-    // Open the modal
-    await modal.present();
-
-    // Wait until closed
-    await modal.onDidDismiss();
-  }
 
   /* -- protected method -- */
 
   protected watchTypes(): Observable<ExtractionType[]> {
-    return this.service.watchExtractionTypes()
+    return this.service.watchAll()
       .pipe(
         map(types => {
           // Compute name, if need
@@ -385,7 +382,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       );
   }
 
-  async loadData() {
+  async loadGeoData() {
 
     if (!this.type || !this.type.category || !this.type.label) return; // skip
 

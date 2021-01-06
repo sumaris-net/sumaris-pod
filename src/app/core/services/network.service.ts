@@ -456,7 +456,7 @@ export class NetworkService {
         tap(info => lastInfo = info),
 
         // Check compatibility
-        mergeMap((info) => this.checkPeerCompatible(info, {displayToast: true})),
+        mergeMap((info) => this.checkPeerCompatible(info, {showToast: true})),
       )
       .subscribe(alive => {
           if (alive && this.offline) {
@@ -496,14 +496,14 @@ export class NetworkService {
     }
   }
 
-  async checkPeerCompatible(peerInfo: NodeInfo, opts?: { displayToast?: boolean; }): Promise<boolean> {
+  async checkPeerCompatible(peerInfo: NodeInfo, opts?: { showToast?: boolean; }): Promise<boolean> {
     if (!this.environment.peerMinVersion) return true; // Skip compatibility check
 
     // Check the min pod version, defined by the app
     const isCompatible = peerInfo && peerInfo.softwareVersion && VersionUtils.isCompatible(this.environment.peerMinVersion, peerInfo.softwareVersion);
 
     // Display toast, if not compatible
-    if (!isCompatible && (!opts || opts.displayToast !== false)) {
+    if (!isCompatible && (!opts || opts.showToast !== false)) {
       await this.showToast({
         type: 'error',
         message: 'NETWORK.ERROR.NOT_COMPATIBLE_PEER',
@@ -533,7 +533,7 @@ export class NetworkService {
    * Allow to force offline mode
    */
   setForceOffline(value?: boolean, opts?: {
-    displayToast?: boolean; // Display a toast, when offline ?
+    showToast?: boolean; // Display a toast, when offline ?
   }) {
     value = toBoolean(value, true);
     if (this._forceOffline !== value) {
@@ -546,7 +546,7 @@ export class NetworkService {
         this.onNetworkStatusChanges.next(currentConnectionType);
 
         // Offline mode: alert the user
-        if (currentConnectionType === 'none' && (!opts || opts.displayToast !== false)) {
+        if (currentConnectionType === 'none' && (!opts || opts.showToast !== false)) {
           this.showToast({message: 'NETWORK.INFO.OFFLINE_HELP'});
         }
       }
@@ -557,12 +557,17 @@ export class NetworkService {
 
     opts = opts || {};
 
-    const $peers = new Subject();
+    const $onRefresh = new EventEmitter<UIEvent>();
+    const peers$ = $onRefresh.pipe(
+      mergeMap((_) => this.getDefaultPeers()),
+      map(peers => peers || [])
+    );
 
     const modal = await this.modalCtrl.create({
       component: SelectPeerModal,
       componentProps: {
-        peers: $peers,
+        onRefresh: $onRefresh,
+        peers: peers$,
         canCancel: toBoolean(opts.canCancel, true),
         allowSelectDownPeer: toBoolean(opts.allowSelectDownPeer, true)
       },
@@ -570,14 +575,12 @@ export class NetworkService {
       showBackdrop: true
     });
     await modal.present();
+    $onRefresh.emit();
 
-    const peers = await this.getDefaultPeers();
-    $peers.next(peers || []);
+    const { data } = await modal.onWillDismiss();
+    $onRefresh.complete();
 
-    return modal.onDidDismiss()
-      .then((res) => {
-        return res && res.data && (res.data as Peer) || undefined;
-      });
+    return data && (data as Peer) || undefined;
   }
 
   async clearCache(opts?: { emitEvent?: boolean; }): Promise<void> {
@@ -658,8 +661,17 @@ export class NetworkService {
 
         // Change to offline
         if (this._deviceConnectionType === 'none') {
-          // Alert the user
-          this.showToast({message: 'NETWORK.INFO.OFFLINE'});
+          if (this._mobile) {
+            // Force offline mode
+            this._forceOffline = true;
+
+            // Alert the user
+            this.showToast({message: 'NETWORK.INFO.OFFLINE_HELP'});
+          }
+          else {
+            // Alert the user
+            this.showToast({message: 'NETWORK.INFO.OFFLINE'});
+          }
 
           // Stop the network service
           this.stop();

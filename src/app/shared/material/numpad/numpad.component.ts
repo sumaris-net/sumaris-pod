@@ -61,6 +61,8 @@ export class MatNumpadComponent implements MatNumpadRef {
       noBackdrop: this.noBackdrop,
       position: this.position
     });
+
+    this._opened = true;
   }
 
   close() {

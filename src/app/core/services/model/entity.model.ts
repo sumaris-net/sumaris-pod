@@ -57,7 +57,7 @@ export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsOb
   asObject(opts?: O): StoreObject {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
-    if ((!opts || opts.keepLocalId === false) && target.id < 0) delete target.id;
+    if (opts && opts.keepLocalId === false && target.id < 0) delete target.id;
     target.updateDate = toDateISOString(this.updateDate);
     return target;
   }

@@ -23,6 +23,7 @@ import {AppEntityEditor} from "../../core/form/editor.class";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {changeCaseToUnderscore, isNil} from "../../shared/functions";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {HistoryPageReference} from "../../core/services/model/history.model";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -218,6 +219,15 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // Existing data
     return this.translate.get('PROGRAM.EDIT.TITLE', data).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      icon: 'contract',
+      title: `${this.data.label} - ${this.data.name}`,
+      subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
+    };
   }
 
   protected getFirstInvalidTabIndex(): number {

@@ -41,7 +41,10 @@ export const COPY_LOCALLY_AS_OBJECT_OPTIONS = <DataEntityAsObjectOptions>{
   keepRemoteId: false,
   keepUpdateDate: false
 };
-
+export const CLONE_AS_OBJECT_OPTIONS = <DataEntityAsObjectOptions>{
+  ...SAVE_LOCALLY_AS_OBJECT_OPTIONS,
+  minify: false
+};
 
 export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
   extends Entity<T, O>
@@ -60,8 +63,8 @@ export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntity
 
   asObject(opts?: O): any {
     const target = super.asObject(opts);
-    if ((!opts || opts.keepRemoteId === false) && target.id >= 0) delete target.id;
-    if ((!opts || opts.keepUpdateDate === false) && target.id >= 0) delete target.updateDate;
+    if (opts && opts.keepRemoteId === false && target.id >= 0) delete target.id;
+    if (opts && opts.keepUpdateDate === false && target.id >= 0) delete target.updateDate;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts) || undefined;
     target.controlDate = toDateISOString(this.controlDate);
     target.qualificationDate = toDateISOString(this.qualificationDate);

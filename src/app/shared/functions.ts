@@ -253,6 +253,11 @@ export function isNumber(value: string): boolean {
   return isNotNil(value) && NUMBER_REGEXP.test(value);
 }
 
+const NUMBER_RANGE_REGEXP = /^(\d+-\d+)|([><=]*\d+)$/;
+export function isNumberRange(value: string): boolean {
+  return isNotNil(value) && NUMBER_RANGE_REGEXP.test(value);
+}
+
 export function getPropertyByPath(obj: any, path: string, defaultValue?: any): any {
   if (isNil(obj)) return undefined;
   if (isNilOrBlank(path)) return obj;

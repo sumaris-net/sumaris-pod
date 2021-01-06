@@ -1,9 +1,8 @@
 import {Directive, ElementRef, HostListener, Input, OnChanges, OnDestroy, SimpleChanges} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Subscription} from 'rxjs';
-import {MatNumpadEvent, MatNumpadKey, MatNumpadKeymap} from "./numpad.model";
+import {MatNumpadKeymap} from "./numpad.model";
 import {MatNumpadComponent} from "./numpad.component";
-import {filter} from "rxjs/operators";
 
 @Directive({
   selector: '[matNumpad]',
@@ -146,12 +145,15 @@ export class NumpadDirective implements ControlValueAccessor, OnDestroy, OnChang
       // Remove last character
       value = value.length > 1 ? value.substr(0, value.length - 1) : '';
     }
-
-    else if (event.key === 'Tab' || event.key === 'Enter') {
-      // TODO
+    else if (event.key === 'Enter' || event.keyCode === 13) {
+      this._numpad.close();
+      return;
+    }
+    else if (event.key === 'Tab') {
+      // TODO goto next input ?
       return; // Skip
     }
-    else if (event.key === 'Escape' || event.keyCode == 27) {
+    else if (event.key === 'Escape') {
       this._numpad.close();
       return;
     }

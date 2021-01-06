@@ -45,10 +45,10 @@ export class RegisterForm implements OnInit {
   @ViewChild('stepper', { static: true }) private stepper: MatHorizontalStepper;
 
   @Output()
-  onCancel: EventEmitter<any> = new EventEmitter<any>();
+  onCancel = new EventEmitter<any>();
 
   @Output()
-  onSubmit: EventEmitter<RegisterData> = new EventEmitter<RegisterData>();
+  onSubmit = new EventEmitter<RegisterData>();
 
   constructor(
     private accountService: AccountService,

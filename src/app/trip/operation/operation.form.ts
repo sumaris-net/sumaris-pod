@@ -72,19 +72,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         if (!control.touched) return null;
         const endDateTime = fromDateISOString(control.value);
 
-        console.debug("[operation] Validating endDateTime: ", endDateTime);
+        // Make sure trip.departureDateTime < operation.endDateTime
+        if (endDateTime && trip.departureDateTime && trip.departureDateTime.isBefore(endDateTime) === false) {
+          console.warn(`[operation] Invalid operation endDateTime: before the trip! `, endDateTime, trip.departureDateTime);
+          return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP')};
+        }
+        // Make sure operation.endDateTime < trip.returnDateTime
+        else if (endDateTime && trip.returnDateTime && endDateTime.isBefore(trip.returnDateTime) === false) {
+          console.warn(`[operation] Invalid operation endDateTime: after the trip! `, endDateTime, trip.returnDateTime);
+          return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP')};
+        }
 
-        // Make sure: trip.departureDateTime < operation.endDateTime < trip.returnDateTime
-        if (endDateTime) {
-          if (trip.departureDateTime && endDateTime.isBefore(trip.departureDateTime)) {
-            return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP')};
-          } else if (trip.returnDateTime && endDateTime.isAfter(trip.returnDateTime)) {
-            return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP')};
-          }
-        }
-        else {
-          SharedValidators.clearError(control, 'msg');
-        }
+        // OK: clear existing errors
+        SharedValidators.clearError(control, 'msg');
         return null;
       });
     }

@@ -37,10 +37,10 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
   showPwd = false;
 
   @Output()
-  onCancel: EventEmitter<any> = new EventEmitter<any>();
+  onCancel = new EventEmitter<any>();
 
   @Output()
-  onSubmit: EventEmitter<AuthData> = new EventEmitter<AuthData>();
+  onSubmit = new EventEmitter<AuthData>();
 
   disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.disable(opts);

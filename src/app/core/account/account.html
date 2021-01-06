@@ -2,6 +2,19 @@
              [hasValidate]="form.dirty && !saving"
              (onValidate)="save($event)"
              [canGoBack]="false">
+
+  <ion-buttons slot="end">
+    <!-- loader -->
+    <ion-spinner *ngIf="loading || saving; else endButtons"></ion-spinner>
+
+    <ng-template #endButtons>
+      <!-- refresh button -->
+      <ion-button [matTooltip]="'COMMON.BTN_REFRESH'|translate"
+                  (click)="refresh($event)">
+        <mat-icon slot="icon-only">refresh</mat-icon>
+      </ion-button>
+    </ng-template>
+  </ion-buttons>
 </app-toolbar>
 
 <ion-content>

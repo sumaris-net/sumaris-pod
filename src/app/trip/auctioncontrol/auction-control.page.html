@@ -63,7 +63,7 @@
 
       <div class="ion-no-padding">
 
-        <form *ngIf="landingForm.$pmfms | async; let pmfms; else measurementsSkeleton;"
+        <form *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
               [formGroup]="landingForm.measurementValuesForm"
               class="form-container ion-padding">
 

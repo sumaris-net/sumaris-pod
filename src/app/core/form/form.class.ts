@@ -99,10 +99,10 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   }
 
   @Output()
-  onCancel: EventEmitter<any> = new EventEmitter<any>();
+  onCancel = new EventEmitter<any>();
 
   @Output()
-  onSubmit: EventEmitter<any> = new EventEmitter<any>();
+  onSubmit = new EventEmitter<any>();
 
   protected constructor(
     protected dateAdapter: DateAdapter<Moment> | DateFormatPipe,

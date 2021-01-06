@@ -80,6 +80,8 @@ function validateParts(parts) {
 }
 
 export function isVersionCompatible(minVersion, actualVersion) {
-  console.debug(`[http] Checking actual version {${actualVersion}} is compatible with min expected version {${minVersion}}`);
+  // DEV ONLY
+  //console.debug(`[http] Checking actual version {${actualVersion}} is compatible with min expected version {${minVersion}}`);
+
   return compareVersionNumbers(minVersion, actualVersion) <= 0;
 }

@@ -102,6 +102,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       tabCount: 3,
       autoUpdateRoute: !platform.mobile,
       autoOpenNextTab: !platform.mobile
+      //autoLoadDelay: platform.mobile ? 400 /*  */ : undefined /*default*/
     });
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
@@ -156,12 +157,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     );
   }
 
-  async ngAfterViewInit(): Promise<void> {
+  async ngAfterViewInit() {
+    await super.ngAfterViewInit();
 
     this.registerSubscription(
       this.form.get('physicalGear').valueChanges
+        .pipe(
+          // skip if loading
+          filter(() => !this.loading)
+        )
         .subscribe((res) => {
-          if (this.loading) return; // SKip during loading
           const gearId = res && res.gear && res.gear.id || null;
           this.measurementsForm.gearId = gearId;
           this.batchTree.gearId = gearId;
@@ -188,6 +193,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         }));
 
     this.ngAfterViewInitExtension();
+
+    // Configure page, from Program's properties
+    this.registerSubscription(
+      this.onProgramChanged.subscribe(program => this.setProgram(program))
+    );
 
     // Manage tab group
     const queryParams = this.route.snapshot.queryParams;
@@ -320,30 +330,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
                 })
             );
           }
-
         });
     }
-
-    // Configure page, from Program's properties
-    this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(program => {
-          if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
-          this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
-          this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
-
-          this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
-          this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
-
-          // Autofill batch group table (e.g. with taxon groups found in strategies)
-          const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
-          this.setDefaultTaxonGroups(autoFillBatch);
-        })
-    );
   }
 
-  ngOnDestroy() {
-    super.ngOnDestroy();
+  protected async setProgram(program: Program) {
+    if (!program) return; // Skip
+    if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
+    this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
+    this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
+
+    this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
+    this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
+
+    // Autofill batch group table (e.g. with taxon groups found in strategies)
+    const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+    await this.setDefaultTaxonGroups(autoFillBatch);
   }
 
   async onNewEntity(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
@@ -462,6 +464,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'navigate'
+    };
+  }
+
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
     const changed = super.onTabChange(event, queryParamName);
     if (changed && this.selectedTabIndex === 1) {
@@ -559,9 +568,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Applying program to tables (async)
-    if (program) {
-      this.programSubject.next(program);
-    }
+    if (program) this.programSubject.next(program);
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -694,9 +701,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       && this.tripService.canUserWrite(this.trip);
   }
 
-  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
-    return super.addToPageHistory({ ...page, icon: 'navigate'}, opts);
-  }
 
   protected async setDefaultTaxonGroups(enable: boolean) {
     if (!enable) {
@@ -737,7 +741,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected async updateRoute(data: Operation, queryParams: any): Promise<boolean> {
     const id = data && isNotNil(data.id) ? data.id : 'new';
-    return await this.router.navigate([`/trips/${this.trip.id}/operations/${id}`], {
+    return await this.router.navigate(['trips', this.trip.id, 'operations', id], {
       replaceUrl: true,
       queryParams: queryParams,
       queryParamsHandling: "preserve"

@@ -1,4 +1,4 @@
-import {Component, Inject, Injector, OnDestroy, OnInit} from "@angular/core";
+import {Component, Inject, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {debounceTime, filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
@@ -73,6 +73,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           'name',
           'level',
           'status',
+          'updateDate',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, environment, validatorService, {
@@ -86,6 +87,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       injector
     );
 
+    this.i18nColumnPrefix = 'REFERENTIAL.';
     this.allowRowDetail = false;
     this.confirmBeforeDelete = true;
 
@@ -93,7 +95,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.inlineEdition = accountService.isAdmin();
     this.canEdit = accountService.isAdmin();
 
-    this.i18nColumnPrefix = 'REFERENTIAL.';
+    this.setShowColumn('updateDate', !this.mobile); // Hide by default, if mobile
 
     this.filterForm = formBuilder.group({
       'entityName': [null],

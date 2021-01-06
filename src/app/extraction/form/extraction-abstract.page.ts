@@ -14,20 +14,20 @@ import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {TranslateService} from "@ngx-translate/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ExtractionService} from "../services/extraction.service";
-import {AlertController, ToastController} from "@ionic/angular";
+import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppTabEditor} from "../../core/form/tab-editor.class";
 import {AggregationType} from "../services/model/aggregation-type.model";
 import {ExtractionUtils} from "../services/extraction.utils";
+import {ExtractionHelpModal} from "../help/help.modal";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Directive()
-export abstract class ExtractionAbstractPage<T extends ExtractionType | AggregationType>
-  extends AppTabEditor implements OnInit {
+export abstract class ExtractionAbstractPage<T extends ExtractionType | AggregationType> extends AppTabEditor {
 
   type: T;
   form: FormGroup;
@@ -67,7 +67,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     protected service: ExtractionService,
     protected settings: LocalSettingsService,
     protected formBuilder: FormBuilder,
-    protected platform: PlatformService
+    protected platform: PlatformService,
+    protected modalCtrl: ModalController
   ) {
     super(route, router, alertCtrl, translate);
     // Create the main form
@@ -132,7 +133,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
           });
 
           // Execute the first load
-          await this.loadData();
+          await this.loadGeoData();
 
         }));
   }
@@ -264,7 +265,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     if (type) {
       this.setType(type, {emitEvent: false});
 
-      this.loadData();
+      this.loadGeoData();
     }
     return undefined;
   }
@@ -276,11 +277,29 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     return undefined;
   }
 
-  abstract async loadData();
+  abstract async loadGeoData();
 
   async reload(): Promise<any> {
     return this.load(this.type && this.type.id);
   }
+
+  async openHelpModal(event?: UIEvent) {
+    const modal = await this.modalCtrl.create({
+      component: ExtractionHelpModal,
+      componentProps: {
+        type: this.type
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    await modal.onDidDismiss();
+  }
+
 
   /* -- protected method -- */
 

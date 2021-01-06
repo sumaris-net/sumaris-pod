@@ -49,8 +49,8 @@
 
 
 <mat-table [dataSource]="dataSource" matSort
-           [matSortActive]="sortBy"
-           [matSortDirection]="sortDirection"
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
            matSortDisableClear [trackBy]="trackByFn">
 
   <!-- select -->
@@ -150,7 +150,7 @@
 <ion-row class="ion-no-padding">
   <ion-col></ion-col>
   <ion-col class="ion-no-padding" size="auto">
-    <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+    <mat-paginator [length]="resultsLength" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
     </mat-paginator>
   </ion-col>
 </ion-row>

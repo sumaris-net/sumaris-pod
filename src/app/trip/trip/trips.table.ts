@@ -150,8 +150,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false;
-    this.sortBy = 'departureDateTime';
-    this.sortDirection = 'desc';
+    this.defaultSortBy = 'departureDateTime';
+    this.defaultSortDirection = 'desc';
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fix value, to be able to reuse it in the trip page
 
@@ -287,7 +287,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.network.setForceOffline(false);
     }
     else {
-      this.network.setForceOffline(true, {displayToast: true});
+      this.network.setForceOffline(true, {showToast: true});
       this.filterForm.patchValue({synchronizationStatus: 'DIRTY'}, {emitEvent: false/*avoid refresh*/});
       this.hasOfflineMode = true;
     }
@@ -295,7 +295,10 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.onRefresh.emit();
   }
 
-  async prepareOfflineMode(event?: UIEvent) {
+  async prepareOfflineMode(event?: UIEvent, opts?: {
+    toggleToOfflineMode?: boolean; // Switch to offline mode ?
+    showToast?: boolean; // Display success toast ?
+  }) {
     if (this.importing) return; // skip
 
     // If offline, warn user and ask to reconnect
@@ -334,10 +337,18 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
           .add(() => resolve());
       });
 
-      // Enable sync status button
-      this.setSynchronizationStatus('DIRTY');
-      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
+      // Toggle to offline mode
+      if (!opts || opts.toggleToOfflineMode !== false) {
+        this.setSynchronizationStatus('DIRTY');
+      }
+
+      // Display toast
+      if (!opts || opts.showToast !== false) {
+        this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
+      }
       success = true;
+
+      // Hide the warning message
       this.showUpdateOfflineFeature = false;
     }
     catch (err) {
@@ -546,15 +557,14 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       if (lastSynchronizationDate && lastSynchronizationDate
             .isBefore(moment().add(-10, 'minute'))) {
 
-        // Get peer last update date
+        // Get peer last update date, then compare
         const remoteUpdateDate = await this.referentialRefService.lastUpdateDate();
-        if (isNotNil(remoteUpdateDate) && moment.isMoment(remoteUpdateDate)) {
-
-          // Compare dates, to kwown if an update if need
-          console.debug('[trips] Last synchronization:', lastSynchronizationDate);
-          console.debug('[trips] Peer last update:', remoteUpdateDate);
-          needUpdate = remoteUpdateDate.isAfter(lastSynchronizationDate);
+        if (isNotNil(remoteUpdateDate)) {
+          // Compare dates, to known if an update if need
+          needUpdate = lastSynchronizationDate.isBefore(remoteUpdateDate);
         }
+
+        console.info(`[trips] Checking referential last update dates: {local: '${toDateISOString(lastSynchronizationDate)}', remote: '${toDateISOString(remoteUpdateDate)}'} - Need upgrade: ${needUpdate}`);
       }
     }
 

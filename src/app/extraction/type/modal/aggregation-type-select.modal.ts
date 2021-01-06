@@ -1,10 +1,10 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
 import {ModalController} from "@ionic/angular";
-import {AggregationTypeFilter, ExtractionService} from "../services/extraction.service";
-import {AggregationType} from "../services/model/aggregation-type.model";
+import {AggregationType} from "../../services/model/aggregation-type.model";
 import {Observable} from "rxjs";
 import {first} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
+import {AggregationService, AggregationTypeFilter} from "../../services/aggregation.service";
 
 @Component({
   selector: 'app-aggregation-type-select-modal',
@@ -21,7 +21,7 @@ export class AggregationTypeSelectModal implements OnInit {
 
   constructor(
     protected viewCtrl: ModalController,
-    protected service: ExtractionService,
+    protected service: AggregationService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
@@ -31,7 +31,7 @@ export class AggregationTypeSelectModal implements OnInit {
   ngOnInit() {
 
     // Load items
-    this.$types = this.service.watchAggregationTypes(this.filter, {});
+    this.$types = this.service.watchAll(this.filter, {});
 
     // Update loading indicator
     this.$types.pipe(first()).subscribe((_) => this.loading = false);
@@ -55,14 +55,11 @@ export class AggregationTypeSelectModal implements OnInit {
     if (type.name) return type.name;
     const format = type.label && type.label.split('-')[0].toUpperCase();
     const key = `EXTRACTION.PRODUCT.${format}.TITLE`;
-    let message = this.translate.instant(key);
 
-    if (message !== key) {
-      return message;
-    }
+    const message = this.translate.instant(key);
+    if (message !== key) return message;
 
     // No i18n message: compute a new one
-
     return type.name;
   }
 

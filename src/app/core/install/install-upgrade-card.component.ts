@@ -23,7 +23,13 @@ import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank} from "../../shared/funct
 import {EnvironmentService} from "../../../environments/environment.class";
 
 
-export declare interface InstallAppLink { name: string; url: string; platform?: 'android' | 'ios'; version?: string; }
+export declare interface InstallAppLink {
+  name: string;
+  url: string;
+  platform?: 'android' | 'ios';
+  version?: string;
+  downloadFilename?: string;
+}
 
 @Component({
   selector: 'app-install-upgrade-card',
@@ -130,14 +136,16 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
     this._subscription.unsubscribe();
   }
 
-  downloadApp(event: UIEvent, link: InstallAppLink) {
-    event.preventDefault();
+  openDownloadLink(event: UIEvent, url: string) {
+    if (!url) return; // Skip
 
-    if (link && link.url) {
-      console.info(`[install] Opening App download link: ${link.url}`);
-      this.platform.open(link.url, '_system', 'location=yes');
-      return false;
+    if (event) {
+      event.preventDefault();
     }
+
+    console.info(`[install] Opening App download link: ${url}`);
+    this.platform.open(url, '_system', 'location=yes');
+    return false;
   }
 
   tryOnline() {
@@ -165,6 +173,10 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
       default:
         return '';
     }
+  }
+
+  getAppFileName(): string {
+    return
   }
 
   /* -- protected method  -- */
@@ -207,9 +219,14 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
       let url = config.getProperty(ConfigOptions.ANDROID_INSTALL_URL);
       const name: string = isNotNilOrBlank(url) && config.label || this.environment.defaultAppName || 'SUMARiS';
       let version;
+      const filename = name;
       if (isNilOrBlank(url)) {
         url = this.environment.defaultAndroidInstallUrl || null;
       }
+      else {
+        version = config.getProperty(ConfigOptions.APP_MIN_VERSION);
+      }
+
       result.push({ name, url, platform: 'android', version });
     }
 

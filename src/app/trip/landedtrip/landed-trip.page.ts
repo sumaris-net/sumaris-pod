@@ -502,6 +502,13 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }).toPromise();
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'boat'
+    };
+  }
+
   /**
    * Called by super.save()
    */
@@ -626,9 +633,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     });
   }
 
-  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
-    return super.addToPageHistory({...page, icon: 'boat'}, opts);
-  }
+
 
   protected markForCheck() {
     this.cd.markForCheck();

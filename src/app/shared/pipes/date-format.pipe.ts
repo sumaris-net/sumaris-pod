@@ -28,9 +28,8 @@ export class DateFormatPipe implements PipeTransform {
       });
   }
 
-  transform(value: string | Moment | Date, args?: any): string | Promise<string> {
-      args = args || {};
-      const pattern = args.pattern || (args.time ? this.dateTimePattern : this.datePattern);
+  transform(value: string | Moment | Date, args?: { pattern?: string; time?: boolean; } ): string | Promise<string> {
+      const pattern = args && args.pattern || (args && args.time ? this.dateTimePattern : this.datePattern);
       // Keep original moment object, if possible (to avoid a conversion)
       const date: Moment = value && (isMoment(value) ? value : this.dateAdapter.parse(value, DATE_ISO_PATTERN));
       return date && this.dateAdapter.format(date, pattern) || '';

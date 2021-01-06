@@ -94,8 +94,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.autoLoad = false;
-    this.sortBy = 'startDateTime';
-    this.sortDirection = 'desc';
+    this.defaultSortBy = 'startDateTime';
+    this.defaultSortDirection = 'desc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

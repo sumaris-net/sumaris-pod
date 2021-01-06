@@ -63,7 +63,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   @Input() animated = false;
 
   @Output()
-  valueChanges: EventEmitter<any> = new EventEmitter<any>();
+  valueChanges = new EventEmitter<any>();
 
   @Input()
   set program(value: string) {

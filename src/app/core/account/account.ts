@@ -1,9 +1,8 @@
-import {ChangeDetectionStrategy, Component, Inject, OnDestroy} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
 import {Account} from '../services/model/account.model';
 import {APP_LOCALES, LocaleConfig} from '../services/model/settings.model';
-import {referentialToString} from '../services/model/referential.model';
 import {UserSettingsValidatorService} from '../services/validator/user-settings.validator';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {AccountValidatorService} from '../services/validator/account.validator';
@@ -25,6 +24,7 @@ import {StatusIds} from "../services/model/model.enum";
 })
 export class AccountPage extends AppForm<Account> implements OnDestroy {
 
+  loading = true;
   isLogin: boolean;
   changesSubscription: Subscription;
   account: Account;
@@ -48,8 +48,9 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     protected validatorService: AccountValidatorService,
     protected settingsValidatorService: UserSettingsValidatorService,
     protected translate: TranslateService,
-    protected settings: LocalSettingsService,
     @Inject(APP_LOCALES) public locales: LocaleConfig[]
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getFormGroup(accountService.account), settings);
 
@@ -74,6 +75,9 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
       if (accountService.isLogin()) {
         this.onLogin(this.accountService.account);
       }
+      else {
+        this.loading = false;
+      }
     }));
   }
 
@@ -95,6 +99,8 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.markAsPristine();
 
     this.startListenChanges();
+
+    this.loading = false;
   }
 
   onLogout() {
@@ -107,6 +113,14 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.disable();
 
     this.stopListenChanges();
+  }
+
+  async refresh(event?: UIEvent) {
+
+    this.disable();
+    this.loading = true;
+
+    return this.accountService.refresh();
   }
 
   startListenChanges() {
@@ -145,6 +159,10 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   }
 
   async save(event: MouseEvent) {
+    if (this.saving) return;
+
+    await AppFormUtils.waitWhilePending(this.form);
+
     if (this.form.invalid) {
       AppFormUtils.logFormErrors(this.form);
       return;
@@ -194,5 +212,8 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.markForCheck();
   }
 
-  referentialToString = referentialToString;
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
 }

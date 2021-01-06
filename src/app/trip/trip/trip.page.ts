@@ -22,11 +22,11 @@ import {PromiseEvent} from "../../shared/events";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {filter} from "rxjs/operators";
+import {debounceTime, filter} from "rxjs/operators";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {Alerts} from "../../shared/alerts";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {Program} from "../../referential/services/model/program.model";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {fromDateISOString, isNil, isNotEmptyArray} from "../../shared/functions";
@@ -47,7 +47,7 @@ const TripPageTabs = {
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
+export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
@@ -89,39 +89,21 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.debug = !environment.production;
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  async ngAfterViewInit(): Promise<void> {
+    await super.ngAfterViewInit();
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(program => {
-          if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
-          this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
-          this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
-          if (!this.tripForm.showObservers) {
-            this.data.observers = []; // make sure to reset data observers, if any
-          }
-          this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
-          if (!this.tripForm.showMetiers) {
-            this.data.metiers = []; // make sure to reset data metiers, if any
-          }
-          this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
-          this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
-          this.operationTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
-
-          if (this.isNewData) {
-            // If new data, enable gears tab
-            this.showGearTable = true;
-            // BUT leave operation gear have been filled
-            this.showOperationTable = false;
-          }
-        })
+      this.onProgramChanged.subscribe(program => this.setProgram(program))
     );
 
     // Cascade refresh to operation tables
-    this.onUpdateView.subscribe(() => this.operationTable.onRefresh.emit());
+    this.registerSubscription(
+      this.onUpdateView
+        .pipe(debounceTime(200))
+        .subscribe(() => this.operationTable.onRefresh.emit()));
 
+    // Before delete gears, check if used in operations
     this.registerSubscription(
       this.physicalGearTable.onBeforeDeleteRows
         .subscribe(async (event) => {
@@ -140,6 +122,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           }
         }));
 
+    // Allow to show operations tab, when add gear
     this.registerSubscription(
       this.physicalGearTable.onConfirmEditCreateRow
         .subscribe((_) => this.showOperationTable = true));
@@ -148,15 +131,41 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   protected registerForms() {
     this.addChildForms([
       this.tripForm, this.saleForm, this.measurementsForm,
-      this.physicalGearTable, this.operationTable
+      this.physicalGearTable
     ]);
+  }
+
+  protected setProgram(program: Program) {
+    if (!program) return; // Skip
+
+    if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
+    this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
+    this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
+    if (!this.tripForm.showObservers) {
+      this.data.observers = []; // make sure to reset data observers, if any
+    }
+    this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
+    if (!this.tripForm.showMetiers) {
+      this.data.metiers = []; // make sure to reset data metiers, if any
+    }
+    this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
+    this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
+    this.operationTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+
+    if (this.isNewData) {
+      // If new data, enable gears tab
+      this.showGearTable = true;
+      // BUT leave operation gear have been filled
+      this.showOperationTable = false;
+    }
+    this.markForCheck();
   }
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
 
-      console.debug("[trip] New entity: settings defaults...");
+      console.debug("[trip] New entity: set default values...");
 
       // Fil defaults, using filter applied on trips table
       const tripFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
@@ -190,7 +199,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Listen first opening the operations tab, then save
       this.tabGroup.selectedTabChange
         .pipe(
-          filter(event => event.index === TripPageTabs.OPERATIONS)
+          filter(event => this.showOperationTable && event.index === TripPageTabs.OPERATIONS)
         )
         .subscribe(event => this.save());
     }
@@ -210,8 +219,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Enable gears tab if a program has been selected
     this.showGearTable = !this.isNewData || ReferentialUtils.isNotEmpty(this.programSubject.getValue());
 
-    // ENable operation tab if has gears
-    this.showOperationTable = this.showGearTable && isNotEmptyArray(data.gears);
+    // Enable operations tab if has gears
+    this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
   protected async setValue(data: Trip): Promise<void> {
@@ -238,13 +247,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
-      this.loading = true;
-      try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
-      }
-      finally {
-        this.loading = false;
-      }
+      this.markAsLoading();
+
+     setTimeout(async () => {
+        await this.router.navigate(['trips', this.data.id, 'operations', id], {
+          queryParams: {}
+        });
+
+       this.markAsLoaded();
+      });
     }
   }
 
@@ -257,15 +268,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
-      this.loading = true;
-      this.markForCheck();
-      try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
-      }
-      finally {
-        this.loading = false;
-        this.markForCheck();
-      }
+      this.markAsLoading();
+
+      setTimeout(async () => {
+        await this.router.navigate(['trips', this.data.id, 'operations', 'new'], {
+          queryParams: {}
+        });
+        this.markAsLoaded();
+      });
     }
   }
 
@@ -380,6 +390,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }).toPromise();
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'boat'
+    };
+  }
+
   protected async getJsonValueToSave(): Promise<any> {
     const json = await super.getJsonValueToSave();
 
@@ -403,10 +420,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
 
     return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
-  }
-
-  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
-    return super.addToPageHistory({...page, icon: 'boat'}, opts);
   }
 
   protected markForCheck() {
