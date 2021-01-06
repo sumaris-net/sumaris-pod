@@ -518,6 +518,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
             AppFormUtils.logFormErrors(row.validator, '[table] ');
           }
         }
+        // fix: mark all controls as touched to show errors
+        row.validator.markAllAsTouched();
         return false;
       }
       // If edit finished, forget edited row
