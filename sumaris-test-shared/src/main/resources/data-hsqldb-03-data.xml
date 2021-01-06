@@ -332,8 +332,21 @@
                       QUALITATIVE_VALUE_FK="185"/>
 
 
+  <OBSERVED_LOCATION ID="121"
+                     PROGRAM_FK="40"
+                     RECORDER_DEPARTMENT_FK="2"
+                     RECORDER_PERSON_FK="2"
+                     CREATION_DATE="2020-12-18"
+                     START_DATE_TIME="2020-12-01 16:00:00.000"
+                     END_DATE_TIME="2020-12-01 16:00:00.000"
+                     LOCATION_FK="30"
+                     COMMENTS="Param bio #1"
+                     QUALITY_FLAG_FK="0"/>
+  <OBSERVED_LOCATION2PERSON OBSERVED_LOCATION_FK="121"
+                            PERSON_FK="2"/>
+
   <LANDING ID="31"
-           OBSERVED_LOCATION_FK="12"
+           OBSERVED_LOCATION_FK="121"
            PROGRAM_FK="40"
            RECORDER_DEPARTMENT_FK="2"
            RECORDER_PERSON_FK="2"
@@ -404,8 +417,20 @@
                       QUALITATIVE_VALUE_FK="185"/>
 
 
+  <OBSERVED_LOCATION ID="122"
+                     PROGRAM_FK="40"
+                     RECORDER_DEPARTMENT_FK="2"
+                     RECORDER_PERSON_FK="2"
+                     CREATION_DATE="2020-12-18"
+                     START_DATE_TIME="2020-12-01 16:00:00.000"
+                     END_DATE_TIME="2020-12-01 16:00:00.000"
+                     LOCATION_FK="30"
+                     COMMENTS="Param bio #1 bis"
+                     QUALITY_FLAG_FK="0"/>
+  <OBSERVED_LOCATION2PERSON OBSERVED_LOCATION_FK="122"
+                            PERSON_FK="2"/>
   <LANDING ID="32"
-           OBSERVED_LOCATION_FK="12"
+           OBSERVED_LOCATION_FK="122"
            PROGRAM_FK="40"
            RECORDER_DEPARTMENT_FK="2"
            RECORDER_PERSON_FK="2"
