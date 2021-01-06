@@ -45,7 +45,6 @@ import {
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
-import {environment} from "../../../environments/environment";
 import {Environment, EnvironmentService} from "../../../environments/environment.class";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
