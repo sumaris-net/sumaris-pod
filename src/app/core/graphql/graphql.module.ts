@@ -1,16 +1,12 @@
 import {NgModule} from '@angular/core';
 import {HttpClientModule} from '@angular/common/http';
-// Apollo
-import {HttpLinkModule} from 'apollo-angular-link-http';
 
 @NgModule({
   imports: [
-    HttpClientModule,
-    HttpLinkModule
+    HttpClientModule
   ],
   exports: [
-    HttpClientModule,
-    HttpLinkModule
+    HttpClientModule
   ]
 })
 export class AppGraphQLModule {
