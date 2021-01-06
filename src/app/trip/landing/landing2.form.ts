@@ -32,7 +32,7 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
-import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
+import {AppliedStrategy, TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 
 @Component({
   selector: 'app-landing2-form',
@@ -55,7 +55,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   referenceTaxon : ReferentialRef;
   fishingAreas : ReferentialRef[];
-  fishingAreaHelper: FormArrayHelper<ReferentialRef>;
+  fishingAreaHelper: FormArrayHelper<AppliedStrategy>;
+
+  appliedStrategies: AppliedStrategy[];
 
   @Input() showProgram = true;
   @Input() showSampleRowCode = true;
@@ -69,6 +71,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   @Input() showError = true;
   @Input() showButtons = true;
   @Input() locationLevelIds: number[];
+
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
@@ -113,7 +116,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   }
 
   get fishingAreasFormArray(): FormArray {
-    return this.form.controls.fishingAreas as FormArray;
+    return this.form.controls.appliedStrategies as FormArray;
   }
 
   taxonNameHelper: FormArrayHelper<TaxonNameStrategy>;
@@ -277,6 +280,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     });
 
     this.initTaxonNameHelper();
+    this.initAppliedStrategiesHelper();
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
@@ -352,6 +356,8 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     value.samples = value.samples.filter(sample => !sample.taxonName);
 
+    
+
     // Send value for form
     super.setValue(value);
 
@@ -372,6 +378,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     const taxonNameControl = this.taxonNamesForm;
     taxonNameControl.patchValue(taxonNames);
+
+    this.fishingAreaHelper.resize(Math.max(1, this.appliedStrategies.length));
+    this.fishingAreasFormArray.patchValue(this.appliedStrategies);
 
 
   }
@@ -439,6 +448,21 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
     else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
+    }
+  }
+
+  // appliedStrategies Helper -----------------------------------------------------------------------------------------------
+  protected initAppliedStrategiesHelper() {
+    // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
+    this.fishingAreaHelper = new FormArrayHelper<AppliedStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
+      (appliedStrategy) => this.formBuilder.group({location: [appliedStrategy && appliedStrategy.location, Validators.compose([Validators.required])]}),
+      (s1, s2) => EntityUtils.equals(s1.location, s2.location, 'label'),
+      value => isNil(value) && isNil(value.location),
+    );
+    // Create at least one fishing Area
+    if (this.fishingAreaHelper.size() === 0) {
+      this.fishingAreaHelper.resize(1);
     }
   }
 
