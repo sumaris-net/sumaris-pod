@@ -143,7 +143,7 @@
 
         <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-
+        <ng-content select="[matError]"></ng-content>
 
       </mat-form-field>
     </ion-col>
