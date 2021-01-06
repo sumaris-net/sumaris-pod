@@ -63,8 +63,8 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     super.ngOnInit();
   }
 
-  async ngAfterViewInit() {
-    await super.ngAfterViewInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     this.registerSubscription(
       this.onUpdateView.subscribe(() => {

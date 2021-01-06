@@ -158,7 +158,7 @@ export abstract class AppEntityEditor<
     this.disable();
   }
 
-  async ngAfterViewInit() {
+  ngAfterViewInit() {
     // Load data
     if (this._autoLoad) {
       setTimeout(() => this.loadFromRoute(), this._autoLoadDelay);

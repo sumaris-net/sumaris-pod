@@ -2,14 +2,12 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
   Inject,
   InjectionToken,
   Injector,
   Input,
   OnDestroy,
-  OnInit,
-  Output
+  OnInit
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../../core/core.module";
@@ -27,7 +25,6 @@ import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
 import {getPmfmName, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {BatchModal} from "../modal/batch.modal";
-import {SubBatch} from "../../services/model/subbatch.model";
 
 export interface BatchFilter {
   operationId?: number;

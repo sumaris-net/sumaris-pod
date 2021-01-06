@@ -12,7 +12,7 @@ import {
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {SampleValidatorService} from "../services/validator/sample.validator";
-import {isNilOrBlank, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
 import * as moment from "moment";
 import {Moment} from "moment";
@@ -176,7 +176,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
+    console.debug("[sample-table] Initializing new row data...", data);
 
     await super.onNewEntity(data);
 
@@ -249,6 +249,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       component: SampleModal,
       componentProps: {
         program: this.program,
+        pmfms: this.$pmfms,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: sample,
@@ -277,6 +278,18 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return data;
   }
 
+  filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {
+    const toggleLoading = !this.loading;
+    if (toggleLoading) this.markAsLoading();
+    const taxonGroupId = toNumber(taxonGroup && taxonGroup.id, null);
+    (this.$pmfms.getValue() || []).forEach(pmfm => {
+      const show = isNil(taxonGroupId) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId);
+      this.setShowColumn(pmfm.pmfmId.toString(), show);
+    });
+
+    this.updateColumns();
+    if (toggleLoading) this.markAsLoaded();
+  }
 
   /* -- protected methods -- */
 

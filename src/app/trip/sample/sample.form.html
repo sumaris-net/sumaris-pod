@@ -56,36 +56,39 @@
 
     <!-- Measurements -->
     <ion-row class="ion-no-padding">
-      <ion-col *ngFor="let pmfm of $pmfms | async; index as i;"
-               size="12"
-               class="ion-no-padding pmfm-{{pmfm.pmfmId}}"
-               [class.computed]="pmfm|isComputedPmfm">
+      <ng-container *ngFor="let pmfm of $pmfms | async; index as i;">
 
         <!-- qualitative value (force 'button' style, on mobile)-->
-        <ng-container *ngIf="pmfm.isQualitative; else otherField">
+        <ion-col *ngIf="pmfm.isQualitative; else otherField"
+                 size="12"
+                 class="ion-no-padding pmfm-{{pmfm.pmfmId}}">
           <app-pmfm-qv-field #matInput
-                                         [hidden]="pmfm.hidden"
-                                         [pmfm]="pmfm"
-                                         [style]="mobile? 'button' : 'autocomplete'"
-                                         [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
-                                         [compact]="compact"
-                                         [tabindex]="tabindex+2 + i*2">
+                             [hidden]="pmfm.hidden"
+                             [pmfm]="pmfm"
+                             [style]="mobile? 'button' : 'autocomplete'"
+                             [formControl]="form.get('measurementValues.'+pmfm.pmfmId.toString())"
+                             [compact]="compact"
+                             [tabindex]="tabindex+2 + i*2">
           </app-pmfm-qv-field>
-        </ng-container>
+        </ion-col>
 
         <!-- NOT qualitative value -->
         <ng-template #otherField>
-          <app-pmfm-field #matInput
-                          [pmfm]="pmfm"
-                          [hidden]="pmfm.hidden"
-                          [floatLabel]="(pmfm|isComputedPmfm) ? 'always' : 'auto'"
-                          [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
-                          [compact]="compact"
-                          [tabindex]="tabindex+2 + i*2">
-          </app-pmfm-field>
+          <ion-col size="6"
+                   class="ion-no-padding pmfm-{{pmfm.pmfmId}}"
+                   [class.computed]="pmfm|isComputedPmfm">
+            <app-pmfm-field #matInput
+                            [pmfm]="pmfm"
+                            [hidden]="pmfm.hidden"
+                            [floatLabel]="(pmfm|isComputedPmfm) ? 'always' : 'auto'"
+                            [formControl]="form.get('measurementValues.'+pmfm.pmfmId.toString())"
+                            [compact]="compact"
+                            [tabindex]="tabindex+2 + i*2">
+            </app-pmfm-field>
+          </ion-col>
         </ng-template>
 
-      </ion-col>
+      </ng-container>
     </ion-row>
 
     <ng-content></ng-content>

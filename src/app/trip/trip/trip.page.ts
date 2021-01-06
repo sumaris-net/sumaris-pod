@@ -84,8 +84,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.debug = !environment.production;
   }
 
-  async ngAfterViewInit(): Promise<void> {
-    await super.ngAfterViewInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(

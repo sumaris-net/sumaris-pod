@@ -82,16 +82,14 @@
         </form>
 
         <app-samples-table #samplesTable
-                           [class.cdk-visually-hidden]="!samplesTable.defaultTaxonGroup"
-                           [program]="programSubject|async"
+                           [class.cdk-visually-hidden]="!showSamplesTable"
                            [showLabelColumn]="true"
                            [showDateTimeColumn]="false"
                            [showTaxonNameColumn]="false"
                            [showTaxonGroupColumn]="false"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
-                           (onInitForm)="onStartSampleEditingForm($event)"
-                           [debug]="debug">
+                           (onInitForm)="onStartSampleEditingForm($event)">
         </app-samples-table>
       </div>
     </mat-tab>

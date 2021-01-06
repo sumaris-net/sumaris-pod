@@ -325,12 +325,10 @@ export function getControlFromPath(form: FormGroup, path: string): AbstractContr
 }
 
 
-export function disableControls(form: FormGroup, paths: string[]) {
+export function disableControls(form: FormGroup, paths: string[], opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
   (paths || []).forEach(path => {
     const control = AppFormUtils.getControlFromPath(form, path);
-    if (control) {
-      control.disable();
-    }
+    if (control) control.disable(opts);
   });
 }
 

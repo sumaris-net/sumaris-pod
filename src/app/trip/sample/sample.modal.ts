@@ -50,6 +50,8 @@ export class SampleModal implements OnInit {
 
   @Input() onReady: (modal: SampleModal) => void;
 
+  @Input() pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[];
+
   @ViewChild('form', { static: true }) form: SampleForm;
 
   get dirty(): boolean {

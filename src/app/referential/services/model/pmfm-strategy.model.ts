@@ -108,9 +108,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.isMandatory = source.isMandatory;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
-    this.gearIds = source.gearIds;
-    this.taxonGroupIds = source.taxonGroupIds;
-    this.referenceTaxonIds = source.referenceTaxonIds;
+    this.gearIds = source.gearIds && [...source.gearIds] || undefined;
+    this.taxonGroupIds = source.taxonGroupIds && [...source.taxonGroupIds] || undefined;
+    this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject)
       || this.pmfm && (this.pmfm.qualitativeValues || this.pmfm.parameter && this.pmfm.parameter.qualitativeValues)
       || undefined;

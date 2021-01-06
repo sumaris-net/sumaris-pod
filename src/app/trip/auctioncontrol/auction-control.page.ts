@@ -1,10 +1,10 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
 import {LandingPage} from "../landing/landing.page";
 import {LandingValidatorService} from "../services/validator/landing.validator";
-import {debounceTime, filter, map, mergeMap, startWith, switchMap} from "rxjs/operators";
-import {BehaviorSubject, defer, forkJoin, Observable, Subscription} from "rxjs";
+import {debounceTime, filter, first, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
+import {BehaviorSubject, defer, forkJoin, from, merge, Observable, Subject, Subscription} from "rxjs";
 import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
@@ -16,6 +16,10 @@ import {ObservedLocation} from "../services/model/observed-location.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {TaxonGroupRef} from "../../referential/services/model/taxon.model";
+import {start} from "repl";
+import {filterNotNil} from "../../shared/observables";
+import {toNumber} from "../../shared/functions";
 
 @Component({
   selector: 'app-auction-control',
@@ -35,6 +39,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   $pmfms: Observable<PmfmStrategy[]>;
   $taxonGroupPmfm = new BehaviorSubject<PmfmStrategy>(null);
+  $taxonGroups = new BehaviorSubject<TaxonGroupRef[]>(null);
+  selectedTaxonGroup$: Observable<TaxonGroupRef>;
+  showSamplesTable = false;
 
   constructor(
     injector: Injector,
@@ -62,51 +69,47 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     // Configure sample table
     this.samplesTable.inlineEdition = !this.mobile;
 
-    this.registerAutocompleteField('taxonGroupFilter', {
-      service: this.referentialRefService,
-      filter: {
-        entityName: 'TaxonGroup'
-      }
-    });
   }
 
-  async ngAfterViewInit(): Promise<void> {
-    await super.ngAfterViewInit();
-
+  async ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     // Get program taxon groups
-    const programTaxonGroups$ = defer(() => this.landingForm.ready())
-      .pipe(
-        map(() => this.landingForm.program),
-        mergeMap(programLabel => this.programService.loadTaxonGroups(programLabel))
-      );
+    this.registerSubscription(
+      this.programSubject
+        .pipe(
+          filter(isNotNil),
+          mergeMap((programLabel) => this.programService.loadTaxonGroups(programLabel))
+        )
+        .subscribe(taxonGroups => {
+          console.debug("[control] Program taxonGroups: ", taxonGroups);
+          this.$taxonGroups.next(taxonGroups);
+        })
+    );
 
-    this.$pmfms =
-      forkJoin([
-        this.landingForm.$pmfms,
-        programTaxonGroups$
-      ])
-      .pipe(
-        map(([pmfms, taxonGroups]) => pmfms.map(pmfm => {
-
+    this.$pmfms = filterNotNil(this.$taxonGroups)
+        .pipe(
+          mergeMap(() => filterNotNil(this.landingForm.$pmfms)),
+          map(pmfms => pmfms.map(pmfm => {
             // Controlled species PMFM
             if (pmfm.pmfmId === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
               console.debug(`[control] Replacing pmfm ${pmfm.label} qualitative values`);
 
+              const taxonGroups = this.$taxonGroups.getValue();
               if (isNotEmptyArray(taxonGroups) && isNotEmptyArray(pmfm.qualitativeValues)) {
                 pmfm = pmfm.clone(); // Clone (to keep unchanged the original pmfm)
 
                 // Replace QV.name
                 pmfm.qualitativeValues = pmfm.qualitativeValues.reduce((res, qv) => {
-                  const tg = taxonGroups.find(tg => tg.label === qv.label);
-                  // If not found in strategy's taxonGroups : ignore
-                  if (!tg) {
-                    console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of programe ${this.landingForm.program})`)
+                  const taxonGroup = taxonGroups.find(tg => tg.label === qv.label);
+                  // If not found in strategy's taxonGroups: ignore
+                  if (!taxonGroup) {
+                    console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of programe ${this.landingForm.program})`);
                     return res;
                   }
                   // Replace the QV name, using the taxon group name
-                  qv.name = tg.name;
-                  qv.entityName = tg.entityName || 'QualitativeValue';
+                  qv.name = taxonGroup.name;
+                  qv.entityName = taxonGroup.entityName || 'QualitativeValue';
                   return res.concat(qv);
                 }, []);
               }
@@ -124,38 +127,46 @@ export class AuctionControlPage extends LandingPage implements OnInit {
             }
             return pmfm;
           }))
+        );
+
+    // Get the taxon group control control
+    this.selectedTaxonGroup$ = this.$taxonGroupPmfm
+      .pipe(
+        map(pmfm => pmfm && this.form.get( `measurementValues.${pmfm.pmfmId}`)),
+        filter(isNotNil),
+        switchMap(control => control.valueChanges
+          .pipe(
+            startWith<any, any>(control.value),
+            debounceTime(250)
+          )),
+        map(qv => {
+          return ReferentialUtils.isNotEmpty(qv)
+            && this.$taxonGroups.getValue().find(tg => tg.label === qv.label)
+            || undefined;
+        })
       );
 
     this.registerSubscription(
-      forkJoin([
-        this.$taxonGroupPmfm,
-        programTaxonGroups$
-      ])
-        .pipe(
-          mergeMap(([pmfm, taxonGroups]) => {
-            const control = this.form.get( `measurementValues.${pmfm.pmfmId}`);
-            return control.valueChanges.pipe(debounceTime(500))
-              .pipe(
-                startWith(control.value),
-                map(qv => {
-                  return ReferentialUtils.isNotEmpty(qv)
-                    && taxonGroups.find(tg => tg.label === qv.label)
-                    || undefined;
-                })
-              );
-          })
-        )
-        .subscribe(taxonGroup => {
-          console.debug('[control] Changing taxon group to:', taxonGroup);
-          if (taxonGroup && !taxonGroup.entityName) {
-            console.warn('[control] Settings manually entityName of taxon group:', taxonGroup);
-            taxonGroup.entityName = 'TaxonGroup';
-          }
+      this.selectedTaxonGroup$.pipe(
+        filter(isNotNil),
+        tap(taxonGroup => {
+          console.debug('[control] Selected taxon group:', taxonGroup);
           this.samplesTable.defaultTaxonGroup = taxonGroup;
           this.samplesTable.showTaxonGroupColumn = ReferentialUtils.isEmpty(taxonGroup);
-          this.samplesTable.program = this.data.program && this.data.program.label;
-          //this.samplesTable.markForCheck();
-        }));
+        }),
+        mergeMap(taxonGroup => this.programService.loadProgramPmfms(this.programSubject.getValue(), {
+          acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
+          taxonGroupId: toNumber(taxonGroup && taxonGroup.id, undefined)
+        })),
+        tap(async (pmfms) => {
+          console.debug('[control] Applying taxon group PMFMs:', pmfms);
+          if (this.samplesTable.dirty) {
+            await this.samplesTable.save();
+          }
+          this.samplesTable.pmfms = pmfms;
+          this.showSamplesTable = true;
+        })
+      ).subscribe());
   }
 
   onStartSampleEditingForm({form, pmfms}) {
@@ -168,17 +179,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this._rowValidatorSubscription = AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 
+
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     await super.onNewEntity(data, options);
-
-    // if vessel given in query params
-    if (this.route.snapshot.queryParams['vessel']) {
-
-      // Open the second tab
-      this.selectedTabIndex = 1;
-      this.tabGroup.realignInkBar();
-    }
 
     // Define default back link
     const observedLocationId = this.parent && this.parent.id || data && data.observedLocationId;
@@ -207,6 +211,12 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     openTabIndex?: number;
     updateRoute?: boolean;
   }) {
+    // if vessel given in query params
+    if (this.isNewData && this.route.snapshot.queryParams['vessel']) {
+      // Open the second tab
+      opts = {...opts, openTabIndex: 1};
+    }
+
     super.updateView(data, opts);
 
     // Configure landing form

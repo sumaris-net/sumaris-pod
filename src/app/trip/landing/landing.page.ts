@@ -75,8 +75,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.debug = !environment.production;
   }
 
-  async ngAfterViewInit(): Promise<void> {
-    await super.ngAfterViewInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
@@ -249,6 +249,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         this.landingForm.showLocation = true;
         this.landingForm.showDateTime = true;
         this.landingForm.showObservers = true;
+
+      }
+      // Set program
+      if (isNil(this.programSubject.getValue()) && this.parent.program) {
+        this.programSubject.next(this.parent.program.label);
       }
     } else {
 
@@ -288,8 +293,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected computeUsageMode(landing: Landing): UsageMode {
     return this.settings.isUsageMode('FIELD')
-    && isNotNil(landing && landing.dateTime)
-    && landing.dateTime.diff(moment(), "day") <= 1 ? 'FIELD' : 'DESK';
+      // Force desktop mode if landing date/time is 1 day later than now
+      && (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), "day") <= 1) ? 'FIELD' : 'DESK';
   }
 
   /* -- protected methods -- */

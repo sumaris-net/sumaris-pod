@@ -148,8 +148,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     );
   }
 
-  async ngAfterViewInit() {
-    await super.ngAfterViewInit();
+  ngAfterViewInit() {
+     super.ngAfterViewInit();
 
     this.registerSubscription(
       this.form.get('physicalGear').valueChanges
