@@ -8,7 +8,7 @@ import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
-import {SimpleStrategiesTable} from "../simpleStrategy/simpleStrategies/simpleStrategies.table";
+import {SimpleStrategiesTable} from "../simpleStrategy/simple-strategies.table";
 import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
@@ -59,7 +59,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
-  detailsPathSimpleStrategy = "/referential/simpleStrategy/:id"
   simpleStrategiesOption = false;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
@@ -92,6 +91,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   ngOnInit() {
     super.ngOnInit();
+
     console.log("programId : " + this.activatedRoute.snapshot.paramMap.get('id'));
 
     // update simpleStrategiesOption when UpdateView
@@ -100,8 +100,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
         this.simpleStrategiesOption=  option.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
         this.markForCheck();
       }
-  );
+    );
 
+    // register on strategies tables actions
     this.registerSubscription(this.simpleStrategiesTable.onOpenRow
       .subscribe(row => this.onOpenSimpleStrategy(row)));
     this.registerSubscription(this.simpleStrategiesTable.onNewRow
@@ -148,7 +149,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   /* -- protected methods -- */
-
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
@@ -259,7 +259,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     if (savedOrContinue) {
       this.loading = true;
       try {
-        await this.router.navigateByUrl(`/referential/simpleStrategy/${row.id}`);
+        await this.router.navigateByUrl(`/referential/program/${this.activatedRoute.snapshot.paramMap.get('id')}/strategy/${row.id}`);
       }
       finally {
         this.loading = false;
@@ -279,7 +279,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       this.loading = true;
       this.markForCheck();
       try {
-        await this.router.navigateByUrl('/referential/simpleStrategy/new');
+        await this.router.navigateByUrl(`/referential/program/${this.activatedRoute.snapshot.paramMap.get('id')}/strategy/new`);
       }
       finally {
         this.loading = false;

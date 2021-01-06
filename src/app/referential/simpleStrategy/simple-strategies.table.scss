@@ -1,0 +1,31 @@
+.mat-table {
+
+  .mat-column-eotp,
+  .mat-column-quarter_1_table,
+  .mat-column-quarter_2_table,
+  .mat-column-quarter_3_table,
+  .mat-column-quarter_4_table{
+    max-width: 80px;
+  }
+
+  .mat-column-sampleRowCode,
+  .mat-column-comment,
+  .mat-column-parametersTitleTable{
+    max-width: 100px;
+  }
+
+  .mat-column-laboratory,
+  .mat-column-fishingArea,
+  .mat-column-targetSpecie,
+   {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  mat-header-cell.hidden,
+  mat-cell.hidden {
+    visibility: hidden;
+    display: none;
+  }
+}

@@ -475,12 +475,6 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
 
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
 
-    if(json.taxonNames) {
-      // not need
-      delete json.taxonNames[0].taxonGroup;
-      delete json.taxonNames[0].taxonName.__typename;
-    }
-
     const now = Date.now();
     if (this._debug) console.debug("[strategy-service] Saving strategy...", json);
 
@@ -712,7 +706,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     // Update strategies
 
     // Make sure tp copy programId (need by equals)
-    target.programId = source.id;
+    target.programId = source.programId;
 
     const savedStrategy = source;
     EntityUtils.copyIdAndUpdateDate(savedStrategy, target);

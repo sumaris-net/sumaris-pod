@@ -144,6 +144,10 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
     this.privilege = source.privilege && ReferentialRef.fromObject(source.privilege);
     this.department = source.department && ReferentialRef.fromObject(source.department);
   }
+
+  convertToString(): string {
+    return this && this.strategyId && (this.department.name) || undefined;
+  }
 }
 
 export class AppliedStrategy extends Entity<AppliedStrategy> {
@@ -178,6 +182,11 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     this.location = source.location && ReferentialRef.fromObject(source.location);
     this.appliedPeriods = source.appliedPeriods && source.appliedPeriods.map(AppliedPeriod.fromObject) || [];
   }
+
+  convertToString(): string {
+    return this && this.strategyId && (this.location.name) || undefined;
+  }
+
 }
 
 export class AppliedPeriod {
@@ -202,8 +211,8 @@ export class AppliedPeriod {
 
   fromObject(source: any) {
     this.appliedStrategyId = source.appliedStrategyId;
-    this.startDate = source.startDate;
-    this.endDate = source.endDate;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
     this.acquisitionNumber = source.acquisitionNumber;
   }
 }
@@ -250,8 +259,7 @@ export class TaxonNameStrategy {
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
-    if (!opts || opts.keepTypename !== true) delete target.__typename;
-    target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...MINIFY_OPTIONS });
+    if (!opts || opts.keepTypename !== true) delete target.taxonName.__typename;
     return target;
   }
 
@@ -260,5 +268,33 @@ export class TaxonNameStrategy {
     this.priorityLevel = source.priorityLevel;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName);
   }
+
+  convertToString(): string {
+    return this && this.strategyId && this.taxonName && (this.taxonName.name) || undefined;
+  }
+
 }
 
+export function strategyDepartmentsToString(data: Strategy, separator?: string): string {
+  let strategyDepartments = data.strategyDepartments;
+  separator = separator || ", ";
+  return strategyDepartments.reduce((result: string, strategyDepartment: StrategyDepartment, index: number) => {
+    return index ? (result + separator + strategyDepartment.convertToString()) : strategyDepartment.convertToString();
+  }, '');
+}
+
+export function appliedStategiesToString(data: Strategy, separator?: string) {
+  let appliedStrategies = data.appliedStrategies;
+  separator = separator || ", ";
+  return appliedStrategies.reduce((result: string, appliedStrategy: AppliedStrategy, index: number) => {
+    return index ? (result + separator + appliedStrategy.convertToString()) : appliedStrategy.convertToString();
+  }, '');
+}
+
+export function taxonsNameStrategyToString(data: Strategy, separator?: string) {
+  let taxonNames = data.taxonNames;
+  separator = separator || ", ";
+  return taxonNames.reduce((result: string, taxonNameStrategy: TaxonNameStrategy, index: number) => {
+    return index ? (result + separator + taxonNameStrategy.convertToString()) : taxonNameStrategy.convertToString();
+  }, '');
+}

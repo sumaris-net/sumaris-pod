@@ -356,37 +356,6 @@
     }
   },
 
-  "PLANIFICATION": {
-    "CREATE_SAMPLING_PLAN": "Création d'une ligne de plan d'échantillonnage",
-    "FISHING_AREA": "Zone (s) de pêche",
-    "SAMPLE_ROW_CODE": "Code de la ligne",
-    "SAMPLE_ROW_TITLE": "Code ligne de plan - incrément",
-    "EOTP": "EOTP",
-    "LABORATORY": "Laboratoire (s) saisisseur(s)",
-    "TARGET_SPECIE": "Espèce cible",
-    "LANDING_PORT": "Port de débarquement",
-    "SEX": "Sexe",
-    "AGE": "Age",
-    "YEAR": "Année",
-    "WEIGHT": "Poids : ",
-    "SIZE": "Tailles : ",
-    "MATURITY": "Maturités : ",
-    "CALCIFIED_TYPE": "Types de pièces calcifiées : ",
-    "SIZE_INCREMENT": "incrément de taille",
-    "EFFORT": "Effort : ",
-    "QUARTER_1": "Trimestre 1" ,
-    "QUARTER_2": "Trimestre 2",
-    "QUARTER_3": "Trimestre 3",
-    "QUARTER_4": "Trimestre 4",
-    "PARAMETERS_TITLE": "Paramètres à mesurer :",
-    "COMMENT" :"Commentaire",
-    "PARAMETERS_TITLE_TABLE": "Paramètres à mesurer",
-    "QUARTER_1_TABLE": "Efforts T1" ,
-    "QUARTER_2_TABLE": "Efforts T2",
-    "QUARTER_3_TABLE": "Efforts T3",
-    "QUARTER_4_TABLE": "Efforts T4"
-  },
-
   "TRIP": {
     "TITLE": "Marée",
     "PROGRAM": "Programme de collecte",
@@ -1131,7 +1100,6 @@
   "PROGRAM": {
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
-    "TAB_SIMPLE_STRATEGIES": "Simple stratégies",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Référentiel des espèces commerciales",
@@ -1190,7 +1158,12 @@
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "NEW": {
-        "TITLE": "Nouvelle stratégie"
+        "TITLE": "Nouvelle stratégie",
+        "SAMPLING_TITLE": "Nouvelle ligne de plan"
+      },
+      "EDIT": {
+        "TITLE": "Stratégie",
+        "SAMPLING_TITLE": "Ligne de plan {{label}}"
       },
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
@@ -1199,9 +1172,13 @@
         "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
         "SHORT_COLUMN_TITLE": "PSFM",
         "PARAMETER": "Paramètre",
+        "PARAMETER_ID": "Paramètre",
         "MATRIX": "Support",
+        "MATRIX_ID": "Support",
         "FRACTION": "Fraction",
+        "FRACTION_ID": "Fraction",
         "METHOD": "Méthode",
+        "METHOD_ID": "Méthode",
         "UNIT": "Unité",
         "IS_MANDATORY": "Oblig ?",
         "ACQUISITION_NUMBER": "Nb acquis.",
@@ -1216,8 +1193,42 @@
         "LOAD_STRATEGY_LABEL_ERROR": "Erreur lors de chargement du label de la stratégie",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "LOAD_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
-        "SAVE_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie"
-      }
+        "SAVE_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
+        "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
+        "PARAMETERS.MATURITY": "Erreur saisie Age",
+        "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}"
+      },
+      "CREATE_SAMPLING_PLAN": "Création d'une ligne de plan d'échantillonnage",
+      "FISHING_AREA": "Zone(s) de pêche",
+      "SAMPLE_ROW_CODE": "Code de la ligne",
+      "SAMPLE_ROW_TITLE": "Code ligne de plan - incrément",
+      "EOTP": "EOTP",
+      "LABORATORY": "Laboratoire(s) saisisseur(s)",
+      "TARGET_SPECIE": "Espèce cible",
+      "LANDING_PORT": "Port de débarquement",
+      "SEX": "Sexe",
+      "AGE": "Age",
+      "YEAR": "Année",
+      "WEIGHT": "Poids : ",
+      "SIZE": "Tailles : ",
+      "MATURITY": "Maturités : ",
+      "WEIGHT_TABLE": "Poids",
+      "SIZE_TABLE": "Tailles",
+      "MATURITY_TABLE": "Maturités",
+      "CALCIFIED_TYPE": "Types de pièces calcifiées : ",
+      "SIZE_INCREMENT": "incrément de taille",
+      "EFFORT": "Effort : ",
+      "QUARTER_1": "Trimestre 1" ,
+      "QUARTER_2": "Trimestre 2",
+      "QUARTER_3": "Trimestre 3",
+      "QUARTER_4": "Trimestre 4",
+      "PARAMETERS_TITLE": "Paramètres à mesurer :",
+      "COMMENT" :"Commentaire",
+      "PARAMETERS_TITLE_TABLE": "Paramètres à mesurer",
+      "QUARTER_1_TABLE": "Efforts T1" ,
+      "QUARTER_2_TABLE": "Efforts T2",
+      "QUARTER_3_TABLE": "Efforts T3",
+      "QUARTER_4_TABLE": "Efforts T4"
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",

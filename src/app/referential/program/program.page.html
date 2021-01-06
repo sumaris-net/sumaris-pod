@@ -74,12 +74,12 @@
     </mat-tab>
 
     <!-- TAB: simpleStrategiesTable -->
-    <mat-tab    label="{{'PROGRAM.TAB_SIMPLE_STRATEGIES'|translate}}" [disabled]="!simpleStrategiesOption" >
+    <mat-tab    label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="!simpleStrategiesOption" >
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="contract"></ion-icon>
         </mat-icon>
-        <ion-label translate>PROGRAM.TAB_SIMPLE_STRATEGIES</ion-label>
+        <ion-label translate>PROGRAM.TAB_STRATEGIES</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="simpleStrategiesTable.invalid || (simpleStrategiesTable.editedRow && strategyForm.invalid)"></ion-icon>
       </ng-template>
 
@@ -92,10 +92,10 @@
         </ion-item>
 
         <!-- strategies table -->
-        <app-simpleStrategies-table  #simpleStrategiesTable              
+        <app-simple-strategies-table  #simpleStrategiesTable              
                             [canEdit]="enabled"
                             [canDelete]="enabled">
-        </app-simpleStrategies-table>
+        </app-simple-strategies-table>
        
       </div>
     </mat-tab>
