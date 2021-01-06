@@ -225,7 +225,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     const isNew = isNil(data.id);
     if (!isNew) {
-      this.programSubject.next(data.program.label);
+      // FIXME CLT Program subscriber throw invalid pmfms => /!\ program not set
+      //this.programSubject.next(data.program.label);
     }
 
     const measurementValues = Object.entries(data.measurementValues).map(([key, value]) => {
