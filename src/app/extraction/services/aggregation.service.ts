@@ -1,9 +1,7 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
-import {BaseEntityService, EntityUtils, isNil, isNotNil, StatusIds} from "../../core/core.module";
 import {map} from "rxjs/operators";
-
 import {ErrorCodes} from "../../trip/services/trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction.model";
@@ -17,6 +15,11 @@ import {FilterFn} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AggregationType, IAggregationStrata} from "./model/aggregation-type.model";
 import {ExtractionFragments} from "./extraction.service";
+import {isNil, isNotNil} from "../../shared/functions";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EnvironmentService} from "../../../environments/environment.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 
 export const AggregationFragments = {
@@ -166,9 +169,10 @@ export class AggregationService extends BaseEntityService {
 
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**

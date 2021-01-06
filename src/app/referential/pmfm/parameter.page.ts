@@ -9,7 +9,7 @@ import {ParameterService} from "../services/parameter.service";
 import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ReferentialTable} from "../list/referential.table";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {referentialToString} from "../../core/services/model/referential.model";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor} from "../../core/form/editor.class";

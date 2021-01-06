@@ -4,7 +4,7 @@ import {
   ReferentialAsObjectOptions, ReferentialRef,
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
-import {isNil, uncapitalizeFirstLetter} from "../../../shared/functions";
+import {isNil, isNotNil, uncapitalizeFirstLetter} from "../../../shared/functions";
 import {Entity} from "../../../core/services/model/entity.model";
 
 

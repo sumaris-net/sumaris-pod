@@ -6,15 +6,15 @@ import {AccountService} from "../../../core/services/account.service";
 import {AppEntityEditor} from "../../../core/form/editor.class";
 import {FormGroup, Validators} from "@angular/forms";
 import * as momentImported from "moment";
-const moment = momentImported;
-import {DateFormatPipe, EntityServiceLoadOptions, isNotNil} from "../../../shared/shared.module";
-import * as moment from "moment";
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {DateFormatPipe} from "../../../shared/pipes/date-format.pipe";
 import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
 import {HistoryPageReference} from "../../../core/services/model/history.model";
+import {isNotNil} from "../../../shared/functions";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-vessel-page',

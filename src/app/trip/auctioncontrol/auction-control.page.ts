@@ -3,13 +3,12 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
 import {LandingPage} from "../landing/landing.page";
 import {LandingValidatorService} from "../services/validator/landing.validator";
-import {debounceTime, filter, map, mergeMap, startWith, switchMap} from "rxjs/operators";
+import {debounceTime, map, mergeMap, startWith} from "rxjs/operators";
 import {BehaviorSubject, defer, forkJoin, Observable, Subscription} from "rxjs";
 import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {fadeInOutAnimation, isNil, isNotEmptyArray, isNotNil} from "../../shared/shared.module";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
@@ -17,7 +16,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {isNil, isNotNil} from "../../shared/functions";
+import {isNil, isNotEmptyArray} from "../../shared/functions";
 
 @Component({
   selector: 'app-auction-control',
@@ -103,7 +102,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
                   const tg = taxonGroups.find(tg => tg.label === qv.label);
                   // If not found in strategy's taxonGroups : ignore
                   if (!tg) {
-                    console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of programe ${this.landingForm.program})`)
+                    console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of programe ${this.landingForm.program})`);
                     return res;
                   }
                   // Replace the QV name, using the taxon group name

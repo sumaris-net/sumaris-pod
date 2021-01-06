@@ -6,12 +6,6 @@ import {catchError, first, switchMap, throttleTime} from "rxjs/operators";
 import {Entity} from "../model/entity.model";
 import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
-import {
-  ENTITIES_STORAGE_KEY_PREFIX,
-  EntityStorageLoadOptions,
-  EntityStore,
-  EntityStoreTypePolicy
-} from "./entity-store.class";
 import {EnvironmentService} from "../../../../environments/environment.class";
 import {ENTITIES_STORAGE_KEY_PREFIX, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
 import {ProgressBarService} from "../../../shared/services/progress-bar.service";
@@ -487,7 +481,7 @@ export class EntitiesStorage {
 
     const now = this._debug && Date.now();
     if (this._debug) console.info("[entities-storage] Restoring entities...");
-    let entitiesCount = (await Promise.all<number>(
+    const entitiesCount = (await Promise.all<number>(
       entityNames
         .map(name => this.getEntityStore<any>(name))
         .map((store: EntityStore<any>) => store.restore()))
