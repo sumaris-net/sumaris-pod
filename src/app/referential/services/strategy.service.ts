@@ -639,9 +639,5 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
         targetPmfmStrategy.id = savedPmfmStrategy.id;
       });
     }
-
-
-
-
   }
 }

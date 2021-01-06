@@ -17,6 +17,7 @@ import { StrategyService } from "../services/strategy.service";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { PmfmStrategiesTable } from "../strategy/pmfm-strategies.table";
 import {TaxonNameRef} from "../services/model/taxon.model";
+import { LocationLevelIds } from '../services/model/model.enum';
 
 @Component({
   selector: 'form-simple-strategy',
@@ -167,11 +168,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestTaxonName(value, {
         ...filter, statusId: 1
       },
-        'TaxonName',
-        this.enableTaxonNameFilter),
+      'TaxonName',
+      this.enableTaxonNameFilter),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
-      columnSizes: [2, 10],
       mobile: this.settings.mobile
     });
 
@@ -180,8 +180,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggest(value, {
         ...filter, statusId: 1
       },
-        'Department',
-        this.enableStrategyDepartmentFilter),
+      'Department',
+      this.enableStrategyDepartmentFilter),
       columnSizes: [4, 6],
       mobile: this.settings.mobile
     });
@@ -189,10 +189,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // appliedStrategy autocomplete
     this.registerAutocompleteField('appliedStrategy', {
       suggestFn: (value, filter) => this.suggest(value, {
-        ...filter, statusId: 1, Id: 111
+        ...filter, statusIds: [0, 1], levelIds: [LocationLevelIds.ICES_RECTANGLE]
       },
-        'Location',
-        this.enableAppliedStrategyFilter),
+      'Location',
+      this.enableAppliedStrategyFilter),
       mobile: this.settings.mobile
     });
 
