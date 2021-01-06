@@ -25,7 +25,7 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {BehaviorSubject} from "rxjs";
 import {personsToString, personToString} from "../../core/services/model/person.model";
 import {chainPromises} from "../../shared/observables";
-import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotNil, toDateISOString} from "../../shared/functions";
 import {Trip} from "../services/model/trip.model";
 import {PersonService} from "../../admin/services/person.service";
 import {StatusIds} from "../../core/services/model/model.enum";

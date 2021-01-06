@@ -44,6 +44,7 @@ import {
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig
 } from "../../shared/material/autocomplete/material.autocomplete";
+import {Environment, EnvironmentService} from "../../../environments/environment.class";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
@@ -78,6 +79,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
+  protected environment: Environment;
 
   excludesColumns: string[] = [];
   displayedColumns: string[];
@@ -290,8 +292,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
     this.toastController = injector && injector.get(ToastController);
+    this.environment = injector && injector.get(EnvironmentService);
     this._autocompleteConfigHolder = new MatAutocompleteConfigHolder({
-      getUserAttributes: (a,b) => settings.getFieldDisplayAttributes(a, b)
+      getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
     });
     this.autocompleteFields = this._autocompleteConfigHolder.fields;
   }
@@ -320,7 +323,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.defaultSortDirection = sortedColumn.start;
 
     // If the user changes the sort order, reset back to the first page.
-    if(this.sort && this.paginator) {
+    if (this.sort && this.paginator) {
       this.registerSubscription(
         this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0)
       );
@@ -418,7 +421,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   ngAfterViewInit() {
-    if (!environment.production) {
+    if (!this.environment.production) {
       // Warn if table not exists
       if (!this.table) {
         setTimeout(() => {
@@ -444,7 +447,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this._destroy$.unsubscribe();
 
     if (this._dataSource) {
-      this._dataSource.ngOnDestroy()
+      this._dataSource.ngOnDestroy();
     }
   }
 

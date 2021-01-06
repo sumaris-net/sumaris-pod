@@ -48,7 +48,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     protected validatorService: AccountValidatorService,
     protected settingsValidatorService: UserSettingsValidatorService,
     protected translate: TranslateService,
-    @Inject(APP_LOCALES) public locales: LocaleConfig[]
+    @Inject(APP_LOCALES) public locales: LocaleConfig[],
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
