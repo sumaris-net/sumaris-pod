@@ -129,6 +129,7 @@ export const StrategyFragments = {
   `,
   appliedStrategy: gql`
     fragment AppliedStrategyFragment on AppliedStrategyVO {
+      id
       strategyId
       location {
         ...ReferentialFragment
@@ -150,6 +151,7 @@ export const StrategyFragments = {
   `,
   strategyDepartment: gql`
     fragment StrategyDepartmentFragment on StrategyDepartmentVO {
+      id
       strategyId
       location {
         ...ReferentialFragment
@@ -637,9 +639,5 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
         targetPmfmStrategy.id = savedPmfmStrategy.id;
       });
     }
-
-
-
-
   }
 }
