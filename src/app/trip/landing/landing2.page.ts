@@ -250,13 +250,13 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.samples2Table.value = data.samples || [];
 
     let pmfmStrategy =  await this.strategyService.loadByLabel( strategyLabel, { expandedPmfmStrategy : true});
-
+    let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
     console.log("pmfmStrategy", pmfmStrategy);
 
     this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
 
-    this.samples2Table.appliedPmfmStrategy = pmfmStrategy.pmfmStrategies;
-    this.samples2Table.pmfms = pmfmStrategy.pmfmStrategies;
+    this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
+    this.samples2Table.pmfms = pmfmStrategies;
 
     // Set fishing areas using strategy
     // this.landing2Form.
