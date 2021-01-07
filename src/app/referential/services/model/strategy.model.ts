@@ -206,6 +206,8 @@ export class AppliedPeriod {
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
     return target;
   }
 
