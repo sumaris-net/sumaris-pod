@@ -179,37 +179,35 @@
     </mat-cell>
   </ng-container>
 
-	 <!-- Actions buttons column -->
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-<!--      <button mat-icon-button small color="light" *ngIf="row.editing && row.id != -1" [title]="'COMMON.BTN_UNDO'|translate"-->
-<!--              (click)="cancelOrDelete($event, row)">-->
-<!--        <mat-icon>undo</mat-icon>-->
-<!--      </button>-->
-<!--      <button mat-icon-button small color="light" *ngIf="row.editing && row.id == -1" [title]="'COMMON.BTN_ADD'|translate"-->
-<!--              (click)="confirmAndAddRow($event, row)">-->
-<!--        <mat-icon>add</mat-icon>-->
-<!--      </button>-->
 
+  <!-- Actions buttons column -->
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" >
       <!-- undo or delete  -->
       <button mat-icon-button small color="light" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-              (click)="cancelOrDelete($event, row)">
+              (click)="cancelOrDelete($event, row)"  [hidden]="!inlineEdition">
         <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
         <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
       </button>
       <!-- validate -->
       <button mat-icon-button small color="light"
               [title]="'COMMON.BTN_VALIDATE'|translate"
-              (click)="confirmEditCreate($event, row)">
+              (click)="confirmEditCreate($event, row)"  [hidden]="!inlineEdition">
         <mat-icon>check</mat-icon>
       </button>
       <!-- add -->
       <button mat-icon-button small color="light"
               [title]="'COMMON.BTN_ADD'|translate"
-              (click)="confirmAndAddRow($event, row)">
+              (click)="confirmAndAddRow($event, row)"  [hidden]="!inlineEdition">
         <mat-icon>add</mat-icon>
+      </button>
+      <!-- add -->
+      <button mat-icon-button small color="light"
+              [title]="'PROGRAM.STRATEGY.ADD_LANDING'|translate"
+              (click)="addLanding($event, row)" >
+        <mat-icon>addLanding</mat-icon>
       </button>
     </mat-cell>
   </ng-container>

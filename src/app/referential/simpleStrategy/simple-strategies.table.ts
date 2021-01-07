@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from "@angular/core";
-import { ValidatorService } from "@e-is/ngx-material-table";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {
+  AppFormUtils,
   environment,
   fromDateISOString,
   referentialToString,
@@ -157,6 +158,44 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  /**
+   * Add landing to the given row, or if not specified the currently edited row
+   * @param event
+   * @param row
+   */
+  addLanding(event?: any, row?: TableElement<Strategy>): boolean {
+    // FIXME CLT IMAGINE 143
+
+    console.debug('addLanding called');
+    // row = row || this.editedRow;
+    // if (row && row.editing) {
+    //   if (event) event.stopPropagation();
+    //   // confirmation edition or creation
+    //   if (!row.confirmEditCreate()) {
+    //     // If pending, wait end of validation, then loop
+    //     if (row.validator && row.validator.pending) {
+    //       AppFormUtils.waitWhilePending(row.validator)
+    //         .then(() => this.confirmEditCreate(event, row));
+    //     }
+    //     else {
+    //       if (this.debug) {
+    //         console.warn("[table] Row not valid: unable to confirm", row);
+    //         AppFormUtils.logFormErrors(row.validator, '[table] ');
+    //       }
+    //     }
+    //     return false;
+    //   }
+    //   // If edit finished, forget edited row
+    //   if (row === this.editedRow) {
+    //     this.editedRow = undefined; // unselect row
+    //     this.onConfirmEditCreateRow.next(row);
+    //     this.markAsDirty();
+    //   }
+    // }
+    return true;
+  }
+
 
 }
 
