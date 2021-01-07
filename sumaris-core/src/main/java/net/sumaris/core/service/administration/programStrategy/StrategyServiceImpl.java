@@ -190,6 +190,6 @@ public class StrategyServiceImpl implements StrategyService {
 		source.setPmfmStrategies(savedPmfmStrategies);
 
 		// Save program locations
-		strategyRepository.saveProgramLocationsByStrategyId(strategyId);
+//		strategyRepository.saveProgramLocationsByStrategyId(strategyId);
 	}
 }
