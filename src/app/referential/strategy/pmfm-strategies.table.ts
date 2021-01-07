@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {TableElement} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
@@ -155,6 +155,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       map(_ => this.selection.selected)
     );
   }
+
+  @Output() simpleStrategyDeleteRow = new EventEmitter<TableElement<PmfmStrategy>[]>();
 
   constructor(
     protected injector: Injector,
@@ -767,5 +769,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       return t.find(pmfm => pmfm.method?.id === id) ? t.find(pmfm => pmfm.method?.id === id).method.name : "";
     }
     return "";
+  }
+
+
+  async simpleStrategyDeleteSelection(event: UIEvent) {
+    await super.deleteSelection(event);
+    await this.save();
+    this.simpleStrategyDeleteRow.next();
+
   }
 }
