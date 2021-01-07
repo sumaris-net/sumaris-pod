@@ -233,22 +233,46 @@ public class StrategyRepositoryImpl
 
         Strategy strategy = getOne(Strategy.class, strategyId);
 
-        // Get existing locations
-        Set<Location> programLocations = new HashSet<>();
-        CriteriaQuery<Program2Location> query = cb.createQuery(Program2Location.class);
-        Root<Program2Location> root = query.from(Program2Location.class);
-        query.where(cb.equal(root.get(Program2Location.Fields.PROGRAM), strategy.getProgram()));
-        em.createQuery(query).getResultStream().forEach(p2l -> programLocations.add(p2l.getLocation()));
+        // Get existing program locations
+        Map<Integer, Program2Location> programLocations = new HashMap<>();
+        {
+            CriteriaQuery<Program2Location> query = cb.createQuery(Program2Location.class);
+            Root<Program2Location> root = query.from(Program2Location.class);
+            query.where(cb.equal(root.get(Program2Location.Fields.PROGRAM), strategy.getProgram()));
+            em.createQuery(query).getResultStream().forEach(p2l ->
+                    programLocations.putIfAbsent(p2l.getLocation().getId(), p2l));
+        }
 
-        Beans.getList(strategy.getAppliedStrategies()).forEach(appliedStrategy -> {
-            if (appliedStrategy.getLocation() != null && !programLocations.contains(appliedStrategy.getLocation())) {
-                Program2Location p2l = new Program2Location();
-                p2l.setProgram(strategy.getProgram());
-                p2l.setLocation(appliedStrategy.getLocation());
-                em.persist(p2l);
-                programLocations.add(appliedStrategy.getLocation());
-            }
-        });
+        // Get existing strategy locations
+        Map<Integer, Location> strategyLocations = new HashMap<>();
+        {
+            CriteriaQuery<Location> query = cb.createQuery(Location.class);
+            Root<Strategy> root = query.from(Strategy.class);
+            Join<Strategy, AppliedStrategy> appliedStrategyInnerJoin = root.joinList(Strategy.Fields.APPLIED_STRATEGIES, JoinType.INNER);
+            query.select(appliedStrategyInnerJoin.get(AppliedStrategy.Fields.LOCATION))
+                    .where(cb.equal(root.get(Strategy.Fields.PROGRAM), strategy.getProgram()));
+            em.createQuery(query).getResultStream().forEach(l ->
+                    strategyLocations.putIfAbsent(l.getId(), l));
+        }
+
+        // Persist new entities
+        strategyLocations.values()
+                .stream()
+                .filter(location -> !programLocations.keySet().contains(location.getId()))
+                .forEach(location -> {
+                    Program2Location p2l = new Program2Location();
+                    p2l.setProgram(strategy.getProgram());
+                    p2l.setLocation(location);
+                    em.persist(p2l);
+                });
+
+        // Remove unused entities
+        programLocations.values()
+                .stream()
+                .filter(p2l -> !strategyLocations.keySet().contains(p2l.getLocation().getId()))
+                .forEach(p2l -> {
+                    em.remove(p2l);
+                });
     }
 
     @Override
