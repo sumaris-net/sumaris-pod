@@ -201,5 +201,5 @@ export const ConfigOptions = Object.freeze({
         }
       },
       defaultValue: LocationLevelIds.ICES_RECTANGLE
-  }
+    }
 });

@@ -189,7 +189,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // appliedStrategy autocomplete
     this.registerAutocompleteField('appliedStrategy', {
       suggestFn: (value, filter) => this.suggest(value, {
-        ...filter, statusIds: [0, 1], levelIds: [LocationLevelIds.ICES_RECTANGLE]
+        ...filter, statusIds: [0, 1], levelIds: [LocationLevelIds.ICES_DIVISION]
       },
       'Location',
       this.enableAppliedStrategyFilter),
