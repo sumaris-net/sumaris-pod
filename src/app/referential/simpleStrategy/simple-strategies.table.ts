@@ -177,6 +177,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
     //   // New trip
     //   this.onNewTrip.emit({id: null, row: row});
     // }
+    return true;
   }
 
 
