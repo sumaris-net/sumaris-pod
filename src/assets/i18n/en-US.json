@@ -1186,7 +1186,7 @@
       "WEIGHT_TABLE": "Weights",
       "SIZE_TABLE": "Sizes",
       "MATURITY_TABLE": "Maturities",
-      "CALCIFIED_TYPE": "Type of calcified part : " ,
+      "CALCIFIED_TYPE": "Type of calcified part" ,
       "SIZE_INCREMENT": "Size increment",
       "EFFORT": "Effort : ",
       "QUARTER_1": "Quarter 1" ,

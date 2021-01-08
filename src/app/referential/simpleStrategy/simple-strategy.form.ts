@@ -442,7 +442,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       const dateAsString = date as string;
       year = moment(dateAsString).toDate().getFullYear().toString()
     }
-    this.sampleRowMask = [...year.split(''), '-', 'B', 'I', '0', '-', /\d/, /\d/, /\d/, /\d/];
+    this.sampleRowMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
 
     // get new label sample row code
     const updatedLabel = await this.strategyService.findStrategyNextLabel(this.programId, `${year}-BIO-`, 4);
@@ -455,6 +455,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       // Update the label, if year change
       if (year && oldYear && year !== oldYear) {
         labelControl.setValue(updatedLabel);
+      } else {
+        labelControl.setValue(label);
       }
     }
   }
@@ -604,7 +606,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   requiredPmfmMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 2;
     return (array: FormArray): ValidationErrors | null => {
-      const values = array.value.flat().filter(pmfm => pmfm !== false);
+      const values = array.value.flat().filter(pmfm => pmfm && pmfm !== false);
       if (!values || values.length < minLength) {
         return { minLength: { minLength: minLength } };
       }
@@ -628,7 +630,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   requiredPeriodMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (array: FormArray): ValidationErrors | null => {
-      const values = array.value.flat().filter(period => period.acquisitionNumber && period.acquisitionNumber >= 0);
+      const values = array.value.flat().filter(period => period.acquisitionNumber !== undefined && period.acquisitionNumber >= 0);
       if (!values || values.length < minLength) {
         return { minLength: { minLength: minLength } };
       }
