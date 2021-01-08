@@ -164,36 +164,19 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
    * @param event
    * @param row
    */
-  addLanding(event?: any, row?: TableElement<Strategy>): boolean {
+  addLanding(event?: MouseEvent, row?: TableElement<Strategy>): boolean {
     // FIXME CLT IMAGINE 143
-
     console.debug('addLanding called');
-    // row = row || this.editedRow;
-    // if (row && row.editing) {
-    //   if (event) event.stopPropagation();
-    //   // confirmation edition or creation
-    //   if (!row.confirmEditCreate()) {
-    //     // If pending, wait end of validation, then loop
-    //     if (row.validator && row.validator.pending) {
-    //       AppFormUtils.waitWhilePending(row.validator)
-    //         .then(() => this.confirmEditCreate(event, row));
-    //     }
-    //     else {
-    //       if (this.debug) {
-    //         console.warn("[table] Row not valid: unable to confirm", row);
-    //         AppFormUtils.logFormErrors(row.validator, '[table] ');
-    //       }
-    //     }
-    //     return false;
-    //   }
-    //   // If edit finished, forget edited row
-    //   if (row === this.editedRow) {
-    //     this.editedRow = undefined; // unselect row
-    //     this.onConfirmEditCreateRow.next(row);
-    //     this.markAsDirty();
-    //   }
+
+    if (event) event.stopPropagation();
+
+    // if (row.currentData.) {
+    //   // Edit trip
+    //   this.onOpenRow.emit({id: row.currentData.tripId, row: row});
+    // } else {
+    //   // New trip
+    //   this.onNewTrip.emit({id: null, row: row});
     // }
-    return true;
   }
 
 

@@ -204,10 +204,11 @@
         <mat-icon>add</mat-icon>
       </button>
       <!-- add -->
+      <!-- FIXME CLT Add specific addLanding icon -->
       <button mat-icon-button small color="light"
               [title]="'PROGRAM.STRATEGY.ADD_LANDING'|translate"
               (click)="addLanding($event, row)" >
-        <mat-icon>addLanding</mat-icon>
+        <ion-icon name="boat" slot="icon-only"></ion-icon>
       </button>
     </mat-cell>
   </ng-container>
