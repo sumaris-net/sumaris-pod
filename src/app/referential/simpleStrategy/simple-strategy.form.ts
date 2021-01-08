@@ -116,13 +116,12 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   async setPmfmStrategies() {
     const pmfms = [];
 
-    // FIXME : Double sauvegarde obligatoire pour avoir les valeurs : Pourquoi ?
     await this.weightPmfmStrategiesTable.save();
     await this.sizePmfmStrategiesTable.save();
     await this.maturityPmfmStrategiesTable.save();
-    await this.weightPmfmStrategiesTable.save();
-    await this.sizePmfmStrategiesTable.save();
-    await this.maturityPmfmStrategiesTable.save();
+    // await this.weightPmfmStrategiesTable.save();
+    // await this.sizePmfmStrategiesTable.save();
+    // await this.maturityPmfmStrategiesTable.save();
 
     this.weightPmfmStrategiesTable.selection.clear();
     this.sizePmfmStrategiesTable.selection.clear();
@@ -149,9 +148,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-    this.weightPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
-    this.sizePmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
-    this.maturityPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.weightPmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.sizePmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.maturityPmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
     this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
     this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
     this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
