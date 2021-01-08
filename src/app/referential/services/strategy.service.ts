@@ -254,8 +254,8 @@ export const StrategyFragments = {
 
 
 const FindStrategyNextLabel: any = gql`
-  query SuggestedStrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
-    suggestedStrategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
+  query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
+    strategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
   }
 `;
 
@@ -636,7 +636,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
   async findStrategyNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next label...`);
 
-    const res = await this.graphql.query<{ suggestedStrategyNextLabel: string }>({
+    const res = await this.graphql.query<{ strategyNextLabel: string }>({
       query: FindStrategyNextLabel,
       variables: {
         programId: programId,
@@ -646,7 +646,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"},
       fetchPolicy: 'network-only'
     });
-    return res && res.suggestedStrategyNextLabel;
+    return res && res.strategyNextLabel;
   }
 
   async LoadAllAnalyticReferences(
