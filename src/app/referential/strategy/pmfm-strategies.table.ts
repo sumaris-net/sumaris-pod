@@ -243,7 +243,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
     this.loadPmfms();
 
-    this.validatorService.isSimpleStrategy = this.canDisplaySimpleStrategyValidators;
+    this.validatorService.isSimpleStrategy = !this.canDisplayColumnsHeaders;
 
     // Acquisition level
     this.registerFormField('acquisitionLevel', {
@@ -595,6 +595,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     else {
       this.fieldDefinitions.push(definition);
     }
+    console.log("fieldDefinitions", this.fieldDefinitions);
   }
 
 
