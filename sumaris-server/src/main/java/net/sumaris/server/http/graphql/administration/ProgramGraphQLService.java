@@ -189,6 +189,16 @@ public class ProgramGraphQLService {
         return null;
     }
 
+    @GraphQLQuery(name = "strategyNextLabel", description = "Get next label for strategy")
+    public String findNextLabelByProgramId(
+            @GraphQLArgument(name = "programId") int programId,
+            @GraphQLArgument(name = "labelPrefix", defaultValue = "") String labelPrefix,
+            @GraphQLArgument(name = "nbDigit", defaultValue = "0") Integer nbDigit) {
+        return strategyService.findNextLabelByProgramId(programId,
+                labelPrefix == null ? "" : labelPrefix,
+                nbDigit == null ? 0 : nbDigit);
+    }
+
     /* -- Mutations -- */
 
     @GraphQLMutation(name = "saveProgram", description = "Save a program (with strategies)")

@@ -81,9 +81,4 @@ public class ReferentialSuggestServiceImpl implements ReferentialSuggestService 
 	public List<Integer> findPmfmsFromStrategy(int programId, Integer referenceTaxonId, String field) {
 		return referentialSuggestDao.findPmfmsFromStrategy(programId, referenceTaxonId, field);
 	}
-
-	@Override
-	public String findNextLabelFromStrategy(int programId, String labelPrefix, int nbDigit) {
-		return referentialSuggestDao.findNextLabelFromStrategy(programId, labelPrefix, nbDigit);
-	}
 }

@@ -115,13 +115,4 @@ public class ReferentialSuggestServiceReadTest extends AbstractServiceTest{
         Assert.assertTrue(CollectionUtils.isNotEmpty(results));
     }
 
-    @Test
-    public void findNextLabelFromStrategy() {
-        String label = service.findNextLabelFromStrategy(40, "BIO", 0);
-        Assert.assertEquals("BIO1", label);
-
-        label = service.findNextLabelFromStrategy(40, "2020_BIO_", 4);
-        Assert.assertEquals("2020_BIO_0003", label);
-    }
-
 }

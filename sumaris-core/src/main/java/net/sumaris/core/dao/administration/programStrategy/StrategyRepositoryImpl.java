@@ -32,6 +32,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.Status;
@@ -49,6 +50,7 @@ import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -217,6 +219,46 @@ public class StrategyRepositoryImpl
     @Override
     public List<StrategyDepartmentVO> getStrategyDepartments(int strategyId) {
         return getStrategyDepartments(load(Strategy.class, strategyId));
+    }
+
+    /**
+     * @param programId program id
+     * @param labelPrefix label prefix (ex: AAAA_BIO_)
+     * @return next strategy label for this prefix (ex: AAAA_BIO_0001)
+     */
+    @Override
+    public String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
+        final String prefix = (labelPrefix == null) ? "" : labelPrefix;
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<String> query = builder.createQuery(String.class);
+        Root<Strategy> root = query.from(Strategy.class);
+
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+
+        query.select(root.get(Strategy.Fields.LABEL))
+                .where(
+                        builder.and(
+                                // Program
+                                builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
+                                // Label
+                                builder.like(root.get(Strategy.Fields.LABEL), prefix.concat("%"))
+                        ));
+
+        String result = getEntityManager()
+                .createQuery(query)
+                .setParameter(programIdParam, programId)
+                .getResultStream()
+                .max(String::compareTo)
+                .map(source -> StringUtils.removeStart(source, prefix))
+                .orElse("0");
+
+        if (!StringUtils.isNumeric(result)) {
+            throw new SumarisTechnicalException(String.format("Unable to increment label '%s' on strategy", prefix.concat(result)));
+        }
+        result = String.valueOf(Integer.valueOf(result) + 1);
+        result = prefix.concat(StringUtils.leftPad(result, nbDigit, '0'));
+        return result;
     }
 
     @Override

@@ -71,6 +71,8 @@ public interface StrategySpecifications {
 
     List<StrategyDepartmentVO> saveStrategyDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources);
 
+    String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+
     void saveProgramLocationsByStrategyId(int strategyId);
 
 }

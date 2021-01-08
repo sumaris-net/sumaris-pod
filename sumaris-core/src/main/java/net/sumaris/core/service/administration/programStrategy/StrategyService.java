@@ -85,6 +85,9 @@ public interface StrategyService {
 	@Transactional(readOnly = true)
 	List<StrategyDepartmentVO> getStrategyDepartments(int strategyId);
 
+	@Transactional(readOnly = true)
+	String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+
 	StrategyVO save(StrategyVO source);
 
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);

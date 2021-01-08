@@ -40,7 +40,6 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -283,46 +282,6 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .distinct()
                 .map(source -> source.getId())
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * @param programId program id
-     * @param labelPrefix label prefix (ex: AAAA_BIO_)
-     * @return next strategy label for this prefix (ex: AAAA_BIO_0001)
-     */
-    @Override
-    public String findNextLabelFromStrategy(int programId, String labelPrefix, int nbDigit) {
-        final String prefix = (labelPrefix == null) ? "" : labelPrefix;
-
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<String> query = builder.createQuery(String.class);
-        Root<Strategy> root = query.from(Strategy.class);
-
-        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
-
-        query.select(root.get(Strategy.Fields.LABEL))
-                .where(
-                        builder.and(
-                                // Program
-                                builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
-                                // Label
-                                builder.like(root.get(Strategy.Fields.LABEL), prefix.concat("%"))
-                        ));
-
-        String result = getEntityManager()
-                .createQuery(query)
-                .setParameter(programIdParam, programId)
-                .getResultStream()
-                .max(String::compareTo)
-                .map(source -> StringUtils.removeStart(source, prefix))
-                .orElse("0");
-
-        if (!StringUtils.isNumeric(result)) {
-            throw new SumarisTechnicalException(String.format("Unable to increment label '%s' on strategy", prefix.concat(result)));
-        }
-        result = String.valueOf(Integer.valueOf(result) + 1);
-        result = prefix.concat(StringUtils.leftPad(result, nbDigit, '0'));
-        return result;
     }
 
 
