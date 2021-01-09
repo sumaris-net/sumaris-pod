@@ -30,18 +30,18 @@ export declare interface EntityServiceLoadOptions {
   [key: string]: any;
 }
 
-export declare interface EntityService<T, O = EntityServiceLoadOptions> {
+export declare interface IEntityService<T, O = EntityServiceLoadOptions> {
 
   load(
     id: number,
-    options?: O
+    opts?: O
   ): Promise<T>;
 
-  save(data: T, options?: any): Promise<T>;
+  save(data: T, opts?: any): Promise<T>;
 
-  delete(data: T, options?: any): Promise<any>;
+  delete(data: T, opts?: any): Promise<any>;
 
-  listenChanges(id: number, options?: any): Observable<T | undefined>;
+  listenChanges(id: number, opts?: any): Observable<T | undefined>;
 }
 
 export declare interface EntitiesServiceWatchOptions {
@@ -50,7 +50,7 @@ export declare interface EntitiesServiceWatchOptions {
   [key: string]: any;
 }
 
-export declare interface EntitiesService<T, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
+export declare interface IEntitiesService<T, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
 
   watchAll(
     offset: number,
@@ -77,7 +77,7 @@ export declare type LoadResultByPageFn<T> = (offset: number, size: number) => Pr
 
 
 export interface IEntityFullService<T, F, O extends EntitiesServiceWatchOptions & EntityServiceLoadOptions>
-  extends EntityService<T, O>, EntitiesService<T, F, O>  {
+  extends IEntityService<T, O>, IEntitiesService<T, F, O>  {
 }
 
 export async function fetchAllPagesWithProgress<T>(

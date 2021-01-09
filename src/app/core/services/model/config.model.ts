@@ -107,7 +107,7 @@ export class Configuration extends Software<Configuration> {
 
   getPropertyAsNumbers(definition: FormFieldDefinition): number[] {
     const value = this.getProperty(definition);
-    if (typeof value == 'string') return value.split(',').map(parseFloat) || undefined;
+    if (typeof value === 'string') return value.split(',').map(parseFloat) || undefined;
     return isNotNil(value) ? [parseFloat(value)] : undefined;
   }
 

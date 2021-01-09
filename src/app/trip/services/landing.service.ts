@@ -1,8 +1,9 @@
 import {Injectable, Injector} from "@angular/core";
 import {
-  EntitiesService,
-  EntityService,
+  EntitiesServiceWatchOptions,
   EntityServiceLoadOptions,
+  IEntitiesService,
+  IEntityService,
   LoadResult
 } from "../../shared/services/entity-service.class";
 import {Observable} from "rxjs";
@@ -31,7 +32,6 @@ import {
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
-import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {FormErrors} from "../../core/form/form.utils";
 import {NetworkService} from "../../core/services/network.service";
@@ -40,6 +40,8 @@ import {Moment} from "moment";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
+import {firstNotNilPromise} from "../../shared/observables";
+import {ObservedLocation} from "./model/observed-location.model";
 
 
 export class LandingFilter {
@@ -54,6 +56,8 @@ export class LandingFilter {
   synchronizationStatus?: SynchronizationStatus;
   onlyLast?: boolean;
   excludeVesselIds?: number[];
+
+  // Linked entities
   observedLocationId?: number;
   tripId?: number;
 
@@ -120,6 +124,17 @@ export class LandingFilter {
       return true;
     };
   }
+}
+
+export interface LandingFromObjectOptions {
+  withSamples?: boolean;
+}
+
+export declare interface LandingServiceWatchOptions extends
+  LandingFromObjectOptions, EntitiesServiceWatchOptions {
+
+  computeRankOrder?: boolean;
+  fullLoad?: boolean;
 }
 
 export const LandingFragments = {
@@ -257,7 +272,9 @@ const sortByDateFn = (n1: Landing, n2: Landing) => {
 
 @Injectable({providedIn: 'root'})
 export class LandingService extends RootDataService<Landing, LandingFilter>
-  implements EntitiesService<Landing, LandingFilter>, EntityService<Landing> {
+  implements
+    IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>,
+    IEntityService<Landing> {
 
   protected loading = false;
 
@@ -275,9 +292,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
   watchAll(offset: number, size: number,
            sortBy?: string, sortDirection?: SortDirection,
            dataFilter?: LandingFilter,
-           options?: {
-             fetchPolicy?: WatchQueryFetchPolicy
-           }): Observable<LoadResult<Landing>> {
+           opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
 
     if (sortBy && sortBy === 'id')
       sortBy = undefined;
@@ -331,7 +346,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         insertFilterFn: LandingFilter.searchFilter(dataFilter),
         variables,
         error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
-        fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
+        fetchPolicy: opts && opts.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
       })
         .pipe(
           filter(() => !this.loading)
@@ -369,22 +384,8 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
           }
 
           // Compute rankOrder, by tripId or observedLocationId
-          if (dataFilter && (isNotNil(dataFilter.tripId) || isNotNil(dataFilter.observedLocationId))) {
-            const asc = variables.sortDirection === 'asc';
-            let rankOrder = asc ? 1 + offset : total - offset;
-            // apply a sorted copy (do NOT change original order), then compute rankOrder
-            data.slice().sort(sortByDateFn)
-              .forEach(o => o.rankOrder = asc ? rankOrder++ : rankOrder--);
-
-            // sort by rankOrderOnPeriod (aka id)
-            if (!sortBy || sortBy === 'rankOrder') {
-              const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-              data.sort((a, b) => {
-                const valueA = a.rankOrder;
-                const valueB = b.rankOrder;
-                return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-              });
-            }
+          if (!opts || opts.computeRankOrder !== false) {
+            this.computeRankOrderAndSort(data, offset, total, sortBy, sortDirection, dataFilter);
           }
 
           return {
@@ -393,6 +394,28 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
           };
         }));
   }
+
+  async loadAllByObservedLocation(filter?: LandingFilter & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
+    return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
+  }
+
+  watchAllByObservedLocation(filter?: LandingFilter & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
+    return this.watchAll(0, -1, null, null, filter, opts);
+  }
+
+  async loadAll(offset: number,
+                size: number,
+                sortBy?: string,
+                sortDirection?: SortDirection,
+                dataFilter?: LandingFilter,
+                opts?: LandingServiceWatchOptions): Promise<Landing[]> {
+    return firstNotNilPromise(
+      this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts)
+        .pipe(
+          map(res => res.data)
+        ));
+  }
+
 
   async load(id: number, options?: EntityServiceLoadOptions): Promise<Landing> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
@@ -432,6 +455,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     }
 
   }
+
 
   async saveAll(entities: Landing[], options?: any): Promise<Landing[]> {
     if (!entities) return entities;
@@ -567,6 +591,30 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
   async delete(data: Landing): Promise<any> {
     if (!data) return;
     await this.deleteAll([data]);
+  }
+
+  /**
+   * Delete landing locally (from the entity storage)
+   * @param filter (required observedLocationId)
+   */
+  async deleteLocally(filter: LandingFilter & { observedLocationId: number; }): Promise<Landing[]> {
+    if (!filter || isNil(filter.observedLocationId)) throw new Error("Missing arguments 'filter.observedLocationId'");
+
+    try {
+      // Find landing to delete
+      const res = await this.entities.loadAll<Landing>(ObservedLocation.TYPENAME, {
+        filter: LandingFilter.searchFilter<Landing>(filter)
+      });
+      const ids = (res && res.data || []).map(o => o.id);
+      if (isEmptyArray(ids)) return undefined; // Skip
+
+      // Apply deletion
+      return await this.entities.deleteMany(ids, {entityName: ObservedLocation.TYPENAME});
+    }
+    catch (err) {
+      console.error(`[landing-service] Failed to delete landings ${JSON.stringify(filter)}`, err);
+      throw err;
+    }
   }
 
   async deleteAll(entities: Landing[], options?: any): Promise<any> {
@@ -749,21 +797,30 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     }
   }
 
-  // applyFilter(filter: LandingFilter, source: Landing): boolean {
-  //   return !filter ||
-  //     // Filter by parent
-  //     (isNotNil(filter.observedLocationId) && filter.observedLocationId === source.observedLocationId) ||
-  //     (isNotNil(filter.tripId) && filter.tripId === source.tripId) ||
-  //     // Filter by search criteria
-  //     (
-  //       // Program
-  //       (!filter.programLabel || filter.programLabel === source.program.label) &&
-  //       // Location
-  //       (isNil(filter.locationId) || (source.location && filter.locationId === source.location.id)) &&
-  //       // start date
-  //       (!filter.startDate || (source.dateTime && fromDateISOString(source.dateTime).isSameOrAfter(filter.startDate))) &&
-  //       // end date
-  //       (!filter.endDate || (source.dateTime && fromDateISOString(source.dateTime).isSameOrBefore(filter.endDate)))
-  //     );
-  // }
+  protected computeRankOrderAndSort(data: Landing[],
+                                    offset: number,
+                                    total: number,
+                                    sortBy: string,
+                                    sortDirection: string,
+                                    filter?: LandingFilter) {
+
+    // Compute rankOrder, by tripId or observedLocationId
+    if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {
+      const asc = (!sortDirection || sortDirection === 'asc');
+      const after = asc ? 1 : -1;
+      let rankOrder = asc ? 1 + offset : total - offset; // TODO Question BLA: A quoi ca sert cette ligne ?
+      // apply a sorted copy (do NOT change original order), then compute rankOrder
+      data.slice().sort(sortByDateFn)
+        .forEach(o => o.rankOrder = asc ? rankOrder++ : rankOrder--);
+
+      // sort by rankOrderOnPeriod (aka id)
+      if (!sortBy || sortBy === 'rankOrder') {
+        data.sort((a, b) => {
+          const valueA = a.rankOrder;
+          const valueB = b.rankOrder;
+          return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+        });
+      }
+    }
+  }
 }

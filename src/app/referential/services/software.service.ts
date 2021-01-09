@@ -4,7 +4,7 @@ import {environment} from "../../../environments/environment";
 import {Observable, Subject} from "rxjs";
 import {ErrorCodes} from "./errors";
 import {isNotNil} from "../../shared/functions";
-import {EntityService, EntityServiceLoadOptions} from "../../shared/shared.module";
+import {IEntityService, EntityServiceLoadOptions} from "../../shared/shared.module";
 import {Software} from "../../core/services/model/config.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
@@ -51,7 +51,7 @@ const SaveMutation: any = gql`
 @Injectable({providedIn: 'root'})
 export class SoftwareService<T extends Software = Software>
   extends BaseEntityService<T>
-  implements EntityService<T> {
+  implements IEntityService<T> {
 
   constructor(
     protected graphql: GraphqlService

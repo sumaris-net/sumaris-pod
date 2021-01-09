@@ -239,7 +239,7 @@ export const ProgramProperties = Object.freeze({
 
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID: <FormFieldDefinition>{
     key: 'sumaris.landedTrip.fishingArea.locationLevel.id',
-    label: 'CONFIGURATION.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID',
+    label: 'PROGRAM.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID',
     type: 'entity',
     autocomplete: {
       filter: {
@@ -248,6 +248,15 @@ export const ProgramProperties = Object.freeze({
       }
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
+  },
+
+  /* -- QUalitative value options -- */
+
+  MEASUREMENTS_MAX_VISIBLE_BUTTONS: <FormFieldDefinition>{
+    key: 'sumaris.measurements.maxVisibleButtons',
+    label: 'PROGRAM.OPTIONS.MEASUREMENTS_MAX_VISIBLE_BUTTONS',
+    type: 'integer',
+    defaultValue: 10 // Use -1 for all
   },
 });
 

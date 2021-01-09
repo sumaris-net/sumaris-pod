@@ -153,7 +153,9 @@
       </mat-form-field>
 
       <ng-template #iconComment>
-        <ion-icon color="medium" name="chatbox" *ngIf="row.validator.controls.comments.value" slot="icon-only" [title]="row.validator.controls.comments.value"></ion-icon>
+        <mat-icon color="primary" class="comment"
+                  *ngIf="row.validator.controls.comments.value"
+                  [title]="row.validator.controls.comments.value">chat_bubble</mat-icon>
       </ng-template>
     </mat-cell>
   </ng-container>

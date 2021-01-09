@@ -11,7 +11,7 @@ export class ReferentialToStringPipe implements PipeTransform {
   ) {
   }
 
-  transform(obj: Referential | ReferentialRef, args?: any): string {
-    return referentialToString(obj, args);
+  transform(obj: Referential | ReferentialRef, properties?: string[]): string {
+    return referentialToString(obj, properties);
   }
 }

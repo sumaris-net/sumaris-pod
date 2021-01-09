@@ -4,16 +4,17 @@
     "BTN_CANCEL": "Annuler",
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abandonner les modifications",
-    "BTN_RESET": "Réinitialiser",
-    "BTN_CLEAR": "Vider",
     "BTN_ADD": "Ajouter",
     "BTN_APPLY": "Appliquer",
-    "BTN_EDIT": "Modifier",
+    "BTN_BURST_INPUT": "Mode rafale",
+    "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
+    "BTN_CLEAR": "Vider",
     "BTN_CLOSE": "Fermer",
     "BTN_DONE": "Terminer",
     "BTN_DOWNLOAD": "Télécharger",
     "BTN_DELETE": "Supprimer",
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
+    "BTN_EDIT": "Modifier",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
     "BTN_YES_DELETE": "Oui, supprimer",
@@ -26,6 +27,7 @@
     "BTN_FILTER": "Filtrer",
     "BTN_RELOAD": "Mettre à jour",
     "BTN_REFRESH": "Rafraichir",
+    "BTN_RESET": "Réinitialiser",
     "BTN_SEARCH": "Rechercher",
     "BTN_NEXT": "Suivant",
     "BTN_NEXT_SHORT": "Suiv.",
@@ -599,8 +601,6 @@
       "TABLE": {
         "BTN_AUTO_FILL": "Remplissage automatique des espèces",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
-        "BTN_BURST_INPUT": "Mode rafale",
-        "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
         "LABEL": "Libellé",
         "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
@@ -631,10 +631,12 @@
     },
     "SAMPLE": {
       "NEW": {
-        "TITLE": "Nouvel échantillon"
+        "TITLE": "Nouvel échantillon",
+        "TITLE_PREFIX": "<small>{{prefix}}<br></small>"
       },
       "EDIT": {
         "TITLE": "Echantillon {{label}}",
+        "DATE_TIME": "Date échantillon",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_NAME": "Espèce scientifique (FAO)"
       },
@@ -649,6 +651,9 @@
         "PARENT": "Echantillon parent",
         "COMMENTS": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement"
+      },
+      "SETTINGS": {
+        "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
       }
     }
   },
@@ -736,7 +741,8 @@
       "LOAD_ALL_ERROR": "Erreur de chargement des contrôles en criée",
       "SAVE_ERROR": "Erreur de sauvegarde du contrôle en criée",
       "SAVE_ALL_ERROR": "Erreur de sauvegarde des contrôles en criée",
-      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du contrôle en criée."
+      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du contrôle en criée.",
+      "SYNCHRONIZE_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     }
   },
   "LANDING": {
@@ -1121,7 +1127,8 @@
       "LANDING_EDITOR_TRIP": "Marée",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu"
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
+      "MEASUREMENTS_MOBILE_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",

@@ -27,17 +27,18 @@ import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model
 export class SampleForm extends MeasurementValuesForm<Sample>
   implements OnInit, OnDestroy {
 
-  mobile: boolean;
-
   focusFieldName: string;
 
+  @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() showLabel = true;
+  @Input() showSampleDate = true;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
   @Input() showComment = true;
   @Input() showError = true;
+  @Input() maxVisibleButtons: number;
 
   @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
 

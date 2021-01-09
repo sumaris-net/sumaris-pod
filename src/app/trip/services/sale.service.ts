@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {LoadResult, EntitiesService} from "../../shared/shared.module";
+import {LoadResult, IEntitiesService} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
@@ -128,7 +128,7 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class SaleService extends BaseEntityService<Sale, SaleFilter> implements EntitiesService<Sale, SaleFilter>{
+export class SaleService extends BaseEntityService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter>{
 
   constructor(
     protected graphql: GraphqlService,

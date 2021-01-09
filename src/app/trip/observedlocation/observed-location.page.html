@@ -4,13 +4,50 @@
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+             [defaultBackHref]="defaultBackHref"
+             [canGoBack]="true">
+
+  <ion-buttons slot="end">
+    <ion-spinner *ngIf="loading"></ion-spinner>
+
+    <ion-button *ngIf="enabled && !isNewData || debug"
+                [matMenuTriggerFor]="optionsMenu"
+                [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" >
+
+  <!-- delete -->
+  <button mat-menu-item
+          [disabled]="isNewData || disabled"
+          (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
+  </button>
+
+</mat-menu>
 
 <ion-content>
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)">
+  <mat-tab-group #tabGroup
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)">
 
     <!-- TAB: general -->
     <mat-tab label="{{'OBSERVED_LOCATION.TAB_GENERAL'|translate}}">
@@ -21,10 +58,9 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="observedLocationForm.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="observedLocationForm.error||error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-        >
+        <ion-label color="danger" class="error" [innerHTML]="(observedLocationForm.error||error) | translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
@@ -36,14 +72,13 @@
                                     [program]="programSubject|async"
                                     [showError]="false"
                                     [showEndDateTime]="false"
-                                    (onSubmit)="save($event)"
-                                    [debug]="debug">
-
+                                    [debug]="debug"
+                                    (onSubmit)="save($event)">
             </form-observed-location>
           </ion-col>
           <ion-col class="ion-no-padding" size="12" size-xl="3">
             <app-entity-metadata [value]="data">
-              <app-entity-quality-form #qualityForm [editor]="this">
+              <app-entity-quality-form [editor]="this">
               </app-entity-quality-form>
             </app-entity-metadata>
           </ion-col>
@@ -91,8 +126,7 @@
 
         <app-aggregated-landings-table #aggregatedLandingsTable
                                        [debug]="debug"
-                                       (onNewRow)="onNewAggregatedLanding($event)"
-        >
+                                       (onNewRow)="onNewAggregatedLanding($event)">
         </app-aggregated-landings-table>
 
       </div>
@@ -119,11 +153,10 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="selectedTabIndex === 1" @fadeInOutAnimation
+         *ngIf="selectedTabIndex === 1"
+         @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
-
   <ion-fab-button color="tertiary" (click)="addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
-
 </ion-fab>

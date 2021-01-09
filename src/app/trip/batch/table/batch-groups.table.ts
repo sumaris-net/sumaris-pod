@@ -622,7 +622,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Make sure the row exists
     this.editedRow = (this.editedRow && BatchGroup.equals(this.editedRow.currentData, parent) && this.editedRow)
-      || (await this.getRowByBatchGroup(parent))
+      || (await this.findRowByBatchGroup(parent))
       // Or add it to table, if new
       || (await this.addEntityToTable(parent, {confirmCreate: false}));
 
@@ -763,7 +763,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         availableTaxonGroups: this.availableTaxonGroups,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
         openSubBatchesModal: (parent) => this.openSubBatchesModalFromParentModal(parent),
-        onDelete: (event, parent) => this.deleteBatchGroup(event, parent)
+        onDelete: (event, batchGroup) => this.deleteBatchGroup(event, batchGroup)
       },
       keyboardClose: true
     });
@@ -783,8 +783,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     return data;
   }
-  async deleteBatchGroup(event: UIEvent, parent: BatchGroup): Promise<boolean> {
-    const row = await this.getRowByBatchGroup(parent);
+
+  async deleteBatchGroup(event: UIEvent, data: BatchGroup): Promise<boolean> {
+    const row = await this.findRowByBatchGroup(data);
 
     // Row not exists: OK
     if (!row) return true;
@@ -838,7 +839,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.updateColumns();
   }
 
-  protected async getRowByBatchGroup(batchGroup: BatchGroup): Promise<TableElement<BatchGroup>> {
+  protected async findRowByBatchGroup(batchGroup: BatchGroup): Promise<TableElement<BatchGroup>> {
     return batchGroup && (await this.dataSource.getRows()).find(r => BatchGroup.equals(r.currentData, batchGroup));
   }
 

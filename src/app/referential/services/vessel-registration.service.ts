@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {VesselRegistration} from "./model/vessel.model";
-import {LoadResult, EntitiesService} from "../../shared/shared.module";
+import {LoadResult, IEntitiesService} from "../../shared/shared.module";
 import {BaseEntityService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
@@ -37,7 +37,7 @@ export const LoadRegistrationsQuery: any = gql`
 @Injectable({providedIn: 'root'})
 export class VesselRegistrationService
   extends BaseEntityService
-  implements EntitiesService<VesselRegistration, VesselFilter> {
+  implements IEntitiesService<VesselRegistration, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService

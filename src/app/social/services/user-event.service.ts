@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {EntitiesService, EntityServiceLoadOptions, isNil, isNilOrBlank, LoadResult} from "../../shared/shared.module";
+import {IEntitiesService, EntityServiceLoadOptions, isNil, isNilOrBlank, LoadResult} from "../../shared/shared.module";
 import {BaseEntityService, Entity, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -67,7 +67,7 @@ export interface UserEventActionDefinition extends UserEventAction<any> {
 
 @Injectable({providedIn: 'root'})
 export class UserEventService extends BaseEntityService<UserEvent>
-  implements EntitiesService<UserEvent, UserEventFilter, UserEventWatchOptions> {
+  implements IEntitiesService<UserEvent, UserEventFilter, UserEventWatchOptions> {
 
   private _userEventActions: UserEventActionDefinition[] = [];
 

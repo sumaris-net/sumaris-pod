@@ -141,8 +141,11 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   }
 
   confirmEditCreate(event?: any, row?: TableElement<Product>): boolean {
+    row = row || this.editedRow;
+
     const confirmed = super.confirmEditCreate(event, row);
-    if (confirmed && row && row.currentData) {
+
+    if (confirmed && row) {
       // update sales if any
       if (isNotEmptyArray(row.currentData.saleProducts)) {
         const updatedSaleProducts = SaleProductUtils.updateSaleProducts(row.currentData, this.productSalePmfms);

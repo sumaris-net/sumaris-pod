@@ -1,6 +1,6 @@
 import {TableDataSource, TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService, toBoolean} from '../../shared/shared.module';
+import {isNotEmptyArray, isNotNil, LoadResult, IEntitiesService, toBoolean} from '../../shared/shared.module';
 import {Entity, IEntity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
 import {catchError, first, map, takeUntil} from "rxjs/operators";
@@ -65,7 +65,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
    * @param config Additional configuration for table.
    */
   constructor(dataType: new() => T,
-              public readonly dataService: EntitiesService<T, F, O>,
+              public readonly dataService: IEntitiesService<T, F, O>,
               validatorService?: ValidatorService,
               config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);

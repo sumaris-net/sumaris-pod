@@ -1,16 +1,17 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
-  forwardRef,
+  forwardRef, Inject,
   Input,
   OnDestroy,
   OnInit,
   Optional,
-  Output,
-  ViewChild
+  Output, QueryList,
+  ViewChild, ViewChildren
 } from '@angular/core';
 import {merge, Observable, of} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
@@ -21,7 +22,15 @@ import {FloatLabelType} from "@angular/material/form-field";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean} from "../../shared/functions";
+import {
+  isEmptyArray,
+  isNotEmptyArray,
+  isNotNil,
+  sort,
+  suggestFromArray,
+  toBoolean,
+  toNumber
+} from "../../shared/functions";
 import {AppFormUtils, ReferentialRef, referentialToString} from "../../core/core.module";
 import {focusInput, InputElement} from "../../shared/inputs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -29,9 +38,13 @@ import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmIds} from "../services/model/model.enum";
 import {Pmfm} from "../services/model/pmfm.model";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {IonButton} from "@ionic/angular";
+import {MatMenu, MatMenuItem} from "@angular/material/menu";
+import {DOCUMENT} from "@angular/common";
 
 @Component({
   selector: 'app-pmfm-qv-field',
+  styleUrls: ['./pmfm-qv.form-field.component.scss'],
   templateUrl: './pmfm-qv.form-field.component.html',
   providers: [
     {
@@ -42,7 +55,7 @@ import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
+export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, ControlValueAccessor, InputElement {
 
   private _onChangeCallback = (_: any) => { };
   private _onTouchedCallback = () => { };
@@ -88,6 +101,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   @Input() sortAttribute: string;
 
+  @Input() maxVisibleButtons: number;
+
   @Input() set tabindex(value: number) {
     this._tabindex = value;
     this.markForCheck();
@@ -109,10 +124,19 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   @ViewChild('matInput') matInput: ElementRef;
 
+  @ViewChild('suffix', {static: false}) suffixDiv: ElementRef;
+
+  @ViewChildren('injectMatSuffix') suffixInjections: QueryList<ElementRef>;
+
+  @ViewChildren('button') buttons: QueryList<IonButton>;
+
+  @ViewChild('buttonsMenu') buttonsMenu: MatMenu;
+
   constructor(
     private platform: PlatformService,
     private settings: LocalSettingsService,
     private cd: ChangeDetectorRef,
+    @Inject(DOCUMENT) private document: HTMLDocument,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
     this.mobile = platform.mobile;
@@ -152,6 +176,10 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this.placeholder = this.placeholder || this.pmfm.name || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
+    this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 10);
+    if (this._qualitativeValues.length <= this.maxVisibleButtons) {
+      this.maxVisibleButtons = 999; // Not need to limit
+    }
 
     if (!this.mobile) {
       if (!this._sortedQualitativeValues.length) {
@@ -197,6 +225,32 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   ngOnDestroy(): void {
     this._onDestroy.emit();
+  }
+
+  ngAfterViewInit() {
+    if (this.suffixDiv) {
+      // Inject suffix elements, into the first injection point found
+      const suffixInjectionPoint = this.suffixInjections.first;
+      if (suffixInjectionPoint) {
+        suffixInjectionPoint.nativeElement.append(this.suffixDiv.nativeElement);
+
+        // Hide buttons, after the limit of 'maxVisibleButtons'
+        if (this.style === 'button' && this.maxVisibleButtons) {
+
+          this.buttons.forEach((button, index) => {
+            if (index + 1 > this.maxVisibleButtons) {
+              console.debug("Hide button at index: " + index);
+              const newItem = new MatMenuItem(new ElementRef<HTMLElement>(button['el'] as HTMLElement), document);
+              this.buttonsMenu.addItem(newItem);
+            }
+          });
+        }
+
+        // Show the suffix div
+        this.suffixDiv.nativeElement.classList.remove('cdk-visually-hidden');
+      }
+
+    }
   }
 
   get value(): any {

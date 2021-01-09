@@ -44,7 +44,7 @@ export interface MutableWatchQueryInfo<D, T = any, V = EmptyObject> {
   counter: number;
 }
 
-export abstract class BaseEntityService<T = any, F = any>{
+export abstract class BaseEntityService<T = any, F = any> {
 
   protected _debug: boolean;
   protected _mutableWatchQueries: MutableWatchQueryInfo<any>[] = [];

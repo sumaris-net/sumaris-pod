@@ -62,19 +62,19 @@
                         [startAt]="startDate"></mat-datepicker>
         <div class="mat-form-field-subscript mat-form-field-subscript-wrapper">
           <!-- errors -->
-          <ng-container *ngIf="formControl.errors; let errors">
-            <mat-error *ngIf="errors.required" translate>ERROR.FIELD_REQUIRED</mat-error>
-            <mat-error *ngIf="errors.validDate" translate>ERROR.FIELD_NOT_VALID_DATE_TIME</mat-error>
-            <mat-error *ngIf="errors.dateIsAfter">{{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: errors.dateIsAfter }}</mat-error>
-            <mat-error *ngIf="errors.dateRange" translate>ERROR.FIELD_NOT_VALID_DATE_RANGE</mat-error>
-            <mat-error *ngIf="!errors.dateRange && errors.dateMaxDuration" translate>ERROR.FIELD_NOT_VALID_DATE_MAX_DURATION</mat-error>
-            <mat-error *ngIf="!errors.dateRange && errors.dateMinDuration" translate>ERROR.FIELD_NOT_VALID_DATE_MIN_DURATION</mat-error>
-            <mat-error *ngIf="errors.msg">{{errors.msg}}</mat-error>
-            <ng-content select="mat-error"></ng-content>
+          <ng-container [ngSwitch]="formControl.errors|mapKeys|arrayFirst">
+            <mat-error *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngSwitchCase="'validDate'" translate>ERROR.FIELD_NOT_VALID_DATE_TIME</mat-error>
+            <mat-error *ngSwitchCase="'dateIsAfter'">{{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: formControl.errors.dateIsAfter }}</mat-error>
+            <mat-error *ngSwitchCase="'dateRange'" translate>ERROR.FIELD_NOT_VALID_DATE_RANGE</mat-error>
+            <mat-error *ngSwitchCase="'dateMaxDuration'" translate>ERROR.FIELD_NOT_VALID_DATE_MAX_DURATION</mat-error>
+            <mat-error *ngSwitchCase="'dateMinDuration'" translate>ERROR.FIELD_NOT_VALID_DATE_MIN_DURATION</mat-error>
+            <mat-error *ngSwitchCase="'msg'">{{formControl.errors.msg}}</mat-error>
           </ng-container>
+          <ng-content select="mat-error"></ng-content>
 
           <!-- mat hint -->
-          <div class="mat-form-field-hint-wrapper" [hidden]="formControl.invalid">
+          <div class="mat-form-field-hint-wrapper" [class.cdk-visually-hidden]="formControl.invalid">
             <div class="mat-form-field-hint-spacer"></div>
             <ng-content select="mat-hint"></ng-content>
           </div>

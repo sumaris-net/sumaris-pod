@@ -1,28 +1,40 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+<app-modal-toolbar color="secondary"
+                   [title]="$title|async"
+                   (cancel)="cancel()"
+                   (validate)="onSubmit($event)"
+                   [canValidate]="!loading"
+                   [showSpinner]="loading"
+                   [validateIcon]="enableBurstMode ? {matIcon: 'done_all'} : {matIcon: 'checkmark'}">
 
-    <ion-title>
-      {{$title | async}}
-    </ion-title>
+<ion-buttons slot="end" >
+  <!-- Options menu -->
+  <button mat-icon-button *ngIf="!loading"
+          [title]="'COMMON.OPTIONS'|translate"
+          [matMenuTriggerFor]="optionsMenu">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+</ion-buttons>
+</app-modal-toolbar>
 
-    <ion-buttons slot="end" >
-      <ion-spinner *ngIf="loading"></ion-spinner>
+<!-- Options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="before">
 
-      <ion-button *ngIf="!loading" (click)="close($event)"
-                  [disabled]="invalid"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+  <button mat-menu-item
+          (click)="toggleBurstMode()">
+    <mat-icon *ngIf="enableBurstMode">check_box</mat-icon>
+    <mat-icon *ngIf="!enableBurstMode">check_box_outline_blank</mat-icon>
+    <ion-label translate>COMMON.BTN_BURST_INPUT_HELP</ion-label>
+  </button>
 
+  <mat-divider></mat-divider>
+
+  <button mat-menu-item
+          *ngIf="onDelete"
+          (click)="delete($event)">
+    <mat-icon>delete_outline</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  </button>
+</mat-menu>
 
 <ion-content class="ion-padding">
 
@@ -31,10 +43,14 @@
                    [acquisitionLevel]="acquisitionLevel"
                    [program]="program"
                    [pmfms]="pmfms"
+                   [mapPmfmFn]="mapPmfmFn"
+                   [usageMode]="usageMode"
                    [showLabel]="showLabel"
+                   [showSampleDate]="showDateTime"
                    [showTaxonGroup]="showTaxonGroup"
                    [showTaxonName]="showTaxonName"
-                   (onSubmit)="close($event)">
+                   [maxVisibleButtons]="maxVisibleButtons"
+                   (onSubmit)="onSubmit($event)">
   </app-sample-form>
 
 </ion-content>
@@ -52,10 +68,11 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="invalid ? 'clear' : 'solid'"
+        <ion-button color="tertiary"
+                    [fill]="invalid ? 'clear' : 'solid'"
                     [disabled]="loading || invalid"
-                    (keyup.enter)="close($event)"
-                    (click)="close($event)" color="tertiary">
+                    (keyup.enter)="onSubmit($event)"
+                    (click)="onSubmit($event)">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>

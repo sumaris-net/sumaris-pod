@@ -16,7 +16,7 @@ import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
 import {
   DateFormatPipe,
-  EntityService,
+  IEntityService,
   EntityServiceLoadOptions,
   isNil,
   isNilOrBlank,
@@ -55,7 +55,7 @@ export class AppEditorOptions extends AppTabFormOptions {
 @Directive()
 export abstract class AppEntityEditor<
   T extends Entity<T>,
-  S extends EntityService<T> = EntityService<T>
+  S extends IEntityService<T> = IEntityService<T>
   >
   extends AppTabEditor<T, EntityServiceLoadOptions>
   implements OnInit, OnDestroy, AfterViewInit {

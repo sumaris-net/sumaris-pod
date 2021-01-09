@@ -97,10 +97,17 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
-  protected async setProgram(program: Program) {
+  protected setProgram(program: Program) {
     if (!program) return; // Skip
     if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
+
+    // Customize the UI, using program options
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+    this.samplesTable.modalOptions = {
+      ...this.samplesTable.modalOptions,
+      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
+    };
+
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {

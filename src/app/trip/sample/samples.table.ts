@@ -18,13 +18,15 @@ import * as moment from "moment";
 import {Moment} from "moment";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {SampleModal} from "./sample.modal";
+import {SampleModal, ISampleModalOptions} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {PlatformService} from "../../core/services/platform.service";
+import {BatchGroup} from "../services/model/batch-group.model";
 
 export interface SampleFilter {
   operationId?: number;
@@ -65,6 +67,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   @Input() showDateTimeColumn = true;
   @Input() showFabButton = false;
 
+  @Input() modalOptions: Partial<ISampleModalOptions>;
+
   @Input()
   set showTaxonGroupColumn(value: boolean) {
     this.setShowColumn('taxonGroup', value);
@@ -97,7 +101,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       new InMemoryEntitiesService<Sample, SampleFilter>(Sample, {
         equals: Sample.equals
       }),
-      injector.get(ValidatorService),
+      injector.get(PlatformService).mobile ? null : injector.get(ValidatorService),
       {
         prependNewElements: false,
         suppressErrors: environment.production,
@@ -226,7 +230,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Prepare entity measurement values
     this.prepareEntityToSave(data);
 
-    const updatedData = await this.openDetailModal(data);
+    const updatedData = await this.openDetailModal(data, row);
     if (updatedData) {
       await this.updateEntityToTable(updatedData, row);
     }
@@ -236,7 +240,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return true;
   }
 
-  async openDetailModal(sample?: Sample): Promise<Sample | undefined> {
+  async openDetailModal(sample?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
+    console.debug('[samples-table] Opening detail modal...');
+
     const isNew = !sample && true;
     if (isNew) {
       sample = new Sample();
@@ -247,17 +253,35 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     const modal = await this.modalCtrl.create({
       component: SampleModal,
-      componentProps: {
-        program: this.program,
+      componentProps: <ISampleModalOptions>{
+        program: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
         pmfms: this.$pmfms,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: sample,
         isNew,
+        usageMode: this.usageMode,
         showLabel: this.showLabelColumn,
+        showDateTime: this.showDateTimeColumn,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
-        onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()})
+        onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()}),
+        onSaveAndNew: async (data) => {
+          if (isNil(data.id)) {
+            await this.addEntityToTable(data);
+          }
+          else {
+            this.updateEntityToTable(data, row);
+            row = null; // Avoid to update twice (should never occur, because validateAndContinue always create a new entity)
+          }
+          const newData = new Sample();
+          await this.onNewEntity(newData);
+          return newData;
+        },
+        onDelete: (event, data) => this.delete(event, data),
+
+        // Override using given options
+        ...this.modalOptions,
       },
       keyboardClose: true
     });
@@ -297,6 +321,24 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Override by subclasses
   }
 
+  protected async findRowBySample(data: Sample): Promise<TableElement<Sample>> {
+    if (!data || isNil(data.rankOrder)) throw new Error("Missing argument data or data.rankOrder");
+    return (await this.dataSource.getRows())
+      .find(r => r.currentData.rankOrder === data.rankOrder);
+  }
+
+  async delete(event: UIEvent, data: Sample): Promise<boolean> {
+    const row = await this.findRowBySample(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, true /*already confirmed*/);
+    }
+    return canDeleteRow;
+  }
 
   public markForCheck() {
     this.cd.markForCheck();

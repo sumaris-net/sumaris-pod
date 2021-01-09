@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {EntityService, EntityServiceLoadOptions, isNil, isNotNil} from "../../shared/shared.module";
+import {IEntityService, EntityServiceLoadOptions, isNil, isNotNil} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -32,7 +32,7 @@ const LoadQuery: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class ParameterService extends BaseEntityService implements EntityService<Parameter> {
+export class ParameterService extends BaseEntityService implements IEntityService<Parameter> {
 
   constructor(
     protected graphql: GraphqlService,

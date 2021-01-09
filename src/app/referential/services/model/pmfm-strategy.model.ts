@@ -16,10 +16,10 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
   html?: boolean;
 }): string {
   if (!pmfm) return undefined;
-  const matches = PMFM_NAME_REGEXP.exec(pmfm.name||'');
+  const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
   const name = matches && matches[1] || pmfm.name;
-  if (opts && opts.withUnit && pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')) {
-    if (opts.html) {
+  if ((!opts || opts.withUnit !== false) && pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')) {
+    if (opts && opts.html) {
       return `${name}<small><br/>(${pmfm.unitLabel})</small>`;
     }
     return `${name} (${pmfm.unitLabel})`;

@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNotNil, LoadResult, EntitiesService} from "../../shared/shared.module";
+import {isNotNil, LoadResult, IEntitiesService} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils, Referential} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -134,7 +134,7 @@ const DeleteAll: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class ReferentialService extends BaseEntityService<Referential> implements EntitiesService<Referential, ReferentialFilter> {
+export class ReferentialService extends BaseEntityService<Referential> implements IEntitiesService<Referential, ReferentialFilter> {
 
   constructor(
     protected graphql: GraphqlService,

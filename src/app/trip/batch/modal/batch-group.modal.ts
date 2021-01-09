@@ -46,7 +46,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() disabled: boolean;
 
-  @Input() isNew = false;
+  @Input() isNew: boolean;
 
   @Input() showTaxonGroup = true;
 
@@ -65,7 +65,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() openSubBatchesModal: (parent: Batch) => Promise<BatchGroup>;
 
-  @Input() onDelete: (event: UIEvent, parent: Batch) => Promise<boolean>;
+  @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
 
   @ViewChild('form', { static: true }) form: BatchGroupForm;
 
@@ -122,7 +122,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   ngOnInit() {
 
-    this.isNew = toBoolean(this.isNew, !this.data)
+    this.isNew = toBoolean(this.isNew, !this.data);
     this.data = this.data || new BatchGroup();
     this.form.setValue(this.data);
 

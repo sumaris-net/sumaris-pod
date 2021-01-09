@@ -58,8 +58,8 @@ export interface CryptoSaltParams {
   p: number;
 }
 export interface KeyPair {
-  publicKey: Uint8Array,
-  secretKey: Uint8Array
+  publicKey: Uint8Array;
+  secretKey: Uint8Array;
 }
 
 @Injectable({providedIn: 'root'})
@@ -102,7 +102,7 @@ export class CryptoService {
       const m = nacl.util.decodeUTF8(message);
       const signedMsg = nacl.sign(m, keypair.secretKey);
       const sig = new Uint8Array(nacl.constants.crypto_sign_BYTES);
-      for (var i = 0; i < sig.length; i++) sig[i] = signedMsg[i];
+      for (let i = 0; i < sig.length; i++) sig[i] = signedMsg[i];
       const signature = nacl.util.encodeBase64(sig);
       resolve(signature);
     });

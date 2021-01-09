@@ -19,8 +19,9 @@ import {LocalSettingsService} from "../services/local-settings.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {merge} from "rxjs";
 import {AlertController} from "@ionic/angular";
-import {Alerts} from "../../shared/alerts";
+import {Alerts, askConfirmation} from "../../shared/alerts";
 import {Property} from "../../shared/types";
+import {ActivatedRoute, Router} from "@angular/router";
 
 @Component({
   selector: 'page-settings',
@@ -62,6 +63,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected platform: PlatformService,
+    protected router: Router,
     protected validatorService: LocalSettingsValidatorService,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
@@ -95,7 +97,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     // Make sure platform is ready
     await this.platform.ready();
 
-    this.propertyDefinitions = this.settings.additionalFields.slice(); // copy options
+    this.propertyDefinitions = this.settings.optionDefs.slice(); // copy options
     this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o); // fill map
 
     // Load settings
@@ -163,7 +165,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     const json: any = {...data};
 
     // Transform properties map into array
-    json.properties = EntityUtils.getMapAsArray(data.properties|| {});
+    json.properties = EntityUtils.getMapAsArray(data.properties || {});
     this.propertiesFormHelper.resize(json.properties.length);
 
     this.form.patchValue(json, {emitEvent: false});
@@ -179,7 +181,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     this.markForCheck();
   }
 
-  async save(event: MouseEvent) {
+  async save(event?: UIEvent) {
 
     // Remove all empty controls
     this.propertiesFormHelper.removeAllEmpty();
@@ -282,8 +284,23 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     }
   }
 
-  async cancel() {
+  async cancel(event?: UIEvent) {
     await this.load();
+  }
+
+  async close(event?: UIEvent) {
+    if (this.saving) return;
+
+    if (this.dirty) {
+      // Ask user confirmation
+      const confirmation = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate);
+      if (confirmation) {
+        await this.save(event);
+      }
+    }
+
+    // Back to home
+    return this.router.navigateByUrl('/', { skipLocationChange: true });
   }
 
   async clearCache(event?: UIEvent) {

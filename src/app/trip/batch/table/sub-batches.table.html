@@ -29,9 +29,9 @@
   <!-- enable burst input -->
   <ion-button color="light"
               [disabled]="disabled"
-              [title]="'TRIP.BATCH.TABLE.BTN_BURST_INPUT_HELP'|translate"
+              [title]="'COMMON.BTN_BURST_INPUT_HELP'|translate"
               (click)="toggleForm()" hidden-xs hidden-sm hidden-mobile>
-    <ion-label translate>TRIP.BATCH.TABLE.BTN_BURST_INPUT</ion-label>
+    <ion-label translate>COMMON.BTN_BURST_INPUT</ion-label>
   </ion-button>
 
   <!-- Options menu -->
@@ -169,12 +169,18 @@
           <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
             <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
           </mat-header-cell>
-          <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-            <mat-form-field floatLabel="never">
+          <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm">
+            <mat-form-field floatLabel="never" *ngIf="row.editing; else iconComment">
               <input matInput [formControl]="row.validator.controls.comments"
                      [placeholder]="'REFERENTIAL.COMMENTS'|translate"
                      [readonly]="!row.editing">
             </mat-form-field>
+
+            <ng-template #iconComment>
+              <mat-icon class="comment" [class.disabled]="!inlineEdition"
+                        *ngIf="row.currentData.comments"
+                        [title]="row.currentData.comments">chat_bubble</mat-icon>
+            </ng-template>
           </mat-cell>
         </ng-container>
 

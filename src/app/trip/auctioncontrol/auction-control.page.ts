@@ -3,8 +3,8 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
 import {LandingPage} from "../landing/landing.page";
 import {LandingValidatorService} from "../services/validator/landing.validator";
-import {debounceTime, filter, first, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
-import {BehaviorSubject, defer, forkJoin, from, merge, Observable, Subject, Subscription} from "rxjs";
+import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
+import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
@@ -17,7 +17,6 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {TaxonGroupRef} from "../../referential/services/model/taxon.model";
-import {start} from "repl";
 import {filterNotNil} from "../../shared/observables";
 import {toNumber} from "../../shared/functions";
 
@@ -169,7 +168,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       ).subscribe());
   }
 
-  onStartSampleEditingForm({form, pmfms}) {
+  onInitSampleForm({form, pmfms}) {
     // Remove previous subscription
     if (this._rowValidatorSubscription) {
       this._rowValidatorSubscription.unsubscribe();

@@ -1,10 +1,10 @@
 import {Injectable, Injector, Optional} from "@angular/core";
-import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
+import {gql} from "@apollo/client/core";
 import {
-  EntitiesService,
-  EntityService,
   EntityServiceLoadOptions,
   fromDateISOString,
+  IEntitiesService,
+  IEntityService,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -12,14 +12,13 @@ import {
   toDateISOString
 } from "../../shared/shared.module";
 import {AppFormUtils, Department, Entity, EntityUtils, environment} from "../../core/core.module";
-import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
+import {filter, map} from "rxjs/operators";
 import * as moment from "moment";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {RootDataService} from "./root-data-service.class";
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -28,10 +27,10 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
 import {NetworkService} from "../../core/services/network.service";
-import {concat, defer, Observable, of, timer} from "rxjs";
+import {Observable} from "rxjs";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {Beans, isEmptyArray, KeysEnum} from "../../shared/functions";
-import {DataQualityService} from "../../data/services/base.service";
+import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
 import {OperationFilter, OperationService} from "./operation.service";
 import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
@@ -50,7 +49,7 @@ import {
 import {fillRankOrder, IWithRecorderDepartmentEntity} from "../../data/services/model/model.utils";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
-import {FilterFn} from "../../shared/services/entity-service.class";
+import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
 import {UserEventService} from "../../social/services/user-event.service";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
@@ -58,6 +57,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {ToastController} from "@ionic/angular";
 import {TrashRemoteService} from "../../core/services/trash-remote.service";
 import {TRIP_FEATURE_NAME} from "./config/trip.config";
+import {IDataSynchroService, RootDataSynchroService} from "../../data/services/data-synchro-service.class";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -440,11 +440,13 @@ const UpdateSubscription = gql`
 
 
 @Injectable({providedIn: 'root'})
-export class TripService extends RootDataService<Trip, TripFilter>
+export class TripService
+  extends RootDataSynchroService<Trip, TripFilter, TripServiceLoadOptions>
   implements
-    EntitiesService<Trip, TripFilter>,
-    EntityService<Trip, TripServiceLoadOptions>,
-    DataQualityService<Trip> {
+    IEntitiesService<Trip, TripFilter>,
+    IEntityService<Trip, TripServiceLoadOptions>,
+    IDataEntityQualityService<Trip>,
+    IDataSynchroService<Trip, TripServiceLoadOptions>{
 
   protected $importationProgress: Observable<number>;
   protected loading = false;
@@ -469,6 +471,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
   ) {
     super(injector);
 
+    this.featureName = TRIP_FEATURE_NAME;
+
     // Register user event actions
     userEventService.registerAction({
       __typename: Trip.TYPENAME,
@@ -491,15 +495,67 @@ export class TripService extends RootDataService<Trip, TripFilter>
    * @param sortBy
    * @param sortDirection
    * @param dataFilter
-   * @param options
+   * @param opts
    */
   watchAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
            dataFilter?: TripFilter,
-           options?: {
-             fetchPolicy?: WatchQueryFetchPolicy;
+           opts?: EntitiesServiceWatchOptions & {
+             trash?: boolean;
+           }): Observable<LoadResult<Trip>> {
+
+    // Load offline
+    const offlineData = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    if (offlineData) {
+      return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
+    }
+
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 20,
+      sortBy: sortBy || 'departureDateTime',
+      sortDirection: sortDirection || 'asc',
+      trash: opts && opts.trash || false,
+      filter: TripFilter.asPodObject(dataFilter)
+    };
+
+    let now = this._debug && Date.now();
+    if (this._debug) console.debug("[trip-service] Watching trips... using options:", variables);
+
+    return this.mutableWatchQuery<{ trips: Trip[]; tripsCount: number; }>({
+        queryName: 'LoadAll',
+        query: LoadAllQuery,
+        arrayFieldName: 'trips',
+        totalFieldName: 'tripsCount',
+        insertFilterFn: TripFilter.searchFilter(dataFilter),
+        variables,
+        error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+      })
+        .pipe(
+          filter(() => !this.loading),
+          map(res => {
+            const data = (res && res.trips || []).map(Trip.fromObject);
+            const total = res && isNotNil(res.tripsCount) ? res.tripsCount : undefined;
+            if (now) {
+              console.debug(`[trip-service] Loaded {${data.length || 0}} trips in ${Date.now() - now}ms`, data);
+              now = undefined;
+            } else {
+              console.debug(`[trip-service] Refreshed {${data.length || 0}} trips`);
+            }
+            return {data, total};
+          })
+        );
+  }
+
+  watchAllLocally(offset: number,
+           size: number,
+           sortBy?: string,
+           sortDirection?: SortDirection,
+           dataFilter?: TripFilter,
+           options?: EntitiesServiceWatchOptions & {
              trash?: boolean;
            }): Observable<LoadResult<Trip>> {
     const variables: any = {
@@ -508,54 +564,18 @@ export class TripService extends RootDataService<Trip, TripFilter>
       sortBy: sortBy || 'departureDateTime',
       sortDirection: sortDirection || 'asc',
       trash: options && options.trash || false,
-      filter: TripFilter.asPodObject(dataFilter)
+      filter: TripFilter.searchFilter<Trip>(dataFilter)
     };
 
-    let now = this._debug && Date.now();
-    let $loadResult: Observable<{ trips: Trip[]; tripsCount?: number; }>;
-    if (this._debug) console.debug("[trip-service] Watching trips... using options:", variables);
+    if (this._debug) console.debug("[trip-service] Watching local trips... using options:", variables);
 
-    // Offline
-    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
-    if (offline) {
-      $loadResult = this.entities.watchAll<Trip>(Trip.TYPENAME, {
-          ...variables,
-          filter: TripFilter.searchFilter<Trip>(dataFilter)
-        })
-        .pipe(
-          map(res => {
-            return {trips: res && res.data, tripsCount: res && res.total};
-          }));
-    }
-    else {
-      $loadResult = this.mutableWatchQuery<{ trips: Trip[]; tripsCount: number; }>({
-        queryName: 'LoadAll',
-        query: LoadAllQuery,
-        arrayFieldName: 'trips',
-        totalFieldName: 'tripsCount',
-        insertFilterFn: TripFilter.searchFilter(dataFilter),
-        variables,
-        error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
-        fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
-      })
-        .pipe(
-          filter(() => !this.loading)
-        );
-    }
-
-    return $loadResult.pipe(
+    return this.entities.watchAll<Trip>(Trip.TYPENAME, variables)
+      .pipe(
         map(res => {
-          const data = (res && res.trips || []).map(Trip.fromObject);
-          const total = res && isNotNil(res.tripsCount) ? res.tripsCount : undefined;
-          if (now) {
-            console.debug(`[trip-service] Loaded {${data.length || 0}} trips in ${Date.now() - now}ms`, data);
-            now = undefined;
-          }else {
-            console.debug(`[trip-service] Refreshed {${data.length || 0}} trips`);
-          }
+          const data = (res && res.data || []).map(Trip.fromObject);
+          const total = res && isNotNil(res.total) ? res.total : undefined;
           return {data, total};
-        })
-      );
+        }));
   }
 
   async load(id: number, opts?: TripServiceLoadOptions): Promise<Trip | null> {
@@ -610,7 +630,10 @@ export class TripService extends RootDataService<Trip, TripFilter>
   }
 
   async hasOfflineData(): Promise<boolean> {
-    const res = await this.entities.loadAll('TripVO', {
+    const result = await super.hasOfflineData();
+    if (result) return result;
+
+    const res = await this.entities.loadAll(Trip.TYPENAME, {
       offset: 0,
       size: 0
     });
@@ -823,14 +846,6 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return entity;
   }
 
-  async synchronizeById(id: number): Promise<Trip> {
-    const entity = await this.load(id);
-
-    if (!entity || entity.id >= 0) return; // skip
-
-    // todo attention pour l'instant synchronize ne gère que les marées standards
-    return await this.synchronize(entity);
-  }
 
   async synchronize(entity: Trip, opts?: TripServiceSaveOptions): Promise<Trip> {
     opts = {
@@ -856,7 +871,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     // Fill operations
     const res = await this.operationService.loadAllByTrip( {tripId: localId},
-      {fullLoad: true, rankOrderOnPeriod: false});
+      {fullLoad: true, computeRankOrder: false});
     entity.operations = res && res.data || [];
 
     try {
@@ -901,7 +916,6 @@ export class TripService extends RootDataService<Trip, TripFilter>
    * @param opts
    */
   async control(entity: Trip, opts?: any): Promise<FormErrors> {
-
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}}...`, entity);
@@ -1213,7 +1227,6 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
   }
 
-
   async copyLocallyById(id: number, opts?: TripServiceLoadOptions & {}): Promise<Trip> {
 
     // Load existing data
@@ -1272,85 +1285,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return target;
   }
 
-  executeImport(opts?: {
-    maxProgression?: number;
-  }): Observable<number>{
-    if (this.$importationProgress) return this.$importationProgress; // Skip to may call
-
-    const maxProgression = opts && opts.maxProgression || 100;
-
-    const jobOpts = {maxProgression: undefined};
-    const jobDefers: Observable<number>[] = [
-      // Clear caches
-      defer(() => timer()
-        .pipe(
-          switchMap(() => this.network.clearCache()),
-          map(() => jobOpts.maxProgression as number)
-        )
-      ),
-      // Start to import data
-      defer(() => this.referentialRefService.executeImport(jobOpts)),
-      defer(() =>  this.personService.executeImport(jobOpts)),
-      defer(() => this.vesselSnapshotService.executeImport(jobOpts)),
-      defer(() => this.programService.executeImport(jobOpts)),
-      // Save data to local storage, then set progression to the max
-      defer(() => timer()
-        .pipe(
-          switchMap(() => this.entities.persist()),
-          map(() => jobOpts.maxProgression as number)
-        ))
-    ];
-    const jobCount = jobDefers.length;
-    jobOpts.maxProgression = Math.trunc(maxProgression / jobCount);
-
-    const now = Date.now();
-    console.info(`[trip-service] Starting ${jobDefers.length} importation jobs...`);
-
-    // Execute all jobs, one by one
-    let jobIndex = 0;
-    this.$importationProgress = concat(
-      ...jobDefers.map((jobDefer: Observable<number>, index) => {
-        return jobDefer
-          .pipe(
-            //switchMap(() => jobDefer),
-            map(jobProgression => {
-              jobIndex = index;
-              if (this._debug && jobProgression > jobOpts.maxProgression) {
-                console.warn(`[trip-service] WARN job #${jobIndex} return a jobProgression > maxProgression (${jobProgression} > ${jobOpts.maxProgression})!`);
-              }
-              // Compute total progression
-              return index * jobOpts.maxProgression + Math.min(jobProgression || 0, jobOpts.maxProgression);
-            })
-          );
-      }),
-
-      // Finish (force to reach max value)
-      of(maxProgression)
-        .pipe(
-          tap(() => {
-            this.$importationProgress = null;
-            console.info(`[trip-service] Importation finished in ${Date.now() - now}ms`);
-            this.settings.registerOfflineFeature(TRIP_FEATURE_NAME);
-          })
-        ))
-
-      .pipe(
-        catchError((err) => {
-          this.$importationProgress = null;
-          console.error(`[trip-service] Error during importation (job #${jobIndex + 1}): ${err && err.message || err}`, err);
-          throw err;
-        }),
-        // Compute total progression (= job offset + job progression)
-        // (and make ti always <= maxProgression)
-        map((progression) =>  Math.min(progression, maxProgression))
-      );
-
-    return this.$importationProgress;
-  }
-
-
   /* -- protected methods -- */
-
 
   protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };

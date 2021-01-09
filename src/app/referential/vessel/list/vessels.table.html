@@ -233,8 +233,9 @@
     <mat-header-cell *matHeaderCellDef>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-icon color="primary" name="chatbox" *ngIf="row.currentData.features?.comments" slot="icon-only"
-                [title]="row.currentData.features?.comments"></ion-icon>
+      <mat-icon class="comment"
+                *ngIf="row.currentData.features?.comments"
+                [title]="row.currentData.features?.comments">chat_bubble</mat-icon>
     </mat-cell>
   </ng-container>
 

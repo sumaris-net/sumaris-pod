@@ -20,11 +20,15 @@ import {HttpClient, HttpClientModule} from "@angular/common/http";
 import {Camera} from "@ionic-native/camera/ngx";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
-import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
+import {APP_LOCAL_SETTINGS_OPTIONS, APP_LOCAL_SETTINGS} from "./core/services/local-settings.service";
 import {LocalSettings} from "./core/services/model/settings.model";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
-import {TRIP_CONFIG_OPTIONS, TRIP_STORAGE_TYPE_POLICIES} from "./trip/services/config/trip.config";
+import {
+  TRIP_CONFIG_OPTIONS,
+  TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS,
+  TRIP_STORAGE_TYPE_POLICIES
+} from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 import {APP_MENU_ITEMS} from "./core/menu/menu.component";
@@ -46,6 +50,12 @@ import {TypePolicies} from "@apollo/client/core";
 import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
 import {SocialModule} from "./social/social.module";
 import {TRIP_TESTING_PAGES} from "./trip/trip.testing.module";
+import {EXTRACTION_GRAPHQL_TYPE_POLICIES} from "./extraction/services/config/extraction.config";
+import {
+  REFERENTIAL_GRAPHQL_TYPE_POLICIES,
+  REFERENTIAL_LOCAL_SETTINGS_OPTIONS
+} from "./referential/services/config/referential.config";
+import {FormFieldDefinitionMap} from "./shared/form/field.model";
 
 
 @NgModule({
@@ -123,13 +133,25 @@ import {TRIP_TESTING_PAGES} from "./trip/trip.testing.module";
     // Configure hammer gesture
     {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
 
-    { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: {
+    // Settings default values
+    { provide: APP_LOCAL_SETTINGS, useValue: <Partial<LocalSettings>>{
         pageHistoryMaxSize: 3
-      } as LocalSettings
+      }
     },
 
-    // Config options (Core + trip)
-    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TRIP_CONFIG_OPTIONS}},
+    // Settings options definition
+    { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <FormFieldDefinitionMap>{
+        ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
+        ...TRIP_LOCAL_SETTINGS_OPTIONS
+      }
+    },
+
+    // Config options definition (Core + trip)
+    { provide: APP_CONFIG_OPTIONS, useValue: <FormFieldDefinitionMap>{
+      ...ConfigOptions,
+      ...TRIP_CONFIG_OPTIONS
+    }},
+
 
     // Menu items
     { provide: APP_MENU_ITEMS, useValue: [
@@ -198,36 +220,9 @@ import {TRIP_TESTING_PAGES} from "./trip/trip.testing.module";
 
     // Entities Apollo cache options
     { provide: APP_GRAPHQL_TYPE_POLICIES, useValue: <TypePolicies>{
-        'MetierVO': {
-          keyFields: ['entityName', 'id']
-        },
-        'PmfmVO': {
-          keyFields: ['entityName', 'id']
-        },
-        'TaxonGroupVO': {
-          keyFields: ['entityName', 'id']
-        },
-        'TaxonNameVO': {
-          keyFields: ['entityName', 'id']
-        },
-        'LocationVO': {
-          keyFields: ['entityName', 'id']
-        },
-        'ReferentialVO': {
-          keyFields: ['entityName', 'id']
-        },
-        'MeasurementVO': {
-          keyFields: ['entityName', 'id']
-        },
-        'TaxonGroupStrategyVO': {
-          keyFields: ['__typename', 'strategyId', 'taxonGroup', ['entityName', 'id']]
-        },
-        'TaxonNameStrategyVO': {
-          keyFields: ['__typename', 'strategyId', 'taxonName', ['entityName', 'id']]
-        },
-        'ExtractionTypeVO': {
-          keyFields: ['category', 'label']
-        }
+        ...REFERENTIAL_GRAPHQL_TYPE_POLICIES,
+        ...TRIP_GRAPHQL_TYPE_POLICIES,
+        ...EXTRACTION_GRAPHQL_TYPE_POLICIES
       }
     },
 

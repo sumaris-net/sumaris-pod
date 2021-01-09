@@ -1,10 +1,10 @@
 import {Injectable, Injector} from "@angular/core";
 import {
-  EntitiesService,
   EntitiesServiceWatchOptions,
-  EntityService,
   EntityServiceLoadOptions,
   FilterFn,
+  IEntitiesService,
+  IEntityService,
   LoadResult
 } from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
@@ -16,8 +16,11 @@ import {Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {RootDataService} from "./root-data-service.class";
-import {DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
+import {
+  DataEntityAsObjectOptions,
+  SAVE_AS_OBJECT_OPTIONS,
+  SAVE_LOCALLY_AS_OBJECT_OPTIONS
+} from "../../data/services/model/data-entity.model";
 import {FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
 import {Beans, fromDateISOString, isNil, isNotNil, KeysEnum, toDateISOString} from "../../shared/functions";
@@ -27,6 +30,11 @@ import {Trip} from "./model/trip.model";
 import {TripFilter} from "./trip.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {NetworkService} from "../../core/services/network.service";
+import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
+import {Entity} from "../../core/services/model/entity.model";
+import {LandingService} from "./landing.service";
+import {RootDataSynchroService} from "../../data/services/data-synchro-service.class";
+import {IDataSynchroService} from "../../data/services/data-synchro-service.class";
 
 
 export class ObservedLocationFilter {
@@ -56,18 +64,18 @@ export class ObservedLocationFilter {
 
     // Location
     if (isNotNil(f.locationId)) {
-      filterFns.push(t => (t.location && t.location.id === f.locationId))
+      filterFns.push(t => (t.location && t.location.id === f.locationId));
     }
 
     // Start/end period
     const startDate = fromDateISOString(f.startDate);
     let endDate = fromDateISOString(f.endDate);
     if (startDate) {
-      filterFns.push(t => t.endDateTime ? startDate.isSameOrBefore(t.endDateTime) : startDate.isSameOrBefore(t.startDateTime))
+      filterFns.push(t => t.endDateTime ? startDate.isSameOrBefore(t.endDateTime) : startDate.isSameOrBefore(t.startDateTime));
     }
     if (endDate) {
       endDate = endDate.add(1, 'day');
-      filterFns.push(t => t.startDateTime && endDate.isAfter(t.startDateTime))
+      filterFns.push(t => t.startDateTime && endDate.isAfter(t.startDateTime));
     }
 
     // Recorder department
@@ -120,6 +128,17 @@ export const ObservedLocationFilterKeys: KeysEnum<ObservedLocationFilter> = {
   recorderDepartmentId: true,
   recorderPersonId: true,
   synchronizationStatus: true
+};
+
+
+export interface ObservedLocationServiceSaveOptions {
+  withLanding?: boolean;
+  enableOptimisticResponse?: boolean; // True by default
+}
+
+export interface ObservedLocationServiceLoadOptions extends EntityServiceLoadOptions {
+  withLanding?: boolean;
+  toEntity?: boolean;
 }
 
 export const ObservedLocationFragments = {
@@ -190,11 +209,11 @@ export const ObservedLocationFragments = {
 
 // Search query
 const LoadAllQuery: any = gql`
-  query ObservedLocations($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ObservedLocationFilterVOInput){
-    observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+  query ObservedLocations($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean, $filter: ObservedLocationFilterVOInput){
+    observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash){
       ...LightObservedLocationFragment
     }
-    observedLocationsCount(filter: $filter)
+    observedLocationsCount(filter: $filter, trash: $trash)
   }
   ${ObservedLocationFragments.lightObservedLocation}
 `;
@@ -232,9 +251,14 @@ const UpdateSubscription = gql`
 `;
 
 @Injectable({providedIn: "root"})
-export class ObservedLocationService extends RootDataService<ObservedLocation, ObservedLocationFilter>
-  implements EntitiesService<ObservedLocation, ObservedLocationFilter>,
-    EntityService<ObservedLocation> {
+export class ObservedLocationService
+  extends RootDataSynchroService<ObservedLocation, ObservedLocationFilter, ObservedLocationServiceLoadOptions>
+  implements
+    IEntitiesService<ObservedLocation, ObservedLocationFilter>,
+    IEntityService<ObservedLocation, ObservedLocationServiceLoadOptions>,
+    IDataEntityQualityService<ObservedLocation>,
+    IDataSynchroService<ObservedLocation, ObservedLocationServiceLoadOptions>
+{
 
   protected loading = false;
 
@@ -243,12 +267,11 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    protected landingService: LandingService
   ) {
     super(injector);
 
-    // FOR DEV ONLY
-    this._debug = !environment.production;
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
@@ -266,11 +289,12 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       size: size || 20,
       sortBy: sortBy || 'startDateTime',
       sortDirection: sortDirection || 'asc',
+      trash: opts && opts.trash || false,
       filter: ObservedLocationFilter.asPodObject(dataFilter)
     };
 
-    let now = this._debug && Date.now();
-    if (this._debug) console.debug("[observed-location-service] Watching observed locations... using options:", variables);
+    let now = Date.now();
+    console.debug("[observed-location-service] Watching observed locations... using options:", variables);
 
     return this.mutableWatchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
         queryName: 'LoadAll',
@@ -287,13 +311,11 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
         map(res => {
           const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
           const total = res && isNotNil(res.observedLocationsCount) ? res.observedLocationsCount : undefined;
-          if (this._debug) {
-            if (now) {
-              console.debug(`[observed-location-service] Loaded {${data.length || 0}} observed locations in ${Date.now() - now}ms`, data);
-              now = undefined;
-            } else {
-              console.debug(`[observed-location-service] Refreshed {${data.length || 0}} observed locations`);
-            }
+          if (now) {
+            console.debug(`[observed-location-service] Loaded {${data.length || 0}} observed locations in ${Date.now() - now}ms`, data);
+            now = undefined;
+          } else {
+            console.debug(`[observed-location-service] Refreshed {${data.length || 0}} observed locations`);
           }
           return {data, total};
         }));
@@ -308,15 +330,12 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       size: size || 20,
       sortBy: sortBy || 'startDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: ObservedLocationFilter.asPodObject(dataFilter)
+      filter: TripFilter.searchFilter<Trip>(dataFilter)
     };
 
-    console.debug("[observed-location-service] Loading observed locations locally... using options:", variables);
+    console.debug("[observed-location-service] Watching local observed locations... using options:", variables);
 
-    return this.entities.watchAll<ObservedLocation>(ObservedLocation.TYPENAME, {
-        ...variables,
-        filter: TripFilter.searchFilter<Trip>(dataFilter)
-      })
+    return this.entities.watchAll<ObservedLocation>(ObservedLocation.TYPENAME, variables)
       .pipe(
         map(res => {
           const data = (res && res.data || []).map(ObservedLocation.fromObject);
@@ -325,7 +344,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
         }));
   }
 
-  async load(id: number, opts?: EntityServiceLoadOptions): Promise<ObservedLocation> {
+  async load(id: number, opts?: ObservedLocationServiceLoadOptions): Promise<ObservedLocation> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
@@ -352,7 +371,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
   }
 
   public listenChanges(id: number): Observable<ObservedLocation> {
-    if (!id && id !== 0) throw "Missing argument 'id' ";
+    if (!id && id !== 0) throw new Error("Missing argument 'id' ");
 
     if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for trip {${id}}...`);
 
@@ -376,7 +395,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       );
   }
 
-  async save(entity: ObservedLocation): Promise<ObservedLocation> {
+  async save(entity: ObservedLocation, opts?: ObservedLocationServiceSaveOptions): Promise<ObservedLocation> {
     const now = Date.now();
     if (this._debug) console.debug("[observed-location-service] Saving an observed location...");
 
@@ -482,12 +501,77 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
   }
 
   /* -- TODO implement this methods -- */
-  async synchronize(data: ObservedLocation): Promise<ObservedLocation> { return data; }
   async control(data: ObservedLocation): Promise<FormErrors> { return undefined; }
   async terminate(data: ObservedLocation): Promise<ObservedLocation> { return data; }
   async validate(data: ObservedLocation): Promise<ObservedLocation> { return data; }
   async unvalidate(data: ObservedLocation): Promise<ObservedLocation> { return data; }
   async qualify(data: ObservedLocation, qualityFlagId: number): Promise<ObservedLocation> { return data; }
+
+
+  /* -- -- */
+  async synchronizeById(id: number): Promise<ObservedLocation> {
+    const entity = await this.load(id);
+    if (!entity || entity.id >= 0) return; // skip
+
+    return await this.synchronize(entity);
+  }
+
+  async synchronize(entity: ObservedLocation, opts?: ObservedLocationServiceSaveOptions): Promise<ObservedLocation> {
+    opts = {
+      withLanding: true,
+      enableOptimisticResponse: false, // Optimistic response not need
+      ...opts
+    };
+
+    const localId = entity && entity.id;
+    if (isNil(localId) || localId >= 0) throw new Error("Entity must be a local entity");
+    if (this.network.offline) throw new Error("Could not synchronize if network if offline");
+
+    // Clone (to keep original entity unchanged)
+    entity = entity instanceof Entity ? entity.clone() : entity;
+    entity.synchronizationStatus = 'SYNC';
+    entity.id = undefined;
+
+    // Fill landings
+    const res = await this.landingService.loadAllByObservedLocation( {observedLocationId: localId},
+      {fullLoad: true, rankOrderOnPeriod: false});
+    entity.landings = res && res.data || [];
+
+    try {
+
+      entity = await this.save(entity, opts);
+
+      // Check return entity has a valid id
+      if (isNil(entity.id) || entity.id < 0) {
+        throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR};
+      }
+    } catch (err) {
+      throw {
+        ...err,
+        code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR,
+        message: "OBSERVED_LOCATION.ERROR.SYNCHRONIZE_ERROR",
+        context: entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
+      };
+    }
+
+    try {
+      if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
+
+      // Delete trip's operations
+      await this.landingService.deleteLocally({observedLocationId: localId});
+
+      // Delete trip
+      await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
+    }
+    catch (err) {
+      console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
+      // Continue
+    }
+
+    // TODO: add to a synchro history (using class SynchronizationHistory) and store it in local settings ?
+
+    return entity;
+  }
 
   /* -- protected methods -- */
 

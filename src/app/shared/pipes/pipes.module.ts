@@ -11,8 +11,8 @@ import {HighlightPipe} from "./highlight.pipe";
 import {FileSizePipe} from "./file-size.pipe";
 import {DurationPipe} from "./duration.pipe";
 import {EvenPipe, MathAbsPipe, OddPipe} from "./math.pipes";
-import {ArrayLengthPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
-import {MapGetPipe} from "./maps.pipe";
+import {ArrayFirstPipe, ArrayLengthPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
+import {MapGetPipe, MapKeysPipe} from "./maps.pipe";
 
 
 @NgModule({
@@ -38,7 +38,9 @@ import {MapGetPipe} from "./maps.pipe";
     NotEmptyArrayPipe,
     EmptyArrayPipe,
     ArrayLengthPipe,
-    MapGetPipe
+    ArrayFirstPipe,
+    MapGetPipe,
+    MapKeysPipe
   ],
   exports: [
     DateFormatPipe,
@@ -57,7 +59,9 @@ import {MapGetPipe} from "./maps.pipe";
     NotEmptyArrayPipe,
     EmptyArrayPipe,
     ArrayLengthPipe,
-    MapGetPipe
+    ArrayFirstPipe,
+    MapGetPipe,
+    MapKeysPipe
   ]
 })
 export class SharedPipesModule {

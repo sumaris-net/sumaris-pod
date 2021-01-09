@@ -1,27 +1,38 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AppTable, environment, isNil, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {environment, isNil, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {FormBuilder} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {personsToString, personToString} from "../../core/services/model/person.model";
-import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {personToString} from "../../core/services/model/person.model";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, filter, tap} from "rxjs/operators";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {PersonService} from "../../admin/services/person.service";
 import {SharedValidators} from "../../shared/validator/validators";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {Trip} from "../services/model/trip.model";
+import {NetworkService} from "../../core/services/network.service";
+import {UserEventService} from "../../social/services/user-event.service";
+import {AppRootTable} from "../../data/table/root-table.class";
+import {OBSERVED_LOCATION_FEATURE_NAME} from "../services/config/trip.config";
+import {TripFilter} from "../services/trip.service";
+
+
+export const ObservedLocationsPageSettingsEnum = {
+  PAGE_ID: "observedLocations",
+  FILTER_KEY: "filter",
+  FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME
+};
 
 @Component({
   selector: 'app-observed-locations-page',
@@ -32,13 +43,9 @@ import {StatusIds} from "../../core/services/model/model.enum";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
+export class ObservedLocationsPage extends AppRootTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
-  canEdit: boolean;
-  canDelete: boolean;
-  isAdmin: boolean;
-  filterForm: FormGroup;
-  filterIsEmpty = true;
+  highlightedRow: TableElement<Trip>;
 
   constructor(
     protected injector: Injector,
@@ -48,16 +55,12 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected location: Location,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
-    protected accountService: AccountService,
     protected dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
-
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat([
@@ -68,13 +71,16 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
+      dataService,
       new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
-      })
+      }),
+      null,
+      injector
     );
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
@@ -94,16 +100,15 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     this.defaultSortBy = 'startDateTime';
     this.defaultSortDirection = 'desc';
 
+    this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID;
+    this.featureId = ObservedLocationsPageSettingsEnum.FEATURE_NAME;
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.isAdmin = this.accountService.isAdmin();
-    this.canEdit = this.isAdmin || this.accountService.isUser();
-    this.canDelete = this.isAdmin;
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -167,45 +172,11 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
     )
     .subscribe());
-
-    this.registerSubscription(
-      this.onRefresh.subscribe(() => {
-        this.filterIsEmpty = ObservedLocationFilter.isEmpty(this.filter);
-        this.filterForm.markAsUntouched();
-        this.filterForm.markAsPristine();
-        this.markForCheck();
-      }));
-
-    // Restore filter from settings, or load all rows
-    this.restoreFilterOrLoad();
-  }
-
-  referentialToString = referentialToString;
-  personsToString = personsToString;
-  qualityFlagToColor = qualityFlagToColor;
-
-  programToString(item: ReferentialRef) {
-    return item && item.label || undefined;
   }
 
   /* -- protected methods -- */
 
-  protected async restoreFilterOrLoad() {
-    console.debug("[observed-locations] Restoring filter from settings...");
-    const json = this.settings.getPageSettings(this.settingsId, 'filter');
-
-    // No default filter: load all trips
-    if (isNil(json) || typeof json !== 'object') {
-      // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
-      this.onRefresh.emit();
-      // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
-      this.filterForm.patchValue({}, {emitEvent: false});
-    }
-    // Restore the filter (will apply it)
-    else {
-      this.filterForm.patchValue(json);
-    }
-  }
+  protected isFilterEmpty = ObservedLocationFilter.isEmpty;
 
   protected openRow(id: number): Promise<boolean> {
     return this.router.navigateByUrl('/observations/' + id);

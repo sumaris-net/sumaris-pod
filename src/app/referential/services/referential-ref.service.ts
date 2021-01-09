@@ -6,7 +6,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  EntitiesService,
+  IEntitiesService,
   toDateISOString,
   fromDateISOString
 } from "../../shared/shared.module";
@@ -82,7 +82,7 @@ const LoadAllTaxonNamesQuery: any = gql`
 @Injectable({providedIn: 'root'})
 export class ReferentialRefService extends BaseEntityService
   implements SuggestService<ReferentialRef, ReferentialRefFilter>,
-      EntitiesService<ReferentialRef, ReferentialRefFilter> {
+      IEntitiesService<ReferentialRef, ReferentialRefFilter> {
 
   private _importedEntities: string[];
 

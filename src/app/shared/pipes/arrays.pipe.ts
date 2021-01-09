@@ -52,3 +52,14 @@ export class ArrayLengthPipe implements PipeTransform {
     return false;
   }
 }
+
+@Pipe({
+  name: 'arrayFirst'
+})
+@Injectable({providedIn: 'root'})
+export class ArrayFirstPipe implements PipeTransform {
+
+  transform(val: any[]): any {
+    return val && val.length > 0 ? val[0] : undefined;
+  }
+}

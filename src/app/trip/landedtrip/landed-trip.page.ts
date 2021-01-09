@@ -23,7 +23,6 @@ import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {isEmptyArray} from "../../shared/functions";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
-import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
 import {Product, ProductFilter} from "../services/model/product.model";
@@ -40,7 +39,7 @@ import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {Program} from "../../referential/services/model/program.model";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -76,11 +75,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
   @ViewChild('fishingAreaForm', {static: true}) fishingAreaForm: FishingAreaForm;
   @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
-  @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
   @ViewChild('packetsTable', {static: true}) packetsTable: PacketsTable;
   @ViewChild('expenseForm', {static: true}) expenseForm: ExpenseForm;
-  // @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
+
+  @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
+
   private _sale: Sale; // pending sale
 
   constructor(
@@ -109,33 +109,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(async program => {
-          if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
-
-          // Configure trip form
-          this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
-          if (!this.tripForm.showObservers) {
-            // make sure to reset data observers, if any
-            if (this.data) this.data.observers = [];
-          }
-          this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
-          if (!this.tripForm.showMetiers) {
-            // make sure to reset data metiers, if any
-            if (this.data) this.data.metiers = [];
-          } else {
-            this.tripForm.metiersForm.valueChanges.subscribe(value => {
-              const metiers = ((value || []) as ReferentialRef[]).filter(metier => isNotNilOrBlank(metier));
-              if (JSON.stringify(metiers) !== JSON.stringify(this.$metiers.value || [])) {
-                if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
-                this.$metiers.next(metiers);
-              }
-            });
-          }
-
-          // Configure fishing area form
-          this.fishingAreaForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID);
-        })
+      this.onProgramChanged.subscribe(program => this.setProgram(program))
     );
 
     this.catchFilterForm = this.formBuilder.group({
@@ -208,12 +182,38 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   protected registerForms() {
     this.addChildForms([
       this.tripForm, this.measurementsForm, this.fishingAreaForm,
-      // this.landedSaleForm //, this.saleMeasurementsForm
       this.expenseForm,
       this.operationGroupTable, this.productsTable, this.packetsTable
     ]);
   }
 
+  protected setProgram(program: Program) {
+    if (!program) return; // Skip
+    if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
+
+    // Configure trip form
+    this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
+    if (!this.tripForm.showObservers) {
+      // make sure to reset data observers, if any
+      if (this.data) this.data.observers = [];
+    }
+    this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
+    if (!this.tripForm.showMetiers) {
+      // make sure to reset data metiers, if any
+      if (this.data) this.data.metiers = [];
+    } else {
+      this.tripForm.metiersForm.valueChanges.subscribe(value => {
+        const metiers = ((value || []) as ReferentialRef[]).filter(metier => isNotNilOrBlank(metier));
+        if (JSON.stringify(metiers) !== JSON.stringify(this.$metiers.value || [])) {
+          if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
+          this.$metiers.next(metiers);
+        }
+      });
+    }
+
+    // Configure fishing area form
+    this.fishingAreaForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID);
+  }
 
   async load(id?: number, options?: EntityServiceLoadOptions): Promise<void> {
 
@@ -372,7 +372,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       // fix sale startDateTime
       data.sale.startDateTime = !data.sale.startDateTime ? data.returnDateTime : data.sale.startDateTime;
 
-      // this.landedSaleForm.value = data.sale;
       // keep sale object in safe place
       this._sale = data.sale;
 
@@ -540,7 +539,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     // Restore sale
     json.sale = this._sale && this._sale.asObject();
     // Sale
-    // json.sale = this.landedSaleForm.value;
     if (json.sale) {
       // sale products won't be saved with sale directly
       delete json.sale.products;

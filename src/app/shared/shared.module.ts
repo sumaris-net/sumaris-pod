@@ -14,8 +14,8 @@ import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {
-  EntitiesService,
-  EntityService,
+  IEntitiesService,
+  IEntityService,
   EntityServiceLoadOptions,
   LoadResult,
   SuggestService
@@ -72,8 +72,8 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
 }
 
 export {
-  SuggestService, EntitiesService, LoadResult,
-  EntityService, EntityServiceLoadOptions,
+  SuggestService, IEntitiesService, LoadResult,
+  IEntityService, EntityServiceLoadOptions,
   isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined, sleep,
   toBoolean, toFloat, toInt,
   toDateISOString, fromDateISOString, filterNumberInput,

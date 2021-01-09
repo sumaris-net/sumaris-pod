@@ -124,10 +124,9 @@
       <span translate>REFERENTIAL.COMMENTS</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm">
-      <ion-icon *ngIf="row.currentData.comments"
-                slot="icon-only" color="medium" name="chatbox"
-                [title]="row.currentData.comments">
-      </ion-icon>
+      <mat-icon color="primary" class="comment"
+                *ngIf="row.currentData.comments"
+                [title]="row.currentData.comments">chat_bubble</mat-icon>
     </mat-cell>
   </ng-container>
 

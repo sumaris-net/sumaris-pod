@@ -9,7 +9,6 @@ import {
   OnDestroy,
   OnInit,
   Optional,
-  Output,
   QueryList,
   ViewChild,
   ViewChildren
@@ -27,23 +26,15 @@ import {
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
-import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
+import {DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
 import {SharedValidators} from '../../validator/validators';
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {debounceTime, filter, first, tap} from "rxjs/operators";
+import {filter, first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
 import {isFocusableElement} from "../../focusable";
-import {merge, Subscription, zip} from "rxjs";
+import {merge, Subscription} from "rxjs";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
-import {
-  fromDateISOString,
-  isNil,
-  isNilOrBlank,
-  isNotNilOrBlank,
-  sleep,
-  toBoolean,
-  toDateISOString
-} from "../../functions";
+import {fromDateISOString, isNil, isNilOrBlank, sleep, toBoolean, toDateISOString} from "../../functions";
 import {isMoment} from "moment";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {

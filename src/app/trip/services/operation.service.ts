@@ -3,8 +3,8 @@ import {gql} from "@apollo/client/core";
 import {EMPTY, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {
-  EntitiesService,
-  EntityService,
+  IEntitiesService,
+  IEntityService,
   EntityServiceLoadOptions,
   isNil,
   isNotEmptyArray,
@@ -228,14 +228,14 @@ export declare interface OperationServiceWatchOptions extends
 
   computeRankOrder?: boolean;
   fullLoad?: boolean;
-  fetchPolicy?: FetchPolicy;
+  fetchPolicy?: FetchPolicy; // Avoid the use cache-and-network, that exists in WatchFetchPolicy
 }
 
 
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseEntityService<Operation, OperationFilter>
-  implements EntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
-             EntityService<Operation>{
+  implements IEntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
+             IEntityService<Operation>{
 
 
 
@@ -261,19 +261,6 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
   watchAllByTrip(filter?: OperationFilter & { tripId: number; }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
       return this.watchAll(0, -1, null, null, filter, opts);
-  }
-
-  async loadAll(offset: number,
-                size: number,
-                sortBy?: string,
-                sortDirection?: SortDirection,
-                dataFilter?: OperationFilter,
-                opts?: OperationServiceWatchOptions): Promise<Operation[]> {
-     return firstNotNilPromise(
-       this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts)
-         .pipe(
-           map(res => res.data)
-         ));
   }
 
   /**
@@ -575,7 +562,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     try {
       // Find operations to delete
-      const res = await this.entities.loadAll<Operation>('OperationVO', {
+      const res = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
         filter: OperationFilter.searchFilter<Operation>(filter)
       });
       const ids = (res && res.data || []).map(o => o.id);
@@ -585,7 +572,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       return await this.entities.deleteMany(ids, {entityName: Operation.TYPENAME});
     }
     catch (err) {
-      console.error(`[operation-service] Failed to delete operation {tripId: ${filter.tripId}}`, err);
+      console.error(`[operation-service] Failed to delete operations ${JSON.stringify(filter)}`, err);
       throw err;
     }
   }
@@ -863,6 +850,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
                                     filter?: OperationFilter) {
     // Compute rankOrderOnPeriod, by tripId
     if (filter && isNotNil(filter.tripId)) {
+      const asc = (!sortDirection || sortDirection === 'asc');
       let rankOrderOnPeriod = 1;
       // apply a sorted copy (do NOT change original order), then compute rankOrder
       data.slice().sort(sortByEndDateOrStartDateFn)
@@ -870,7 +858,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
       // sort by rankOrderOnPeriod (aka id)
       if (!sortBy || sortBy === 'id') {
-        const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+        const after = asc ? 1 : -1;
         data.sort((a, b) => {
           const valueA = a.rankOrderOnPeriod;
           const valueB = b.rankOrderOnPeriod;

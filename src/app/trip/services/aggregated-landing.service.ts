@@ -4,7 +4,7 @@ import {
   environment,
   isNotNil,
   LoadResult,
-  EntitiesService,
+  IEntitiesService,
   toDateISOString,
   isNil
 } from "../../core/core.module";
@@ -117,7 +117,7 @@ const SaveAllQuery: any = gql`
 @Injectable({providedIn: 'root'})
 export class AggregatedLandingService
   extends BaseEntityService<AggregatedLanding, AggregatedLandingFilter>
-  implements EntitiesService<AggregatedLanding, AggregatedLandingFilter> {
+  implements IEntitiesService<AggregatedLanding, AggregatedLandingFilter> {
 
   protected loading = false;
   private _lastFilter;

@@ -6,21 +6,23 @@ import {Storage} from '@ionic/storage';
 
 import {
   fromDateISOString,
-  getPropertyByPath, isEmptyArray,
+  getPropertyByPath,
+  isEmptyArray,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  toBoolean,
-  toDateISOString
+  toBoolean
 } from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
 import {Platform} from "@ionic/angular";
-import {FormFieldDefinition} from "../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import * as moment from "moment";
+import {Moment} from "moment";
 import {debounceTime, filter} from "rxjs/operators";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
-import {Moment} from "moment";
+import {ConfigOptions} from "./config/core.config";
 
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
@@ -32,24 +34,25 @@ const DEFAULT_SETTINGS: LocalSettings = {
   pageHistoryMaxSize: 3
 };
 
-export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<Partial<LocalSettings>>('LocalSettingsOptions');
+export const APP_LOCAL_SETTINGS = new InjectionToken<Partial<LocalSettings>>('DefaultLocalSettings');
+export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('LocalSettingsOptions');
 
-export declare type AddToPageHistoryOptions = {
+export declare interface AddToPageHistoryOptions {
   removePathQueryParams?: boolean;
   removeTitleSmallTag?: boolean;
   emitEvent?: boolean;
-};
+}
 
 @Injectable({
   providedIn: 'root',
-  deps: [APP_LOCAL_SETTINGS_OPTIONS]
+  deps: [APP_LOCAL_SETTINGS, APP_LOCAL_SETTINGS_OPTIONS]
 })
 export class LocalSettingsService {
 
   private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<any>;
-  private _additionalFields: FormFieldDefinition[] = [];
+  private _optionDefs: FormFieldDefinition[];
   private _$persist: EventEmitter<any>;
   private data: LocalSettings;
 
@@ -95,12 +98,12 @@ export class LocalSettingsService {
     private translate: TranslateService,
     private platform: Platform,
     private storage: Storage,
-    @Optional() @Inject(APP_LOCAL_SETTINGS_OPTIONS) private readonly defaultSettings: LocalSettings
+    @Optional() @Inject(APP_LOCAL_SETTINGS) private readonly defaultSettings: LocalSettings,
+    @Optional() @Inject(APP_LOCAL_SETTINGS_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {
     this.defaultSettings = {...DEFAULT_SETTINGS, ...this.defaultSettings};
 
-    // Register default options
-    //this.registerFields(Object.getOwnPropertyNames(CoreOptions).map(key => CoreOptions[key]));
+    this._optionDefs = Object.values({...ConfigOptions, ...defaultOptionsMap});
 
     this.resetData();
 
@@ -172,8 +175,43 @@ export class LocalSettingsService {
     return this.data;
   }
 
-  getLocalSetting(key: string, defaultValue?: string): string {
-    return this.data && isNotNil(this.data[key]) && this.data[key] || defaultValue;
+  setProperty<T = string>(keyOrDef: string|FormFieldDefinition, value: T){
+    if (!this.data) return;
+    if (typeof keyOrDef === 'object') {
+      this.setProperty(keyOrDef.key, value);
+      return;
+    }
+    this.data.properties = this.data.properties || {};
+    this.data.properties[keyOrDef] = isNil(value) ? undefined : value.toString();
+  }
+
+  getProperty(keyOrDef: string|FormFieldDefinition, defaultValue?: any): any {
+    if (typeof keyOrDef === 'object') {
+      return this.getProperty(keyOrDef.key, isNil(defaultValue) ? keyOrDef.defaultValue : defaultValue);
+    }
+    const value = this.data && this.data.properties && this.data.properties[keyOrDef];
+    return isNotNil(value) ? value : defaultValue;
+  }
+
+  getPropertyAsBoolean(definition: FormFieldDefinition, defaultValue?: boolean): boolean {
+    const value = this.getProperty(definition, defaultValue);
+    return isNotNil(value) ? (value && value !== "false") : undefined;
+  }
+
+  getPropertyAsInt(definition: FormFieldDefinition, defaultValue?: number): number {
+    const value = this.getProperty(definition, defaultValue);
+    return isNotNil(value) ? parseInt(value) : undefined;
+  }
+
+  getPropertyAsNumbers(definition: FormFieldDefinition, defaultValue?: number[]): number[] {
+    const value = this.getProperty(definition, defaultValue);
+    if (typeof value === 'string') return value.split(',').map(parseFloat) || undefined;
+    return isNotNil(value) ? [parseFloat(value)] : undefined;
+  }
+
+  getPropertyAsStrings(definition: FormFieldDefinition, defaultValue?: string[]): string[] {
+    const value = this.getProperty(definition, defaultValue);
+    return value && value.split(',') || undefined;
   }
 
   async apply(settings: Partial<LocalSettings>, opts?: { emitEvent?: boolean; persistImmediate?: boolean; }) {
@@ -284,20 +322,20 @@ export class LocalSettingsService {
     return this.getPageSettings(pageId, `field.${fieldName}.defaultValue`);
   }
 
-  get additionalFields(): FormFieldDefinition[] {
-    return this._additionalFields;
+  get optionDefs(): FormFieldDefinition[] {
+    return this._optionDefs;
   }
 
-  registerAdditionalField(def: FormFieldDefinition) {
-    if (this._additionalFields.findIndex(f => f.key === def.key) !== -1) {
+  registerOption(def: FormFieldDefinition) {
+    if (this._optionDefs.findIndex(f => f.key === def.key) !== -1) {
       throw new Error(`Additional additional property {${def.key}} already define.`);
     }
     if (this._debug) console.debug(`[settings] Adding additional property {${def.key}}`, def);
-    this._additionalFields.push(def);
+    this._optionDefs.push(def);
   }
 
-  registerAdditionalFields(defs: FormFieldDefinition[]) {
-    (defs || []).forEach(def => this.registerAdditionalField(def));
+  registerOptions(defs: FormFieldDefinition[]) {
+    (defs || []).forEach(def => this.registerOption(def));
   }
 
   async addToPageHistory(page: HistoryPageReference,

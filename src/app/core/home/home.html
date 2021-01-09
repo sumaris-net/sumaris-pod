@@ -1,12 +1,16 @@
-<app-toolbar visible-xs visible-sm visible-mobile>
-  <ion-button slot="end" mat-icon-button [matMenuTriggerFor]="matmenu">
-    <ion-label class="ion-text-uppercase">&nbsp;{{ currentLocaleCode }}</ion-label>
+<app-toolbar [canGoBack]="false"
+             visible-xs visible-sm visible-mobile>
+
+  <!-- change locale button -->
+  <ion-button slot="end" *ngIf="currentLocaleCode; let code"
+              [matMenuTriggerFor]="localeMenu">
+    <ion-label class="ion-text-uppercase">&nbsp;{{ code }}</ion-label>
     <mat-icon slot="end">arrow_drop_down</mat-icon>
   </ion-button>
 </app-toolbar>
 
 <!-- change locale menu -->
-<mat-menu #matmenu="matMenu">
+<mat-menu #localeMenu="matMenu">
   <button *ngFor="let item of locales"
           mat-menu-item
           (click)="changeLanguage(item.id)">
@@ -40,8 +44,10 @@
 
       <ion-buttons slot="end">
         <!-- change locale button -->
-        <ion-button color="secondary" fill="solid" [matMenuTriggerFor]="matmenu">
-          <ion-label class="ion-text-uppercase">&nbsp;{{ currentLocaleCode }}</ion-label>
+        <ion-button color="secondary" fill="solid"
+                    *ngIf="currentLocaleCode; let code"
+                    [matMenuTriggerFor]="localeMenu">
+          <ion-label class="ion-text-uppercase">&nbsp;{{ code }}</ion-label>
           <mat-icon slot="end">arrow_drop_down</mat-icon>
         </ion-button>
       </ion-buttons>
@@ -67,7 +73,7 @@
     </ion-card-header>
     <ion-card-content class="ion-no-padding">
       <ion-text color="primary">
-        <img class="logo" *ngIf="logo" src="{{ logo }}"/>
+        <img class="logo" *ngIf="logo" src="{{ logo }}">
       </ion-text>
       <ion-text *ngIf="!isLogin">
         <br/>

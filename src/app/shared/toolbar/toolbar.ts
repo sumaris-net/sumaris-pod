@@ -15,7 +15,7 @@ import {isNotNil, isNotNilOrBlank, toBoolean} from "../functions";
 import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {HammerTapEvent} from "../gesture/hammer.utils";
-import {HAMMER_TAP_TIME} from "../gesture/gesture-config";
+import {HAMMER_PRESS_TIME} from "../gesture/gesture-config";
 
 @Component({
   selector: 'app-toolbar',
@@ -157,7 +157,7 @@ export class ToolbarComponent implements OnInit {
 
   tapClose(event: HammerTapEvent) {
     // DEV only
-    console.debug("[toolbar] tapClose", event.tapCount);
+    // console.debug("[toolbar] tapClose", event.tapCount);
     if (this._validateTapCount > 0) return;
 
     // Distinguish simple and double tap
@@ -180,7 +180,7 @@ export class ToolbarComponent implements OnInit {
 
   tapValidate(event: HammerTapEvent) {
     // DEV only
-    console.debug("[toolbar] tapValidate", event.tapCount);
+    //console.debug("[toolbar] tapValidate", event.tapCount);
 
     if (!this.onValidateAndClose.observers.length) {
       this.onValidate.emit(event.srcEvent || event);
@@ -207,7 +207,7 @@ export class ToolbarComponent implements OnInit {
           // Reset tab count
           this._validateTapCount = 0;
         }
-      }, HAMMER_TAP_TIME+10);
+      }, HAMMER_PRESS_TIME+10);
     }
   }
 }

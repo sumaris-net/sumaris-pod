@@ -9,20 +9,23 @@
       <ng-content select="[slot=start]"></ng-content>
     </ion-buttons>
 
-    <ion-title>
-      {{title}}
-    </ion-title>
+    <ion-title [innerHTML]="title"></ion-title>
+
+    <ng-content select="ion-title"></ng-content>
+
+    <ng-content select="ion-buttons[slot=end]"></ng-content>
 
     <ion-buttons slot="end">
 
-      <ng-content select="[slot=end]"></ng-content>
+      <ng-content select="ion-button[slot=end]"></ng-content>
 
       <ion-spinner *ngIf="showSpinner"></ion-spinner>
 
       <ion-button visible-xs visible-sm visible-mobile
                   *ngIf="canValidate"
-                  (click)="validate.emit()">
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+                  (click)="validate.emit($event)">
+        <ion-icon slot="icon-only" *ngIf="validateIcon?.icon"  [name]="validateIcon.icon"></ion-icon>
+        <mat-icon slot="icon-only" *ngIf="validateIcon?.matIcon" >{{validateIcon.matIcon}}</mat-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

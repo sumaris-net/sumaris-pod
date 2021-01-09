@@ -10,7 +10,7 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {EntitiesService, environment} from "../../core/core.module";
+import {IEntitiesService, environment} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
@@ -58,7 +58,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
   constructor(
     injector: Injector,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: EntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
       PhysicalGear,

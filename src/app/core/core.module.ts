@@ -9,7 +9,7 @@ import {AboutModal} from './about/modal-about';
 import {RegisterConfirmPage} from "./register/confirm/confirm";
 import {AccountPage} from "./account/account";
 import {
-  EntitiesService,
+  IEntitiesService,
   fromDateISOString,
   isNil,
   isNotNil,
@@ -85,7 +85,7 @@ export {
   IReferentialRef,
   Department,
   Person,
-  EntitiesService,
+  IEntitiesService,
   LoadResult,
   toDateISOString,
   StatusIds,

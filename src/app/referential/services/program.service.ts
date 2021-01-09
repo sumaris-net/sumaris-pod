@@ -11,13 +11,13 @@ import {
   isNotNil,
   LoadResult,
   ReferentialRef,
-  EntitiesService
+  IEntitiesService
 } from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {
-  EntityService,
+  IEntityService,
   EntityServiceLoadOptions,
   fetchAllPagesWithProgress, FilterFn
 } from "../../shared/services/entity-service.class";
@@ -350,8 +350,8 @@ const ProgramCacheKeys = {
 
 @Injectable({providedIn: 'root'})
 export class ProgramService extends BaseEntityService
-  implements EntitiesService<Program, ProgramFilter>,
-    EntityService<Program> {
+  implements IEntitiesService<Program, ProgramFilter>,
+    IEntityService<Program> {
 
 
   constructor(

@@ -46,6 +46,8 @@ import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
 import {environment} from "../../../environments/environment";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {Sample} from "../../trip/services/model/sample.model";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
@@ -57,6 +59,17 @@ export class CellValueChangeListener {
   eventEmitter: EventEmitter<any>;
   subscription: Subscription;
   formPath?: string;
+}
+
+
+export interface IModalDetailOptions<T = any> {
+  // Data
+  isNew: boolean;
+  data: T;
+  disabled: boolean;
+
+  // Callback functions
+  onDelete: (event: UIEvent, data: T) => Promise<boolean>;
 }
 
 @Directive()
@@ -218,7 +231,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     if (this.editedRow && this.editedRow.editing) {
-      AppFormUtils.markAsTouched(this.editedRow.validator, opts);
+      this.editedRow.validator.markAllAsTouched();
+      //AppFormUtils.markAsTouched(this.editedRow.validator, opts);
       if (!opts || opts.emitEvent !== false) {
         this.markForCheck();
       }
@@ -544,16 +558,19 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       if (event) event.stopPropagation();
       // confirmation edition or creation
       if (!row.confirmEditCreate()) {
-        // If pending, wait end of validation, then loop
-        if (row.validator && row.validator.pending) {
-          AppFormUtils.waitWhilePending(row.validator)
-            .then(() => this.confirmEditCreate(event, row));
-        }
-        else {
-          if (this.debug) {
-            console.warn("[table] Row not valid: unable to confirm", row);
-            AppFormUtils.logFormErrors(row.validator, '[table] ');
+        if (row.validator) {
+          // If pending, wait end of validation, then loop
+          if (row.validator.pending) {
+            AppFormUtils.waitWhilePending(row.validator)
+              .then(() => this.confirmEditCreate(event, row));
           }
+          else {
+            if (this.debug) {
+              console.warn("[table] Row not valid: unable to confirm", row);
+              AppFormUtils.logFormErrors(row.validator, '[table] ');
+            }
+          }
+          row.validator.markAllAsTouched();
         }
         return false;
       }

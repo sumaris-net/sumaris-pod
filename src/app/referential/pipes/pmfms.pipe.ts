@@ -3,7 +3,6 @@ import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {MethodIds, PmfmIds} from "../services/model/model.enum";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {Pmfm} from "../services/model/pmfm.model";
-import {isNotNil} from "../../shared/functions";
 
 @Pipe({
     name: 'pmfmName'

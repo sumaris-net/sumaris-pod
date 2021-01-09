@@ -135,9 +135,10 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time-field>.");
 
+    this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
+
     // Redirect errors from main control, into day sub control
     const $error = new BehaviorSubject<ValidationErrors>(null);
-    this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
     this.dayControl = this.formBuilder.control(null, () => $error.getValue());
 
     // Add custom 'validDate' validator
@@ -181,6 +182,8 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
   writeValue(obj: any): void {
     if (this.writing) return;
 
+    // console.debug('[mat-date] writeValue:', obj);
+
     if (isNilOrBlank(obj)) {
       this.writing = true;
       this.dayControl.patchValue(null, {emitEvent: false});
@@ -201,7 +204,6 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
 
     this.writing = true;
 
-    //console.log("call writeValue()", this.date, this.formControl);
     // Set form value
     this.dayControl.patchValue(this.dateAdapter.format(this._value.clone().startOf('day'), this.dayPattern), {emitEvent: false});
     this.writing = false;
@@ -267,13 +269,6 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
   private onFormChange(dayValue): void {
     if (this.writing) return; // Skip if call by self
     this.writing = true;
-
-    if (this.dayControl.invalid) {
-      this.formControl.markAsPending();
-      this.formControl.setErrors({...this.dayControl.errors});
-      this.writing = false;
-      return;
-    }
 
     // Make to remove placeholder chars
     while (dayValue && dayValue.indexOf(this.placeholderChar) !== -1) {

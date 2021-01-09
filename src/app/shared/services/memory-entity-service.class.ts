@@ -1,5 +1,5 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {EntitiesService, isNotNil, LoadResult} from "../../core/core.module";
+import {IEntitiesService, isNotNil, LoadResult} from "../../core/core.module";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {filter, mergeMap} from "rxjs/operators";
 import {isNotEmptyArray} from "../functions";
@@ -15,7 +15,7 @@ export interface InMemoryEntitiesServiceOptions<T, F> {
   onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
 }
 
-export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements EntitiesService<T, F> {
+export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements IEntitiesService<T, F> {
 
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
 

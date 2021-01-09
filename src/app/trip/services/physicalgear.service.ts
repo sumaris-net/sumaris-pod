@@ -1,6 +1,6 @@
 import {Injectable, InjectionToken} from "@angular/core";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
-import {LoadResult, EntitiesService} from "../../shared/services/entity-service.class";
+import {LoadResult, IEntitiesService} from "../../shared/services/entity-service.class";
 import {PhysicalGear, Trip} from "./model/trip.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {NetworkService} from "../../core/services/network.service";
@@ -51,12 +51,12 @@ const sortByTripDateFn = (n1: PhysicalGear, n2: PhysicalGear) => {
   return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
 };
 
-export const PHYSICAL_GEAR_DATA_SERVICE = new InjectionToken<EntitiesService<PhysicalGear, PhysicalGearFilter>>('PhysicalGearDataService');
+export const PHYSICAL_GEAR_DATA_SERVICE = new InjectionToken<IEntitiesService<PhysicalGear, PhysicalGearFilter>>('PhysicalGearDataService');
 
 
 @Injectable({providedIn: 'root'})
 export class PhysicalGearService extends BaseEntityService
-  implements EntitiesService<PhysicalGear, PhysicalGearFilter> {
+  implements IEntitiesService<PhysicalGear, PhysicalGearFilter> {
 
   loading = false;
 

@@ -8,7 +8,7 @@ import {
   isNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  EntitiesService, Entity
+  IEntitiesService, Entity
 } from "../../core/core.module";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -101,21 +101,21 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.measurementsDataService.pmfms = pmfms;
   }
 
-  @Input() set dataService(value: EntitiesService<T, F>) {
+  @Input() set dataService(value: IEntitiesService<T, F>) {
     this.measurementsDataService.delegate = value;
     if (!this.loading) {
       this.onRefresh.emit("new dataService");
     }
   }
 
-  get dataService(): EntitiesService<T, F> {
+  get dataService(): IEntitiesService<T, F> {
     return this.measurementsDataService.delegate;
   }
 
   protected constructor(
     protected injector: Injector,
     protected dataType: new() => T,
-    dataService?: EntitiesService<T, F>,
+    dataService?: IEntitiesService<T, F>,
     protected validatorService?: ValidatorService,
     protected options?: AppMeasurementsTableOptions<T>
   ) {

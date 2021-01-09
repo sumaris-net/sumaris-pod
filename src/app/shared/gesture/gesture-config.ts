@@ -1,7 +1,8 @@
 import {Injectable} from "@angular/core";
 import {HammerGestureConfig} from "@angular/platform-browser";
 
-export const HAMMER_TAP_TIME = 500;
+export const HAMMER_TAP_TIME = 250;
+export const HAMMER_PRESS_TIME = 400; // Increase need for double tap (default: 251 ms)
 /**
  * @hidden
  * This class overrides the default Angular gesture config.
@@ -13,7 +14,7 @@ export class AppGestureConfig extends HammerGestureConfig {
   // Override HammerJS default settings
   overrides = <any>{
     press: {
-      time: HAMMER_TAP_TIME // Increase need for double tap (default: 251 ms)
+      time: HAMMER_PRESS_TIME
     },
     pinch: {
       enable: false

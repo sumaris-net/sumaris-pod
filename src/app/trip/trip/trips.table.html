@@ -1,6 +1,6 @@
-<app-toolbar color="primary" [canGoBack]="false">
-
-  <ion-title>{{'TRIP.TABLE.TITLE'|translate}}</ion-title>
+<app-toolbar [title]="'TRIP.TABLE.TITLE'|translate"
+             color="primary"
+             [canGoBack]="false">
 
   <ion-buttons slot="end" *ngIf="synchronizationStatus as syncStatus">
 
@@ -34,8 +34,6 @@
     </ion-label>
   </button>
 </mat-menu>
-
-
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
@@ -82,32 +80,23 @@
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
 
-  <!-- Add local trip -->
-  <button mat-menu-item *ngIf="debug && !offline"
-          (click)="importFromFile()">
-    <mat-icon>insert_drive_file</mat-icon>
-    <ion-label>Import file...</ion-label>
-  </button>
 </mat-menu>
-
 
 <ion-content class="ion-no-padding">
 
   <!-- Network status (+ Install and upgrade link) -->
   <app-install-upgrade-card
-    [isLogin]="accountService.account|isLogin"
+    [isLogin]="isLogin"
     showInstallButton="false"
     showUpgradeWarning="true"
     showOfflineWarning="false"
     [showUpdateOfflineFeature]="showUpdateOfflineFeature"
-    (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
-  >
+    (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})">
   </app-install-upgrade-card>
 
   <mat-toolbar>
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-
 
       <button mat-icon-button
               hidden-xs hidden-sm hidden-mobile
@@ -140,8 +129,10 @@
       </ion-button>
 
       <!-- delete -->
-      <button mat-icon-button class="hidden-xs hidden-sm" *ngIf="canDelete"
-              [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection($event)">
+      <button mat-icon-button class="hidden-xs hidden-sm"
+              *ngIf="canDelete"
+              [title]="'COMMON.BTN_DELETE'|translate"
+              (click)="deleteSelection($event)">
         <mat-icon>delete</mat-icon>
       </button>
     </ng-template>
@@ -153,7 +144,6 @@
     </ion-item>
 
     <div class="toolbar-spacer"></div>
-
 
     <button mat-icon-button
             [title]="'COMMON.BTN_OPTIONS'|translate"
@@ -212,6 +202,7 @@
           </ion-col>
         </ion-row>
 
+        <!-- Period criteria -->
         <ion-row>
           <ion-col>
             <!-- Start date -->
@@ -225,13 +216,13 @@
           <ion-col>
             <!-- End date -->
             <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate"
-                            [formControl]="filterForm.controls.endDate"
-                            clearable="true">
+                            formControlName="endDate"
+                            [clearable]="true">
             </mat-date-field>
           </ion-col>
         </ion-row>
 
-        <!-- recorder criteria -->
+        <!-- Recorder criteria -->
         <ion-row>
           <ion-col>
             <!-- Recorder department -->
@@ -280,7 +271,6 @@
     </mat-action-row>
   </mat-expansion-panel>
 
-
   <!-- error -->
   <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -291,7 +281,7 @@
   <mat-table [dataSource]="dataSource" matSort
              [matSortActive]="defaultSortBy"
              [matSortDirection]="defaultSortDirection"
-    matSortDisableClear [trackBy]="trackByFn">
+             matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
@@ -316,7 +306,7 @@
 
     <!-- Quality Column -->
     <ng-container matColumnDef="quality">
-      <mat-header-cell *matHeaderCellDef> <!-- FIXME pas triable pour l'instant -->
+      <mat-header-cell *matHeaderCellDef><!-- FIXME pas triable pour l'instant -->
         <ion-label translate>TRIP.TABLE.QUALITY</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
@@ -342,7 +332,7 @@
         <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{row.currentData.program | referentialToString: ['label'] }}
+        <ion-label>{{row.currentData.program | referentialToString: ['label'] }}</ion-label>
       </mat-cell>
     </ng-container>
 
@@ -401,7 +391,9 @@
       <mat-header-cell *matHeaderCellDef>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-icon color="primary" *ngIf="row.currentData.comments" [title]="row.currentData.comments">comment</mat-icon>
+        <mat-icon color="primary" class="comment"
+                  *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments">chat_bubble</mat-icon>
       </mat-cell>
     </ng-container>
 

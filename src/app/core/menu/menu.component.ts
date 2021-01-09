@@ -28,8 +28,9 @@ import {ConfigService} from "../services/config.service";
 import {mergeMap, tap} from "rxjs/operators";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
 import {PlatformService} from "../services/platform.service";
+import {IconRef} from "../../shared/types";
 
-export interface MenuItem {
+export interface MenuItem extends IconRef {
   title: string;
   path?: string;
   action?: string | any;

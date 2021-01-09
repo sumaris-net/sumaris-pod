@@ -7,7 +7,7 @@ import {SubBatchValidatorService} from "../../services/validator/sub-batch.valid
 import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "../table/sub-batches.table";
 import {AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
 import {AppFormUtils, isNil} from "../../../core/core.module";
-import {Animation, ModalController} from "@ionic/angular";
+import {Animation, IonContent, ModalController} from "@ionic/angular";
 import {isEmptyArray, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
 import {AudioProvider} from "../../../shared/audio/audio";
 import {Alerts} from "../../../shared/alerts";
@@ -74,6 +74,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
+  @ViewChild(IonContent) content: IonContent;
 
   get dirty(): boolean {
     return this._dirty || (this.form && this.form.dirty);
@@ -168,6 +169,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
         // Compute the title
         this.computeTitle();
       });
+  }
+
+  async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
+    this.scrollToTop();
+
+    return super.doSubmitForm();
   }
 
   protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
@@ -393,4 +400,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     }, 1500);
   }
 
+
+  async scrollToTop() {
+    return this.content.scrollToTop();
+  }
 }

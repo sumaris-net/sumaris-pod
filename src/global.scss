@@ -64,6 +64,7 @@ ion-toast-controller,
   opacity: 0;
 }
 
+ion-toolbar ion-title,
 app-toolbar ion-title {
   small {
     font-weight: normal;
@@ -79,6 +80,7 @@ app-toolbar ion-title {
 }
 
 @media screen and (max-width: $screen-sm-max) {
+  ion-toolbar ion-title,
   app-toolbar ion-title {
     small {
       @include font-size(10pt);
@@ -950,6 +952,27 @@ ion-item {
 .flex-margin ion-icon,
 .flex-margin span {
   margin-left: auto;
+}
+
+// --------------------------------------------------
+// Icon tooltip, and title
+// --------------------------------------------------
+// Fix Button icon name overrides button's own title on mouse over
+/*ion-icon[name='chatbox'] {
+  pointer-events: none !important;
+}*/
+mat-icon,
+ion-icon {
+  &.comment {
+    font-size: 14pt;
+    height: 100%;
+    vertical-align: center;
+    color: var(--ion-color-tertiary, grey);
+
+    &.disabled {
+      color: var(--ion-color-medium, grey);
+    }
+  }
 }
 
 // --------------------------------------------------

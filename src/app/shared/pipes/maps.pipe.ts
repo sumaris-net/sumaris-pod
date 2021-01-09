@@ -14,3 +14,15 @@ export class MapGetPipe implements PipeTransform {
       return val[key];
     }
 }
+
+@Pipe({
+  name: 'mapKeys'
+})
+@Injectable({providedIn: 'root'})
+export class MapKeysPipe implements PipeTransform {
+
+  transform(map: any): any {
+    if (!map) return null;
+    return Object.keys(map);
+  }
+}

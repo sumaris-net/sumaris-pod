@@ -57,7 +57,6 @@
     <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMaxDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MAX_DURATION</mat-error>
     <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMinDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MIN_DURATION</mat-error>
     <mat-error *ngIf="formControl.hasError('msg')">{{formControl.errors['msg']}}</mat-error>
-    <ng-content select="mat-error"></ng-content>
   </mat-form-field>
 
   <mat-datepicker #datePicker

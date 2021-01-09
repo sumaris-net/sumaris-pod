@@ -36,6 +36,7 @@ export class AuctionControlValidators {
         tap(errors => {
           computing = false;
           $errors.next(errors);
+          if (opts.markForCheck) opts.markForCheck();
         })
       )
       .subscribe();
@@ -45,6 +46,7 @@ export class AuctionControlValidators {
       $errors.next(null);
       $errors.complete();
       form.clearAsyncValidators();
+      if (opts.markForCheck) opts.markForCheck();
     });
 
     return subscription;
@@ -84,14 +86,20 @@ export class AuctionControlValidators {
 
     // Out of size: compute percentage
     if (outOfSizePctControl) {
+      // From a weight ratio
       if (isNotNilOrBlank(weight) && isNotNilOrBlank(outOfSizeWeight)
         && outOfSizeWeight <= weight) {
         const pct = Math.trunc(10000 * outOfSizeWeight / weight) / 100;
         outOfSizePctControl.setValue(pct, opts);
-      } else if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(outOfSizeCount)
+        SharedValidators.clearError(outOfSizeWeightControl, 'max');
+        outOfSizeWeightControl.updateValueAndValidity({onlySelf: true});
+      }
+      // Or a individual count ratio
+      else if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(outOfSizeCount)
         && outOfSizeCount <= indivCount) {
         const pct = Math.trunc(10000 * outOfSizeCount / indivCount) / 100;
         outOfSizePctControl.setValue(pct, opts);
+        SharedValidators.clearError(outOfSizeCountControl, 'max');
       } else {
         outOfSizePctControl.setValue(null, opts); // Reset
       }
@@ -101,7 +109,8 @@ export class AuctionControlValidators {
     if (outOfSizeWeightControl) {
       if (isNotNilOrBlank(outOfSizeWeight) && isNotNilOrBlank(weight) && outOfSizeWeight > weight) {
         const error = {max: {actual: outOfSizeWeight, max: weight}};
-        outOfSizeWeightControl.setErrors(error, opts);
+        outOfSizeWeightControl.markAsPending(opts);
+        outOfSizeWeightControl.setErrors(error);
         errors = {...errors, ...error};
       }
       else {
@@ -128,6 +137,7 @@ export class AuctionControlValidators {
         && parasitizedCount <= indivCount) {
         const pct = Math.trunc(10000 * parasitizedCount / indivCount) / 100;
         parasitizedPctControl.setValue(pct, opts);
+        SharedValidators.clearError(parasitizedCountControl, 'max');
       } else {
         parasitizedPctControl.setValue(null, opts); // Reset
       }
@@ -152,6 +162,7 @@ export class AuctionControlValidators {
         && dirtyCount <= indivCount) {
         const pct = Math.trunc(10000 * dirtyCount / indivCount) / 100;
         dirtyPctControl.setValue(pct, opts);
+        SharedValidators.clearError(dirtyCountControl, 'max');
       } else {
         dirtyPctControl.setValue(null, opts); // Reset
       }
@@ -168,7 +179,10 @@ export class AuctionControlValidators {
       }
     }
 
-    if (opts && opts.markForCheck) opts.markForCheck();
+    if (opts && opts.markForCheck) {
+      console.debug("[auction-control-validator] calling MarkForCheck...");
+      opts.markForCheck();
+    }
     return errors;
   }
 }

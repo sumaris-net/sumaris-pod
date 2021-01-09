@@ -3,7 +3,7 @@ import {Injector} from "@angular/core";
 import {BaseEntityService, EntityUtils, isNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {DataQualityService} from "../../data/services/base.service";
+import {IDataEntityQualityService} from "../../data/services/base.service";
 import {FormErrors} from "../../core/form/form.utils";
 import {DataRootEntityUtils, RootDataEntity} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
@@ -11,7 +11,7 @@ import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 
 export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
   extends BaseEntityService<T, F>
-  implements DataQualityService<T> {
+  implements IDataEntityQualityService<T> {
 
   protected accountService: AccountService;
 

@@ -98,7 +98,7 @@
                   *matHeaderRowDef="displayedColumns"></mat-header-row>
 </mat-table>
 
-<!-- editable -->
+<!-- writable -->
 <mat-table *ngIf="inlineEdition; else readonly"
            [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
            [trackBy]="trackByFn">
@@ -359,11 +359,10 @@
       <mat-header-cell *matHeaderCellDef >
         <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <ion-icon *ngIf="row.currentData.comments"
-                  color="medium" name="chatbox"  slot="icon-only"
-                  [title]="row.currentData.comments">
-        </ion-icon>
+      <mat-cell *matCellDef="let row" >
+        <mat-icon class="comment" [class.disabled]="!row.editing"
+                  *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments">chat_bubble</mat-icon>
       </mat-cell>
     </ng-container>
 
@@ -399,9 +398,9 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-
     <mat-row *matRowDef="let row; columns: displayedColumns;"
              class="mat-row-disabled"
+             [class.mat-row-dirty]="!row.currentData.id"
              (click)="clickRow($event, row)">
     </mat-row>
   </mat-table>

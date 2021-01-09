@@ -1,5 +1,6 @@
 import {MatAutocompleteFieldAddOptions} from "../material/material.autocomplete";
 import {ObjectMap, Property} from "../types";
+import {isNotNil} from "../functions";
 
 export declare type DisplayFn = (obj: any) => string;
 
@@ -28,3 +29,31 @@ export declare interface FormFieldDefinition<T = any> {
   };
 }
 export declare type FormFieldDefinitionMap = ObjectMap<FormFieldDefinition>;
+
+
+export abstract class FormFieldValuesHolder {
+  getAsBoolean(data: ObjectMap, definition: FormFieldDefinition): boolean {
+    const value = this.get(data, definition);
+    return isNotNil(value) ? (value && value !== "false") : undefined;
+  }
+
+  getAsInt(data: any, definition: FormFieldDefinition): number {
+    const value = this.get(data, definition);
+    return isNotNil(value) ? parseInt(value) : undefined;
+  }
+
+  getAsNumbers(data: any, definition: FormFieldDefinition): number[] {
+    const value = this.get(data, definition);
+    if (typeof value === 'string') return value.split(',').map(parseFloat) || undefined;
+    return isNotNil(value) ? [parseFloat(value)] : undefined;
+  }
+
+  getAsStrings(data: any, definition: FormFieldDefinition): string[] {
+    const value = this.get(data, definition);
+    return value && value.split(',') || undefined;
+  }
+
+  get<T = string>(data: any, definition: FormFieldDefinition): T {
+    return isNotNil(data[definition.key]) ? data[definition.key] : (definition.defaultValue || undefined);
+  }
+}

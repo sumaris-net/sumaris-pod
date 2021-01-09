@@ -1,11 +1,11 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {
-  EntityService,
+  IEntityService,
   EntityServiceLoadOptions, isNil, isNotNil,
   LoadResult,
   SuggestService,
-  EntitiesService
+  IEntitiesService
 } from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
@@ -80,8 +80,8 @@ export class PmfmFilter extends ReferentialFilter {
 }
 
 @Injectable({providedIn: 'root'})
-export class PmfmService extends BaseEntityService implements EntityService<Pmfm>,
-  EntitiesService<Pmfm, PmfmFilter>,
+export class PmfmService extends BaseEntityService implements IEntityService<Pmfm>,
+  IEntitiesService<Pmfm, PmfmFilter>,
   SuggestService<Pmfm, PmfmFilter>
 {
 

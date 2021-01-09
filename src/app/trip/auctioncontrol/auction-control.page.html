@@ -1,12 +1,53 @@
-<app-toolbar [title]="title$ | async" color="primary" [hasValidate]="!loading && dirty" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+<app-toolbar [title]="title$ | async" color="primary"
+             [hasValidate]="!loading && dirty"
+             (onValidate)="save($event)"
+             (onValidateAndClose)="saveAndClose($event)"
+             [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
+             [defaultBackHref]="defaultBackHref"
+             [canGoBack]="true">
+
+  <ion-buttons slot="end">
+    <ion-spinner *ngIf="loading"></ion-spinner>
+
+    <ion-button *ngIf="enabled && !isNewData || debug"
+                [matMenuTriggerFor]="optionsMenu"
+                [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" >
+
+  <!-- delete -->
+  <button mat-menu-item
+          [disabled]="isNewData || disabled"
+          (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
+  </button>
+
+</mat-menu>
 
 <ion-content>
 
   <mat-tab-group #tabGroup
-                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
                  animationDuration="0s">
 
     <!-- TAB: general -->
@@ -56,9 +97,9 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="samplesTable?.error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
+        <ion-label color="danger" class="error" [innerHTML]="samplesTable?.error|translate"></ion-label>
       </ion-item>
 
       <div class="ion-no-padding">
@@ -89,7 +130,7 @@
                            [showTaxonGroupColumn]="false"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
-                           (onInitForm)="onStartSampleEditingForm($event)">
+                           (onInitForm)="onInitSampleForm($event)">
         </app-samples-table>
       </div>
     </mat-tab>
@@ -112,9 +153,10 @@
   </form-buttons-bar>
 </ion-footer>
 
-
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="selectedTabIndex === 1 && samplesTable.defaultTaxonGroup" @fadeInOutAnimation
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         *ngIf="selectedTabIndex === 1 && samplesTable.defaultTaxonGroup"
+         @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>

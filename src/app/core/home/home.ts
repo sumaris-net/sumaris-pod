@@ -222,13 +222,13 @@ export class HomePage implements OnDestroy {
       // Background image found: select one radomly
       if (backgroundImages.length) {
         const bgImage = getRandomImage(backgroundImages);
-        this.contentStyle = {'background-image': `url(${bgImage})`};
+        this.contentStyle = bgImage && {'background-image': `url(${bgImage})`} || {};
       }
 
       // Use background color
       else {
         const primaryColor = config.properties && config.properties['sumaris.color.primary'] || 'var(--ion-color-primary)';
-        this.contentStyle = {'background-color': primaryColor};
+        this.contentStyle = primaryColor && {'background-color': primaryColor} || {};
       }
     }
 

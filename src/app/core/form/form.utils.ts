@@ -50,7 +50,7 @@ export interface IAppForm  {
  * A form that do nothing
  */
 class AppNullForm implements IAppForm {
-  readonly invalid= false;
+  readonly invalid = false;
   readonly valid = false;
   readonly dirty = false;
   readonly empty = true;

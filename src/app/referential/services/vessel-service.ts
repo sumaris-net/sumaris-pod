@@ -5,11 +5,11 @@ import {
   QualityFlagIds
 } from "./model/model.enum";
 import {
-  EntityService, EntityServiceLoadOptions, isNil,
+  IEntityService, EntityServiceLoadOptions, isNil,
   isNilOrBlank,
   isNotEmptyArray, isNotNil,
   LoadResult,
-  EntitiesService
+  IEntitiesService
 } from "../../shared/shared.module";
 
 import {
@@ -190,7 +190,7 @@ const DeleteVessels: any = gql`
 @Injectable({providedIn: 'root'})
 export class VesselService
   extends BaseEntityService
-  implements EntitiesService<Vessel, VesselFilter>, EntityService<Vessel> {
+  implements IEntitiesService<Vessel, VesselFilter>, IEntityService<Vessel> {
 
   constructor(
     protected graphql: GraphqlService,

@@ -132,15 +132,14 @@ export class ConfigService extends SoftwareService<Configuration> {
     protected file: FileService,
     protected toastController: ToastController,
     protected translate: TranslateService,
-    @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
+    @Optional() @Inject(APP_CONFIG_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {
     super(graphql);
 
     this._debug = !environment.production;
     if (this._debug) console.debug("[config] Creating service");
 
-    this.defaultOptionsMap = {...ConfigOptions, ...defaultOptionsMap};
-    this._optionDefs = Object.keys(this.defaultOptionsMap).map(name => defaultOptionsMap[name]);
+    this._optionDefs = Object.values({...ConfigOptions, ...defaultOptionsMap});
 
     // Restart if graphql service restart
     this._subscription.add(
