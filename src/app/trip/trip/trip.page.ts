@@ -24,7 +24,7 @@ import {PromiseEvent} from "../../shared/events";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {debounceTime, filter} from "rxjs/operators";
+import {debounceTime, filter, first} from "rxjs/operators";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {Alerts} from "../../shared/alerts";
@@ -67,7 +67,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
-    public network: NetworkService // Used for DEV (to debug OFFLINE mode)
+    public network: NetworkService
   ) {
     super(injector,
       Trip,
@@ -163,48 +163,48 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       console.debug("[trip] New entity: set default values...");
 
       // Fil defaults, using filter applied on trips table
-      const tripFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
-      if (tripFilter) {
+      const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
+      if (searchFilter) {
 
         // Synchronization status
-        if (tripFilter.synchronizationStatus && tripFilter.synchronizationStatus !== 'SYNC') {
+        if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
           data.synchronizationStatus = 'DIRTY';
         }
 
         // program
-        if (tripFilter.program && tripFilter.program.label) {
-          data.program = ReferentialRef.fromObject(tripFilter.program);
+        if (searchFilter.program && searchFilter.program.label) {
+          data.program = ReferentialRef.fromObject(searchFilter.program);
           this.programSubject.next(data.program.label);
         }
 
         // Vessel
-        if (tripFilter.vesselSnapshot) {
-          data.vesselSnapshot = VesselSnapshot.fromObject(tripFilter.vesselSnapshot);
+        if (searchFilter.vesselSnapshot) {
+          data.vesselSnapshot = VesselSnapshot.fromObject(searchFilter.vesselSnapshot);
         }
 
         // Location
-        if (tripFilter.location) {
-          data.departureLocation = ReferentialRef.fromObject(tripFilter.location);
+        if (searchFilter.location) {
+          data.departureLocation = ReferentialRef.fromObject(searchFilter.location);
         }
       }
-    }
 
-    // If on field mode
-    if (this.isOnFieldMode) {
       // Listen first opening the operations tab, then save
-      this.tabGroup.selectedTabChange
-        .pipe(
-          filter(event => this.showOperationTable && event.index === TripPageTabs.OPERATIONS)
-        )
-        .subscribe(event => this.save());
+      this.registerSubscription(
+        this.tabGroup.selectedTabChange
+          .pipe(
+            filter(event => this.showOperationTable && event.index === TripPageTabs.OPERATIONS),
+            first()
+          )
+          .subscribe(event => this.save())
+        );
     }
 
     this.showGearTable = false;
     this.showOperationTable = false;
   }
 
-  updateViewState(data: Trip) {
-    super.updateViewState(data);
+  updateViewState(data: Trip, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.updateViewState(data, opts);
 
     // Update tabs state (show/hide)
     this.updateTabsState(data);
@@ -218,16 +218,16 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
-  protected async setValue(data: Trip): Promise<void> {
-
+  protected async setValue(data: Trip) {
+    // Set data to form
     this.tripForm.value = data;
+
     const isNew = isNil(data.id);
     if (!isNew) {
       this.programSubject.next(data.program.label);
     }
     this.saleForm.value = data && data.sale;
     this.measurementsForm.value = data && data.measurements || [];
-    //this.measurementsForm.updateControls();
 
     // Physical gear table
     this.physicalGearTable.value = data && data.gears || [];
@@ -367,19 +367,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
   }
 
-  /**
-   * Compute the title
-   * @param data
-   */
-  protected async computeTitle(data: Trip) {
+  protected computeTitle(data: Trip): Promise<string> {
 
     // new data
     if (!data || isNil(data.id)) {
-      return await this.translate.get('TRIP.NEW.TITLE').toPromise();
+      return this.translate.get('TRIP.NEW.TITLE').toPromise();
     }
 
     // Existing data
-    return await this.translate.get('TRIP.EDIT.TITLE', {
+    return this.translate.get('TRIP.EDIT.TITLE', {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
       departureDateTime: data.departureDateTime && this.dateFormat.transform(data.departureDateTime) as string
     }).toPromise();
@@ -406,9 +402,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     return json;
   }
 
-  /**
-   * Get the first invalid tab
-   */
   protected getFirstInvalidTabIndex(): number {
     const tab0Invalid = this.tripForm.invalid || this.measurementsForm.invalid;
     const tab1Invalid = !tab0Invalid && this.physicalGearTable.invalid;

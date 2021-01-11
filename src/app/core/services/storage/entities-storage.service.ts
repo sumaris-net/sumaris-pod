@@ -480,7 +480,7 @@ export class EntitiesStorage {
 
     const now = this._debug && Date.now();
     if (this._debug) console.info("[entities-storage] Restoring entities...");
-    let entitiesCount = (await Promise.all<number>(
+    const entitiesCount = (await Promise.all<number>(
       entityNames
         .map(name => this.getEntityStore<any>(name))
         .map((store: EntityStore<any>) => store.restore()))

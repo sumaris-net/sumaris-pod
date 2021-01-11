@@ -326,7 +326,7 @@ export const TripFilterKeys: KeysEnum<TripFilter> = {
   synchronizationStatus: true
 };
 
-export interface TripServiceLoadOptions extends EntityServiceLoadOptions {
+export interface TripLoadOptions extends EntityServiceLoadOptions {
   isLandedTrip?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
@@ -441,12 +441,12 @@ const UpdateSubscription = gql`
 
 @Injectable({providedIn: 'root'})
 export class TripService
-  extends RootDataSynchroService<Trip, TripFilter, TripServiceLoadOptions>
+  extends RootDataSynchroService<Trip, TripFilter, TripLoadOptions>
   implements
     IEntitiesService<Trip, TripFilter>,
-    IEntityService<Trip, TripServiceLoadOptions>,
+    IEntityService<Trip, TripLoadOptions>,
     IDataEntityQualityService<Trip>,
-    IDataSynchroService<Trip, TripServiceLoadOptions>{
+    IDataSynchroService<Trip, TripLoadOptions>{
 
   protected $importationProgress: Observable<number>;
   protected loading = false;
@@ -578,7 +578,7 @@ export class TripService
         }));
   }
 
-  async load(id: number, opts?: TripServiceLoadOptions): Promise<Trip | null> {
+  async load(id: number, opts?: TripLoadOptions): Promise<Trip | null> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     // use landedTrip option if itself or withOperationGroups is present in service options
@@ -597,7 +597,7 @@ export class TripService
         if (!json) throw {code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR"};
 
         if (opts && opts.withOperation) {
-          json.operations = await this.entities.loadAll<Operation>('OperationVO', {
+          json.operations = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
             filter: OperationFilter.searchFilter<Operation>({tripId: id})
           });
         }
@@ -705,11 +705,8 @@ export class TripService
     // Prepare to save
     this.fillDefaultProperties(entity);
 
-    // Reset the control date
-    entity.controlDate = undefined;
-    entity.validationDate = undefined;
-    entity.qualificationDate = undefined;
-    entity.qualityFlagId = undefined;
+    // Reset quality properties
+    this.resetQualityProperties(entity);
 
     // Provide an optimistic response, if connection lost
     const offlineResponse = (!opts || opts.enableOptimisticResponse !== false) ?
@@ -1224,7 +1221,7 @@ export class TripService
     return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
   }
 
-  async copyLocallyById(id: number, opts?: TripServiceLoadOptions & {}): Promise<Trip> {
+  async copyLocallyById(id: number, opts?: TripLoadOptions & {}): Promise<Trip> {
 
     // Load existing data
     const data = await this.load(id, {...opts, fetchPolicy: "network-only"});

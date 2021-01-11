@@ -10,8 +10,8 @@
     <ion-spinner *ngIf="loading"></ion-spinner>
 
     <ion-button *ngIf="enabled && !isNewData || debug"
-            [matMenuTriggerFor]="optionsMenu"
-            [title]=" 'COMMON.BTN_OPTIONS'|translate">
+                [matMenuTriggerFor]="optionsMenu"
+                [title]=" 'COMMON.BTN_OPTIONS'|translate">
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
   </ion-buttons>
@@ -80,9 +80,9 @@
       </ion-item>
 
       <ion-grid class="ion-no-padding">
-
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
+
             <!-- trip -->
             <form-trip #tripForm
                        [showError]="false"
@@ -117,6 +117,8 @@
 
             </form-trip>
           </ion-col>
+
+          <!-- quality data -->
           <ion-col size="12" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data">
               <app-entity-quality-form [editor]="this">
@@ -177,7 +179,8 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
+                    [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->

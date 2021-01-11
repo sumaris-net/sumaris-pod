@@ -4,9 +4,8 @@
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
-             [defaultBackHref]="defaultBackHref"
+             [backHref]="defaultBackHref"
              [canGoBack]="true">
-
   <ion-buttons slot="end">
     <ion-spinner *ngIf="loading"></ion-spinner>
 
@@ -19,7 +18,7 @@
 </app-toolbar>
 
 <!-- Type = options menu -->
-<mat-menu #optionsMenu="matMenu" >
+<mat-menu #optionsMenu="matMenu">
 
   <!-- delete -->
   <button mat-menu-item
@@ -43,29 +42,30 @@
 
 </mat-menu>
 
-<ion-content>
-
+<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group #tabGroup
                  [(selectedIndex)]="selectedTabIndex"
-                 (selectedTabChange)="onTabChange($event)">
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
+                 dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'OBSERVED_LOCATION.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>OBSERVED_LOCATION.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && observedLocationForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && observedLocationForm.invalid)"></ion-icon>
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="observedLocationForm.error||error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="error || observedLocationForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="(observedLocationForm.error||error) | translate"></ion-label>
+        <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
         <ion-row class="ion-no-padding">
-          <ion-col class="ion-no-padding ion-padding-top">
+          <ion-col class="ion-padding">
 
             <!-- observed location -->
             <form-observed-location #observedLocationForm
@@ -76,7 +76,9 @@
                                     (onSubmit)="save($event)">
             </form-observed-location>
           </ion-col>
-          <ion-col class="ion-no-padding" size="12" size-xl="3">
+
+          <!-- quality data -->
+          <ion-col size="12" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data">
               <app-entity-quality-form [editor]="this">
               </app-entity-quality-form>
@@ -87,7 +89,7 @@
     </mat-tab>
 
     <!-- TAB: Landings -->
-    <mat-tab label="{{'OBSERVED_LOCATION.TAB_VESSELS'|translate}}" [disabled]="isNewData">
+    <mat-tab label="{{'OBSERVED_LOCATION.TAB_VESSELS'|translate}}" [disabled]="!showLandingTab">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>
@@ -138,8 +140,8 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
+                    [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
@@ -151,7 +153,7 @@
   </form-buttons-bar>
 </ion-footer>
 
-<!-- FAB button -->
+<!-- FAB button: add landing -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
          *ngIf="selectedTabIndex === 1"
          @fadeInOutAnimation

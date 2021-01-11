@@ -65,8 +65,6 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected formBuilder: FormBuilder,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -107,17 +105,11 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
       //,'observer': [null]
     });
 
-    this.readOnly = false; // Allow deletion
-    this.inlineEdition = false;
-    this.confirmBeforeDelete = true;
-    this.saveBeforeSort = false;
-    this.saveBeforeFilter = false;
-    this.saveBeforeDelete = false;
     this.autoLoad = false;
     this.defaultSortBy = 'departureDateTime';
     this.defaultSortDirection = 'desc';
 
-    this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fix value, to be able to reuse it in the trip page
+    this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureId = TripsPageSettingsEnum.FEATURE_NAME;
 
     // FOR DEV ONLY ----
@@ -182,8 +174,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           debounceTime(250),
           filter(() => this.filterForm.valid),
           // Applying the filter
-          tap(json => {
-            this.setFilter({
+          tap(json => this.setFilter({
               programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
               startDate: json.startDate,
               endDate: json.endDate,
@@ -192,13 +183,15 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
               synchronizationStatus: json.synchronizationStatus || undefined,
               recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
               recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
-            }, {emitEvent: this.mobile || isNil(this.filter)});
-          }),
+            }, {emitEvent: this.mobile || isNil(this.filter)})),
           // Save filter in settings (after a debounce time)
-          debounceTime(1000),
+          debounceTime(500),
           tap(json => this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY))
         )
         .subscribe());
+
+    // Restore filter from settings, or load all
+    this.restoreFilterOrLoad();
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
@@ -232,7 +225,4 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
-
 }
-

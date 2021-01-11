@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
-import {fadeInOutAnimation, isNil, isNotNil, toBoolean} from '../../shared/shared.module';
+import {fadeInOutAnimation, isNil, isNotEmptyArray, isNotNil, toBoolean} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
@@ -8,8 +8,8 @@ import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ModalController} from "@ionic/angular";
-import {environment} from "../../core/core.module";
-import {HistoryPageReference} from "../../core/services/model/settings.model";
+import {environment, ReferentialRef} from "../../core/core.module";
+import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {SelectVesselsModal} from "./vessels/select-vessel.modal";
 import {ObservedLocation} from "../services/model/observed-location.model";
@@ -18,11 +18,21 @@ import {LandingFilter} from "../services/landing.service";
 import {LandingEditor, ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {BehaviorSubject} from "rxjs";
-import {firstNotNilPromise} from "../../shared/observables";
-import {filter} from "rxjs/operators";
+import {firstNotNilPromise, firstTruePromise} from "../../shared/observables";
+import {filter, first} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
 import {Program} from "../../referential/services/model/program.model";
+import {PlatformService} from "../../core/services/platform.service";
+import {TripsPageSettingsEnum} from "../trip/trips.table";
+import {ObservedLocationsPageSettingsEnum} from "./observed-locations.page";
+import {Trip} from "../services/model/trip.model";
+
+
+const ObservedLocationPageTabs = {
+  GENERAL: 0,
+  LANDINGS: 1
+}
 
 @Component({
   selector: 'app-observed-location-page',
@@ -32,6 +42,7 @@ import {Program} from "../../referential/services/model/program.model";
 })
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> {
 
+  showLandingTab = false;
   aggregatedLandings: boolean;
   allowAddNewVessel: boolean;
   $ready = new BehaviorSubject<boolean>(false);
@@ -53,41 +64,30 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   constructor(
     injector: Injector,
     dataService: ObservedLocationService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected platform: PlatformService
   ) {
     super(injector,
       ObservedLocation,
       dataService,
       {
         pathIdAttribute: 'observedLocationId',
-        tabCount: 2
+        tabCount: 2,
+        autoOpenNextTab: !platform.mobile
       });
-
     this.defaultBackHref = "/observations";
-
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
 
-  async ngAfterViewInit(): Promise<void> {
-    await super.ngAfterViewInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
-    // Configure using program properties
-    this.onProgramChanged.subscribe(program => this.setProgram(program));
-  }
-
-  protected get form(): FormGroup {
-    return this.observedLocationForm.form;
-  }
-
-  protected registerForms() {
-    // Register forms & tables
-    this.addChildForms([
-      this.observedLocationForm,
-      () => this.landingsTable,
-      () => this.aggregatedLandingsTable
-    ]);
+    // Watch program, to configure tables from program properties
+    this.registerSubscription(
+      this.onProgramChanged.subscribe(program => this.setProgram(program))
+    );
   }
 
   protected setProgram(program: Program) {
@@ -119,16 +119,66 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
       data.startDateTime = moment();
+
+      console.debug("[trip] New entity: set default values...");
+
+      // Fil defaults, using filter applied on trips table
+      const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
+      if (searchFilter) {
+        // Synchronization status
+        if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
+          data.synchronizationStatus = 'DIRTY';
+        }
+
+        // program
+        if (searchFilter.program && searchFilter.program.label) {
+          data.program = ReferentialRef.fromObject(searchFilter.program);
+          this.programSubject.next(data.program.label);
+        }
+
+        // Location
+        if (searchFilter.location) {
+          data.location = ReferentialRef.fromObject(searchFilter.location);
+        }
+      }
+
+      this.showLandingTab = true;
+
+      // Listen first opening the operations tab, then save
+      this.registerSubscription(
+        this.tabGroup.selectedTabChange
+          .pipe(
+            filter(event => event.index === ObservedLocationPageTabs.LANDINGS),
+            first()
+          )
+          .subscribe(event => this.save())
+        );
     }
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     // Move to second tab
-    this.selectedTabIndex = 1;
-    this.tabGroup.realignInkBar();
+    if (!this.isNewData && !this.isOnFieldMode) {
+      this.selectedTabIndex = 1;
+      this.tabGroup.realignInkBar();
+    }
+  }
+
+  updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.updateViewState(data);
+
+    // Update tabs state (show/hide)
+    this.updateTabsState(data);
+  }
+
+  updateTabsState(data: ObservedLocation) {
+    // Enable landings tab
+    this.showLandingTab = this.showLandingTab || (isNotNil(data.id) || this.isOnFieldMode);
   }
 
   protected async setValue(data: ObservedLocation) {
+    // Set data to form
+    this.observedLocationForm.value = data;
 
     const isNew = isNil(data.id);
     if (!isNew) {
@@ -136,21 +186,20 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.programSubject.next(data.program.label);
     }
 
-    // Set data to form
-    this.observedLocationForm.value = data;
-
     // Wait for child table ready
     await this.ready();
     this.updateViewState(data);
 
     // Propagate parent to landings table
-    if (this.landingsTable && data) {
-      if (this.debug) console.debug("[observed-location] Propagate observed location to landings table");
-      this.landingsTable.setParent(data);
-    }
-    if (this.aggregatedLandingsTable) {
-      if (this.debug) console.debug("[observed-location] Propagate observed location to aggregated landings form");
-      this.aggregatedLandingsTable.setParent(data);
+    if (!isNew) {
+      if (this.landingsTable) {
+        if (this.debug) console.debug("[observed-location] Propagate observed location to landings table");
+        this.landingsTable.setParent(data);
+      }
+      if (this.aggregatedLandingsTable) {
+        if (this.debug) console.debug("[observed-location] Propagate observed location to aggregated landings form");
+        this.aggregatedLandingsTable.setParent(data);
+      }
     }
   }
 
@@ -158,51 +207,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Wait child loaded
     if (this.$ready.getValue() !== true) {
       if (this.debug) console.debug('[observed-location] waiting child to be ready...');
-      await firstNotNilPromise(this.$ready
-        .pipe(
-          filter((childLoaded) => childLoaded === true)
-        ));
+      await firstTruePromise(this.$ready);
     }
-  }
-
-  protected async getJsonValueToSave(): Promise<any> {
-    const json = await super.getJsonValueToSave();
-
-    if (this.landingsTable && this.landingsTable.dirty) {
-      await this.landingsTable.save();
-    }
-
-    if (this.aggregatedLandingsTable && this.aggregatedLandingsTable.dirty) {
-      await this.aggregatedLandingsTable.save();
-    }
-
-    return json;
-  }
-
-  protected computeTitle(data: ObservedLocation): Promise<string> {
-    // new data
-    if (this.isNewData) {
-      return this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
-    }
-
-    // Existing data
-    return this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
-      location: data.location && (data.location.name || data.location.label),
-      dateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime) as string
-    }).toPromise();
-  }
-
-  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
-    return {
-      ... (await super.computePageHistory(title)),
-      matIcon: 'verified_user'
-    };
-  }
-
-  protected getFirstInvalidTabIndex(): number {
-    return this.observedLocationForm.invalid ? 0
-      : ((this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1
-        : -1);
   }
 
   async onOpenLanding({id, row}) {
@@ -222,8 +228,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
-      this.loading = true;
-      this.markForCheck();
+      this.markAsLoading();
 
       try {
         const vessel = await this.openSelectVesselModal();
@@ -232,8 +237,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
           await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
         }
       } finally {
-        this.loading = false;
-        this.markForCheck();
+        this.markAsLoaded();
       }
     }
   }
@@ -247,8 +251,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
-      this.loading = true;
-      this.markForCheck();
+      this.markAsLoading();
 
       try {
         const vessel = await this.openSelectVesselModal(true);
@@ -256,8 +259,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
           await this.aggregatedLandingsTable.addAggregatedRow(vessel);
         }
       } finally {
-        this.loading = false;
-        this.markForCheck();
+        this.markAsLoaded();
       }
     }
   }
@@ -271,20 +273,16 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
-      this.loading = true;
-      this.markForCheck();
+      this.markAsLoading();
 
       try {
         await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${row.currentData.vesselSnapshot.id}&landing=${row.currentData.id}`);
       } finally {
-        this.loading = false;
-        this.markForCheck();
+        this.markAsLoaded();
       }
     }
 
   }
-
-  /* -- protected methods -- */
 
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
     if (!this.data.startDateTime || !this.data.program) {
@@ -349,5 +347,73 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     } else if (this.aggregatedLandingsTable) {
       this.aggregatedLandingsTable.addRow($event);
     }
+  }
+
+  /* -- protected methods -- */
+
+
+
+  protected get form(): FormGroup {
+    return this.observedLocationForm.form;
+  }
+
+  protected canUserWrite(data: ObservedLocation): boolean {
+    return isNil(data.validationDate) && this.dataService.canUserWrite(data);
+  }
+
+  protected computeUsageMode(data: ObservedLocation): UsageMode {
+    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
+  }
+
+  protected registerForms() {
+    this.addChildForms([
+      this.observedLocationForm,
+      () => this.landingsTable,
+      () => this.aggregatedLandingsTable
+    ]);
+  }
+
+  protected computeTitle(data: ObservedLocation): Promise<string> {
+    // new data
+    if (this.isNewData) {
+      return this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
+    }
+
+    // Existing data
+    return this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
+      location: data.location && (data.location.name || data.location.label),
+      dateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime) as string
+    }).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      matIcon: 'verified_user'
+    };
+  }
+
+  protected async getJsonValueToSave(): Promise<any> {
+    const json = await super.getJsonValueToSave();
+
+    if (this.landingsTable && this.landingsTable.dirty) {
+      await this.landingsTable.save();
+    }
+
+    if (this.aggregatedLandingsTable && this.aggregatedLandingsTable.dirty) {
+      await this.aggregatedLandingsTable.save();
+    }
+
+    return json;
+  }
+
+  protected getFirstInvalidTabIndex(): number {
+    return this.observedLocationForm.invalid ? 0
+      : ((this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1
+        : -1);
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

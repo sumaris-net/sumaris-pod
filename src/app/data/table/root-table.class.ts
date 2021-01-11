@@ -24,7 +24,6 @@ import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {UserEventService} from "../../social/services/user-event.service";
 import * as moment from "moment";
 import {IDataSynchroService} from "../services/data-synchro-service.class";
-import {Account} from "../../core/services/model/account.model";
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: "filter"
@@ -101,8 +100,8 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     this.canEdit = this.isAdmin || this.accountService.isUser();
     this.canDelete = this.isAdmin;
 
-    if (!this.filterForm) throw new Error('Missing filter form');
-    if (!this.featureId) throw new Error('Missing feature ID');
+    if (!this.filterForm) throw new Error("Missing 'filterForm'");
+    if (!this.featureId) throw new Error("Missing 'featureId'");
 
     // Listen network
     this.offline = this.network.offline;
@@ -125,10 +124,6 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
         // Check if update offline mode is need
         this.checkUpdateOfflineNeed();
       }));
-
-    // Restore filter from settings, or load all trips
-    this.restoreFilterOrLoad();
-
   }
 
   onNetworkStatusChanged(type: ConnectionType) {
@@ -203,7 +198,7 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
 
       // Toggle to offline mode
       if (!opts || opts.toggleToOfflineMode !== false) {
-        this.synchronizationStatus = 'DIRTY';
+        this.setSynchronizationStatus('DIRTY');
       }
 
       // Display toast
@@ -225,7 +220,7 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     }
   }
 
-  setSynchronizationStatus(value: SynchronizationStatus) {
+  async setSynchronizationStatus(value: SynchronizationStatus) {
     if (!value) return; // Skip if empty
 
     // Make sure network is UP
@@ -244,8 +239,8 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     const json = { ...this.filter, synchronizationStatus: value};
     this.setFilter(json, {emitEvent: true});
 
-    // Save filter to settings (need to be done here, because new trip can stored filter)
-    this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY);
+    // Save filter to settings (need to be done here, because entity creation can need it - e.g. to apply Filter as default values)
+    await this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY);
   }
 
   hasReadyToSyncSelection(): boolean {
@@ -329,7 +324,7 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
           synchronizationStatus: 'DIRTY'
         });
       }
-      // No offline data: default load (online trips)
+      // No offline data: default load (online data)
       else {
         // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
         this.onRefresh.emit();

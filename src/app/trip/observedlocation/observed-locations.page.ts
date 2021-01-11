@@ -40,7 +40,7 @@ export const ObservedLocationsPageSettingsEnum = {
 })
 export class ObservedLocationsPage extends AppRootTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
-  highlightedRow: TableElement<Trip>;
+  highlightedRow: TableElement<ObservedLocation>;
 
   constructor(
     protected injector: Injector,
@@ -89,13 +89,11 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
       // TODO: add observer filter ?
       //,'observer': [null]
     });
-    this.inlineEdition = false;
-    this.confirmBeforeDelete = true;
     this.autoLoad = false;
     this.defaultSortBy = 'startDateTime';
     this.defaultSortDirection = 'desc';
 
-    this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID;
+    this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureId = ObservedLocationsPageSettingsEnum.FEATURE_NAME;
 
     // FOR DEV ONLY ----
@@ -146,40 +144,59 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
 
     // Update filter when changes
     this.registerSubscription(
-    this.filterForm.valueChanges
-      .pipe(
-        debounceTime(250),
-        filter(() => this.filterForm.valid),
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(() => this.filterForm.valid),
+          // Applying the filter
+          tap(json => this.setFilter({
+            programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
+            startDate: json.startDate,
+            endDate: json.endDate,
+            locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
+            synchronizationStatus: json.synchronizationStatus || undefined,
+            recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
+            recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
+          }, {emitEvent: this.mobile || isNil(this.filter)})),
+          // Save filter in settings (after a debounce time)
+          debounceTime(500),
+          tap(json => this.settings.savePageSetting(this.settingsId, json, ObservedLocationsPageSettingsEnum.FILTER_KEY))
+        )
+        .subscribe());
 
-        // Applying the filter
-        tap(json => this.setFilter({
-          programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
-          startDate: json.startDate,
-          endDate: json.endDate,
-          locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
-          synchronizationStatus: json.synchronizationStatus || undefined,
-          recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
-          recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
-        }, {emitEvent: this.mobile || isNil(this.filter)})),
 
-        // Save filter in settings (after a debounce time)
-        debounceTime(1000),
-        tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
-    )
-    .subscribe());
+    // Restore filter from settings, or load all
+    this.restoreFilterOrLoad();
+  }
+
+  clickRow(event: MouseEvent|undefined, row: TableElement<ObservedLocation>): boolean {
+    this.highlightedRow = row;
+    return super.clickRow(event, row);
+  }
+
+  async openTrashModal(event?: UIEvent) {
+    console.debug('[observed-locations] Opening trash modal...');
+    // TODO BLA
+    /*const modal = await this.modalCtrl.create({
+      component: TripTrashModal,
+      componentProps: {
+        synchronizationStatus: this.filter.synchronizationStatus
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED*/
   }
 
   /* -- protected methods -- */
 
   protected isFilterEmpty = ObservedLocationFilter.isEmpty;
-
-  protected openRow(id: number): Promise<boolean> {
-    return this.router.navigateByUrl('/observations/' + id);
-  }
-
-  protected openNewRowDetail(): Promise<boolean> {
-    return this.router.navigateByUrl('/observations/new');
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();

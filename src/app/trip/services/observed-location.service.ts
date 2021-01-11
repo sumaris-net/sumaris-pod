@@ -34,16 +34,18 @@ import {
 } from "../../shared/functions";
 import {SynchronizationStatus, SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
-import {Trip} from "./model/trip.model";
+import {Operation, Trip} from "./model/trip.model";
 import {TripFilter} from "./trip.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {NetworkService} from "../../core/services/network.service";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
 import {Entity} from "../../core/services/model/entity.model";
-import {LandingService} from "./landing.service";
+import {LandingFilter, LandingService} from "./landing.service";
 import {IDataSynchroService, RootDataSynchroService} from "../../data/services/data-synchro-service.class";
 import {chainPromises} from "../../shared/observables";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {OperationFilter} from "./operation.service";
+import {Landing} from "./model/landing.model";
 
 
 export class ObservedLocationFilter {
@@ -145,7 +147,7 @@ export interface ObservedLocationSaveOptions {
   enableOptimisticResponse?: boolean; // True by default
 }
 
-export interface ObservedLocationServiceLoadOptions extends EntityServiceLoadOptions {
+export interface ObservedLocationLoadOptions extends EntityServiceLoadOptions {
   withLanding?: boolean;
   toEntity?: boolean;
 }
@@ -235,10 +237,10 @@ const LoadQuery: any = gql`
   }
   ${ObservedLocationFragments.observedLocation}
 `;
-// Save all query
-const SaveAllQuery: any = gql`
-  mutation SaveObservedLocations($observedLocations:[ObservedLocationVOInput], $saveOption: ObservedLocationSaveOptionsInput!){
-    saveObservedLocations(observedLocations: $observedLocations, $saveOption){
+// Save query
+const SaveQuery: any = gql`
+  mutation SaveObservedLocation($observedLocation: ObservedLocationVOInput, $options: ObservedLocationSaveOptionsInput!){
+    saveObservedLocation(observedLocation: $observedLocations, options: $options){
       ...ObservedLocationFragment
     }
   }
@@ -261,12 +263,12 @@ const UpdateSubscription = gql`
 
 @Injectable({providedIn: "root"})
 export class ObservedLocationService
-  extends RootDataSynchroService<ObservedLocation, ObservedLocationFilter, ObservedLocationServiceLoadOptions>
+  extends RootDataSynchroService<ObservedLocation, ObservedLocationFilter, ObservedLocationLoadOptions>
   implements
     IEntitiesService<ObservedLocation, ObservedLocationFilter>,
-    IEntityService<ObservedLocation, ObservedLocationServiceLoadOptions>,
+    IEntityService<ObservedLocation, ObservedLocationLoadOptions>,
     IDataEntityQualityService<ObservedLocation>,
-    IDataSynchroService<ObservedLocation, ObservedLocationServiceLoadOptions>
+    IDataSynchroService<ObservedLocation, ObservedLocationLoadOptions>
 {
 
   protected loading = false;
@@ -353,7 +355,7 @@ export class ObservedLocationService
         }));
   }
 
-  async load(id: number, opts?: ObservedLocationServiceLoadOptions): Promise<ObservedLocation> {
+  async load(id: number, opts?: ObservedLocationLoadOptions): Promise<ObservedLocation> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
@@ -361,15 +363,32 @@ export class ObservedLocationService
     this.loading = true;
 
     try {
-      const res = await this.graphql.query<{ observedLocation: ObservedLocation }>({
-        query: LoadQuery,
-        variables: {
-          id: id
-        },
-        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"},
-        fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
-      });
-      const data = res && res.observedLocation && ObservedLocation.fromObject(res.observedLocation);
+      let json: any;
+
+      // If local entity
+      if (id < 0) {
+        json = await this.entities.load<ObservedLocation>(id, ObservedLocation.TYPENAME);
+        if (!json) throw {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"};
+
+        if (opts && opts.withLanding) {
+          json.landings = await this.entities.loadAll<Landing>('OperationVO', {
+            filter: LandingFilter.searchFilter<Landing>({observedLocationId: id})
+          });
+        }
+      }
+
+      else {
+        const res = await this.graphql.query<{ observedLocation: ObservedLocation }>({
+          query: LoadQuery,
+          variables: {
+            id: id
+          },
+          error: {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"},
+          fetchPolicy: opts && opts.fetchPolicy || undefined
+        });
+        json = res && res.observedLocation;
+      }
+      const data: ObservedLocation = (!opts || opts.toEntity !== false) ? ObservedLocation.fromObject(json) : (json as ObservedLocation);
       if (data && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, data);
 
       return data;
@@ -426,25 +445,36 @@ export class ObservedLocationService
       return this.saveLocally(entity, opts);
     }
 
+    opts = {
+      withLanding: false,
+      ...opts
+    };
+
     const now = Date.now();
     if (this._debug) console.debug("[observed-location-service] Saving an observed location...");
 
     // Prepare to save
     this.fillDefaultProperties(entity);
 
-    // Reset the control date
-    entity.controlDate = undefined;
+    // Reset quality properties
+    this.resetQualityProperties(entity);
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (isNew) delete json.id; // Make to remove temporary id, before sending to graphQL
     if (this._debug) console.debug("[observed-location-service] Using minify object, to send:", json);
 
+    const variables = {
+      trip: json,
+      options: {
+        withLanding: opts.withLanding
+      }
+    };
+
+    const mutation = (opts.withLanding) ? SaveQuery : SaveQuery;
     await this.graphql.mutate<{ saveObservedLocations: any }>({
-      mutation: SaveAllQuery,
-      variables: {
-        observedLocations: [json]
-      },
+      mutation,
+      variables,
       error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"},
       update: (proxy, {data}) => {
         const savedEntity = data && data.saveObservedLocations && data.saveObservedLocations[0];

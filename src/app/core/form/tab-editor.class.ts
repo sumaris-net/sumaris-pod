@@ -74,7 +74,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
    */
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (DO NOT use 'invalid')
-    return (!this._children || !this._children.find(form => !form.valid));
+    return (!this._children || !this._children.find(c => !c.valid));
   }
 
   get invalid(): boolean {
