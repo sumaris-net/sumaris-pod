@@ -67,9 +67,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef,
-    protected network: NetworkService,
-    protected accountService: AccountService
+    protected cd: ChangeDetectorRef
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,

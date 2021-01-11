@@ -34,10 +34,9 @@ export const AppRootTableSettingsEnum = {
 export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
   extends AppTable<T, F> {
 
-  protected readonly network: NetworkService;
-  protected readonly userEventService: UserEventService;
-
-  readonly accountService: AccountService;
+  protected network: NetworkService;
+  protected userEventService: UserEventService;
+  protected accountService: AccountService;
 
   canEdit: boolean;
   canDelete: boolean;
@@ -62,7 +61,11 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     this.setSynchronizationStatus(value);
   }
 
-  constructor(
+  get isLogin(): boolean {
+    return this.accountService.isLogin();
+  }
+
+  protected constructor(
     route: ActivatedRoute,
     router: Router,
     platform: Platform | PlatformService,
