@@ -723,6 +723,33 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * <p>find the analytic references service URL.</p>
+     *
+     * @return a {@link String}
+     */
+    public String getAnalyticReferencesServiceUrl() {
+        return applicationConfig.getOption(SumarisConfigurationOption.ANALYTIC_REFERENCES_SERVICE_URL.getKey());
+    }
+
+    /**
+     * <p>find the analytic references service authorization key (format "user:pass").</p>
+     *
+     * @return a {@link String}
+     */
+    public String getAnalyticReferencesServiceAuth() {
+        return applicationConfig.getOption(SumarisConfigurationOption.ANALYTIC_REFERENCES_SERVICE_AUTH.getKey());
+    }
+
+    /**
+     * <p>get the delay in days between two calls to the analytic references service.</p>
+     *
+     * @return a {@link int}.
+     */
+    public int getAnalyticReferencesServiceDelay() {
+        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.ANALYTIC_REFERENCES_SERVICE_DELAY.getKey());
+    }
+
+    /**
      * <p>Get the output file, for action (e.g. a file to create, when executing a dump action).</p>
      * <p>Used by CLI (Command Line Interface) actions</p>
      *

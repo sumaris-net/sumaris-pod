@@ -30,9 +30,7 @@ import java.util.List;
 
 public interface ReferentialExternalDao {
 
-    List<ReferentialVO> findAnalyticReferencesByFilter(String urlStr,
-                                     String authStr,
-                                     ReferentialFilterVO filter,
+    List<ReferentialVO> findAnalyticReferencesByFilter(ReferentialFilterVO filter,
                                      int offset,
                                      int size,
                                      String sortAttribute,

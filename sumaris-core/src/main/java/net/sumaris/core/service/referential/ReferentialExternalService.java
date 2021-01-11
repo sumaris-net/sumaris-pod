@@ -33,11 +33,11 @@ import java.util.List;
 public interface ReferentialExternalService {
 
     @Transactional(readOnly = true)
-    List<ReferentialVO> findAnalyticReferencesByFilter(String urlStr, String authStr, ReferentialFilterVO filter, int offset, int size);
+    List<ReferentialVO> findAnalyticReferencesByFilter(ReferentialFilterVO filter, int offset, int size);
 
     @Transactional(readOnly = true)
-    List<ReferentialVO> findAnalyticReferencesByFilter(String urlStr, String authStr, ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<ReferentialVO> findAnalyticReferencesByFilter(ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
     @Transactional(readOnly = true)
-    Long countAnalyticReferencesByFilter(String urlStr, String authStr, ReferentialFilterVO filter);
+    Long countAnalyticReferencesByFilter(ReferentialFilterVO filter);
 }
