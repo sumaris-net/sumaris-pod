@@ -16,7 +16,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
-import {TripService, TripServiceSaveOptions} from "../services/trip.service";
+import {TripService, TripSaveOptions} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
@@ -564,7 +564,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   async save(event, options?: any): Promise<boolean> {
 
-    const saveOptions: TripServiceSaveOptions = {
+    const saveOptions: TripSaveOptions = {
       withLanding: true // indicate service to reload with LandedTrip query
     };
 

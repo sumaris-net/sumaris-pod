@@ -459,7 +459,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this._destroy$.unsubscribe();
 
     if (this._dataSource) {
-      this._dataSource.ngOnDestroy()
+      this._dataSource.ngOnDestroy();
     }
   }
 

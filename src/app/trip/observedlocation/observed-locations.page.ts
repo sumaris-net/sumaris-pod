@@ -2,12 +2,10 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit}
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {environment, isNil, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
-import {AlertController, ModalController} from "@ionic/angular";
+import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {AccountService} from "../../core/services/account.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {FormBuilder} from "@angular/forms";
-import {TranslateService} from "@ngx-translate/core";
 import {personToString} from "../../core/services/model/person.model";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, filter, tap} from "rxjs/operators";
@@ -21,11 +19,8 @@ import {PersonService} from "../../admin/services/person.service";
 import {SharedValidators} from "../../shared/validator/validators";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {Trip} from "../services/model/trip.model";
-import {NetworkService} from "../../core/services/network.service";
-import {UserEventService} from "../../social/services/user-event.service";
 import {AppRootTable} from "../../data/table/root-table.class";
 import {OBSERVED_LOCATION_FEATURE_NAME} from "../services/config/trip.config";
-import {TripFilter} from "../services/trip.service";
 
 
 export const ObservedLocationsPageSettingsEnum = {

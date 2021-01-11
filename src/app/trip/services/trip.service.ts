@@ -333,14 +333,14 @@ export interface TripServiceLoadOptions extends EntityServiceLoadOptions {
   toEntity?: boolean;
 }
 
-export interface TripServiceSaveOptions {
+export interface TripSaveOptions {
   withLanding?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
   enableOptimisticResponse?: boolean; // True by default
 }
 
-export interface TripServiceCopyOptions extends TripServiceSaveOptions {
+export interface TripServiceCopyOptions extends TripSaveOptions {
   keepRemoteId?: boolean;
   deletedFromTrash?: boolean;
   displaySuccessToast?: boolean;
@@ -670,7 +670,7 @@ export class TripService
    * @param entities
    * @param opts
    */
-  async saveAll(entities: Trip[], opts?: TripServiceSaveOptions): Promise<Trip[]> {
+  async saveAll(entities: Trip[], opts?: TripSaveOptions): Promise<Trip[]> {
     if (isEmptyArray(entities)) return entities;
 
     if (this._debug) console.debug(`[trip-service] Saving ${entities.length} trips...`);
@@ -683,7 +683,7 @@ export class TripService
    * @param entity
    * @param opts
    */
-  async save(entity: Trip, opts?: TripServiceSaveOptions): Promise<Trip> {
+  async save(entity: Trip, opts?: TripSaveOptions): Promise<Trip> {
     const isNew = isNil(entity.id);
 
     // If is a local entity: force a local save
@@ -795,7 +795,7 @@ export class TripService
     return entity;
   }
 
-  async saveLocally(entity: Trip, opts?: TripServiceSaveOptions): Promise<Trip> {
+  async saveLocally(entity: Trip, opts?: TripSaveOptions): Promise<Trip> {
     if (entity.id >= 0) throw new Error('Must be a local entity');
     opts = {
       withLanding: false,
@@ -806,11 +806,8 @@ export class TripService
 
     this.fillDefaultProperties(entity);
 
-    // Reset the control date
-    entity.controlDate = undefined;
-    entity.validationDate = undefined;
-    entity.qualificationDate = undefined;
-    entity.qualityFlagId = undefined;
+    // Reset quality properties
+    this.resetQualityProperties(entity);
 
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity);
@@ -847,7 +844,7 @@ export class TripService
   }
 
 
-  async synchronize(entity: Trip, opts?: TripServiceSaveOptions): Promise<Trip> {
+  async synchronize(entity: Trip, opts?: TripSaveOptions): Promise<Trip> {
     opts = {
       withOperation: true, // Change default to true
       withLanding: false, // todo manage landedTrip
@@ -1362,7 +1359,7 @@ export class TripService
     await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
   }
 
-  protected copyIdAndUpdateDate(source: Trip | undefined, target: Trip, opts?: TripServiceSaveOptions) {
+  protected copyIdAndUpdateDate(source: Trip | undefined, target: Trip, opts?: TripSaveOptions) {
     if (!source) return;
 
     // Update (id and updateDate), and control validation

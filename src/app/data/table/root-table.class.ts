@@ -1,4 +1,4 @@
-import {Injector, OnDestroy, OnInit} from "@angular/core";
+import {Directive, Injector} from "@angular/core";
 import {
   AppTable,
   EntitiesTableDataSource,
@@ -24,16 +24,20 @@ import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {UserEventService} from "../../social/services/user-event.service";
 import * as moment from "moment";
 import {IDataSynchroService} from "../services/data-synchro-service.class";
+import {Account} from "../../core/services/model/account.model";
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: "filter"
 };
 
-export abstract class AppRootTable<T extends RootDataEntity<T>, F = any> extends AppTable<T, F> implements OnInit, OnDestroy {
+@Directive()
+export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
+  extends AppTable<T, F> {
 
-  protected accountService: AccountService;
-  protected network: NetworkService;
-  protected userEventService: UserEventService;
+  protected readonly network: NetworkService;
+  protected readonly userEventService: UserEventService;
+
+  readonly accountService: AccountService;
 
   canEdit: boolean;
   canDelete: boolean;
@@ -56,10 +60,6 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any> extends
 
   set synchronizationStatus(value: SynchronizationStatus) {
     this.setSynchronizationStatus(value);
-  }
-
-  get isLogin(): boolean {
-    return this.accountService.isLogin();
   }
 
   constructor(

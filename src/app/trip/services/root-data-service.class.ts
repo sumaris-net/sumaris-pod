@@ -1,14 +1,14 @@
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
-import {Injector} from "@angular/core";
+import {Directive, Injector} from "@angular/core";
 import {BaseEntityService, EntityUtils, isNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {IDataEntityQualityService} from "../../data/services/base.service";
+import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
 import {FormErrors} from "../../core/form/form.utils";
 import {DataRootEntityUtils, RootDataEntity} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 
-
+@Directive()
 export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
   extends BaseEntityService<T, F>
   implements IDataEntityQualityService<T> {
@@ -73,6 +73,13 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
         entity.recorderPerson = person;
       }
     }
+  }
+
+  protected resetQualityProperties(entity: T) {
+    entity.controlDate = undefined;
+    entity.validationDate = undefined;
+    entity.qualificationDate = undefined;
+    entity.qualityFlagId = undefined;
   }
 
   protected copyIdAndUpdateDate(source: T | undefined, target: T) {

@@ -1,6 +1,5 @@
 import {DataEntity} from "./model/data-entity.model";
 import {FormErrors} from "../../core/form/form.utils";
-import {ISynchroService} from "./root-synchro-service.class";
 
 export interface IDataEntityQualityService<T extends DataEntity<T>, O = any> {
 
@@ -14,7 +13,7 @@ export interface IDataEntityQualityService<T extends DataEntity<T>, O = any> {
 }
 
 const DataQualityServiceFnName: (keyof IDataEntityQualityService<any>)[] = ['control', 'terminate', 'validate', 'unvalidate', 'qualify', 'canUserWrite'];
-export function isDataQualityService(object: any): object is ISynchroService<any> {
+export function isDataQualityService(object: any): object is IDataEntityQualityService<any> {
   return object && DataQualityServiceFnName.filter(fnName => (typeof object[fnName] === 'function'))
     .length === DataQualityServiceFnName.length || false;
 }
