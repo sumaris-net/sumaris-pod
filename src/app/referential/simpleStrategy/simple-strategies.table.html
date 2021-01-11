@@ -113,7 +113,7 @@
       <span translate>PROGRAM.STRATEGY.COMMENT</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-icon color="primary" *ngIf="row.currentData.description" [title]="row.currentData.description">description</mat-icon>
+      <mat-icon color="primary" *ngIf="row.currentData.description.trim()" [title]="row.currentData.description">description</mat-icon>
     </mat-cell>
   </ng-container>
 

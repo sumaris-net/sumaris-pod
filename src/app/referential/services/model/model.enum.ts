@@ -8,7 +8,8 @@ export const LocationLevelIds = {
   AUCTION: 3,
 
   // At sea
-  ICES_RECTANGLE: 4
+  ICES_RECTANGLE: 4,
+  ICES_DIVISION: 111
 };
 
 export const GearLevelIds = {
