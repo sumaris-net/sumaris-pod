@@ -32,7 +32,7 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
-import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
+import {AppliedStrategy, TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 
 @Component({
   selector: 'app-landing2-form',
@@ -55,7 +55,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   referenceTaxon : ReferentialRef;
   fishingAreas : ReferentialRef[];
-  fishingAreaHelper: FormArrayHelper<ReferentialRef>;
+  fishingAreaHelper: FormArrayHelper<AppliedStrategy>;
+
+  appliedStrategies: AppliedStrategy[];
 
   @Input() showProgram = true;
   @Input() showSampleRowCode = true;
@@ -69,6 +71,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   @Input() showError = true;
   @Input() showButtons = true;
   @Input() locationLevelIds: number[];
+
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
@@ -113,7 +116,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   }
 
   get fishingAreasFormArray(): FormArray {
-    return this.form.controls.fishingAreas as FormArray;
+    return this.form.controls.appliedStrategies as FormArray;
   }
 
   taxonNameHelper: FormArrayHelper<TaxonNameStrategy>;
@@ -277,6 +280,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     });
 
     this.initTaxonNameHelper();
+    this.initAppliedStrategiesHelper();
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
@@ -307,50 +311,13 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   // }
 
   public setValue(value: Landing) {
-    // FIXME CLT MOck object for Imagine - 119
-    // value.program => initiaized
-    // value.location => initiaized
-    // value.observer => initiaized
-    // value.dateTime => initiaized
-
-    // samples = empty array
-    // let sample1 = new Sample();
-    // let taxon = new TaxonNameRef();
-    // taxon.__typename = "TaxonNameVO";
-    // taxon.label = "NEP";
-    // taxon.name = "Nephrops norvegicus";
-    // taxon.statusId=1;
-    // taxon.id=1043;
-    // taxon.referenceTaxonId=1043;
-    //
-    // let taxon2 = new TaxonNameRef();
-    // taxon2.__typename = "TaxonNameVO";
-    // taxon2.name = "Dipturus batis";
-    // taxon2.statusId=1;
-    // taxon2.id=17906;
-    // taxon2.referenceTaxonId=17906;
-    //
-    //
-    // sample1.taxonName = taxon;
-    // sample1.rankOrder=1;
-    // value.samples.push(sample1)
-    //
-    // value.comments = "Test PYC";
-    // value.rankOrder=1;
-    //
-    // value.measurementValues = value.measurementValues || {} ;
-    // MeasurementValuesUtils.normalizeValuesToForm(value.measurementValues as MeasurementModelValues, pmfms, {
-    //   // Keep extra pmfm values (not need to remove, when no validator used)
-    //   keepSourceObject: true,
-    //   onlyExistingPmfms: opts && opts.onlyExistingPmfms
-    // });
-
-
     if (!value) return;
 
     const taxonNames = value.samples.filter(sample => sample.taxonName);
 
     value.samples = value.samples.filter(sample => !sample.taxonName);
+
+
 
     // Send value for form
     super.setValue(value);
@@ -372,6 +339,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     const taxonNameControl = this.taxonNamesForm;
     taxonNameControl.patchValue(taxonNames);
+
+    this.fishingAreaHelper.resize(Math.max(1, this.appliedStrategies.length));
+    this.fishingAreasFormArray.patchValue(this.appliedStrategies);
 
 
   }
@@ -439,6 +409,21 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
     else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
+    }
+  }
+
+  // appliedStrategies Helper -----------------------------------------------------------------------------------------------
+  protected initAppliedStrategiesHelper() {
+    // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
+    this.fishingAreaHelper = new FormArrayHelper<AppliedStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
+      (appliedStrategy) => this.formBuilder.group({location: [appliedStrategy && appliedStrategy.location, Validators.compose([Validators.required])]}),
+      (s1, s2) => EntityUtils.equals(s1.location, s2.location, 'label'),
+      value => isNil(value) && isNil(value.location),
+    );
+    // Create at least one fishing Area
+    if (this.fishingAreaHelper.size() === 0) {
+      this.fishingAreaHelper.resize(1);
     }
   }
 

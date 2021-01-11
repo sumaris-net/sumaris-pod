@@ -1195,7 +1195,8 @@
         "LOAD_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
         "SAVE_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
-        "PARAMETERS.MATURITY": "Erreur saisie Age",
+        "PARAMETERS.MATURITY": "Les paramètres maturités sont indissociables du paramètre âge",
+        "PARAMETERS.SEX": "Le paramètre sexe est indissociable des paramètres de maturité",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}"
       },
       "CREATE_SAMPLING_PLAN": "Création d'une ligne de plan d'échantillonnage",
@@ -1215,7 +1216,7 @@
       "WEIGHT_TABLE": "Poids",
       "SIZE_TABLE": "Tailles",
       "MATURITY_TABLE": "Maturités",
-      "CALCIFIED_TYPE": "Types de pièces calcifiées : ",
+      "CALCIFIED_TYPE": "Types de pièces calcifiées",
       "SIZE_INCREMENT": "incrément de taille",
       "EFFORT": "Effort : ",
       "QUARTER_1": "Trimestre 1" ,
@@ -1228,7 +1229,8 @@
       "QUARTER_1_TABLE": "Efforts T1" ,
       "QUARTER_2_TABLE": "Efforts T2",
       "QUARTER_3_TABLE": "Efforts T3",
-      "QUARTER_4_TABLE": "Efforts T4"
+      "QUARTER_4_TABLE": "Efforts T4",
+      "ADD_LANDING": "Ajouter un débarquement"
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",
