@@ -154,6 +154,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     data.analyticReference = data.analyticReference && data.analyticReference.label ? data.analyticReference.label : data.analyticReference;
 
+    // FIXME : description is not nullable in database so we init it with an empty string if nothing provided in the
+    data.description = data.description || ' ';
+
     // get taxonName and delete useless attribute
     data.taxonNames[0].strategyId = data.taxonNames[0].strategyId || 30;
     delete data.taxonNames[0].taxonName.taxonGroupIds;

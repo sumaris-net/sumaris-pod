@@ -161,7 +161,8 @@
       "ENUMERATION": {
         "LOCATION_LEVEL_COUNTRY_ID": "Referential > Location level de lieu > Country",
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
-        "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction"
+        "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",
+        "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle"
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?"

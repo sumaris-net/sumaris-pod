@@ -161,7 +161,8 @@
       "ENUMERATION": {
         "LOCATION_LEVEL_COUNTRY_ID": "Référentiel > Niveau de lieu > Pays",
         "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
-        "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée"
+        "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
+        "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?"
