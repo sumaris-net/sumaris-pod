@@ -635,6 +635,17 @@
         "COMMENTS": "Comments",
         "BTN_AUTO_FILL": "Automatically fill"
       }
+    },
+    "SAMPLE2": {
+      "TABLE": {
+        "SAMPLE_CODE": "Sample code",
+        "MORSE_CODE": "Morse code",
+        "COMMENT" : "Comment",
+        "WEIGHT": "Weight. unit (g)",
+        "TOTAL_LENGTH_CM" : "Total length (TL). unit (cm)",
+        "TOTAL_LENGTH_MM" : "Total length (TL). unit (mm)",
+        "INDEX_GREASE_RATE": "Index grease rate"
+      }
     }
   },
   "SALE": {
@@ -682,6 +693,7 @@
     "LOCATION_AND_DATE": "Location / Date:",
     "TAB_GENERAL": "Details",
     "TAB_VESSELS": "Observed vessels",
+    "TAB_LANDING": "Landing",
     "OBSERVER_PLACEHOLDER": "Observer #",
     "OBSERVERS": "Observers:",
     "NEW": {
@@ -749,7 +761,11 @@
       "DATE_TIME": "Date/Time",
       "LOCATION": "Landing site",
       "OBSERVERS": "Observers",
-      "COMMENTS": "Comments"
+      "COMMENTS": "Comments",
+      "SAMPLING_PLAN_CODE": "Sampling plan",
+      "VESSEL_PORT_LOCATION": "Port",
+      "CREATION_DATE": "Creation date",
+      "RECORDER_PERSON" : "Recorder"
     },
     "SELECT_MODAL": {
       "TITLE": "Detail of observed vessels"
@@ -1150,7 +1166,8 @@
         "LOAD_STRATEGY_ERROR": "Error while loading stategy",
         "SAVE_STRATEGY_ERROR": "Error while saving stategy",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
-        "PARAMETERS.MATURITY": "Erreur saisie Age",
+        "PARAMETERS.MATURITY": "The maturity parameters are inseparable from the age parameter",
+        "PARAMETERS.SEX": "The sex parameter is inseparable from the maturity parameters",
         "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}"
       },
       "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
@@ -1170,7 +1187,7 @@
       "WEIGHT_TABLE": "Weights",
       "SIZE_TABLE": "Sizes",
       "MATURITY_TABLE": "Maturities",
-      "CALCIFIED_TYPE": "Type of calcified part : " ,
+      "CALCIFIED_TYPE": "Type of calcified part" ,
       "SIZE_INCREMENT": "Size increment",
       "EFFORT": "Effort : ",
       "QUARTER_1": "Quarter 1" ,
@@ -1183,7 +1200,8 @@
       "QUARTER_1_TABLE": "Efforts T1" ,
       "QUARTER_2_TABLE": "Efforts T2",
       "QUARTER_3_TABLE": "Efforts T3",
-      "QUARTER_4_TABLE": "Efforts T4"
+      "QUARTER_4_TABLE": "Efforts T4",
+      "ADD_LANDING": "Add landing"
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Error while loading program",

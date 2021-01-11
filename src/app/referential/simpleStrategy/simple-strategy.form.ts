@@ -117,13 +117,12 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   async setPmfmStrategies() {
     const pmfms = [];
 
-    // FIXME : Double sauvegarde obligatoire pour avoir les valeurs : Pourquoi ?
     await this.weightPmfmStrategiesTable.save();
     await this.sizePmfmStrategiesTable.save();
     await this.maturityPmfmStrategiesTable.save();
-    await this.weightPmfmStrategiesTable.save();
-    await this.sizePmfmStrategiesTable.save();
-    await this.maturityPmfmStrategiesTable.save();
+    // await this.weightPmfmStrategiesTable.save();
+    // await this.sizePmfmStrategiesTable.save();
+    // await this.maturityPmfmStrategiesTable.save();
 
     this.weightPmfmStrategiesTable.selection.clear();
     this.sizePmfmStrategiesTable.selection.clear();
@@ -150,9 +149,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-    this.weightPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
-    this.sizePmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
-    this.maturityPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.weightPmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.sizePmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
+    this.maturityPmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
     this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
     this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
     this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
@@ -456,6 +455,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       // Update the label, if year change
       if (year && oldYear && year !== oldYear) {
         labelControl.setValue(updatedLabel);
+      } else {
+        labelControl.setValue(label);
       }
     }
   }
@@ -490,7 +491,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
         allowEmptyArray: false,
         validators: [
           this.requiredPmfmMinLength(2),
-          this.requiredMaturityIfAge(),
           this.requiredSexIfMaturity()
         ]
       }
@@ -606,22 +606,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   requiredPmfmMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 2;
     return (array: FormArray): ValidationErrors | null => {
-      const values = array.value.flat().filter(pmfm => pmfm !== false);
+      const values = array.value.flat().filter(pmfm => pmfm && pmfm !== false);
       if (!values || values.length < minLength) {
         return { minLength: { minLength: minLength } };
-      }
-      return null;
-    };
-  }
-
-  requiredMaturityIfAge(): ValidatorFn {
-    return (array: FormArray): ValidationErrors | null => {
-      const age = array.value[1];
-      if (Array.isArray(array.value[4])) {
-        const maturity = (array.value[4] || []).filter(p => p.pmfm);
-        if (age && maturity && maturity.length <= 1) {
-          return { maturity: { maturity: false } };
-        }
       }
       return null;
     };
@@ -643,7 +630,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   requiredPeriodMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (array: FormArray): ValidationErrors | null => {
-      const values = array.value.flat().filter(period => period.acquisitionNumber && period.acquisitionNumber >= 0);
+      const values = array.value.flat().filter(period => period.acquisitionNumber !== undefined && period.acquisitionNumber >= 0);
       if (!values || values.length < minLength) {
         return { minLength: { minLength: minLength } };
       }

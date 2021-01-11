@@ -7,6 +7,7 @@ import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {LandedTripModule} from "./landed-trip.module";
+import {Landing2Page} from "./landing/landing2.page";
 
 const routes: Routes = [
   {
@@ -76,7 +77,22 @@ const routes: Routes = [
             runGuardsAndResolvers: 'pathParamsChange'
           }
         ]
-      }
+      },
+      {
+        path: 'landing2/:landing2Id',
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          pathIdParam: 'landing2Id'
+        },
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: Landing2Page,
+            runGuardsAndResolvers: 'pathParamsChange'
+          }
+        ]
+      },
     ]
   }
 ];

@@ -1,0 +1,236 @@
+<mat-toolbar>
+  <button mat-icon-button
+          hidden-xs hidden-sm hidden-mobile
+          *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate"
+          (click)="addRow()">
+    <mat-icon>add</mat-icon>
+  </button>
+  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled"
+          [title]="'COMMON.BTN_DELETE'|translate"
+          (click)="deleteSelection($event)">
+    <mat-icon>delete</mat-icon>
+  </button>
+
+  <!-- refresh (debug only) -->
+  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()"
+          [title]="'COMMON.BTN_REFRESH'|translate"
+          (click)="onRefresh.emit()">
+    <mat-icon>refresh</mat-icon>
+  </button>
+
+  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <span class="toolbar-spacer"></span>
+
+  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+</mat-toolbar>
+
+<!-- error -->
+<ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+  <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+  <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+</ion-item>
+
+<mat-table [dataSource]="dataSource" class="table-samples" matSort matSortActive="rankOrder" matSortDirection="asc"
+           matSortDisableClear [trackBy]="trackByFn">
+
+  <ng-container matColumnDef="select">
+    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                    [indeterminate]="selection.hasValue() && !isAllSelected()">
+      </mat-checkbox>
+    </mat-header-cell>
+    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
+                    [checked]="selection.isSelected(row)">
+      </mat-checkbox>
+    </mat-cell>
+  </ng-container>
+
+  <!-- rankOrder Column = id -->
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
+  </ng-container>
+
+
+
+  <!-- sample code  column -->
+<ng-container matColumnDef="sampleCode">
+  <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+    <span translate>TRIP.SAMPLE2.TABLE.SAMPLE_CODE</span>
+  </mat-header-cell>
+  <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+    <mat-form-field floatLabel="never">
+      <input matInput [formControl]="row.validator.controls.label"
+             [placeholder]="'TRIP.SAMPLE2.TABLE.SAMPLE_CODE'|translate"
+             [readonly]="!row.editing">
+    </mat-form-field>
+  </mat-cell>
+</ng-container>
+
+  <!-- Morse code column => Already in pmfm columns -->
+  <ng-container matColumnDef="morseCode">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>TRIP.SAMPLE2.TABLE.MORSE_CODE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.MORSE_CODE'|translate"
+               [readonly]="!row.editing">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
+
+
+  <!-- Comment column -->
+ <ng-container matColumnDef="comment">
+   <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+     <span translate>TRIP.SAMPLE2.TABLE.COMMENT</span>
+   </mat-header-cell>
+   <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+     <mat-form-field floatLabel="never">
+       <input matInput [formControl]="row.validator.controls.comments"
+              [placeholder]="'TRIP.SAMPLE2.TABLE.COMMENT'|translate"
+              [readonly]="!row.editing">
+     </mat-form-field>
+   </mat-cell>
+ </ng-container>
+
+
+
+ <!-- Set columns dynamically for Pmfms-->
+  <!-- Pmfms columns -->
+  <ng-container *ngFor="let pmfm of $pmfms | async">
+    <ng-container *ngIf="pmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
+        <ion-label>{{getPmfmColumnHeader(pmfm)}}
+          <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
+        </ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"
+                [class.mat-cell-computed]="pmfm.isComputed">
+        <app-pmfm-field
+          [readonly]="!row.editing"
+          [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
+          [compact]="true" floatLabel="never"></app-pmfm-field>
+      </mat-cell>
+    </ng-container>
+  </ng-container>
+
+
+ <!-- FIXME  to remove replace with dynamically pmfms -------------------------------------------------------------- -->
+
+  <!-- Weight  column
+  <ng-container matColumnDef="weight">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>TRIP.SAMPLE2.TABLE.WEIGHT</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.WEIGHT'|translate"
+               [readonly]="!row.editing">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container> -->
+
+
+  <!-- Total lenght CM column
+  <ng-container matColumnDef="totalLenghtCm">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_CM</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_CM'|translate"
+               [readonly]="!row.editing">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container> -->
+
+  <!-- Total lenght MM  column
+  <ng-container matColumnDef="totalLenghtMm">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_MM</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_MM'|translate"
+               [readonly]="!row.editing">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container> -->
+
+  <!-- Index grease rate column
+  <ng-container matColumnDef="indexGreaseRate">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>TRIP.SAMPLE2.TABLE.INDEX_GREASE_RATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="'TRIP.SAMPLE2.TABLE.INDEX_GREASE_RATE'|translate"
+               [readonly]="!row.editing">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container> -->
+
+  <!-- ------------------------------------------------------------------------------------------------------------- -->
+
+
+  <!-- Actions buttons column -->
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+      <!-- pending -->
+      <ion-spinner *ngIf="row.validator.pending" name="dots"
+                   [ngClass]="{'center':true}"></ion-spinner>
+
+      <!-- undo or delete  -->
+      <button mat-icon-button color="light" *ngIf="row.validator.invalid"
+              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+              (click)="cancelOrDelete($event, row)">
+        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+      </button>
+      <!-- validate -->
+      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+              [title]="'COMMON.BTN_VALIDATE'|translate"
+              (click)="confirmEditCreate($event, row)">
+        <mat-icon>check</mat-icon>
+      </button>
+      <!-- add -->
+      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
+              [title]="'COMMON.BTN_ADD'|translate"
+              (click)="confirmAndAddRow($event, row)">
+        <mat-icon>add</mat-icon>
+      </button>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+
+  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
+           [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing"
+           (click)="clickRow($event, row)"></mat-row>
+</mat-table>
+
+
+<ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="enabled && showFabButton"
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

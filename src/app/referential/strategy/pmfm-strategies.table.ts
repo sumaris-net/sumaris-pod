@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {TableElement} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
@@ -156,6 +156,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     );
   }
 
+  @Output() simpleStrategyDeleteRow = new EventEmitter<TableElement<PmfmStrategy>[]>();
+
   constructor(
     protected injector: Injector,
     protected validatorService: PmfmStrategyValidatorService,
@@ -241,7 +243,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
     this.loadPmfms();
 
-    this.validatorService.isSimpleStrategy = this.canDisplaySimpleStrategyValidators;
+    this.validatorService.isSimpleStrategy = !this.canDisplayColumnsHeaders;
 
     // Acquisition level
     this.registerFormField('acquisitionLevel', {
@@ -593,6 +595,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     else {
       this.fieldDefinitions.push(definition);
     }
+    console.log("fieldDefinitions", this.fieldDefinitions);
   }
 
 
@@ -767,5 +770,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       return t.find(pmfm => pmfm.method?.id === id) ? t.find(pmfm => pmfm.method?.id === id).method.name : "";
     }
     return "";
+  }
+
+
+  async simpleStrategyDeleteSelection(event: UIEvent) {
+    await super.deleteSelection(event);
+    await this.save();
+    this.simpleStrategyDeleteRow.next();
+
   }
 }

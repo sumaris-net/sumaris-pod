@@ -12,6 +12,7 @@ import {filter, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {Pmfm} from "../../referential/services/model/pmfm.model";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
