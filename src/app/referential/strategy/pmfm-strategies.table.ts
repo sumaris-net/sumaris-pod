@@ -595,7 +595,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     else {
       this.fieldDefinitions.push(definition);
     }
-    console.log("fieldDefinitions", this.fieldDefinitions);
   }
 
 
