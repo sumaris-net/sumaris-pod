@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild, OnDestroy, ComponentFactoryResolver} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Injector,
+  OnInit,
+  ViewChild,
+  OnDestroy,
+  ComponentFactoryResolver,
+  EventEmitter, Output
+} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
@@ -105,6 +114,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // register on strategies tables actions
     this.registerSubscription(this.simpleStrategiesTable.onOpenRow
       .subscribe(row => this.onOpenSimpleStrategy(row)));
+    this.registerSubscription(this.simpleStrategiesTable.onRefresh
+      .subscribe(row => this.onRefreshSimpleStrategy(row)));
+
     this.registerSubscription(this.simpleStrategiesTable.onNewRow
       .subscribe((event) => this.addSimpleStrategy(event)));
     this.registerSubscription(this.strategiesTable.onStartEditingRow
@@ -265,6 +277,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
         this.loading = false;
       }
     }
+  }
+
+  async onRefreshSimpleStrategy(row: TableElement<Strategy>){
+   await this.reload();
   }
 
   async  addSimpleStrategy(event?: any) {
