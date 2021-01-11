@@ -193,20 +193,6 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "${server.url}/download/android/sumaris-app-latest.apk",
             String.class,
             false),
-
-    ANALYTIC_REFERENCES_SERVICE_URL(
-            "analyticReferences.service.url",
-            n("sumaris.config.option.analyticReferences.service.url.description"),
-            "http://vsap7-dgw.ifremer.fr:8001/sap/opu/odata/sap/ZUI5_WS_EOTP_SRV/EotpSet/?$format=json",
-            String.class,
-            false),
-
-    ANALYTIC_REFERENCES_SERVICE_AUTH(
-            "analyticReferences.service.auth",
-            n("sumaris.config.option.analyticReferences.service.auth.description"),
-            "ws_eotp:eotp-sap-20201022",
-            String.class,
-            false),
     ;
 
     /** Configuration key. */

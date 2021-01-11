@@ -27,53 +27,87 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
+import org.nuiton.util.DateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Repository("referentialExternalDao")
-public class ReferentialExternalDaoImpl extends HibernateDaoSupport implements ReferentialExternalDao {
+public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
+
+    private static final Logger log = LoggerFactory.getLogger(ReferentialExternalDaoImpl.class);
+
+    @Autowired
+    private SumarisConfiguration config;
+
+    private List<ReferentialVO> analyticReferences;
+    private Date analyticReferencesUpdateDate = new Date(0L);
+
+    public ReferentialExternalDaoImpl() {
+    }
+
+    public ReferentialExternalDaoImpl(SumarisConfiguration config) {
+        this.config = config;
+    }
+
+    @PostConstruct
+    private void init() {
+        loadAnalyticReferences();
+    }
 
     @Override
     @Cacheable(cacheNames = CacheNames.ANALYTIC_REFERENCES_BY_FILTER)
-    public List<ReferentialVO> findAnalyticReferencesByFilter(String urlStr,
-                                            String authStr,
-                                            ReferentialFilterVO filter,
+    public List<ReferentialVO> findAnalyticReferencesByFilter(ReferentialFilterVO filter,
                                             int offset,
                                             int size,
                                             String sortAttribute,
                                             SortDirection sortDirection) {
+        loadAnalyticReferences();
 
-        BufferedReader content = requestAnalyticReferenceService(urlStr, authStr);
-        List<ReferentialVO> results = parseAnalyticReferencesToVO(content);
-
-        return results.stream()
+        return analyticReferences.stream()
                 .filter(getAnalyticReferencesPredicate(filter))
                 .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
                 .skip(offset)
-                .limit((size < 0) ? results.size() : size)
+                .limit((size < 0) ? analyticReferences.size() : size)
                 .collect(Collectors.toList()
                 );
+    }
+
+    public void loadAnalyticReferences() {
+        Date updateDate = new Date();
+        int delta = DateUtil.getDifferenceInDays(analyticReferencesUpdateDate, updateDate);
+        int delay = config.getAnalyticReferencesServiceDelay();
+        String urlStr = config.getAnalyticReferencesServiceUrl();
+        String authStr = config.getAnalyticReferencesServiceAuth();
+
+        // load analyticReferences if not loaded or too old
+        if (urlStr != null && (delta > delay || analyticReferences == null)) {
+            log.info(String.format("Loading analytic references from {%s}", urlStr));
+            BufferedReader content = requestAnalyticReferenceService(urlStr, authStr);
+            analyticReferences = parseAnalyticReferencesToVO(content);
+            analyticReferencesUpdateDate = updateDate;
+        }
     }
 
     private BufferedReader requestAnalyticReferenceService(String urlStr, String authStr) {

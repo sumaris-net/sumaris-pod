@@ -95,14 +95,4 @@ public class ReferentialSuggestGraphQLService {
                 field == null ? PmfmStrategy.Fields.PMFM : field);
     }
 
-    @GraphQLQuery(name = "suggestedStrategyNextLabel", description = "Get next label for strategy")
-    public String findSuggestedNextLabelFromStrategy(
-            @GraphQLArgument(name = "programId") int programId,
-            @GraphQLArgument(name = "labelPrefix", defaultValue = "") String labelPrefix,
-            @GraphQLArgument(name = "nbDigit", defaultValue = "0") Integer nbDigit) {
-        return referentialSuggestService.findNextLabelFromStrategy(programId,
-                labelPrefix == null ? "" : labelPrefix,
-                nbDigit == null ? 0 : nbDigit);
-    }
-
 }

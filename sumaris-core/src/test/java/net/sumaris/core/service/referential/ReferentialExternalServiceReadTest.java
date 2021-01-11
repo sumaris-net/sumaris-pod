@@ -47,21 +47,16 @@ public class ReferentialExternalServiceReadTest extends AbstractServiceTest{
     @Test
     @Ignore("Use only Ifremer webservice")
     public void findByFilter() {
-        String url = "http://vsap7-dgw.ifremer.fr:8001/sap/opu/odata/sap/ZUI5_WS_EOTP_SRV/EotpSet/?$format=json";
-        String auth = "ws_eotp:eotp-sap-20201022";
-        //String url = config.getAnalyticReferencesServiceUrl();
-        //String auth = config.getAnalyticReferencesServiceAuth();
-
         ReferentialFilterVO filter = ReferentialFilterVO.builder()
                 .levelIds(new Integer[]{5,6})
                 .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
                 .build();
 
-        List<ReferentialVO> results = service.findAnalyticReferencesByFilter(url, auth, filter, 0, 100);
+        List<ReferentialVO> results = service.findAnalyticReferencesByFilter(filter, 0, 100);
         Assert.assertTrue(CollectionUtils.isNotEmpty(results));
 
         filter.setLevelIds(new Integer[]{-999});
-        results = service.findAnalyticReferencesByFilter(url, auth, filter, 0, 100);
+        results = service.findAnalyticReferencesByFilter(filter, 0, 100);
         Assert.assertTrue(CollectionUtils.isEmpty(results));
     }
 

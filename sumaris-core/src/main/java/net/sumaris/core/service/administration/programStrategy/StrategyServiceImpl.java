@@ -142,6 +142,11 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
+	public String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
+		return strategyRepository.findNextLabelByProgramId(programId, labelPrefix, nbDigit);
+	}
+
+	@Override
 	public StrategyVO save(StrategyVO source) {
 		StrategyVO result = strategyRepository.save(source);
 

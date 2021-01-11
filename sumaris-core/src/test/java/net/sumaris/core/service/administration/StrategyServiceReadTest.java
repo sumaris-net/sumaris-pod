@@ -112,4 +112,13 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
 
     }
 
+    @Test
+    public void findNextLabelByProgramId() {
+        String label = service.findNextLabelByProgramId(40, "BIO", 0);
+        Assert.assertEquals("BIO1", label);
+
+        label = service.findNextLabelByProgramId(40, "2020-BIO-", 4);
+        Assert.assertEquals("2020-BIO-0003", label);
+    }
+
 }

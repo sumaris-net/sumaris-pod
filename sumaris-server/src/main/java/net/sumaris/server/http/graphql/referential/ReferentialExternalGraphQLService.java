@@ -28,7 +28,6 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.referential.ReferentialExternalService;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.server.config.SumarisServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,9 +41,6 @@ public class ReferentialExternalGraphQLService {
     @Autowired
     private ReferentialExternalService referentialExternalService;
 
-    @Autowired
-    private SumarisServerConfiguration config;
-
     /* -- Referential queries -- */
 
     @GraphQLQuery(name = "analyticReferences", description = "Search in analytic references")
@@ -57,8 +53,6 @@ public class ReferentialExternalGraphQLService {
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         return referentialExternalService.findAnalyticReferencesByFilter(
-                config.getAnalyticReferencesServiceUrl(),
-                config.getAnalyticReferencesServiceAuth(),
                 filter != null ? filter : new ReferentialFilterVO(),
                 offset == null ? 0 : offset,
                 size == null ? 1000 : size,
@@ -70,8 +64,6 @@ public class ReferentialExternalGraphQLService {
     @Transactional(readOnly = true)
     public Long getAnalyticReferencesCount(@GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
         return referentialExternalService.countAnalyticReferencesByFilter(
-                config.getAnalyticReferencesServiceUrl(),
-                config.getAnalyticReferencesServiceAuth(),
                 filter != null ? filter : new ReferentialFilterVO()
         );
     }

@@ -268,24 +268,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.ACTIVEMQ_ENABLE.getKey());
     }
 
-    /**
-     * <p>find the analytic references service URL.</p>
-     *
-     * @return a {@link String}
-     */
-    public String getAnalyticReferencesServiceUrl() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.ANALYTIC_REFERENCES_SERVICE_URL.getKey());
-    }
-
-    /**
-     * <p>find the analytic references service authorization key (format "user:pass").</p>
-     *
-     * @return a {@link String}
-     */
-    public String getAnalyticReferencesServiceAuth() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.ANALYTIC_REFERENCES_SERVICE_AUTH.getKey());
-    }
-
     /* -- Internal methods -- */
 
     /**
