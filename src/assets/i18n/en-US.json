@@ -640,11 +640,7 @@
       "TABLE": {
         "SAMPLE_CODE": "Sample code",
         "MORSE_CODE": "Morse code",
-        "COMMENT" : "Comment",
-        "WEIGHT": "Weight. unit (g)",
-        "TOTAL_LENGTH_CM" : "Total length (TL). unit (cm)",
-        "TOTAL_LENGTH_MM" : "Total length (TL). unit (mm)",
-        "INDEX_GREASE_RATE": "Index grease rate"
+        "COMMENT" : "Comment"
       }
     }
   },
