@@ -485,6 +485,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_COUNTRY_ID);
     LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_PORT_ID);
     LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.ICES_RECTANGLE = config.getProperty(ConfigOptions.LOCATION_LEVEL_ICES_RECTANGLE_ID);
 
     // Taxon group
     // TODO: add all enumerations
