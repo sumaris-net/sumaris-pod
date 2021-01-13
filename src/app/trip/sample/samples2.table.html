@@ -57,7 +57,7 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
   </ng-container>
 
 
@@ -125,68 +125,6 @@
       </mat-cell>
     </ng-container>
   </ng-container>
-
-
- <!-- FIXME  to remove replace with dynamically pmfms -------------------------------------------------------------- -->
-
-  <!-- Weight  column
-  <ng-container matColumnDef="weight">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>TRIP.SAMPLE2.TABLE.WEIGHT</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="'TRIP.SAMPLE2.TABLE.WEIGHT'|translate"
-               [readonly]="!row.editing">
-      </mat-form-field>
-    </mat-cell>
-  </ng-container> -->
-
-
-  <!-- Total lenght CM column
-  <ng-container matColumnDef="totalLenghtCm">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_CM</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="'TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_CM'|translate"
-               [readonly]="!row.editing">
-      </mat-form-field>
-    </mat-cell>
-  </ng-container> -->
-
-  <!-- Total lenght MM  column
-  <ng-container matColumnDef="totalLenghtMm">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_MM</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="'TRIP.SAMPLE2.TABLE.TOTAL_LENGTH_MM'|translate"
-               [readonly]="!row.editing">
-      </mat-form-field>
-    </mat-cell>
-  </ng-container> -->
-
-  <!-- Index grease rate column
-  <ng-container matColumnDef="indexGreaseRate">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>TRIP.SAMPLE2.TABLE.INDEX_GREASE_RATE</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="'TRIP.SAMPLE2.TABLE.INDEX_GREASE_RATE'|translate"
-               [readonly]="!row.editing">
-      </mat-form-field>
-    </mat-cell>
-  </ng-container> -->
-
-  <!-- ------------------------------------------------------------------------------------------------------------- -->
 
 
   <!-- Actions buttons column -->

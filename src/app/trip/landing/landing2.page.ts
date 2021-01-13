@@ -215,7 +215,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     if (this.samples2Table.dirty) {
       await this.samples2Table.save();
     }
-    data.samples = data.samples.concat(this.samples2Table.value);
+    //data.samples = data.samples.concat(this.samples2Table.value);
+    data.samples =this.samples2Table.value;
     data.samples.map(s => s.rankOrder = 1);
 
     return data;
@@ -228,6 +229,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       // FIXME CLT Program subscriber throw invalid pmfms => /!\ program not set
       //this.programSubject.next(data.program.label);
     }
+
+    this.samples2Table.value = data.samples || [];
 
     const measurementValues = Object.entries(data.measurementValues).map(([key, value]) => {
       return {
@@ -247,7 +250,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.landing2Form.program = data.program.label;
     this.landing2Form.value = data;
     // this.landing2Form.strategyLabel = strategyLabel;
-    this.samples2Table.value = data.samples || [];
+    //this.samples2Table.value = data.samples || [];
 
     let pmfmStrategy =  await this.strategyService.loadByLabel( strategyLabel, { expandedPmfmStrategy : true});
     let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);

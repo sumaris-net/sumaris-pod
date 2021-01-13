@@ -48,7 +48,11 @@ export const PmfmIds = {
   SAMPLE_MEASURED_WEIGHT: 140,
   OUT_OF_SIZE: 142,
   OUT_OF_SIZE_PCT: 143,
-  VIVACITY: 144
+  VIVACITY: 144,
+
+  /* PARAMBIO pmfms */
+  MORSE_CODE: 358,
+  SAMPLE_ROW_CODE: 359,
 };
 
 export const QualitativeLabels = {
