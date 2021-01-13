@@ -287,6 +287,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         })) || [];
+      pmfms = pmfms.filter(pmfm => pmfm.pmfmId);
 
       if (!pmfms.length && this.debug) {
         console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
