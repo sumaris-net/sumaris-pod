@@ -137,6 +137,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       let sampleRowCodeFound = false;
 
       if (this.landing2Form.value.measurementValues) {
+        // update mode
         const measurementValues = Object.entries(this.landing2Form.value.measurementValues).map(([key, value]) => {
           return {
             key,
@@ -155,6 +156,15 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         });
         Object.assign(this.landing2Form.value.measurementValues, newMeasurementValues);
     }
+      else if (sampleRowCode)
+      {
+        // Create mode
+        let target = {}
+        target["359"] = sampleRowCode.label;
+        this.landing2Form.value.measurementValues=target;
+        sampleRowCodeFound = true;
+        this.landing2Form.value.measurementValues=target;
+      }
     if (!sampleRowCodeFound)
     {
       this.landing2Form.appliedStrategies = [];
