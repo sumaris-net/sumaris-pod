@@ -22,6 +22,8 @@ import {firstNotNilPromise} from "../../shared/observables";
 import {filter} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
+import {Landings2Table} from "../landing/landings2.table";
+import {Program} from "../../referential/services/model/program.model";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -39,6 +41,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
 
   @ViewChild('landingsTable') landingsTable: LandingsTable;
+
+  @ViewChild('landings2Table') landings2Table:Landings2Table;
 
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
@@ -75,13 +79,24 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // Configure using program properties
     this.onProgramChanged
-      .subscribe(program => {
+      .subscribe(program1 => {
+        // FIXME CLT bug in PROGRAM providing from PARAM-BIO program
+        let program = program1;
+        if (program == undefined)
+        {
+          program = new Program();
+          program.id = 40;
+          program.label = "PARAM-BIO";
+          program.name = "PARAM-BIO";
+          this.$childLoaded.next(true);
+        }
         if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
         this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
         this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
         this.cd.detectChanges();
+
 
         if (this.landingsTable) {
           this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
@@ -108,6 +123,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.addChildForms([
       this.observedLocationForm,
       () => this.landingsTable,
+      () => this.landings2Table,
       () => this.aggregatedLandingsTable
     ]);
   }
@@ -140,6 +156,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     await this.ready();
     this.updateViewState(data);
 
+    // Propagate parent to landings2 table
+    if (this.landings2Table && data) {
+      if (this.debug) console.debug("[observed-location] Propagate observed location to landings2 table");
+      this.landings2Table.setParent(data);
+    }
     // Propagate parent to landings table
     if (this.landingsTable && data) {
       if (this.debug) console.debug("[observed-location] Propagate observed location to landings table");
@@ -165,6 +186,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async getJsonValueToSave(): Promise<any> {
     const json = await super.getJsonValueToSave();
 
+    if (this.landings2Table && this.landings2Table.dirty) {
+      await this.landings2Table.save();
+    }
     if (this.landingsTable && this.landingsTable.dirty) {
       await this.landingsTable.save();
     }
@@ -191,7 +215,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected getFirstInvalidTabIndex(): number {
     return this.observedLocationForm.invalid ? 0
-      : ((this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1
+      : ((this.landingsTable && this.landingsTable.invalid) || (this.landings2Table && this.landings2Table.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1
         : -1);
   }
 
@@ -199,6 +223,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${id}`);
+    }
+  }
+  async onOpenLanding2({id, row}) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+        await this.router.navigateByUrl(`/observations/${this.data.id}/landing2/${id}`);
     }
   }
 
@@ -225,6 +255,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.loading = false;
         this.markForCheck();
       }
+    }
+  }
+
+  async onNewLanding2(event?: any) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      await this.router.navigateByUrl(`/observations/${this.data.id}/landing2/new`);
     }
   }
 

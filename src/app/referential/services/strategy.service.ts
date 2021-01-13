@@ -1,15 +1,23 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {LoadResult, EntitiesService, EntityService, isNil, isNotNil, isNotEmptyArray} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, Referential, ReferentialRef} from "../../core/core.module";
+import {
+  LoadResult,
+  EntitiesService,
+  EntityService,
+  isNil,
+  isNotNil,
+  isNotEmptyArray,
+  isNilOrBlank, SuggestService
+} from "../../shared/shared.module";
+import {BaseEntityService, EntityUtils, Person, Referential, ReferentialRef, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 
 import {GraphqlService} from "../../core/services/graphql.service";
 import {SortDirection} from "@angular/material/sort";
 import {Strategy} from './model/strategy.model';
 import {StrategyFilter} from '../strategy/strategies.table';
-import {EntitiesServiceWatchOptions, EntityServiceLoadOptions} from 'src/app/shared/services/entity-service.class';
+import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, SuggestFn} from 'src/app/shared/services/entity-service.class';
 import {FetchPolicy} from 'apollo-client';
 import {NetworkService} from 'src/app/core/services/network.service';
 import {AccountService} from 'src/app/core/services/account.service';
@@ -35,6 +43,7 @@ import {
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS
 } from "../../core/services/model/referential.model";
+import {PersonFilter} from "../../admin/services/person.service";
 
 export declare interface StrategySaveOptions {
   programId?: number
@@ -82,18 +91,18 @@ export const StrategyFragments = {
     }
   `,
   lightStrategy: gql`
-  fragment LightStrategyFragment on StrategyVO {
-    id
-    label
-    name
-    description
-    comments
-    analyticReference
-    updateDate
-    creationDate
-    statusId
-    programId
-  }
+    fragment LightStrategyFragment on StrategyVO {
+      id
+      label
+      name
+      description
+      comments
+      analyticReference
+      updateDate
+      creationDate
+      statusId
+      programId
+    }
   `,
   strategy: gql`
     fragment StrategyFragment on StrategyVO {
@@ -189,27 +198,45 @@ export const StrategyFragments = {
         ...FullPmfmFragment
       }
       parameterId
+      parameter {
+        ...ReferentialFragment
+      }
       matrixId
+      matrix {
+        ...ReferentialFragment
+      }
       fractionId
+      fraction {
+        ...ReferentialFragment
+      }
       methodId
+      method {
+        ...ReferentialFragment
+      }
       gearIds
       taxonGroupIds
       referenceTaxonIds
       strategyId
+      unitLabel
+      type
+      label
+      name
+      maximumNumberDecimals
+      signifFiguresNumber
       __typename
-  }`,
+    }`,
   taxonGroupStrategy: gql`
     fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
       strategyId
       priorityLevel
       taxonGroup {
-          id
-          label
-          name
-          entityName
-          taxonNames {
-              ...TaxonNameFragment
-          }
+        id
+        label
+        name
+        entityName
+        taxonNames {
+          ...TaxonNameFragment
+        }
       }
       __typename
     }
@@ -219,7 +246,7 @@ export const StrategyFragments = {
       strategyId
       priorityLevel
       taxonName {
-          ...TaxonNameFragment
+        ...TaxonNameFragment
       }
       __typename
     }
@@ -229,8 +256,8 @@ export const StrategyFragments = {
 
 
 const FindStrategyNextLabel: any = gql`
-  query SuggestedStrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
-    suggestedStrategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
+  query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
+    strategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
   }
 `;
 
@@ -262,14 +289,33 @@ const LoadQuery: any = gql`
   ${ReferentialFragments.taxonName}
   ${ReferentialFragments.fullReferential}
 `;
+const LoadQueryWithExpandedPmfmStrategy: any = gql`
+  query Strategy($label: String!, $expandedPmfmStrategy : Boolean!) {
+    strategy(label: $label, expandedPmfmStrategy : $expandedPmfmStrategy) {
+      ...StrategyFragment
+    }
+  }
+  ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.fullPmfm}
+  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.taxonName}
+  ${ReferentialFragments.fullReferential}
+`;
 
 const LoadAllQuery: any = gql`
-query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
-  strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-    ...LightStrategyFragment
+  query Strategies($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: StrategyFilterVOInput){
+    strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightStrategyFragment
+    }
   }
-}
-${StrategyFragments.lightStrategy}
+  ${StrategyFragments.lightStrategy}
 `;
 
 const LoadAllWithTotalQuery: any = gql`
@@ -283,11 +329,11 @@ const LoadAllWithTotalQuery: any = gql`
 `;
 
 const SaveStrategy: any = gql`
-    mutation SaveStrategy($strategy:StrategyVOInput){
-      saveStrategy(strategy: $strategy){
-        ...StrategyFragment
-      }
+  mutation SaveStrategy($strategy:StrategyVOInput){
+    saveStrategy(strategy: $strategy){
+      ...StrategyFragment
     }
+  }
   ${StrategyFragments.strategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
@@ -322,13 +368,13 @@ const LoadAllStrategies: any = gql`
 `;
 
 const DeleteStrategies: any = gql`
-    mutation deleteStrategies($ids:[Int]){
-      deleteStrategies(ids: $ids)
-    }
-  `;
+  mutation deleteStrategies($ids:[Int]){
+    deleteStrategies(ids: $ids)
+  }
+`;
 
 @Injectable({providedIn: 'root'})
-export class StrategyService extends BaseEntityService implements EntitiesService<Strategy, StrategyFilter>, EntityService<Strategy> {
+export class StrategyService extends BaseEntityService implements EntitiesService<Strategy, StrategyFilter>, EntityService<Strategy>, SuggestService<Strategy, StrategyFilter> {
 
   loading = false;
 
@@ -379,6 +425,46 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     }
   }
 
+
+  /**
+   *
+   * @param label
+   * @param options : expandedPmfmStrategy
+   */
+
+  async loadByLabel(label: string, options?: EntityServiceLoadOptions): Promise<Strategy | null> {
+    if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[strategy-service] Loading strategy #${label}...`);
+    this.loading = true;
+
+    try {
+      let json: any;
+
+      // Load from pod
+        const res = await this.graphql.query<{ strategy: Strategy }>({
+          query: LoadQueryWithExpandedPmfmStrategy,
+          variables: {
+            label: label,
+            expandedPmfmStrategy: true
+          },
+
+          error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "STRATEGY.ERROR.LOAD_STRATEGY_ERROR"},
+          fetchPolicy: options && options.fetchPolicy || undefined,
+
+        });
+        json = res && res.strategy;
+
+
+      // Transform to entity
+      const data = Strategy.fromObject(json);
+      if (data && this._debug) console.debug(`[strategy-service] Strategy #${label} loaded in ${Date.now() - now}ms`, data);
+      return data;
+    } finally {
+      this.loading = false;
+    }
+  }
 
   /**
    * Save an strategy
@@ -552,7 +638,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
   async findStrategyNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next label...`);
 
-    const res = await this.graphql.query<{ suggestedStrategyNextLabel: string }>({
+    const res = await this.graphql.query<{ strategyNextLabel: string }>({
       query: FindStrategyNextLabel,
       variables: {
         programId: programId,
@@ -562,7 +648,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"},
       fetchPolicy: 'network-only'
     });
-    return res && res.suggestedStrategyNextLabel;
+    return res && res.strategyNextLabel;
   }
 
   async LoadAllAnalyticReferences(
@@ -639,5 +725,17 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
         targetPmfmStrategy.id = savedPmfmStrategy.id;
       });
     }
+  }
+
+  async suggest(value: any, filter?: StrategyFilter): Promise<Strategy[]> {
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
+    value = (typeof value === "string" && value !== '*') && value || undefined;
+    const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
+      {
+        ...filter,
+        searchText: value as string
+      }
+    );
+    return res.data;
   }
 }
