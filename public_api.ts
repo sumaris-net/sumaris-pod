@@ -8,6 +8,7 @@ export * from './src/app/shared/shared-routing.module';
 
 // Shared material
 export * from './src/app/shared/material/material.module';
+export {MatBooleanField} from './src/app/shared/material/boolean/material.boolean';
 export * from './src/app/shared/material/material.animations';
 export * from './src/app/shared/material/paginator/material.paginator-i18n';
 export * from './src/app/shared/material/numpad/numpad.module';
