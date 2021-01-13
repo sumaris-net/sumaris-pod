@@ -83,6 +83,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.form = validatorService.getFormGroup();
 
     // default values
+    this.defaultBackHref = "/referential/list?entity=Program";
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -211,12 +212,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // Finish edition of simple strategies
     if(this.simpleStrategiesOption){
-    if (this.simpleStrategiesTable.dirty) {
-      if (this.simpleStrategiesTable.editedRow) {
-        await this.onConfirmEditCreateStrategy(this.simpleStrategiesTable.editedRow);
+      if (this.simpleStrategiesTable.dirty) {
+        if (this.simpleStrategiesTable.editedRow) {
+          await this.onConfirmEditCreateStrategy(this.simpleStrategiesTable.editedRow);
+        }
+        await this.simpleStrategiesTable.save();
       }
-      await this.simpleStrategiesTable.save();
-    }
     data.strategies = this.simpleStrategiesTable.value;
   }
 
