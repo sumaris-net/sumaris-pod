@@ -47,7 +47,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
     };
     if (this.isSimpleStrategy) {
       // FIXME CLT  check validators
-      controlsConfig.pmfm = [data && data.pmfm || null, Validators.compose([Validators.required, SharedValidators.entity])];
+      controlsConfig.pmfm = [data && data.pmfm || null, SharedValidators.entity];
       controlsConfig.parameter = [data && data.pmfm.parameter || null];
       controlsConfig.matrix = [data && data.pmfm.matrix || null];
       controlsConfig.fraction = [data && data.pmfm.fraction || null];
@@ -82,6 +82,18 @@ export class PmfmStrategyValidatorService implements ValidatorService {
   }
 
   getFormGroupOptions(data?: PmfmStrategy, opts?: any): AbstractControlOptions | any {
+    if (this.isSimpleStrategy) {
+      return {
+        validator: (fg: FormGroup) => {
+          const pmfm = fg.get('pmfm').value;
+          const parameter = fg.get('parameterId').value;
+          if (pmfm || parameter) {
+            return null;
+          }
+          return {pmfmOrParameterId: false};
+        }
+      };
+    }
     return {};
   }
 }
