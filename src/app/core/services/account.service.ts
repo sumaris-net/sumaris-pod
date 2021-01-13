@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {base58, CryptoService, KeyPair} from "./crypto.service";
 import {Department} from "./model/department.model";
 import {Account} from "./model/account.model";
-import {Person, PersonUtils, UserProfileLabel} from "./model/person.model";
+import {Person, PersonUtils, UserProfileLabel, UserProfileLabels} from "./model/person.model";
 import {UsageMode, UserSettings} from "./model/settings.model";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import gql from "graphql-tag";
@@ -306,13 +306,14 @@ export class AccountService extends BaseEntityService {
     return !!(this.data.pubkey && this.data.keypair && this.data.keypair.secretKey);
   }
 
-  public hasMinProfile(label: UserProfileLabel): boolean {
+  public hasMinProfile(label: string): boolean {
     // should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
       (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY)) {
       return false;
     }
-    return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, label);
+    const userProfile = Object.keys(UserProfileLabels).find(key => key === label) as UserProfileLabel;
+    return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, userProfile);
   }
 
   public hasExactProfile(label: UserProfileLabel): boolean {
@@ -320,25 +321,27 @@ export class AccountService extends BaseEntityService {
     if (!this.data.account || !this.data.account.pubkey ||
       (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
       return false;
-    return !!this.data.account.profiles.find(profile => profile === label);
+    const enumValue = UserProfileLabels[label];
+    return !!this.data.account.profiles.find(profile => profile === enumValue);
   }
 
-  public hasProfileAndIsEnable(label: UserProfileLabel): boolean {
+  public hasProfileAndIsEnable(label: string): boolean {
     // should be login, and status ENABLE
     if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId != StatusIds.ENABLE) return false;
-    return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, label);
+    const userProfile = Object.keys(UserProfileLabels).find(key => UserProfileLabels[key] == label) as UserProfileLabel;
+    return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, userProfile);
   }
 
   public isAdmin(): boolean {
-    return this.hasProfileAndIsEnable('ADMIN');
+    return this.hasProfileAndIsEnable(UserProfileLabels.ADMIN);
   }
 
   public isSupervisor(): boolean {
-    return this.hasProfileAndIsEnable('SUPERVISOR');
+    return this.hasProfileAndIsEnable(UserProfileLabels.SUPERVISOR);
   }
 
   public isUser(): boolean {
-    return this.hasProfileAndIsEnable('USER');
+    return this.hasProfileAndIsEnable(UserProfileLabels.USER);
   }
 
   /**
