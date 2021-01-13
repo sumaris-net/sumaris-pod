@@ -276,6 +276,13 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     data.samples =this.samples2Table.value;
     data.samples.map(s => s.rankOrder = 1);
 
+    // set TaxonName to sample
+    const taxonName = this.landing2Form.taxonNamesForm.value[0].taxonName;
+    if(data.samples){
+      data.samples[0].taxonName = taxonName;
+    }
+
+
     return data;
   }
 
