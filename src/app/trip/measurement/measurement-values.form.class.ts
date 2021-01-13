@@ -12,7 +12,6 @@ import {filter, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {Pmfm} from "../../referential/services/model/pmfm.model";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
@@ -287,6 +286,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         })) || [];
+      pmfms = pmfms.filter(pmfm => pmfm.pmfmId);
 
       if (!pmfms.length && this.debug) {
         console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);

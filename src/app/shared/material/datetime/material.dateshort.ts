@@ -299,8 +299,6 @@ export class MatDateShort implements OnInit, ControlValueAccessor, InputElement 
     if (this.dayControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
-      // this.writeValue(this.dayControl.value);
-      this.onDatePickerChange(this.dayControl);
     }
   }
 

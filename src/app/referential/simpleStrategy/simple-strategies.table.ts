@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import { ValidatorService } from "@e-is/ngx-material-table";
 import {
-  AppFormUtils,
   environment,
   fromDateISOString,
   referentialToString,
@@ -158,28 +157,6 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
-  /**
-   * Add landing to the given row, or if not specified the currently edited row
-   * @param event
-   * @param row
-   */
-  addLanding(event?: MouseEvent, row?: TableElement<Strategy>): boolean {
-    // FIXME CLT IMAGINE 143
-    console.debug('addLanding called');
-
-    if (event) event.stopPropagation();
-
-    // if (row.currentData.) {
-    //   // Edit trip
-    //   this.onOpenRow.emit({id: row.currentData.tripId, row: row});
-    // } else {
-    //   // New trip
-    //   this.onNewTrip.emit({id: null, row: row});
-    // }
-    return true;
-  }
-
 
 }
 

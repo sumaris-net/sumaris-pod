@@ -27,6 +27,8 @@ import {Landing2Form} from "./landing2.form";
 import {MatTabGroup} from "@angular/material/tabs";
 import {Samples2Table} from "../sample/samples2.table";
 import {StrategyService} from "../../referential/services/strategy.service";
+import {Strategy} from "../../referential/services/model/strategy.model";
+import {MeasurementModelValues} from "../services/model/measurement.model";
 
 @Component({
   selector: 'app-landing2-page',
@@ -105,6 +107,61 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
           this.samples2Table.defaultSampleDate = dateTime as Moment;
         })
     );
+
+    this.registerSubscription(
+      this.landing2Form.form.get('sampleRowCode').valueChanges
+        .pipe(throttleTime(200), filter(isNotNil))
+        .subscribe((sampleRowCode: Strategy) => this.onSampleRowCodeChange(sampleRowCode))
+    );
+  }
+
+  protected async onSampleRowCodeChange(sampleRowCode: Strategy) {
+
+    console.warn('onSampleRowCodeChange called');
+    if (sampleRowCode && sampleRowCode.label) {
+      let strategyLabel = sampleRowCode.label;
+      // update landing2Form measurement value containing sample row code
+      //let measurementValues = this.landing2Form.value.measurementValues;
+
+      this.landing2Form.sampleRowCode = strategyLabel;
+
+
+
+      this.landing2Form.sampleRowCodeControl.patchValue(sampleRowCode);
+      let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
+      let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
+
+      // Refresh fishing areas from landing2Form according to selected sampleRowCode
+      this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
+      this.landing2Form.pmfms = pmfmStrategies;
+
+
+      const measurementValues = Object.entries(this.landing2Form.value.measurementValues).map(([key, value]) => {
+        return {
+          key,
+          value
+        };
+      });
+      let newMeasurementValues: MeasurementModelValues = {};
+      // FIXME CLT measurement Pmfm Code must be externalized
+      measurementValues.forEach((measurementValue) => {
+        if (measurementValue.key === "359") {
+          newMeasurementValues[measurementValue.key] = sampleRowCode.label;
+        }
+        else {
+          newMeasurementValues[measurementValue.key] = measurementValue.value;
+        }
+      });
+
+
+      Object.assign(this.landing2Form.value.measurementValues, newMeasurementValues);
+
+      // Refresh samples
+      this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
+      this.samples2Table.pmfms = pmfmStrategies;
+
+
+  }
   }
 
   protected registerForms() {
@@ -255,24 +312,20 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
 
     this.landing2Form.program = data.program.label;
+    this.landing2Form.sampleRowCode = strategyLabel;
     this.landing2Form.value = data;
     // this.landing2Form.strategyLabel = strategyLabel;
     //this.samples2Table.value = data.samples || [];
 
-    let pmfmStrategy =  await this.strategyService.loadByLabel( strategyLabel, { expandedPmfmStrategy : true});
-    let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
-    console.log("pmfmStrategy", pmfmStrategy);
+    if (!isNew) {
+      let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
+      let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
 
-    this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
-
-    this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
-    this.samples2Table.pmfms = pmfmStrategies;
-
-    // Set fishing areas using strategy
-    // this.landing2Form.
-    //------------------------------------------------------------------------------------------------------------------
-
-
+      this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
+      this.landing2Form.pmfms = pmfmStrategies;
+      this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
+      this.samples2Table.pmfms = pmfmStrategies;
+    }
   }
 
   updateView(data: Landing | null, opts?: {

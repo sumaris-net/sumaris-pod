@@ -122,7 +122,7 @@
       <!-- undo or delete  -->
       <button mat-icon-button color="light" *ngIf="row.validator.invalid || (!canDisplayColumnsHeaders && selection.hasValue())"
                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-               (click)="(!canDisplayColumnsHeaders && selection.isSelected(row)) ? simpleStrategyDeleteSelection($event) : cancelOrDelete($event, row)">
+               (click)="cancelOrDelete($event, row)">
          <mat-icon *ngIf="row.id !== -1 && (row.validator.invalid)">undo</mat-icon>
          <mat-icon *ngIf="row.id === -1 || (!canDisplayColumnsHeaders && selection.isSelected(row))">delete_outline</mat-icon>
       </button>
