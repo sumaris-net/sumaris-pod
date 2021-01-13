@@ -126,7 +126,6 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.landing2Form.sampleRowCode = strategyLabel;
 
 
-
       this.landing2Form.sampleRowCodeControl.patchValue(sampleRowCode);
       let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
       let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
@@ -135,26 +134,32 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
       this.landing2Form.pmfms = pmfmStrategies;
 
+      let sampleRowCodeFound = false;
 
-      const measurementValues = Object.entries(this.landing2Form.value.measurementValues).map(([key, value]) => {
-        return {
-          key,
-          value
-        };
-      });
-      let newMeasurementValues: MeasurementModelValues = {};
-      // FIXME CLT measurement Pmfm Code must be externalized
-      measurementValues.forEach((measurementValue) => {
-        if (measurementValue.key === "359") {
-          newMeasurementValues[measurementValue.key] = sampleRowCode.label;
-        }
-        else {
-          newMeasurementValues[measurementValue.key] = measurementValue.value;
-        }
-      });
-
-
-      Object.assign(this.landing2Form.value.measurementValues, newMeasurementValues);
+      if (this.landing2Form.value.measurementValues) {
+        const measurementValues = Object.entries(this.landing2Form.value.measurementValues).map(([key, value]) => {
+          return {
+            key,
+            value
+          };
+        });
+        let newMeasurementValues: MeasurementModelValues = {};
+        // FIXME CLT measurement Pmfm Code must be externalized
+        measurementValues.forEach((measurementValue) => {
+          if (measurementValue.key === "359") {
+            newMeasurementValues[measurementValue.key] = sampleRowCode.label;
+            sampleRowCodeFound = true;
+          } else {
+            newMeasurementValues[measurementValue.key] = measurementValue.value;
+          }
+        });
+        Object.assign(this.landing2Form.value.measurementValues, newMeasurementValues);
+    }
+    if (!sampleRowCodeFound)
+    {
+      this.landing2Form.appliedStrategies = [];
+      Object.assign(this.landing2Form.appliedStrategies, []);
+    }
 
       // Refresh samples
       this.samples2Table.appliedPmfmStrategy = pmfmStrategies;

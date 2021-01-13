@@ -331,7 +331,14 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
 
     this.sampleRowCodeHelper.resize(1);
-    this.fishingAreaHelper.resize(Math.max(1, this.appliedStrategies.length));
+    if (this.appliedStrategies)
+    {
+      this.fishingAreaHelper.resize(Math.max(1, this.appliedStrategies.length));
+    }
+    else {
+      this.fishingAreaHelper.resize(1);
+    }
+
 
     let sampleRowCode=[];
     let sample = new Strategy();
