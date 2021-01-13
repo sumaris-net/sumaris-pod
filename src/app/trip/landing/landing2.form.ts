@@ -32,7 +32,9 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
-import {AppliedStrategy, TaxonNameStrategy} from "../../referential/services/model/strategy.model";
+import {AppliedStrategy, Strategy, TaxonNameStrategy} from "../../referential/services/model/strategy.model";
+import {StrategyService} from "../../referential/services/strategy.service";
+import {StrategyFilter} from "../../referential/strategy/strategies.table";
 
 @Component({
   selector: 'app-landing2-form',
@@ -56,6 +58,8 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   referenceTaxon : ReferentialRef;
   fishingAreas : ReferentialRef[];
   fishingAreaHelper: FormArrayHelper<AppliedStrategy>;
+  sampleRowCodeHelper: FormArrayHelper<Strategy>;
+  _sampleRowCode: string;
 
   appliedStrategies: AppliedStrategy[];
 
@@ -83,6 +87,17 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   get showObservers(): boolean {
     return this._showObservers;
+  }
+
+  @Input()
+  set sampleRowCode(value: string) {
+    if (this._sampleRowCode !== value && isNotNil(value)) {
+      this._sampleRowCode = value;
+    }
+  }
+
+  get sampleRowCode(): string {
+    return this._sampleRowCode;
   }
 
   @Input()
@@ -119,6 +134,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     return this.form.controls.appliedStrategies as FormArray;
   }
 
+  get sampleRowCodeControl(): FormControl {
+    return this.form.controls.sampleRowCode as FormControl;
+  }
+
   taxonNameHelper: FormArrayHelper<TaxonNameStrategy>;
   get taxonNamesForm(): FormArray {
     return this.form.controls.samples as FormArray;
@@ -135,7 +154,8 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     protected vesselSnapshotService: VesselSnapshotService,
     protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected strategyService: StrategyService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
     this._enable = false;
@@ -143,6 +163,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
+    this.strategyService = strategyService;
   }
 
   ngOnInit() {
@@ -164,38 +185,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     });
 
     // Combo: sampleRowCode
-    // const sampleRowCodeField = this.registerAutocompleteField('sampleRowCode', {
-    //   service: this.vesselSnapshotService,
-    //   attributes: this.settings.getFieldDisplayAttributes('sampleRowCode', ['exteriorMarking', 'name']),
-    //   filter: {
-    //     statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-    //   }
-    // });
-// Combo: sampleRowCodes
-    const sampleRowCodeAttributes = this.settings.getFieldDisplayAttributes('sampleRowCode');
     this.registerAutocompleteField('sampleRowCode', {
-      service: this.referentialRefService,
-      attributes: sampleRowCodeAttributes,
-      // Increase default column size, for 'label'
-      columnSizes: sampleRowCodeAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-      filter: <ReferentialRefFilter>{
-        entityName: 'Program'
-      },
-      mobile: this.mobile
+      service: this.strategyService,
+      attributes: this.settings.getFieldDisplayAttributes('sampleRowCode', ['name'])
     });
-
-    // const programAttributes = this.settings.getFieldDisplayAttributes('program');
-    // this.registerAutocompleteField('program', {
-    //   service: this.referentialRefService,
-    //   attributes: programAttributes,
-    //   // Increase default column size, for 'label'
-    //   columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-    //   filter: <ReferentialRefFilter>{
-    //     entityName: 'Program'
-    //   },
-    //   mobile: this.mobile
-    // });
-
 
     // Combo: vessels
     const vesselField = this.registerAutocompleteField('vesselSnapshot', {
@@ -281,6 +274,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     this.initTaxonNameHelper();
     this.initAppliedStrategiesHelper();
+    this.initSampleRowCodeHelper();
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
@@ -319,8 +313,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
 
 
-    // Send value for form
-    super.setValue(value);
+
 
     // Make sure to have (at least) one observer
     value.observers = value.observers && value.observers.length ? value.observers : [null];
@@ -337,12 +330,24 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       this.program = value.program.label;
     }
 
+    this.sampleRowCodeHelper.resize(1);
+    this.fishingAreaHelper.resize(Math.max(1, this.appliedStrategies.length));
+
+    let sampleRowCode=[];
+    let sample = new Strategy();
+    sample.label = this.sampleRowCode;
+    sample.name = this.sampleRowCode;
+    // sample.programId = value.program.id;
+    sampleRowCode.push(sample);
+
+    // Send value for form
+    super.setValue(value);
+
     const taxonNameControl = this.taxonNamesForm;
     taxonNameControl.patchValue(taxonNames);
-
-    this.fishingAreaHelper.resize(Math.max(1, this.appliedStrategies.length));
     this.fishingAreasFormArray.patchValue(this.appliedStrategies);
 
+    this.sampleRowCodeControl.patchValue(sample);
 
   }
 
@@ -424,6 +429,21 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     // Create at least one fishing Area
     if (this.fishingAreaHelper.size() === 0) {
       this.fishingAreaHelper.resize(1);
+    }
+  }
+
+  // appliedStrategies Helper -----------------------------------------------------------------------------------------------
+  protected initSampleRowCodeHelper() {
+    // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
+    this.sampleRowCodeHelper = new FormArrayHelper<Strategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'SampleRowCode'),
+      (strategy) => this.formBuilder.group({sampleRowCode: [strategy && strategy.name, Validators.compose([Validators.required])]}),
+      (s1, s2) => EntityUtils.equals(s1, s2, 'name'),
+      value => isNil(value) && isNil(value.name),
+    );
+    // Create at least one sampleRowCode
+    if (this.sampleRowCodeHelper.size() === 0) {
+      this.sampleRowCodeHelper.resize(1);
     }
   }
 
