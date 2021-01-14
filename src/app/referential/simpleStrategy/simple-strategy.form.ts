@@ -120,9 +120,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     await this.weightPmfmStrategiesTable.save();
     await this.sizePmfmStrategiesTable.save();
     await this.maturityPmfmStrategiesTable.save();
-    // await this.weightPmfmStrategiesTable.save();
-    // await this.sizePmfmStrategiesTable.save();
-    // await this.maturityPmfmStrategiesTable.save();
 
     this.weightPmfmStrategiesTable.selection.clear();
     this.sizePmfmStrategiesTable.selection.clear();
@@ -143,6 +140,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     if (maturities.length <= 0) { this.maturityPmfmStrategiesTable.value = [new PmfmStrategy()]; }
 
     this.form.controls.pmfmStrategies.patchValue(pmfms);
+    this.pmfmStrategiesForm.markAsTouched();
     this.markAsDirty();
   }
 
@@ -434,14 +432,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     const labelControl = this.form.get('label');
 
     //update mask
-    let year = moment(date).year().toString();
-    // if (date && (typeof date === 'object') && (date.year())) {
-    //   year = date.toDate().getFullYear().toString();
-    // }
-    // else if (date && (typeof date === 'string')) {
-    //   const dateAsString = date as string;
-    //   year = moment(dateAsString).toDate().getFullYear().toString()
-    // }
+    let year;
+    if (date && (typeof date === 'object') && (date.year())) {
+      year = date.toDate().getFullYear().toString();
+    }
+    else if (date && (typeof date === 'string')) {
+      const dateAsString = date as string;
+      year = moment(dateAsString).toDate().getFullYear().toString()
+    }
     this.sampleRowMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
 
     // get new label sample row code
@@ -617,7 +615,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   requiredPeriodMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (array: FormArray): ValidationErrors | null => {
-      const values = array.value.flat().filter(period => period.acquisitionNumber !== undefined && period.acquisitionNumber >= 0);
+      const values = array.value.flat().filter(period => period.acquisitionNumber !== undefined && period.acquisitionNumber !== null && period.acquisitionNumber >= 0);
       if (!values || values.length < minLength) {
         return { minLength: { minLength: minLength } };
       }
