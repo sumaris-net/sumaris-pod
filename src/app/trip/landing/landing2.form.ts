@@ -58,7 +58,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   referenceTaxon : ReferentialRef;
   fishingAreas : ReferentialRef[];
   fishingAreaHelper: FormArrayHelper<AppliedStrategy>;
-  sampleRowCodeHelper: FormArrayHelper<Strategy>;
   _sampleRowCode: string;
 
   appliedStrategies: AppliedStrategy[];
@@ -274,7 +273,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     this.initTaxonNameHelper();
     this.initAppliedStrategiesHelper();
-    this.initSampleRowCodeHelper();
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
@@ -329,8 +327,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     if (value.program && value.program.label) {
       this.program = value.program.label;
     }
-
-    this.sampleRowCodeHelper.resize(1);
     if (this.appliedStrategies)
     {
       this.fishingAreaHelper.resize(Math.max(1, this.appliedStrategies.length));
@@ -443,20 +439,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
   }
 
-  // appliedStrategies Helper -----------------------------------------------------------------------------------------------
-  protected initSampleRowCodeHelper() {
-    // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
-    this.sampleRowCodeHelper = new FormArrayHelper<Strategy>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'SampleRowCode'),
-      (strategy) => this.formBuilder.group({sampleRowCode: [strategy && strategy.name, Validators.compose([null])]}),
-      (s1, s2) => EntityUtils.equals(s1, s2, 'name'),
-      value => isNil(value) && isNil(value.name),
-    );
-    // Create at least one sampleRowCode
-    if (this.sampleRowCodeHelper.size() === 0) {
-      this.sampleRowCodeHelper.resize(1);
-    }
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();

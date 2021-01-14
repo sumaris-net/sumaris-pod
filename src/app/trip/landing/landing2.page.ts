@@ -134,6 +134,16 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
       this.landing2Form.pmfms = pmfmStrategies;
 
+      // Refresh target species
+      let taxonNames = [];
+      let taxonName = null;
+      if (pmfmStrategy.taxonNames && pmfmStrategy.taxonNames[0])
+      {
+        taxonName= pmfmStrategy.taxonNames[0].taxonName;
+        taxonNames.push(taxonName);
+      }
+
+
       let sampleRowCodeFound = false;
 
       if (this.landing2Form.value.measurementValues) {
@@ -171,9 +181,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       Object.assign(this.landing2Form.appliedStrategies, []);
     }
 
-    // FIXME CLT Update target specie while sampleRowCode is changed
-
       this.landing2Form.setValue(this.landing2Form.value);
+      this.landing2Form.taxonNamesForm.patchValue(taxonNames);
+
       // Refresh samples
       this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
       this.samples2Table.pmfms = pmfmStrategies;
