@@ -44,6 +44,7 @@ import {
   SAVE_AS_OBJECT_OPTIONS
 } from "../../core/services/model/referential.model";
 import {PersonFilter} from "../../admin/services/person.service";
+import { map } from "rxjs/operators";
 
 export declare interface StrategySaveOptions {
   programId?: number
@@ -475,6 +476,8 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
 
     if (!entity) return entity;
 
+    const isNew = isNil(entity.id);
+
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
 
     const now = Date.now();
@@ -485,7 +488,25 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       variables: {
         strategy: json
       },
-      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"}
+      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"},
+      // IMAGINE-129 : mise à jour du cache lorsque l'on ajoute une nouvelle strategy
+      //TODO : insertIntoMutableCachedQuery ne semble pas mettre à jour le cache. C'est certainement lié au fait la fonctione watchAll n'est pas appelée et qu'il n'y a donc aucune watchQueries d'initialisées
+      update: (proxy, {data}) => {
+        const savedEntity = data && data.saveStrategy;
+
+        if (savedEntity !== entity) {
+          if (this._debug) console.debug(`[strategy-service] Strategy saved in ${Date.now() - now}ms`, entity);
+          this.copyIdAndUpdateDate(savedEntity, entity);
+        }
+
+        // Add to cache
+        if (isNew) {
+          this.insertIntoMutableCachedQuery(proxy, {
+            query: LoadAllQuery,
+            data: savedEntity
+          });
+        }
+      }
     });
     const savedStrategy = res && res.saveStrategy;
     this.copyIdAndUpdateDate(savedStrategy, entity);
@@ -510,8 +531,65 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
     throw new Error('Method not implemented.');
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter, options?: EntitiesServiceWatchOptions): Observable<LoadResult<Strategy>> {
-    throw new Error('Method not implemented.');
+  // IMAGINE-129 : fonctionnalité de tri
+  //TODO : La fonction watchAll ne semble pas être appelée, voir comment faire en sort qu'elle soit prise en compte comme dans observe-location.service.ts par exemple.
+  watchAll(offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    dataFilter?: StrategyFilter,
+    opts?: {
+      query?: any,
+      fetchPolicy: FetchPolicy;
+      withTotal?: boolean;
+      toEntity?: boolean;
+      debug?: boolean;
+    }): Observable<LoadResult<Strategy>> {
+
+    // Load offline
+    // const offlineData = this.network.offline || (dataFilter && dataFilter.tripId < 0) || false;
+    // if (offlineData) {
+    //   return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
+    // }
+
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: dataFilter
+    };
+    const debug = this._debug && (!opts || opts.debug !== false);
+    const now = debug && Date.now();
+
+    if (debug) console.debug("[strategy-service] Loading strategies... using options:", variables);
+
+    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
+    return this.mutableWatchQuery<{ strategies: any[], referentialsCount?: number }>({
+      queryName: 'LoadAll',
+      query: query,
+      arrayFieldName: 'strategies',
+      totalFieldName: 'referentialsCount',
+      // insertFilterFn: ObservedLocationFilter.searchFilter(dataFilter),
+      variables: variables,
+      error: {code: ErrorCodes.LOAD_STRATEGIES_ERROR, message: "STRATEGY.ERROR.LOAD_STRATEGIES_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined
+    })
+
+    .pipe(
+      map(res => {
+          const data = (!opts || opts.toEntity !== false) ?
+          (res && res.strategies || []).map(Strategy.fromObject) :
+          (res && res.strategies || []) as Strategy[];
+          if (this._debug) console.debug(`[strategy-service] Programs loaded in ${Date.now() - now}ms`, data);
+          return {
+            data: data,
+            total: res.referentialsCount
+          };
+        }
+      )
+    );
+
   }
 
   /**
