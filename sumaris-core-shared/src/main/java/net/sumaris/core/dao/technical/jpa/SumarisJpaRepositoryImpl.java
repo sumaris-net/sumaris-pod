@@ -146,7 +146,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         onBeforeSaveEntity(vo, entity, isNew);
 
         // Save entity
-        E savedEntity = save(entity);
+        E savedEntity = super.save(entity);
 
         // Update VO
         onAfterSaveEntity(vo, savedEntity, isNew);
@@ -399,6 +399,15 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         if (specification instanceof BindableSpecification) {
             BindableSpecification<S> specificationWithParameters = (BindableSpecification<S>) specification;
             specificationWithParameters.getBindings().forEach(binding -> binding.accept(query));
+        }
+        else if (specification != null){
+            String message = "DEPRECATED use of Specification. Please use BindableSpecification instead, to be able to bind parameters";
+            if (log.isDebugEnabled()) {
+                log.warn(message, new Exception(message));
+            }
+            else {
+                log.warn(message);
+            }
         }
         return query;
     }

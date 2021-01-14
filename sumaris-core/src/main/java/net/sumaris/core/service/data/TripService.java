@@ -41,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
  * 
  */
 @Transactional
-public interface TripService {
+public interface TripService extends IRootDataQualityService<TripVO> {
 
 	@Transactional(readOnly = true)
 	List<TripVO> getAllTrips(int offset, int size);
@@ -86,11 +86,4 @@ public interface TripService {
 	@Transactional(timeout = -1)
 	void delete(int id);
 
-	TripVO control(TripVO trip);
-
-	TripVO validate(TripVO trip);
-
-	TripVO unvalidate(TripVO trip);
-
-	TripVO qualify(TripVO trip);
 }

@@ -47,6 +47,8 @@ public class TripVO implements IRootDataVO<Integer>,
         IWithObserversEntity<Integer, PersonVO>,
         IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> {
 
+    public static final String TYPENAME = "TripVO";
+
     @EqualsAndHashCode.Exclude
     private Integer id;
     private String comments;
@@ -92,6 +94,7 @@ public class TripVO implements IRootDataVO<Integer>,
     private Map<Integer, String> measurementValues; // vessel_use_measurement
 
     // Parent
+    private Integer landingId;
     private LandingVO landing;
 
     private Integer observedLocationId;

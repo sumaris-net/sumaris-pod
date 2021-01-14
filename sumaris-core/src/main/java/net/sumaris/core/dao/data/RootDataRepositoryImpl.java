@@ -43,6 +43,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
+import java.util.Date;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
@@ -119,17 +120,7 @@ public abstract class RootDataRepositoryImpl<
 
     }
 
-    @Override
     public V validate(V vo) {
-        return validate(vo, true);
-    }
-
-    @Override
-    public V validateNoSave(V vo) {
-        return validate(vo, false);
-    }
-
-    private V validate(V vo, boolean save) {
         Preconditions.checkNotNull(vo);
         E entity = getOne(vo.getId());
 
@@ -137,7 +128,7 @@ public abstract class RootDataRepositoryImpl<
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        if (save && isLockForUpdate()) lockForUpdate(entity);
+        if (isLockForUpdate()) lockForUpdate(entity);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -147,8 +138,7 @@ public abstract class RootDataRepositoryImpl<
         entity.setValidationDate(newUpdateDate);
 
         // Save entityName
-        if (save)
-            getEntityManager().merge(entity);
+        getEntityManager().merge(entity);
 
         // Update source
         vo.setValidationDate(newUpdateDate);
@@ -158,14 +148,10 @@ public abstract class RootDataRepositoryImpl<
     }
 
     @Override
-    public V unvalidate(V vo) {
+    public V unValidate(V vo) {
         return unvalidate(vo, true);
     }
 
-    @Override
-    public V unvalidateNoSave(V vo) {
-        return unvalidate(vo, false);
-    }
 
     private V unvalidate(V vo, boolean save) {
         Preconditions.checkNotNull(vo);

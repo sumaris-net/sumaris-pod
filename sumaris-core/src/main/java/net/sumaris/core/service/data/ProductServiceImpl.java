@@ -143,7 +143,7 @@ public class ProductServiceImpl implements ProductService {
         Preconditions.checkNotNull(product.getControlDate());
         Preconditions.checkNotNull(product.getValidationDate());
 
-        return productRepository.unvalidate(product);
+        return productRepository.unValidate(product);
     }
 
     @Override

@@ -1,10 +1,8 @@
-package net.sumaris.core.dao.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,20 +20,19 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.IRootDataEntity;
-import net.sumaris.core.vo.data.IDataFetchOptions;
-import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.filter.IRootDataFilter;
-import org.springframework.data.repository.NoRepositoryBean;
+package net.sumaris.core.vo.data;
 
-@NoRepositoryBean
-public interface RootDataRepository<E extends IRootDataEntity<Integer>, V extends IRootDataVO<Integer>, F extends IRootDataFilter, O extends IDataFetchOptions>
-    extends DataRepository<E, V, F, O>, RootDataSpecifications<E> {
+import lombok.Data;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
 
+import java.util.Date;
 
+@Data
+public class DataReferenceVO implements IValueObject<Integer>,
+        IUpdateDateEntityBean<Integer, Date> {
 
-    V validate(V vo);
-
-    V unValidate(V vo);
-
+    private Integer id;
+    private String entityName;
+    private Date updateDate;
 }

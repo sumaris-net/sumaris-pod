@@ -39,9 +39,7 @@ import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.LandingVO;
-import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -67,6 +65,9 @@ public class LandingServiceImpl implements LandingService {
 
     @Autowired
     protected LandingRepository landingRepository;
+
+    @Autowired
+    protected TripService tripService;
 
     @Autowired
     protected TripRepository tripRepository;
@@ -122,14 +123,7 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public LandingVO save(final LandingVO source) {
-        Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getProgram(), "Missing program");
-        Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
-        Preconditions.checkNotNull(source.getDateTime(), "Missing dateTime");
-        Preconditions.checkNotNull(source.getLocation(), "Missing location");
-        Preconditions.checkNotNull(source.getLocation().getId(), "Missing location.id");
-        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
-        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+        checkCanSave(source);
 
         // Reset control date
         source.setControlDate(null);
@@ -186,6 +180,20 @@ public class LandingServiceImpl implements LandingService {
         return landings.stream()
             .map(this::save)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> sources) {
+        // Check operation validity
+        sources.forEach(this::checkCanSave);
+
+        // Save entities
+        List<LandingVO> result = landingRepository.saveAllByObservedLocationId(observedLocationId, sources);
+
+        // Save children entities
+        result.forEach(this::saveChildrenEntities);
+
+        return result;
     }
 
     @Override
@@ -247,12 +255,55 @@ public class LandingServiceImpl implements LandingService {
         Preconditions.checkNotNull(landing.getControlDate());
         Preconditions.checkNotNull(landing.getValidationDate());
 
-        return landingRepository.unvalidate(landing);
+        return landingRepository.unValidate(landing);
     }
 
-    /* protected methods */
+    /* -- protected methods -- */
 
-    void fillDefaultProperties(LandingVO parent, MeasurementVO measurement) {
+    protected void saveChildrenEntities(final LandingVO source) {
+
+        // Save measurements
+        {
+            if (source.getMeasurementValues() != null) {
+                measurementDao.saveLandingMeasurementsMap(source.getId(), source.getMeasurementValues());
+            } else {
+                List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+                measurements.forEach(m -> fillDefaultProperties(source, m));
+
+                measurements = measurementDao.saveLandingMeasurements(source.getId(), measurements);
+                source.setMeasurements(measurements);
+            }
+        }
+
+        // Save trip
+        TripVO trip = source.getTrip();
+        if (trip != null) {
+            // Prepare landing to save
+            trip.setLandingId(source.getId());
+            trip.setLanding(null);
+
+            TripVO savedTrip = tripService.save(source.getTrip(), TripSaveOptions.builder()
+                    .withLanding(false)
+                    .withOperation(false)
+                    .withOperationGroup(true)
+                    .build());
+
+            source.setTrip(savedTrip);
+        }
+    }
+
+    protected void checkCanSave(final LandingVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getProgram(), "Missing program");
+        Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
+        Preconditions.checkNotNull(source.getDateTime(), "Missing dateTime");
+        Preconditions.checkNotNull(source.getLocation(), "Missing location");
+        Preconditions.checkNotNull(source.getLocation().getId(), "Missing location.id");
+        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+    }
+
+    protected void fillDefaultProperties(LandingVO parent, MeasurementVO measurement) {
         if (measurement == null) return;
 
         // Set default value for recorder department and person

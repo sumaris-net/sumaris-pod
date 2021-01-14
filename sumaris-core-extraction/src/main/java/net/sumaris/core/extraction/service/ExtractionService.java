@@ -58,6 +58,9 @@ public interface ExtractionService {
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> findByFilter(@Nullable ExtractionTypeFilterVO filter);
 
+    @Transactional(readOnly = true)
+    List<ExtractionTypeVO> getLiveExtractionTypes();
+
     ExtractionContextVO execute(IExtractionFormat format, @Nullable ExtractionFilterVO filter);
 
     ExtractionResultVO read(ExtractionContextVO context,

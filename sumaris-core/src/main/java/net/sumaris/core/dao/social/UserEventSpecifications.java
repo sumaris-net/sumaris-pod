@@ -22,6 +22,7 @@ package net.sumaris.core.dao.social;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.social.UserEventFilterVO;
@@ -36,7 +37,7 @@ public interface UserEventSpecifications {
 
     default Specification<UserEvent> toSpecification(UserEventFilterVO filter) {
         if (filter == null) return null;
-        return Specification.where(isIssuer(filter.getIssuer()))
+        return BindableSpecification.where(isIssuer(filter.getIssuer()))
                 .and(isRecipient(filter.getRecipient()));
     }
 

@@ -35,6 +35,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.FetchProfile;
 import org.hibernate.annotations.FetchProfiles;
+import org.nuiton.i18n.I18n;
 
 import javax.persistence.*;
 import java.util.*;
@@ -62,6 +63,10 @@ import java.util.*;
 public class Trip implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
         IWithVesselEntity<Integer, Vessel> {
+
+    static {
+        I18n.n("sumaris.persistence.table.trip");
+    }
 
     public static final String FETCH_PROFILE_LOCATION  = "trip-location";
     public static final String FETCH_PROFILE_RECORDER  = "trip-recorder";
@@ -144,6 +149,10 @@ public class Trip implements IRootDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Landing.class, mappedBy = Landing.Fields.TRIP)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Landing> landings;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
