@@ -11,6 +11,7 @@ import {firstNotNilPromise} from "../../shared/observables";
 import {Batch} from "../services/model/batch.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramService} from "../../referential/services/program.service";
+import {MeasurementValuesUtils} from "../services/model/measurement.model";
 
 @Component({
   selector: 'form-catch-batch',
@@ -60,6 +61,4 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
       this._onValueChanged.subscribe((_) => this.data.label = this._acquisitionLevel)
     );
   }
-
-
 }

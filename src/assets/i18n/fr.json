@@ -55,6 +55,7 @@
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "DATE_TIME_SECONDS_PATTERN": "DD/MM/YYYY HH:mm:ss",
     "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
@@ -438,10 +439,6 @@
       "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées.",
       "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée.",
       "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
-      "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
-      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
-      "QUALIFY_TRIP_ERROR": "Erreur lors de la qualification de la marée",
-      "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
     },
     "MEASUREMENT": {
@@ -741,8 +738,7 @@
       "LOAD_ALL_ERROR": "Erreur de chargement des contrôles en criée",
       "SAVE_ERROR": "Erreur de sauvegarde du contrôle en criée",
       "SAVE_ALL_ERROR": "Erreur de sauvegarde des contrôles en criée",
-      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du contrôle en criée.",
-      "SYNCHRONIZE_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du contrôle en criée."
     }
   },
   "LANDING": {
@@ -1427,15 +1423,13 @@
   },
   "ERROR": {
     "ALERT_HEADER": "Erreur",
-    "FIELD_REQUIRED": "Champ obligatoire.",
-    "FIELD_TOO_SHORT": "Valeur trop courte.",
-    "FIELD_TOO_SHORT_WITH_LENGTH": "Valeur trop courte ({{minLength}} caractères min)",
-    "FIELD_TOO_LONG": "Valeur trop longue",
-    "FIELD_TOO_LONG_WITH_LENGTH": "Valeur trop longue ({{maxLength}} caractères max)",
+    "FIELD_REQUIRED": "Champ obligatoire",
+    "FIELD_TOO_SHORT": "Valeur trop courte",
+    "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caractères min)') }}",
+    "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caractères max)') }}",
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
     "FIELD_MAX": "Valeur maximale autorisée: {{max}}",
-    "FIELD_MAX_LENGTH": "Longueur maximale: {{requiredLength}}",
     "FIELD_MAX_COMPACT": "Max {{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Nombre de décimale incorrect ({{max}} max)",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale max={{max}}",
@@ -1488,7 +1482,12 @@
     "LOAD_TRASH_ENTITY_ERROR": "Erreur de chargement du fichier de corbeille",
     "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille",
     "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données locale",
-    "STARTUP_FAILED": "Echec du lancement"
+    "STARTUP_FAILED": "Echec du lancement",
+    "TERMINATE_ENTITY_ERROR": "Terminaision de la saisie impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "VALIDATE_ENTITY_ERROR": "Erreur lors de la validation",
+    "UNVALIDATE_ENTITY_ERROR": "Erreur lors de la dévalidation",
+    "QUALIFY_ENTITY_ERROR": "Erreur lors de la qualification",
+    "SYNCHRONIZE_ENTITY_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

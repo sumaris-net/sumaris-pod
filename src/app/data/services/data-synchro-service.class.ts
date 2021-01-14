@@ -1,8 +1,8 @@
 import {concat, defer, Observable, of, timer} from "rxjs";
 import {catchError, map, switchMap, tap} from "rxjs/operators";
-import {RootDataEntity} from "./model/root-data-entity.model";
+import {RootDataEntity, SynchronizationStatusEnum} from "./model/root-data-entity.model";
 import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
-import {RootDataService} from "../../trip/services/root-data-service.class";
+import {RootDataService, RootEntityMutations} from "../../trip/services/root-data-service.class";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -12,6 +12,10 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {NetworkService} from "../../core/services/network.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Moment} from "moment";
+import {isNil} from "../../shared/functions";
+import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "./model/data-entity.model";
+import {Trip} from "../../trip/services/model/trip.model";
+import {ErrorCodes} from "../../trip/services/trip.errors";
 
 
 export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServiceLoadOptions> {
@@ -57,10 +61,11 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>, F = an
 
   protected featureName: string;
 
-  protected constructor(
-    injector: Injector
+  protected constructor (
+    injector: Injector,
+    mutations: RootEntityMutations
   ) {
-    super(injector);
+    super(injector, mutations);
 
     this.referentialRefService = injector.get(ReferentialRefService);
     this.personService = injector.get(PersonService);
@@ -177,9 +182,43 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>, F = an
 
   abstract synchronize(data: T, opts?: any): Promise<T>;
 
+  async terminate(entity: T): Promise<T> {
+    // If local entity: save locally
+    const offline = entity && entity.id < 0;
+    if (offline) {
+
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
+
+      // Update sync status
+      entity.synchronizationStatus = 'READY_TO_SYNC';
+
+      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      if (this._debug) console.debug(`[trip-service] Terminate {${entity.id}} locally...`, json);
+
+      // Save response locally
+      await this.entities.save(json);
+
+      return entity;
+    }
+
+    return super.terminate(entity);
+  }
+
   /* -- protected methods -- */
 
+  protected async fillOfflineDefaultProperties(entity: T) {
+    const isNew = isNil(entity.id);
 
+    // If new, generate a local id
+    if (isNew) {
+      entity.id =  await this.entities.nextValue(entity);
+    }
+
+    // Fill default synchronization status
+    entity.synchronizationStatus = entity.synchronizationStatus || SynchronizationStatusEnum.DIRTY;
+
+  }
 
   /**
    * List of importation jobs. Can be override by subclasses, to add or remove some jobs

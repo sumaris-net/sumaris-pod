@@ -3,7 +3,7 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormBuilder} from "@angular/forms";
+import {FormBuilder, FormGroup} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {IReferentialRef} from "../../core/services/model/referential.model";
@@ -41,6 +41,10 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() maxVisibleButtons: number;
 
   @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
+
+  get measurementValues(): FormGroup {
+    return this.form.controls.measurementValues as FormGroup;
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,

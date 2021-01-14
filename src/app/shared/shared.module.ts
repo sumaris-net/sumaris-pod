@@ -14,9 +14,9 @@ import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {
+  EntityServiceLoadOptions,
   IEntitiesService,
   IEntityService,
-  EntityServiceLoadOptions,
   LoadResult,
   SuggestService
 } from "./services/entity-service.class";
@@ -65,6 +65,8 @@ import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
+import {MarkdownModule} from "ngx-markdown";
+import {AppHelpModal} from "./help/help.modal";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -96,6 +98,7 @@ export {
     TextMaskModule,
     DragDropModule,
     QuicklinkModule, // See https://web.dev/route-preloading-in-angular/
+    MarkdownModule,
 
     // Sub modules
     SharedMaterialModule,
@@ -107,7 +110,8 @@ export {
     ToolbarComponent,
     ModalToolbarComponent,
     AppFormField,
-    AppLoadingSpinner
+    AppLoadingSpinner,
+    AppHelpModal
   ],
   exports: [
     CommonModule,
@@ -118,6 +122,7 @@ export {
     TextMaskModule,
     DragDropModule,
     QuicklinkModule,
+    MarkdownModule,
 
     // Sub-modules
     SharedMaterialModule,
@@ -129,7 +134,8 @@ export {
     ToolbarComponent,
     ModalToolbarComponent,
     AppFormField,
-    AppLoadingSpinner
+    AppLoadingSpinner,
+    AppHelpModal
   ]
 })
 export class SharedModule {

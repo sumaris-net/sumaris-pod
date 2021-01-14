@@ -1,17 +1,15 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql, MutationUpdaterFn} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNotNil, LoadResult, IEntitiesService} from "../../shared/shared.module";
+import {IEntitiesService, isNil, isNotNil, LoadResult} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils, Referential} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-
-import {FetchPolicy, MutationUpdaterFn} from "@apollo/client/core";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";
-import {Beans, KeysEnum, toNumber} from "../../shared/functions";
+import {Beans, KeysEnum} from "../../shared/functions";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
@@ -132,6 +130,11 @@ const DeleteAll: any = gql`
     deleteReferentials(entityName: $entityName, ids: $ids)
   }
 `;
+
+export const ReferentialQueries = {
+  loadAll: LoadAllQuery,
+  loadAllWithTotal: LoadAllWithTotalQuery,
+};
 
 @Injectable({providedIn: 'root'})
 export class ReferentialService extends BaseEntityService<Referential> implements IEntitiesService<Referential, ReferentialFilter> {
@@ -379,7 +382,7 @@ export class ReferentialService extends BaseEntityService<Referential> implement
 
     // Transform into json
     const json = entity.asObject();
-    const isNew = !json.id;
+    const isNew = isNil(json.id);
 
     const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Saving ${entity.entityName}...`, json);
@@ -390,7 +393,7 @@ export class ReferentialService extends BaseEntityService<Referential> implement
         referentials: [json]
       },
       error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" },
-      update: (proxy, {data}) => {
+      update: (cache, {data}) => {
         // Update entity
         const savedEntity = data && data.saveReferentials && data.saveReferentials[0];
         if (savedEntity === entity) {
@@ -400,7 +403,7 @@ export class ReferentialService extends BaseEntityService<Referential> implement
 
         // Update the cache
         if (isNew) {
-          this.insertIntoMutableCachedQuery(proxy, {
+          this.insertIntoMutableCachedQuery(cache, {
             query: LoadAllQuery,
             data: savedEntity
           });

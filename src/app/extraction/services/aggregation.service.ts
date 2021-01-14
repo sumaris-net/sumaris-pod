@@ -16,7 +16,7 @@ import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AggregationType, IAggregationStrata} from "./model/aggregation-type.model";
-import {ExtractionFragments} from "./extraction.service";
+import {ExtractionFragments, LoadExtractionTypesQuery} from "./extraction.service";
 
 
 export const AggregationFragments = {
@@ -28,6 +28,7 @@ export const AggregationFragments = {
     version
     sheetNames
     description
+    documentation
     creationDate
     updateDate
     comments
@@ -56,8 +57,6 @@ export const AggregationFragments = {
   ${Fragments.lightPerson}
   `
 };
-
-
 
 const LoadTypeQuery = gql`
   query AggregationType($id: Int!) {
@@ -337,17 +336,17 @@ export class AggregationService extends BaseEntityService {
     return res && { min: 0, max: 0, ...res.aggregationTechMinMax} || null;
   }
 
-  async save(sourceType: AggregationType,
+  async save(entity: AggregationType,
              filter?: ExtractionFilter): Promise<AggregationType> {
     const now = Date.now();
     if (this._debug) console.debug("[aggregation-service] Saving aggregation...");
 
-    // Transform into entity
-    const entity = AggregationType.fromObject(sourceType);
+    // Make sure to have an entity
+    entity = AggregationType.fromObject(entity);
 
     this.fillDefaultProperties(entity);
 
-    const isNew = isNil(sourceType.id);
+    const isNew = isNil(entity.id);
 
     // Transform to json
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
@@ -366,18 +365,33 @@ export class AggregationService extends BaseEntityService {
         //if (this._debug)
         console.debug(`[aggregation-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
 
-        // Add to cached queries
-        if (isNew) {
+        // Convert into the extraction type
+        const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: true});
+        savedExtractionType.category = 'PRODUCT';
 
-          // Extraction types
-          {
-            // Convert into the extraction type
-            const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: true});
-            this.insertIntoMutableCachedQuery(cache, {
-              queryName: 'LoadExtractionTypes',
-              data: savedExtractionType
-            });
-          }
+        // Insert into cached queries
+        if (isNew) {
+          // Insert as an extraction types
+          this.insertIntoMutableCachedQuery(cache, {
+            queryName: "LoadExtractionTypes",
+            query: LoadExtractionTypesQuery,
+            data: savedExtractionType
+          });
+        }
+
+        // Update from cached queries
+        else {
+          // Remove, then insert, from extraction types
+          this.removeFromMutableCachedQueryByIds(cache, {
+            queryName: "LoadExtractionTypes",
+            query: LoadExtractionTypesQuery,
+            ids: savedEntity.id
+          });
+          this.insertIntoMutableCachedQuery(cache, {
+            queryName: "LoadExtractionTypes",
+            query: LoadExtractionTypesQuery,
+            data: savedExtractionType
+          });
 
           // Aggregation types
           this.insertIntoMutableCachedQuery(cache, {
@@ -385,6 +399,8 @@ export class AggregationService extends BaseEntityService {
             data: savedEntity
           });
         }
+
+
       }
     });
 

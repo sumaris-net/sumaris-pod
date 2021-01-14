@@ -1,21 +1,8 @@
-<ion-header>
-  <ion-toolbar color="light">
-    <ion-buttons slot="end">
-      <ion-button (click)="close()" visible-xs visible-sm visible-mobile>
-        {{'COMMON.BTN_CLOSE'|translate}}
-      </ion-button>
-    </ion-buttons>
-
-    <ion-title>
-      {{ type.name }}
-    </ion-title>
-
-    <ion-buttons slot="end" >
-      <ion-spinner *ngIf="loading"></ion-spinner>
-
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-modal-toolbar color="light"
+                   [title]="title"
+                   (cancel)="close($event)"
+                   [showSpinner]="loading">
+</app-modal-toolbar>
 
 <ion-content class="ion-padding">
 

@@ -79,6 +79,11 @@ const LoadAllTaxonNamesQuery: any = gql`
   ${ReferentialFragments.fullTaxonName}
 `;
 
+export const ReferentialRefQueries = {
+  loadAll: LoadAllQuery,
+  loadAllWithTotal: LoadAllWithTotalQuery,
+};
+
 @Injectable({providedIn: 'root'})
 export class ReferentialRefService extends BaseEntityService
   implements SuggestService<ReferentialRef, ReferentialRefFilter>,

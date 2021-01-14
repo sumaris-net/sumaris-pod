@@ -98,7 +98,7 @@
                 <mat-error *ngIf="form.controls.lastName.hasError('required') && form.controls.lastName.dirty"
                   translate>ERROR.FIELD_REQUIRED</mat-error>
                 <mat-error *ngIf="form.controls.lastName.hasError('minlength') && form.controls.lastName.dirty">
-                  <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+                  <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
                 </mat-error>
               </mat-form-field>
 
@@ -109,7 +109,7 @@
                 <mat-error *ngIf="form.controls.firstName.hasError('required') && form.controls.firstName.dirty"
                   translate>ERROR.FIELD_REQUIRED</mat-error>
                 <mat-error *ngIf="form.controls.firstName.hasError('minlength') && form.controls.firstName.dirty">
-                  <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+                  <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
                 </mat-error>
               </mat-form-field>
 

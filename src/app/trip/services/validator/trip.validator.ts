@@ -122,7 +122,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     opts.withSale = toBoolean(opts.withSale,
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
 
-    opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
+    opts.withMeasurements = toBoolean(opts.withMeasurements,  !!opts.program);
 
     return opts;
   }

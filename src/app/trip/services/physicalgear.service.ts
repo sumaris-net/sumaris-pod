@@ -107,10 +107,7 @@ export class PhysicalGearService extends BaseEntityService
 
     return this.graphql.watchQuery<{physicalGears: any[]}>({
         query: LoadAllQuery,
-        variables: {
-          ...variables,
-          filter: remoteFilter
-        },
+        variables,
         error: {code: ErrorCodes.LOAD_PHYSICAL_GEARS_ERROR, message: "TRIP.PHYSICAL_GEAR.ERROR.LOAD_PHYSICAL_GEARS_ERROR"},
         fetchPolicy: options && options.fetchPolicy || undefined
       })

@@ -16,7 +16,7 @@ import {personsToString} from "../../core/services/model/person.model";
 import {referentialToString} from "../../core/services/model/referential.model";
 import {LandingFilter, LandingService} from "../services/landing.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Moment} from "moment";
 import {LandingValidatorService} from "../services/validator/landing.validator";
@@ -28,6 +28,7 @@ import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {EntityUtils} from "../../core/core.module";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -48,6 +49,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
+  protected referentialRefService: ReferentialRefService;
 
   @Output() onNewTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
 
@@ -120,6 +122,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     // TODO  ::: USE NAVIGATOR (check service)
     this.defaultPageSize = 200; // normal high value
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
+    this.referentialRefService = injector.get(ReferentialRefService);
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
@@ -140,6 +143,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
+    });
+
+    this.registerAutocompleteField('location', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.PORT
+      },
+      mobile: this.mobile
     });
   }
 

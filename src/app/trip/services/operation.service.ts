@@ -239,7 +239,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
 
 
-  loading = false;
+  protected loading = false;
 
   constructor(
     protected graphql: GraphqlService,
@@ -294,7 +294,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     const variables: QueryVariables<OperationFilter> = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,
-      sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
+      sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
       trash: opts && opts.trash || false,
       filter: dataFilter
@@ -591,22 +591,19 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
       return EMPTY;
     }
-    if (dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local trip (id<0)!");
+    if (dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local ID (id<0)!");
 
-    const variables: any = {
+    const variables = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
       trash: opts && opts.trash || false,
-      filter: dataFilter
+      filter: OperationFilter.searchFilter<Operation>(dataFilter)
     };
 
     if (this._debug) console.debug("[operation-service] Loading operations locally... using options:", variables);
-    return this.entities.watchAll<Operation>(Operation.TYPENAME, {
-      ...variables,
-      filter: OperationFilter.searchFilter<Operation>(dataFilter)
-    }, {fullLoad: opts && opts.fullLoad})
+    return this.entities.watchAll<Operation>(Operation.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
       .pipe(map(res => {
         const data = (res && res.data || []).map(source => Operation.fromObject(source, opts));
 
@@ -740,9 +737,9 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       entity.id =  await this.entities.nextValue(entity);
     }
 
-    // Fill all sample id
+    // Fill all sample ids
     const samples = entity.samples && EntityUtils.listOfTreeToArray(entity.samples) || [];
-    await EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues('SampleVO', count));
+    await EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues(Sample.TYPENAME, count));
 
     // Fill all batches id
     const batches = entity.catchBatch && EntityUtils.treeToArray(entity.catchBatch) || [];

@@ -103,7 +103,6 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
       this.landingsTable.onRefresh.next("modal");
       this.markForCheck();
     }, 200);
-
   }
 
   ngAfterViewInit() {
@@ -111,12 +110,11 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     // Get default status by config
     if (this.allowAddNewVessel && this.vesselForm) {
       this.subscription.add(
-        this.configService.config.subscribe(config => {
+        this.configService.config.subscribe(config => setTimeout(() => {
           this.vesselForm.defaultStatus = config.getPropertyAsInt(ConfigOptions.VESSEL_DEFAULT_STATUS);
-        })
+          this.vesselForm.enable();
+        }))
       );
-
-      this.vesselForm.enable();
     }
   }
 

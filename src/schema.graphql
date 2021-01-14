@@ -51,6 +51,7 @@ type AggregationTypeVO {
   description: String
   docUrl: String
   documentation: String
+  filter: String
   id: Int
   isSpatial: Boolean
   label: String
@@ -121,6 +122,12 @@ type ConfigurationVO {
   updateDate: Date
 }
 
+type DataReferenceVO {
+  entityName: String
+  id: Int
+  updateDate: Date
+}
+
 type DepartmentVO {
   creationDate: Date
   hasLogo: Boolean
@@ -161,6 +168,7 @@ type ExtractionProductVO {
   creationDate: Date
   description: String
   documentation: String
+  filter: String
   format: String
   id: Int
   isSpatial: Boolean
@@ -372,6 +380,8 @@ type MinMaxVO {
 type Mutation {
   "Confirm an account email"
   confirmAccountEmail(code: String, email: String): Boolean!
+  "Control a data, by reference"
+  control(reference: DataReferenceVOInput): DataReferenceVO
   "Control an observed location"
   controlObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Control a trip"
@@ -431,9 +441,9 @@ type Mutation {
   "Create or update many landings"
   saveLandings(landings: [LandingVOInput]): [LandingVO]
   "Create or update an observed location"
-  saveObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
+  saveObservedLocation(observedLocation: ObservedLocationVOInput, options: ObservedLocationSaveOptionsInput): ObservedLocationVO
   "Create or update many observed locations"
-  saveObservedLocations(observedLocations: [ObservedLocationVOInput]): [ObservedLocationVO]
+  saveObservedLocations(observedLocations: [ObservedLocationVOInput], options: ObservedLocationSaveOptionsInput): [ObservedLocationVO]
   "Create or update an operation"
   saveOperation(operation: OperationVOInput): OperationVO
   "Save operations"
@@ -453,9 +463,9 @@ type Mutation {
   "Save a software configuration"
   saveSoftware(software: SoftwareVOInput): SoftwareVO
   "Create or update a trip"
-  saveTrip(saveOptions: TripSaveOptionsInput, trip: TripVOInput, withOperation: Boolean = false): TripVO
+  saveTrip(options: TripSaveOptionsInput, saveOptions: TripSaveOptionsInput, trip: TripVOInput, withOperation: Boolean = false): TripVO
   "Create or update many trips"
-  saveTrips(saveOptions: TripSaveOptionsInput, trips: [TripVOInput], withOperation: Boolean = false): [TripVO]
+  saveTrips(options: TripSaveOptionsInput, saveOptions: TripSaveOptionsInput, trips: [TripVOInput], withOperation: Boolean = false): [TripVO]
   "Sent data to admin, for debug"
   saveUserEvent(userEvent: UserEventVOInput): UserEventVO
   "Create or update a vessel"
@@ -480,6 +490,7 @@ type ObservedLocationVO {
   creationDate: Date
   endDateTime: Date
   id: Int
+  landings: [LandingVO]
   location: LocationVO
   "Get measurement values (as a key/value map, using pmfmId as key)"
   measurementValues: Map_Integer_StringScalar
@@ -851,7 +862,7 @@ type Query {
   "Preview some extraction rows"
   extractionRows(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", type: ExtractionTypeVOInput): ExtractionResultVO
   "Get all available extraction types"
-  extractionTypes(filter: ExtractionTypeFilterVOInput): [ExtractionTypeVO]
+  extractionTypes(filter: ExtractionTypeFilterVOInput): [ExtractionTypeVO] @deprecated(reason : "Use liveExtractionTypes and aggregationTypes")
   "Check if email exists (from a md5 hash)"
   isEmailExists(email: String, hash: String): Boolean!
   "Get an observed location, by id"
@@ -862,6 +873,8 @@ type Query {
   landingsCount(filter: LandingFilterVOInput): Long!
   "Get last update date of all referential"
   lastUpdateDate: Date
+  "Get all live extraction types"
+  liveExtractionTypes(filter: ExtractionTypeFilterVOInput): [ExtractionTypeVO]
   "Get a metier by id"
   metier(id: Int!): MetierVO
   "Search in metiers"
@@ -869,9 +882,9 @@ type Query {
   "Get an observed location, by id"
   observedLocation(id: Int!): ObservedLocationVO
   "Search in observed locations"
-  observedLocations(filter: ObservedLocationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc"): [ObservedLocationVO]
+  observedLocations(filter: ObservedLocationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc", trash: Boolean = false): [ObservedLocationVO]
   "Get total number of observed locations"
-  observedLocationsCount(filter: ObservedLocationFilterVOInput): Long!
+  observedLocationsCount(filter: ObservedLocationFilterVOInput, trash: Boolean = false): Long!
   "Get an operation"
   operation(id: Int!): OperationVO
   "Get trip's operation groups"
@@ -1126,11 +1139,15 @@ type TaxonNameStrategyVO {
 
 type TaxonNameVO {
   comments: String
+  completeName: String
   creationDate: Date
   description: String
+  endDate: Date
   entityName: String
   id: Int
+  isNaming: Boolean
   isReferent: Boolean
+  isVirtual: Boolean
   label: String
   "Get the level from a referential entity"
   level: ReferentialVO
@@ -1138,14 +1155,18 @@ type TaxonNameVO {
   name: String
   rankOrder: Int
   referenceTaxonId: Int
+  startDate: Date
   statusId: Int
   "Get taxon groups from a taxon name"
   taxonGroupIds: [Int]
+  taxonomicLevelId: Int
   updateDate: Date
+  upperRank: Int
   validityStatusId: Int
 }
 
 type TripVO {
+  TYPENAME: String
   comments: String
   controlDate: Date
   creationDate: Date
@@ -1157,6 +1178,7 @@ type TripVO {
   gears: [PhysicalGearVO]
   id: Int
   landing: LandingVO
+  landingId: Int
   "Get trip's measurements"
   measurementValues: Map_Integer_StringScalar
   "Get trip's measurements"
@@ -1416,6 +1438,7 @@ input AggregationTypeVOInput {
   description: String
   docUrl: String
   documentation: String
+  filter: String
   id: Int
   isSpatial: Boolean
   label: String
@@ -1472,6 +1495,12 @@ input ConfigurationVOInput {
   properties: Map_String_StringScalar
   smallLogo: String
   statusId: Int
+  updateDate: Date
+}
+
+input DataReferenceVOInput {
+  entityName: String
+  id: Int
   updateDate: Date
 }
 
@@ -1549,6 +1578,7 @@ input ExtractionProductVOInput {
   creationDate: Date
   description: String
   documentation: String
+  filter: String
   format: String
   id: Int
   isSpatial: Boolean
@@ -1779,12 +1809,17 @@ input ObservedLocationFilterVOInput {
   startDate: Date
 }
 
+input ObservedLocationSaveOptionsInput {
+  withLanding: Boolean
+}
+
 input ObservedLocationVOInput {
   comments: String
   controlDate: Date
   creationDate: Date
   endDateTime: Date
   id: Int
+  landings: [LandingVOInput]
   location: LocationVOInput
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
@@ -2297,18 +2332,25 @@ input TaxonNameStrategyVOInput {
 
 input TaxonNameVOInput {
   comments: String
+  completeName: String
   creationDate: Date
   description: String
+  endDate: Date
   entityName: String
   id: Int
+  isNaming: Boolean
   isReferent: Boolean
+  isVirtual: Boolean
   label: String
   levelId: Int
   name: String
   rankOrder: Int
   referenceTaxonId: Int
+  startDate: Date
   statusId: Int
+  taxonomicLevelId: Int
   updateDate: Date
+  upperRank: Int
   validityStatusId: Int
 }
 
@@ -2339,6 +2381,7 @@ input TripVOInput {
   gears: [PhysicalGearVOInput]
   id: Int
   landing: LandingVOInput
+  landingId: Int
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
   metiers: [MetierVOInput]

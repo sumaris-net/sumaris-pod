@@ -75,7 +75,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   fromObject(source: any): Landing {
     super.fromObject(source);
     this.dateTime = fromDateISOString(source.dateTime);
-    source.location && this.location.fromObject(source.location);
+    this.location = source.location && ReferentialRef.fromObject(source.location);
     this.rankOrder = source.rankOrder;
     this.rankOrderOnVessel = source.rankOrderOnVessel;
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];

@@ -230,8 +230,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    * @param opts
    */
   protected async safeSetValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
-    if (this.data === data) return; // skip if same
-
+    if (!data) {
+      console.warn("Trying to set undefined value to meas form. Skipping");
+      return;
+    }
     // Will avoid data to be set inside function updateControls()
     this.applyingValue = true;
 

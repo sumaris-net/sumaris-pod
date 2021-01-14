@@ -24,7 +24,7 @@ import {
 import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
-import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
+import {ReferentialRefFilter, ReferentialRefQueries, ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
@@ -42,6 +42,7 @@ import {Program} from "./model/program.model";
 import {PmfmStrategy} from "./model/pmfm-strategy.model";
 import {IWithProgramEntity} from "../../data/services/model/model.utils";
 import {SortDirection} from "@angular/material/sort";
+import {ReferentialQueries} from "./referential.service";
 
 
 export class ProgramFilter {
@@ -395,7 +396,10 @@ export class ProgramService extends BaseEntityService
     if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
 
     const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
-    return this.graphql.watchQuery<{ programs: any[], programsCount?: number }>({
+    return this.mutableWatchQuery<{ programs: any[], programsCount?: number }>({
+      queryName: (!opts || opts.withTotal !== false) ? 'LoadAllWithTotal' : 'LoadAll',
+      arrayFieldName: 'programs',
+      totalFieldName: 'programsCount',
       query,
       variables,
       error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
@@ -706,7 +710,7 @@ export class ProgramService extends BaseEntityService
           })
         ),
         ProgramCacheKeys.CACHE_GROUP
-    )
+    );
 
     // Convert into model, after cache (convert by default)
     if (!opts || opts.toEntity !== false) {
@@ -852,21 +856,37 @@ export class ProgramService extends BaseEntityService
     // Fill default properties
     this.fillDefaultProperties(entity);
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    const isNew = isNil(json.id);
 
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Saving program...", json);
 
-    const res = await this.graphql.mutate<{ saveProgram: Program }>({
+    await this.graphql.mutate<{ saveProgram: Program }>({
       mutation: SaveQuery,
       variables: {
         program: json
       },
-      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"}
-    });
-    const savedProgram = res && res.saveProgram;
-    this.copyIdAndUpdateDate(savedProgram, entity);
+      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"},
+      refetchQueries: [
+        { query: ReferentialQueries.loadAll},
+        { query: ReferentialQueries.loadAllWithTotal}
+      ],
+      update: (cache, {data}) => {
+        // Update entity
+        const savedEntity = data && data.saveProgram;
+        this.copyIdAndUpdateDate(savedEntity, entity);
 
-    if (this._debug) console.debug(`[program-service] Program saved and updated in ${Date.now() - now}ms`, entity);
+        if (this._debug) console.debug(`[program-service] Program saved and updated in ${Date.now() - now}ms`, entity);
+
+        // Update the cache
+        if (isNew) {
+          this.insertIntoMutableCachedQuery(cache, {
+            query: LoadAllQuery,
+            data: savedEntity
+          });
+        }
+      }
+    });
 
     return entity;
   }

@@ -1,7 +1,7 @@
 import {Directive, Input, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
-import {AlertController, ToastController} from '@ionic/angular';
+import {AlertController, IonContent, ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 import {Subscription, TeardownLogic} from 'rxjs';
 import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
@@ -59,7 +59,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
   @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
   @ViewChild(FormButtonsBarComponent, { static: true }) formButtonsBar: FormButtonsBarComponent;
-
+  @ViewChild(IonContent, {static: true}) content: IonContent;
 
   get tables(): AppTable<any>[] {
     return this._children && (this._children.filter(c => c instanceof AppTable) as AppTable<any>[]);
@@ -232,6 +232,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
       if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
   }
+
 
   onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string): boolean {
     queryTabIndexParamName = queryTabIndexParamName || this.queryTabIndexParamName;

@@ -174,6 +174,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
     return super.clickRow(event, row);
   }
 
+
   async openTrashModal(event?: UIEvent) {
     console.debug('[observed-locations] Opening trash modal...');
     // TODO BLA

@@ -19,6 +19,8 @@ import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model
 import {TaxonGroupRef} from "../../referential/services/model/taxon.model";
 import {filterNotNil} from "../../shared/observables";
 import {toNumber} from "../../shared/functions";
+import {ExtractionHelpModal} from "../../extraction/help/help.modal";
+import {AppHelpModal} from "../../shared/help/help.modal";
 
 @Component({
   selector: 'app-auction-control',
@@ -41,6 +43,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   $taxonGroups = new BehaviorSubject<TaxonGroupRef[]>(null);
   selectedTaxonGroup$: Observable<TaxonGroupRef>;
   showSamplesTable = false;
+  helpContent: string;
 
   constructor(
     injector: Injector,
@@ -138,6 +141,12 @@ export class AuctionControlPage extends LandingPage implements OnInit {
             startWith<any, any>(control.value),
             debounceTime(250)
           )),
+        // Update the help content
+        tap(qv => {
+          // TODO BLA load description, in the executeImport process
+          console.log("TODO: update help modal with QV=", qv);
+          this.helpContent = qv && qv.description || undefined;
+        }),
         map(qv => {
           return ReferentialUtils.isNotEmpty(qv)
             && this.$taxonGroups.getValue().find(tg => tg.label === qv.label)
@@ -224,9 +233,26 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.landingForm.showObservers = false;
   }
 
-
   async save(event?: Event, options?: any): Promise<boolean> {
     return super.save(event, options);
+  }
+
+  async openHelpModal(event?: UIEvent) {
+    const modal = await this.modalCtrl.create({
+      component: AppHelpModal,
+      componentProps: {
+        title: 'COMMON.BTN_SHOW_HELP',
+        markdownContent: this.helpContent
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    await modal.onDidDismiss();
   }
 
   // protected async getValue(): Promise<Landing> {

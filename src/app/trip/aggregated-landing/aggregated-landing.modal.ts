@@ -22,13 +22,13 @@ import {Alerts} from "../../shared/alerts";
   templateUrl: './aggregated-landing.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit {
+export class AggregatedLandingModal implements OnInit, OnDestroy {
 
-  loading = false;
+  loading = true;
   subscription = new Subscription();
   $title = new BehaviorSubject<string>('');
 
-  @ViewChild('form', {static: false}) form: AggregatedLandingForm;
+  @ViewChild('form', {static: true}) form: AggregatedLandingForm;
 
   @Input() data: AggregatedLanding;
   @Input() options: AggregatedLandingFormOption;
@@ -54,20 +54,11 @@ export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngOnInit(): void {
-  }
+    this.enable();
+    this.form.data = this.data;
+    this.updateTitle();
 
-  ngAfterViewInit(): void {
-
-    this.loading = true;
-
-    // setTimeout(() => {
-      this.enable();
-      this.form.data = this.data;
-      this.updateTitle();
-
-      this.loading = false;
-    // });
-
+    this.loading = false;
   }
 
   addActivity() {

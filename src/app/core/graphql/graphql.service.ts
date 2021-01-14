@@ -45,14 +45,14 @@ import {Cache} from "@apollo/client/cache/core/types/Cache";
 
 export interface WatchQueryOptions<V> {
   query: any;
-  variables: V;
+  variables?: V;
   error?: ServiceError;
   fetchPolicy?: WatchQueryFetchPolicy;
 }
 
 export interface MutateQueryOptions<T, V = OperationVariables> extends MutationBaseOptions<T, V> {
   mutation: any;
-  variables: V;
+  variables?: V;
   error?: ServiceError;
   context?: {
     serializationKey?: string;

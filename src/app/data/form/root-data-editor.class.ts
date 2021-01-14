@@ -1,8 +1,8 @@
-import {Directive, Injector, OnInit} from '@angular/core';
+import {Directive, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {ReferentialRef} from '../../core/core.module';
 import {BehaviorSubject, Subject} from 'rxjs';
-import {isNil, isNotNil, isNotNilOrBlank} from '../../shared/functions';
+import {changeCaseToUnderscore, isNil, isNotNil, isNotNilOrBlank, toNumber} from '../../shared/functions';
 import {distinctUntilChanged, filter, switchMap, tap} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
 import {ProgramService} from "../../referential/services/program.service";
@@ -16,6 +16,7 @@ import {
   MatAutocompleteFieldConfig
 } from "../../shared/material/autocomplete/material.autocomplete";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {IonContent} from "@ionic/angular";
 
 
 @Directive()
@@ -94,6 +95,33 @@ export abstract class AppRootDataEditor<
     this.markForCheck();
   }
 
+  setError(error: any) {
+
+    if (error) {
+      // Create a details message, from errors in forms (e.g. returned by control())
+      const formErrors = error && error.details && error.details.errors;
+      if (formErrors) {
+        const messages = Object.keys(formErrors)
+          .map(field => {
+            const fieldErrors = formErrors[field];
+            const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
+            const fieldName = this.translate.instant(fieldI18nKey);
+            const errorMsg = Object.keys(fieldErrors).map(errorKey => {
+              const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
+              return this.translate.instant(key, fieldErrors[key]);
+            }).join(', ');
+            return fieldName + ": " + errorMsg;
+          }).filter(isNotNil);
+        if (messages.length) {
+          error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
+        }
+      }
+
+    }
+
+    super.setError(error);
+  }
+
   /* -- protected methods -- */
 
   protected registerAutocompleteField<T = any, F = any>(fieldName: string,
@@ -162,4 +190,5 @@ export abstract class AppRootDataEditor<
 
     return res;
   }
+
 }

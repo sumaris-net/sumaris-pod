@@ -18,7 +18,7 @@
           <ion-icon name="calendar"></ion-icon>&nbsp;
           <span translate>COMMON.CREATED_ON</span>
           <span>
-            <b>{{ value.creationDate | dateFormat: {pattern: 'L LT'} }}</b>
+            <b>{{ value.creationDate | dateFormat: {time: true} }}</b>
           </span>
         </ion-text>
 
@@ -28,7 +28,7 @@
           <ion-label>
             <ion-icon name="time-outline"></ion-icon>&nbsp;
             <span translate>COMMON.UPDATED_ON</span>
-            <span>&nbsp;{{ value.updateDate | dateFormat: {pattern: 'L LTS'} }}</span>
+            <span>&nbsp;{{ value.updateDate | dateFormat: {time: true, seconds: true} }}</span>
           </ion-label>
         </ion-text>
 

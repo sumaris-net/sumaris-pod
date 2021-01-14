@@ -1,4 +1,4 @@
-import {fromDateISOString, isNil, toDateISOString} from "../../../core/core.module";
+import {EntityUtils, fromDateISOString, isNil, toDateISOString} from "../../../core/core.module";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {Person} from "../../../core/services/model/person.model";
 import {Moment} from "moment/moment";
@@ -68,14 +68,12 @@ export abstract class DataRootEntityUtils {
     if (!source) return;
 
     // Update (id and updateDate)
-    target.controlDate = source.controlDate;
+    target.controlDate = fromDateISOString(source.controlDate);
     target.validationDate = fromDateISOString(source.validationDate);
 
-    // Update creation Date, if exists
-    if (source['creationDate']) {
-      target['creationDate'] = fromDateISOString(source['creationDate']);
-    }
   }
+
+  static copyQualificationDateAndFlag = EntityUtils.copyQualificationDateAndFlag;
 
   static isLocal(entity: RootDataEntity<any>): boolean {
     return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);

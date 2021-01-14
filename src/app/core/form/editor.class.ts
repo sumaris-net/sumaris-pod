@@ -33,6 +33,7 @@ import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ErrorCodes, ServerErrorCodes} from "../services/errors";
+import {toNumber} from "../../shared/functions";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;
@@ -101,6 +102,20 @@ export abstract class AppEntityEditor<
 
   get service(): S {
     return this.dataService;
+  }
+
+  markAsSaving(opts?: { emitEvent?: boolean; }){
+    if (!this.saving) {
+      this.saving = true;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
+  markAsSaved(opts?: { emitEvent?: boolean; }){
+    if (this.saving) {
+      this.saving = false;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
   }
 
   protected constructor(
@@ -413,17 +428,18 @@ export abstract class AppEntityEditor<
       this.submitted = true;
       return false;
     }
-    this.saving = true;
+
+    this.markAsSaving();
     this.error = undefined;
 
     if (this.debug) console.debug("[data-editor] Saving data...");
 
-    // Get data
-    const data = await this.getValue();
-
-    this.disable();
-
     try {
+      // Get data
+      const data = await this.getValue();
+
+      this.disable();
+
       // Save form
       const updatedData = await this.dataService.save(data, options);
 
@@ -442,6 +458,7 @@ export abstract class AppEntityEditor<
       this.submitted = true;
       this.setError(err);
       this.selectedTabIndex = 0;
+      this.scrollToTop(); // Scroll to top (to show error)
       this.markAsDirty();
       this.enable();
 
@@ -453,9 +470,11 @@ export abstract class AppEntityEditor<
         });
       }
 
+
+
       return false;
     } finally {
-      this.saving = false;
+      this.markAsSaved();
     }
   }
 
@@ -497,16 +516,16 @@ export abstract class AppEntityEditor<
 
     console.debug("[data-editor] Asking to delete...");
 
-    this.saving = true;
+    this.markAsSaving();
     this.error = undefined;
 
-    // Get data
-    const data = await this.getValue();
-    const isNew = this.isNewData;
-
-    this.disable();
-
     try {
+      // Get data
+      const data = await this.getValue();
+      const isNew = this.isNewData;
+
+      this.disable();
+
       if (!isNew) {
         await this.dataService.delete(data);
       }
@@ -520,7 +539,7 @@ export abstract class AppEntityEditor<
       this.submitted = true;
       this.setError(err);
       this.selectedTabIndex = 0;
-      this.saving = false;
+      this.markAsSaved();
       this.enable();
       return false;
     }
@@ -537,6 +556,25 @@ export abstract class AppEntityEditor<
     }, 500);
 
 
+  }
+
+  async reload() {
+    this.loading = true;
+    await this.load(this.data && this.data.id);
+  }
+
+  setError(err: any) {
+    console.error("[data-editor] " + err && err.message || err, err);
+    let userMessage = err && err.message && this.translate.instant(err.message) || err;
+
+    // Add details error (if any) under the main message
+    const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
+    if (detailMessage) {
+      userMessage += `<br/><small class="hidden-xs hidden-sm" title="${detailMessage}">`;
+      userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
+      userMessage += "</small>";
+    }
+    this.error = userMessage;
   }
 
   /* -- protected methods to override -- */
@@ -561,6 +599,7 @@ export abstract class AppEntityEditor<
     this.registerForms();
     this._dirty = false;
     this.data = null;
+    this.saving = false;
   }
 
   protected async onNewEntity(data: T, options?: EntityServiceLoadOptions): Promise<void> {
@@ -603,11 +642,6 @@ export abstract class AppEntityEditor<
 
   protected getJsonValueToSave(): Promise<any> {
     return Promise.resolve(this.form.value);
-  }
-
-  async reload() {
-    this.loading = true;
-    await this.load(this.data && this.data.id);
   }
 
   /**
@@ -658,22 +692,22 @@ export abstract class AppEntityEditor<
     }
   }
 
+
+  protected async scrollToTop(duration?: number) {
+    duration = toNumber(duration, 500);
+
+    if (!this.content) {
+      console.warn(`[root-data-editor] Cannot scroll to top. Missing a 'content' child in the page ${this.constructor.name}`);
+      return;
+    }
+
+    return this.content.scrollToTop(duration);
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
-  public setError(err: any) {
-    console.error("[data-editor] " + err && err.message || err, err);
-    let userMessage = err && err.message && this.translate.instant(err.message) || err;
 
-    // Add details error (if any) under the main message
-    const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
-    if (detailMessage) {
-      userMessage += `<br/><small class="hidden-xs hidden-sm" title="${detailMessage}">`;
-      userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
-      userMessage += "</small>";
-    }
-    this.error = userMessage;
-  }
 }
 

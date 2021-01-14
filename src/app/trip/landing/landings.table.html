@@ -1,3 +1,26 @@
+
+
+<!-- Table options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- display columns -->
+  <button mat-menu-item
+          (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+
+  <!--<mat-divider></mat-divider>-->
+
+  <!-- trash
+  <button mat-menu-item
+          (click)="openTrashModal($event)">
+    <mat-icon>delete_sweep</mat-icon>
+    <ion-label translate>COMMON.BTN_SHOW_TRASH_DOTS</ion-label>
+  </button> -->
+
+</mat-menu>
+
 <mat-toolbar>
   <button mat-icon-button
           hidden-xs hidden-sm hidden-mobile
@@ -18,20 +41,22 @@
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <div class="toolbar-spacer"></div>
 
-  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+  <button mat-icon-button
+          [title]="'COMMON.BTN_OPTIONS'|translate"
+          [matMenuTriggerFor]="optionsMenu">
     <mat-icon>more_vert</mat-icon>
   </button>
 </mat-toolbar>
 
 <!-- error -->
-<ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+<ion-item *ngIf="error && showError && mobile" lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
 <mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
@@ -39,14 +64,14 @@
 
   <ng-container matColumnDef="select">
     <mat-header-cell *matHeaderCellDef
-                     class="hidden-xs hidden-sm"
+                     hidden-xs hidden-sm hidden-mobile
                      [class.cdk-visually-hidden]="!canEdit">
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                     [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
     </mat-header-cell>
     <mat-cell *matCellDef="let row"
-              class="hidden-xs hidden-sm"
+              hidden-xs hidden-sm hidden-mobile
               [class.cdk-visually-hidden]="!canEdit">
       <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
       </mat-checkbox>
@@ -56,15 +81,15 @@
   <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label>#</ion-label>
+      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder || row.currentData?.id }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder || row.currentData.id | mathAbs }}</mat-cell>
   </ng-container>
 
   <!-- Vessel Column -->
   <ng-container matColumnDef="vessel">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>LANDING.TABLE.VESSEL</span>
+      <ion-label translate>LANDING.TABLE.VESSEL</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-label>{{referentialToString(row.currentData?.vesselSnapshot, autocompleteFields.vesselSnapshot.attributes)}}</ion-label>
@@ -74,7 +99,7 @@
   <!-- Vessel type Column -->
   <ng-container matColumnDef="vesselType">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>LANDING.TABLE.VESSEL_TYPE</span>
+      <ion-label translate>LANDING.TABLE.VESSEL_TYPE</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.vesselType, ['name'])}}</ion-label>
@@ -84,20 +109,20 @@
   <!-- Vessel base port Column -->
   <ng-container matColumnDef="vesselBasePortLocation">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</span>
+      <ion-label translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.basePortLocation)}}</ion-label>
+      <ion-text>{{row.currentData.vesselSnapshot?.basePortLocation | referentialToString:autocompleteFields.location.attributes }}</ion-text>
     </mat-cell>
   </ng-container>
 
   <!-- date time  -->
   <ng-container matColumnDef="dateTime">
     <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <span translate>LANDING.TABLE.DATE_TIME</span>
+      <ion-label translate>LANDING.TABLE.DATE_TIME</ion-label>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      {{ getLandingDate(row.currentData) | dateFormat: {time: true} }}
+      <ion-text>{{ getLandingDate(row.currentData) | dateFormat: {time: true} }}</ion-text>
     </mat-cell>
   </ng-container>
 

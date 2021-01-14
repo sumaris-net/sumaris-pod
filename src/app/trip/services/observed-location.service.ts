@@ -9,6 +9,7 @@ import {
 } from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
+import * as moment from "moment";
 import {Moment} from "moment";
 import {gql} from "@apollo/client/core";
 import {Fragments} from "./trip.queries";
@@ -20,7 +21,7 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SAVE_LOCALLY_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
-import {FormErrors} from "../../core/form/form.utils";
+import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
 import {
   Beans,
@@ -32,10 +33,12 @@ import {
   KeysEnum,
   toDateISOString
 } from "../../shared/functions";
-import {SynchronizationStatus, SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
+import {
+  DataRootEntityUtils,
+  SynchronizationStatus,
+  SynchronizationStatusEnum
+} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
-import {Operation, Trip} from "./model/trip.model";
-import {TripFilter} from "./trip.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {NetworkService} from "../../core/services/network.service";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
@@ -44,8 +47,11 @@ import {LandingFilter, LandingService} from "./landing.service";
 import {IDataSynchroService, RootDataSynchroService} from "../../data/services/data-synchro-service.class";
 import {chainPromises} from "../../shared/observables";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {OperationFilter} from "./operation.service";
 import {Landing} from "./model/landing.model";
+import {ObservedLocationValidatorService} from "./validator/observed-location.validator";
+import {environment} from "../../../environments/environment";
+import {TripFragments} from "./trip.service";
+import {RootEntityMutations} from "./root-data-service.class";
 
 
 export class ObservedLocationFilter {
@@ -240,7 +246,40 @@ const LoadQuery: any = gql`
 // Save query
 const SaveQuery: any = gql`
   mutation SaveObservedLocation($observedLocation: ObservedLocationVOInput, $options: ObservedLocationSaveOptionsInput!){
-    saveObservedLocation(observedLocation: $observedLocations, options: $options){
+    saveObservedLocation(observedLocation: $observedLocation, options: $options){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+`;
+
+const ControlMutation: any = gql`
+  mutation TerminateObservedLocation($entity: ObservedLocationVOInput!){
+    entity: controlObservedLocation(observedLocation: $entity){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+`;
+const ValidateMutation: any = gql`
+  mutation ValidateObservedLocation($entity: ObservedLocationVOInput!){
+    entity: validateObservedLocation(observedLocation: $entity){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+`;
+const QualifyMutation: any = gql`
+  mutation QualifyObservedLocation($entity: ObservedLocationVOInput!){
+    entity: qualifyObservedLocation(observedLocation: $entity){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+`;
+const UnvalidateMutation: any = gql`
+  mutation UnvalidateObservedLocation($entity: ObservedLocationVOInput!){
+    entity: unvalidateObservedLocation(observedLocation: $entity){
       ...ObservedLocationFragment
     }
   }
@@ -279,10 +318,19 @@ export class ObservedLocationService
     protected accountService: AccountService,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
+    protected validatorService: ObservedLocationValidatorService,
     protected landingService: LandingService
   ) {
-    super(injector);
+    super(injector, {
+      terminate: ControlMutation,
+      validate: ValidateMutation,
+      unvalidate: UnvalidateMutation,
+      qualify: QualifyMutation
+    });
 
+    // FOR DEV ONLY
+    this._debug = !environment.production;
+    if (this._debug) console.debug('[observed-location-service] Creating service');
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
@@ -341,7 +389,7 @@ export class ObservedLocationService
       size: size || 20,
       sortBy: sortBy || 'startDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: TripFilter.searchFilter<Trip>(dataFilter)
+      filter: ObservedLocationFilter.searchFilter<ObservedLocation>(dataFilter)
     };
 
     console.debug("[observed-location-service] Watching local observed locations... using options:", variables);
@@ -401,7 +449,7 @@ export class ObservedLocationService
   public listenChanges(id: number): Observable<ObservedLocation> {
     if (!id && id !== 0) throw new Error("Missing argument 'id' ");
 
-    if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for trip {${id}}...`);
+    if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for observedLocation {${id}}...`);
 
     return this.graphql.subscribe<{ updateObservedLocation: ObservedLocation }, { id: number, interval: number }>({
       query: UpdateSubscription,
@@ -465,19 +513,19 @@ export class ObservedLocationService
     if (this._debug) console.debug("[observed-location-service] Using minify object, to send:", json);
 
     const variables = {
-      trip: json,
+      observedLocation: json,
       options: {
         withLanding: opts.withLanding
       }
     };
 
     const mutation = (opts.withLanding) ? SaveQuery : SaveQuery;
-    await this.graphql.mutate<{ saveObservedLocations: any }>({
+    await this.graphql.mutate<{ saveObservedLocation: ObservedLocation }>({
       mutation,
       variables,
       error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"},
       update: (proxy, {data}) => {
-        const savedEntity = data && data.saveObservedLocations && data.saveObservedLocations[0];
+        const savedEntity = data && data.saveObservedLocation;
         if (savedEntity !== entity) {
           if (this._debug) console.debug(`[observed-location-service] Observed location saved in ${Date.now() - now}ms`, entity);
           this.copyIdAndUpdateDate(savedEntity, entity);
@@ -496,7 +544,6 @@ export class ObservedLocationService
 
     return entity;
   }
-
 
   async saveLocally(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
     if (entity.id >= 0) throw new Error('Must be a local entity');
@@ -543,16 +590,31 @@ export class ObservedLocationService
   }
 
   async delete(data: ObservedLocation): Promise<any> {
+    if (!data) return; // skip
     await this.deleteAll([data]);
   }
 
-  async deleteAll(entities: ObservedLocation[], options?: any): Promise<any> {
-    const ids = entities && entities
-      .map(t => t.id)
-      .filter(isNotNil);
+  /**
+   * Delete many observations
+   * @param entities
+   * @param opts
+   */
+  async deleteAll(entities: ObservedLocation[], opts?: {
+    trash?: boolean; // True by default
+  }): Promise<any> {
+
+    // Delete local entities
+    const localEntities = entities && entities.filter(DataRootEntityUtils.isLocal);
+    if (isNotEmptyArray(localEntities)) {
+      return this.deleteAllLocally(localEntities, opts);
+    }
+
+    const ids = entities && entities.map(t => t.id)
+      .filter(id => id >= 0);
+    if (isEmptyArray(ids)) return; // stop if empty
 
     const now = Date.now();
-    if (this._debug) console.debug("[observed-location-service] Deleting observed locations... ids:", ids);
+    if (this._debug) console.debug(`[observed-location-service] Deleting {${ids.join(',')}}`, ids);
 
     await this.graphql.mutate<any>({
       mutation: DeleteByIdsMutation,
@@ -572,20 +634,84 @@ export class ObservedLocationService
     });
   }
 
-  /* -- TODO implement this methods -- */
-  async control(data: ObservedLocation): Promise<FormErrors> { return undefined; }
-  async terminate(data: ObservedLocation): Promise<ObservedLocation> { return data; }
-  async validate(data: ObservedLocation): Promise<ObservedLocation> { return data; }
-  async unvalidate(data: ObservedLocation): Promise<ObservedLocation> { return data; }
-  async qualify(data: ObservedLocation, qualityFlagId: number): Promise<ObservedLocation> { return data; }
+  /**
+   * Delete many local entities
+   * @param entities
+   * @param opts
+   */
+  async deleteAllLocally(entities: ObservedLocation[], opts?: {
+    trash?: boolean; // True by default
+  }): Promise<any> {
 
+    // Get local entity ids, then delete id
+    const localEntities = entities && entities
+      .filter(DataRootEntityUtils.isLocal);
 
-  /* -- -- */
-  async synchronizeById(id: number): Promise<ObservedLocation> {
-    const entity = await this.load(id);
-    if (!entity || entity.id >= 0) return; // skip
+    if (isEmptyArray(localEntities)) return; // Skip if empty
 
-    return await this.synchronize(entity);
+    const trash = !opts || opts !== false;
+    const trashUpdateDate = trash && moment();
+
+    if (this._debug) console.debug(`[observedLocation-service] Deleting locally... {trash: ${trash}`);
+
+    await chainPromises(localEntities.map(entity => async () => {
+
+      // Load children
+      const res = await this.landingService.loadAllByObservedLocation({observedLocationId: entity.id},
+        {fullLoad: true, computeRankOrder: false});
+      const landings = res && res.data;
+
+      await this.entities.delete(entity, {entityName: ObservedLocation.TYPENAME});
+
+      if (isNotNil(landings)) {
+        await this.landingService.deleteAll(landings, {trash: false});
+      }
+
+      if (trash) {
+        // Fill observedLocation's operation, before moving it to trash
+        entity.landings = landings;
+        entity.updateDate = trashUpdateDate;
+
+        const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
+
+        // Add to trash
+        await this.entities.saveToTrash(json, {entityName: ObservedLocation.TYPENAME});
+      }
+
+    }));
+  }
+
+  async control(entity: ObservedLocation): Promise<FormErrors> {
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}}...`, entity);
+
+    const programLabel = entity.program && entity.program.label || null;
+    if (!programLabel) throw new Error("Missing entity's program. Unable to control the entity");
+    const program = await this.programService.loadByLabel(programLabel);
+
+    const form = this.validatorService.getFormGroup(entity, {
+      program,
+      withMeasurements: true // Need by full validation
+    });
+
+    if (!form.valid) {
+      // Wait end of validation (e.g. async validators)
+      await AppFormUtils.waitWhilePending(form);
+
+      // Get form errors
+      if (form.invalid) {
+        const errors = AppFormUtils.getFormErrors(form, 'observedLocation');
+
+        if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+
+        return errors;
+      }
+    }
+
+    if (this._debug) console.debug(`[observed-location-service] Control ${entity.id}} [OK] in ${Date.now() - now}ms`);
+
+    return undefined;
   }
 
   async synchronize(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
@@ -621,7 +747,7 @@ export class ObservedLocationService
       throw {
         ...err,
         code: ErrorCodes.SYNCHRONIZE_OBSERVED_LOCATION_ERROR,
-        message: "OBSERVED_LOCATION.ERROR.SYNCHRONIZE_ERROR",
+        message: "ERROR.SYNCHRONIZE_ERROR",
         context: entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
       };
     }
@@ -645,24 +771,4 @@ export class ObservedLocationService
 
   /* -- protected methods -- */
 
-  protected asObject(entity: ObservedLocation, opts?: DataEntityAsObjectOptions): any {
-    opts = { ...MINIFY_OPTIONS, ...opts };
-
-    const copy = super.asObject(entity, opts);
-
-    return copy;
-  }
-
-
-  protected async fillOfflineDefaultProperties(entity: ObservedLocation) {
-    const isNew = isNil(entity.id);
-
-    // If new, generate a local id
-    if (isNew) {
-      entity.id =  await this.entities.nextValue(entity);
-    }
-
-    // Fill default synchronization status
-    entity.synchronizationStatus = entity.synchronizationStatus || SynchronizationStatusEnum.DIRTY;
-  }
 }

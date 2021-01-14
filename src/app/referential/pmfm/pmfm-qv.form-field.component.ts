@@ -69,6 +69,8 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
   mobile = false;
   selectedIndex = -1;
   _tabindex: number;
+  showAllButtons = false;
+  buttonsColCount: number;
 
   get nativeElement(): any {
     return this.matInput && this.matInput.nativeElement;
@@ -176,10 +178,7 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
     this.placeholder = this.placeholder || this.pmfm.name || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
-    this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 10);
-    if (this._qualitativeValues.length <= this.maxVisibleButtons) {
-      this.maxVisibleButtons = 999; // Not need to limit
-    }
+
 
     if (!this.mobile) {
       if (!this._sortedQualitativeValues.length) {
@@ -205,9 +204,14 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
       }
     }
 
-
     // If button, listen enable/disable changes (hack using statusChanges)
     if (this.style === 'button') {
+
+      this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 10);
+      if (this._qualitativeValues.length < this.maxVisibleButtons) {
+        this.maxVisibleButtons = 999; // Not need to limit
+      }
+      this.buttonsColCount = Math.min(Math.min(this.maxVisibleButtons, this._qualitativeValues.length), 10);
 
       this.formControl.statusChanges
         .pipe(

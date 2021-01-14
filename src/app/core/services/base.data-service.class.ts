@@ -6,6 +6,7 @@ import {FetchResult} from "@apollo/client/link/core";
 import {environment} from "../../../environments/environment";
 import {EntityUtils} from "./model/entity.model";
 import {ApolloCache} from "@apollo/client/core";
+import {changeCaseToUnderscore, isNotEmptyArray} from "../../shared/functions";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
 
@@ -30,7 +31,7 @@ export interface MutableWatchQueryOptions<D, T = any, V = EmptyObject> extends W
   queryName?: string,
   arrayFieldName: keyof D;
   totalFieldName?: keyof D ;
-  insertFilterFn?: (data: T) => boolean
+  insertFilterFn?: (data: T) => boolean;
 }
 
 export interface MutableWatchQueryInfo<D, T = any, V = EmptyObject> {
@@ -47,6 +48,7 @@ export interface MutableWatchQueryInfo<D, T = any, V = EmptyObject> {
 export abstract class BaseEntityService<T = any, F = any> {
 
   protected _debug: boolean;
+  protected _debugPrefix: string;
   protected _mutableWatchQueries: MutableWatchQueryInfo<any>[] = [];
 
   // Max updated queries, for this entity.
@@ -61,6 +63,7 @@ export abstract class BaseEntityService<T = any, F = any> {
 
     // for DEV only
     this._debug = !environment.production;
+    this._debugPrefix = this._debug && `[${changeCaseToUnderscore(this.constructor.name).replace(/_/g, '-' )}]`;
   }
 
   mutableWatchQuery<D, V = EmptyObject>(opts: MutableWatchQueryOptions<D, T, V>): Observable<D> {
@@ -81,10 +84,10 @@ export abstract class BaseEntityService<T = any, F = any> {
       if (existingQueries.length === 1) {
         mutableQuery = existingQueries[0] as MutableWatchQueryInfo<D, T, V>;
         mutableQuery.counter += 1;
-        console.debug('[base-data-service] Find existing mutable watching query (same variables): ' + queryName);
+        if (this._debug) console.debug(this._debugPrefix + 'Find existing mutable watching query (same variables): ' + queryName);
 
         //if (mutableQuery.counter > 3) {
-        //  console.warn('[base-data-service] TODO: clean previous queries with name: ' + queryName);
+        //  console.warn(this._debugPrefix + 'TODO: clean previous queries with name: ' + queryName);
         //}
       }
       else {
@@ -119,27 +122,27 @@ export abstract class BaseEntityService<T = any, F = any> {
         if (opts.data instanceof Array) {
           // Filter values, if a filter function exists
           const data = watchQuery.insertFilterFn ? opts.data.filter(i => watchQuery.insertFilterFn(i)) : opts.data;
-          if (this._debug && data.length) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
-          this.graphql.addManyToQueryCache(cache, {
-            query: opts.query,
-            variables: watchQuery.variables,
-            arrayFieldName: watchQuery.arrayFieldName as string,
-            sortFn: watchQuery.sortFn,
-            data
-          });
-        }
-        else {
-          // Filter value, if a filter function exists
-          if (!watchQuery.insertFilterFn || watchQuery.insertFilterFn(opts.data)) {
+          if (isNotEmptyArray(data)) {
             if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
-            this.graphql.insertIntoQueryCache(cache, {
+            this.graphql.addManyToQueryCache(cache, {
               query: opts.query,
               variables: watchQuery.variables,
               arrayFieldName: watchQuery.arrayFieldName as string,
               sortFn: watchQuery.sortFn,
-              data: opts.data
+              data
             });
           }
+        }
+        // Filter value, if a filter function exists
+        else if (!watchQuery.insertFilterFn || watchQuery.insertFilterFn(opts.data)) {
+          if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
+          this.graphql.insertIntoQueryCache(cache, {
+            query: opts.query,
+            variables: watchQuery.variables,
+            arrayFieldName: watchQuery.arrayFieldName as string,
+            sortFn: watchQuery.sortFn,
+            data: opts.data
+          });
         }
       });
   }
@@ -180,7 +183,7 @@ export abstract class BaseEntityService<T = any, F = any> {
 
   registerNewMutableWatchQuery(mutableQuery: MutableWatchQueryInfo<any>) {
 
-    if (this._debug) console.debug('[base-data-service] Adding new mutable watching query: ' + mutableQuery.id);
+    if (this._debug) console.debug(this._debugPrefix + 'Adding new mutable watching query: ' + mutableQuery.id);
 
     // If exceed the max size of mutable queries: remove some
     if (this._mutableWatchQueriesMaxCount > 0 && this._mutableWatchQueries.length >= this._mutableWatchQueriesMaxCount) {

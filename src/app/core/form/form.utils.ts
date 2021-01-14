@@ -282,32 +282,52 @@ export function logFormErrors(control: AbstractControl, logPrefix?: string, path
 export interface FormErrors {
   [key: string]: ValidationErrors;
 }
-export function getFormErrors(control: AbstractControl, controlName: string, result?: FormErrors): FormErrors {
+export function getFormErrors(control: AbstractControl, controlName?: string, result?: FormErrors): FormErrors {
   if (control.valid) return undefined;
 
-
   result = result || {};
-  controlName = controlName || 'root';
 
   // Form group
   if (control instanceof FormGroup) {
     // Copy errors
-    result[controlName] = {...control.errors};
+    if (control.errors) {
+      if (controlName) {
+        result[controlName] = {
+          ...control.errors
+        };
+      }
+      else {
+        result = {
+          ...result,
+          ...control.errors
+        };
+      }
+    }
 
     // Loop on children controls
     for (let key in control.controls) {
-      getFormErrors(control.controls[key], [controlName, key].join('.'), result);
+      getFormErrors(control.controls[key], controlName ? [controlName, key].join('.') :  key, result);
     }
   }
   // Form array
   else if (control instanceof FormArray) {
     control.controls.forEach((child, index) => {
-      getFormErrors(child, controlName + '#' + index, result);
+      getFormErrors(child, (controlName || '') + '#' + index, result);
     });
   }
   // Other type of control
-  else {
-    result[controlName] = {...control.errors};
+  else if (control.errors) {
+    if (controlName) {
+      result[controlName] = {
+        ...control.errors
+      };
+    }
+    else {
+      result = {
+        ...result,
+        ...control.errors
+      };
+    }
   }
   return result;
 }

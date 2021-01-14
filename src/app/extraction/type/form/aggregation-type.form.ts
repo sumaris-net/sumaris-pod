@@ -97,7 +97,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     );
 
     this.registerSubscription(
-      this.form.get('comments').valueChanges
+      this.form.get('documentation').valueChanges
         .pipe(
           debounceTime(350)
         )
@@ -189,6 +189,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
 
   setValue(data: AggregationType, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
+    console.debug('[aggregation-type-form] Setting value: ', data);
     // If spatial, load columns
     if (data && data.isSpatial) {
       // If spatial product, make sure there is one strata

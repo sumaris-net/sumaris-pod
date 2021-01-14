@@ -39,10 +39,10 @@ export const ExtractionFragments = {
     description
     rankOrder
   }`
-}
+};
 
 
-const LoadTypesQuery: any = gql`
+export const LoadExtractionTypesQuery: any = gql`
   query ExtractionTypes {
     extractionTypes {
       ...ExtractionTypeFragment
@@ -98,9 +98,8 @@ export class ExtractionService extends BaseEntityService {
 
     return this.mutableWatchQuery<{ extractionTypes: ExtractionType[] }>({
       queryName: 'LoadExtractionTypes',
-      query: LoadTypesQuery,
+      query: LoadExtractionTypesQuery,
       arrayFieldName: 'extractionTypes',
-      variables: {},
       error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"},
       ...opts
     })

@@ -56,6 +56,7 @@ import {
   REFERENTIAL_LOCAL_SETTINGS_OPTIONS
 } from "./referential/services/config/referential.config";
 import {FormFieldDefinitionMap} from "./shared/form/field.model";
+import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 
 
 @NgModule({
@@ -221,6 +222,7 @@ import {FormFieldDefinitionMap} from "./shared/form/field.model";
     // Entities Apollo cache options
     { provide: APP_GRAPHQL_TYPE_POLICIES, useValue: <TypePolicies>{
         ...REFERENTIAL_GRAPHQL_TYPE_POLICIES,
+        ...DATA_GRAPHQL_TYPE_POLICIES,
         ...TRIP_GRAPHQL_TYPE_POLICIES,
         ...EXTRACTION_GRAPHQL_TYPE_POLICIES
       }

@@ -121,7 +121,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       valid = isNil(errors);
 
       if (!valid) {
-        this.editor.setError({message: 'QUALITY.ERROR.INVALID_FORM'});
+        this.editor.setError({message: 'QUALITY.ERROR.INVALID_FORM', details: {errors} });
         this.editor.markAsTouched();
       }
       else {

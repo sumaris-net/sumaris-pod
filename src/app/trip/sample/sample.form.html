@@ -68,7 +68,7 @@
     <ion-spinner class="ion-align-self-center" *ngIf="loading"></ion-spinner>
 
     <!-- Measurements -->
-    <ion-row class="ion-no-padding">
+    <ion-row class="ion-no-padding" *ngIf="measurementValues; let form" [formGroup]="form">
       <ng-container *ngFor="let pmfm of $pmfms | async; index as i;">
 
         <!-- qualitative value (force 'button' style, on mobile)-->
@@ -78,9 +78,9 @@
           <app-pmfm-qv-field #matInput
                              [hidden]="pmfm.hidden"
                              [pmfm]="pmfm"
-                             style="button"
+                             [style]="'button'"
                              [maxVisibleButtons]="maxVisibleButtons"
-                             [formControl]="form.get('measurementValues.'+pmfm.pmfmId.toString())"
+                             [formControlName]="pmfm.pmfmId.toString()"
                              [compact]="compact"
                              [tabindex]="tabindex+4 + i*2">
           </app-pmfm-qv-field>
@@ -95,7 +95,7 @@
                             [pmfm]="pmfm"
                             [hidden]="pmfm.hidden"
                             [floatLabel]="(pmfm|isComputedPmfm) ? 'always' : 'auto'"
-                            [formControl]="form.get('measurementValues.'+pmfm.pmfmId.toString())"
+                            [formControlName]="pmfm.pmfmId.toString()"
                             [compact]="compact"
                             [tabindex]="tabindex+4 + i*2">
             </app-pmfm-field>

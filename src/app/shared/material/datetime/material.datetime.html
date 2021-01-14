@@ -60,9 +60,9 @@
                         [touchUi]="mobile"
                         [disabled]="formControl.disabled"
                         [startAt]="startDate"></mat-datepicker>
-        <div class="mat-form-field-subscript mat-form-field-subscript-wrapper">
+        <div class="mat-form-field-subscript mat-form-field-subscript-wrapper" >
           <!-- errors -->
-          <ng-container [ngSwitch]="formControl.errors|mapKeys|arrayFirst">
+          <ng-container [ngSwitch]="formControl.touched && formControl.errors|mapKeys|arrayFirst">
             <mat-error *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</mat-error>
             <mat-error *ngSwitchCase="'validDate'" translate>ERROR.FIELD_NOT_VALID_DATE_TIME</mat-error>
             <mat-error *ngSwitchCase="'dateIsAfter'">{{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: formControl.errors.dateIsAfter }}</mat-error>

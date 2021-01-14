@@ -11,7 +11,7 @@ import {
 import {FilterFn} from "../../../shared/services/entity-service.class";
 import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
 import {StoreObject} from "@apollo/client/core";
-import {ReferentialRef} from "../../core.module";
+import {DataEntity} from "../../../data/services/model/data-entity.model";
 
 
 export declare interface Cloneable<T> {
@@ -144,6 +144,22 @@ export abstract class EntityUtils {
     if (source['creationDate']) {
       target['creationDate'] = fromDateISOString(source['creationDate']);
     }
+  }
+
+  static copyControlDate(source: DataEntity<any> | undefined, target: DataEntity<any>) {
+    if (!source) return;
+
+    // Update (id and updateDate)
+    target.controlDate = fromDateISOString(source.controlDate);
+  }
+
+  static copyQualificationDateAndFlag(source: DataEntity<any> | undefined, target: DataEntity<any>) {
+    if (!source) return;
+
+    // Update (id and updateDate)
+    target.qualificationDate = fromDateISOString(source.qualificationDate); // can be null
+    target.qualificationComments = source.qualificationComments; // can be null
+    target.qualityFlagId = source.qualityFlagId; // can be = 0 (default)
   }
 
   static async fillLocalIds<T extends IEntity<T>>(items: T[], sequenceFactory: (firstEntity: T, incrementSize: number) => Promise<number>) {

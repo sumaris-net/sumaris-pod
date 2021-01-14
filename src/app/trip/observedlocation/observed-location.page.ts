@@ -1,5 +1,12 @@
 import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
-import {fadeInOutAnimation, isNil, isNotEmptyArray, isNotNil, toBoolean} from '../../shared/shared.module';
+import {
+  changeCaseToUnderscore,
+  fadeInOutAnimation,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  toBoolean
+} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
@@ -89,6 +96,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.onProgramChanged.subscribe(program => this.setProgram(program))
     );
   }
+
+  /* -- protected methods  -- */
 
   protected setProgram(program: Program) {
     if (!program) return; // Skip
@@ -300,7 +309,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       startDate,
       endDate,
       locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined,
-      onlyLast: (this.landingsTable && this.landingsTable.isTripDetailEditor) || (isNotNil(this.aggregatedLandingsTable)),
+      groupByVessel: (this.landingsTable && this.landingsTable.isTripDetailEditor) || (isNotNil(this.aggregatedLandingsTable)),
       excludeVesselIds
     };
 

@@ -59,8 +59,21 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
     mode: 'by-id',
     skipNonLocalEntities: true,
     lightFieldsExcludes: ["trip", "measurements", "samples", "batches", "catchBatch", "gearMeasurements", 'fishingAreas']
+  },
+
+  'ObservedLocationVO': <EntityStoreTypePolicy<ObservedLocation>>{
+    mode: 'by-id',
+    skipNonLocalEntities: true
+  },
+
+  'LandingVO': <EntityStoreTypePolicy<Landing>>{
+    mode: 'by-id',
+    skipNonLocalEntities: false, // TODO BLA: vérifier que la prédoc hors ligne fonctionne
+    lightFieldsExcludes: ["samples"]
   }
 };
 
 import {TypePolicies} from "@apollo/client/core";
+import {ObservedLocation} from "../model/observed-location.model";
+import {Landing} from "../model/landing.model";
 

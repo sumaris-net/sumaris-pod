@@ -102,7 +102,7 @@
         <ion-label color="danger" class="error" [innerHTML]="samplesTable?.error|translate"></ion-label>
       </ion-item>
 
-      <div class="ion-no-padding">
+      <div  class="ion-no-padding">
 
         <form *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
               [formGroup]="landingForm.measurementValuesForm"
@@ -113,7 +113,7 @@
               <!-- pmfms -->
               <ion-col *ngFor="let pmfm of pmfms; index as i;"
                   size="12" size-md="6">
-                <app-pmfm-field [formControlName]="pmfm.pmfmId.toString()"
+                <app-pmfm-field [formControlName]="''+pmfm.pmfmId"
                                 [pmfm]="pmfm"
                                 [tabindex]="50 + i*2">
                 </app-pmfm-field>
@@ -131,6 +131,14 @@
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
                            (onInitForm)="onInitSampleForm($event)">
+          <ion-buttons slot="end">
+            <!-- Help button -->
+            <button mat-icon-button *ngIf="helpContent"
+                    [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+                    (click)="openHelpModal($event)">
+              <mat-icon>help_outline</mat-icon>
+            </button>
+          </ion-buttons>
         </app-samples-table>
       </div>
     </mat-tab>

@@ -388,7 +388,7 @@ export class AccountService extends BaseEntityService {
 
     if (this._debug) console.debug('[account] Register new user account...', data.account);
     this.data.loaded = false;
-    let now = Date.now();
+    const now = Date.now();
 
     try {
       const keypair = await this.cryptoService.scryptKeypair(data.username, data.password);
