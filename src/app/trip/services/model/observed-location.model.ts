@@ -53,7 +53,6 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
 
   asObject(options?: DataEntityAsObjectOptions): any {
     const target = super.asObject(options);
-    target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.location = this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
@@ -66,7 +65,6 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
 
   fromObject(source: any): ObservedLocation {
     super.fromObject(source);
-    this.program = source.program && ReferentialRef.fromObject(source.program);
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.location = source.location && ReferentialRef.fromObject(source.location);
