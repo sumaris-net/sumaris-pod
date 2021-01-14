@@ -49,6 +49,11 @@ Puis la lancer :
 - `cd sumaris-server`
 - `mvn spring-boot:run` **(ne pas oublier de lancer la base!)**
 
+### Lancer le pod sur la BDD oracle
+ - faire un checkout de la branche **feature-oracle-adagio**
+ - exécuter la commande `mvn install -Poracle -DskipTests`
+ - exécuter la commande`mvn spring-boot:run -Poracle -Dspring.liquibase.enabled=false -Doracle.net.tns_admin=\\brest\tnsnames -Dsumaris.name=SUMARiS -Dsumaris.persistence.sequence.increment=1 -Dlogging.level.org.hibernate.SQL=debug`
+
 Le serveur est accessible sur <http://localhost:8080>
 
 ### Sous IntelliJ
