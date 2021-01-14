@@ -352,6 +352,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     const taxonNameControl = this.taxonNamesForm;
     taxonNameControl.patchValue(taxonNames);
+    if (!this.appliedStrategies)
+    {
+      this.appliedStrategies = [];
+    }
     this.fishingAreasFormArray.patchValue(this.appliedStrategies);
 
     this.sampleRowCodeControl.patchValue(sample);
