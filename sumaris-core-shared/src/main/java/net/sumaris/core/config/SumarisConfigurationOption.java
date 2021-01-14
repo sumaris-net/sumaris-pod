@@ -419,7 +419,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     ANALYTIC_REFERENCES_SERVICE_DELAY(
             "analyticReferences.service.delay",
             n("sumaris.config.option.analyticReferences.service.delay.description"),
-            String.valueOf(7), /* 7 days */
+            String.valueOf(30), /* 30 days */
             Integer.class,
             false),
 
