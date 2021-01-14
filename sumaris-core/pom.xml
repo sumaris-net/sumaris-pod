@@ -435,6 +435,35 @@
     </profile>
 
     <profile>
+      <id>oracle-test</id>
+      <activation>
+        <property>
+          <name>env</name>
+          <value>oracle</value>
+        </property>
+      </activation>
+
+      <properties>
+        <jdbc.url>jdbc:oracle:thin:@HARMONIE_TEST</jdbc.url>
+        <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc8/${ojdbc8.version}/ojdbc8-${ojdbc8.version}.jar</jdbc.driver.jar>
+        <jdbc.username>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.username>
+        <jdbc.password>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.password>
+        <jdbc.schema>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.schema>
+        <jdbc.platform>oracle</jdbc.platform>
+        <jdbc.driver>oracle.jdbc.driver.OracleDriver</jdbc.driver>
+        <hibernate.dialect>org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect</hibernate.dialect>
+        <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc8</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
       <id>pgsql</id>
       <activation>
         <property>

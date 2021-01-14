@@ -375,6 +375,26 @@
     </profile>
 
     <profile>
+      <id>oracle-test</id>
+      <activation>
+        <property>
+          <name>env</name>
+          <value>oracle</value>
+        </property>
+      </activation>
+
+      <properties>
+        <jdbc.url>jdbc:oracle:thin:@HARMONIE_TEST</jdbc.url>
+        <jdbc.username>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.username>
+        <jdbc.password>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.password>
+        <jdbc.schema>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.schema>
+        <jdbc.driver>oracle.jdbc.OracleDriver</jdbc.driver>
+        <jdbc.platform>oracle</jdbc.platform>
+        <hibernate.dialect>org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect</hibernate.dialect>
+      </properties>
+    </profile>
+
+    <profile>
       <id>bundles</id>
       <activation>
         <property>

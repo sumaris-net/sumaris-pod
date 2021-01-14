@@ -23,12 +23,14 @@ package net.sumaris.core.model.referential;
  */
 
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Optional;
 
 @EntityEnum(entity = UserProfile.class, joinAttributes = UserProfile.Fields.LABEL)
-public enum UserProfileEnum {
+public enum UserProfileEnum implements Serializable {
 
     ADMIN(1, "ADMIN"),
     USER(2, "USER"),
@@ -40,6 +42,13 @@ public enum UserProfileEnum {
                 .filter(enumValue -> enumValue.id == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + id));
+    }
+
+    public static UserProfileEnum byLabel(final String label) {
+        return Arrays.stream(values())
+                .filter(enumValue -> label.equals(enumValue.label))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + label));
     }
 
 

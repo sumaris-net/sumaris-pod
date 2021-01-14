@@ -361,7 +361,7 @@ public class AccountServiceImpl implements AccountService {
             throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
         }
         return Beans.getStream(person.getProfiles())
-                .map(UserProfileEnum::valueOf)
+                .map(UserProfileEnum::byLabel)
                 .map(up -> up.id)
                 .collect(Collectors.toList());
     }
