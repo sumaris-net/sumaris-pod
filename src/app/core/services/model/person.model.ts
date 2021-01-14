@@ -7,7 +7,12 @@ import {Department} from "./department.model";
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
 
-
+export const UserProfileLabels : {[key: string]: UserProfileLabel} = {
+  ADMIN: 'ADMIN',
+  SUPERVISOR: 'SUPERVISOR',
+  USER: 'USER',
+  GUEST: 'GUEST'
+}
 
 export class Person<T extends Person<any> = Person<any>> extends Entity<T, ReferentialAsObjectOptions> {
 
@@ -82,7 +87,8 @@ export class Person<T extends Person<any> = Person<any>> extends Entity<T, Refer
   }
 }
 
-export const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
+// TODO : confirm that this variable is now useless before delete
+// export const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
 
 export class PersonUtils {
   static getMainProfile = getMainProfile;
@@ -93,17 +99,17 @@ export class PersonUtils {
 }
 
 export function getMainProfile(profiles?: string[]): UserProfileLabel {
-  return profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(pp => profiles.indexOf(pp) > -1) || 'GUEST';
+  return profiles && profiles.length && Object.values(UserProfileLabels).find(pp => profiles.indexOf(pp) > -1) || 'GUEST';
 }
 
 export function getMainProfileIndex(profiles?: string[]): number {
-  if (!profiles && !profiles.length) return PRIORITIZED_USER_PROFILES.length - 1; // return last profile
-  const index = PRIORITIZED_USER_PROFILES.findIndex(pp => profiles.indexOf(pp) > -1);
-  return (index !== -1) ? index : (PRIORITIZED_USER_PROFILES.length - 1);
+  if (!profiles && !profiles.length) return Object.values(UserProfileLabels).length - 1; // return last profile
+  const index = Object.values(UserProfileLabels).findIndex(pp => profiles.indexOf(pp) > -1);
+  return (index !== -1) ? index : (Object.values(UserProfileLabels).length - 1);
 }
 
 export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfile: UserProfileLabel): boolean {
-  const expectedProfileIndex = PRIORITIZED_USER_PROFILES.indexOf(expectedProfile);
+  const expectedProfileIndex = Object.keys(UserProfileLabels).indexOf(expectedProfile);
   return expectedProfileIndex !== -1 && getMainProfileIndex(actualProfiles) <= expectedProfileIndex;
 }
 

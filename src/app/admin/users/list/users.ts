@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import {AppTable, EntitiesTableDataSource, isNil, isNotNil} from "../../../core/core.module";
-import { Person, PRIORITIZED_USER_PROFILES} from "../../../core/services/model/person.model";
+import { Person, UserProfileLabels} from "../../../core/services/model/person.model";
 import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/validator/person.validator";
@@ -29,7 +29,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
 
   canEdit = false;
   filterForm: FormGroup;
-  profiles: string[] = PRIORITIZED_USER_PROFILES;
+  profiles = UserProfileLabels;
   additionalFields: FormFieldDefinition[];
   statusList = DefaultStatusList;
   statusById;
