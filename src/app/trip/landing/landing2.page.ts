@@ -28,7 +28,7 @@ import {MatTabGroup} from "@angular/material/tabs";
 import {Samples2Table} from "../sample/samples2.table";
 import {StrategyService} from "../../referential/services/strategy.service";
 import {Strategy} from "../../referential/services/model/strategy.model";
-import {MeasurementModelValues} from "../services/model/measurement.model";
+import {MeasurementModelValues, MeasurementUtils} from "../services/model/measurement.model";
 
 @Component({
   selector: 'app-landing2-page',
@@ -163,14 +163,14 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         target["359"] = sampleRowCode.label;
         this.landing2Form.value.measurementValues=target;
         sampleRowCodeFound = true;
-        this.landing2Form.value.measurementValues=target;
+        this.landing2Form.value.measurementValues= this.landing2Form.value.measurementValues || target;
       }
     if (!sampleRowCodeFound)
     {
       this.landing2Form.appliedStrategies = [];
       Object.assign(this.landing2Form.appliedStrategies, []);
     }
-
+      this.landing2Form.setValue(this.landing2Form.value);
       // Refresh samples
       this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
       this.samples2Table.pmfms = pmfmStrategies;
