@@ -39,9 +39,11 @@ build_oracle:
     stage: build
     tags:
         - sih_public_runner
+    variables:
+        PROFIL: "oracle"
     script:
         - echo "Test oracle build  in progress"
-        - mvn -s ./settings.xml clean install -DskipTests -P oracle
+        - mvn -s ./settings.xml clean install -DskipTests -P $PROFIL
     environment:
         name: test
     artifacts:
