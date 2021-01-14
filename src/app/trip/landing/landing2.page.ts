@@ -170,6 +170,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.landing2Form.appliedStrategies = [];
       Object.assign(this.landing2Form.appliedStrategies, []);
     }
+
+    // FIXME CLT Update target specie while sampleRowCode is changed
+
       this.landing2Form.setValue(this.landing2Form.value);
       // Refresh samples
       this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
@@ -293,7 +296,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     // set TaxonName to sample
     const taxonName = this.landing2Form.taxonNamesForm.value[0].taxonName;
-    if(data.samples){
+    if(data.samples && data.samples[0]){
       data.samples[0].taxonName = taxonName;
     }
 

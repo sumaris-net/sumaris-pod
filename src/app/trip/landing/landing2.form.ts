@@ -448,7 +448,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
     this.sampleRowCodeHelper = new FormArrayHelper<Strategy>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'SampleRowCode'),
-      (strategy) => this.formBuilder.group({sampleRowCode: [strategy && strategy.name, Validators.compose([Validators.required])]}),
+      (strategy) => this.formBuilder.group({sampleRowCode: [strategy && strategy.name, Validators.compose([null])]}),
       (s1, s2) => EntityUtils.equals(s1, s2, 'name'),
       value => isNil(value) && isNil(value.name),
     );
