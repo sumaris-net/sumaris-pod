@@ -186,10 +186,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     // Combo: sampleRowCode
     this.registerAutocompleteField('sampleRowCode', {
       service: this.strategyService,
-      attributes: this.settings.getFieldDisplayAttributes('sampleRowCode', ['name']),
-      filter: {
-        programId: '40'
-      }
+      attributes: this.settings.getFieldDisplayAttributes('sampleRowCode', ['name'])//,
+      // filter: {
+      //   programId: '40'
+      // }
     });
 
     // Combo: vessels
