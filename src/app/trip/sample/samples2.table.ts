@@ -74,23 +74,23 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
- // @Input() showCommentsColumn = true;
- // @Input() showDateTimeColumn = true;
+  // @Input() showCommentsColumn = true;
+  // @Input() showDateTimeColumn = true;
   @Input() showFabButton = false;
-/*
-  @Input()
-  set showTaxonGroupColumn(value: boolean) {
-    this.setShowColumn('taxonGroup', value);
-  }
+  /*
+    @Input()
+    set showTaxonGroupColumn(value: boolean) {
+      this.setShowColumn('taxonGroup', value);
+    }
 
-  get showTaxonGroupColumn(): boolean {
-    return this.getShowColumn('taxonGroup');
-  }
+    get showTaxonGroupColumn(): boolean {
+      return this.getShowColumn('taxonGroup');
+    }
 
-  @Input()
-  set showTaxonNameColumn(value: boolean) {
-    this.setShowColumn('taxonName', value);
-  }*/
+    @Input()
+    set showTaxonNameColumn(value: boolean) {
+      this.setShowColumn('taxonName', value);
+    }*/
 
   /*get showTaxonNameColumn(): boolean {
     return this.getShowColumn('taxonName');
@@ -144,19 +144,19 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     super.ngOnInit();
 
     this.setShowColumn('label', this.showLabelColumn);
-   // this.setShowColumn('sampleDate', this.showDateTimeColumn);
-  //  this.setShowColumn('comments', this.showCommentsColumn);
+    // this.setShowColumn('sampleDate', this.showDateTimeColumn);
+    //  this.setShowColumn('comments', this.showCommentsColumn);
 
     // Taxon group combo
-   /* this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
-    });*/
+    /* this.registerAutocompleteField('taxonGroup', {
+       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+     });*/
 
     // Taxon name combo
     /*this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
-  //  });
+    //  });
   }
 
   async getMaxRankOrder(): Promise<number> {
@@ -204,7 +204,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     if (isNotNil(this.defaultTaxonName)) {
       data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
 
-     let taxonGroup = await  this.getTaxoGroupByTaxonNameId(this.defaultTaxonName.id,  "TaxonGroup");
+      let taxonGroup = await  this.getTaxoGroupByTaxonNameId(this.defaultTaxonName.id,  "TaxonGroup");
       data.taxonGroup = TaxonNameRef.fromObject(taxonGroup[0]);
     }
 
@@ -261,8 +261,8 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         value: sample,
         isNew,
         showLabel: this.showLabelColumn,
-      //  showTaxonGroup: this.showTaxonGroupColumn,
-     //   showTaxonName: this.showTaxonNameColumn,
+        //  showTaxonGroup: this.showTaxonGroupColumn,
+        //   showTaxonName: this.showTaxonNameColumn,
         onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()})
       },
       keyboardClose: true

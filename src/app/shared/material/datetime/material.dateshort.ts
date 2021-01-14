@@ -225,7 +225,7 @@ export class MatDateShort implements OnInit, ControlValueAccessor, InputElement 
     this.markForCheck();
   }
 
-  onDatePickerChange(event: any): void {
+  onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
     console.log("onDatePickerChange called !!")
     if (this.writing || !(event && event.value)) return; // Skip if call by self
     this.writing = true;
@@ -299,8 +299,6 @@ export class MatDateShort implements OnInit, ControlValueAccessor, InputElement 
     if (this.dayControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
-      // this.writeValue(this.dayControl.value);
-      this.onDatePickerChange(this.dayControl);
     }
   }
 
@@ -324,9 +322,9 @@ export class MatDateShort implements OnInit, ControlValueAccessor, InputElement 
       if (event) this.preventEvent(event);
 
       if (!datePicker.opened) {
-       
-       // datePicker.startView =  "multi-year";     
-        datePicker.open();   
+
+       // datePicker.startView =  "multi-year";
+        datePicker.open();
       }
     }
   }

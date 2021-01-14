@@ -844,7 +844,7 @@ export class ProgramService extends BaseEntityService
     this.copyIdAndUpdateDate(savedProgram, data);
 
     //if (this._debug)
-      console.debug(`[pogram-service] Program saved and updated in ${Date.now() - now}ms`, data);
+    console.debug(`[pogram-service] Program saved and updated in ${Date.now() - now}ms`, data);
 
     return data;
   }

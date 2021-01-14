@@ -159,26 +159,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
     this.cd.markForCheck();
   }
 
-  /**
-   * Add landing to the given row, or if not specified the currently edited row
-   * @param event
-   * @param row
-   */
-  addLanding(event?: MouseEvent, row?: TableElement<Strategy>): boolean {
-    // FIXME CLT IMAGINE 143
-    console.debug('addLanding called');
 
-    if (event) event.stopPropagation();
-
-    // if (row.currentData.) {
-    //   // Edit trip
-    //   this.onOpenRow.emit({id: row.currentData.tripId, row: row});
-    // } else {
-    //   // New trip
-    //   this.onNewTrip.emit({id: null, row: row});
-    // }
-    return true;
-  }
 
 
 }
