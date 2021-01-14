@@ -107,7 +107,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // update simpleStrategiesOption when UpdateView
     this.onUpdateView
       .subscribe(async option => {
-        this.simpleStrategiesOption=  option.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
+        this.simpleStrategiesOption = option.getPropertyAsBoolean(ProgramProperties.STRATEGY_SIMPLE_STRATEGIES_ENABLE);
         this.markForCheck();
       }
     );

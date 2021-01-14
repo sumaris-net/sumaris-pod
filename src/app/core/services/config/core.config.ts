@@ -1,11 +1,11 @@
 // TODO: rename to CONFIG_OPTIONS_MAP
 // then declare a type like this :
 // > export declare type ConfigOptions = key of CONFIG_OPTIONS_MAP
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldValue} from "../../../shared/form/field.model";
 import {StatusIds} from "../model/model.enum";
 import {UserProfileLabels} from "../model/person.model";
 import {Locales} from "../model/settings.model";
-import {LocationLevelIds} from "../../../referential/services/model/model.enum";
+import {LocationLevelIds, ParameterLabelStrategies} from "../../../referential/services/model/model.enum";
 
 export const ConfigOptions = Object.freeze({
     LOGO: <FormFieldDefinition>{
@@ -205,5 +205,35 @@ export const ConfigOptions = Object.freeze({
         }
       },
       defaultValue: LocationLevelIds.ICES_RECTANGLE
-    }
+    },
+    STRATEGY_PARAMETER_AGE_LABEL: <FormFieldDefinition>{
+      key: 'sumaris.enumeration.parameter.age.label',
+      label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_AGE_LABEL',
+      type: 'string',
+      defaultValue: ParameterLabelStrategies.AGE
+    },
+    STRATEGY_PARAMETER_SEX_LABEL: <FormFieldDefinition>{
+      key: 'sumaris.enumeration.parameter.sex.label',
+      label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_SEX_LABEL',
+      type: 'string',
+      defaultValue: ParameterLabelStrategies.SEX
+    },
+    STRATEGY_PARAMETER_WEIGHT_LABELS: <FormFieldDefinition>{
+      key: 'sumaris.enumeration.parameter.weight.labels',
+      label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_WEIGHT_LABEL',
+      type: 'string',
+      defaultValue: ParameterLabelStrategies.WEIGHTS.join(',')
+    },
+    STRATEGY_PARAMETER_LENGTH_LABELS: <FormFieldDefinition>{
+      key: 'sumaris.enumeration.parameter.length.labels',
+      label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_LENGTH_LABELS',
+      type: 'string',
+      defaultValue: ParameterLabelStrategies.LENGTHS.join(',')
+    },
+    STRATEGY_PARAMETER_MATURITY_LABELS: <FormFieldDefinition>{
+      key: 'sumaris.enumeration.parameter.maturity.labels',
+      label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_MATURITY_LABELS',
+      type: 'string',
+      defaultValue: ParameterLabelStrategies.MATURITIES.join(',')
+    },
 });

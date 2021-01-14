@@ -29,6 +29,7 @@ import {Samples2Table} from "../sample/samples2.table";
 import {StrategyService} from "../../referential/services/strategy.service";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {MeasurementModelValues, MeasurementUtils} from "../services/model/measurement.model";
+import {PmfmIds} from "../../referential/services/model/model.enum";
 
 @Component({
   selector: 'app-landing2-page',
@@ -155,9 +156,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
           };
         });
         let newMeasurementValues: MeasurementModelValues = {};
-        // FIXME CLT measurement Pmfm Code must be externalized
         measurementValues.forEach((measurementValue) => {
-          if (measurementValue.key === "359") {
+          if (measurementValue.key === PmfmIds.SAMPLE_ROW_CODE.toString()) {
             newMeasurementValues[measurementValue.key] = sampleRowCode.label;
             sampleRowCodeFound = true;
           } else {
@@ -170,10 +170,10 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       {
         // Create mode
         let target = {}
-        target["359"] = sampleRowCode.label;
-        this.landing2Form.value.measurementValues=target;
+        target[PmfmIds.SAMPLE_ROW_CODE.toString()] = sampleRowCode.label;
+        this.landing2Form.value.measurementValues = target;
         sampleRowCodeFound = true;
-        this.landing2Form.value.measurementValues= this.landing2Form.value.measurementValues || target;
+        this.landing2Form.value.measurementValues = this.landing2Form.value.measurementValues || target;
       }
     if (!sampleRowCodeFound)
     {
@@ -331,9 +331,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       };
     });
     let strategyLabel : string;
-    // FIXME CLT measurement Pmfm Code must be externalized
     measurementValues.forEach((measurementValue) => {
-      if (measurementValue.key === "359") {
+      if (measurementValue.key === PmfmIds.SAMPLE_ROW_CODE.toString()) {
         strategyLabel = measurementValue.value
       }
     });

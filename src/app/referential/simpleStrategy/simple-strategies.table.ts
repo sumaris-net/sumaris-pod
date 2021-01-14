@@ -14,6 +14,7 @@ import {InMemoryEntitiesService} from "../../shared/services/memory-entity-servi
 import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {strategyDepartmentsToString, appliedStategiesToString, taxonsNameStrategyToString} from "../../referential/services/model/strategy.model";
+import {ParameterLabelStrategies} from "../../referential/services/model/model.enum";
 
 export declare interface StrategyFilter {
 }
@@ -113,36 +114,36 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   }
 
   parametersToString(data: Strategy) {
+    // TODO data.pmfmStrategies.pmfm.parameter is null: use a fullReferential GraphQL query
+    //console.log("pmfmStrategies", data.pmfmStrategies);
     let pmfmStrategies: string[] = [];
-    console.log(data.pmfmStrategies);
-    let age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "AGE");
-    //console.log(age);
-    if(age.length > 0) {
+
+    let agePmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === ParameterLabelStrategies.AGE);
+    if(agePmfmStrategy.length > 0) {
       pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.AGE'));
     }
-    let sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === "SEX");
-    //console.log(sex);
-    if(sex.length > 0) {
+
+    let sexPmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === ParameterLabelStrategies.SEX);
+    if(sexPmfmStrategy.length > 0) {
       pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.SEX'));
     }
-    let weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === 'WEIGHT');
-    //console.log(weightPmfmStrategy);
+
+    let weightPmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.WEIGHTS.includes(p.pmfm.parameter.label));
     if(weightPmfmStrategy.length > 0) {
       pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.WEIGHT_TABLE'));
     }
-    const sizeValues = ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'];
-    let sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && sizeValues.includes(p.pmfm.parameter.label));
-    //console.log(sizePmfmStrategy);
+
+    let sizePmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.LENGTHS.includes(p.pmfm.parameter.label));
     if(sizePmfmStrategy.length > 0) {
       pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.SIZE_TABLE'));
     }
-    const maturityValues = ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'];
-    let maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && maturityValues.includes(p.pmfm.parameter.label));
-    //console.log(maturityPmfmStrategy);
+
+    let maturityPmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.MATURITIES.includes(p.pmfm.parameter.label));
     if(maturityPmfmStrategy.length > 0) {
       pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.MATURITY_TABLE'));
     }
-    //console.log(pmfmStrategies);
+
+    //console.log("pmfmStrategies result", pmfmStrategies);
     return pmfmStrategies.join(', ');
   }
 

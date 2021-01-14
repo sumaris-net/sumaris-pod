@@ -24,6 +24,7 @@ import {debounceTime, map, startWith, switchMap, filter} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {ProgramService} from "../services/program.service";
+import {ParameterLabelStrategies} from "../services/model/model.enum";
 
 export class PmfmStrategyFilter {
 
@@ -657,7 +658,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // We add a filter on pmfm with parameter in ('WEIGHT')
         const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
-          levelLabels: ['WEIGHT']
+          levelLabels: ParameterLabelStrategies.WEIGHTS
           // searchJoin: "Parameter" is implied in pod filter
         },
           {
@@ -671,7 +672,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // We add a filter on pmfm with parameter in specific size list
         const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
-          levelLabels: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE']
+          levelLabels: ParameterLabelStrategies.LENGTHS
           // searchJoin: "Parameter" is implied in pod filter
         },
           {
@@ -685,7 +686,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // We add a filter on pmfm with parameter in specific maturity list
         const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
-          levelLabels: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL']
+          levelLabels: ParameterLabelStrategies.MATURITIES
           // searchJoin: "Parameter" is implied in pod filter
         },
           {
