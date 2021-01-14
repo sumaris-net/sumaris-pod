@@ -3,7 +3,7 @@
 // > export declare type ConfigOptions = key of CONFIG_OPTIONS_MAP
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../../shared/form/field.model";
 import {StatusIds} from "../model/model.enum";
-import {PRIORITIZED_USER_PROFILES} from "../model/person.model";
+import {UserProfileLabels} from "../model/person.model";
 import {Locales} from "../model/settings.model";
 import {LocationLevelIds} from "../../../referential/services/model/model.enum";
 
@@ -49,7 +49,7 @@ export const ConfigOptions = Object.freeze({
         key: "sumaris.auth.notSelfDataAccess.role",
         label: "CONFIGURATION.OPTIONS.NOT_SELF_DATA_ACCESS_MIN_ROLE",
         type: 'enum',
-        values: PRIORITIZED_USER_PROFILES.map(key => ({
+        values: Object.keys(UserProfileLabels).map(key => ({
             key: 'ROLE_' + key,
             value: 'USER.PROFILE_ENUM.' + key
         }))
@@ -130,24 +130,28 @@ export const ConfigOptions = Object.freeze({
         type: 'color'
     },
     PROFILE_ADMIN_LABEL: <FormFieldDefinition>{
-        key: 'sumaris.userProfile.ADMIN.label',
+        key: 'sumaris.enumeration.UserProfile.ADMIN.label',
         label: 'CONFIGURATION.OPTIONS.PROFILE.ADMIN',
-        type: 'string'
+        type: 'string',
+        defaultValue: 'ADMIN'
     },
     PROFILE_USER_LABEL: <FormFieldDefinition>{
-        key: 'sumaris.userProfile.USER.label',
+        key: 'sumaris.enumeration.UserProfile.USER.label',
         label: 'CONFIGURATION.OPTIONS.PROFILE.USER',
-        type: 'string'
+        type: 'string',
+        defaultValue: 'USER'
     },
     PROFILE_SUPERVISOR_LABEL: <FormFieldDefinition>{
-        key: 'sumaris.userProfile.SUPERVISOR.label',
+        key: 'sumaris.enumeration.UserProfile.SUPERVISOR.label',
         label: 'CONFIGURATION.OPTIONS.PROFILE.SUPERVISOR',
-        type: 'string'
+        type: 'string',
+        defaultValue: 'SUPERVISOR'
     },
     PROFILE_GUEST_LABEL: <FormFieldDefinition>{
-        key: 'sumaris.userProfile.GUEST.label',
+        key: 'sumaris.enumeration.UserProfile.GUEST.label',
         label: 'CONFIGURATION.OPTIONS.PROFILE.GUEST',
-        type: 'string'
+        type: 'string',
+        defaultValue: 'GUEST'
     },
     ANDROID_INSTALL_URL: <FormFieldDefinition>{
         key: 'sumaris.android.install.url',
@@ -189,5 +193,17 @@ export const ConfigOptions = Object.freeze({
           }
         },
         defaultValue: LocationLevelIds.AUCTION
+    },
+    LOCATION_LEVEL_ICES_RECTANGLE_ID: <FormFieldDefinition>{
+      key: 'sumaris.enumeration.locationLevel.RECTANGLE_ICES.id',
+      label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_RECTANGLE_ID',
+      type: 'entity',
+      autocomplete: {
+        filter: {
+          entityName: 'LocationLevel',
+          statusIds: [0,1]
+        }
+      },
+      defaultValue: LocationLevelIds.ICES_RECTANGLE
     }
 });

@@ -92,14 +92,14 @@
         </ion-item>
 
         <!-- strategies table -->
-        <app-simple-strategies-table  #simpleStrategiesTable              
+        <app-simple-strategies-table  #simpleStrategiesTable
                             [canEdit]="enabled"
                             [canDelete]="enabled">
         </app-simple-strategies-table>
-       
+
       </div>
     </mat-tab>
-  
+
 
  <!-- TAB: strategies   -->
  <mat-tab  label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="simpleStrategiesOption" >
@@ -111,19 +111,19 @@
     <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable.invalid || (strategiesTable.editedRow && strategyForm.invalid)"></ion-icon>
   </ng-template>
 
-  <div class="ion-no-padding"> 
+  <div class="ion-no-padding">
 
-    
+
     <ion-item *ngIf="(strategiesTable.error || (strategiesTable.editedRow && strategyForm.error)) as strategyError" visible-xs visible-sm visible-mobile lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
       <ion-label color="danger" class="error" [innerHTML]="strategyError |translate"></ion-label>
-    </ion-item> 
+    </ion-item>
 
-  
+
     <app-strategy-table #strategiesTable
                         [canEdit]="enabled"
                         [canDelete]="enabled">
-    </app-strategy-table> 
+    </app-strategy-table>
 
     <app-strategy-form #strategyForm
                        [@fadeIn]="strategyFormState"
@@ -131,7 +131,7 @@
                        [showBaseForm]="false">
     </app-strategy-form>
   </div>
-</mat-tab> 
+</mat-tab>
 
 
 
@@ -173,9 +173,9 @@
 
 <!--  FAB Button: add strategy  -->
 <ion-fab slot="fixed" vertical="bottom" horizontal="end"
-*ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
-visible-xs visible-sm visible-mobile>
-<ion-fab-button color="tertiary" (click)="strategiesTable.addRow()">
-<ion-icon name="add"></ion-icon>
-</ion-fab-button>
-</ion-fab> 
+        *ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
+        visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="strategiesTable.addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

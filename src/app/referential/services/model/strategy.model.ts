@@ -130,7 +130,7 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {
-    const target: any = Object.assign({}, this); //= {...this};
+    const target: any = super.asObject(opts);
     if (!opts || opts.keepTypename !== true) delete target.__typename;
     target.location = this.location && this.location.asObject(opts) || undefined;
     target.privilege = this.privilege && this.privilege.asObject(opts);
@@ -139,6 +139,7 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
   }
 
   fromObject(source: any) {
+    super.fromObject(source);
     this.strategyId = source.strategyId;
     this.location = source.location && ReferentialRef.fromObject(source.location);
     this.privilege = source.privilege && ReferentialRef.fromObject(source.privilege);
@@ -170,7 +171,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {
-    const target: any = Object.assign({}, this); //= {...this};
+    const target: any = super.asObject(opts);
     if (!opts || opts.keepTypename !== true) delete target.__typename;
     target.location = this.location && this.location.asObject(opts);
     target.appliedPeriods = this.appliedPeriods && this.appliedPeriods.map(p => p.asObject(opts)) || undefined;
@@ -178,6 +179,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
   }
 
   fromObject(source: any) {
+    super.fromObject(source);
     this.strategyId = source.strategyId;
     this.location = source.location && ReferentialRef.fromObject(source.location);
     this.appliedPeriods = source.appliedPeriods && source.appliedPeriods.map(AppliedPeriod.fromObject) || [];
@@ -206,6 +208,8 @@ export class AppliedPeriod {
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
     return target;
   }
 

@@ -17,6 +17,7 @@ import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {ConfigOptions} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
 import {LocationLevelIds, TaxonGroupIds} from "../../referential/services/model/model.enum";
+import { UserProfileLabels } from "./model/person.model";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -485,6 +486,12 @@ export class ConfigService extends SoftwareService<Configuration> {
     LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_COUNTRY_ID);
     LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_PORT_ID);
     LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.ICES_RECTANGLE = config.getProperty(ConfigOptions.LOCATION_LEVEL_ICES_RECTANGLE_ID);
+
+    // User profiles
+    UserProfileLabels.ADMIN = config.getProperty(ConfigOptions.PROFILE_ADMIN_LABEL);
+    UserProfileLabels.SUPERVISOR = config.getProperty(ConfigOptions.PROFILE_SUPERVISOR_LABEL);
+    UserProfileLabels.USER = config.getProperty(ConfigOptions.PROFILE_USER_LABEL);
 
     // Taxon group
     // TODO: add all enumerations
