@@ -3,10 +3,10 @@
                    (cancel)="close($event)"
                    (validate)="onSubmit($event)"
                    [showSpinner]="loading"
-                   [canValidate]="!loading && (dirty || !enableBurstMode)"
-                   [validateIcon]="enableBurstMode ? {matIcon: 'done_all'} : {matIcon: 'checkmark'}">
+                   [canValidate]="!enableBurstMode">
 
 <ion-buttons slot="end" >
+
   <!-- Options menu -->
   <button mat-icon-button *ngIf="!loading"
           [title]="'COMMON.OPTIONS'|translate"
@@ -16,16 +16,17 @@
 
   <!-- Close  -->
   <ion-button visible-xs visible-sm visible-mobile
-              *ngIf="!dirty && isNew && enableBurstMode"
-              (click)="close($event)">
-    <ion-icon slot="icon-only" name="close"></ion-icon>
-  </ion-button>
+              *ngIf="!loading && enableBurstMode"
+              (click)="close($event)"
+              translate>COMMON.BTN_DONE</ion-button>
 
-  <!-- Add  -->
+  <!-- Validate  -->
   <ion-button visible-xs visible-sm visible-mobile
-              *ngIf="!dirty && !isNew && enableBurstMode"
-              (click)="onSubmit($event)">
-    <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+              *ngIf="!loading && enableBurstMode"
+              (click)="onSubmit($event)"
+              [disabled]="!form.valid">
+    <ion-label translate>COMMON.BTN_NEXT</ion-label>
+    <ion-icon slot="end" name="arrow-forward"></ion-icon>
   </ion-button>
 
 </ion-buttons>
