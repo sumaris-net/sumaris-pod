@@ -133,35 +133,8 @@ public class LandingServiceImpl implements LandingService {
         // Save
         LandingVO savedLanding = landingRepository.save(source);
 
-        // Save measurements
-        if (savedLanding.getMeasurementValues() != null) {
-            measurementDao.saveLandingMeasurementsMap(savedLanding.getId(), savedLanding.getMeasurementValues());
-        } else {
-            List<MeasurementVO> measurements = Beans.getList(savedLanding.getMeasurements());
-            measurements.forEach(m -> fillDefaultProperties(savedLanding, m));
-            measurements = measurementDao.saveLandingMeasurements(savedLanding.getId(), measurements);
-            savedLanding.setMeasurements(measurements);
-        }
-
-        // Save samples
-        {
-            List<SampleVO> samples = getSamplesAsList(savedLanding);
-            samples.forEach(s -> fillDefaultProperties(savedLanding, s));
-            samples = sampleService.saveByLandingId(savedLanding.getId(), samples);
-
-            // Prepare saved samples (e.g. to be used as graphQL query response)
-            samples.forEach(sample -> {
-                // Set parentId (instead of parent object)
-                if (sample.getParent() != null) {
-                    sample.setParentId(sample.getParent().getId());
-                    sample.setParent(null);
-                }
-                // Remove link to children
-                sample.setChildren(null);
-            });
-
-            savedLanding.setSamples(samples);
-        }
+        // Save children entities (measurement, etc.)
+        saveChildrenEntities(savedLanding);
 
         // Publish event
         if (isNew) {
@@ -263,16 +236,33 @@ public class LandingServiceImpl implements LandingService {
     protected void saveChildrenEntities(final LandingVO source) {
 
         // Save measurements
-        {
-            if (source.getMeasurementValues() != null) {
-                measurementDao.saveLandingMeasurementsMap(source.getId(), source.getMeasurementValues());
-            } else {
-                List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-                measurements.forEach(m -> fillDefaultProperties(source, m));
+        if (source.getMeasurementValues() != null) {
+            measurementDao.saveLandingMeasurementsMap(source.getId(), source.getMeasurementValues());
+        } else {
+            List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+            measurements.forEach(m -> fillDefaultProperties(source, m));
+            measurements = measurementDao.saveLandingMeasurements(source.getId(), measurements);
+            source.setMeasurements(measurements);
+        }
 
-                measurements = measurementDao.saveLandingMeasurements(source.getId(), measurements);
-                source.setMeasurements(measurements);
-            }
+        // Save samples
+        {
+            List<SampleVO> samples = getSamplesAsList(source);
+            samples.forEach(s -> fillDefaultProperties(source, s));
+            samples = sampleService.saveByLandingId(source.getId(), samples);
+
+            // Prepare saved samples (e.g. to be used as graphQL query response)
+            samples.forEach(sample -> {
+                // Set parentId (instead of parent object)
+                if (sample.getParentId() == null && sample.getParent() != null) {
+                    sample.setParentId(sample.getParent().getId());
+                }
+                // Remove link parent/children
+                sample.setParent(null);
+                sample.setChildren(null);
+            });
+
+            source.setSamples(samples);
         }
 
         // Save trip
