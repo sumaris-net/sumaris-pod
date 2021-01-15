@@ -29,6 +29,7 @@ import {Samples2Table} from "../sample/samples2.table";
 import {StrategyService} from "../../referential/services/strategy.service";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {MeasurementModelValues, MeasurementUtils} from "../services/model/measurement.model";
+import {Sample} from "../services/model/sample.model";
 
 @Component({
   selector: 'app-landing2-page',
@@ -117,79 +118,85 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
   protected async onSampleRowCodeChange(sampleRowCode: Strategy) {
 
-    console.warn('onSampleRowCodeChange called');
     if (sampleRowCode && sampleRowCode.label) {
       let strategyLabel = sampleRowCode.label;
-      // update landing2Form measurement value containing sample row code
-      //let measurementValues = this.landing2Form.value.measurementValues;
 
-      this.landing2Form.sampleRowCode = strategyLabel;
-
-
-      this.landing2Form.sampleRowCodeControl.patchValue(sampleRowCode);
-      let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
-      let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
-
-      // Refresh fishing areas from landing2Form according to selected sampleRowCode
-      this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
-      this.landing2Form.pmfms = pmfmStrategies;
-
-      // Refresh target species
-      let taxonNames = [];
-      let taxonName = null;
-      if (pmfmStrategy.taxonNames && pmfmStrategy.taxonNames[0])
-      {
-        taxonName= pmfmStrategy.taxonNames[0].taxonName;
-        taxonNames.push(taxonName);
-      }
+      if (strategyLabel != this.landing2Form.sampleRowCode) {
+        this.landing2Form.sampleRowCode = strategyLabel;
 
 
-      let sampleRowCodeFound = false;
+        this.landing2Form.sampleRowCodeControl.patchValue(sampleRowCode);
+        let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
+        let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
 
-      if (this.landing2Form.value.measurementValues) {
-        // update mode
-        const measurementValues = Object.entries(this.landing2Form.value.measurementValues).map(([key, value]) => {
-          return {
-            key,
-            value
-          };
-        });
-        let newMeasurementValues: MeasurementModelValues = {};
-        // FIXME CLT measurement Pmfm Code must be externalized
-        measurementValues.forEach((measurementValue) => {
-          if (measurementValue.key === "359") {
-            newMeasurementValues[measurementValue.key] = sampleRowCode.label;
-            sampleRowCodeFound = true;
-          } else {
-            newMeasurementValues[measurementValue.key] = measurementValue.value;
+        // Refresh fishing areas from landing2Form according to selected sampleRowCode
+        this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
+        this.landing2Form.pmfms = pmfmStrategies;
+
+        let sampleRowCodeFound = false;
+
+        if (this.landing2Form.value.measurementValues) {
+          // update mode
+          const measurementValues = Object.entries(this.landing2Form.value.measurementValues).map(([key, value]) => {
+            return {
+              key,
+              value
+            };
+          });
+          let newMeasurementValues: MeasurementModelValues = {};
+          // FIXME CLT measurement Pmfm Code must be externalized
+          measurementValues.forEach((measurementValue) => {
+            if (measurementValue.key === "359") {
+              newMeasurementValues[measurementValue.key] = sampleRowCode.label;
+              sampleRowCodeFound = true;
+            } else {
+              newMeasurementValues[measurementValue.key] = measurementValue.value;
+            }
+          });
+          Object.assign(this.landing2Form.value.measurementValues, newMeasurementValues);
+        } else if (sampleRowCode) {
+          // Create mode
+          let target = {}
+          target["359"] = sampleRowCode.label;
+          this.landing2Form.value.measurementValues = target;
+          sampleRowCodeFound = true;
+          this.landing2Form.value.measurementValues = this.landing2Form.value.measurementValues || target;
+        }
+        if (!sampleRowCodeFound) {
+          this.landing2Form.appliedStrategies = [];
+          this.landing2Form._defaultTaxonNameFromStrategy = null;
+          Object.assign(this.landing2Form.appliedStrategies, []);
+        }
+        this.landing2Form.value.samples = [];
+        this.landing2Form.value.samples.length=0;
+
+        let landing2FormValueClone = this.landing2Form.value.clone();
+        landing2FormValueClone.samples = [];
+
+        this.landing2Form.setValue(landing2FormValueClone);
+
+
+        let taxonNames = [];
+        if (pmfmStrategy.taxonNames && pmfmStrategy.taxonNames[0]) {
+          let defaultTaxonName = pmfmStrategy.taxonNames[0];
+          this.landing2Form.defaultTaxonNameFromStrategy = defaultTaxonName;
+
+          if (this.landing2Form._defaultTaxonNameFromStrategy) {
+            let emptySampleWithTaxon = new Sample();
+            emptySampleWithTaxon.taxonName = this.landing2Form._defaultTaxonNameFromStrategy.taxonName;
+            taxonNames.push(emptySampleWithTaxon);
           }
-        });
-        Object.assign(this.landing2Form.value.measurementValues, newMeasurementValues);
-    }
-      else if (sampleRowCode)
-      {
-        // Create mode
-        let target = {}
-        target["359"] = sampleRowCode.label;
-        this.landing2Form.value.measurementValues=target;
-        sampleRowCodeFound = true;
-        this.landing2Form.value.measurementValues= this.landing2Form.value.measurementValues || target;
+        } else {
+          this.landing2Form._defaultTaxonNameFromStrategy = null;
+        }
+        this.landing2Form.value.samples = [];
+        this.landing2Form.taxonNamesForm.patchValue(taxonNames);
+
+        // Refresh samples
+        this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
+        this.samples2Table.pmfms = pmfmStrategies;
       }
-    if (!sampleRowCodeFound)
-    {
-      this.landing2Form.appliedStrategies = [];
-      Object.assign(this.landing2Form.appliedStrategies, []);
     }
-
-      this.landing2Form.setValue(this.landing2Form.value);
-      this.landing2Form.taxonNamesForm.patchValue(taxonNames);
-
-      // Refresh samples
-      this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
-      this.samples2Table.pmfms = pmfmStrategies;
-
-
-  }
   }
 
   protected registerForms() {
@@ -350,6 +357,13 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
 
       this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
+
+      if (pmfmStrategy.taxonNames && pmfmStrategy.taxonNames[0])
+      {
+        let defaultTaxonName = pmfmStrategy.taxonNames[0];
+        this.landing2Form.defaultTaxonNameFromStrategy = defaultTaxonName;
+      }
+
       this.landing2Form.pmfms = pmfmStrategies;
       this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
       this.samples2Table.pmfms = pmfmStrategies;
