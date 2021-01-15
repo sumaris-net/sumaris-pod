@@ -114,7 +114,6 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   }
 
   parametersToString(data: Strategy) {
-    // TODO data.pmfmStrategies.pmfm.parameter is null: use a fullReferential GraphQL query
     //console.log("pmfmStrategies", data.pmfmStrategies);
     let pmfmStrategies: string[] = [];
 
