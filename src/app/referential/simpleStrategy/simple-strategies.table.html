@@ -58,7 +58,7 @@
   </ng-container>
 
   <!-- codeLine column -->
-  <ng-container matColumnDef="sampleRowCode">
+  <ng-container matColumnDef="label">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <span translate>PROGRAM.STRATEGY.SAMPLE_ROW_CODE</span>
     </mat-header-cell>
@@ -68,7 +68,7 @@
   </ng-container>
 
     <!-- eotp column -->
-    <ng-container matColumnDef="eotp">
+    <ng-container matColumnDef="analyticReference">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>PROGRAM.STRATEGY.EOTP</span>
       </mat-header-cell>
@@ -78,7 +78,7 @@
     </ng-container>
 
     <!-- LABORATORY column -->
-    <ng-container matColumnDef="laboratory">
+    <ng-container matColumnDef="strategyDepartments">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>PROGRAM.STRATEGY.LABORATORY</span>
       </mat-header-cell>
@@ -88,7 +88,7 @@
     </ng-container>
 
     <!-- FISHING_AREA column -->
-    <ng-container matColumnDef="fishingArea">
+    <ng-container matColumnDef="appliedStrategies">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>PROGRAM.STRATEGY.FISHING_AREA</span>
       </mat-header-cell>
@@ -98,7 +98,7 @@
     </ng-container>
 
      <!-- TARGET_SPECIE column -->
-     <ng-container matColumnDef="targetSpecie">
+     <ng-container matColumnDef="taxonNames">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>PROGRAM.STRATEGY.TARGET_SPECIE</span>
       </mat-header-cell>
@@ -109,7 +109,7 @@
 
   <!-- comment column -->
   <ng-container matColumnDef="comment">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef>
       <span translate>PROGRAM.STRATEGY.COMMENT</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
@@ -129,7 +129,7 @@
 
   <!-- QUARTER_1_TABLE column -->
   <ng-container matColumnDef="quarter_1_table">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef>
       <span translate>PROGRAM.STRATEGY.QUARTER_1_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
@@ -142,7 +142,7 @@
 
   <!-- QUARTER_2_TABLE column -->
   <ng-container matColumnDef="quarter_2_table">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef>
       <span translate>PROGRAM.STRATEGY.QUARTER_2_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
@@ -155,7 +155,7 @@
 
   <!-- QUARTER_3_TABLE column -->
   <ng-container matColumnDef="quarter_3_table">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef>
       <span translate>PROGRAM.STRATEGY.QUARTER_3_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
@@ -168,7 +168,7 @@
 
   <!-- QUARTER_4_TABLE column -->
   <ng-container matColumnDef="quarter_4_table">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef>
       <span translate>PROGRAM.STRATEGY.QUARTER_4_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
