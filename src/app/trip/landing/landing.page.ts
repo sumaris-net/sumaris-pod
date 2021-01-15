@@ -51,6 +51,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected platform: PlatformService;
 
   mobile: boolean;
+  showQualityForm = false;
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
@@ -160,6 +161,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       }
     }
 
+    // Landing as root
+    else {
+      this.showQualityForm = true;
+    }
+
   }
 
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -188,7 +194,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         this.defaultBackHref = `/trips/${this.parent.id}?tab=2`;
       }
     }
-
+    // Landing as root
+    else {
+      this.showQualityForm = true;
+    }
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
@@ -204,7 +213,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       return await this.tripService.load(data.tripId, {fetchPolicy: 'cache-first'});
     }
     else {
-      throw new Error('No parent found in path. Landing without parent not implemented yet !');
+      throw new Error('No parent found in path. Landing without parent is not implemented yet !');
     }
   }
 

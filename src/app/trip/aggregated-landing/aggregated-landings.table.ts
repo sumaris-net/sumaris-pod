@@ -217,7 +217,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.$dates.next(dates);
   }
 
-  private updateColumns() {
+  protected updateColumns() {
     if (!this.$dates.getValue()) return;
     this.displayedColumns = this.getDisplayColumns();
     if (!this.loading) this.markForCheck();
@@ -242,7 +242,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (isNil(this._program) || isNil(this._acquisitionLevel)) return;
 
     // Load pmfms
-    let pmfms = (await this.programService.loadProgramPmfms(
+    const pmfms = (await this.programService.loadProgramPmfms(
       this._program,
       {
         acquisitionLevel: this._acquisitionLevel

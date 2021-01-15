@@ -76,7 +76,7 @@
                               (onSubmit)="save($event)">
             </app-landing-form>
           </ion-col>
-          <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!parent">
+          <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="showQualityForm">
             <app-entity-metadata [value]="data">
               <app-entity-quality-form [editor]="this">
               </app-entity-quality-form>
