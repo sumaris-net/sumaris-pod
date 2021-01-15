@@ -188,10 +188,10 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         E entity = getOne(vo.getId());
 
         // Check update date
-        Daos.checkUpdateDateForUpdate(vo, entity);
+        if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        lockForUpdate(entity);
+        if (isLockForUpdate()) lockForUpdate(entity);
 
         // TODO CONTROL PROCESS HERE
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -202,6 +202,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
         // Save entityName
         getEntityManager().merge(entity);
+
 
         // Update source
         vo.setControlDate(newUpdateDate);
@@ -216,7 +217,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     }
 
     @Override
-    public V unvalidate(V vo) {
+    public V unValidate(V vo) {
         throw new NotImplementedException("Not implemented yet");
     }
 

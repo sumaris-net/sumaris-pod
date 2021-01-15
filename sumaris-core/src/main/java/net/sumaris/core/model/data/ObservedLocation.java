@@ -35,6 +35,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.FetchProfile;
 import org.hibernate.annotations.FetchProfiles;
+import org.nuiton.i18n.I18n;
 
 import javax.persistence.*;
 import java.util.*;
@@ -51,6 +52,10 @@ import java.util.*;
 @Entity
 @Table(name="observed_location")
 public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserversEntity<Integer, Person> {
+
+    static {
+        I18n.n("sumaris.persistence.table.observedLocation");
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OBSERVED_LOCATION_SEQ")

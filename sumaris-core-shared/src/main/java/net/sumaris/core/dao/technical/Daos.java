@@ -27,6 +27,7 @@ package net.sumaris.core.dao.technical;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -1606,15 +1607,29 @@ public class Daos {
             Timestamp sourceUpdateDtNoMillisecond = Dates.resetMillisecond(source.getUpdateDate());
             if (!Objects.equals(sourceUpdateDtNoMillisecond, serverUpdateDtNoMillisecond)) {
                 throw new BadUpdateDateException(I18n.t("sumaris.persistence.error.badUpdateDate",
-                        getTableName(entity.getClass().getSimpleName()), source.getId(), serverUpdateDtNoMillisecond,
+                        getTableName(entity), source.getId(), serverUpdateDtNoMillisecond,
                         sourceUpdateDtNoMillisecond));
             }
         }
     }
 
-    public static String getTableName(String entityName) {
+    public static <T extends IEntity<?>> String getTableName(T source) {
+        String entityName = getEntityName(source);
+        return getTableName(entityName);
+    }
 
-        return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
+    public static String getTableName(String entityName) {
+        String firstLetterLowercase = entityName.substring(0,1).toLowerCase() + entityName.substring(1);
+        return I18n.t("sumaris.persistence.table." + firstLetterLowercase);
+    }
+
+    public static <T extends IEntity<?>> String getEntityName(T source) {
+        String classname = source.getClass().getSimpleName();
+        int index = classname.indexOf("$HibernateProxy");
+        if (index > 0) {
+            return classname.substring(0, index);
+        }
+        return classname;
     }
 
     public static String getEscapedSearchText(String searchText) {

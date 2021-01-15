@@ -217,6 +217,8 @@ public class TrashServiceImpl implements TrashService {
 
     @JmsListener(destination = "deleteTrip", containerFactory = "jmsListenerContainerFactory")
     @JmsListener(destination = "deleteOperation", containerFactory = "jmsListenerContainerFactory")
+    @JmsListener(destination = "deleteObservedLocation", containerFactory = "jmsListenerContainerFactory")
+    @JmsListener(destination = "deleteLanding", containerFactory = "jmsListenerContainerFactory")
     protected void onEntityDeleted(Serializable entity) throws IOException {
         Preconditions.checkNotNull(entity);
 

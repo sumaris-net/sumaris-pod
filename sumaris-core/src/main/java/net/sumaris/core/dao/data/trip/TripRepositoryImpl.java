@@ -22,26 +22,22 @@ package net.sumaris.core.dao.data.trip;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import java.sql.Timestamp;
 import java.util.Objects;
 
 public class TripRepositoryImpl
@@ -78,6 +74,20 @@ public class TripRepositoryImpl
         target.setReturnLocation(locationRepository.toVO(source.getReturnLocation()));
 
         // Parent link
+        if (CollectionUtils.size(source.getLandings()) == 1) {
+            Landing landing = source.getLandings().get(0);
+            if (landing != null) {
+                // Landing id
+                target.setLandingId(landing.getId());
+
+                // Observed location id
+                if (landing.getObservedLocation() != null) {
+                    target.setObservedLocationId(landing.getObservedLocation().getId());
+                }
+            }
+        }
+
+        // Parent link
         // TODO scientificCruise
 
     }
@@ -104,62 +114,32 @@ public class TripRepositoryImpl
                 target.setReturnLocation(load(Location.class, source.getReturnLocation().getId()));
             }
         }
-
     }
 
     @Override
     protected void onAfterSaveEntity(TripVO vo, Trip savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
 
-        // Update landing if exists
-        if (vo.getLanding() != null && vo.getLanding().getId() != null) {
-            Landing landing = load(Landing.class, vo.getLanding().getId());
-            if (landing != null && (landing.getTrip() == null || !Objects.equals(landing.getTrip().getId(), savedEntity.getId()))) {
-                landing.setTrip(savedEntity);
-                landingRepository.save(landing);
+        // Update landing link, if exists
+        Integer landingId = vo.getLanding() != null && vo.getLanding().getId() != null ? vo.getLanding().getId() : vo.getLandingId();
+        Integer observedLocationId = null;
+        if (landingId != null) {
+            Landing landing = load(Landing.class, landingId);
+            if (landing != null) {
+                if (landing.getTrip() == null || !Objects.equals(landing.getTrip().getId(), savedEntity.getId())) {
+                    landing.setTrip(savedEntity);
+                    landingRepository.save(landing);
+                }
+                if (landing.getObservedLocation() == null) {
+                    observedLocationId = landing.getObservedLocation().getId();
+                }
             }
+
         }
-    }
 
-    @Override
-    public TripVO qualify(TripVO vo) {
-        Preconditions.checkNotNull(vo);
-
-        Trip entity = getOne(Trip.class, vo.getId());
-
-        // Check update date
-        Daos.checkUpdateDateForUpdate(vo, entity);
-
-        // Lock entityName
-        // lockForUpdate(entity);
-
-        // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-        entity.setUpdateDate(newUpdateDate);
-
-        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId() : 0;
-
-        // If not qualify, then remove the qualification date
-        if (qualityFlagId == QualityFlagEnum.NOT_QUALIFED.getId()) {
-            entity.setQualificationDate(null);
-        } else {
-            entity.setQualificationDate(newUpdateDate);
-        }
-        // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
-        entity.setQualityFlag(find(QualityFlag.class, qualityFlagId));
-
-        // TODO UNVALIDATION PROCESS HERE
-        // - insert into qualification history
-
-        // Save entityName
-        getEntityManager().merge(entity);
-
-        // Update source
-        vo.setQualificationDate(entity.getQualificationDate());
-        vo.setQualityFlagId(entity.getQualityFlag() != null ? entity.getQualityFlag().getId() : 0);
-        vo.setUpdateDate(newUpdateDate);
-
-        return vo;
+        // Update the given VO (will be returned by the save() function)
+        vo.setLandingId(landingId);
+        vo.setObservedLocationId(observedLocationId);
     }
 
 }

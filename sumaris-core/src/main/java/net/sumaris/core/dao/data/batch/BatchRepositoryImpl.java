@@ -30,6 +30,7 @@ import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Batch;
@@ -101,8 +102,8 @@ public class BatchRepositoryImpl
         if (fetchOptions.isWithChildrenEntities()) {
             // Return all batches as tree form
             return toTree(
-                    findAllVO(
-                            hasOperationId(operationId)
+                    findAllVO(BindableSpecification
+                                    .where(hasOperationId(operationId))
                                     .and(addJoinFetch(fetchOptions)),
                         BatchFetchOptions.builder()
                             .withMeasurementValues(fetchOptions.isWithMeasurementValues())
@@ -114,9 +115,10 @@ public class BatchRepositoryImpl
 
         // Return the root batch only
         try {
-            return findOne(hasNoParent()
-                            .and(hasOperationId(operationId))
-                            .and(addJoinFetch(fetchOptions)))
+            return findOne(BindableSpecification
+                    .where(hasNoParent())
+                    .and(hasOperationId(operationId))
+                    .and(addJoinFetch(fetchOptions)))
                     .map(source -> toVO(source, fetchOptions))
                     .orElse(null);
         } catch (NoResultException e){

@@ -50,18 +50,20 @@ public class ObservedLocationRepositoryImpl
 
     private static final Logger log = LoggerFactory.getLogger(ObservedLocationRepositoryImpl.class);
 
-    @Autowired
-    private LocationRepository locationRepository;
+    private final LocationRepository locationRepository;
+    private final PersonRepository personRepository;
 
     @Autowired
-    private PersonRepository personRepository;
-
-    protected ObservedLocationRepositoryImpl(EntityManager entityManager) {
+    public ObservedLocationRepositoryImpl(EntityManager entityManager,
+                                          LocationRepository locationRepository,
+                                          PersonRepository personRepository) {
         super(ObservedLocation.class, ObservedLocationVO.class, entityManager);
+        this.locationRepository = locationRepository;
+        this.personRepository = personRepository;
     }
 
     @Override
-    protected Specification<ObservedLocation> toSpecification(ObservedLocationFilterVO filter, DataFetchOptions fetchOptions) {
+    public Specification<ObservedLocation> toSpecification(ObservedLocationFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(hasLocationId(filter.getLocationId()))
             .and(withStartDate(filter.getStartDate()))
@@ -97,7 +99,7 @@ public class ObservedLocationRepositoryImpl
             target.setEndDateTime(target.getStartDateTime());
         }
 
-        // Departure location
+        // Location
         if (copyIfNull || source.getLocation() != null) {
             if (source.getLocation() == null || source.getLocation().getId() == null) {
                 target.setLocation(null);

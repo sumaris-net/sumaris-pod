@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.vo.data;
 
 /*-
  * #%L
@@ -10,32 +10,37 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import net.sumaris.core.model.data.IRootDataEntity;
-import net.sumaris.core.vo.data.IDataFetchOptions;
-import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.filter.IRootDataFilter;
-import org.springframework.data.repository.NoRepositoryBean;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import net.sumaris.core.dao.technical.jpa.ISaveOptions;
 
-@NoRepositoryBean
-public interface RootDataRepository<E extends IRootDataEntity<Integer>, V extends IRootDataVO<Integer>, F extends IRootDataFilter, O extends IDataFetchOptions>
-    extends DataRepository<E, V, F, O>, RootDataSpecifications<E> {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ObservedLocationSaveOptions implements ISaveOptions {
 
+    public static ObservedLocationSaveOptions DEFAULT = ObservedLocationSaveOptions.builder().build();
 
+    public static ObservedLocationSaveOptions defaultIfEmpty(ObservedLocationSaveOptions options) {
+        return options != null ? options : DEFAULT;
+    }
 
-    V validate(V vo);
-
-    V unValidate(V vo);
+    @Builder.Default
+    private Boolean withLanding = false;
 
 }

@@ -34,6 +34,12 @@ import net.sumaris.core.dao.technical.jpa.ISaveOptions;
 @AllArgsConstructor
 public class TripSaveOptions implements ISaveOptions {
 
+    public static TripSaveOptions DEFAULT = TripSaveOptions.builder().build();
+
+    public static TripSaveOptions defaultIfEmpty(TripSaveOptions options) {
+        return options != null ? options : DEFAULT;
+    }
+
     @Builder.Default
     private Boolean withOperation = false;
 

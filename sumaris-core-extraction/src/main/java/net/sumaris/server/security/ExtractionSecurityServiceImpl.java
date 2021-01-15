@@ -163,7 +163,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
         if (canReadAll()) return result;
 
-        return getAuthenticatedUser().filter(Objects::nonNull)
+        return getAuthenticatedUser()
 
             // Known user: restrict to self data - issue #199
             .map(user -> {

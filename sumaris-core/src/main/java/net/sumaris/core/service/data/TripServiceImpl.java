@@ -206,21 +206,11 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripVO save(final TripVO source, TripSaveOptions saveOptions) {
-        Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getProgram(), "Missing program");
-        Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
-        Preconditions.checkNotNull(source.getDepartureDateTime(), "Missing departureDateTime");
-        Preconditions.checkNotNull(source.getDepartureLocation(), "Missing departureLocation");
-        Preconditions.checkNotNull(source.getDepartureLocation().getId(), "Missing departureLocation.id");
-        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
-        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
-        Preconditions.checkNotNull(source.getVesselSnapshot(), "Missing vesselSnapshot");
-        Preconditions.checkNotNull(source.getVesselSnapshot().getId(), "Missing vesselSnapshot.id");
-        Preconditions.checkArgument(Objects.isNull(source.getSale()) || CollectionUtils.isEmpty(source.getSales()), "Must not have both 'sales' and 'sale' attributes");
+    public TripVO save(final TripVO source, TripSaveOptions options) {
+        checkCanSave(source);
 
         // Init save options with default values if not provided
-        final TripSaveOptions finalSaveOptions = Optional.ofNullable(saveOptions).orElse(TripSaveOptions.builder().build());
+        final TripSaveOptions finalOptions = TripSaveOptions.defaultIfEmpty(options);
 
         // Reset control date
         source.setControlDate(null);
@@ -236,7 +226,7 @@ public class TripServiceImpl implements TripService {
         TripVO result = tripRepository.save(source);
 
         // Save or update parent entity
-        saveParent(result, finalSaveOptions);
+        saveParent(result, finalOptions);
 
         // Save measurements
         if (source.getMeasurementValues() != null) {
@@ -261,7 +251,7 @@ public class TripServiceImpl implements TripService {
         List<PhysicalGearVO> physicalGears = Beans.getList(source.getGears());
         physicalGears.forEach(physicalGear -> {
             fillDefaultProperties(result, physicalGear);
-            if (finalSaveOptions.getWithOperationGroup()) {
+            if (finalOptions.getWithOperationGroup()) {
                 fillPhysicalGearMeasurementsFromOperationGroups(physicalGear, source.getOperationGroups());
             }
         });
@@ -269,7 +259,7 @@ public class TripServiceImpl implements TripService {
         result.setGears(physicalGears);
 
         // Save operations (only if asked)
-        if (finalSaveOptions.getWithOperation()) {
+        if (finalOptions.getWithOperation()) {
             List<OperationVO> operations = Beans.getList(source.getOperations());
             fillOperationPhysicalGears(operations, physicalGears);
             operations = operationService.saveAllByTripId(result.getId(), operations);
@@ -277,7 +267,7 @@ public class TripServiceImpl implements TripService {
         }
 
         // Save operation groups (only if asked)
-        if (finalSaveOptions.getWithOperationGroup()) {
+        if (finalOptions.getWithOperationGroup()) {
             List<OperationGroupVO> operationGroups = Beans.getList(source.getOperationGroups());
             fillOperationGroupPhysicalGears(operationGroups, physicalGears);
             operationGroups = operationGroupService.saveAllByTripId(result.getId(), operationGroups);
@@ -312,152 +302,6 @@ public class TripServiceImpl implements TripService {
         }
 
         return result;
-    }
-
-    private void fillOperationPhysicalGears(List<OperationVO> sources, List<PhysicalGearVO> physicalGears) {
-        // Find operations with a physical gear, that have NO id, BUT a rankOrder
-        List<OperationVO> sourcesToFill = sources.stream()
-                .filter(source -> (source.getPhysicalGearId() == null || source.getPhysicalGearId() < 0)
-                        && source.getPhysicalGear() != null
-                        && (source.getPhysicalGear().getId() == null || source.getPhysicalGear().getId() < 0)
-                        && source.getPhysicalGear().getRankOrder() != null)
-                .collect(Collectors.toList());
-
-        // Replace physical gears by exact trip's VO
-        if (CollectionUtils.isNotEmpty(sourcesToFill)){
-            // Split gears by rankOrder
-            Multimap<Integer, PhysicalGearVO> gearsByRankOrder = Beans.splitByNotUniqueProperty(physicalGears, PhysicalGearVO.Fields.RANK_ORDER);
-
-            sourcesToFill.forEach(operation -> {
-                Collection<PhysicalGearVO> matches = gearsByRankOrder.get(operation.getPhysicalGear().getRankOrder());
-                PhysicalGearVO match = CollectionUtils.isNotEmpty(matches) ? matches.iterator().next() : null;
-                if (match == null) {
-                    throw new SumarisTechnicalException(String.format("Operation {startDateTime: '%s'} use an unknown PhysicalGear. Physical gears with {rankOrder: %s} not found in trip's gear.",
-                            Dates.toISODateTimeString(operation.getStartDateTime()),
-                            operation.getPhysicalGear().getRankOrder()));
-                }
-                operation.setPhysicalGear(match);
-            });
-        }
-    }
-
-    private void fillOperationGroupPhysicalGears(List<OperationGroupVO> sources, List<PhysicalGearVO> physicalGears) {
-        Map<Integer, PhysicalGearVO> physicalGearsById = Beans.splitById(physicalGears);
-        Multimap<Integer, PhysicalGearVO> physicalGearsByGearId = Beans.splitByNotUniqueProperty(physicalGears, PhysicalGearVO.Fields.GEAR + "." + ReferentialVO.Fields.ID);
-
-        // Affect physical gears from savedTrip.getGears, because new oG can have a physicalGear with null id
-        sources.forEach(source -> {
-            PhysicalGearVO physicalGear = source.getPhysicalGear();
-            if (physicalGear == null) {
-                if (source.getPhysicalGearId() != null) {
-                    physicalGear = physicalGearsById.get(source.getPhysicalGearId());
-                }
-            } else if (physicalGear.getId() == null && physicalGear.getGear() != null && physicalGear.getGear().getId() != null) {
-                // case of new operation group with unsaved physical gear
-                // try to find it with trip's gears
-                Collection<PhysicalGearVO> matches = physicalGearsByGearId.get(physicalGear.getGear().getId());
-                if (CollectionUtils.isNotEmpty(matches)) {
-                    physicalGear = matches.iterator().next();
-                }
-            }
-
-            // Assert PhysicalGear
-            Preconditions.checkNotNull(physicalGear, "OperationGroup has no valid PhysicalGear");
-            source.setPhysicalGear(physicalGear);
-        });
-    }
-
-    private void saveParent(TripVO trip, TripSaveOptions saveOptions) {
-
-        if (saveOptions.getWithLanding()) {
-            // Landing
-            Preconditions.checkNotNull(trip.getLanding(), "The Landing object must be created first");
-            boolean createLanding = false;
-            if (trip.getLanding().getId() != null) {
-
-                // update update_date on landing
-                LandingVO landing = landingRepository.get(trip.getLanding().getId());
-
-                if (landing.getTripId() == null) {
-                    landing.setTripId(trip.getId());
-                }
-                landing.setDateTime(trip.getReturnDateTime());
-                landing.setObservers(Beans.getSet(trip.getObservers()));
-
-                landingRepository.save(landing);
-
-            } else {
-
-                // a landing have to be created
-                createLanding = true;
-
-            }
-
-            // ObservedLocation
-            if (trip.getObservedLocationId() != null) {
-
-                // update update_date on observed_location
-                ObservedLocationVO observedLocation = observedLocationRepository.get(trip.getObservedLocationId());
-                observedLocationRepository.save(observedLocation);
-
-                if (createLanding) {
-
-                    LandingVO landing = new LandingVO();
-
-                    landing.setObservedLocationId(observedLocation.getId());
-                    landing.setTripId(trip.getId());
-                    landing.setProgram(observedLocation.getProgram());
-                    landing.setLocation(observedLocation.getLocation());
-                    landing.setVesselSnapshot(trip.getVesselSnapshot());
-                    landing.setRankOrderOnVessel(trip.getLanding().getRankOrderOnVessel());
-                    landing.setDateTime(trip.getReturnDateTime());
-                    landing.setObservers(Beans.getSet(trip.getObservers()));
-                    landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
-
-                    LandingVO savedLanding = landingRepository.save(landing);
-                    trip.setLanding(savedLanding);
-                }
-
-            }
-        }
-    }
-
-    private void fillPhysicalGearMeasurementsFromOperationGroups(PhysicalGearVO physicalGear, List<OperationGroupVO> operationGroups) {
-        if (CollectionUtils.isEmpty(operationGroups)) return;
-        OperationGroupVO operationGroup;
-        if (physicalGear.getId() != null) {
-            // Find with id
-            operationGroup = operationGroups.stream()
-                .filter(og -> og.getPhysicalGear() != null ? physicalGear.getId().equals(og.getPhysicalGear().getId()) : physicalGear.getId().equals(og.getPhysicalGearId()))
-                .findFirst().orElseThrow(() -> new SumarisTechnicalException(String.format("OperationGroup with PhysicalGear#%s not found", physicalGear.getId())));
-
-        } else {
-
-            Preconditions.checkNotNull(physicalGear.getGear(), "This PhysicalGear should have a Gear");
-            Preconditions.checkNotNull(physicalGear.getGear().getId(), "This PhysicalGear should have a valid Gear");
-            Preconditions.checkNotNull(physicalGear.getRankOrder(), "This PhysicalGear should have a rank order");
-
-            // Find with gear and rank order
-            operationGroup = operationGroups.stream()
-                .filter(og -> og.getPhysicalGear() != null && og.getPhysicalGear().getGear() != null
-                    && physicalGear.getGear().getId().equals(og.getPhysicalGear().getGear().getId())
-                    && physicalGear.getRankOrder().equals(og.getPhysicalGear().getRankOrder()))
-                .findFirst().orElseThrow(() -> new SumarisTechnicalException(
-                    String.format("Operation with PhysicalGear.gear#%s and PhysicalGear.rankOrder#%s not found in OperationGroups",
-                        physicalGear.getGear().getId(), physicalGear.getRankOrder()))
-                );
-        }
-
-        // Get gear physical measurement from operation group
-        Map<Integer, String> gearPhysicalMeasurements = Maps.newLinkedHashMap();
-        operationGroup.getMeasurementValues().forEach((pmfmId, value) -> {
-            // TODO: find a better way (not using PMFM label) to determine if a measurement is for physical gear
-            // Maybe using matrix=GEAR ?
-            if (pmfmService.isGearPhysicalPmfm(pmfmId))
-                gearPhysicalMeasurements.putIfAbsent(pmfmId, value);
-        });
-        // Affect measurement values
-        physicalGear.setMeasurementValues(gearPhysicalMeasurements);
     }
 
     @Override
@@ -551,7 +395,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getControlDate());
         Preconditions.checkNotNull(trip.getValidationDate());
 
-        return tripRepository.unvalidate(trip);
+        return tripRepository.unValidate(trip);
     }
 
     @Override
@@ -565,10 +409,171 @@ public class TripServiceImpl implements TripService {
         return tripRepository.qualify(trip);
     }
 
-    /* protected methods */
 
+    /* -- protected methods -- */
 
-    void fillDefaultProperties(TripVO parent, SaleVO sale) {
+    protected void checkCanSave(TripVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getProgram(), "Missing program");
+        Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
+        Preconditions.checkNotNull(source.getDepartureDateTime(), "Missing departureDateTime");
+        Preconditions.checkNotNull(source.getDepartureLocation(), "Missing departureLocation");
+        Preconditions.checkNotNull(source.getDepartureLocation().getId(), "Missing departureLocation.id");
+        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+        Preconditions.checkNotNull(source.getVesselSnapshot(), "Missing vesselSnapshot");
+        Preconditions.checkNotNull(source.getVesselSnapshot().getId(), "Missing vesselSnapshot.id");
+        Preconditions.checkArgument(Objects.isNull(source.getSale()) || CollectionUtils.isEmpty(source.getSales()), "Must not have both 'sales' and 'sale' attributes");
+
+    }
+
+    protected void fillOperationPhysicalGears(List<OperationVO> sources, List<PhysicalGearVO> physicalGears) {
+        // Find operations with a physical gear, that have NO id, BUT a rankOrder
+        List<OperationVO> sourcesToFill = sources.stream()
+                .filter(source -> (source.getPhysicalGearId() == null || source.getPhysicalGearId() < 0)
+                        && source.getPhysicalGear() != null
+                        && (source.getPhysicalGear().getId() == null || source.getPhysicalGear().getId() < 0)
+                        && source.getPhysicalGear().getRankOrder() != null)
+                .collect(Collectors.toList());
+
+        // Replace physical gears by exact trip's VO
+        if (CollectionUtils.isNotEmpty(sourcesToFill)){
+            // Split gears by rankOrder
+            Multimap<Integer, PhysicalGearVO> gearsByRankOrder = Beans.splitByNotUniqueProperty(physicalGears, PhysicalGearVO.Fields.RANK_ORDER);
+
+            sourcesToFill.forEach(operation -> {
+                Collection<PhysicalGearVO> matches = gearsByRankOrder.get(operation.getPhysicalGear().getRankOrder());
+                PhysicalGearVO match = CollectionUtils.isNotEmpty(matches) ? matches.iterator().next() : null;
+                if (match == null) {
+                    throw new SumarisTechnicalException(String.format("Operation {startDateTime: '%s'} use an unknown PhysicalGear. Physical gears with {rankOrder: %s} not found in trip's gear.",
+                            Dates.toISODateTimeString(operation.getStartDateTime()),
+                            operation.getPhysicalGear().getRankOrder()));
+                }
+                operation.setPhysicalGear(match);
+            });
+        }
+    }
+
+    protected void fillOperationGroupPhysicalGears(List<OperationGroupVO> sources, List<PhysicalGearVO> physicalGears) {
+        Map<Integer, PhysicalGearVO> physicalGearsById = Beans.splitById(physicalGears);
+        Multimap<Integer, PhysicalGearVO> physicalGearsByGearId = Beans.splitByNotUniqueProperty(physicalGears, PhysicalGearVO.Fields.GEAR + "." + ReferentialVO.Fields.ID);
+
+        // Affect physical gears from savedTrip.getGears, because new oG can have a physicalGear with null id
+        sources.forEach(source -> {
+            PhysicalGearVO physicalGear = source.getPhysicalGear();
+            if (physicalGear == null) {
+                if (source.getPhysicalGearId() != null) {
+                    physicalGear = physicalGearsById.get(source.getPhysicalGearId());
+                }
+            } else if (physicalGear.getId() == null && physicalGear.getGear() != null && physicalGear.getGear().getId() != null) {
+                // case of new operation group with unsaved physical gear
+                // try to find it with trip's gears
+                Collection<PhysicalGearVO> matches = physicalGearsByGearId.get(physicalGear.getGear().getId());
+                if (CollectionUtils.isNotEmpty(matches)) {
+                    physicalGear = matches.iterator().next();
+                }
+            }
+
+            // Assert PhysicalGear
+            Preconditions.checkNotNull(physicalGear, "OperationGroup has no valid PhysicalGear");
+            source.setPhysicalGear(physicalGear);
+        });
+    }
+
+    protected void saveParent(TripVO trip, TripSaveOptions options) {
+
+        if (options.getWithLanding()) {
+            // Landing
+            Preconditions.checkNotNull(trip.getLanding(), "The Landing object must be created first");
+            boolean createLanding = false;
+            if (trip.getLanding().getId() != null) {
+
+                // update update_date on landing
+                LandingVO landing = landingRepository.get(trip.getLanding().getId());
+
+                if (landing.getTripId() == null) {
+                    landing.setTripId(trip.getId());
+                }
+                landing.setDateTime(trip.getReturnDateTime());
+                landing.setObservers(Beans.getSet(trip.getObservers()));
+
+                landingRepository.save(landing);
+
+            } else {
+
+                // a landing have to be created
+                createLanding = true;
+
+            }
+
+            // ObservedLocation
+            if (trip.getObservedLocationId() != null) {
+
+                // update update_date on observed_location
+                ObservedLocationVO observedLocation = observedLocationRepository.get(trip.getObservedLocationId());
+                observedLocationRepository.save(observedLocation);
+
+                if (createLanding) {
+
+                    LandingVO landing = new LandingVO();
+
+                    landing.setObservedLocationId(observedLocation.getId());
+                    landing.setTripId(trip.getId());
+                    landing.setProgram(observedLocation.getProgram());
+                    landing.setLocation(observedLocation.getLocation());
+                    landing.setVesselSnapshot(trip.getVesselSnapshot());
+                    landing.setRankOrderOnVessel(trip.getLanding().getRankOrderOnVessel());
+                    landing.setDateTime(trip.getReturnDateTime());
+                    landing.setObservers(Beans.getSet(trip.getObservers()));
+                    landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
+
+                    LandingVO savedLanding = landingRepository.save(landing);
+                    trip.setLanding(savedLanding);
+                }
+
+            }
+        }
+    }
+
+    protected void fillPhysicalGearMeasurementsFromOperationGroups(PhysicalGearVO physicalGear, List<OperationGroupVO> operationGroups) {
+        if (CollectionUtils.isEmpty(operationGroups)) return;
+        OperationGroupVO operationGroup;
+        if (physicalGear.getId() != null) {
+            // Find with id
+            operationGroup = operationGroups.stream()
+                    .filter(og -> og.getPhysicalGear() != null ? physicalGear.getId().equals(og.getPhysicalGear().getId()) : physicalGear.getId().equals(og.getPhysicalGearId()))
+                    .findFirst().orElseThrow(() -> new SumarisTechnicalException(String.format("OperationGroup with PhysicalGear#%s not found", physicalGear.getId())));
+
+        } else {
+
+            Preconditions.checkNotNull(physicalGear.getGear(), "This PhysicalGear should have a Gear");
+            Preconditions.checkNotNull(physicalGear.getGear().getId(), "This PhysicalGear should have a valid Gear");
+            Preconditions.checkNotNull(physicalGear.getRankOrder(), "This PhysicalGear should have a rank order");
+
+            // Find with gear and rank order
+            operationGroup = operationGroups.stream()
+                    .filter(og -> og.getPhysicalGear() != null && og.getPhysicalGear().getGear() != null
+                            && physicalGear.getGear().getId().equals(og.getPhysicalGear().getGear().getId())
+                            && physicalGear.getRankOrder().equals(og.getPhysicalGear().getRankOrder()))
+                    .findFirst().orElseThrow(() -> new SumarisTechnicalException(
+                            String.format("Operation with PhysicalGear.gear#%s and PhysicalGear.rankOrder#%s not found in OperationGroups",
+                                    physicalGear.getGear().getId(), physicalGear.getRankOrder()))
+                    );
+        }
+
+        // Get gear physical measurement from operation group
+        Map<Integer, String> gearPhysicalMeasurements = Maps.newLinkedHashMap();
+        operationGroup.getMeasurementValues().forEach((pmfmId, value) -> {
+            // TODO: find a better way (not using PMFM label) to determine if a measurement is for physical gear
+            // Maybe using matrix=GEAR ?
+            if (pmfmService.isGearPhysicalPmfm(pmfmId))
+                gearPhysicalMeasurements.putIfAbsent(pmfmId, value);
+        });
+        // Affect measurement values
+        physicalGear.setMeasurementValues(gearPhysicalMeasurements);
+    }
+
+    protected void fillDefaultProperties(TripVO parent, SaleVO sale) {
         if (sale == null) return;
 
         // Set default values from parent
@@ -589,7 +594,7 @@ public class TripServiceImpl implements TripService {
         sale.setTripId(parent.getId());
     }
 
-    void fillDefaultProperties(TripVO parent, PhysicalGearVO gear) {
+    protected void fillDefaultProperties(TripVO parent, PhysicalGearVO gear) {
         if (gear == null) return;
 
         // Copy program
@@ -602,7 +607,7 @@ public class TripServiceImpl implements TripService {
         gear.setTripId(parent.getId());
     }
 
-    void fillDefaultProperties(TripVO parent, MeasurementVO measurement) {
+    protected void fillDefaultProperties(TripVO parent, MeasurementVO measurement) {
         if (measurement == null) return;
 
         // Set default value for recorder department and person
@@ -612,7 +617,7 @@ public class TripServiceImpl implements TripService {
         measurement.setEntityName(VesselUseMeasurement.class.getSimpleName());
     }
 
-    void fillSaleProducts(TripVO parent, SaleVO sale) {
+    protected void fillSaleProducts(TripVO parent, SaleVO sale) {
 
         // Fill sale products list with parent trip products, from operation group's product and packets
         if (CollectionUtils.isNotEmpty(parent.getOperationGroups())) {

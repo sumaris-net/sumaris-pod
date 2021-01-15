@@ -1,10 +1,8 @@
-package net.sumaris.core.dao.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,20 +20,17 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.IRootDataEntity;
-import net.sumaris.core.vo.data.IDataFetchOptions;
+package net.sumaris.core.service.data;
+
 import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.filter.IRootDataFilter;
-import org.springframework.data.repository.NoRepositoryBean;
 
-@NoRepositoryBean
-public interface RootDataRepository<E extends IRootDataEntity<Integer>, V extends IRootDataVO<Integer>, F extends IRootDataFilter, O extends IDataFetchOptions>
-    extends DataRepository<E, V, F, O>, RootDataSpecifications<E> {
+public interface IRootDataQualityService<V extends IRootDataVO<?>> {
 
+    V control(V data);
 
+    V validate(V trip);
 
-    V validate(V vo);
+    V unvalidate(V trip);
 
-    V unValidate(V vo);
-
+    V qualify(V trip);
 }

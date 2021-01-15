@@ -27,12 +27,9 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
-import net.sumaris.core.vo.data.batch.BatchFilterVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Fetch;
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.List;
@@ -45,24 +42,24 @@ public interface BatchSpecifications extends DataSpecifications<Batch> {
 
     String DEFAULT_ROOT_BATCH_LABEL = "CATCH_BATCH";
 
-    String OPERATION_ID_PARAM = BatchFilterVO.Fields.OPERATION_ID;
 
     default Specification<Batch> hasOperationId(Integer operationId) {
+
         if (operationId == null) return null;
         BindableSpecification<Batch> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, OPERATION_ID_PARAM);
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, BatchVO.Fields.OPERATION_ID);
 
             // Sort by rank order
             query.orderBy(criteriaBuilder.asc(root.get(Batch.Fields.RANK_ORDER)));
 
             return criteriaBuilder.equal(root.get(Batch.Fields.OPERATION).get(IEntity.Fields.ID), param);
         });
-        specification.addBind(OPERATION_ID_PARAM, operationId);
+        specification.addBind(BatchVO.Fields.OPERATION_ID, operationId);
         return specification;
     }
 
     default Specification<Batch> hasNoParent() {
-        return Specification.where((root, query, criteriaBuilder) ->
+        return BindableSpecification.where((root, query, criteriaBuilder) ->
             criteriaBuilder.isNull(root.get(Batch.Fields.PARENT))
         );
     }
@@ -70,7 +67,7 @@ public interface BatchSpecifications extends DataSpecifications<Batch> {
     default Specification<Batch> addJoinFetch(BatchFetchOptions fetchOptions) {
         if (fetchOptions == null || !fetchOptions.isWithMeasurementValues()) return null;
 
-        return Specification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             root.fetch(Batch.Fields.SORTING_MEASUREMENTS, JoinType.LEFT);
             return null;
         });

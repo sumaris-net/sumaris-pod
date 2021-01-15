@@ -69,7 +69,7 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
     default Specification<Sample> addJoinFetch(SampleFetchOptions fetchOptions) {
         if (fetchOptions == null || !fetchOptions.isWithMeasurementValues()) return null;
 
-        return Specification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             root.fetch(Sample.Fields.MEASUREMENTS, JoinType.LEFT);
             return null;
         });

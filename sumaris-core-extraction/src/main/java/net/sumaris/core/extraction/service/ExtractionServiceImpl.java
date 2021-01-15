@@ -166,6 +166,25 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
+    public List<ExtractionTypeVO> getLiveExtractionTypes() {
+        MutableInt id = new MutableInt(-1);
+        return Arrays.stream(LiveFormatEnum.values())
+                .map(format -> {
+                    ExtractionTypeVO type = new ExtractionTypeVO();
+                    type.setId(id.getValue());
+                    type.setLabel(format.getLabel().toLowerCase());
+                    type.setCategory(ExtractionCategoryEnum.LIVE);
+                    type.setSheetNames(format.getSheetNames());
+                    type.setStatusId(StatusEnum.TEMPORARY.getId()); // = not public by default
+                    type.setVersion(format.getVersion());
+                    type.setLiveFormat(format);
+                    id.decrement();
+                    return type;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<ExtractionTypeVO> findByFilter(ExtractionTypeFilterVO filter) {
         ImmutableList.Builder<ExtractionTypeVO> builder = ImmutableList.builder();
         filter = filter != null ? filter : new ExtractionTypeFilterVO();
@@ -177,14 +196,14 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         boolean includeLiveTypes = ArrayUtils.contains(filter.getStatusIds(), StatusEnum.TEMPORARY.getId()) &&
                 filter.getRecorderPersonId() == null;
+        ExtractionCategoryEnum filterCategory = ExtractionCategoryEnum.fromString(filter.getCategory()).orElse(null);
 
         // Add live extraction types (= private by default)
-        if (includeLiveTypes && (filter.getCategory() == null || filter.getCategory().equalsIgnoreCase(ExtractionCategoryEnum.LIVE.name()))) {
+        if (includeLiveTypes && (filterCategory == null || filterCategory == ExtractionCategoryEnum.LIVE)) {
             builder.addAll(getLiveExtractionTypes());
         }
 
         // Add product types
-        ExtractionCategoryEnum filterCategory = ExtractionCategoryEnum.fromString(filter.getCategory()).orElse(null);
         if (filterCategory == null || filterCategory == ExtractionCategoryEnum.PRODUCT) {
             builder.addAll(getProductExtractionTypes(filter));
         }
@@ -464,9 +483,14 @@ public class ExtractionServiceImpl implements ExtractionService {
         return findByFilter(null);
     }
 
+    /**
+     * @deprecated
+     * @param filter
+     * @return
+     */
+    @Deprecated
     protected List<ExtractionTypeVO> getProductExtractionTypes(ExtractionTypeFilterVO filter) {
         Preconditions.checkNotNull(filter);
-
 
         return ListUtils.emptyIfNull(
             extractionProductRepository.findAll(filter, ExtractionProductFetchOptions.builder()
@@ -478,23 +502,6 @@ public class ExtractionServiceImpl implements ExtractionService {
             .collect(Collectors.toList());
     }
 
-    protected List<ExtractionTypeVO> getLiveExtractionTypes() {
-        MutableInt id = new MutableInt(-1);
-        return Arrays.stream(LiveFormatEnum.values())
-            .map(format -> {
-                ExtractionTypeVO type = new ExtractionTypeVO();
-                type.setId(id.getValue());
-                type.setLabel(format.getLabel().toLowerCase());
-                type.setCategory(ExtractionCategoryEnum.LIVE);
-                type.setSheetNames(format.getSheetNames());
-                type.setStatusId(StatusEnum.TEMPORARY.getId()); // = not public by default
-                type.setVersion(format.getVersion());
-                type.setLiveFormat(format);
-                id.decrement();
-                return type;
-            })
-            .collect(Collectors.toList());
-    }
 
 
     protected ExtractionResultVO extractLiveAndRead(ExtractionTypeVO type,

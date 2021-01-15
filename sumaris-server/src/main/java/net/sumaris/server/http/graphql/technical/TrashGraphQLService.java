@@ -50,8 +50,6 @@ import java.util.Set;
 @Transactional
 public class TrashGraphQLService {
 
-    public static final String JSON_START_SUFFIX = "{";
-
     private static final Log log = LogFactory.getLog(TrashGraphQLService.class);
 
     @Autowired
@@ -59,7 +57,7 @@ public class TrashGraphQLService {
 
     @GraphQLQuery(name = "trashEntities", description = "Get trash content")
     @IsAdmin
-    public List<String> findTrashByPage(
+    public List<String> findAll(
         @GraphQLArgument(name = "entityName") String entityName,
         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
@@ -74,7 +72,7 @@ public class TrashGraphQLService {
 
     @GraphQLQuery(name = "trashEntity", description = "Get trash file content")
     @IsAdmin
-    public String getTrashContent(
+    public String get(
             @GraphQLArgument(name = "entityName") String entityName,
             @GraphQLArgument(name = "id") String id
     ) {
@@ -84,8 +82,8 @@ public class TrashGraphQLService {
 
     @GraphQLMutation(name = "deleteTrashEntity", description = "Delete an entity from the trash")
     @IsAdmin
-    public void saveTrip(@GraphQLArgument(name = "entityName") String entityName,
-                         @GraphQLArgument(name = "id") String id) {
+    public void delete(@GraphQLArgument(name = "entityName") String entityName,
+                       @GraphQLArgument(name = "id") String id) {
         service.delete(entityName, id);
     }
 }

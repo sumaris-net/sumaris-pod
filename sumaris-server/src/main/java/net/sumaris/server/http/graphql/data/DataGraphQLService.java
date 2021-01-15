@@ -311,19 +311,27 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
     @IsUser
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
-                           @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation,
-                           @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions,
+                           @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation, // Deprecated
+                           @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions, // Deprecated
+                           @GraphQLArgument(name = "options") TripSaveOptions options,
                            @GraphQLEnvironment() Set<String> fields) {
 
-        // For compat prior to 1.5
-        if (saveOptions == null && withOperation != null) {
-            logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
-            saveOptions = TripSaveOptions.builder()
-                    .withOperation(withOperation)
-                    .build();
+        if (options == null) {
+            // For compat prior to 1.7
+            if (saveOptions != null) {
+                logDeprecatedUse("saveTrip(TripVO, saveOptions)", "1.7.0");
+                options = saveOptions;
+            }
+            // For compat prior to 1.5
+            else if (withOperation != null) {
+                logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
+                options = TripSaveOptions.builder()
+                        .withOperation(withOperation)
+                        .build();
+            }
         }
 
-        final TripVO result = tripService.save(trip, saveOptions);
+        final TripVO result = tripService.save(trip, options);
 
         // Add additional properties if needed
         fillTripFields(result, fields);
@@ -334,19 +342,27 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveTrips", description = "Create or update many trips")
     @IsUser
     public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
-                                  @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation,
-                                  @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions,
+                                  @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation, // Deprecated
+                                  @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions, // Deprecated
+                                  @GraphQLArgument(name = "options") TripSaveOptions options,
                                   @GraphQLEnvironment() Set<String> fields) {
 
-        // For compat prior to 1.5
-        if (saveOptions == null && withOperation != null) {
-            logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
-            saveOptions = TripSaveOptions.builder()
-                    .withOperation(withOperation)
-                    .build();
+        if (options == null) {
+            // For compat prior to 1.7
+            if (saveOptions != null) {
+                logDeprecatedUse("saveTrip(TripVO, saveOptions)", "1.7.0");
+                options = saveOptions;
+            }
+            // For compat prior to 1.5
+            else if (withOperation != null) {
+                logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
+                options = TripSaveOptions.builder()
+                        .withOperation(withOperation)
+                        .build();
+            }
         }
 
-        final List<TripVO> result = tripService.save(trips, saveOptions);
+        final List<TripVO> result = tripService.save(trips, options);
 
         // Add additional properties if needed
         fillTrips(result, fields);
@@ -485,12 +501,30 @@ public class DataGraphQLService {
                                                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                                   @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
                                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                                  @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
                                                                   @GraphQLEnvironment() Set<String> fields
     ) {
+        filter = fillObserveLocationFilterDefaults(filter);
+        SortDirection sortDirection = direction != null ? SortDirection.valueOf(direction.toUpperCase()) : SortDirection.DESC;
+
+        // Read from trash
+        if (trash) {
+            // Check user is admin
+            checkIsAdmin("Cannot access to trash");
+
+            // Set default sort
+            sort = sort != null ? sort : ObservedLocationVO.Fields.UPDATE_DATE;
+
+            // Call the trash service
+            return trashService.findAll(ObservedLocation.class.getSimpleName(),
+                    Pageables.create(offset, size, sort, sortDirection),
+                    ObservedLocationVO.class).getContent();
+        }
+
         final List<ObservedLocationVO> result = observedLocationService.findAll(
                 filter,
                 offset, size, sort,
-                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
+                sortDirection,
                 getFetchOptions(fields));
 
         // Add additional properties if needed
@@ -502,7 +536,19 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "observedLocationsCount", description = "Get total number of observed locations")
     @Transactional(readOnly = true)
     @IsUser
-    public long getObservedLocationsCount(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter) {
+    public long getObservedLocationsCount(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
+                                          @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
+
+        filter = fillObserveLocationFilterDefaults(filter);
+
+        if (trash) {
+            // Check user is admin
+            checkIsAdmin("Cannot access to trash");
+
+            // Call the trash service
+            return trashService.count(ObservedLocation.class.getSimpleName());
+        }
+
         return observedLocationService.count(filter);
     }
 
@@ -521,8 +567,11 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "saveObservedLocation", description = "Create or update an observed location")
     @IsUser
-    public ObservedLocationVO saveObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
-        final ObservedLocationVO result = observedLocationService.save(observedLocation, false);
+    public ObservedLocationVO saveObservedLocation(
+            @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
+            @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
+            @GraphQLEnvironment() Set<String> fields) {
+        final ObservedLocationVO result = observedLocationService.save(observedLocation, options);
 
         // Fill expected fields
         fillObservedLocationFields(result, fields);
@@ -532,8 +581,11 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "saveObservedLocations", description = "Create or update many observed locations")
     @IsUser
-    public List<ObservedLocationVO> saveObservedLocations(@GraphQLArgument(name = "observedLocations") List<ObservedLocationVO> observedLocations, @GraphQLEnvironment() Set<String> fields) {
-        final List<ObservedLocationVO> result = observedLocationService.save(observedLocations, false);
+    public List<ObservedLocationVO> saveObservedLocations(
+            @GraphQLArgument(name = "observedLocations") List<ObservedLocationVO> observedLocations,
+            @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
+            @GraphQLEnvironment() Set<String> fields) {
+        final List<ObservedLocationVO> result = observedLocationService.save(observedLocations, options);
 
         // Fill expected fields
         fillObservedLocationsFields(result, fields);
@@ -595,6 +647,16 @@ public class DataGraphQLService {
         return result;
     }
 
+    @GraphQLMutation(name = "qualifyObservedLocation", description = "Qualify an observed location")
+    @IsSupervisor
+    public ObservedLocationVO qualifyObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
+        final ObservedLocationVO result = observedLocationService.qualify(observedLocation);
+
+        // Add additional properties if needed
+        fillObservedLocationFields(result, fields);
+
+        return result;
+    }
 
     /* -- Sales -- */
 
@@ -1286,6 +1348,22 @@ public class DataGraphQLService {
 
     protected TripFilterVO fillTripFilterDefaults(TripFilterVO filter) {
         TripFilterVO result = filter != null ? filter : new TripFilterVO();
+
+        // Restrict to self data - issue #199
+        if (!canAccessNotSelfData()) {
+            PersonVO user = authService.getAuthenticatedUser().orElse(null);
+            if (user != null) {
+                result.setRecorderDepartmentId(null);
+                result.setRecorderPersonId(user.getId());
+            } else {
+                result.setRecorderPersonId(-999); // Hide all. Should never occur
+            }
+        }
+        return result;
+    }
+
+    protected ObservedLocationFilterVO fillObserveLocationFilterDefaults(ObservedLocationFilterVO filter) {
+        ObservedLocationFilterVO result = filter != null ? filter : new ObservedLocationFilterVO();
 
         // Restrict to self data - issue #199
         if (!canAccessNotSelfData()) {

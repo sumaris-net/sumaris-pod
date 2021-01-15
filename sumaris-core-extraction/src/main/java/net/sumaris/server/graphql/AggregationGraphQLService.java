@@ -248,7 +248,10 @@ public class AggregationGraphQLService {
                 // Columns not need
                 .withColumns(false)
                 // Stratum
-                .withStratum(fields.contains(AggregationTypeVO.Fields.STRATUM))
+                .withStratum(
+                        fields.contains(StringUtils.slashing(AggregationTypeVO.Fields.STRATUM, IEntity.Fields.ID))
+                        || fields.contains(StringUtils.slashing(AggregationTypeVO.Fields.STRATUM, ExtractionProductStrataVO.Fields.SPATIAL_COLUMN_NAME))
+                )
 
                 .build();
     }

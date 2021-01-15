@@ -62,7 +62,7 @@ public class UserProfile implements IItemReferentialEntity {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @ManyToMany(mappedBy = "userProfiles", targetEntity = Person.class)
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "userProfiles", targetEntity = Person.class)
     private Set<Person> users = new HashSet<>();
 
     public int hashCode() {

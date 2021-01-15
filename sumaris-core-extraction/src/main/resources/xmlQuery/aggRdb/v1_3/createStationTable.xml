@@ -28,16 +28,16 @@
       <subquery>
         <subselect alias="TRIP_CODE" type="number">T.TRIP_CODE</subselect>
         <subselect alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_IDENTIFIER</subselect>
-        <subselect alias="VESSEL_LENGTH_CLASS" type="text">
+        <subselect alias="VESSEL_LENGTH_CLASS" type="text"><![CDATA[
         CASE
-          WHEN (T.VESSEL_LENGTH &lt; 6) THEN '0-6'
-          WHEN (T.VESSEL_LENGTH &lt; 10) THEN '6-10'
-          WHEN (T.VESSEL_LENGTH &lt; 12) THEN '10-12'
-          WHEN (T.VESSEL_LENGTH &lt; 15) THEN '12-15'
-          WHEN (T.VESSEL_LENGTH &lt; 24) THEN '15-24'
-          WHEN (T.VESSEL_LENGTH &lt; 40) THEN '24-40'
-          WHEN (T.VESSEL_LENGTH &gt;= 40) THEN '&gt;=40'
-        END CASE</subselect>
+          WHEN (T.VESSEL_LENGTH < 6) THEN '0-6'
+          WHEN (T.VESSEL_LENGTH < 10) THEN '6-10'
+          WHEN (T.VESSEL_LENGTH < 12) THEN '10-12'
+          WHEN (T.VESSEL_LENGTH < 15) THEN '12-15'
+          WHEN (T.VESSEL_LENGTH < 24) THEN '15-24'
+          WHEN (T.VESSEL_LENGTH < 40) THEN '24-40'
+          WHEN (T.VESSEL_LENGTH >= 40) THEN '>=40'
+        END CASE]]></subselect>
 
         <subselect alias="NUMBER_OF_SETS" type="number">T.NUMBER_OF_SETS</subselect>
         <subselect alias="FISHING_TIME" type="number">(SELECT SUM(FISHING_TIME) FROM &amp;rawStationTableName WHERE TRIP_CODE=T.TRIP_CODE)</subselect>

@@ -110,15 +110,15 @@ public class OperationServiceImpl implements OperationService {
     @Override
     public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> sources) {
         // Check operation validity
-        sources.forEach(this::checkOperation);
+        sources.forEach(this::checkCanSave);
 
         // Save entities
-        List<OperationVO> savedOperations = operationRepository.saveAllByTripId(tripId, sources);
+        List<OperationVO> result = operationRepository.saveAllByTripId(tripId, sources);
 
         // Save children entities
-        savedOperations.forEach(this::saveChildrenEntities);
+        result.forEach(this::saveChildrenEntities);
 
-        return savedOperations;
+        return result;
     }
 
     @Override
@@ -129,7 +129,7 @@ public class OperationServiceImpl implements OperationService {
     @Override
     public OperationVO save(final OperationVO source) {
         // Check operation validity
-        checkOperation(source);
+        checkCanSave(source);
 
         // Save the entity
         operationRepository.save(source);
@@ -174,7 +174,7 @@ public class OperationServiceImpl implements OperationService {
 
     /* -- protected methods -- */
 
-    protected void checkOperation(final OperationVO source) {
+    protected void checkCanSave(final OperationVO source) {
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getStartDateTime(), "Missing startDateTime");
         Preconditions.checkNotNull(source.getEndDateTime(), "Missing endDateTime");

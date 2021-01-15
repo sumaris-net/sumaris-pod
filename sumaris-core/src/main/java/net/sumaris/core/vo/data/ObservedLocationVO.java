@@ -63,6 +63,8 @@ public class ObservedLocationVO implements IRootDataVO<Integer>,
     private List<MeasurementVO> measurements; // observed_location_measurement
     private Map<Integer, String> measurementValues; // observed_location_measurement
 
+    private List<LandingVO> landings;
+
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }

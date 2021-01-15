@@ -29,6 +29,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ObservedLocationSaveOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.junit.Assert;
@@ -51,7 +52,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
     @Test
     public void save() {
         ObservedLocationVO vo = createObservedLocation();
-        ObservedLocationVO savedVO = service.save(vo, false);
+        ObservedLocationVO savedVO = service.save(vo, ObservedLocationSaveOptions.builder().build());
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
@@ -74,7 +75,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
     public void deleteAfterCreate() {
         ObservedLocationVO savedVO = null;
         try {
-            savedVO = service.save(createObservedLocation(), false);
+            savedVO = service.save(createObservedLocation(), ObservedLocationSaveOptions.builder().build());
             Assume.assumeNotNull(savedVO);
             Assume.assumeNotNull(savedVO.getId());
         }

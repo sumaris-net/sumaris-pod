@@ -299,6 +299,12 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_ID, allEntries = true),
+                    @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
+            }
+    )
     public CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
         return CompletableFuture.completedFuture(save(type, filter));
     }
@@ -308,9 +314,6 @@ public class AggregationServiceImpl implements AggregationService {
             evict = {
                     @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_ID, allEntries = true),
                     @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
-            },
-            put = {
-                    @CachePut(cacheNames= ExtractionCacheNames.AGGREGATION_TYPE_BY_ID, key="#result.id", condition = " #result.id != null")
             }
     )
     public AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
@@ -324,9 +327,6 @@ public class AggregationServiceImpl implements AggregationService {
         if (type.getId() != null) {
             target = productService.findById(type.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
         }
-
-
-
         boolean isNew = target == null;
         if (isNew) {
             target = new ExtractionProductVO();
@@ -371,6 +371,7 @@ public class AggregationServiceImpl implements AggregationService {
             target.setName(type.getName());
             target.setUpdateDate(type.getUpdateDate());
             target.setDescription(type.getDescription());
+            target.setDocumentation(type.getDocumentation());
             target.setStatusId(type.getStatusId());
             target.setRecorderDepartment(type.getRecorderDepartment());
             target.setRecorderPerson(type.getRecorderPerson());
@@ -382,6 +383,7 @@ public class AggregationServiceImpl implements AggregationService {
             target.setName(type.getName());
             target.setUpdateDate(type.getUpdateDate());
             target.setDescription(type.getDescription());
+            target.setDocumentation(type.getDocumentation());
             target.setComments(type.getComments());
             target.setStatusId(type.getStatusId());
             target.setUpdateDate(type.getUpdateDate());
