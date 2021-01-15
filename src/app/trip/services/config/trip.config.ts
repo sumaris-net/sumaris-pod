@@ -12,32 +12,32 @@ export const OBSERVED_LOCATION_FEATURE_NAME = 'observedLocation';
 /**
  * Define configuration options
  */
-export const TRIP_CONFIG_OPTIONS = <FormFieldDefinitionMap>{
-  TRIP_ENABLE: {
+export const TRIP_CONFIG_OPTIONS = Object.freeze({
+  TRIP_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.enable',
     label: 'TRIP.OPTIONS.ENABLE',
     type: 'boolean'
   },
-  OBSERVED_LOCATION_ENABLE: {
+  OBSERVED_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.enable',
     label: 'OBSERVED_LOCATION.OPTIONS.ENABLE',
     type: 'boolean'
   },
-  OBSERVED_LOCATION_NAME: {
+  OBSERVED_LOCATION_NAME: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.name',
     label: 'OBSERVED_LOCATION.OPTIONS.NAME',
     type: 'string'
   }
-};
+});
 
-export const TRIP_LOCAL_SETTINGS_OPTIONS = {
+export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
   SAMPLE_BURST_MODE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.sample.modal.enableBurstMode',
     label: 'TRIP.SAMPLE.SETTINGS.BURST_MODE_ENABLE',
     type: 'boolean',
     defaultValue: false
   }
-};
+});
 
 export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MeasurementVO': {

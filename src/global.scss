@@ -490,7 +490,7 @@ mat-table {
     border-left: 2px solid transparent;
     max-height: 52px;
     z-index: 999;
-    padding: 0 !important;
+    padding: 0 0 0 5px !important;
 
     mat-cell:last-child,
     mat-footer-cell:last-child,

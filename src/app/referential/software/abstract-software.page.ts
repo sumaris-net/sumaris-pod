@@ -11,7 +11,7 @@ import {ReferentialForm} from "../form/referential.form";
 import {SoftwareService} from "../services/software.service";
 import {SoftwareValidatorService} from "../services/validator/software.validator";
 import {AppEditorOptions} from "../../core/form/editor.class";
-import {ConfigOptions} from "../../core/services/config/core.config";
+import {CORE_CONFIG_OPTIONS} from "../../core/services/config/core.config";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ObjectMapEntry} from "../../shared/types";
@@ -45,7 +45,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
     dataType: new() => T,
     dataService: S,
     protected validatorService: SoftwareValidatorService,
-    private configOptions: FormFieldDefinitionMap,
+    configOptions: FormFieldDefinitionMap,
     options?: AppEditorOptions,
     ) {
     super(injector,
@@ -58,8 +58,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
     this.referentialRefService = injector.get(ReferentialRefService);
 
     // Convert map to list of options
-    this.propertyDefinitions = Object.keys({...ConfigOptions, ...configOptions})
-      .map(name => configOptions[name])
+    this.propertyDefinitions = Object.values({...CORE_CONFIG_OPTIONS, ...configOptions})
       .map(o => o.type !== 'entity' ? o : <FormFieldDefinition>{
         ...o,
         autocomplete: {

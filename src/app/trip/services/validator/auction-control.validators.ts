@@ -11,6 +11,10 @@ export class AuctionControlValidators {
 
   static addSampleValidators(form: FormGroup, pmfms: PmfmStrategy[],
                              opts?: { markForCheck: () => void }): Subscription {
+    if (!form) {
+      console.warn("Argument 'form' required");
+      return null;
+    }
 
     // Label: remove 'required', and add integer
     form.get('label').setValidators(Validators.pattern(/^[0-9]*$/));

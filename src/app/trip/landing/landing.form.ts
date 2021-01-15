@@ -217,12 +217,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return modal.present();
   }
 
-  public registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
-    return super.registerAutocompleteField(fieldName, options);
-  }
-
-  referentialToString = referentialToString;
-
   /* -- protected method -- */
 
   protected initObserversHelper() {

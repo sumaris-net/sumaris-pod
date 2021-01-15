@@ -79,8 +79,6 @@ export const VesselFragments = {
       id
       comments
       statusId
-      #        qualityFlagId
-      #        program
       creationDate
       controlDate
       validationDate
@@ -108,8 +106,6 @@ export const VesselFragments = {
         id
         comments
         statusId
-        #        qualityFlagId
-        #        program
         creationDate
         controlDate
         validationDate

@@ -132,8 +132,6 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
 
   @ViewChildren('button') buttons: QueryList<IonButton>;
 
-  @ViewChild('buttonsMenu') buttonsMenu: MatMenu;
-
   constructor(
     private platform: PlatformService,
     private settings: LocalSettingsService,
@@ -179,7 +177,6 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
-
     if (!this.mobile) {
       if (!this._sortedQualitativeValues.length) {
         this.items = of([]);
@@ -217,13 +214,7 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
         .pipe(
           takeUntil(this._onDestroy)
         )
-        .subscribe(() => {
-          /*if (this.disabled !== this.formControl.disabled) {
-            this.disabled = !this.disabled;
-            this.markForCheck();
-          }*/
-          this.markForCheck();
-        });
+        .subscribe(() => this.markForCheck());
     }
   }
 
@@ -237,18 +228,6 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
       const suffixInjectionPoint = this.suffixInjections.first;
       if (suffixInjectionPoint) {
         suffixInjectionPoint.nativeElement.append(this.suffixDiv.nativeElement);
-
-        // Hide buttons, after the limit of 'maxVisibleButtons'
-        if (this.style === 'button' && this.maxVisibleButtons) {
-
-          this.buttons.forEach((button, index) => {
-            if (index + 1 > this.maxVisibleButtons) {
-              console.debug("Hide button at index: " + index);
-              const newItem = new MatMenuItem(new ElementRef<HTMLElement>(button['el'] as HTMLElement), document);
-              this.buttonsMenu.addItem(newItem);
-            }
-          });
-        }
 
         // Show the suffix div
         this.suffixDiv.nativeElement.classList.remove('cdk-visually-hidden');

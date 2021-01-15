@@ -38,6 +38,7 @@
       <app-landings-table #landingsTable
                           [showObserversColumn]="false"
                           [showDateTimeColumn]="true"
+                          [showVesselTypeColumn]="showVesselTypeColumn"
                           [showIdColumn]="false"
                           [canEdit]="false"
                           [canDelete]="false"
@@ -58,6 +59,7 @@
 
       <app-vessels-table #vesselsTable
                          [showIdColumn]="false"
+                         [showVesselTypeColumn]="showVesselTypeColumn"
                          [canEdit]="false"
                          [canDelete]="false"
                          (onOpenRow)="selectRow($event)"

@@ -114,6 +114,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     this.inlineEdition = !this.mobile;
+    this.defaultSortBy = 'rankOrder';
+    this.defaultSortDirection = 'asc';
 
     // Set default value
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE; // Default value, can be override by subclasses

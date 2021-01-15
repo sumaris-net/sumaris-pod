@@ -6,7 +6,7 @@ import {VesselService} from '../../services/vessel-service';
 import {AppFormUtils, isNotNil} from '../../../core/core.module';
 import {ConfigService} from "../../../core/services/config.service";
 import {Subscription} from "rxjs";
-import {ConfigOptions} from "../../../core/services/config/core.config";
+import {CORE_CONFIG_OPTIONS} from "../../../core/services/config/core.config";
 
 
 @Component({
@@ -51,7 +51,7 @@ export class VesselModal implements OnInit, OnDestroy {
       this.subscription.add(
         this.configService.config.subscribe(config => {
           if (config && config.properties) {
-            const defaultStatus = config.properties[ConfigOptions.VESSEL_DEFAULT_STATUS.key];
+            const defaultStatus = config.properties[CORE_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS.key];
             if (defaultStatus) {
               this.formVessel.defaultStatus = +defaultStatus;
             }

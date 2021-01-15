@@ -8,7 +8,7 @@ import {Locales} from "../model/settings.model";
 import {LocationLevelIds} from "../../../referential/services/model/model.enum";
 import {Property} from "../../../shared/types";
 
-export const ConfigOptions = Object.freeze({
+export const CORE_CONFIG_OPTIONS = Object.freeze({
     LOGO: <FormFieldDefinition>{
         key: 'sumaris.logo',
         label: 'CONFIGURATION.OPTIONS.LOGO',
@@ -207,3 +207,5 @@ export const ConfigOptions = Object.freeze({
         defaultValue: LocationLevelIds.AUCTION
     }
 });
+
+export const CORE_LOCAL_SETTINGS_OPTIONS = Object.freeze({});

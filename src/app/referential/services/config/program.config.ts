@@ -222,6 +222,12 @@ export const ProgramProperties = Object.freeze({
     ],
     defaultValue: 'landing'
   },
+  VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.vessel.type.enable',
+    label: "PROGRAM.OPTIONS.VESSEL_TYPE_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   LANDING_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.dateTime.enable',
     label: "PROGRAM.OPTIONS.LANDING_DATE_TIME_ENABLE",

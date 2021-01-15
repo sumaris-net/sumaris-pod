@@ -145,7 +145,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
     });
   }
 
-  async cancel(event?: UIEvent) {
+  async close(event?: UIEvent) {
     if (this.dirty) {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 

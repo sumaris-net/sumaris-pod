@@ -22,7 +22,7 @@ import {VesselForm} from "../../../referential/vessel/form/form-vessel";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {Vessel} from "../../../referential/services/model/vessel.model";
 import {Subscription} from "rxjs";
-import {ConfigOptions} from "../../../core/services/config/core.config";
+import {CORE_CONFIG_OPTIONS} from "../../../core/services/config/core.config";
 import {ConfigService} from "../../../core/services/config.service";
 
 @Component({
@@ -43,6 +43,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   @Input() vesselFilter: VesselFilter = {};
   @Input() allowMultiple: boolean;
   @Input() allowAddNewVessel: boolean;
+  @Input() showVesselTypeColumn: boolean;
 
   get loading(): boolean {
     const table = this.table;
@@ -97,6 +98,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
     this.allowAddNewVessel = toBoolean(this.allowAddNewVessel, true);
+    this.showVesselTypeColumn = toBoolean(this.showVesselTypeColumn, false);
 
     // Load landings
     setTimeout(() => {
@@ -108,10 +110,14 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
 
     // Get default status by config
+    if (this.vesselsTable) {
+      this.vesselsTable.setFilter(this.vesselFilter);
+    }
+    // Get default status by config
     if (this.allowAddNewVessel && this.vesselForm) {
       this.subscription.add(
         this.configService.config.subscribe(config => setTimeout(() => {
-          this.vesselForm.defaultStatus = config.getPropertyAsInt(ConfigOptions.VESSEL_DEFAULT_STATUS);
+          this.vesselForm.defaultStatus = config.getPropertyAsInt(CORE_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS);
           this.vesselForm.enable();
         }))
       );

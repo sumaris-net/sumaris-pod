@@ -1,26 +1,24 @@
 import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {Configuration} from "./model/config.model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
-import {BehaviorSubject, Observable, of, Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
-import {FetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../graphql/graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
 import {EntityServiceLoadOptions} from "../../shared/shared.module";
-import {ConfigOptions} from "./config/core.config";
+import {CORE_CONFIG_OPTIONS} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {VersionUtils} from "../../shared/version/versions";
 import {ToastController} from "@ionic/angular";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
-import {filter, map} from "rxjs/operators";
+import {filter} from "rxjs/operators";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -139,7 +137,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     this._debug = !environment.production;
     if (this._debug) console.debug("[config] Creating service");
 
-    this._optionDefs = Object.values({...ConfigOptions, ...defaultOptionsMap});
+    this._optionDefs = Object.values({...CORE_CONFIG_OPTIONS, ...defaultOptionsMap});
 
     // Restart if graphql service restart
     this._subscription.add(
@@ -500,9 +498,9 @@ export class ConfigService extends SoftwareService<Configuration> {
     console.log("[config] Updating model enumerations...");
 
     // Location Levels
-    LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_COUNTRY_ID);
-    LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_PORT_ID);
-    LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.COUNTRY = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
+    LocationLevelIds.PORT = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
+    LocationLevelIds.AUCTION = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
 
     // User profiles Label ?
 

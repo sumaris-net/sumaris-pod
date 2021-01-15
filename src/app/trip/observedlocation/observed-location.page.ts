@@ -111,8 +111,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     if (this.landingsTable) {
       this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
-      const editorName = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-      this.landingsTable.detailEditor = (editorName === 'landing' || editorName === 'control' || editorName === 'trip') ? editorName : 'landing';
+      this.landingsTable.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
+      this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
 
     } else if (this.aggregatedLandingsTable) {
 
@@ -318,6 +318,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       componentProps: {
         allowMultiple: false,
         allowAddNewVessel: this.allowAddNewVessel,
+        showVesselTypeColumn: this.landingsTable.showVesselTypeColumn,
         landingFilter
       },
       keyboardClose: true,

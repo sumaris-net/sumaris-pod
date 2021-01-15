@@ -8,7 +8,7 @@ import {BehaviorSubject} from "rxjs";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {NetworkService} from "../../core/services/network.service";
 import {Alerts} from "../../shared/alerts";
-import {ConfigOptions} from "../../core/services/config/core.config";
+import {CORE_CONFIG_OPTIONS} from "../../core/services/config/core.config";
 import {APP_CONFIG_OPTIONS, ConfigService} from "../../core/services/config.service";
 import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {AbstractSoftwarePage} from "../../referential/software/abstract-software.page";
@@ -102,7 +102,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     partners.splice(index, 1);
 
     const propertiesAsArray = (this.form.get('properties').value || []);
-    const propertyIndex = propertiesAsArray.findIndex(p => p.key === ConfigOptions.HOME_PARTNERS_DEPARTMENTS.key);
+    const propertyIndex = propertiesAsArray.findIndex(p => p.key === CORE_CONFIG_OPTIONS.HOME_PARTNERS_DEPARTMENTS.key);
     if (propertyIndex === -1) return;
 
     const propertyControl = this.propertiesFormHelper.at(propertyIndex);

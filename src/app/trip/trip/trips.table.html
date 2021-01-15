@@ -278,10 +278,12 @@
   </ion-item>
 
   <!-- table -->
-  <mat-table [dataSource]="dataSource" matSort
+  <mat-table [dataSource]="dataSource"
+             matSort
+             matSortDisableClear
              [matSortActive]="defaultSortBy"
              [matSortDirection]="defaultSortDirection"
-             matSortDisableClear [trackBy]="trackByFn">
+             [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">

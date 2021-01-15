@@ -286,8 +286,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   @ViewChild(MatTable, {static: false}) table: MatTable<T>;
-  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
-  @ViewChild(MatSort, {static: true}) sort: MatSort;
+  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
+  @ViewChild(MatSort, {static: false}) sort: MatSort;
 
   protected constructor(
     protected route: ActivatedRoute,
@@ -334,11 +334,72 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.defaultSortBy = sortedColumn.id;
     this.defaultSortDirection = sortedColumn.start;
 
-    // If the user changes the sort order, reset back to the first page.
-    if(this.sort && this.paginator) {
-      this.registerSubscription(
-        this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0)
-      );
+
+    this.registerSubscription(
+      this.onRefresh
+        .pipe(
+          startWith<any, any>(this.autoLoad ? {} : 'skip'),
+          switchMap(
+            (any: any) => {
+              this._dirty = false;
+              this.selection.clear();
+              this.editedRow = undefined;
+              if (any === 'skip' || !this._dataSource) {
+                return of(undefined);
+              }
+              if (!this._dataSource) {
+                if (this.debug) console.debug("[table] Skipping data load: no dataSource defined");
+                return of(undefined);
+              }
+              if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
+              this.selection.clear();
+              return this._dataSource.watchAll(
+                this.pageOffset,
+                this.pageSize,
+                this.sortActive,
+                this.sortDirection,
+                this._filter
+              );
+            }),
+          catchError(err => {
+            this.error = err && err.message || err;
+            if (this.debug) console.error(err);
+            return of(undefined);
+          })
+        )
+        .subscribe(res => {
+          if (res && res.data) {
+            this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
+            this.visibleRowCount = res.data.length;
+            this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + this.visibleRowCount);
+            if (this.debug) console.debug(`[table] ${res.data.length} rows loaded`);
+          } else {
+            //if (this.debug) console.debug('[table] NO rows loaded');
+            this.isRateLimitReached = true;
+            this.resultsLength = 0;
+            this.visibleRowCount = 0;
+          }
+          this.markAsUntouched();
+          this.markAsPristine();
+          this.markForCheck();
+        }));
+
+    // Listen dataSource events
+    if (this._dataSource) this.listenDatasource(this._dataSource);
+  }
+
+  ngAfterViewInit() {
+    if (!environment.production) {
+      // Warn if table not exists
+      if (!this.table) {
+        setTimeout(() => {
+          if (!this.table) {
+            console.warn(`[table] Missing <mat-table> in the HTML template (after waiting 500ms)! Component: ${this.constructor.name}`);
+          }
+        }, 500);
+      }
+
+      if (!this.displayedColumns) console.warn(`[table] Missing 'displayedColumns'. Did you call super.ngOnInit() in component ${this.constructor.name} ?`);
     }
 
     merge(
@@ -364,86 +425,24 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
       // Listen paginator events
       this.paginator && this.paginator.page
-          .pipe(
-            mergeMap(async () => {
-              if (this._dirty && this.saveBeforeSort) {
-                const saved = await this.save();
-                this.markAsDirty(); // restore dirty flag
-                return saved;
-              }
-              return true;
-            }),
-            filter(res => res === true)
-          ) || EMPTY,
-
-        this.onRefresh
-          // DEBUG
-          //.pipe(tap(event => this._debug && console.debug("[table] Received onRefresh event " + this.constructor.name)))
-      )
-      .pipe(
-        startWith<any, any>(this.autoLoad ? {} : 'skip'),
-        switchMap(
-          (any: any) => {
-            this._dirty = false;
-            this.selection.clear();
-            this.editedRow = undefined;
-            if (any === 'skip' || !this._dataSource) {
-              return of(undefined);
+        .pipe(
+          mergeMap(async () => {
+            if (this._dirty && this.saveBeforeSort) {
+              const saved = await this.save();
+              this.markAsDirty(); // restore dirty flag
+              return saved;
             }
-            if (!this._dataSource) {
-              if (this.debug) console.debug("[table] Skipping data load: no dataSource defined");
-              return of(undefined);
-            }
-            if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
-            this.selection.clear();
-            return this._dataSource.watchAll(
-              this.pageOffset,
-              this.pageSize,
-              this.sortActive,
-              this.sortDirection,
-              this._filter
-            );
+            return true;
           }),
-        //takeUntil(this._destroy$),
-        catchError(err => {
-          this.error = err && err.message || err;
-          if (this.debug) console.error(err);
-          return of(undefined);
-        })
-      )
-      .subscribe(res => {
-        if (res && res.data) {
-          this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
-          this.visibleRowCount = res.data.length;
-          this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + this.visibleRowCount);
-          if (this.debug) console.debug(`[table] ${res.data.length} rows loaded`);
-        } else {
-          //if (this.debug) console.debug('[table] NO rows loaded');
-          this.isRateLimitReached = true;
-          this.resultsLength = 0;
-          this.visibleRowCount = 0;
-        }
-        this.markAsUntouched();
-        this.markAsPristine();
-        this.markForCheck();
-      });
+          filter(res => res === true)
+        ) || EMPTY
+    ).subscribe(value => this.onRefresh.emit(value));
 
-    // Listen dataSource events
-    if (this._dataSource) this.listenDatasource(this._dataSource);
-  }
-
-  ngAfterViewInit() {
-    if (!environment.production) {
-      // Warn if table not exists
-      if (!this.table) {
-        setTimeout(() => {
-          if (!this.table) {
-            console.warn(`[table] Missing <mat-table> in the HTML template (after waiting 500ms)! Component: ${this.constructor.name}`);
-          }
-        }, 500);
-      }
-
-      if (!this.displayedColumns) console.warn(`[table] Missing 'displayedColumns'. Did you call super.ngOnInit() in component ${this.constructor.name} ?`);
+    // If the user changes the sort order, reset back to the first page.
+    if (this.sort && this.paginator) {
+      this.registerSubscription(
+        this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0)
+      );
     }
   }
 
@@ -780,7 +779,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   async openSelectColumnsModal(event?: UIEvent): Promise<any> {
     const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
     const hiddenColumns = this.columns.slice(fixedColumns.length)
-      .filter(name => this.displayedColumns.indexOf(name) == -1);
+      .filter(name => this.displayedColumns.indexOf(name) === -1);
     const columns = this.displayedColumns.slice(fixedColumns.length)
       .concat(hiddenColumns)
       .filter(name => name !== "actions")
@@ -891,8 +890,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected getDisplayColumns(): string[] {
     let userColumns = this.getUserColumns();
 
-    // No user override: use defaults
-    if (!userColumns) return this.columns;
+    // No user override
+    if (!userColumns) {
+      // Return default, without columns to hide
+      return this.columns.filter(column => !this.excludesColumns.includes(column));
+    }
 
     // Get fixed start columns
     const fixedStartColumns = this.columns.filter(c => RESERVED_START_COLUMNS.includes(c));
@@ -905,7 +907,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
     return fixedStartColumns
       .concat(userColumns)
-      .concat(fixedEndColumns);
+      .concat(fixedEndColumns)
+      // Remove columns to hide
+      .filter(column => !this.excludesColumns.includes(column));
+  }
+
+  /**
+   * Recompute display columns
+   * @protected
+   */
+  protected updateColumns() {
+    this.displayedColumns = this.getDisplayColumns();
+    if (!this.loading) this.markForCheck();
   }
 
   protected registerSubscription(sub: Subscription) {
@@ -997,13 +1010,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  setShowColumn(columnName: string, show: boolean) {
+  setShowColumn(columnName: string, show: boolean, opts?: { emitEvent?: boolean; }) {
     if (!this.excludesColumns.includes(columnName) !== show) {
       if (!show) {
         this.excludesColumns.push(columnName);
       } else {
         const index = this.excludesColumns.findIndex(value => value === columnName);
         if (index >= 0) this.excludesColumns.splice(index, 1);
+      }
+
+      // Recompute display columns
+      if (this.displayedColumns && (!opts || opts.emitEvent !== false)) {
+        this.updateColumns();
       }
     }
   }

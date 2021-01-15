@@ -23,7 +23,7 @@ import {PlatformService} from "../services/platform.service";
 import {distinctUntilChanged, map} from "rxjs/operators";
 import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
-import {ConfigOptions} from "../services/config/core.config";
+import {CORE_CONFIG_OPTIONS} from "../services/config/core.config";
 import {VersionUtils} from "../../shared/version/versions";
 
 
@@ -198,7 +198,7 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
   }
 
   private getCompatibleUpgradeLinks(installLinks: InstallAppLink[], config: Configuration): InstallAppLink[] {
-    const appMinVersion = config.getProperty(ConfigOptions.APP_MIN_VERSION);
+    const appMinVersion = config.getProperty(CORE_CONFIG_OPTIONS.APP_MIN_VERSION);
 
     const needUpgrade = appMinVersion && !VersionUtils.isCompatible(appMinVersion, environment.version);
     if (!needUpgrade) return undefined;
@@ -219,7 +219,7 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
 
     // Android
     {
-      let url = config.getProperty(ConfigOptions.ANDROID_INSTALL_URL);
+      let url = config.getProperty(CORE_CONFIG_OPTIONS.ANDROID_INSTALL_URL);
       const name: string = isNotNilOrBlank(url) && config.label || environment.defaultAppName || 'SUMARiS';
       let version;
       const filename = name;
@@ -227,7 +227,7 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
         url = environment.defaultAndroidInstallUrl || null;
       }
       else {
-        version = config.getProperty(ConfigOptions.APP_MIN_VERSION);
+        version = config.getProperty(CORE_CONFIG_OPTIONS.APP_MIN_VERSION);
       }
 
       result.push({ name, url, platform: 'android', version });

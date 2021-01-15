@@ -252,7 +252,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
 
   setShowColumn(columnName: string, show: boolean) {
-    super.setShowColumn(columnName, show);
+    super.setShowColumn(columnName, show, {emitEvent: false});
 
     if (!this.loading) {
       this.updateColumns();
@@ -279,8 +279,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   protected updateColumns() {
     if (!this.$pmfms.getValue()) return; // skip
-    this.displayedColumns = this.getDisplayColumns();
-    if (!this.loading) this.markForCheck();
+    super.updateColumns();
   }
 
   // Can be override by subclass

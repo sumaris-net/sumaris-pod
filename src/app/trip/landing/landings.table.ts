@@ -3,7 +3,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter, HostListener,
+  EventEmitter,
   Injector,
   Input,
   OnDestroy,
@@ -27,7 +27,6 @@ import {environment} from "../../../environments/environment";
 import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {EntityUtils} from "../../core/core.module";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
@@ -98,6 +97,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
   get showIdColumn(): boolean {
     return this.getShowColumn('id');
+  }
+
+  @Input()
+  set showVesselTypeColumn(value: boolean) {
+    this.setShowColumn('vesselType', value);
+  }
+
+  get showVesselTypeColumn(): boolean {
+    return this.getShowColumn('vesselType');
   }
 
   constructor(

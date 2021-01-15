@@ -107,12 +107,12 @@ export class ObservedLocationFilter {
 
     // Synchronization status
     if (f.synchronizationStatus) {
-      filterFns.push(t => // Check trip synchro status, if any
-        (t.synchronizationStatus && t.synchronizationStatus === f.synchronizationStatus)
-        // Else, if SYNC is wanted: must be remote (not local) id
-        || (f.synchronizationStatus === 'SYNC' && !t.synchronizationStatus && t.id >= 0)
-        // Or else, if DIRTY or READY_TO_SYNC wanted: must be local id
-        || (f.synchronizationStatus !== 'SYNC' && !t.synchronizationStatus && t.id < 0));
+      if (f.synchronizationStatus === 'SYNC') {
+        filterFns.push(t => t.synchronizationStatus === 'SYNC' || (!t.synchronizationStatus && t.id >= 0));
+      }
+      else {
+        filterFns.push(t => t.synchronizationStatus && t.synchronizationStatus !== 'SYNC' || t.id < 0);
+      }
     }
 
     if (!filterFns.length) return undefined;

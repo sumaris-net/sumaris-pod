@@ -30,9 +30,21 @@ export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
 };
 
 
-export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
-  // Allow user to choose how to display field (by code+label, code, etc)
-  .reduce((res, fieldName) => {
+export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
+  // Display attributes for vessel
+  FIELD_VESSEL_SNAPSHOT_ATTRIBUTES: <FormFieldDefinition>{
+    key: 'sumaris.field.vesselSnapshot.attributes',
+    label: 'SETTINGS.FIELDS.VESSEL.NAME',
+    type: 'enum',
+    values: [
+      {key: 'exteriorMarking,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME'},
+      {key: 'registrationCode,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME'}
+    ]
+  },
+  // Display attributes for referential useful entities
+  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
+    // Allow user to choose how to display field (by code+label, code, etc)
+    .reduce((res, fieldName) => {
       res[`FIELD_${changeCaseToUnderscore(fieldName).toUpperCase()}_ATTRIBUTES`] = {
         key: `sumaris.field.${fieldName}.attributes`,
         label: `SETTINGS.FIELDS.${changeCaseToUnderscore(fieldName).toUpperCase()}`,
@@ -45,15 +57,5 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = ['department', 'location', 'qu
         ]
       };
       return res;
-  },
-    <FormFieldDefinitionMap>{
-      FIELD_VESSEL_SNAPSHOT_ATTRIBUTES: <FormFieldDefinition>{
-        key: 'sumaris.field.vesselSnapshot.attributes',
-        label: 'SETTINGS.FIELDS.VESSEL.NAME',
-        type: 'enum',
-        values: [
-          {key: 'exteriorMarking,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME'},
-          {key: 'registrationCode,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME'}
-        ]
-      }
-    });
+    }, {})
+};

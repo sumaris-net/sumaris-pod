@@ -102,7 +102,7 @@
       <ion-label translate>LANDING.TABLE.VESSEL_TYPE</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.vesselType, ['name'])}}</ion-label>
+      <ion-label>{{row.currentData?.vesselSnapshot?.vesselType |referentialToString: ['name'] }}</ion-label>
     </mat-cell>
   </ng-container>
 

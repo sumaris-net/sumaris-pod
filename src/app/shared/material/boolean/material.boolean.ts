@@ -1,7 +1,8 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, ElementRef,
+  Component,
+  ElementRef,
   EventEmitter,
   forwardRef,
   Input,
@@ -52,7 +53,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
 
   @Input() placeholder: string;
 
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
 
   @Input() readonly = false;
 
@@ -111,6 +112,9 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
 
     this.style = this.style || (this.compact ? 'checkbox' : 'radio');
 
+    // Force show radio if label always on top
+    this.showRadio = this.showRadio || this.floatLabel === 'always';
+
     this.updateTabIndex();
   }
 
@@ -120,7 +124,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     this._writing = true;
     if (value !== this._value) {
       this._value = value;
-      this.showRadio = isNotNil(this._value);
+      this.showRadio = this.floatLabel === 'always' || isNotNil(this._value);
       if (isNotNil(this.tabindex)) {
         setTimeout(() => this.updateTabIndex());
       }

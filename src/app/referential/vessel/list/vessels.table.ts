@@ -25,6 +25,8 @@ import {debounceTime, filter, tap} from "rxjs/operators";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {toBoolean} from "../../../shared/functions";
 import {statusToColor} from "../../../data/services/model/model.utils";
+import {LocationLevelIds} from "../../services/model/model.enum";
+import {ReferentialRefService} from "../../services/referential-ref.service";
 
 @Component({
   selector: 'app-vessels-table',
@@ -59,6 +61,15 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     return this.getShowColumn('id');
   }
 
+  @Input()
+  set showVesselTypeColumn(value: boolean) {
+    this.setShowColumn('vesselType', value);
+  }
+
+  get showVesselTypeColumn(): boolean {
+    return this.getShowColumn('vesselType');
+  }
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -68,6 +79,7 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected vesselService: VesselService,
+    protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
     formBuilder: FormBuilder,
     injector: Injector
@@ -120,7 +132,16 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     this.canDelete = toBoolean(this.canDelete, isAdmin);
     if (this.debug) console.debug("[vessels-page] Can user edit table ? " + this.canEdit);
 
-    // TODO fill locations
+    // Locations
+    this.registerAutocompleteField('location', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.PORT
+      },
+      mobile: this.mobile
+    });
+
     // TODO fill vessel types
 
     // Update filter when changes

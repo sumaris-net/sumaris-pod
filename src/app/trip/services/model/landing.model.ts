@@ -42,6 +42,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
   constructor() {
     super();
+    this.__typename = Landing.TYPENAME;
     this.program = new ReferentialRef();
     this.location = new ReferentialRef();
     this.observers = [];

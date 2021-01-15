@@ -1,9 +1,9 @@
 <app-modal-toolbar color="secondary"
                    [title]="$title|async"
-                   (cancel)="cancel()"
+                   (cancel)="close($event)"
                    (validate)="onSubmit($event)"
-                   [canValidate]="!loading"
                    [showSpinner]="loading"
+                   [canValidate]="!loading && (dirty || !enableBurstMode)"
                    [validateIcon]="enableBurstMode ? {matIcon: 'done_all'} : {matIcon: 'checkmark'}">
 
 <ion-buttons slot="end" >
@@ -13,6 +13,21 @@
           [matMenuTriggerFor]="optionsMenu">
     <mat-icon>more_vert</mat-icon>
   </button>
+
+  <!-- Close  -->
+  <ion-button visible-xs visible-sm visible-mobile
+              *ngIf="!dirty && isNew && enableBurstMode"
+              (click)="close($event)">
+    <ion-icon slot="icon-only" name="close"></ion-icon>
+  </ion-button>
+
+  <!-- Add  -->
+  <ion-button visible-xs visible-sm visible-mobile
+              *ngIf="!dirty && !isNew && enableBurstMode"
+              (click)="onSubmit($event)">
+    <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+  </ion-button>
+
 </ion-buttons>
 </app-modal-toolbar>
 
@@ -64,7 +79,7 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="cancel()">
+        <ion-button fill="clear" color="dark" (click)="close()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 

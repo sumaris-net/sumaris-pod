@@ -94,7 +94,7 @@
             <app-pmfm-field #matInput
                             [pmfm]="pmfm"
                             [hidden]="pmfm.hidden"
-                            [floatLabel]="(pmfm|isComputedPmfm) ? 'always' : 'auto'"
+                            [floatLabel]="(mobile && pmfm.type === 'boolean') || (pmfm|isComputedPmfm) ? 'always' : 'auto'"
                             [formControlName]="pmfm.pmfmId.toString()"
                             [compact]="compact"
                             [tabindex]="tabindex+4 + i*2">

@@ -20,20 +20,21 @@ import {HttpClient, HttpClientModule} from "@angular/common/http";
 import {Camera} from "@ionic-native/camera/ngx";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
-import {APP_LOCAL_SETTINGS_OPTIONS, APP_LOCAL_SETTINGS} from "./core/services/local-settings.service";
+import {APP_LOCAL_SETTINGS, APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
 import {LocalSettings} from "./core/services/model/settings.model";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
 import {
   TRIP_CONFIG_OPTIONS,
-  TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS,
+  TRIP_GRAPHQL_TYPE_POLICIES,
+  TRIP_LOCAL_SETTINGS_OPTIONS,
   TRIP_STORAGE_TYPE_POLICIES
 } from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 import {APP_MENU_ITEMS} from "./core/menu/menu.component";
 import {APP_HOME_BUTTONS} from "./core/home/home";
-import {ConfigOptions} from "./core/services/config/core.config";
+import {CORE_CONFIG_OPTIONS, CORE_LOCAL_SETTINGS_OPTIONS} from "./core/services/config/core.config";
 import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material.testing.page";
 import {IonicModule} from "@ionic/angular";
 import {CacheModule} from "ionic-cache";
@@ -142,6 +143,7 @@ import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 
     // Settings options definition
     { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <FormFieldDefinitionMap>{
+        ...CORE_LOCAL_SETTINGS_OPTIONS,
         ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
         ...TRIP_LOCAL_SETTINGS_OPTIONS
       }
@@ -149,7 +151,7 @@ import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 
     // Config options definition (Core + trip)
     { provide: APP_CONFIG_OPTIONS, useValue: <FormFieldDefinitionMap>{
-      ...ConfigOptions,
+      ...CORE_CONFIG_OPTIONS,
       ...TRIP_CONFIG_OPTIONS
     }},
 

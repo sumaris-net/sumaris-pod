@@ -159,17 +159,4 @@
       <ng-content select="[matSuffix]"></ng-content>
     </div>
   </div>
-
-  <!-- Drop down menu -->
-  <mat-menu #buttonsMenu="matMenu">
-    <ng-template matMenuContent>
-      <button *ngFor="let item of pmfm.qualitativeValues; index as i; trackBy: getQvId"
-              mat-menu-item
-              [class.cdk-visually-hidden]="i < maxVisibleButtons"
-              (click)="writeValue(item, $event)"
-              (keyup.enter)="writeValue(item, $event)">
-        {{item.name || item.label}}
-      </button>
-    </ng-template>
-  </mat-menu>
 </ng-template>

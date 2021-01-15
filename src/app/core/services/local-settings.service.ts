@@ -22,7 +22,7 @@ import * as moment from "moment";
 import {Moment} from "moment";
 import {debounceTime, filter} from "rxjs/operators";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
-import {ConfigOptions} from "./config/core.config";
+import {CORE_LOCAL_SETTINGS_OPTIONS} from "./config/core.config";
 
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
@@ -52,7 +52,7 @@ export class LocalSettingsService {
   private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<any>;
-  private _optionDefs: FormFieldDefinition[];
+  private readonly _optionDefs: FormFieldDefinition[];
   private _$persist: EventEmitter<any>;
   private data: LocalSettings;
 
@@ -103,7 +103,7 @@ export class LocalSettingsService {
   ) {
     this.defaultSettings = {...DEFAULT_SETTINGS, ...this.defaultSettings};
 
-    this._optionDefs = Object.values({...ConfigOptions, ...defaultOptionsMap});
+    this._optionDefs = Object.values(defaultOptionsMap);
 
     this.resetData();
 

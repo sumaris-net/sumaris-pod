@@ -13,6 +13,7 @@ import {
 import {LocalSettingsService} from "../services/local-settings.service";
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
 
   private _subscription = new Subscription();
@@ -183,7 +184,6 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
     }
   }
 
-
   markAsPristine(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     this.form.markAsPristine(opts);
     this.markForCheck();
@@ -196,6 +196,7 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
 
   markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     AppFormUtils.markAsTouched(this.form, opts);
+    // this.form.markAllAsTouched() // This is not working well (e.g. in TripFrom)
     this.markForCheck();
   }
 

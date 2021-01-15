@@ -214,7 +214,7 @@
       <span translate>VESSEL.VESSEL_TYPE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{referentialToString(row.currentData.vesselType, ['name'])}}</ion-text>
+      <ion-text>{{row.currentData.vesselType|referentialToString:['name'] }}</ion-text>
     </mat-cell>
   </ng-container>
 
@@ -224,7 +224,7 @@
       <span translate>VESSEL.FEATURES.BASE_PORT_LOCATION</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-      <ion-text>{{referentialToString(row.currentData.features?.basePortLocation)}}</ion-text>
+      <ion-text>{{row.currentData.features?.basePortLocation | referentialToString: autocompleteFields.location.attributes }}</ion-text>
     </mat-cell>
   </ng-container>
 

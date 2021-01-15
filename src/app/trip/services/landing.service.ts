@@ -39,8 +39,7 @@ import {Moment} from "moment";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
-import {firstNotNilPromise} from "../../shared/observables";
-import {ObservedLocation} from "./model/observed-location.model";
+import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 
 
 export class LandingFilter {
@@ -445,14 +444,24 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     }
   }
 
-  async saveAll(entities: Landing[], options?: any): Promise<Landing[]> {
+  async saveAll(entities: Landing[], opts?: LandingSaveOptions): Promise<Landing[]> {
     if (!entities) return entities;
 
-    const json = entities.map(t => {
-      // Fill default properties (as recorder department and person)
-      this.fillDefaultProperties(t, options);
-      return this.asObject(t);
-    });
+    const localEntities = entities.filter(entity => entity
+      && (entity.id < 0 || (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC'))
+    );
+    if (isNotEmptyArray(localEntities)) {
+      return this.saveAllLocally(localEntities, opts);
+    }
+
+    const json = entities
+      .map(entity => {
+        // Fill default properties (as recorder department and person)
+        this.fillDefaultProperties(entity, opts);
+        // Reset quality properties
+        this.resetQualityProperties(entity);
+        return this.asObject(entity);
+      });
 
     const now = Date.now();
     if (this._debug) console.debug("[landing-service] Saving landings...", json);
@@ -467,16 +476,35 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
         if (this._debug) console.debug(`[landing-service] Landings saved remotely in ${Date.now() - now}ms`, entities);
 
-        (res && res.saveLandings && entities || [])
-          .forEach(entity => {
+        // For each result, copy ID+updateDate to source entity
+        // Then filter to keep only new landings (need to cache update)
+        const newSavedLandings = (res && res.saveLandings && entities || [])
+          .map(entity => {
             const savedEntity = res.saveLandings.find(obj => entity.equals(obj));
+            const isNew = isNil(entity.id);
             this.copyIdAndUpdateDate(savedEntity, entity);
-          });
+            return isNew ? savedEntity : null;
+          }).filter(isNotNil);
 
+        // Add to cache
+        if (isNotEmptyArray(newSavedLandings)) {
+          this.insertIntoMutableCachedQuery(proxy, {
+            query: LoadAllQuery,
+            data: newSavedLandings
+          });
+        }
       }
     });
 
     return entities;
+  }
+
+  async saveAllLocally(entities: Landing[], opts?: LandingSaveOptions): Promise<Landing[]> {
+    if (!entities) return entities;
+
+    if (this._debug) console.debug(`[landing-service] Saving ${entities.length} landings locally...`);
+    const jobsFactories = (entities || []).map(entity => () => this.saveLocally(entity, {...opts}));
+    return chainPromises<Landing>(jobsFactories);
   }
 
   async save(entity: Landing, opts?: LandingSaveOptions): Promise<Landing> {
@@ -576,14 +604,14 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
     try {
       // Find landing to delete
-      const res = await this.entities.loadAll<Landing>(ObservedLocation.TYPENAME, {
+      const res = await this.entities.loadAll<Landing>(Landing.TYPENAME, {
         filter: LandingFilter.searchFilter<Landing>(filter)
       });
       const ids = (res && res.data || []).map(o => o.id);
       if (isEmptyArray(ids)) return undefined; // Skip
 
       // Apply deletion
-      return await this.entities.deleteMany(ids, {entityName: ObservedLocation.TYPENAME});
+      return await this.entities.deleteMany(ids, {entityName: Landing.TYPENAME});
     }
     catch (err) {
       console.error(`[landing-service] Failed to delete landings ${JSON.stringify(filter)}`, err);
@@ -709,22 +737,27 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
   }
 
   async control(data: Landing): Promise<FormErrors> {
+    console.warn('Not implemented', new Error());
     return undefined;
   }
 
   async terminate(data: Landing): Promise<Landing> {
+    console.warn('Not implemented', new Error());
     return data;
   }
 
   async validate(data: Landing): Promise<Landing> {
+    console.warn('Not implemented', new Error());
     return data;
   }
 
   async unvalidate(data: Landing): Promise<Landing> {
+    console.warn('Not implemented', new Error());
     return data;
   }
 
   async qualify(data: Landing, qualityFlagId: number): Promise<Landing> {
+    console.warn('Not implemented', new Error());
     return data;
   }
 
@@ -758,11 +791,11 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     return entity;
   }
 
-  protected asObject(entity: Landing, options?: DataEntityAsObjectOptions): any {
-    options = {...MINIFY_OPTIONS, ...options};
-    const copy: any = entity.asObject(options);
+  protected asObject(entity: Landing, opts?: DataEntityAsObjectOptions): any {
+    opts = {...MINIFY_OPTIONS, ...opts};
+    const copy: any = entity.asObject(opts);
 
-    if (options.minify && !options.keepEntityName && !options.keepTypename) {
+    if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
       // Clean vessel features object, before saving
       copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
 
