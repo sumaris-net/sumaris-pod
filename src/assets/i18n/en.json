@@ -162,7 +162,12 @@
         "LOCATION_LEVEL_COUNTRY_ID": "Referential > Location level de lieu > Country",
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
         "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",
-        "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle"
+        "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle",
+        "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
+        "STRATEGY_PARAMETER_SEX_LABEL": "Strategy > Parameter > Sex label",
+        "STRATEGY_PARAMETER_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
+        "STRATEGY_PARAMETER_LENGTH_LABELS": "Strategy > Parameter > Length labels",
+        "STRATEGY_PARAMETER_MATURITY_LABELS": "Strategy > Parameter > Maturity labels"
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?"
@@ -1130,10 +1135,10 @@
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
-      "SIMPLE_STRATEGIES": "Simple strategies",
-      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
-      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
-      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)"
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)",
+      "STRATEGY_SIMPLE_STRATEGIES_ENABLE": "Strategy : Simple strategies?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Acquisition levels",
