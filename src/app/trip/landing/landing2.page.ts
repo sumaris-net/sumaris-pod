@@ -158,7 +158,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         } else if (sampleRowCode) {
           // Create mode
           let target = {}
-          target["359"] = sampleRowCode.label;
+          target[PmfmIds.SAMPLE_ROW_CODE.toString()] = sampleRowCode.label;
           this.landing2Form.value.measurementValues = target;
           sampleRowCodeFound = true;
           this.landing2Form.value.measurementValues = this.landing2Form.value.measurementValues || target;
