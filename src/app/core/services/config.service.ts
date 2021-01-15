@@ -16,8 +16,8 @@ import {PlatformService} from "./platform.service";
 import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {ConfigOptions} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
-import {LocationLevelIds, TaxonGroupIds} from "../../referential/services/model/model.enum";
-import { UserProfileLabels } from "./model/person.model";
+import {LocationLevelIds, ParameterLabelStrategies} from "../../referential/services/model/model.enum";
+import {UserProfileLabels} from "./model/person.model";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -482,16 +482,23 @@ export class ConfigService extends SoftwareService<Configuration> {
   private updateModelEnumerations(config: Configuration) {
     console.log("[config] Updating model enumerations...");
 
+    // User profiles
+    UserProfileLabels.ADMIN = config.getProperty(ConfigOptions.PROFILE_ADMIN_LABEL);
+    UserProfileLabels.SUPERVISOR = config.getProperty(ConfigOptions.PROFILE_SUPERVISOR_LABEL);
+    UserProfileLabels.USER = config.getProperty(ConfigOptions.PROFILE_USER_LABEL);
+
     // Location Levels
     LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_COUNTRY_ID);
     LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_PORT_ID);
     LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_AUCTION_ID);
     LocationLevelIds.ICES_RECTANGLE = config.getProperty(ConfigOptions.LOCATION_LEVEL_ICES_RECTANGLE_ID);
 
-    // User profiles
-    UserProfileLabels.ADMIN = config.getProperty(ConfigOptions.PROFILE_ADMIN_LABEL);
-    UserProfileLabels.SUPERVISOR = config.getProperty(ConfigOptions.PROFILE_SUPERVISOR_LABEL);
-    UserProfileLabels.USER = config.getProperty(ConfigOptions.PROFILE_USER_LABEL);
+    // Parameters
+    ParameterLabelStrategies.AGE = config.getProperty(ConfigOptions.STRATEGY_PARAMETER_AGE_LABEL);
+    ParameterLabelStrategies.SEX = config.getProperty(ConfigOptions.STRATEGY_PARAMETER_SEX_LABEL);
+    ParameterLabelStrategies.WEIGHTS = config.getPropertyAsStrings(ConfigOptions.STRATEGY_PARAMETER_WEIGHT_LABELS);
+    ParameterLabelStrategies.LENGTHS = config.getPropertyAsStrings(ConfigOptions.STRATEGY_PARAMETER_LENGTH_LABELS);
+    ParameterLabelStrategies.MATURITIES = config.getPropertyAsStrings(ConfigOptions.STRATEGY_PARAMETER_MATURITY_LABELS);
 
     // Taxon group
     // TODO: add all enumerations

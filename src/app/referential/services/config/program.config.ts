@@ -248,32 +248,30 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
   },
-   
-  // simple strategies
-  SIMPLE_STRATEGIES: <FormFieldDefinition>{
+
+  // Strategy
+  PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.editor.pmfm.table.column.name',
+    label: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME',
+    type: 'enum',
+    values: [
+      {
+        key: 'shortName',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME'
+      },
+      {
+        key: 'longName',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME'
+      }
+    ],
+    defaultValue: 'longName'
+  },
+  STRATEGY_SIMPLE_STRATEGIES_ENABLE: <FormFieldDefinition>{
     key: "sumaris.simple.strategies.enable",
-    label: "PROGRAM.OPTIONS.SIMPLE_STRATEGIES",
+    label: "PROGRAM.OPTIONS.STRATEGY_SIMPLE_STRATEGIES_ENABLE",
     defaultValue: "false",
     type: 'boolean'
   },
 
-
-  // PROGRAM STRATEGY EDITOR
-    PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
-      key: 'sumaris.program.strategy.editor.pmfm.table.column.name',
-      label: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME',
-      type: 'enum',
-      values: [
-        {
-          key: 'shortName',
-          value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME'
-        },
-        {
-          key: 'longName',
-          value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME'
-        }
-      ],
-      defaultValue: 'longName'
-    },
 });
 
