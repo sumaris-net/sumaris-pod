@@ -1114,9 +1114,9 @@
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
       "SIMPLE_STRATEGIES": "Simple strategies",
-      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
-      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
-      "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)"
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Acquisition levels",
@@ -1158,6 +1158,7 @@
         "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy label",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy analytic references",
         "LOAD_STRATEGY_ERROR": "Error while loading stategy",
+        "LOAD_STRATEGIES_ERROR": "Error while loading strategies",
         "SAVE_STRATEGY_ERROR": "Error while saving stategy",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
         "PARAMETERS.MATURITY": "Erreur saisie Age",

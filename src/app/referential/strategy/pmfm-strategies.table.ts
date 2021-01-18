@@ -438,69 +438,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false
     }, true);
 
-
-    // Listen PmfmsParameterZs, to change pmfm lists
-    //this.registerSubscription(
-    //  this.editedRow.validator.get('pmfmsUnits').value.valueChanges
-    //    /*.pipe(
-    //      distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id'))
-    //    )*/
-    //    .subscribe((pmfmsUnits) => this.onPmfmsUnitsChanged(pmfmsUnits))
-    //);
-
     if (this.initializeOneRow)
     {
       this.addRow();
     }
 
   }
-
-
-  /* -- protected methods -- */
-
-    protected async onPmfmsParametersChanged(pmfmsUnits) {
-    console.debug("onPmfmsParametersChanged(pmfmsUnits");
-/**      const metierControl = this.form.get('metier');
-      const physicalGearControl = this.form.get('physicalGear');
-
-      const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear, 'id');
-      const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;
-      // Use same trip's gear Object (if found)
-      if (hasPhysicalGear && isNotEmptyArray(gears)) {
-        physicalGear = (gears || []).find(g => g.id === physicalGear.id);
-        physicalGearControl.patchValue(physicalGear, {emitEvent: false});
-      }
-
-      // Change metier status, if need
-      const enableMetier = hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears);
-      if (enableMetier) {
-        if (metierControl.disabled) metierControl.enable();
-      }
-      else {
-        if (metierControl.enabled) metierControl.disable();
-      }
-
-      if (hasPhysicalGear) {
-
-        // Refresh metiers
-        const metiers = await this.loadMetiers(physicalGear);
-        this._metiersSubject.next(metiers);
-
-        const metier = metierControl.value;
-        if (ReferentialUtils.isNotEmpty(metier)) {
-          // Find new reference, by ID
-          let updatedMetier = (metiers || []).find(m => m.id === metier.id);
-
-          // If not found : retry using the label (WARN: because of searchJoin, label = taxonGroup.label)
-          updatedMetier = updatedMetier || (metiers || []).find(m => m.label === metier.label);
-
-          // Update the metier, if not found (=reset) or ID changed
-          if (!updatedMetier || !ReferentialUtils.equals(metier, updatedMetier)) {
-            metierControl.setValue(updatedMetier);
-          }
-        }
-      }*/
-    }
 
   protected async onLoad(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
 
@@ -703,10 +646,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
 
   }
-
-
-
-
 
   protected startEditingRow() {
     console.log("TODO start edit")
