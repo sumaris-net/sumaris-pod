@@ -30,6 +30,7 @@ import {animate, AnimationEvent, state, style, transition, trigger} from "@angul
 import {debounceTime, filter, first} from "rxjs/operators";
 import {ProgramProperties} from "../services/config/program.config";
 import {ActivatedRoute} from "@angular/router";
+import { Subscription } from "rxjs";
 
 
 export enum AnimationState {
@@ -69,6 +70,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
   simpleStrategiesOption = false;
+
+  onRefreshListener: Subscription;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
@@ -115,8 +118,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // register on strategies tables actions
     this.registerSubscription(this.simpleStrategiesTable.onOpenRow
       .subscribe(row => this.onOpenSimpleStrategy(row)));
-    this.registerSubscription(this.simpleStrategiesTable.onRefresh
-      .subscribe(row => this.onRefreshSimpleStrategy(row)));
+
+    this.onRefreshListener = this.simpleStrategiesTable.onRefresh.subscribe(row => this.onRefreshSimpleStrategy(row));
+    this.registerSubscription(this.onRefreshListener);
 
     this.registerSubscription(this.simpleStrategiesTable.onNewRow
       .subscribe((event) => this.addSimpleStrategy(event)));
@@ -206,8 +210,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
     this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
 
+    this.onRefreshListener.unsubscribe()
+    this.unregisterSubscription(this.onRefreshListener);
     // simples strategies
     this.simpleStrategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    
+    this.onRefreshListener = this.simpleStrategiesTable.onRefresh.subscribe(row => this.onRefreshSimpleStrategy(row));
+    this.registerSubscription(this.onRefreshListener);
 
     // strategies
     this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
