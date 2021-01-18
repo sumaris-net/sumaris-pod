@@ -1145,10 +1145,10 @@
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
+      "SIMPLE_STRATEGIES": "Simple strategies",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
-      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)",
-      "STRATEGY_SIMPLE_STRATEGIES_ENABLE": "Stratégie : Strategies simples ?"
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
@@ -1194,7 +1194,8 @@
         "LOAD_STRATEGY_LABEL_ERROR": "Erreur lors de chargement du label de la stratégie",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "LOAD_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
-        "SAVE_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
+        "LOAD_STRATEGIES_ERROR": "Erreur lors de chargement des stratégies",
+        "SAVE_STRATEGY_ERROR": "Erreur lors de la sauvegarde de la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
         "PARAMETERS.MATURITY": "Les paramètres maturités sont indissociables du paramètre âge",
         "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire",
