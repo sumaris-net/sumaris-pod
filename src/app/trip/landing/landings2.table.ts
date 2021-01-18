@@ -28,7 +28,8 @@ import {environment} from "../../../environments/environment";
 import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['samples','vessel', 'vesselPortLocation', 'creationDate', 'recorder'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['samples','vessel', 'location', 'creationDate', 'recorderPerson'];
+//export const LANDING_RESERVED_START_COLUMNS: string[] = ['samples','vessel', 'vesselPortLocation', 'creationDate', 'recorder'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
