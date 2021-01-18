@@ -34,8 +34,8 @@ export interface IAppForm  {
   empty?: boolean;
   pending: boolean;
   error: string;
-  //TODO
-  // enabled: boolean;
+  enabled: boolean;
+  disabled: boolean;
 
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
@@ -56,6 +56,10 @@ class AppNullForm implements IAppForm {
   readonly empty = true;
   readonly pending = false;
   readonly error = null;
+  readonly enabled = false;
+  get disabled(): boolean {
+    return !this.enabled;
+  }
 
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
@@ -89,7 +93,12 @@ export class AppFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
   }
 
   /* -- delegated methods -- */
-
+  get enabled(): boolean {
+    return this.delegate.enabled;
+  }
+  get disabled(): boolean {
+    return this.delegate.disabled;
+  }
   get error(): string {
     return this.delegate.error;
   }
@@ -227,7 +236,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
         }
       }
       else if (source[key] === undefined) {
-        console.warn("Invalid value for property '"+key+"'. Unable to set form control. Expected array but found: undefined");
+        console.warn(`Invalid value for property '${key}'. Unable to set form control. Expected array but found: undefined`);
         value[key] = [];
       }
     }
@@ -306,7 +315,10 @@ export function getFormErrors(control: AbstractControl, controlName?: string, re
 
     // Loop on children controls
     for (let key in control.controls) {
-      getFormErrors(control.controls[key], controlName ? [controlName, key].join('.') :  key, result);
+      const child = control.controls[key];
+      if (child && child.enabled) {
+        getFormErrors(child, controlName ? [controlName, key].join('.') :  key, result);
+      }
     }
   }
   // Form array
@@ -451,7 +463,22 @@ export function clearValueInArray(arrayControl: FormArray,
   return true;
 }
 
-export function markAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+export function markAsTouched(control: AbstractControl, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+  if (!control) return;
+  if (control instanceof FormGroup) {
+    markFormGroupAsTouched(control, { ...opts, onlySelf: true}); // recursive call
+  }
+  else if (control instanceof FormArray) {
+    control.markAsTouched({onlySelf: true});
+    (control.controls || []).forEach(c => markControlAsTouched(c, { ...opts, onlySelf: true})); // recursive call
+  }
+  else {
+    control.markAsTouched({onlySelf: true});
+    control.updateValueAndValidity({emitEvent: false, ...opts, onlySelf: true});
+  }
+}
+
+export function markFormGroupAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
   if (!form) return;
   form.markAsTouched(opts);
   Object.keys(form.controls)

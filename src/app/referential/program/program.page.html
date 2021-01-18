@@ -42,6 +42,17 @@
                 <app-form-field [definition]="fieldDefinitions.gearClassification" [formControl]="form.controls.gearClassification">
                 </app-form-field>
 
+                <mat-form-field floatLabel="always">
+                  <input matInput class="cdk-visually-hidden" type="text"
+                         [placeholder]="'PROGRAM.LOCATION_CLASSIFICATION'|translate">
+                  <app-list-form #locationClassificationList
+                                 [displayWith]="referentialToString"
+                                 [formArray]="form.controls.locationClassifications"
+                                 [equals]="referentialEquals"
+                                 [options]="{allowEmptyArray: false, allowMultipleSelection: false}"
+                                 (onNewItem)="addLocationClassification()"></app-list-form>
+                </mat-form-field>
+
               </app-referential-form>
             </ion-col>
 

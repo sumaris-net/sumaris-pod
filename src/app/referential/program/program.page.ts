@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
+import {AppEntityEditor, EntityUtils, isNil, ReferentialRef} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
 import {Strategy} from "../services/model/strategy.model";
 import {ProgramService} from "../services/program.service";
@@ -10,17 +10,18 @@ import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
 import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppPropertiesForm} from "../../core/form/properties.form";
-import {ReferentialRefService} from "../services/referential-ref.service";
+import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {StrategyForm} from "../strategy/strategy.form";
 import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
 import {debounceTime, filter, first} from "rxjs/operators";
-import {AppFormHolder} from "../../core/form/form.utils";
 import {ProgramProperties} from "../services/config/program.config";
 import {HistoryPageReference} from "../../core/services/model/history.model";
+import {SelectReferentialModal} from "../list/select-referential.modal";
+import {AppListForm} from "../../core/form/list.form";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -59,10 +60,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
 
+
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
   @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
   @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
+  @ViewChild('locationClassificationList', { static: true }) locationClassificationList: AppListForm;
 
   constructor(
     protected injector: Injector,
@@ -75,7 +78,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   ) {
     super(injector,
       Program,
-      dataService);
+      dataService, {
+        autoOpenNextTab: false
+      });
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -122,6 +127,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       }
     });
 
+    this.strategyForm.disable();
+
     // Listen start editing strategy
     this.registerSubscription(this.strategiesTable.onStartEditingRow
       .subscribe(row => this.onStartEditStrategy(row)));
@@ -131,22 +138,20 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       .subscribe(row => this.onCancelOrDeleteStrategy(row)));
   }
 
-
   /* -- protected methods -- */
-
-
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
 
+
   protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
     const definition = <FormFieldDefinition>{
       key: fieldName,
       label: this.i18nFieldPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
       ...def
-    }
+    };
     this.fieldDefinitions[fieldName] = definition;
   }
 
@@ -157,8 +162,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   }
 
-  enable() {
-    super.enable();
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.enable(opts);
+
+    this.locationClassificationList.enable(opts);
 
     if (!this.isNewData) {
       this.form.get('label').disable();
@@ -169,6 +176,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.addChildForms([
       this.referentialForm,
       this.propertiesForm,
+      this.locationClassificationList,
       this.strategiesTable,
       this.strategyForm
     ]);
@@ -177,9 +185,16 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   protected setValue(data: Program) {
     if (!data) return; // Skip
 
-    this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
+    this.form.patchValue({...data,
+      properties: [],
+      locationClassifications: [],
+      strategies: []}, {emitEvent: false});
 
+    // Program properties
     this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties);
+
+    // Location classification
+    this.locationClassificationList.setValue(data.locationClassifications);
 
     // strategies
     this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
@@ -230,7 +245,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     if (this.propertiesForm.invalid) return 1;
-    if (this.strategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
+    if (this.strategiesTable.invalid || (this.strategyForm.enabled && this.strategyForm.invalid)) return 2;
     return 0;
   }
 
@@ -280,7 +295,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       comments: source.comments
     });
 
-    let target = await this.strategyForm.saveAndGetDataIfValid();
+    const target = await this.strategyForm.saveAndGetDataIfValid();
     if (!target) throw new Error('strategyForm has error');
 
     // Update the row
@@ -305,7 +320,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   hideStrategyForm() {
-    if (this.strategyFormState == AnimationState.ENTER) {
+    if (this.strategyFormState === AnimationState.ENTER) {
       this.strategyFormState = AnimationState.LEAVE;
       this.markForCheck();
     }
@@ -329,6 +344,21 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     }
   }
 
+  async addLocationClassification() {
+    if (this.disabled) return; // Skip
+
+    const items = await this.openSelectReferentialModal({
+      filter: {
+        entityName: 'LocationClassification'
+      }
+    });
+
+    // Add to list
+    (items || []).forEach(item => this.locationClassificationList.add(item));
+
+    this.markForCheck();
+  }
+
   protected loadOrCreateStrategy(json: any): Strategy|undefined {
     const existingStrategy = this.data.strategies.find(s => s.equals(json));
     if (existingStrategy) return existingStrategy;
@@ -349,6 +379,28 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     }
 
   }
+
+  protected async openSelectReferentialModal(opts: {
+    filter: ReferentialRefFilter
+  }): Promise<ReferentialRef[]> {
+
+    const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
+      componentProps: {
+        filter: opts.filter
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    await modal.present();
+
+    const {data} = await modal.onDidDismiss();
+
+    return data;
+  }
+
+  referentialToString = referentialToString;
+  referentialEquals = ReferentialUtils.equals;
 
   protected markForCheck() {
     this.cd.markForCheck();

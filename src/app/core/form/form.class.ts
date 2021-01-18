@@ -195,8 +195,8 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   }
 
   markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
-    AppFormUtils.markAsTouched(this.form, opts);
     // this.form.markAllAsTouched() // This is not working well (e.g. in TripFrom)
+    AppFormUtils.markAsTouched(this.form, opts);
     this.markForCheck();
   }
 
