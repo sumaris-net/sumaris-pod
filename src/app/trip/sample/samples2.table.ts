@@ -10,7 +10,14 @@ import {
   Output, ViewChild
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
+import {
+  environment,
+  IReferentialRef,
+  isNil,
+  ReferentialRef,
+  referentialToString, RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {isNilOrBlank, isNotNil} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -25,6 +32,9 @@ import {Sample} from "../services/model/sample.model";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS} from "../batch/table/batches.table";
+import {FormFieldDefinition} from "../../shared/form/field.model";
+import {BehaviorSubject} from "rxjs";
 
 export interface SampleFilter {
   operationId?: number;
@@ -32,6 +42,13 @@ export interface SampleFilter {
 }
 export const SAMPLE2_RESERVED_START_COLUMNS: string[] = ['sampleCode','morseCode','comment'/*,'weight','totalLenghtCm','totalLenghtMm','indexGreaseRate'*/];
 export const SAMPLE2_RESERVED_END_COLUMNS: string[] = [];
+
+declare interface ColumnDefinition extends FormFieldDefinition {
+  computed: boolean;
+  unitLabel?: string;
+  rankOrder: number;
+  qvIndex: number;
+}
 
 
 @Component({
@@ -45,6 +62,52 @@ export const SAMPLE2_RESERVED_END_COLUMNS: string[] = [];
 })
 export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   implements OnInit, OnDestroy {
+
+  static BASE_DYNAMIC_COLUMNS = [
+    // Column on total (weight, nb indiv)
+    {
+      type: 'double',
+      key: 'TOTAL_WEIGHT',
+      label: 'TRIP.BATCH.TABLE.TOTAL_WEIGHT',
+      minValue: 0,
+      maxValue: 10000,
+      maximumNumberDecimals: 1
+    },
+    {
+      type: 'double',
+      key: 'TOTAL_INDIVIDUAL_COUNT',
+      label: 'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT',
+      minValue: 0,
+      maxValue: 10000,
+      maximumNumberDecimals: 2
+    },
+
+    // Column on sampling (ratio, nb indiv, weight)
+    {
+      type: 'integer',
+      key: 'SAMPLING_RATIO',
+      label: 'TRIP.BATCH.TABLE.SAMPLING_RATIO',
+      unitLabel: '%',
+      minValue: 0,
+      maxValue: 100,
+      maximumNumberDecimals: 2
+    },
+    {
+      type: 'double',
+      key: 'SAMPLING_WEIGHT',
+      label: 'TRIP.BATCH.TABLE.SAMPLING_WEIGHT',
+      minValue: 0,
+      maxValue: 1000,
+      maximumNumberDecimals: 1
+    },
+    {
+      type: 'string',
+      key: 'SAMPLING_INDIVIDUAL_COUNT',
+      label: 'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT',
+      computed: true
+    }
+  ];
+
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
@@ -70,6 +133,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   get value(): Sample[] {
     return this.memoryDataService.value;
+  }
+
+  get $dynamicPmfms(): BehaviorSubject<PmfmStrategy[]> {
+    return this.measurementsDataService.$pmfms;
   }
 
   @Input() usageMode: UsageMode;
@@ -101,6 +168,8 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   @Input() defaultTaxonName: ReferentialRef;
 
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
+
+  dynamicColumns: ColumnDefinition[];
 
   constructor(
     injector: Injector
@@ -157,6 +226,86 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
     //  });
+  }
+
+
+  protected getDisplayColumns(): string[] {
+
+    const pmfms = this.$pmfms.getValue();
+    if (!pmfms) return this.columns;
+
+    const userColumns = this.getUserColumns();
+
+    let dynamicWeightColumnNames = [];
+    let dynamicSizeColumnNames = [];
+    let dynamicMaturityColumnNames = [];
+    let dynamicSexColumnNames = [];
+    let dynamicAgeColumnNames = [];
+    let dynamicOthersColumnNames = [];
+
+    // FIXME CLT WIP
+    // filtrer sur les pmfms pour les mettres dans les différents tableaux
+
+    const pmfmColumnNames = pmfms
+      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
+      .map(p => p.pmfmId.toString());
+
+    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
+    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
+
+    // const dynamicPmfmColumnNames = [];
+    // const dynamicPmfmColumnNames = (pmfms || [])
+    //   .map(c => {
+    //     return {
+    //       id: c.id,
+    //       rankOrder: c.rankOrder + (inverseOrder &&
+    //         ((c.key.endsWith('_WEIGHT') && 1) || (c.key.endsWith('_INDIVIDUAL_COUNT') && -1)) || 0)
+    //     };
+    //   })
+    //   .sort((c1, c2) => c1.rankOrder - c2.rankOrder)
+    //   .map(c => c.key);
+    let dynamicPmfmColumnNames = pmfmColumnNames.sort((a, b) => b.localeCompare(a));
+
+    return RESERVED_START_COLUMNS
+      .concat(startColumns)
+      // .concat(pmfmColumnNames)
+      .concat(dynamicPmfmColumnNames)
+      .concat(endColumns)
+      .concat(RESERVED_END_COLUMNS)
+      // Remove columns to hide
+      .filter(column => !this.excludesColumns.includes(column));
+
+    //console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
+    //if (!this.loading) this.markForCheck();
+  }
+
+  protected getDisplayColumns2(): string[] {
+    if (!this.dynamicColumns) return this.columns;
+
+    const userColumns = this.getUserColumns();
+
+    const weightIndex = userColumns.findIndex(c => c === 'weight');
+    let individualCountIndex = userColumns.findIndex(c => c === 'individualCount');
+    individualCountIndex = (individualCountIndex !== -1 && weightIndex === -1 ? 0 : individualCountIndex);
+    const inverseOrder = individualCountIndex < weightIndex;
+
+    const dynamicColumnKeys = (this.dynamicColumns || [])
+      .map(c => {
+        return {
+          key: c.key,
+          rankOrder: c.rankOrder + (inverseOrder &&
+            ((c.key.endsWith('_WEIGHT') && 1) || (c.key.endsWith('_INDIVIDUAL_COUNT') && -1)) || 0)
+        };
+      })
+      .sort((c1, c2) => c1.rankOrder - c2.rankOrder)
+      .map(c => c.key);
+
+    return RESERVED_START_COLUMNS
+      .concat(SAMPLE2_RESERVED_START_COLUMNS)
+      .concat(dynamicColumnKeys)
+      .concat(SAMPLE2_RESERVED_END_COLUMNS)
+      .concat(RESERVED_END_COLUMNS)
+      .filter(name => !this.excludesColumns.includes(name));
   }
 
   async getMaxRankOrder(): Promise<number> {
