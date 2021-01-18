@@ -152,7 +152,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     data.name = data.label || data.name;
 
-    data.analyticReference = data.analyticReference && data.analyticReference.label ? data.analyticReference.label : data.analyticReference;
+    data.analyticReference = data.analyticReference && data.analyticReference.hasOwnProperty('label') ? data.analyticReference.label : data.analyticReference;
 
     // FIXME : description is not nullable in database so we init it with an empty string if nothing provided in the
     data.description = data.description || ' ';
