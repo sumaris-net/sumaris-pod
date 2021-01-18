@@ -819,7 +819,8 @@
       "TITLE": "Nouveau navire contrôlé"
     },
     "EDIT": {
-      "TITLE": "Navire {{vessel}}"
+      "TITLE": "Navire {{vessel}}",
+      "OTHER_TAXON_GROUP": "Espèce commerciale (FAO)"
     },
     "TAB_SAMPLES": "Points de contrôle",
     "TAXON_GROUP_PLACEHOLDER": "Espèce controllée",

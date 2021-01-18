@@ -94,6 +94,8 @@ export class Vessel extends Entity<Vessel> {
 
 export class VesselFeatures extends Entity<VesselFeatures> {
 
+  static TYPENAME = 'VesselFeaturesVO';
+
   static fromObject(source: any): VesselFeatures {
     if (!source || source instanceof VesselFeatures) return source;
     const res = new VesselFeatures();
@@ -121,7 +123,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 
   constructor() {
     super();
-    this.__typename = 'VesselFeaturesVO';
+    this.__typename = VesselFeatures.TYPENAME;
     this.basePortLocation = null;
     this.recorderDepartment = null;
     this.recorderPerson = null;
@@ -182,6 +184,8 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 
 export class VesselRegistration extends Entity<VesselRegistration> {
 
+  static TYPENAME = 'VesselRegistrationVO';
+
   static fromObject(source: any): VesselRegistration {
     if (!source || source instanceof VesselRegistration) return source;
     const res = new VesselRegistration();
@@ -198,7 +202,7 @@ export class VesselRegistration extends Entity<VesselRegistration> {
 
   constructor() {
     super();
-    this.__typename = 'VesselRegistrationVO';
+    this.__typename = VesselRegistration.TYPENAME;
     this.registrationLocation = null;
   }
 

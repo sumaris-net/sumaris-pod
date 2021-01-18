@@ -32,6 +32,8 @@ export class ReferentialFilter {
   searchText?: string;
   searchAttribute?: string;
 
+  excludedIds?: number[];
+
   static isEmpty(f: ReferentialFilter|any): boolean {
     return Beans.isEmpty<ReferentialFilter>(f, ReferentialFilterKeys, {
       blankStringLikeEmpty: true
@@ -52,7 +54,8 @@ export class ReferentialFilter {
       searchAttribute: filter.searchAttribute,
       searchJoin: filter.searchJoin,
       levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-      statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
+      statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE]),
+      excludedIds: filter.excludedIds
     };
   }
 }
@@ -67,7 +70,8 @@ export const ReferentialFilterKeys: KeysEnum<ReferentialFilter> = {
   levelIds: true,
   searchJoin: true,
   searchText: true,
-  searchAttribute: true
+  searchAttribute: true,
+  excludedIds: true
 };
 
 export interface ReferentialType {

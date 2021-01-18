@@ -1,11 +1,10 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {IEntityService, EntityServiceLoadOptions, isNil, isNotNil} from "../../shared/shared.module";
+import {EntityServiceLoadOptions, IEntityService, isNil, isNotNil} from "../../shared/shared.module";
 import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {environment} from "../../../environments/environment";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
 import {Parameter} from "./model/parameter.model";
@@ -124,7 +123,7 @@ export class ParameterService extends BaseEntityService implements IEntityServic
   protected copyIdAndUpdateDate(source: Parameter, target: Parameter) {
     EntityUtils.copyIdAndUpdateDate(source, target);
 
-    // Update strategies
+    // Update qualitative values
     if (source.qualitativeValues && target.qualitativeValues) {
       target.qualitativeValues.forEach(entity => {
 

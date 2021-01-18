@@ -33,10 +33,11 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 import {Moment} from "moment";
+import {toNumber} from "../../shared/functions";
 
 export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];
-
+  excludedIds?: number[];
 }
 
 export type TaxonNameRefFilter = Partial<ReferentialRefFilter> & {
@@ -194,12 +195,17 @@ export class ReferentialRefService extends BaseEntityService
                   transformToEntity?: boolean;
                 }): Promise<LoadResult<ReferentialRef>> {
 
-    if (!filter || !filter.entityName) {
+
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    const entityName = filter && filter.entityName;
+    if (!entityName) {
       console.error("[referential-ref-service] Missing filter.entityName");
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
-
-    const entityName = filter.entityName;
     const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
 
     const debug = this._debug && (!opts || opts.debug !== false);
@@ -217,37 +223,19 @@ export class ReferentialRefService extends BaseEntityService
     const now = debug && Date.now();
     if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items...`, variables);
 
-    // Offline mode: read from the entities storage
-    let loadResult: { referentials: any[]; referentialsCount: number };
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
-    if (offline) {
-      loadResult = await this.entities.loadAll(uniqueEntityName + 'VO',
-        {
-          ...variables,
-          filter: this.createSearchFilterFn(filter)
-        }
-      ).then(res => {
-        return {
-          referentials: res && res.data,
-          referentialsCount: res && res.total
-        };
-      });
-    }
 
     // Online mode: use graphQL
-    else {
-      const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
-      loadResult = await this.graphql.query<{ referentials: any[]; referentialsCount: number }>({
-        query,
-        variables,
-        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
-        fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
-      });
-    }
+    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
+    const res = await this.graphql.query<{ referentials: any[]; referentialsCount: number }>({
+      query,
+      variables,
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
+    });
 
     const data = (!opts || opts.transformToEntity !== false) ?
-      (loadResult && loadResult.referentials || []).map(ReferentialRef.fromObject) :
-      (loadResult && loadResult.referentials || []) as ReferentialRef[];
+      (res && res.referentials || []).map(ReferentialRef.fromObject) :
+      (res && res.referentials || []) as ReferentialRef[];
 
     // Force entity name (if searchJoin)
     if (filter.entityName !== uniqueEntityName) {
@@ -257,7 +245,51 @@ export class ReferentialRefService extends BaseEntityService
     if (debug) console.debug(`[referential-ref-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
     return {
       data,
-      total: loadResult.referentialsCount
+      total: res.referentialsCount
+    };
+  }
+
+  async loadAllLocally(offset: number,
+                size: number,
+                sortBy?: string,
+                sortDirection?: SortDirection,
+                filter?: ReferentialRefFilter,
+                opts?: {
+                  [key: string]: any;
+                  transformToEntity?: boolean;
+                }): Promise<LoadResult<ReferentialRef>> {
+
+    const entityName = filter && filter.entityName;
+    if (!entityName) {
+      console.error("[referential-ref-service] Missing filter.entityName");
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+    }
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
+
+    const variables: any = {
+      entityName: entityName,
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || filter.searchAttribute
+        || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
+        || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: this.createSearchFilterFn(filter)
+    };
+
+    const res = await this.entities.loadAll(uniqueEntityName + 'VO', variables);
+
+    const data = (!opts || opts.transformToEntity !== false) ?
+      (res && res.data || []).map(ReferentialRef.fromObject) :
+      (res && res.data || []) as ReferentialRef[];
+
+    // Force entity name (if searchJoin)
+    if (filter.entityName !== uniqueEntityName) {
+      data.forEach(item => item.entityName = uniqueEntityName);
+    }
+    return {
+      data,
+      total: toNumber(res.total, data.length)
     };
   }
 
@@ -519,6 +551,11 @@ export class ReferentialRefService extends BaseEntityService
 
     const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || f.searchAttributes, f.searchText);
     if (searchTextFilter) filterFns.push(searchTextFilter);
+
+    // Excluded ids
+    if (f.excludedIds && f.excludedIds.length) {
+      filterFns.push((entity: T) => !f.excludedIds.includes(entity.id));
+    }
 
     if (!filterFns.length) return undefined;
 

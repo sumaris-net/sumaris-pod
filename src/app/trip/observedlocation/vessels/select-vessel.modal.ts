@@ -16,7 +16,7 @@ import {Landing} from "../../services/model/landing.model";
 import {VesselFilter, VesselService} from "../../../referential/services/vessel-service";
 import {VesselsTable} from "../../../referential/vessel/list/vessels.table";
 import {AppTable} from "../../../core/table/table.class";
-import {isNotNil, toBoolean} from "../../../shared/functions";
+import {isEmptyArray, isNotNil, toBoolean} from "../../../shared/functions";
 import {VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
 import {VesselForm} from "../../../referential/vessel/form/form-vessel";
 import {AppFormUtils} from "../../../core/form/form.utils";
@@ -144,8 +144,13 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
 
   async close(event?: any): Promise<boolean> {
     try {
-      if (this.hasSelection()) {
-        let vessels: VesselSnapshot[];
+      let vessels: VesselSnapshot[];
+      if (this.isNewVessel) {
+        const vessel = await this.createVessel();
+        if (!vessel) return false;
+        vessels = [vessel];
+      }
+      else if (this.hasSelection()) {
         if (this.showLandings) {
           vessels = (this.landingsTable.selection.selected || [])
             .map(row => row.currentData)
@@ -157,13 +162,12 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
             .map(row => row.currentData)
             .map(VesselSnapshot.fromVessel)
             .filter(isNotNil);
-        } else if (this.isNewVessel) {
-          vessels = [await this.createVessel()];
-        } else {
-          console.warn("[select-vessel-modal] no selection");
         }
-        this.viewCtrl.dismiss(vessels);
       }
+      if (isEmptyArray(vessels)) {
+        console.warn("[select-vessel-modal] no selection");
+      }
+      this.viewCtrl.dismiss(vessels);
       return true;
     } catch (err) {
       // nothing to do
@@ -173,13 +177,13 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
 
   async createVessel(): Promise<VesselSnapshot> {
 
-    if (!this.vesselForm)
-      throw Error('No Vessel Form');
+    if (!this.vesselForm) throw Error('No Vessel Form');
 
     console.debug("[select-vessel-modal] Saving new vessel...");
 
     // Avoid multiple call
     if (this.vesselForm.disabled) return;
+    this.vesselForm.error = null;
 
     await AppFormUtils.waitWhilePending(this.vesselForm);
 
@@ -190,7 +194,6 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    let result: VesselSnapshot;
     try {
       const json = this.vesselForm.value;
       const data = Vessel.fromObject(json);
@@ -198,15 +201,14 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
       this.vesselForm.disable();
 
       const savedData = await this.vesselService.save(data);
-      result = VesselSnapshot.fromVessel(savedData);
-      this.vesselForm.error = null;
+      const result = VesselSnapshot.fromVessel(savedData);
+      return result;
     }
     catch (err) {
       this.vesselForm.error = err && err.message || err;
       this.vesselForm.enable();
+      return;
     }
-
-    return result;
   }
 
   async cancel() {
@@ -214,11 +216,13 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   }
 
   hasSelection(): boolean {
-    if (this.allowAddNewVessel && this.isNewVessel && this.vesselForm) {
-      return this.vesselForm.valid;
-    }
+    if (this.isNewVessel) return false;
     const table = this.table;
     return table && table.selection.hasValue() && (this.allowMultiple || table.selection.selected.length === 1);
+  }
+
+  get canValidate(): boolean {
+    return (this.isNewVessel && this.vesselForm && this.vesselForm.valid) || this.hasSelection();
   }
 
   protected markForCheck() {

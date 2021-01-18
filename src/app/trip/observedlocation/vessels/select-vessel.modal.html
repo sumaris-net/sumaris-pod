@@ -1,27 +1,10 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
-    <ion-title>
-      {{'OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TITLE' | translate }}
-    </ion-title>
-
-    <ion-buttons slot="end">
-
-      <ion-spinner *ngIf="loading"></ion-spinner>
-
-      <ion-button *ngIf="!loading && allowMultiple && hasSelection()" (click)="close($event)"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-modal-toolbar color="secondary"
+                   (cancel)="cancel()"
+                   [showSpinner]="loading"
+                   [canValidate]="canValidate"
+                   (validate)="close($event)">
+  <ion-title translate>OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TITLE</ion-title>
+</app-modal-toolbar>
 
 <ion-content class="ion-no-padding">
 
@@ -103,8 +86,8 @@
         </ion-button>
 
         <ion-button *ngIf="allowMultiple || isNewVessel"
-                    [fill]="hasSelection() && 'solid' || 'clear'"
-                    [disabled]="!hasSelection()"
+                    [fill]="canValidate ? 'solid' : 'clear'"
+                    [disabled]="!canValidate"
                     (click)="close($event)"
                     color="primary">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>

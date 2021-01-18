@@ -43,7 +43,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   }
 
   get registrationForm(): FormGroup {
-    return this.form.controls.registrationForm as FormGroup;
+    return this.form.controls.registration as FormGroup;
   }
 
   get featuresForm(): FormGroup {
@@ -59,7 +59,9 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     private accountService: AccountService
   ) {
 
-    super(dateAdapter, vesselValidatorService.getFormGroup(), settings);
+    super(dateAdapter,
+      vesselValidatorService.getFormGroup(),
+      settings);
 
     this.canEditStatus = this.accountService.isAdmin();
 

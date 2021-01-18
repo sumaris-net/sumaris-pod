@@ -1,14 +1,13 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, referentialToString, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
-import {Referential} from "../../core/services/model/referential.model";
+import {environment, isNotNil, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
+import {DefaultStatusList, Referential} from "../../core/services/model/referential.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {ReferentialFilter} from "../services/referential.service";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
@@ -47,6 +46,7 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
 
   @Input() canEdit = false;
   @Input() canDelete = false;
+  @Input() hasRankOrder: boolean;
 
   @Input() set showUpdateDateColumn(value: boolean) {
     this.setShowColumn('updateDate', value);
@@ -100,6 +100,14 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.debug = !environment.production;
+  }
+
+  ngOnInit() {
+    if (isNotNil(this.hasRankOrder)) {
+      this.memoryDataService.hasRankOrder = this.hasRankOrder;
+    }
+
+    super.ngOnInit();
   }
 
   protected onRowCreated(row: TableElement<Referential>) {

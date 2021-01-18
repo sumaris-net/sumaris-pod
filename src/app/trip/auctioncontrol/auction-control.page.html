@@ -111,14 +111,27 @@
           <ion-grid class="ion-no-padding">
             <ion-row class="ion-no-padding" >
               <!-- pmfms -->
-              <ion-col *ngFor="let pmfm of pmfms; index as i;"
-                  size="12" size-md="6">
-                <app-pmfm-field [formControlName]="''+pmfm.pmfmId"
-                                [pmfm]="pmfm"
-                                [tabindex]="50 + i*2">
-                </app-pmfm-field>
-              </ion-col>
+              <ng-container *ngFor="let pmfm of pmfms; index as i;">
+                <ion-col size="12" size-md="6">
+                  <app-pmfm-field [formControlName]="''+pmfm.pmfmId"
+                                  [pmfm]="pmfm">
+                  </app-pmfm-field>
+                </ion-col>
+                <ion-col *ngIf="pmfm.pmfmId===controlledSpeciesPmfmId && showOtherTaxonGroup"
+                         size="12" size-md="6">
+
+                  <!-- Special case for controlled species: add a combo, for 'MZZ' species -->
+                  <mat-autocomplete-field [formControl]="taxonGroupControl"
+                                          [tabindex]="60"
+                                          [required]="false"
+                                          [config]="autocompleteFields.taxonGroup"
+                                          [placeholder]="'AUCTION_CONTROL.EDIT.OTHER_TAXON_GROUP'|translate">
+                  </mat-autocomplete-field>
+
+                </ion-col>
+              </ng-container>
             </ion-row>
+
           </ion-grid>
         </form>
 
@@ -128,6 +141,7 @@
                            [showDateTimeColumn]="false"
                            [showTaxonNameColumn]="false"
                            [showTaxonGroupColumn]="false"
+                           [tabIndex]="61"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
                            (onInitForm)="onInitSampleForm($event)">

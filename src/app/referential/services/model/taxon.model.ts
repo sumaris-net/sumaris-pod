@@ -3,7 +3,7 @@ import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/servic
 import {uncapitalizeFirstLetter} from "../../../shared/functions";
 
 
-export const TaxonGroupIds = {
+export const TaxonGroupTypeIds = {
   FAO: 2,
   METIER: 3
 };
@@ -17,6 +17,9 @@ export const TaxonomicLevelIds = {
   SUBSPECIES: 29
 };
 
+export const TaxonGroupLabels = {
+  FISH: 'MZZ'
+};
 
 export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRef {
 

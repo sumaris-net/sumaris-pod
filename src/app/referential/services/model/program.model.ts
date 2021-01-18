@@ -81,7 +81,8 @@ export class Program extends Entity<Program> {
       this.properties = {...source.properties};
     }
     this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
-    this.taxonGroupType = source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType);
+    this.taxonGroupType = (source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType)) ||
+      (isNotNil(source.taxonGroupTypeId) ? ReferentialRef.fromObject({id: source.taxonGroupTypeId}) : undefined);
     this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
     this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
 

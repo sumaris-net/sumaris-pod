@@ -21,7 +21,7 @@ import {
   EntityServiceLoadOptions,
   fetchAllPagesWithProgress, FilterFn
 } from "../../shared/services/entity-service.class";
-import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
+import {TaxonGroupTypeIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefFilter, ReferentialRefQueries, ReferentialRefService} from "./referential-ref.service";
@@ -94,6 +94,7 @@ const ProgramFragments = {
       creationDate
       statusId
       properties
+      taxonGroupTypeId
       strategies {
         ...StrategyRefFragment
       }
@@ -754,7 +755,7 @@ export class ProgramService extends BaseEntityService
     return await this.referentialRefService.suggest(value, {
       ...filter,
       entityName: 'TaxonGroup',
-      levelId: TaxonGroupIds.FAO
+      levelId: TaxonGroupTypeIds.FAO
     });
   }
 
