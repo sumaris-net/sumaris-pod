@@ -28,6 +28,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.gear.GearClassification;
+import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
@@ -51,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -128,6 +130,16 @@ public class ProgramGraphQLService {
             return referentialService.get(GearClassification.class, program.getGearClassificationId());
         }
         return program.getGearClassification();
+    }
+
+    @GraphQLQuery(name = "locationClassifications", description = "Get program's location classifications")
+    public List<ReferentialVO> getProgramLocationClassifications(@GraphQLContext ProgramVO program) {
+        if (program.getLocationClassificationIds() != null && program.getLocationClassifications() == null) {
+            return program.getLocationClassificationIds().stream()
+                    .map(id -> referentialService.get(LocationClassification.class, id))
+                    .collect(Collectors.toList());
+        }
+        return program.getLocationClassifications();
     }
 
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")

@@ -134,6 +134,11 @@ public class ProgramRepositoryImpl
             target.setProperties(properties);
         }
 
+        // Location classifications (only IDs)
+        if (copyIfNull || source.getLocationClassifications() != null) {
+            target.setLocationClassificationIds(Beans.collectIds(source.getLocationClassifications()));
+        }
+
         // Other attributes
         target.setGearClassificationId(source.getGearClassification() != null ? source.getGearClassification().getId() : null);
         target.setTaxonGroupTypeId(source.getTaxonGroupType() != null ? source.getTaxonGroupType().getId() : null);
