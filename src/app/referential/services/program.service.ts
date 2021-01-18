@@ -181,7 +181,7 @@ export const ProgramFragments = {
       defaultValue
       pmfmId
       pmfm {
-        ...PmfmFragment
+        ...FullPmfmFragment
       }
       parameterId
       matrixId
@@ -253,7 +253,9 @@ const LoadQuery: any = gql`
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.fullPmfm}
+  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.fullReferential}
   ${ReferentialFragments.taxonName}
 `;
 
@@ -311,7 +313,9 @@ const SaveQuery: any = gql`
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.fullPmfm}
+  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.fullReferential}
   ${ReferentialFragments.taxonName}
 `;
 

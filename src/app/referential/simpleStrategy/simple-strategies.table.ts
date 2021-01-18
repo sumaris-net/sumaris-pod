@@ -50,11 +50,11 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
       // columns
       RESERVED_START_COLUMNS
         .concat([
-          'sampleRowCode',
-          'eotp',
-          'laboratory',
-          'fishingArea',
-          'targetSpecie',
+          'label',
+          'analyticReference',
+          'strategyDepartments',
+          'appliedStrategies',
+          'taxonNames',
           'comment',
           'parametersTitleTable',
           'quarter_1_table',
@@ -114,7 +114,6 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   }
 
   parametersToString(data: Strategy) {
-    // TODO data.pmfmStrategies.pmfm.parameter is null: use a fullReferential GraphQL query
     //console.log("pmfmStrategies", data.pmfmStrategies);
     let pmfmStrategies: string[] = [];
 

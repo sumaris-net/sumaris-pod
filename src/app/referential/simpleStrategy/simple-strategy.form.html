@@ -241,6 +241,9 @@
         <mat-error *ngIf="form.touched && form.get('pmfmStrategies').hasError('minLength')">
           {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate: form.get('pmfmStrategies').errors.minLength }}
         </mat-error>
+        <mat-error *ngIf="form.touched && form.get('pmfmStrategies').hasError('weightOrSize')">
+          {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.WEIGHT_OR_SIZE' | translate}}
+        </mat-error>
       </ion-col>
     </ion-row>
     <ion-row>
@@ -294,15 +297,6 @@
     <ion-row style="height: 15px"></ion-row>
 
     <!--SEX -->
-      <ion-row>
-        <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        </ion-col>
-        <ion-col>
-          <mat-error *ngIf="form.touched && form.get('pmfmStrategies').hasError('sex')">
-            <span translate>PROGRAM.STRATEGY.ERROR.PARAMETERS.SEX</span>
-          </mat-error>
-        </ion-col>
-      </ion-row>
         <ion-row>
           <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
             <ion-label>&nbsp;</ion-label>
@@ -314,7 +308,7 @@
         </ion-row>
 
     <!-- Maturity Pmfms -->
-    <ion-row>
+    <ion-row [hidden]="!ifSex()">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end" translate>PROGRAM.STRATEGY.MATURITY</ion-label>
       </ion-col>
@@ -350,7 +344,7 @@
         </ion-row>
 
     <!-- Calcified Pmfms -->
-    <ion-row *ngFor="let pmfmStrategiesFraction of pmfmStrategiesFractionForm?.controls; index as i; first as first">
+    <ion-row [hidden]="!ifAge()" *ngFor="let pmfmStrategiesFraction of pmfmStrategiesFractionForm?.controls; index as i; first as first">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>

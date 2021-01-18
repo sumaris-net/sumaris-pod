@@ -282,7 +282,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       .concat(['REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
     this.registerFormFieldWithSettingsFieldName('pmfm', {
       type: 'entity',
-      required: true,
+      required: false,
       autocomplete: this.registerAutocompleteField('pmfm', {
         items: this.$pmfms,
         attributes: pmfmAttributes,

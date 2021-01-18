@@ -120,17 +120,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     await this.weightPmfmStrategiesTable.save();
     await this.sizePmfmStrategiesTable.save();
     await this.maturityPmfmStrategiesTable.save();
-    // await this.weightPmfmStrategiesTable.save();
-    // await this.sizePmfmStrategiesTable.save();
-    // await this.maturityPmfmStrategiesTable.save();
 
     this.weightPmfmStrategiesTable.selection.clear();
     this.sizePmfmStrategiesTable.selection.clear();
     this.maturityPmfmStrategiesTable.selection.clear();
 
-    const weights = this.weightPmfmStrategiesTable.value.filter(p => p.pmfm);
-    const sizes = this.sizePmfmStrategiesTable.value.filter(p => p.pmfm);
-    const maturities = this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm);
+    const weights = this.weightPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
+    const sizes = this.sizePmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
+    const maturities = this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
 
     pmfms.push(this.pmfmStrategiesHelper.at(0).value);
     pmfms.push(this.pmfmStrategiesHelper.at(1).value);
@@ -143,6 +140,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     if (maturities.length <= 0) { this.maturityPmfmStrategiesTable.value = [new PmfmStrategy()]; }
 
     this.form.controls.pmfmStrategies.patchValue(pmfms);
+    this.pmfmStrategiesForm.markAsTouched();
     this.markAsDirty();
   }
 
@@ -421,8 +419,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
           name: res.data.find(fraction => fraction.id === cal.fractionId).name,
         }
       });
-
-      this.PmfmStrategiesFractionHelper.resize(Math.max(1, PmfmStrategiesFraction.length))
+      calcifiedTypeControl.clear();
+      this.PmfmStrategiesFractionHelper.resize(Math.max(1, PmfmStrategiesFraction.length));
       calcifiedTypeControl.patchValue(fractions);
     })
   }
@@ -489,7 +487,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
         allowEmptyArray: false,
         validators: [
           this.requiredPmfmMinLength(2),
-          this.requiredSexIfMaturity()
+          this.requiredWeightOrSize()
         ]
       }
     );
@@ -612,28 +610,43 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     };
   }
 
-  requiredSexIfMaturity(): ValidatorFn {
-    return (array: FormArray): ValidationErrors | null => {
-      const sex = array.value[0];
-      if (Array.isArray(array.value[4])) {
-        const maturity = (array.value[4] || []).filter(p => p.pmfm);
-        if (!sex && maturity && maturity.length >= 1) {
-          return { sex: { sex: false } };
-        }
-      }
-      return null;
-    };
-  }
-
   requiredPeriodMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (array: FormArray): ValidationErrors | null => {
-      const values = array.value.flat().filter(period => period.acquisitionNumber !== undefined && period.acquisitionNumber >= 0);
+      const values = array.value.flat().filter(period => period.acquisitionNumber !== undefined && period.acquisitionNumber !== null && period.acquisitionNumber >= 0);
       if (!values || values.length < minLength) {
         return { minLength: { minLength: minLength } };
       }
       return null;
     };
+  }
+
+  requiredWeightOrSize(): ValidatorFn {
+    return (array: FormArray): ValidationErrors | null => {
+      if (Array.isArray(array.value[2])) {
+        const weight = (array.value[2] || []).filter(p => p.pmfm);
+        if (weight && weight.length > 0) {
+          return null;
+        }
+      }
+      if (Array.isArray(array.value[3])) {
+        const size = (array.value[3] || []).filter(p => p.pmfm);
+        if (size && size.length > 0) {
+          return null;
+        }
+      }
+      return { weightOrSize: {weightOrSize: false} };
+    };
+  }
+
+  ifSex() : boolean {
+    const sex = this.pmfmStrategiesForm.value[0];
+    return sex;
+  }
+
+  ifAge() : boolean {
+    const sex = this.pmfmStrategiesForm.value[1];
+    return sex;
   }
 
 }

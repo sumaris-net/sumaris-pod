@@ -179,6 +179,11 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     if (appliedStrategies.length) {
       const appliedPeriods = data.appliedPeriods;
       appliedStrategies[0].appliedPeriods = appliedPeriods.filter(period => isNotNil(period.acquisitionNumber));
+      // Set selected year
+      appliedStrategies[0].appliedPeriods.forEach(p => {
+        p.startDate = moment(p.startDate).set('year', moment(data.creationDate).year());
+        p.endDate = moment(p.endDate).set('year', moment(data.creationDate).year());
+      });
     }
     data.appliedStrategies = appliedStrategies;
 
@@ -192,34 +197,35 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // Save before get PMFM values
     await this.simpleStrategyForm.weightPmfmStrategiesTable.save();
     await this.simpleStrategyForm.sizePmfmStrategiesTable.save();
-    await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();
 
     pmfmStrategies = pmfmStrategies
-      .concat(this.simpleStrategyForm.weightPmfmStrategiesTable.value.filter(p => p.pmfm))
-      .concat(this.simpleStrategyForm.sizePmfmStrategiesTable.value.filter(p => p.pmfm))
-      .concat(this.simpleStrategyForm.maturityPmfmStrategiesTable.value.filter(p => p.pmfm))
-
-    const pmfmStrategiesFractions = data.pmfmStrategiesFraction.filter(p => p !== null);
-
-    // Pièces calcifiées
-    for (let i = 0; i < pmfmStrategiesFractions.length; i++) {
-      const pmfmStrategiesFraction = this.createNewPmfmStrategy(data);
-      pmfmStrategiesFraction.fractionId = pmfmStrategiesFractions[i].id;
-      pmfmStrategies.push(pmfmStrategiesFraction);
-    }
-    //
+      .concat(this.simpleStrategyForm.weightPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId))
+      .concat(this.simpleStrategyForm.sizePmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId))
 
     if (sex) {
       const pmfmStrategySex = this.createNewPmfmStrategy(data);
       const pmfmSex = await this.getPmfms("SEX");
       pmfmStrategySex.pmfm = pmfmSex[0];
       pmfmStrategies.push(pmfmStrategySex);
+      //If Sex is true
+      await this.simpleStrategyForm.maturityPmfmStrategiesTable.save();
+      pmfmStrategies = pmfmStrategies.concat(this.simpleStrategyForm.maturityPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId))
     }
     if (age) {
       const pmfmStrategyAge = this.createNewPmfmStrategy(data);
       const pmfmAge = await this.getPmfms("AGE");
       pmfmStrategyAge.pmfm = pmfmAge[0];
       pmfmStrategies.push(pmfmStrategyAge);
+
+      // If Age is true
+      const pmfmStrategiesFractions = data.pmfmStrategiesFraction.filter(p => p !== null);
+      // Pièces calcifiées
+      for (let i = 0; i < pmfmStrategiesFractions.length; i++) {
+        const pmfmStrategiesFraction = this.createNewPmfmStrategy(data);
+        pmfmStrategiesFraction.fractionId = pmfmStrategiesFractions[i].id;
+        pmfmStrategies.push(pmfmStrategiesFraction);
+      }
+      //
     }
 
     // Add all mandatory fields

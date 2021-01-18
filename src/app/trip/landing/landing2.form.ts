@@ -35,6 +35,7 @@ import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {AppliedStrategy, Strategy, TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 import {StrategyService} from "../../referential/services/strategy.service";
 import {StrategyFilter} from "../../referential/strategy/strategies.table";
+import {Sample} from "../services/model/sample.model";
 
 @Component({
   selector: 'app-landing2-form',
@@ -59,6 +60,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   fishingAreas : ReferentialRef[];
   fishingAreaHelper: FormArrayHelper<AppliedStrategy>;
   _sampleRowCode: string;
+  _defaultTaxonNameFromStrategy: TaxonNameStrategy;
 
   appliedStrategies: AppliedStrategy[];
 
@@ -97,6 +99,17 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   get sampleRowCode(): string {
     return this._sampleRowCode;
+  }
+
+  @Input()
+  set defaultTaxonNameFromStrategy(value: TaxonNameStrategy) {
+    if (this._defaultTaxonNameFromStrategy !== value && isNotNil(value)) {
+      this._defaultTaxonNameFromStrategy = value;
+    }
+  }
+
+  get defaultTaxonNameFromStrategy(): TaxonNameStrategy {
+    return this._defaultTaxonNameFromStrategy;
   }
 
   @Input()
@@ -188,6 +201,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       service: this.strategyService,
       attributes: this.settings.getFieldDisplayAttributes('sampleRowCode', ['name'])//,
       // filter: {
+      //   // FIXME CLT : id program to retrieve
       //   programId: '40'
       // }
     });
@@ -307,8 +321,19 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   public setValue(value: Landing) {
     if (!value) return;
+    let taxonNames = value.samples.filter(sample => sample.taxonName);
 
-    const taxonNames = value.samples.filter(sample => sample.taxonName);
+    if (this._defaultTaxonNameFromStrategy) {
+
+      if (!taxonNames) {
+        taxonNames = [];
+      }
+      if (taxonNames.length == 0) {
+        let emptySampleWithTaxon = new Sample();
+        emptySampleWithTaxon.taxonName = this._defaultTaxonNameFromStrategy.taxonName;
+        taxonNames.push(emptySampleWithTaxon);
+      }
+    }
 
     value.samples = value.samples.filter(sample => !sample.taxonName);
 

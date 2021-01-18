@@ -24,7 +24,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
       updateDate: [data && data.updateDate || null],
       creationDate: [data && data.creationDate || null],
       statusId: [data && data.statusId || null/*, Validators.required*/],
-      label: [data && data.label || null, Validators.required],
+      label: this.getLabel(data),
       name: [data && data.name || null/*, Validators.required*/],
       description: [data && data.description || null, Validators.maxLength(255)],
       comments: [data && data.comments || null, Validators.maxLength(2000)],
@@ -40,6 +40,16 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
 
       programId: [toNumber(data && data.programId, null)],
     });
+  }
+
+
+  getLabel(data?: Strategy) {
+    return [data && data.label || null, [Validators.required, (control)=>{
+      if (control && control.value && control.value.includes('_')) {
+        return {pattern : { pattern : false}}
+      }
+      return null;
+    }]]
   }
 
   getPmfmStrategiesFormArray(data?: Strategy) {
