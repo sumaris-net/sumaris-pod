@@ -9,6 +9,8 @@ export * from './src/app/shared/shared-routing.module';
 // Shared material
 export * from './src/app/shared/material/material.module';
 export {MatBooleanField} from './src/app/shared/material/boolean/material.boolean';
+export * from './src/app/shared/material/autocomplete/autocomplete.module';
+export * from './src/app/shared/material/autocomplete/material.autocomplete';
 export * from './src/app/shared/material/material.animations';
 export * from './src/app/shared/material/paginator/material.paginator-i18n';
 export * from './src/app/shared/material/numpad/numpad.module';
@@ -20,6 +22,7 @@ export * from './src/app/shared/material/numpad/numpad.directive';
 export * from './src/app/shared/material/numpad/numpad.append-to-input.directive';
 
 // Shared components
+export * from './src/app/shared/inputs';
 export {AppFormField} from './src/app/shared/form/field.component';
 export * from './src/app/shared/form/loading-spinner';
 export * from './src/app/shared/form/field.model';
