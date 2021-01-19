@@ -15,6 +15,7 @@ import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {strategyDepartmentsToString, appliedStategiesToString, taxonsNameStrategyToString} from "../../referential/services/model/strategy.model";
 import {ParameterLabelStrategies} from "../../referential/services/model/model.enum";
+import {PredefinedColors} from "@ionic/core";
 
 export declare interface StrategyFilter {
 }
@@ -85,6 +86,28 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
 
     //this.inlineEdition = toBoolean(this.inlineEdition, true);
     super.ngOnInit();
+  }
+
+  getRealizedEffortColor(data: Strategy, quarter) : PredefinedColors {
+    let color : PredefinedColors = 'dark';
+    //TODO return 'success' if planified effort = realised effort
+    if (this.effortToString(data, quarter) === 0) {
+      return 'success';
+    }
+    return color;
+  }
+
+  getToDoEffortColor(data: Strategy, quarter) : PredefinedColors {
+    let color : PredefinedColors = 'danger';
+    // return dark if planified effort = 0
+    if (this.effortToString(data, quarter) === 0) {
+      return 'dark';
+    }
+    //TODO return 'dark' if planified effort = realised effort
+    /*if (this.effortToString(data, quarter) === 0) {
+      return 'dark';
+    }*/
+    return color;
   }
 
   effortToString(data: Strategy, quarter) {
