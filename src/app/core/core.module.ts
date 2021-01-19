@@ -1,4 +1,4 @@
-import {ModuleWithProviders, NgModule, Optional} from '@angular/core';
+import {ModuleWithProviders, NgModule} from '@angular/core';
 import {RouterModule} from '@angular/router';
 import {AccountValidatorService} from './services/validator/account.validator';
 import {UserSettingsValidatorService} from './services/validator/user-settings.validator';
@@ -9,8 +9,8 @@ import {AboutModal} from './about/modal-about';
 import {RegisterConfirmPage} from "./register/confirm/confirm";
 import {AccountPage} from "./account/account";
 import {
-  IEntitiesService,
   fromDateISOString,
+  IEntitiesService,
   isNil,
   isNotNil,
   joinPropertiesPath,
@@ -40,13 +40,7 @@ import {Department} from './services/model/department.model';
 import {StatusIds} from './services/model/model.enum';
 
 import {environment} from '../../environments/environment';
-import {
-  Cloneable,
-  Entity,
-  EntityAsObjectOptions,
-  entityToString,
-  EntityUtils
-} from './services/model/entity.model';
+import {Cloneable, Entity, EntityAsObjectOptions, entityToString, EntityUtils} from './services/model/entity.model';
 // import ngx-translate and the http loader
 import {HttpClientModule} from '@angular/common/http';
 import {SelectPeerModal} from "./peer/select-peer.modal";
