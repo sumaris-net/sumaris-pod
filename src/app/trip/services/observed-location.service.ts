@@ -226,7 +226,7 @@ export const ObservedLocationFragments = {
 
 // Search query
 const LoadAllQuery: any = gql`
-  query ObservedLocations($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean, $filter: ObservedLocationFilterVOInput){
+  query ObservedLocations($filter: ObservedLocationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean){
     observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash){
       ...LightObservedLocationFragment
     }
@@ -245,7 +245,7 @@ const LoadQuery: any = gql`
 `;
 // Save query
 const SaveQuery: any = gql`
-  mutation SaveObservedLocation($observedLocation: ObservedLocationVOInput, $options: ObservedLocationSaveOptionsInput!){
+  mutation SaveObservedLocation($observedLocation: ObservedLocationVOInput!, $options: ObservedLocationSaveOptionsInput!){
     saveObservedLocation(observedLocation: $observedLocation, options: $options){
       ...ObservedLocationFragment
     }
@@ -286,7 +286,7 @@ const UnvalidateMutation: any = gql`
   ${ObservedLocationFragments.observedLocation}
 `;
 const DeleteByIdsMutation: any = gql`
-  mutation DeleteObservedLocations($ids:[Int]){
+  mutation DeleteObservedLocations($ids:[Int]!){
     deleteObservedLocations(ids: $ids)
   }
 `;

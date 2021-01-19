@@ -236,7 +236,7 @@ export const LandingFragments = {
 
 // Search query
 const LoadAllQuery: any = gql`
-  query Landings($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: LandingFilterVOInput){
+  query Landings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LandingFragment
     }
@@ -255,7 +255,7 @@ const LoadQuery: any = gql`
 `;
 // Save all query
 const SaveAllQuery: any = gql`
-  mutation SaveLandings($landings:[LandingVOInput]){
+  mutation SaveLandings($landings:[LandingVOInput]!){
     saveLandings(landings: $landings){
       ...LandingFragment
     }
@@ -264,7 +264,7 @@ const SaveAllQuery: any = gql`
 `;
 
 const DeleteByIdsMutation: any = gql`
-  mutation DeleteLandings($ids:[Int!]){
+  mutation DeleteLandings($ids:[Int!]!){
     deleteLandings(ids: $ids)
   }
 `;

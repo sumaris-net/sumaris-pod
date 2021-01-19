@@ -376,7 +376,7 @@ const LoadLandedTripQuery: any = gql`
 `;
 // Save a trip
 const SaveTripQuery: any = gql`
-  mutation saveTrip($trip:TripVOInput, $options: TripSaveOptionsInput!){
+  mutation saveTrip($trip:TripVOInput!, $options: TripSaveOptionsInput!){
     saveTrip(trip: $trip, options: $options){
       ...TripFragment
     }
@@ -385,7 +385,7 @@ const SaveTripQuery: any = gql`
 `;
 // Save a landed trip
 const SaveLandedTripQuery: any = gql`
-  mutation saveTrip($trip:TripVOInput, $options: TripSaveOptionsInput!){
+  mutation saveTrip($trip:TripVOInput!, $options: TripSaveOptionsInput!){
     saveTrip(trip: $trip, options: $options){
       ...LandedTripFragment
     }
@@ -417,7 +417,7 @@ const QualifyMutation: any = gql`
   ${TripFragments.trip}
 `;
 const UnvalidateMutation: any = gql`
-  mutation UnvalidateTrip($entity:TripVOInput){
+  mutation UnvalidateTrip($entity:TripVOInput!){
     entity: unvalidateTrip(trip: $entity){
       ...TripFragment
     }
@@ -425,7 +425,7 @@ const UnvalidateMutation: any = gql`
   ${TripFragments.trip}
 `;
 const DeleteByIdsMutation: any = gql`
-  mutation DeleteTrips($ids:[Int]){
+  mutation DeleteTrips($ids:[Int]!){
     deleteTrips(ids: $ids)
   }
 `;

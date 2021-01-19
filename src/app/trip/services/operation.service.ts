@@ -161,7 +161,7 @@ export class OperationFilter {
 }
 
 const LoadAllLightQuery: any = gql`
-  query Operations($filter: OperationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightOperationFragment
     }
@@ -169,7 +169,7 @@ const LoadAllLightQuery: any = gql`
   ${OperationFragments.lightOperation}
 `;
 const LoadAllFullQuery: any = gql`
-  query Operations($filter: OperationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...OperationFragment
     }
@@ -185,7 +185,7 @@ const LoadQuery: any = gql`
   ${OperationFragments.operation}
 `;
 const SaveOperations: any = gql`
-  mutation saveOperations($operations:[OperationVOInput]){
+  mutation saveOperations($operations:[OperationVOInput]!){
     saveOperations(operations: $operations){
       ...OperationFragment
     }
@@ -193,7 +193,7 @@ const SaveOperations: any = gql`
   ${OperationFragments.operation}
 `;
 const DeleteOperations: any = gql`
-  mutation deleteOperations($ids:[Int]){
+  mutation deleteOperations($ids:[Int]!){
     deleteOperations(ids: $ids)
   }
 `;
@@ -236,8 +236,6 @@ export declare interface OperationServiceWatchOptions extends
 export class OperationService extends BaseEntityService<Operation, OperationFilter>
   implements IEntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
              IEntityService<Operation>{
-
-
 
   protected loading = false;
 
