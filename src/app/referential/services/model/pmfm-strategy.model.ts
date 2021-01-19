@@ -43,6 +43,9 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
   matrixId: number;
   fractionId: number;
   methodId: number;
+
+  parameter: ReferentialRef;
+
   label: string;
   name: string;
   unitLabel: string;
@@ -98,7 +101,8 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
 
     this.pmfmId = source.pmfmId;
     this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
-    this.parameterId =  source.parameterId ? (source.parameterId.id ? source.parameterId.id : source.parameterId) : undefined;  
+    this.parameterId =  source.parameterId ? (source.parameterId.id ? source.parameterId.id : source.parameterId) : undefined;
+    this.parameter = source.parameter;
     this.matrixId = source.matrixId ? (source.matrixId.id ? source.matrixId.id : source.matrixId) : undefined; 
     this.fractionId = source.fractionId ? (source.fractionId.id ? source.fractionId.id : source.fractionId) : undefined; 
     this.methodId = source.methodId ? (source.methodId.id ? source.methodId.id : source.methodId) : undefined; 

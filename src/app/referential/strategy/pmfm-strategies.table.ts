@@ -324,7 +324,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         columnSizes: [4,8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-xlarge-size'
+        class: 'mat-autocomplete-panel-full-size'
       })
     });
 
