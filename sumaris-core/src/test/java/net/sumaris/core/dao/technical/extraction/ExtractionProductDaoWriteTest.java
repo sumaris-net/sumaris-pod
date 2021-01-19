@@ -130,9 +130,9 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
         source.setTables(tables);
 
         // Stratum
-        List<ExtractionProductStrataVO> stratum = Lists.newArrayList();
+        List<AggregationStrataVO> stratum = Lists.newArrayList();
         {
-            ExtractionProductStrataVO strata = new ExtractionProductStrataVO();
+            AggregationStrataVO strata = new AggregationStrataVO();
             strata.setLabel("default");
             strata.setSheetName("TR");
             stratum.add(strata);

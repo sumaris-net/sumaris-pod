@@ -23,29 +23,20 @@ package net.sumaris.core.extraction.dao.trip.cost;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.technical.DatabaseType;
-import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.format.specification.AggCostSpecification;
-import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
 import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
-import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
-import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.extraction.vo.trip.survivalTest.AggregationSurvivalTestContextVO;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.PersistenceException;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>

@@ -36,6 +36,7 @@ import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbTrip;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;

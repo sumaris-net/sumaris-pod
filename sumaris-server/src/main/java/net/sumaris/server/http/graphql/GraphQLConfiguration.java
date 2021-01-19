@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.GraphQL;
+import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
@@ -142,12 +143,6 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         return generator.generate();
     }
 
-    @Bean
-    public GraphQL graphQL() {
-        return GraphQL.newGraphQL(graphQLSchema()).build();
-    }
-
-
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
 
@@ -155,7 +150,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         webSocketHandlerRegistry
                 .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
-                .setAllowedOrigins("*")
+                .setAllowedOrigins("*") // TODO Spring update will need to change this to allowedOriginPatterns()
                 .withSockJS();
     }
 

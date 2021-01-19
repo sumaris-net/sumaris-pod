@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +48,9 @@ public class GraphQLRestController {
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public GraphQLRestController(GraphQLSchema schema,
+    public GraphQLRestController(GraphQLSchema graphQLSchema,
                                  ObjectMapper objectMapper) {
-        this.graphQL = GraphQL.newGraphQL(schema).build();
+        this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();
         this.objectMapper = objectMapper;
         log.info(String.format("Starting GraphQL endpoint {%s}...", GraphQLPaths.BASE_PATH));
     }

@@ -36,7 +36,7 @@ import java.util.Date;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @FieldNameConstants
-public class ExtractionProductStrataVO implements IReferentialVO {
+public class AggregationStrataVO implements IReferentialVO {
 
     Integer id;
     String label;

@@ -81,7 +81,7 @@ public class ExtractionWebAutoConfiguration {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
                 registry.addMapping("/**")
-                        .allowedOrigins("*")
+                        .allowedOrigins("*") // TODO Spring update will need to change this to allowedOriginPattern()
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
                         .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
                         .allowCredentials(true);
