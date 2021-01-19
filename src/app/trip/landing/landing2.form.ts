@@ -17,7 +17,7 @@ import {Landing2ValidatorService} from "../services/validator/landing2.validator
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl, ValidationErrors, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
@@ -38,6 +38,8 @@ import {StrategyFilter} from "../../referential/strategy/strategies.table";
 import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {Pmfm} from "../../referential/services/model/pmfm.model";
+import {SharedValidators} from "../../shared/validator/validators";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'app-landing2-form',
@@ -167,6 +169,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected settings: LocalSettingsService,
+    protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef,
     protected strategyService: StrategyService
@@ -292,6 +295,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     this.initTaxonNameHelper();
     this.initAppliedStrategiesHelper();
+    this.initAppliedStrategiesValidator();
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
@@ -339,10 +343,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     value.samples = value.samples.filter(sample => !sample.taxonName);
 
-
-
-
-
     // Make sure to have (at least) one observer
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
@@ -384,7 +384,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     this.fishingAreasFormArray.patchValue(this.appliedStrategies);
 
     this.sampleRowCodeControl.patchValue(sample);
-
   }
 
   addObserver() {
@@ -431,7 +430,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   /* -- protected method -- */
 
-
   protected initObserversHelper() {
     if (isNil(this._showObservers)) return; // skip if not loading yet
     this.observersHelper = new FormArrayHelper<Person>(
@@ -453,7 +451,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
   }
 
-  // appliedStrategies Helper -----------------------------------------------------------------------------------------------
+  // appliedStrategies Helper
   protected initAppliedStrategiesHelper() {
     // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
     this.fishingAreaHelper = new FormArrayHelper<AppliedStrategy>(
@@ -468,6 +466,28 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
   }
 
+  // Add validator on expected effort for this sampleRow (issue #175)
+  protected initAppliedStrategiesValidator() {
+    this.form.get('sampleRowCode').setAsyncValidators(async (control) => {
+      if (!this.appliedStrategies.length) return null;
+
+      const landingDateTime = this.value.dateTime;
+      let appliedPeriods = this.appliedStrategies.length && this.appliedStrategies[0].appliedPeriods || [];
+      let appliedPeriod = appliedPeriods.find(period => landingDateTime.isBetween(period.startDate, period.endDate, 'day'))
+
+      console.debug("[landing-form] Validating effort: ", landingDateTime, appliedPeriod);
+
+      if (!appliedPeriod || isNil(appliedPeriod.acquisitionNumber)) {
+        return <ValidationErrors>{noEffort: this.translate.instant('LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR')};
+      } else if (appliedPeriod.acquisitionNumber == 0) {
+        // TODO must be a warning, not error
+        //return <ValidationErrors>{noEffort: this.translate.instant('LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR')};
+      } else {
+        SharedValidators.clearError(control, 'noEffort');
+      }
+      return null;
+    });
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

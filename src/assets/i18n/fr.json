@@ -788,7 +788,9 @@
       "LOAD_ERROR": "Erreur de chargement du navire observé.",
       "SAVE_ERROR": "Erreur de sauvegarde du navire observé",
       "SAVE_ALL_ERROR": "Erreur de sauvegarde des navires observés",
-      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé."
+      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé.",
+      "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
+      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0"
     }
   },
   "AGGREGATED_LANDING": {
