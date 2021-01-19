@@ -383,7 +383,7 @@ public class DataGraphQLService {
     }
 
     @GraphQLSubscription(name = "updateTrip", description = "Subscribe to changes on a trip")
-    //@IsUser
+    @IsUser
     public Publisher<TripVO> updateTrip(@GraphQLNonNull @GraphQLArgument(name = "id") final int id,
                                         @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
