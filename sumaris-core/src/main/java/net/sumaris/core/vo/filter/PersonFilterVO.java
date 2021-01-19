@@ -56,6 +56,8 @@ public class PersonFilterVO implements IReferentialFilter {
     private String firstName;
     private String lastName;
 
+    private Integer[] excludedIds;
+
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }

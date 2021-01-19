@@ -52,4 +52,5 @@ public class ExtractionProductFilterVO implements IReferentialFilter {
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
 
+    private Integer[] excludedIds;
 }

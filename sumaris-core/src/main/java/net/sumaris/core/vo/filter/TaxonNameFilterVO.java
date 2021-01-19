@@ -53,4 +53,5 @@ public class TaxonNameFilterVO implements IReferentialFilter {
     private Boolean withSynonyms;
     private Integer referenceTaxonId;
 
+    private Integer[] excludedIds;
 }

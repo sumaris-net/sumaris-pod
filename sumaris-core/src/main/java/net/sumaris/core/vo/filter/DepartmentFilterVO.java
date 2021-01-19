@@ -47,4 +47,5 @@ public class DepartmentFilterVO implements IReferentialFilter {
 
     private Boolean withLogo;
 
+    private Integer[] excludedIds;
 }

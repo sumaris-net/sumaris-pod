@@ -600,6 +600,7 @@ public class ReferentialDaoImpl
         String searchText = StringUtils.trimToNull(filter.getSearchText());
         String searchAttribute = StringUtils.trimToNull(filter.getSearchAttribute());
         Integer[] statusIds = filter.getStatusIds();
+        Integer[] excludedIds = filter.getExcludedIds();
 
         // Level Ids
         Predicate levelClause = null;
@@ -687,6 +688,16 @@ public class ReferentialDaoImpl
             statusIdsClause = builder.in(entityRoot.get(IWithStatusEntity.Fields.STATUS).get(IEntity.Fields.ID)).value(statusIdsParam);
         }
 
+        // Excluded Ids
+        Predicate excludedClause = null;
+        ParameterExpression<Collection> excludedIdsParam = null;
+        if (ArrayUtils.isNotEmpty(excludedIds)) {
+            excludedIdsParam = builder.parameter(Collection.class);
+            excludedClause = builder.not(
+                builder.in(entityRoot.get(IEntity.Fields.ID)).value(excludedIdsParam)
+            );
+        }
+
         // Compute where clause
         Expression<Boolean> whereClause = null;
         if (levelClause != null) {
@@ -703,6 +714,9 @@ public class ReferentialDaoImpl
 
         if (statusIdsClause != null) {
             whereClause = (whereClause == null) ? statusIdsClause : builder.and(whereClause, statusIdsClause);
+        }
+        if (excludedIdsParam != null) {
+            whereClause = (whereClause == null) ? excludedClause : builder.and(whereClause, excludedClause);
         }
 
         // Delegate to visitor
@@ -740,6 +754,9 @@ public class ReferentialDaoImpl
         }
         if (statusIdsClause != null) {
             typedQuery.setParameter(statusIdsParam, ImmutableList.copyOf(statusIds));
+        }
+        if (excludedClause != null) {
+            typedQuery.setParameter(excludedIdsParam, ImmutableList.copyOf(excludedIds));
         }
 
         return typedQuery;

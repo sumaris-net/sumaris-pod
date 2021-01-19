@@ -253,7 +253,8 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
         return BindableSpecification
             .where(inStatusIds(filter))
             .and(hasLabel(filter.getLabel()))
-            .and(searchOrJoinSearchText(filter));
+            .and(searchOrJoinSearchText(filter))
+            .and(excludedIds(filter.getExcludedIds()));
     }
 
 }

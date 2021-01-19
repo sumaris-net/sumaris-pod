@@ -50,4 +50,5 @@ public class StrategyFilterVO implements IReferentialFilter {
 
     private Integer programId;
 
+    private Integer[] excludedIds;
 }

@@ -49,6 +49,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String LEVEL_PARAMETER = "level";
     String LEVEL_SET_PARAMETER = "levelSet";
     String SEARCH_TEXT_PARAMETER = "searchText";
+    String EXCLUDED_IDS_PARAMETER = "excludedIds";
 
     default Specification<E> inStatusIds(IReferentialFilter filter) {
         Integer[] statusIds = filter.getStatusIds();
@@ -155,6 +156,18 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             );
         });
         specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
+        return specification;
+    }
+
+    default Specification<E> excludedIds(Integer[] excludedIds) {
+        if (ArrayUtils.isEmpty(excludedIds)) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
+            return criteriaBuilder.not(
+                    criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param)
+            );
+        });
+        specification.addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
         return specification;
     }
 }
