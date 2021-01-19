@@ -1138,7 +1138,8 @@
       "SIMPLE_STRATEGIES": "Simple strategies",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
-      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)"
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)",
+      "STRATEGY_SIMPLE_STRATEGIES_ENABLE": "Strategy : Simple strategies?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Acquisition levels",
