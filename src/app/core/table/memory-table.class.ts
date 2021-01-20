@@ -10,6 +10,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppTableDataSourceOptions} from "./entities-table-datasource.class";
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends AppTable<T, F> {
 
   @Input() canEdit = false;

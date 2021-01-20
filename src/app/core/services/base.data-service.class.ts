@@ -55,7 +55,7 @@ export abstract class BaseEntityService<T = any, F = any> {
   // - Can be override by subclasses (in constructor)
   // - Use value -1 for no max size
   // - Default value to 3, because it usually enough (e.g. OperationService and LandingService need at least 2)
-  protected _mutableWatchQueriesMaxCount: number = 3;
+  protected _mutableWatchQueriesMaxCount = 3;
 
   protected constructor(
     protected graphql: GraphqlService
@@ -72,19 +72,17 @@ export abstract class BaseEntityService<T = any, F = any> {
       return this.graphql.watchQuery(opts);
     }
     else {
-      // Create the query info to remember
-      const queryName = opts.queryName || sha256().update(JSON.stringify(opts.query)).digest('hex').substring(0, 8);
-      const variablesKey = sha256().update(JSON.stringify(opts.variables)).digest('hex').substring(0, 8);
-      const queryId = [queryName, opts.arrayFieldName, variablesKey].join('|');
+      // Create the query id
+      const queryId = this.computeMutableWatchQueryId(opts);
 
-      const existingQueries = opts.queryName ? this._mutableWatchQueries.filter(q => q.id === queryId) :
+      const exactMatchQueries = opts.queryName ? this._mutableWatchQueries.filter(q => q.id === queryId) :
         this._mutableWatchQueries.filter(q => q.query === opts.query);
       let mutableQuery: MutableWatchQueryInfo<D, T, V>;
 
-      if (existingQueries.length === 1) {
-        mutableQuery = existingQueries[0] as MutableWatchQueryInfo<D, T, V>;
+      if (exactMatchQueries.length === 1) {
+        mutableQuery = exactMatchQueries[0] as MutableWatchQueryInfo<D, T, V>;
         mutableQuery.counter += 1;
-        if (this._debug) console.debug(this._debugPrefix + 'Find existing mutable watching query (same variables): ' + queryName);
+        if (this._debug) console.debug(this._debugPrefix + `Find same mutable watch query (same variables) {${queryId}}. Skip register`);
 
         //if (mutableQuery.counter > 3) {
         //  console.warn(this._debugPrefix + 'TODO: clean previous queries with name: ' + queryName);
@@ -111,36 +109,33 @@ export abstract class BaseEntityService<T = any, F = any> {
     queryName?: string;
     data?: T[] | T;
   }) {
-    if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
-    const existingQueries = opts.queryName ?
-      this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|')) :
-      this._mutableWatchQueries.filter(q => q.query === opts.query);
-    if (!existingQueries.length)  return;
+    const queries = this.findMutableWatchQueries(opts);
+    if (!queries.length)  return;
 
-    existingQueries.forEach(watchQuery => {
+    queries.forEach(query => {
 
         if (opts.data instanceof Array) {
           // Filter values, if a filter function exists
-          const data = watchQuery.insertFilterFn ? opts.data.filter(i => watchQuery.insertFilterFn(i)) : opts.data;
+          const data = query.insertFilterFn ? opts.data.filter(i => query.insertFilterFn(i)) : opts.data;
           if (isNotEmptyArray(data)) {
-            if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
+            if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, query.id);
             this.graphql.addManyToQueryCache(cache, {
               query: opts.query,
-              variables: watchQuery.variables,
-              arrayFieldName: watchQuery.arrayFieldName as string,
-              sortFn: watchQuery.sortFn,
+              variables: query.variables,
+              arrayFieldName: query.arrayFieldName as string,
+              sortFn: query.sortFn,
               data
             });
           }
         }
         // Filter value, if a filter function exists
-        else if (!watchQuery.insertFilterFn || watchQuery.insertFilterFn(opts.data)) {
-          if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
+        else if (!query.insertFilterFn || query.insertFilterFn(opts.data)) {
+          if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, query.id);
           this.graphql.insertIntoQueryCache(cache, {
             query: opts.query,
-            variables: watchQuery.variables,
-            arrayFieldName: watchQuery.arrayFieldName as string,
-            sortFn: watchQuery.sortFn,
+            variables: query.variables,
+            arrayFieldName: query.arrayFieldName as string,
+            sortFn: query.sortFn,
             data: opts.data
           });
         }
@@ -152,27 +147,24 @@ export abstract class BaseEntityService<T = any, F = any> {
     queryName?: string;
     ids: number|number[];
   }){
-    if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
-    const existingQueries = opts.queryName ?
-      this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|')) :
-      this._mutableWatchQueries.filter(q => q.query === opts.query);
-    if (!existingQueries.length)  return;
+    const queries = this.findMutableWatchQueries(opts);
+    if (!queries.length)  return;
 
-    console.debug(`[base-data-service] Removing data from watching queries: `, existingQueries);
-    existingQueries.forEach(watchQuery => {
+    console.debug(`[base-data-service] Removing data from watching queries: `, queries);
+    queries.forEach(query => {
       if (opts.ids instanceof Array) {
         this.graphql.removeFromCachedQueryByIds(cache, {
-          query: watchQuery.query,
-          variables: watchQuery.variables,
-          arrayFieldName: watchQuery.arrayFieldName as string,
+          query: query.query,
+          variables: query.variables,
+          arrayFieldName: query.arrayFieldName as string,
           ids: opts.ids
         });
       }
       else {
         this.graphql.removeFromCachedQueryById(cache, {
-          query: watchQuery.query,
-          variables: watchQuery.variables,
-          arrayFieldName: watchQuery.arrayFieldName as string,
+          query: query.query,
+          variables: query.variables,
+          arrayFieldName: query.arrayFieldName as string,
           id: opts.ids.toString()
         });
       }
@@ -181,9 +173,23 @@ export abstract class BaseEntityService<T = any, F = any> {
 
   /* -- protected methods -- */
 
-  registerNewMutableWatchQuery(mutableQuery: MutableWatchQueryInfo<any>) {
+  protected computeMutableWatchQueryId<D, T, V = EmptyObject>(opts: MutableWatchQueryOptions<D, T, V>) {
+    const queryName = opts.queryName || sha256().update(JSON.stringify(opts.query)).digest('hex').substring(0, 8);
+    const variablesKey = opts.variables && sha256().update(JSON.stringify(opts.variables)).digest('hex').substring(0, 8) || '';
+    return [queryName, opts.arrayFieldName, variablesKey].join('|');
+  }
 
-    if (this._debug) console.debug(this._debugPrefix + 'Adding new mutable watching query: ' + mutableQuery.id);
+  protected findMutableWatchQueries(opts?: {query?: any; queryName?: string; }) {
+    if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
+    // Search by queryName (if any) or by query
+    return opts.queryName ?
+      this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|')) :
+      this._mutableWatchQueries.filter(q => q.query === opts.query);
+  }
+
+  protected registerNewMutableWatchQuery(mutableQuery: MutableWatchQueryInfo<any>) {
+
+    if (this._debug) console.debug(this._debugPrefix + `Register new mutable watch query {${mutableQuery.id}}`);
 
     // If exceed the max size of mutable queries: remove some
     if (this._mutableWatchQueriesMaxCount > 0 && this._mutableWatchQueries.length >= this._mutableWatchQueriesMaxCount) {
