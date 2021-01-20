@@ -25,6 +25,7 @@ import {Sample} from "../services/model/sample.model";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 
 export interface SampleFilter {
   operationId?: number;
@@ -52,15 +53,25 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   public appliedPmfmStrategies : PmfmStrategy []=[];
 
+  @Input() defaultSampleDate: Moment;
+  @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() _defaultTaxonNameFromStrategy: TaxonNameStrategy;
+
+  @Input()
+  set defaultTaxonNameFromStrategy(value: TaxonNameStrategy) {
+    if (this._defaultTaxonNameFromStrategy !== value && isNotNil(value)) {
+      this._defaultTaxonNameFromStrategy = value;
+    }
+  }
 
   @Input()
   set value(data: Sample[]) {
     this.memoryDataService.value = data;
-    let samplesWithDefinedTaxonOnly = data.filter(sample => sample.taxonName);
+    /*let samplesWithDefinedTaxonOnly = data.filter(sample => sample.taxonName);
     if (samplesWithDefinedTaxonOnly && samplesWithDefinedTaxonOnly[0])
     {
-      this.defaultTaxonName = data[0].taxonName;
-    }
+     // this.defaultTaxonName = data[0].taxonName;
+    }*/
   }
 
   @Input()
@@ -96,9 +107,8 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     return this.getShowColumn('taxonName');
   }*/
 
-  @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: ReferentialRef;
-  @Input() defaultTaxonName: ReferentialRef;
+
+
 
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
 
@@ -201,10 +211,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     }
 
     // set  taxonName, taxonGroup
-    if (isNotNil(this.defaultTaxonName)) {
-      data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
+    if (isNotNil(this._defaultTaxonNameFromStrategy.taxonName)) {
+      data.taxonName = TaxonNameRef.fromObject(this._defaultTaxonNameFromStrategy.taxonName);
 
-      let taxonGroup = await  this.getTaxoGroupByTaxonNameId(this.defaultTaxonName.id,  "TaxonGroup");
+      let taxonGroup = await  this.getTaxoGroupByTaxonNameId(this._defaultTaxonNameFromStrategy.taxonName.id,  "TaxonGroup");
       data.taxonGroup = TaxonNameRef.fromObject(taxonGroup[0]);
     }
 

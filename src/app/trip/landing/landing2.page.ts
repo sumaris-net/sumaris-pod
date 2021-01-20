@@ -194,7 +194,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         let taxonNames = [];
         if (pmfmStrategy.taxonNames && pmfmStrategy.taxonNames[0]) {
           let defaultTaxonName = pmfmStrategy.taxonNames[0];
+          //propagation of taxonNames by strategy on sampleRowCode change
           this.landing2Form.defaultTaxonNameFromStrategy = defaultTaxonName;
+          this.samples2Table.defaultTaxonNameFromStrategy = defaultTaxonName;
 
           if (this.landing2Form._defaultTaxonNameFromStrategy) {
             let emptySampleWithTaxon = new Sample();
@@ -325,14 +327,6 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     //data.samples = data.samples.concat(this.samples2Table.value);
     data.samples =this.samples2Table.value;
     data.samples.map(s => s.rankOrder = 1);
-
-    // set TaxonName to sample
-    const taxonName = this.landing2Form.taxonNamesForm.value[0].taxonName;
-    if(data.samples && data.samples[0]){
-      data.samples[0].taxonName = taxonName;
-    }
-
-
     return data;
   }
 
@@ -367,15 +361,19 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     //this.samples2Table.value = data.samples || [];
 
     if (!isNew) {
+      if(isNil(strategyLabel)){
+        strategyLabel=this.landing2Form.sampleRowCode;
+      }
       let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
       let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
 
       this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
-
+      //propagation of taxonNames by strategy
       if (pmfmStrategy.taxonNames && pmfmStrategy.taxonNames[0])
       {
         let defaultTaxonName = pmfmStrategy.taxonNames[0];
         this.landing2Form.defaultTaxonNameFromStrategy = defaultTaxonName;
+        this.samples2Table.defaultTaxonNameFromStrategy = defaultTaxonName;
       }
 
       this.landing2Form.pmfms = pmfmStrategies;
