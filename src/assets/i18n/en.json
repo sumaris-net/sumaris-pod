@@ -788,7 +788,9 @@
       "LOAD_ERROR": "Error while loading observed vessel.",
       "SAVE_ERROR": "Error while saving observed vessel",
       "SAVE_ALL_ERROR": "Error while saving observed vessels",
-      "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes."
+      "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes.",
+      "NO_STRATEGY_EFFORT_ERROR": "For this sample row and date, there is no effort on sample row (no value defined)",
+      "ZERO_STRATEGY_EFFORT_ERROR": "For this sample row and date, effort on sample row is 0"
     }
   },
   "AGGREGATED_LANDING": {
@@ -1135,6 +1137,7 @@
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
+      "SIMPLE_STRATEGIES": "Simple strategies",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)",
@@ -1180,6 +1183,7 @@
         "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy label",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy analytic references",
         "LOAD_STRATEGY_ERROR": "Error while loading stategy",
+        "LOAD_STRATEGIES_ERROR": "Error while loading strategies",
         "SAVE_STRATEGY_ERROR": "Error while saving stategy",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
         "PARAMETERS.WEIGHT_OR_SIZE": "Weight or size is mandatory",

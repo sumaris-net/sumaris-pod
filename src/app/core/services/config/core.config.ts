@@ -220,7 +220,7 @@ export const ConfigOptions = Object.freeze({
     },
     STRATEGY_PARAMETER_WEIGHT_LABELS: <FormFieldDefinition>{
       key: 'sumaris.enumeration.parameter.weight.labels',
-      label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_WEIGHT_LABEL',
+      label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_WEIGHT_LABELS',
       type: 'string',
       defaultValue: ParameterLabelStrategies.WEIGHTS.join(',')
     },

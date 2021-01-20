@@ -13,8 +13,12 @@
         <ion-label class="ion-float-end" translate>LANDING.SAMPLE_ROW_CODE_TITLE</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field
+        <mat-error *ngIf="form.controls.sampleRowCode.hasError('noEffort')">
+          {{form.controls.sampleRowCode.errors['noEffort']}}
+        </mat-error>
+        <mat-autocomplete-field *ngIf="form.controls.sampleRowCode as effortControl"
           formControlName="sampleRowCode"
+          [formControl]="effortControl"
           [placeholder]="('LANDING.SAMPLE_ROW_CODE_TITLE'|translate)"
           [config]="autocompleteFields.sampleRowCode"
           [readonly]="false"
@@ -90,17 +94,18 @@
         <mat-autocomplete-field
           formControlName="taxonName"
           [placeholder]="('LANDING.TARGET_SPECIES'|translate)"
+          [readonly]="true"
           [config]="autocompleteFields.taxonName"
           [tabindex]="tabindex+10+i*3"
           [required]="true">
-          <button matAfter type="button" mat-icon-button
+          <!--<button matAfter type="button" mat-icon-button
                   tabindex="-1"
                   [disabled]="!canFilterTaxonName"
                   [title]="'PLANIFICATION.BTN_FILTER'|translate"
                   (click)="toggleFilteredItems('taxonName')"
                   [color]="enableTaxonNameFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
-          </button>
+          </button> -->
         </mat-autocomplete-field>
       </ion-col>
 
