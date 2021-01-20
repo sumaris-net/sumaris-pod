@@ -12,12 +12,12 @@ import {
 } from '../../core/core.module';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
 import {Landing2ValidatorService} from "../services/validator/landing2.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl, ValidationErrors, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
@@ -36,6 +36,10 @@ import {AppliedStrategy, Strategy, TaxonNameStrategy} from "../../referential/se
 import {StrategyService} from "../../referential/services/strategy.service";
 import {StrategyFilter} from "../../referential/strategy/strategies.table";
 import {Sample} from "../services/model/sample.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {Pmfm} from "../../referential/services/model/pmfm.model";
+import {SharedValidators} from "../../shared/validator/validators";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'app-landing2-form',
@@ -165,6 +169,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected settings: LocalSettingsService,
+    protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef,
     protected strategyService: StrategyService
@@ -290,6 +295,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     this.initTaxonNameHelper();
     this.initAppliedStrategiesHelper();
+    this.initAppliedStrategiesValidator();
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
@@ -337,10 +343,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     value.samples = value.samples.filter(sample => !sample.taxonName);
 
-
-
-
-
     // Make sure to have (at least) one observer
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
@@ -368,7 +370,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     let sample = new Strategy();
     sample.label = this.sampleRowCode;
     sample.name = this.sampleRowCode;
-    // sample.programId = value.program.id;
     sampleRowCode.push(sample);
 
     // Send value for form
@@ -383,7 +384,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     this.fishingAreasFormArray.patchValue(this.appliedStrategies);
 
     this.sampleRowCodeControl.patchValue(sample);
-
   }
 
   addObserver() {
@@ -430,7 +430,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   /* -- protected method -- */
 
-
   protected initObserversHelper() {
     if (isNil(this._showObservers)) return; // skip if not loading yet
     this.observersHelper = new FormArrayHelper<Person>(
@@ -452,7 +451,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
   }
 
-  // appliedStrategies Helper -----------------------------------------------------------------------------------------------
+  // appliedStrategies Helper
   protected initAppliedStrategiesHelper() {
     // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
     this.fishingAreaHelper = new FormArrayHelper<AppliedStrategy>(
@@ -467,6 +466,28 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
   }
 
+  // Add validator on expected effort for this sampleRow (issue #175)
+  protected initAppliedStrategiesValidator() {
+    this.form.get('sampleRowCode').setAsyncValidators(async (control) => {
+      if (!this.appliedStrategies.length) return null;
+
+      const landingDateTime = this.value.dateTime;
+      let appliedPeriods = this.appliedStrategies.length && this.appliedStrategies[0].appliedPeriods || [];
+      let appliedPeriod = appliedPeriods.find(period => landingDateTime.isBetween(period.startDate, period.endDate, 'day'))
+
+      console.debug("[landing-form] Validating effort: ", landingDateTime, appliedPeriod);
+
+      if (!appliedPeriod || isNil(appliedPeriod.acquisitionNumber)) {
+        return <ValidationErrors>{noEffort: this.translate.instant('LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR')};
+      } else if (appliedPeriod.acquisitionNumber == 0) {
+        // TODO must be a warning, not error
+        //return <ValidationErrors>{noEffort: this.translate.instant('LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR')};
+      } else {
+        SharedValidators.clearError(control, 'noEffort');
+      }
+      return null;
+    });
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();
@@ -509,6 +530,74 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
         ...filter,
         entityName : entityName
       });
+    }
+  }
+
+  /**
+   * Override refreshPmfms in order to keep sampleRowCode pmfmStrategy in measurement values even if it doesn't belong to strategy.pmfmStrategies
+   */
+  protected async refreshPmfms(event?: any) {
+    // Skip if missing: program, acquisition (or gear, if required)
+    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
+      return;
+    }
+
+    if (this.debug) console.debug(`${this.logPrefix} refreshPmfms(${event})`);
+
+    this.loading = true;
+    this.loadingPmfms = true;
+
+    this.$pmfms.next(null);
+
+    try {
+      // Load pmfms
+      let pmfms = (await this.programService.loadProgramPmfms(
+        this._program,
+        {
+          acquisitionLevel: this._acquisitionLevel,
+          gearId: this._gearId
+        })) || [];
+      pmfms = pmfms.filter(pmfm => (pmfm.pmfmId && pmfm.type));
+
+      let sampleRowPmfmStrategy = new PmfmStrategy();
+      let sampleRowPmfm = new Pmfm();
+      sampleRowPmfm.id = PmfmIds.SAMPLE_ROW_CODE;
+      sampleRowPmfm.type = 'string';
+      sampleRowPmfmStrategy.pmfm = sampleRowPmfm;
+      sampleRowPmfmStrategy.pmfmId = PmfmIds.SAMPLE_ROW_CODE;
+      sampleRowPmfmStrategy.type = 'string';
+      pmfms.push(sampleRowPmfmStrategy)
+
+      if (!pmfms.length && this.debug) {
+        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
+      }
+      else {
+
+        // If force to optional, create a copy of each pmfms that should be forced
+        if (this._forceOptional) {
+          pmfms = pmfms.map(pmfm => {
+            if (pmfm.required) {
+              pmfm = pmfm.clone(); // Keep original entity
+              pmfm.required = false;
+              return pmfm;
+            }
+            // Return original pmfm, as not need to be overrided
+            return pmfm;
+          });
+        }
+      }
+
+      // Apply
+      await this.setPmfms(pmfms.slice());
+    }
+    catch (err) {
+      console.error(`${this.logPrefix} Error while loading pmfms: ${err && err.message || err}`, err);
+      this.loadingPmfms = false;
+      this.$pmfms.next(null); // Reset pmfms
+    }
+    finally {
+      if (this.enabled) this.loading = false;
+      this.markForCheck();
     }
   }
 }

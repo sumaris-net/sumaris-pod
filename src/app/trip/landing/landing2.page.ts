@@ -31,6 +31,8 @@ import {Strategy} from "../../referential/services/model/strategy.model";
 import {MeasurementModelValues, MeasurementUtils} from "../services/model/measurement.model";
 import {Sample} from "../services/model/sample.model";
 import {PmfmIds} from "../../referential/services/model/model.enum";
+import {Pmfm} from "../../referential/services/model/pmfm.model";
+import {Parameter} from "../../referential/services/model/parameter.model";
 
 @Component({
   selector: 'app-landing2-page',
@@ -132,21 +134,21 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
         // Refresh fishing areas from landing2Form according to selected sampleRowCode
         this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
-        this.landing2Form.pmfms = pmfmStrategies;
+        // FIXME CLT : Obsolete - we use PmfmIds.SAMPLE_ROW_CODE to store specific sampleRowCode PMFM
+        // this.landing2Form.pmfms = pmfmStrategies;
 
         let sampleRowCodeFound = false;
-
-        if (this.landing2Form.value.measurementValues) {
+        let measurementValues = this.landing2Form.value.measurementValues;
+        if (measurementValues) {
           // update mode
-          const measurementValues = Object.entries(this.landing2Form.value.measurementValues).map(([key, value]) => {
+          let measurementValuesAsKeyValues = Object.entries(measurementValues).map(([key, value]) => {
             return {
               key,
               value
             };
           });
           let newMeasurementValues: MeasurementModelValues = {};
-          // FIXME CLT measurement Pmfm Code must be externalized
-          measurementValues.forEach((measurementValue) => {
+          measurementValuesAsKeyValues.forEach((measurementValue) => {
             if (measurementValue.key === PmfmIds.SAMPLE_ROW_CODE.toString()) {
               newMeasurementValues[measurementValue.key] = sampleRowCode.label;
               sampleRowCodeFound = true;
@@ -154,14 +156,26 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
               newMeasurementValues[measurementValue.key] = measurementValue.value;
             }
           });
-          Object.assign(this.landing2Form.value.measurementValues, newMeasurementValues);
-        } else if (sampleRowCode) {
+          // If there is no previous SAMPLE_ROW_CODE PMFM
+          if (!sampleRowCodeFound && sampleRowCode)
+          {
+            newMeasurementValues[PmfmIds.SAMPLE_ROW_CODE.toString()] = sampleRowCode.label;
+            sampleRowCodeFound = true;
+          }
+          Object.assign(measurementValues, newMeasurementValues);
+        }
+        if (sampleRowCode) {
           // Create mode
-          let target = {}
-          target[PmfmIds.SAMPLE_ROW_CODE.toString()] = sampleRowCode.label;
-          this.landing2Form.value.measurementValues = target;
-          sampleRowCodeFound = true;
-          this.landing2Form.value.measurementValues = this.landing2Form.value.measurementValues || target;
+          // let target = {}
+          // target[PmfmIds.SAMPLE_ROW_CODE.toString()] = sampleRowCode.label;
+          // this.landing2Form.value.measurementValues = target;
+          // sampleRowCodeFound = true;
+          // this.landing2Form.value.measurementValues = this.landing2Form.value.measurementValues || target;
+          // let sampleRowPmfmStrategy = new PmfmStrategy();
+          // let sampleRowPmfm = new Pmfm();
+          // sampleRowPmfm.id = PmfmIds.SAMPLE_ROW_CODE;
+          // sampleRowPmfmStrategy.pmfm = sampleRowPmfm;
+          // pmfmStrategies.push(sampleRowPmfmStrategy)
         }
         if (!sampleRowCodeFound) {
           this.landing2Form.appliedStrategies = [];

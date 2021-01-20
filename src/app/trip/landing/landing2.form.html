@@ -13,8 +13,12 @@
         <ion-label class="ion-float-end" translate>LANDING.SAMPLE_ROW_CODE_TITLE</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field
+        <mat-error *ngIf="form.controls.sampleRowCode.hasError('noEffort')">
+          {{form.controls.sampleRowCode.errors['noEffort']}}
+        </mat-error>
+        <mat-autocomplete-field *ngIf="form.controls.sampleRowCode as effortControl"
           formControlName="sampleRowCode"
+          [formControl]="effortControl"
           [placeholder]="('LANDING.SAMPLE_ROW_CODE_TITLE'|translate)"
           [config]="autocompleteFields.sampleRowCode"
           [readonly]="false"

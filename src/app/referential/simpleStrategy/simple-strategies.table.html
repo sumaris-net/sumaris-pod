@@ -133,9 +133,13 @@
       <span translate>PROGRAM.STRATEGY.QUARTER_1_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text *ngIf="effortToString(row.currentData, 1) !== null">
+      <ion-text
+        [color]="getRealizedEffortColor(row.currentData, 1)"
+        *ngIf="effortToString(row.currentData, 1) !== null">
         0 &#47; {{effortToString(row.currentData, 1)}}<br/>
-        <ion-text color="danger">{{effortToString(row.currentData, 1)}}</ion-text>
+        <ion-text [color]="getToDoEffortColor(row.currentData, 1)" >
+          {{effortToString(row.currentData, 1)}}
+        </ion-text>
       </ion-text>
     </mat-cell>
   </ng-container>
@@ -146,9 +150,13 @@
       <span translate>PROGRAM.STRATEGY.QUARTER_2_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text *ngIf="effortToString(row.currentData, 2) !== null">
+      <ion-text
+        [color]="getRealizedEffortColor(row.currentData, 2)"
+        *ngIf="effortToString(row.currentData, 2) !== null">
         0 &#47; {{effortToString(row.currentData, 2)}}<br/>
-        <ion-text color="danger">{{effortToString(row.currentData, 2)}}</ion-text>
+        <ion-text [color]="getToDoEffortColor(row.currentData, 2)" >
+          {{effortToString(row.currentData, 2)}}
+        </ion-text>
       </ion-text>
     </mat-cell>
   </ng-container>
@@ -159,9 +167,13 @@
       <span translate>PROGRAM.STRATEGY.QUARTER_3_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text *ngIf="effortToString(row.currentData, 3) !== null">
+      <ion-text
+        [color]="getRealizedEffortColor(row.currentData, 3)"
+        *ngIf="effortToString(row.currentData, 3) !== null">
         0 &#47; {{effortToString(row.currentData, 3)}}<br/>
-        <ion-text color="danger">{{effortToString(row.currentData, 3)}}</ion-text>
+        <ion-text [color]="getToDoEffortColor(row.currentData, 3)" >
+          {{effortToString(row.currentData, 3)}}
+        </ion-text>
       </ion-text>
     </mat-cell>
   </ng-container>
@@ -172,9 +184,12 @@
       <span translate>PROGRAM.STRATEGY.QUARTER_4_TABLE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text *ngIf="effortToString(row.currentData, 4) !== null">
+      <ion-text [color]="getRealizedEffortColor(row.currentData, 4)"
+        *ngIf="effortToString(row.currentData, 4) !== null">
         0 &#47; {{effortToString(row.currentData, 4)}}<br/>
-        <ion-text color="danger">{{effortToString(row.currentData, 4)}}</ion-text>
+        <ion-text [color]="getToDoEffortColor(row.currentData, 4)" >
+          {{effortToString(row.currentData, 4)}}
+        </ion-text>
       </ion-text>
     </mat-cell>
   </ng-container>

@@ -179,7 +179,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       },
       'Department',
       this.enableStrategyDepartmentFilter),
-      columnSizes: [4, 6],
+      columnSizes: [4, 8],
       mobile: this.settings.mobile
     });
 
@@ -388,17 +388,29 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     }
 
     //Weights
-    const weightPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.WEIGHTS.includes(p.pmfm.parameter.label));
+    const weightPmfmStrategy = (data.pmfmStrategies || []).filter(
+      p => 
+      (p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.WEIGHTS.includes(p.pmfm.parameter.label)) ||
+      (p['parameter'] && ParameterLabelStrategies.WEIGHTS.includes(p['parameter'].label))
+    );
     pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
     this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
 
     //Sizes
-    const sizePmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.LENGTHS.includes(p.pmfm.parameter.label));
+    const sizePmfmStrategy = (data.pmfmStrategies || []).filter(
+      p => 
+      (p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.LENGTHS.includes(p.pmfm.parameter.label)) ||
+      (p['parameter'] && ParameterLabelStrategies.LENGTHS.includes(p['parameter'].label))
+    );
     pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : []);
     this.sizePmfmStrategiesTable.value = sizePmfmStrategy.length > 0 ? sizePmfmStrategy : [new PmfmStrategy()];
 
     //Maturities
-    const maturityPmfmStrategy = (data.pmfmStrategies || []).filter(p => p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.MATURITIES.includes(p.pmfm.parameter.label));
+    const maturityPmfmStrategy = (data.pmfmStrategies || []).filter(
+      p => 
+      (p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.MATURITIES.includes(p.pmfm.parameter.label)) ||
+      (p['parameter'] && ParameterLabelStrategies.MATURITIES.includes(p['parameter'].label))
+    );
     pmfmStrategies.push(maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : []);
     this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : [new PmfmStrategy()];
 

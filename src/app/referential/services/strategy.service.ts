@@ -488,7 +488,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       variables: {
         strategy: json
       },
-      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"},
+      error: {code: ErrorCodes.SAVE_STRATEGY_ERROR, message: "PROGRAM.ERROR.SAVE_STRATEGY_ERROR"},
       // IMAGINE-129 : mise à jour du cache lorsque l'on ajoute une nouvelle strategy
       //TODO : insertIntoMutableCachedQuery ne semble pas mettre à jour le cache. C'est certainement lié au fait la fonctione watchAll n'est pas appelée et qu'il n'y a donc aucune watchQueries d'initialisées
       update: (proxy, {data}) => {
