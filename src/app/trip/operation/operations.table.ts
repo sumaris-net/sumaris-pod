@@ -40,12 +40,10 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   highlightedRow: TableElement<Operation>;
 
   @Input() latLongPattern: LatLongPattern;
-
   @Input() tripId: number;
-
   @Input() showMap: boolean;
-
   @Input() program: string;
+
 
   get sortActive(): string {
     const sortActive = super.sortActive;
@@ -232,8 +230,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       .map(gear => gear.id)
       .reduce( (res, id) => res.includes(id) ? res : res.concat(id), []);
   }
-
-  referentialToString = referentialToString;
 
   /* -- protected methods -- */
 

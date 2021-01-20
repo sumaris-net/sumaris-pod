@@ -52,7 +52,13 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
   @Input() canEdit = true;
   @Input() canDelete = true;
+  @Input() canSelect = true;
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
+
+
+  @Input() set showSelectColumn(show: boolean) {
+    this.setShowColumn('select', show);
+  }
 
   @Output() onSelectPreviousGear = createPromiseEventEmitter();
 

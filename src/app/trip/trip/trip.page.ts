@@ -56,11 +56,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
 
-  @ViewChild('physicalGearsTable', { static: true }) physicalGearTable: PhysicalGearTable;
+  @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
 
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
-  @ViewChild('operationsTable', { static: true }) operationTable: OperationsTable;
+  @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
 
   constructor(
     injector: Injector,
@@ -96,14 +96,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.registerSubscription(
       this.onUpdateView
         .pipe(debounceTime(200))
-        .subscribe(() => this.operationTable.onRefresh.emit()));
+        .subscribe(() => this.operationsTable.onRefresh.emit()));
 
     // Before delete gears, check if used in operations
     this.registerSubscription(
-      this.physicalGearTable.onBeforeDeleteRows
+      this.physicalGearsTable.onBeforeDeleteRows
         .subscribe(async (event) => {
           const rows = (event.detail.rows as TableElement<PhysicalGear>[]);
-          const usedGearIds = await this.operationTable.getUsedPhysicalGearIds();
+          const usedGearIds = await this.operationsTable.getUsedPhysicalGearIds();
           const usedGears = rows.map(row => row.currentData)
             .filter(gear => usedGearIds.includes(gear.id));
 
@@ -119,14 +119,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
     // Allow to show operations tab, when add gear
     this.registerSubscription(
-      this.physicalGearTable.onConfirmEditCreateRow
+      this.physicalGearsTable.onConfirmEditCreateRow
         .subscribe((_) => this.showOperationTable = true));
   }
 
   protected registerForms() {
     this.addChildForms([
       this.tripForm, this.saleForm, this.measurementsForm,
-      this.physicalGearTable
+      this.physicalGearsTable, this.operationsTable
     ]);
   }
 
@@ -143,9 +143,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     if (!this.tripForm.showMetiers) {
       this.data.metiers = []; // make sure to reset data metiers, if any
     }
-    this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
+    this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
-    this.operationTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+    this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
     if (this.isNewData) {
       // If new data, enable gears tab
@@ -230,11 +230,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.measurementsForm.value = data && data.measurements || [];
 
     // Physical gear table
-    this.physicalGearTable.value = data && data.gears || [];
+    this.physicalGearsTable.value = data && data.gears || [];
 
     // Operations table
-    if (!isNew && this.operationTable) {
-      this.operationTable.setTripId(data.id, {emitEvent: false});
+    if (!isNew && this.operationsTable) {
+      this.operationsTable.setTripId(data.id, {emitEvent: false});
     }
   }
 
@@ -332,7 +332,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
         filter,
         allowMultiple: false,
         program: this.programSubject.getValue(),
-        acquisitionLevel: this.physicalGearTable.acquisitionLevel
+        acquisitionLevel: this.physicalGearsTable.acquisitionLevel
       }
     });
 
@@ -394,18 +394,18 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     json.measurements = this.measurementsForm.value;
 
-    if (this.physicalGearTable.dirty) {
-      await this.physicalGearTable.save();
+    if (this.physicalGearsTable.dirty) {
+      await this.physicalGearsTable.save();
     }
-    json.gears = this.physicalGearTable.value;
+    json.gears = this.physicalGearsTable.value;
 
     return json;
   }
 
   protected getFirstInvalidTabIndex(): number {
     const tab0Invalid = this.tripForm.invalid || this.measurementsForm.invalid;
-    const tab1Invalid = !tab0Invalid && this.physicalGearTable.invalid;
-    const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
+    const tab1Invalid = !tab0Invalid && this.physicalGearsTable.invalid;
+    const tab2Invalid = !tab1Invalid && this.operationsTable.invalid;
 
     return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
   }
