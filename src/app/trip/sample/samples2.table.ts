@@ -30,7 +30,7 @@ import {FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, ParameterLabelStrategies} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS} from "../batch/table/batches.table";
 import {FormFieldDefinition} from "../../shared/form/field.model";
@@ -255,6 +255,44 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
     // FIXME CLT WIP
     // filtrer sur les pmfms pour les mettres dans les différents tableaux
+    (pmfms || []).map(pmfmStrategy => {
+      let pmfm = pmfmStrategy.pmfm;
+      if (pmfm)
+      {
+        if (pmfm.parameter && pmfm.parameter.label)
+        {
+          let label = pmfm.parameter.label;
+          if (label === ParameterLabelStrategies.AGE)
+          {
+            dynamicAgeColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else if (label === ParameterLabelStrategies.SEX)
+          {
+            dynamicSexColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else if (ParameterLabelStrategies.WEIGHTS.includes(label))
+          {
+            dynamicWeightColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else if (ParameterLabelStrategies.LENGTHS.includes(label))
+          {
+            dynamicSizeColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else if (ParameterLabelStrategies.MATURITIES.includes(label))
+          {
+            dynamicMaturityColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else
+          {
+            dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+        }
+        else {
+          // Display pmfm without parameter label like fractions ?
+        }
+
+      }
+    });
 
     const pmfmColumnNames = pmfms
       //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
@@ -278,44 +316,16 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
     return RESERVED_START_COLUMNS
       .concat(startColumns)
-      // .concat(pmfmColumnNames)
-      .concat(dynamicPmfmColumnNames)
+      .concat(dynamicWeightColumnNames)
+      .concat(dynamicSizeColumnNames)
+      .concat(dynamicMaturityColumnNames)
+      .concat(dynamicSexColumnNames)
+      .concat(dynamicAgeColumnNames)
+      .concat(dynamicOthersColumnNames)
       .concat(endColumns)
       .concat(RESERVED_END_COLUMNS)
       // Remove columns to hide
       .filter(column => !this.excludesColumns.includes(column));
-
-    //console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
-    //if (!this.loading) this.markForCheck();
-  }
-
-  protected getDisplayColumns2(): string[] {
-    if (!this.dynamicColumns) return this.columns;
-
-    const userColumns = this.getUserColumns();
-
-    const weightIndex = userColumns.findIndex(c => c === 'weight');
-    let individualCountIndex = userColumns.findIndex(c => c === 'individualCount');
-    individualCountIndex = (individualCountIndex !== -1 && weightIndex === -1 ? 0 : individualCountIndex);
-    const inverseOrder = individualCountIndex < weightIndex;
-
-    const dynamicColumnKeys = (this.dynamicColumns || [])
-      .map(c => {
-        return {
-          key: c.key,
-          rankOrder: c.rankOrder + (inverseOrder &&
-            ((c.key.endsWith('_WEIGHT') && 1) || (c.key.endsWith('_INDIVIDUAL_COUNT') && -1)) || 0)
-        };
-      })
-      .sort((c1, c2) => c1.rankOrder - c2.rankOrder)
-      .map(c => c.key);
-
-    return RESERVED_START_COLUMNS
-      .concat(SAMPLE2_RESERVED_START_COLUMNS)
-      .concat(dynamicColumnKeys)
-      .concat(SAMPLE2_RESERVED_END_COLUMNS)
-      .concat(RESERVED_END_COLUMNS)
-      .filter(name => !this.excludesColumns.includes(name));
   }
 
   async getMaxRankOrder(): Promise<number> {
