@@ -87,7 +87,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
       || target.acquisitionLevel;
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
 
-    target.pmfmId = this.pmfm && toNumber(this.pmfm.id, this.pmfmId);
+    target.pmfmId = this.pmfm && this.pmfm.id ?  toNumber(this.pmfm.id, this.pmfmId) : null;
     delete target.pmfm;
 
     if (this.defaultValue) console.log("TODO check serialize PmfmStrategy.defaultValue :", target);

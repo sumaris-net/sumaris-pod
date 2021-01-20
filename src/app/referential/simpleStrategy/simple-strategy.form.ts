@@ -614,7 +614,13 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   requiredPmfmMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 2;
     return (array: FormArray): ValidationErrors | null => {
-      const values = array.value.flat().filter(pmfm => pmfm && pmfm !== false);
+      //Check if sex parameter check
+      const data = array.value;
+      if (data[0] === false) {
+        // Sex = false => remove maturity
+        data[4] = [];
+      }
+      const values = data.flat().filter(pmfm => pmfm && pmfm !== false);
       if (!values || values.length < minLength) {
         return { minLength: { minLength: minLength } };
       }
@@ -625,7 +631,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   requiredPeriodMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (array: FormArray): ValidationErrors | null => {
-      const values = array.value.flat().filter(period => period.acquisitionNumber !== undefined && period.acquisitionNumber !== null && period.acquisitionNumber >= 0);
+      const values = array.value.flat().filter(period => period.acquisitionNumber !== undefined && period.acquisitionNumber !== null && period.acquisitionNumber >= 1);
       if (!values || values.length < minLength) {
         return { minLength: { minLength: minLength } };
       }

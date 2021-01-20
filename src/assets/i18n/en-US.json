@@ -1170,7 +1170,6 @@
         "LOAD_STRATEGY_ERROR": "Error while loading stategy",
         "SAVE_STRATEGY_ERROR": "Error while saving stategy",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
-        "PARAMETERS.MATURITY": "The maturity parameters are inseparable from the age parameter",
         "PARAMETERS.WEIGHT_OR_SIZE": "Weight or size is mandatory",
         "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}"
       },

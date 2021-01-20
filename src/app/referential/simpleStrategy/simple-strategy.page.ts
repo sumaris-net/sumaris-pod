@@ -231,6 +231,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // Add all mandatory fields
     data.pmfmStrategies = pmfmStrategies.map(pmfm => {
       pmfm.acquisitionLevel = 'SAMPLE';
+      pmfm.parameter = null;
       pmfm.acquisitionNumber = 1;
       pmfm.isMandatory = false;
       pmfm.rankOrder = 1;

@@ -1196,7 +1196,6 @@
         "LOAD_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
         "SAVE_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
-        "PARAMETERS.MATURITY": "Les paramètres maturités sont indissociables du paramètre âge",
         "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}"
       },
