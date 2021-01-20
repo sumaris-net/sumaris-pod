@@ -32,10 +32,9 @@ import {Sample} from "../services/model/sample.model";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes, ParameterLabelStrategies} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS} from "../batch/table/batches.table";
-import {FormFieldDefinition} from "../../shared/form/field.model";
-import {BehaviorSubject} from "rxjs";
 import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
+import {BehaviorSubject} from "rxjs";
+import {FormFieldDefinition} from "../../shared/form/field.model";
 
 export interface SampleFilter {
   operationId?: number;
@@ -63,52 +62,6 @@ declare interface ColumnDefinition extends FormFieldDefinition {
 })
 export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   implements OnInit, OnDestroy {
-
-  static BASE_DYNAMIC_COLUMNS = [
-    // Column on total (weight, nb indiv)
-    {
-      type: 'double',
-      key: 'TOTAL_WEIGHT',
-      label: 'TRIP.BATCH.TABLE.TOTAL_WEIGHT',
-      minValue: 0,
-      maxValue: 10000,
-      maximumNumberDecimals: 1
-    },
-    {
-      type: 'double',
-      key: 'TOTAL_INDIVIDUAL_COUNT',
-      label: 'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT',
-      minValue: 0,
-      maxValue: 10000,
-      maximumNumberDecimals: 2
-    },
-
-    // Column on sampling (ratio, nb indiv, weight)
-    {
-      type: 'integer',
-      key: 'SAMPLING_RATIO',
-      label: 'TRIP.BATCH.TABLE.SAMPLING_RATIO',
-      unitLabel: '%',
-      minValue: 0,
-      maxValue: 100,
-      maximumNumberDecimals: 2
-    },
-    {
-      type: 'double',
-      key: 'SAMPLING_WEIGHT',
-      label: 'TRIP.BATCH.TABLE.SAMPLING_WEIGHT',
-      minValue: 0,
-      maxValue: 1000,
-      maximumNumberDecimals: 1
-    },
-    {
-      type: 'string',
-      key: 'SAMPLING_INDIVIDUAL_COUNT',
-      label: 'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT',
-      computed: true
-    }
-  ];
-
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
@@ -300,19 +253,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
     const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
     const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
-
-    // const dynamicPmfmColumnNames = [];
-    // const dynamicPmfmColumnNames = (pmfms || [])
-    //   .map(c => {
-    //     return {
-    //       id: c.id,
-    //       rankOrder: c.rankOrder + (inverseOrder &&
-    //         ((c.key.endsWith('_WEIGHT') && 1) || (c.key.endsWith('_INDIVIDUAL_COUNT') && -1)) || 0)
-    //     };
-    //   })
-    //   .sort((c1, c2) => c1.rankOrder - c2.rankOrder)
-    //   .map(c => c.key);
-    let dynamicPmfmColumnNames = pmfmColumnNames.sort((a, b) => b.localeCompare(a));
 
     return RESERVED_START_COLUMNS
       .concat(startColumns)
