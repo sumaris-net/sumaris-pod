@@ -34,7 +34,7 @@ import {AcquisitionLevelCodes, ParameterLabelStrategies} from "../../referential
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 import {BehaviorSubject} from "rxjs";
-import {FormFieldDefinition} from "../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldType} from "../../shared/form/field.model";
 
 export interface SampleFilter {
   operationId?: number;
@@ -102,6 +102,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   get $dynamicPmfms(): BehaviorSubject<PmfmStrategy[]> {
     return this.measurementsDataService.$pmfms;
   }
+  dynamicColumns: ColumnDefinition[];
 
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
@@ -132,7 +133,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
 
-  dynamicColumns: ColumnDefinition[];
+
 
   constructor(
     injector: Injector
@@ -191,6 +192,22 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     //  });
   }
 
+  /**
+   * Use in ngFor, for trackBy
+   * @param index
+   * @param column
+   */
+  trackColumnDef(index: number, column: ColumnDefinition) {
+    return column.rankOrder;
+  }
+
+  isQvEven(column: ColumnDefinition) {
+    return (column.qvIndex % 2 === 0);
+  }
+
+  isQvOdd(column: ColumnDefinition) {
+    return (column.qvIndex % 2 !== 0);
+  }
 
   protected getDisplayColumns(): string[] {
 
@@ -199,6 +216,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
     const userColumns = this.getUserColumns();
 
+    let dynamicColumnNames = [];
     let dynamicWeightColumnNames = [];
     let dynamicSizeColumnNames = [];
     let dynamicMaturityColumnNames = [];
@@ -254,14 +272,77 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
     const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
 
+    this.dynamicColumns = [];
+    dynamicWeightColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+      key: pmfmColumnName,
+      label: pmfmColumnName,
+      defaultValue: "WEIGHT",
+      type: 'string',
+      computed : false
+    };
+        dynamicColumnNames.push(pmfmColumnName);
+        this.dynamicColumns.push(col);
+    });
+    dynamicSizeColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: pmfmColumnName,
+        defaultValue: "SIZE",
+        type: 'string',
+        computed : false
+      };
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+    dynamicMaturityColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: pmfmColumnName,
+        defaultValue: "MATURITY",
+        type: 'string',
+        computed : false
+      };
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+    dynamicSexColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: pmfmColumnName,
+        defaultValue: "SEX",
+        type: 'string',
+        computed : false
+      };
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+    dynamicAgeColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: pmfmColumnName,
+        defaultValue: "AGE",
+        type: 'string',
+        computed : false
+      };
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+    dynamicOthersColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: pmfmColumnName,
+        defaultValue: "OTHER",
+        type: 'string',
+        computed : false
+      };
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+
     return RESERVED_START_COLUMNS
       .concat(startColumns)
-      .concat(dynamicWeightColumnNames)
-      .concat(dynamicSizeColumnNames)
-      .concat(dynamicMaturityColumnNames)
-      .concat(dynamicSexColumnNames)
-      .concat(dynamicAgeColumnNames)
-      .concat(dynamicOthersColumnNames)
+      .concat(dynamicColumnNames)
       .concat(endColumns)
       .concat(RESERVED_END_COLUMNS)
       // Remove columns to hide
