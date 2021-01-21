@@ -1,10 +1,10 @@
-import {Injectable} from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {Observable} from 'rxjs';
 import {ModalController} from "@ionic/angular";
 import {AuthModal} from "../auth/modal/modal-auth";
 import {AccountService} from "./account.service";
-import {environment} from "../../../environments/environment";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 @Injectable({providedIn: 'root'})
 export class AuthGuardService implements CanActivate {
@@ -12,8 +12,9 @@ export class AuthGuardService implements CanActivate {
   private readonly _debug: boolean;
 
   constructor(private accountService: AccountService,
-    private modalCtrl: ModalController,
-    private router: Router
+              private modalCtrl: ModalController,
+              private router: Router,
+              @Inject(EnvironmentService) protected environment
   ) {
     this._debug = !environment.production;
   }
@@ -54,7 +55,7 @@ export class AuthGuardService implements CanActivate {
 
   login(next?: ActivatedRouteSnapshot): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
-      const modal = await this.modalCtrl.create({ component: AuthModal, componentProps: { next: next } });
+      const modal = await this.modalCtrl.create({component: AuthModal, componentProps: {next: next}});
       modal.onDidDismiss()
         .then(() => {
           if (this.accountService.isLogin()) {

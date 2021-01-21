@@ -1,18 +1,18 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/validator/trip.validator";
 import {ModalController} from "@ionic/angular";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocationLevelIds,} from "../../referential/services/model/model.enum";
 
-import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {Person, personToString, UserProfileLabel} from "../../core/services/model/person.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
-import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {Vessel} from "../../referential/services/model/vessel.model";
 import {Metier} from "../../referential/services/model/taxon.model";
@@ -20,9 +20,11 @@ import {METIER_DEFAULT_FILTER, MetierFilter} from "../../referential/services/me
 import {Trip} from "../services/model/trip.model";
 import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {debounceTime, filter} from "rxjs/operators";
-import {AppForm, FormArrayHelper, isNil, isNotNil, Person, ReferentialRef, StatusIds} from '../../core/core.module';
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {AppForm} from "../../core/form/form.class";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 const TRIP_METIER_DEFAULT_FILTER: MetierFilter = {
   entityName: 'Metier',

@@ -1,8 +1,10 @@
-import {Moment} from "moment/moment";
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../shared/functions";
+import {Moment} from "moment";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {Entity, EntityAsObjectOptions, EntityUtils, IEntity} from "./entity.model";
 import {Department} from "./department.model";
+import {PropertiesMap} from "../../../shared/types";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {isNotNil} from "../../../shared/functions";
 
 
 export class Software<T extends Software<any> = Software<any>> extends Entity<T, EntityAsObjectOptions>
@@ -19,7 +21,7 @@ export class Software<T extends Software<any> = Software<any>> extends Entity<T,
   name: string;
   creationDate: Date | Moment;
   statusId: number;
-  properties: { [key: string]: string };
+  properties: PropertiesMap;
 
   constructor() {
     super();
@@ -48,7 +50,7 @@ export class Software<T extends Software<any> = Software<any>> extends Entity<T,
     if (source.properties && source.properties instanceof Array) {
       this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
     } else {
-      this.properties = source.properties;
+      this.properties = {...source.properties};
     }
   }
 }
@@ -82,8 +84,7 @@ export class Configuration extends Software<Configuration> {
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
-    if (this.partners)
-      target.partners = (this.partners || []).map(p => p.asObject(options));
+    target.partners = this.partners && this.partners.map(p => p.asObject(options)) || undefined;
     return target;
   }
 
@@ -92,8 +93,7 @@ export class Configuration extends Software<Configuration> {
     this.smallLogo = source.smallLogo;
     this.largeLogo = source.largeLogo;
     this.backgroundImages = source.backgroundImages;
-    if (source.partners)
-      this.partners = (source.partners || []).map(Department.fromObject);
+    this.partners = source.partners && source.partners.map(Department.fromObject) || undefined;
   }
 
   getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
@@ -108,7 +108,7 @@ export class Configuration extends Software<Configuration> {
 
   getPropertyAsNumbers(definition: FormFieldDefinition): number[] {
     const value = this.getProperty(definition);
-    if (typeof value == 'string') return value.split(',').map(parseFloat) || undefined;
+    if (typeof value === 'string') return value.split(',').map(parseFloat) || undefined;
     return isNotNil(value) ? [parseFloat(value)] : undefined;
   }
 
@@ -120,4 +120,6 @@ export class Configuration extends Software<Configuration> {
   getProperty<T = string>(definition: FormFieldDefinition): T {
     return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
   }
+
+
 }

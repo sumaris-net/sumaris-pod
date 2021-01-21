@@ -1,9 +1,9 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {Program} from "../model/program.model";
 
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 
 @Injectable({providedIn: 'root'})
@@ -30,14 +30,14 @@ export class ProgramValidatorService implements ValidatorService {
       comments: [data && data.comments || null, Validators.maxLength(2000)],
       taxonGroupType: [data && data.taxonGroupType || null, Validators.compose([Validators.required, SharedValidators.entity])],
       gearClassification: [data && data.gearClassification || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      locationClassifications: this.formBuilder.array([]),
+      locationClassifications: this.getLocationClassificationArray(data && data.locationClassifications),
       locations: this.formBuilder.array([]),
       properties: this.getPropertiesArray(data && data.properties)
     });
   }
 
   getPropertiesArray(array?: any) {
-    const properties = (array && array instanceof Array) ? array : EntityUtils.getObjectAsArray(array || {});
+    const properties = EntityUtils.getMapAsArray(array || {});
     return this.formBuilder.array(
       properties.map(item => this.getPropertyFormGroup(item))
     );
@@ -48,5 +48,16 @@ export class ProgramValidatorService implements ValidatorService {
       key: [data && data.key || null, Validators.compose([Validators.required, Validators.max(50)])],
       value: [data && data.value || null, Validators.compose([Validators.required, Validators.max(100)])]
     });
+  }
+
+  getLocationClassificationArray(array?: any[]) {
+    return this.formBuilder.array(
+      (array || []).map(item => this.getLocationClassificationControl(item)),
+      SharedFormArrayValidators.requiredArrayMinLength(1)
+    );
+  }
+
+  getLocationClassificationControl(locationClassification?: any): FormControl {
+    return this.formBuilder.control(locationClassification || null, [Validators.required, SharedValidators.entity]);
   }
 }

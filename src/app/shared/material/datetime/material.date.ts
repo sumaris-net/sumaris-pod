@@ -4,7 +4,7 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  Input,
+  Input, OnDestroy,
   OnInit,
   Optional,
   QueryList,
@@ -23,20 +23,21 @@ import {
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
 import {SharedValidators} from '../../validator/validators';
-import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
+import {sleep, isNil, isNilOrBlank, toBoolean} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {first} from "rxjs/operators";
+import {filter, first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import {FloatLabelType} from "@angular/material/form-field";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
 import {DateAdapter} from "@angular/material/core";
 import {isFocusableElement} from "../../focusable";
+import {toDateISOString} from "../../dates";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
+const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatDate),
   multi: true
@@ -56,9 +57,10 @@ const noop = () => {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatDate implements OnInit, ControlValueAccessor, InputElement {
+export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
+  private _subscription = new Subscription();
   protected writing = true;
   protected disabling = false;
   protected _tabindex: number;
@@ -105,8 +107,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
 
   @Input() clearable = false;
 
-  @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
-  @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
+  @ViewChild('datePicker') datePicker: MatDatepicker<Moment>;
 
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 
@@ -135,42 +136,54 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time-field>.");
 
+    this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
+
     // Redirect errors from main control, into day sub control
     const $error = new BehaviorSubject<ValidationErrors>(null);
-    this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
     this.dayControl = this.formBuilder.control(null, () => $error.getValue());
 
     // Add custom 'validDate' validator
-    this.formControl.setValidators(this.required ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
+    this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.validDate] : SharedValidators.validDate);
 
     // Get patterns to display date
-    const patterns = this.translate.instant(['COMMON.DATE_PATTERN']);
-    this.updatePattern(patterns);
+    this.updatePattern(this.translate.instant('COMMON.DATE_PATTERN'));
+    this._subscription.add(
+      this.translate.get('COMMON.DATE_PATTERN')
+        .subscribe((pattern) => this.updatePattern(pattern))
+    );
 
-    this.dayControl.valueChanges
-      .subscribe((value) => this.onFormChange(value));
+    this._subscription.add(
+      this.dayControl.valueChanges
+       .subscribe((value) => this.onFormChange(value)));
 
     // Listen status changes outside the component (e.g. when setErrors() is calling on the formControl)
-    this.formControl.statusChanges
-      .subscribe((status) => {
-        if (this.readonly || this.writing || this.disabling) return; // Skip
-        if (status === 'INVALID') {
-          $error.next(this.formControl.errors);
-        }
-        else if (status === 'VALID') {
-          $error.next(null);
-        }
-        this.dayControl.updateValueAndValidity({onlySelf: true, emitEvent: false});
-        this.markForCheck();
-      });
+    this._subscription.add(
+      this.formControl.statusChanges
+        .pipe(filter(() => !this.readonly && !this.writing && !this.disabling)) // Skip
+        .subscribe((status) => {
+          if (status === 'INVALID') {
+            $error.next(this.formControl.errors);
+          }
+          else if (status === 'VALID') {
+            $error.next(null);
+          }
+          this.dayControl.updateValueAndValidity({onlySelf: true, emitEvent: false});
+          this.markForCheck();
+        }));
 
     this.updateTabIndex();
 
     this.writing = false;
   }
 
+  ngOnDestroy() {
+    this._subscription.unsubscribe();
+  }
+
   writeValue(obj: any): void {
     if (this.writing) return;
+
+    // console.debug('[mat-date] writeValue:', obj);
 
     if (isNilOrBlank(obj)) {
       this.writing = true;
@@ -192,9 +205,8 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
 
     this.writing = true;
 
-    //console.log("call writeValue()", this.date, this.formControl);
     // Set form value
-    this.dayControl.patchValue(this._value.clone().startOf('day').format(this.dayPattern), {emitEvent: false});
+    this.dayControl.patchValue(this.dateAdapter.format(this._value.clone().startOf('day'), this.dayPattern), {emitEvent: false});
     this.writing = false;
     this.markForCheck();
   }
@@ -235,10 +247,10 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     day = date && date.clone().startOf('day');
 
     // update day value
-    this.dayControl.setValue(day && day.format(this.dayPattern), {emitEvent: false});
+    this.dayControl.setValue(date && this.dateAdapter.format(day, this.dayPattern), {emitEvent: false});
 
     // Get the model value
-    const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
+    const dateStr = date && this.dateAdapter.format(date, DATE_ISO_PATTERN).replace('+00:00', 'Z');
     this.formControl.patchValue(dateStr, {emitEvent: false});
     this.writing = false;
     this.markForCheck();
@@ -246,22 +258,18 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     this._onChangeCallback(dateStr);
   }
 
-  private updatePattern(patterns: string[]) {
-    this.displayPattern =
-            (this.displayPattern = patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
-    this.dayPattern = (patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+  private updatePattern(pattern: string) {
+    pattern = pattern !== 'COMMON.DATE_PATTERN' ? pattern : 'L';
+    if (this.displayPattern !== pattern) {
+      this.displayPattern = pattern;
+      this.dayPattern = pattern;
+      this.markForCheck();
+    }
   }
 
   private onFormChange(dayValue): void {
     if (this.writing) return; // Skip if call by self
     this.writing = true;
-
-    if (this.dayControl.invalid) {
-      this.formControl.markAsPending();
-      this.formControl.setErrors(Object.assign({}, this.dayControl.errors));
-      this.writing = false;
-      return;
-    }
 
     // Make to remove placeholder chars
     while (dayValue && dayValue.indexOf(this.placeholderChar) !== -1) {
@@ -280,7 +288,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     this._value = date && this.dateAdapter.parse(date.clone(), DATE_ISO_PATTERN);
 
     // Get the model value
-    const dateStr = date && date.isValid() && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
+    const dateStr = date && date.isValid() && this.dateAdapter.format(date, DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
     //console.debug("[mat-date-time] Setting date: ", dateStr);
     this.formControl.patchValue(dateStr, {emitEvent: false});
     //this.formControl.updateValueAndValidity();
@@ -292,7 +300,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
 
 
 
-  public checkIfTouched() {
+  checkIfTouched() {
     if (this.dayControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
@@ -312,7 +320,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
   }
 
   public openDatePicker(event?: UIEvent, datePicker?: MatDatepicker<any>) {
-    datePicker = datePicker || this.datePicker1 || this.datePicker2;
+    datePicker = datePicker || this.datePicker;
     if (datePicker) {
 
       if (event) this.preventEvent(event);

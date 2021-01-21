@@ -6,20 +6,24 @@
              (onClose)="close($event)"
              [backHref]="defaultBackHref"
              [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+  <ion-buttons slot="end">
+    <ion-spinner *ngIf="loading"></ion-spinner>
 
-  <button slot="end" mat-icon-button *ngIf="enabled && !isNewData || debug"
-          [matMenuTriggerFor]="optionsMenu"
-          [title]=" 'COMMON.BTN_OPTIONS'|translate">
-    <mat-icon>more_vert</mat-icon>
-  </button>
+    <ion-button *ngIf="enabled && !isNewData || debug"
+                [matMenuTriggerFor]="optionsMenu"
+                [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
 
 <!-- Type = options menu -->
-<mat-menu #optionsMenu="matMenu" xPosition="after">
+<mat-menu #optionsMenu="matMenu">
 
   <!-- delete -->
-  <button mat-menu-item (click)="delete($event)">
+  <button mat-menu-item
+          [disabled]="isNewData || disabled"
+          (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;
       <span translate>COMMON.BTN_DELETE</span>
@@ -27,7 +31,9 @@
   </button>
 
   <!-- reset -->
-  <button mat-menu-item  (click)="cancel($event)" [disabled]="!dirty">
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
     <ion-label>
       <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
       <span translate>COMMON.BTN_RESET</span>
@@ -41,7 +47,7 @@
     </ion-label>
   </button>
   <button mat-menu-item *ngIf="debug && !isNewData && data?.id > 0"
-          (click)="copyToOffline()">
+          (click)="copyLocally()">
     <ion-label>Save locally (#developer)
     </ion-label>
   </button>
@@ -52,7 +58,10 @@
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
                  dynamicHeight>
 
@@ -65,15 +74,15 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="error ||tripForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="error || tripForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
-
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
+
             <!-- trip -->
             <form-trip #tripForm
                        [showError]="false"
@@ -108,6 +117,8 @@
 
             </form-trip>
           </ion-col>
+
+          <!-- quality data -->
           <ion-col size="12" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data">
               <app-entity-quality-form [editor]="this">
@@ -132,14 +143,14 @@
 
         <!-- error -->
         <ion-item *ngIf="physicalGearsTable.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
         </ion-item>
 
         <app-physicalgears-table #physicalGearsTable
-                              [debug]="debug"
-                              [program]="programSubject|async"
-                              (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
+                                 [program]="programSubject|async"
+                                 [debug]="debug"
+                                 (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
         </app-physicalgears-table>
 
       </div>
@@ -152,15 +163,15 @@
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_OPERATIONS</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="operationsTable.invalid && operationsTable.dirty"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="operationsTable.invalid && operationsTable.dirty"></ion-icon>
       </ng-template>
 
       <app-operations-table #operationsTable
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
                             [program]="programSubject|async"
-                            [sortBy]="mobile ? 'startDateTime': 'endDateTime'"
-                            [sortDirection]="mobile ?'desc': 'asc'">
+                            [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
+                            [defaultSortDirection]="mobile ?'desc': 'asc'">
       </app-operations-table>
     </mat-tab>
   </mat-tab-group>
@@ -168,12 +179,13 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
+                    [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 

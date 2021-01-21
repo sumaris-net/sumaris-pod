@@ -3,8 +3,9 @@
   <ion-menu id="menu" menuId="left" contentId="menu-content">
     <ion-header>
 
-      <mat-toolbar class="ion-padding" @fadeInAnimation *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
-        <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="150px;"/>
+      <mat-toolbar class="ion-padding" @fadeInAnimation *ngIf="!isLogin"
+                   style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
+        <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}" width="150px;"/>
         <span *ngIf="!logo" width="150px;">{{appName}}</span>
       </mat-toolbar>
 
@@ -13,8 +14,8 @@
           <ion-row>
             <ion-col size="4">
               <button type="button" mat-flat-button
-                      class="user-avatar" [class.primary]="!account?.avatar"
-                      [style.background-image]="'url('+(account?.avatar||'./assets/img/person.png')+')'"
+                      class="user-avatar" [class.primary]="!accountAvatar"
+                      [style.background-image]="'url('+(accountAvatar||'./assets/img/person.png')+')'"
                       [routerLink]="['/account']"
                       routerDirection="root"
                       routerLinkActive="ion-color-primary"
@@ -22,22 +23,22 @@
               </button>
             </ion-col>
             <ion-col size="8" class="user-logo">
-              <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="108px;"/>
+              <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}" width="108px;"/>
               <span *ngIf="!logo" width="108px;">{{appName}}</span>
             </ion-col>
           </ion-row>
           <ion-row class="ion-no-padding">
 
-            <button type="button" mat-button
+            <button mat-button type="button"
                     [routerLink]="['/account']"
                     routerDirection="root"
                     routerLinkActive="ion-color-primary"
                     (click)="menuClose()">
               <ion-label color="primary" class="ion-text-wrap ion-text-start">
                 <h3 class="no-margin username">
-                  <b>{{account?.firstName}} {{account?.lastName}}</b>
+                  <b>{{accountName}}</b>
                 </h3>
-                <h4>{{account?.email}}</h4>
+                <h4>{{accountEmail}}</h4>
               </ion-label>
             </button>
 
@@ -85,15 +86,15 @@
                             *ngIf="!loading && !item.path && !item.action">
             <ion-label translate>{{item.title}}</ion-label>
           </ion-item-divider>
+
         </ion-menu-toggle>
       </ion-list>
     </ion-content>
 
-
     <ion-footer class="hidden-xs hidden-sm">
       <ion-toolbar>
 
-        <ion-buttons slot="start" >
+        <ion-buttons slot="start">
           <ion-button mat-icon-button color="accent" (click)="openAboutModal($event)">
 <!--            <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>-->
             <mat-icon slot="icon-only">help_outline</mat-icon>
@@ -105,17 +106,17 @@
         </ion-title>
 
         <ion-buttons slot="end">
-          <ion-button color="accent" (click)="toggleSplitPane($event)"
-                      class="hidden-xs hidden-sm hidden-md"
-                      [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
-            <h2 slot="icon-only">{{splitPaneOpened ? '&#xab;' : '&#xbb;'}}</h2>
-          </ion-button>
+          <button mat-icon-button color="accent" (click)="toggleSplitPane($event)"
+                  class="hidden-xs hidden-sm hidden-md"
+                  [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
+            <mat-icon><span>{{splitPaneOpened ? '&#xab;' : '&#xbb;'}}</span></mat-icon>
+          </button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
+
   </ion-menu>
 
   <ng-content></ng-content>
 
 </ion-split-pane>
-

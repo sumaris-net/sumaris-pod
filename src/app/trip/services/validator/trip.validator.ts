@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {
   SharedFormArrayValidators,
   SharedFormGroupValidators,
@@ -87,8 +87,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     return formConfig;
   }
 
-  getFormGroupOptions(data?: Trip, opts?: O): { [key: string]: any } {
-    return {
+  getFormGroupOptions(data?: Trip, opts?: O): AbstractControlOptions {
+    return <AbstractControlOptions>{
       validator: Validators.compose([
         SharedFormGroupValidators.dateRange('departureDateTime', 'returnDateTime'),
         SharedFormGroupValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
@@ -101,7 +101,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     opts = this.fillDefaultOptions(opts);
 
     form.get('returnDateTime').setValidators(opts.isOnFieldMode ? null : Validators.required);
-    form.get('returnLocation').setValidators(opts.isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity]));
+    form.get('returnLocation').setValidators(opts.isOnFieldMode ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
 
     return form;
   }
@@ -122,7 +122,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     opts.withSale = toBoolean(opts.withSale,
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
 
-    opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
+    opts.withMeasurements = toBoolean(opts.withMeasurements,  !!opts.program);
 
     return opts;
   }

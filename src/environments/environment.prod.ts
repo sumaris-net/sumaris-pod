@@ -12,6 +12,9 @@ export const environment: Environment = Object.freeze({
   apolloFetchPolicy: "cache-first",
   mock: false,
 
+  // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
+  peerMinVersion: '1.6.0',
+
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
 

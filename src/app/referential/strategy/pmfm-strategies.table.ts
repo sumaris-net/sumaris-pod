@@ -5,7 +5,6 @@ import {InMemoryEntitiesService} from "../../shared/services/memory-entity-servi
 import {environment} from "../../../environments/environment";
 import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
-import {filterNumberInput} from "../../shared/inputs";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, isNotNil, KeysEnum, removeDuplicatesFromArray} from "../../shared/functions";
@@ -13,16 +12,13 @@ import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmService} from "../services/pmfm.service";
 import {Pmfm} from "../services/model/pmfm.model";
-import {
-  IReferentialRef,
-  ReferentialRef,
-  referentialToString,
-  ReferentialUtils
-} from "../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
-import {debounceTime, map, startWith, switchMap, filter} from "rxjs/operators";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
+import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
+import {Program} from "../services/model/program.model";
+import {UnitLabel} from "../services/model/model.enum";
 import {ProgramService} from "../services/program.service";
 
 export class PmfmStrategyFilter {
@@ -89,10 +85,7 @@ export const PmfmStrategyFilterKeys: KeysEnum<PmfmStrategyFilter> = {
 @Component({
   selector: 'app-pmfm-strategies-table',
   templateUrl: './pmfm-strategies.table.html',
-  styleUrls: ['./pmfm-strategies.table.scss'],
-  providers: [
-    {provide: PmfmStrategyValidatorService}
-  ],
+  styleUrls: ['./pmfm-strategies.table.scss']
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStrategyFilter> implements OnInit {
@@ -190,7 +183,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       }),
       validatorService,
       <AppTableDataSourceOptions<PmfmStrategy>>{
-        prependNewElements: true,
+        prependNewElements: false,
         suppressErrors: true,
         onRowCreated: (row) => this.onRowCreated(row)
       },
@@ -297,6 +290,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           }
         }),
         columnNames: pmfmColumnNames,
+        displayWith: (pmfm) => getPmfmName(pmfm, {withUnit: true}),
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
@@ -424,7 +418,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             switchMap(row => {
               const control = row.validator && row.validator.get('pmfm');
               if (control) {
-                return control.valueChanges.pipe(startWith(control.value))
+                return control.valueChanges.pipe(startWith(control.value));
               } else {
                 return of(row.currentData.pmfm);
               }
@@ -438,8 +432,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false
     }, true);
 
-    if (this.initializeOneRow)
-    {
+    if (this.initializeOneRow) {
       this.addRow();
     }
 
@@ -463,7 +456,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       target.pmfm = pmfm;
       delete target.pmfmId;
 
-      if (isNotNil(target.defaultValue)) console.log("TODO check reading default value", target.defaultValue);
+      if (isNotNil(target.defaultValue)) {
+        console.debug("[pmfm-strategy-table] TODO check default value is valid: ", target.defaultValue);
+      }
       target.defaultValue = PmfmValueUtils.fromModelValue(target.defaultValue, pmfm);
 
       return target;
@@ -591,7 +586,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$acquisitionLevels.next(res && res.data || undefined)
   }
 
-
   protected async loadPmfms() {
       if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
       {
@@ -651,10 +645,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     console.log("TODO start edit")
   }
 
-  filterNumberInput = filterNumberInput;
-  referentialToString = referentialToString;
-  pmfmValueToString = PmfmValueUtils.valueToString;
-
   protected markForCheck() {
     this.cd.markForCheck();
   }
@@ -665,13 +655,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const program = await this.programService.loadByLabel(this._program);
     if (!program) return; //  Program not found
 
-
     // Emit event
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
   }
 
+  // TODO BLA à revoir: utiliser un Observable $matrixes plutot ?
   displayMatrix(id) {
     if (id) {
       id = id && id.id ? id.id : id;
@@ -681,6 +671,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return "";
   }
 
+  // TODO BLA à revoir:
   displayFraction(id) {
     if (id) {
       id = id && id.id ? id.id : id;
@@ -690,6 +681,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return "";
   }
 
+  // TODO BLA à revoir:
   displayParameter(id) {
     if (id) {
       id = id && id.id ? id.id : id;
@@ -699,6 +691,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return "";
   }
 
+  // TODO BLA à revoir:
   displayMethod(id) {
     if (id) {
       id = id && id.id ? id.id : id;

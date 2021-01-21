@@ -5,11 +5,15 @@ import {Vessel} from '../../services/model/vessel.model';
 import {AccountService} from "../../../core/services/account.service";
 import {AppEntityEditor} from "../../../core/form/editor.class";
 import {FormGroup, Validators} from "@angular/forms";
-import {DateFormatPipe, EntityServiceLoadOptions} from "../../../shared/shared.module";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
 import {SharedValidators} from "../../../shared/validator/validators";
+import {HistoryPageReference} from "../../../core/services/model/history.model";
+import {DateFormatPipe} from "../../../shared/pipes/date-format.pipe";
+import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {isNotNil} from "../../../shared/functions";
 
 @Component({
   selector: 'app-vessel-page',
@@ -51,17 +55,19 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     private dateAdapter: DateFormatPipe
   ) {
     super(injector, Vessel, vesselService);
+    this.defaultBackHref = '/referential/vessels';
   }
 
   ngOnInit() {
     // Make sure template has a form
-    if (!this.form) throw "[VesselPage] no form for value setting";
+    if (!this.form) throw new Error("No form for value setting");
     this.form.disable();
 
     super.ngOnInit();
   }
 
-  ngAfterViewInit(): void {
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     this.registerSubscription(
       this.onUpdateView.subscribe(() => {
@@ -115,6 +121,14 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     return await this.translate.get('VESSEL.EDIT.TITLE', data.features).toPromise();
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      icon: 'boat',
+      subtitle: 'MENU.VESSELS'
+    };
+  }
+
   async cancel(): Promise<void> {
     await this.reloadWithConfirmation();
   }
@@ -147,11 +161,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
 
     this.form.setValue({...json, ...{features: { ...json.features, id: null, startDate: null, endDate: null}}});
 
-    this.form.get("features.startDate").setValidators(Validators.compose([
+    this.form.get("features.startDate").setValidators([
       Validators.required,
       SharedValidators.dateIsAfter(this.previousVessel.features.startDate,
         this.dateAdapter.format(this.previousVessel.features.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
-    ]));
+    ]);
     this.form.enable();
 
     this.form.get("registration").disable();
@@ -164,8 +178,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.previousVessel = undefined;
     this.form.enable();
 
-    // disable registration start date
-    this.form.get("registration.startDate").disable();
+    // disable registration start date, if already exists (must not change it)
+    const registrationStartDate = this.form.get("registration.startDate").value;
+    if (isNotNil(registrationStartDate)) {
+      this.form.get("registration.startDate").disable();
+    }
 
     // disable features controls
     this.form.get("features").disable();
@@ -193,11 +210,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
       }
     });
 
-    this.form.get("registration.startDate").setValidators(Validators.compose([
+    this.form.get("registration.startDate").setValidators([
       Validators.required,
       SharedValidators.dateIsAfter(this.previousVessel.registration.startDate,
         this.dateAdapter.format(this.previousVessel.registration.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
-    ]));
+    ]);
     this.form.enable();
 
     this.form.get("features").disable();

@@ -6,7 +6,7 @@ import {PhysicalGear} from "../services/model/trip.model";
 import {isNotNil, toBoolean} from "../../shared/functions";
 import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {EntitiesService} from "../../shared/services/entity-service.class";
+import {IEntitiesService} from "../../shared/services/entity-service.class";
 import {Observable} from "rxjs";
 
 @Component({
@@ -39,7 +39,7 @@ export class SelectPhysicalGearModal implements OnInit {
   constructor(
     protected viewCtrl: ModalController,
     protected cd: ChangeDetectorRef,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE) protected dataService?: EntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE) protected dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
   }
 

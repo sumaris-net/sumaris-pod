@@ -11,22 +11,22 @@ import {ModalController, ToastController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
-import {Account} from '../services/model/account.model';
+import {Account, accountToString} from '../services/model/account.model';
 import {Configuration} from '../services/model/config.model';
 import {Department} from '../services/model/department.model';
-import {HistoryPageReference, LocalSettings} from '../services/model/settings.model';
+import {APP_LOCALES, HistoryPageReference, LocaleConfig, LocalSettings} from '../services/model/settings.model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
-import {sleep, fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {debounceTime, distinctUntilChanged, map, startWith, tap} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, map, startWith} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
-import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {MenuItem, MenuItems} from "../menu/menu.component";
-import {ConfigOptions} from "../services/config/core.config";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {fadeInAnimation, slideUpDownAnimation} from "../../shared/material/material.animations";
+import {isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -53,7 +53,7 @@ export class HomePage implements OnDestroy {
   loading = true;
   waitingNetwork = false;
   showSpinner = true;
-  displayName: String = '';
+  accountName: String = '';
   isLogin: boolean;
   $partners = new BehaviorSubject<Department[]>(null);
   loadingBanner = true;
@@ -63,15 +63,12 @@ export class HomePage implements OnDestroy {
   isWeb: boolean;
   contentStyle: any;
   pageHistory: HistoryPageReference[] = [];
-  appPlatformName: string;
-  appInstallName: string;
-  appInstallUrl: string;
   offline: boolean;
   $filteredButtons = new BehaviorSubject<MenuItem[]>(undefined);
 
   get currentLocaleCode(): string {
     return this.loading ? '' :
-    (this.translate.currentLang || this.translate.defaultLang).substr(0,2);
+    (this.translate.currentLang || this.translate.defaultLang).substr(0, 2);
   }
 
   constructor(
@@ -84,6 +81,8 @@ export class HomePage implements OnDestroy {
     private cd: ChangeDetectorRef,
     public network: NetworkService,
     public settings: LocalSettingsService,
+    @Inject(EnvironmentService) protected environment,
+    @Inject(APP_LOCALES) public locales: LocaleConfig[],
     @Optional() @Inject(APP_HOME_BUTTONS) public buttons: MenuItem[]
   ) {
 
@@ -97,12 +96,17 @@ export class HomePage implements OnDestroy {
   }
 
   async login() {
-    const modal = await this.modalCtrl.create({component: AuthModal});
+    const modal = await this.modalCtrl.create({
+      component: AuthModal
+    });
     return modal.present();
   }
 
   async register() {
-    const modal = await this.modalCtrl.create({component: RegisterModal});
+    const modal = await this.modalCtrl.create({
+      component: RegisterModal,
+      backdropDismiss: false
+    });
     return modal.present();
   }
 
@@ -126,15 +130,6 @@ export class HomePage implements OnDestroy {
     return page && page.path;
   }
 
-  downloadApp(event: UIEvent) {
-    event.preventDefault();
-
-    if (this.appInstallUrl) {
-      console.info(`[home] Opening App download link: ${this.appInstallUrl}`);
-      this.platform.open(this.appInstallUrl, '_system', 'location=yes');
-      return false;
-    }
-  }
 
   tryOnline() {
     this.waitingNetwork = true;
@@ -208,7 +203,7 @@ export class HomePage implements OnDestroy {
     console.debug("[home] Configuration loaded:", config);
     this._config = config;
 
-    this.appName = config.label || environment.defaultAppName || 'SUMARiS';
+    this.appName = config.label || this.environment.defaultAppName || 'SUMARiS';
     this.logo = config.largeLogo || config.smallLogo || undefined;
     this.description = config.name;
     this.isWeb = this.platform.isWebOrDesktop();
@@ -228,13 +223,13 @@ export class HomePage implements OnDestroy {
       // Background image found: select one radomly
       if (backgroundImages.length) {
         const bgImage = getRandomImage(backgroundImages);
-        this.contentStyle = {'background-image': `url(${bgImage})`};
+        this.contentStyle = bgImage && {'background-image': `url(${bgImage})`} || {};
       }
 
       // Use background color
       else {
         const primaryColor = config.properties && config.properties['sumaris.color.primary'] || 'var(--ion-color-primary)';
-        this.contentStyle = {'background-color': primaryColor};
+        this.contentStyle = primaryColor && {'background-color': primaryColor} || {};
       }
     }
 
@@ -244,13 +239,10 @@ export class HomePage implements OnDestroy {
     // If first load, hide the loading indicator
     if (this.loading) {
       setTimeout(() => {
-        this.computeInstallAppUrl(config);
-
         this.loading = false;
         this.markForCheck();
       }, 500); // Add a delay, for animation
     }
-
   }
 
   protected onSettingsChanged(settings: LocalSettings) {
@@ -263,18 +255,17 @@ export class HomePage implements OnDestroy {
   }
 
   protected onLogin(account: Account) {
+    if (!account) return; // Skip
     //console.debug('[home] Logged account: ', account);
     this.isLogin = true;
-    this.displayName = account &&
-      ((account.firstName && (account.firstName + " ") || "") +
-        (account.lastName || "")) || "";
+    this.accountName = accountToString(account);
     this.refreshButtons();
     this.markForCheck();
   }
 
   protected onLogout() {
     this.isLogin = false;
-    this.displayName = "";
+    this.accountName = "";
     this.pageHistory = [];
     this.refreshButtons();
     this.markForCheck();
@@ -299,38 +290,6 @@ export class HomePage implements OnDestroy {
       });
 
     this.$filteredButtons.next(filteredButtons);
-  }
-
-
-  protected async computeInstallAppUrl(config: Configuration) {
-    if (this.appInstallUrl) return; // Already computed: skip
-
-    await this.network.ready();
-
-    // If mobile web: show "download app" button
-    if (this.platform.is('mobileweb')) {
-
-      // Android
-      if (this.platform.is('android')) {
-
-        setTimeout(() => {
-          this.appPlatformName = 'Android';
-          const appInstallUrl = config.properties[ConfigOptions.ANDROID_INSTALL_URL.key];
-          if (isNotNilOrBlank(appInstallUrl)) {
-            this.appInstallUrl = appInstallUrl;
-            this.appInstallName = this.appName;
-          }
-          else {
-            this.appInstallName = environment.defaultAppName || 'SUMARiS';
-            this.appInstallUrl =  environment.defaultAndroidInstallUrl || null;
-          }
-          this.markForCheck();
-        }, 1000); // Add a delay, for animation
-      }
-
-      // TODO: other mobile platforms (iOS, etc.)
-      // else if (...)
-    }
   }
 
   protected markForCheck() {

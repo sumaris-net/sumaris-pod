@@ -11,7 +11,7 @@ import {TranslateService} from "@ngx-translate/core";
   selector: 'app-packet-sale-modal',
   templateUrl: './packet-sale.modal.html'
 })
-export class PacketSaleModal implements OnInit, OnDestroy, AfterViewInit {
+export class PacketSaleModal implements OnInit, OnDestroy {
 
   loading = false;
   subscription = new Subscription();
@@ -43,16 +43,9 @@ export class PacketSaleModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-  }
-
-  ngAfterViewInit(): void {
-
-    setTimeout(() => {
-      this.enable();
-      this.packetSaleForm.setValue(Packet.fromObject(this.packet));
-      this.updateTitle();
-    });
-
+    this.enable();
+    this.packetSaleForm.setValue(Packet.fromObject(this.packet));
+    this.updateTitle();
   }
 
   protected async updateTitle() {

@@ -23,6 +23,7 @@ export class RegisterModal {
   }
 
   async doSubmit(event?: any) {
+    if (this.form.form.disabled || this.sending) return; // Skip
     if (!this.form.valid || !this.form.isEnd()) {
       this.form.markAsTouched();
       return;
@@ -42,9 +43,9 @@ export class RegisterModal {
     }
     catch (err) {
       this.form.error = err && err.message || err;
+      this.form.enable();
     }
     finally {
-      this.form.enable();
       this.sending = false;
     }
   }

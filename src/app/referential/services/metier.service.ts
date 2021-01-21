@@ -1,21 +1,22 @@
-import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
-import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, environment} from "../../core/core.module";
+import {Inject, Injectable} from "@angular/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {FetchPolicy} from "apollo-client";
-import {FilterFn, SuggestService} from "../../shared/services/entity-service.class";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {FilterFn, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Metier} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Moment} from "moment";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
+import {isNil, isNotNil} from "../../shared/functions";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 export class MetierFilter extends ReferentialRefFilter {
 
@@ -31,7 +32,7 @@ export class MetierFilter extends ReferentialRefFilter {
     // Filter by status
     const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]) || undefined;
     if (statusIds) {
-      filterFns.push((entity) => !!statusIds.find(v => entity.statusId === v));
+      filterFns.push((entity) => statusIds.includes(entity.statusId));
     }
 
     const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || f.searchAttributes, f.searchText);
@@ -44,7 +45,7 @@ export class MetierFilter extends ReferentialRefFilter {
 
   constructor() {
     super();
-    this.entityName = ''
+    this.entityName = '';
   }
 
   programLabel?: string;
@@ -83,9 +84,9 @@ export class MetierService extends BaseEntityService
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // -- For DEV only
     this._debug = !environment.production;

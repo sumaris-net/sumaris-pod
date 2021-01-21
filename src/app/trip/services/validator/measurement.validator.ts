@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, FormBuilder, FormGroup, ValidatorFn} from "@angular/forms";
+import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, ValidatorFn} from "@angular/forms";
 
 import {toBoolean} from '../../../shared/functions';
 import {ProgramService} from "../../../referential/services/program.service";
@@ -62,10 +62,8 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     }, {});
   }
 
-  getFormGroupOptions(data?: T[], opts?: O): {
-    [key: string]: any;
-  } {
-    return {};
+  getFormGroupOptions(data?: T[], opts?: O): AbstractControlOptions | null {
+    return null;
   }
 
   updateFormGroup(form: FormGroup, opts?: O) {
@@ -96,10 +94,6 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     controlNamesToRemove
       .filter(controlName => !opts.protectedAttributes || !opts.protectedAttributes.includes(controlName)) // Keep protected columns
       .forEach(controlName => form.removeControl(controlName));
-  }
-
-  getPmfmValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[], opts?: O): ValidatorFn {
-    return PmfmValidators.create(pmfm, validatorFns, opts);
   }
 
   /* -- -- */

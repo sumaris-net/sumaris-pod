@@ -28,8 +28,7 @@
   }
 
   mat-header-cell.hidden,
-  mat-cell.hidden
-  {
+  mat-cell.hidden {
     visibility: hidden;
     display: none;
   }
@@ -38,7 +37,14 @@
   .mat-row {
     .mat-column-quality {
       max-width: 40px;
-      padding-left: 0px;
+      padding-left: 0;
+
+      mat-icon,
+      ion-icon {
+        font-size: 1.2em;
+        height: 1.2em;
+        width: 1.2em;
+      }
     }
   }
 }

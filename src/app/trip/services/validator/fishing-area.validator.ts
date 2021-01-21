@@ -4,7 +4,7 @@ import {
   DataEntityValidatorService
 } from "../../../data/services/validator/data-entity.validator";
 import {FishingArea} from "../model/fishing-area.model";
-import {FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {toBoolean} from "../../../shared/functions";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -33,14 +33,14 @@ export class FishingAreaValidatorService<O extends FishingAreaValidatorOptions =
     });
   }
 
-  getFormGroupOptions(data?: FishingArea, opts?: FishingAreaValidatorOptions): { [p: string]: any } {
-    return {
+  getFormGroupOptions(data?: FishingArea, opts?: FishingAreaValidatorOptions): AbstractControlOptions | null{
+    return <AbstractControlOptions>{
       validator: [
         SharedFormGroupValidators.requiredIf('location', 'distanceToCoastGradient'),
         SharedFormGroupValidators.requiredIf('location', 'depthGradient'),
         SharedFormGroupValidators.requiredIf('location', 'nearbySpecificArea')
       ]
-    }
+    };
   }
 
   updateFormGroup(formGroup: FormGroup, opts?: FishingAreaValidatorOptions) {

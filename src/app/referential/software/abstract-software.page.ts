@@ -3,17 +3,18 @@ import {AbstractControl, FormArray, FormGroup} from "@angular/forms";
 import {EntityUtils} from '../../core/services/model/entity.model';
 import {Software} from '../../core/services/model/config.model';
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {AppEntityEditor, isNil, isNotNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialForm} from "../form/referential.form";
 import {SoftwareService} from "../services/software.service";
 import {SoftwareValidatorService} from "../services/validator/software.validator";
-import {AppEditorOptions} from "../../core/form/editor.class";
-import {ConfigOptions} from "../../core/services/config/core.config";
+import {AppEditorOptions, AppEntityEditor} from "../../core/form/editor.class";
+import {CORE_CONFIG_OPTIONS} from "../../core/services/config/core.config";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {ObjectMapEntry} from "../../shared/types";
+import {isNil} from "../../shared/functions";
 
 @Directive()
 export abstract class AbstractSoftwarePage<T extends Software<T>, S extends SoftwareService<T>>
@@ -28,7 +29,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
   propertyDefinitions: FormFieldDefinition[];
   propertyDefinitionsByKey: FormFieldDefinitionMap = {};
   propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
-  propertiesFormHelper: FormArrayHelper<FormFieldValue>;
+  propertiesFormHelper: FormArrayHelper<ObjectMapEntry>;
 
   form: FormGroup;
 
@@ -44,7 +45,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
     dataType: new() => T,
     dataService: S,
     protected validatorService: SoftwareValidatorService,
-    private configOptions: FormFieldDefinitionMap,
+    configOptions: FormFieldDefinitionMap,
     options?: AppEditorOptions,
     ) {
     super(injector,
@@ -57,8 +58,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
     this.referentialRefService = injector.get(ReferentialRefService);
 
     // Convert map to list of options
-    this.propertyDefinitions = Object.keys({...ConfigOptions, ...configOptions})
-      .map(name => configOptions[name])
+    this.propertyDefinitions = Object.values({...CORE_CONFIG_OPTIONS, ...configOptions})
       .map(o => o.type !== 'entity' ? o : <FormFieldDefinition>{
         ...o,
         autocomplete: {
@@ -71,7 +71,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
     this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
 
     this.form = validatorService.getFormGroup();
-    this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
+    this.propertiesFormHelper = new FormArrayHelper<ObjectMapEntry>(
       this.form.get('properties') as FormArray,
       (value) => validatorService.getPropertyFormGroup(value),
       (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
@@ -148,16 +148,16 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
   }
 
   protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
-    await this.prepareDataPropertiesToFOrm(data);
+    await this.prepareDataPropertiesToForm(data);
     await super.onEntityLoaded(data, options);
   }
 
   protected async onEntitySaved(data: T): Promise<void> {
-    await this.prepareDataPropertiesToFOrm(data);
+    await this.prepareDataPropertiesToForm(data);
     await super.onEntitySaved(data);
   }
 
-  async prepareDataPropertiesToFOrm(data: T | null) {
+  async prepareDataPropertiesToForm(data: T | null) {
 
     return Promise.all(Object.keys(data.properties)
       .map(key => this.propertyDefinitionsByKey[key])
@@ -173,7 +173,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
         else {
           filter.searchAttribute = joinAttribute;
         }
-        // Fetch entity, ad a referential
+        // Fetch entity, as a referential
         return this.referentialRefService.suggest(value, filter)
           .then(matches => {
             data.properties[option.key] = (matches && matches[0] || {id: value,  label: '??'}) as any;
@@ -192,11 +192,10 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
     const json = data.asObject();
 
     // Transform properties map into array
-    json.properties = EntityUtils.getObjectAsArray(data.properties || {});
+    json.properties = EntityUtils.getMapAsArray(data.properties || {});
     this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
 
     this.form.patchValue(json, {emitEvent: false});
-
 
     this.markAsPristine();
   }

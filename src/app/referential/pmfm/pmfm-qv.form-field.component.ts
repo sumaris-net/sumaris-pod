@@ -1,16 +1,17 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
-  forwardRef,
+  forwardRef, Inject,
   Input,
   OnDestroy,
   OnInit,
   Optional,
-  Output,
-  ViewChild
+  Output, QueryList,
+  ViewChild, ViewChildren
 } from '@angular/core';
 import {merge, Observable, of} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
@@ -21,17 +22,28 @@ import {FloatLabelType} from "@angular/material/form-field";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean} from "../../shared/functions";
-import {AppFormUtils, ReferentialRef, referentialToString} from "../../core/core.module";
+import {
+  isEmptyArray,
+  isNotEmptyArray,
+  isNotNil,
+  sort,
+  suggestFromArray,
+  toBoolean,
+  toNumber
+} from "../../shared/functions";
 import {focusInput, InputElement} from "../../shared/inputs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmIds} from "../services/model/model.enum";
 import {Pmfm} from "../services/model/pmfm.model";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {IonButton} from "@ionic/angular";
+import {DOCUMENT} from "@angular/common";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-pmfm-qv-field',
+  styleUrls: ['./pmfm-qv.form-field.component.scss'],
   templateUrl: './pmfm-qv.form-field.component.html',
   providers: [
     {
@@ -42,7 +54,7 @@ import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
+export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, ControlValueAccessor, InputElement {
 
   private _onChangeCallback = (_: any) => { };
   private _onTouchedCallback = () => { };
@@ -56,6 +68,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   mobile = false;
   selectedIndex = -1;
   _tabindex: number;
+  showAllButtons = false;
+  buttonsColCount: number;
 
   get nativeElement(): any {
     return this.matInput && this.matInput.nativeElement;
@@ -88,6 +102,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   @Input() sortAttribute: string;
 
+  @Input() maxVisibleButtons: number;
+
   @Input() set tabindex(value: number) {
     this._tabindex = value;
     this.markForCheck();
@@ -102,17 +118,24 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   @Output('keyup.enter')
-  onPressEnter: EventEmitter<any> = new EventEmitter<any>();
+  onPressEnter = new EventEmitter<any>();
 
   @Output()
-  onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  onBlur = new EventEmitter<FocusEvent>();
 
   @ViewChild('matInput') matInput: ElementRef;
+
+  @ViewChild('suffix', {static: false}) suffixDiv: ElementRef;
+
+  @ViewChildren('injectMatSuffix') suffixInjections: QueryList<ElementRef>;
+
+  @ViewChildren('button') buttons: QueryList<IonButton>;
 
   constructor(
     private platform: PlatformService,
     private settings: LocalSettingsService,
     private cd: ChangeDetectorRef,
+    @Inject(DOCUMENT) private document: HTMLDocument,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
     this.mobile = platform.mobile;
@@ -177,21 +200,20 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       }
     }
 
-
     // If button, listen enable/disable changes (hack using statusChanges)
     if (this.style === 'button') {
+
+      this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 10);
+      if (this._qualitativeValues.length < this.maxVisibleButtons) {
+        this.maxVisibleButtons = 999; // Not need to limit
+      }
+      this.buttonsColCount = Math.min(Math.min(this.maxVisibleButtons, this._qualitativeValues.length), 10);
 
       this.formControl.statusChanges
         .pipe(
           takeUntil(this._onDestroy)
         )
-        .subscribe(() => {
-          /*if (this.disabled !== this.formControl.disabled) {
-            this.disabled = !this.disabled;
-            this.markForCheck();
-          }*/
-          this.markForCheck();
-        });
+        .subscribe(() => this.markForCheck());
     }
   }
 
@@ -199,11 +221,25 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this._onDestroy.emit();
   }
 
+  ngAfterViewInit() {
+    if (this.suffixDiv) {
+      // Inject suffix elements, into the first injection point found
+      const suffixInjectionPoint = this.suffixInjections.first;
+      if (suffixInjectionPoint) {
+        suffixInjectionPoint.nativeElement.append(this.suffixDiv.nativeElement);
+
+        // Show the suffix div
+        this.suffixDiv.nativeElement.classList.remove('cdk-visually-hidden');
+      }
+
+    }
+  }
+
   get value(): any {
     return this.formControl.value;
   }
 
-  writeValue(obj: any): void {
+  writeValue(obj: any, event?: UIEvent): void {
     if (obj !== this.formControl.value) {
       this.formControl.patchValue(obj, {emitEvent: false});
       this._onChangeCallback(obj);
@@ -215,6 +251,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this.selectedIndex = index;
         this.markForCheck();
       }
+      if (event) this.onPressEnter.emit(event);
     }
   }
 

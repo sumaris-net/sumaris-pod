@@ -1,26 +1,27 @@
-import {Directive, Injector, OnInit} from '@angular/core';
+import {Directive, Injector, OnInit, ViewChild} from '@angular/core';
 
-import {ReferentialRef} from '../../core/core.module';
 import {BehaviorSubject, Subject} from 'rxjs';
-import {isNil, isNotNil, isNotNilOrBlank} from '../../shared/functions';
-import {distinctUntilChanged, filter, switchMap} from "rxjs/operators";
+import {changeCaseToUnderscore, isNil, isNotNil, isNotNilOrBlank, toNumber} from '../../shared/functions';
+import {distinctUntilChanged, filter, switchMap, tap} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
 import {ProgramService} from "../../referential/services/program.service";
-import {EntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {IEntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor, AppEditorOptions} from "../../core/form/editor.class";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
 import {
   MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/autocomplete/material.autocomplete";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {IonContent} from "@ionic/angular";
 
 
 @Directive()
 export abstract class AppRootDataEditor<
     T extends RootDataEntity<T>,
-    S extends EntityService<T> = EntityService<T>
+    S extends IEntityService<T> = IEntityService<T>
   >
   extends AppEntityEditor<T, S>
   implements OnInit {
@@ -31,7 +32,7 @@ export abstract class AppRootDataEditor<
   autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
   programSubject = new BehaviorSubject<string>(null);
-  onProgramChanged = new Subject<Program>();
+  onProgramChanged = new BehaviorSubject<Program>(null);
 
   protected constructor(
     injector: Injector,
@@ -65,10 +66,10 @@ export abstract class AppRootDataEditor<
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel))
+          switchMap(programLabel => this.programService.watchByLabel(programLabel)),
+          tap(program => this.onProgramChanged.next(program))
         )
-        .subscribe(program => this.onProgramChanged.next(program))
-    );
+        .subscribe());
   }
 
   async load(id?: number, options?: EntityServiceLoadOptions) {
@@ -93,6 +94,33 @@ export abstract class AppRootDataEditor<
     this.markForCheck();
   }
 
+  setError(error: any) {
+
+    if (error) {
+      // Create a details message, from errors in forms (e.g. returned by control())
+      const formErrors = error && error.details && error.details.errors;
+      if (formErrors) {
+        const messages = Object.keys(formErrors)
+          .map(field => {
+            const fieldErrors = formErrors[field];
+            const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
+            const fieldName = this.translate.instant(fieldI18nKey);
+            const errorMsg = Object.keys(fieldErrors).map(errorKey => {
+              const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
+              return this.translate.instant(key, fieldErrors[key]);
+            }).join(', ');
+            return fieldName + ": " + errorMsg;
+          }).filter(isNotNil);
+        if (messages.length) {
+          error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
+        }
+      }
+
+    }
+
+    super.setError(error);
+  }
+
   /* -- protected methods -- */
 
   protected registerAutocompleteField<T = any, F = any>(fieldName: string,
@@ -104,30 +132,28 @@ export abstract class AppRootDataEditor<
     return isNil(data.validationDate) && this.programService.canUserWrite(data);
   }
 
+  /**
+   * Listen program changes (only if new data)
+   * @protected
+   */
   protected startListenProgramChanges() {
-
-    // If new entity
-    if (this.isNewData) {
-
-      // Listen program changes (only if new data)
-      this.registerSubscription(this.form.controls['program'].valueChanges
+    this.registerSubscription(
+      this.form.controls.program.valueChanges
         .subscribe(program => {
           if (ReferentialUtils.isNotEmpty(program)) {
             console.debug("[root-data-editor] Propagate program change: " + program.label);
             this.programSubject.next(program.label);
           }
-        })
-      );
-    }
+        }));
   }
 
   /**
    * Override default function, to add the entity program as subtitle)
    * @param page
    */
-  protected addToPageHistory(page: HistoryPageReference) {
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
     page.subtitle = page.subtitle || this.data.program.label;
-    super.addToPageHistory(page);
+    return super.addToPageHistory(page, opts);
   }
 
   protected getParentPageUrl(withQueryParams?: boolean) {
@@ -142,13 +168,13 @@ export abstract class AppRootDataEditor<
   }
 
   protected computePageUrl(id: number|'new') {
-    let parentUrl = this.getParentPageUrl();
+    const parentUrl = this.getParentPageUrl();
     return `${parentUrl}/${id}`;
   }
 
   protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
     const pageUrl = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
-    return await this.router.navigateByUrl(pageUrl, {
+    return await this.router.navigate(pageUrl.split('/') as any[], {
       replaceUrl: true,
       queryParams: this.queryParams
     });
@@ -163,4 +189,5 @@ export abstract class AppRootDataEditor<
 
     return res;
   }
+
 }

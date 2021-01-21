@@ -7,23 +7,14 @@ import {
   ValidationErrors,
   ValidatorFn
 } from "@angular/forms";
-import {
-  sleep,
-  filterNumberInput,
-  isNil,
-  nullIfUndefined,
-  selectInputContent,
-  toBoolean,
-  toDateISOString
-} from "../../shared/shared.module";
 import {isMoment} from "moment";
-import {Entity, ObjectMap} from "../services/model/entity.model";
+import {Entity} from "../services/model/entity.model";
 import {timer} from "rxjs";
-import {filter, first, tap} from "rxjs/operators";
+import {filter, first} from "rxjs/operators";
 import {SharedFormArrayValidators} from "../../shared/validator/validators";
-import {round} from "../../shared/functions";
-
-export {selectInputContent};
+import {isNil, nullIfUndefined, round, sleep, toBoolean} from "../../shared/functions";
+import {filterNumberInput, selectInputContent} from "../../shared/inputs";
+import {toDateISOString} from "../../shared/dates";
 
 export declare type IAppFormFactory = () => IAppForm;
 
@@ -34,8 +25,8 @@ export interface IAppForm  {
   empty?: boolean;
   pending: boolean;
   error: string;
-  //TODO
-  // enabled: boolean;
+  enabled: boolean;
+  disabled: boolean;
 
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
@@ -49,13 +40,17 @@ export interface IAppForm  {
 /**
  * A form that do nothing
  */
-class AppNullForm implements IAppForm {
-  readonly invalid= false;
+export class AppNullForm implements IAppForm {
+  readonly invalid = false;
   readonly valid = false;
   readonly dirty = false;
   readonly empty = true;
   readonly pending = false;
   readonly error = null;
+  readonly enabled = false;
+  get disabled(): boolean {
+    return !this.enabled;
+  }
 
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
@@ -89,7 +84,12 @@ export class AppFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
   }
 
   /* -- delegated methods -- */
-
+  get enabled(): boolean {
+    return this.delegate.enabled;
+  }
+  get disabled(): boolean {
+    return this.delegate.disabled;
+  }
   get error(): string {
     return this.delegate.error;
   }
@@ -166,7 +166,7 @@ export class AppFormUtils {
  */
 export function copyForm2Entity(source: FormGroup, target: any): Object {
   target = target || {};
-  for (let key in source.controls) {
+  for (const key in source.controls) {
     const control = source.controls[key];
     if (control instanceof FormGroup) {
       target[key] = this.copyForm2Entity(control as FormGroup, target[key]);
@@ -195,7 +195,7 @@ export function copyEntity2Form(source: any, target: FormGroup, opts?: { emitEve
  */
 export function getFormValueFromEntity(source: any, form: FormGroup): { [key: string]: any } {
   const value = {};
-  for (let key in form.controls) {
+  for (const key in form.controls) {
     // If sub-group: recursive call
     if (form.controls[key] instanceof FormGroup) {
       value[key] = getFormValueFromEntity(source[key] || {}, form.controls[key] as FormGroup);
@@ -227,7 +227,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
         }
       }
       else if (source[key] === undefined) {
-        console.warn("Invalid value for property '"+key+"'. Unable to set form control. Expected array but found: undefined");
+        console.warn(`Invalid value for property '${key}'. Unable to set form control. Expected array but found: undefined`);
         value[key] = [];
       }
     }
@@ -282,39 +282,62 @@ export function logFormErrors(control: AbstractControl, logPrefix?: string, path
 export interface FormErrors {
   [key: string]: ValidationErrors;
 }
-export function getFormErrors(control: AbstractControl, controlName: string, result?: FormErrors): FormErrors {
+export function getFormErrors(control: AbstractControl, controlName?: string, result?: FormErrors): FormErrors {
   if (control.valid) return undefined;
 
-
   result = result || {};
-  controlName = controlName || 'root';
 
   // Form group
   if (control instanceof FormGroup) {
     // Copy errors
-    result[controlName] = {...control.errors};
+    if (control.errors) {
+      if (controlName) {
+        result[controlName] = {
+          ...control.errors
+        };
+      }
+      else {
+        result = {
+          ...result,
+          ...control.errors
+        };
+      }
+    }
 
     // Loop on children controls
-    for (let key in control.controls) {
-      getFormErrors(control.controls[key], [controlName, key].join('.'), result);
+    for (const key in control.controls) {
+      const child = control.controls[key];
+      if (child && child.enabled) {
+        getFormErrors(child, controlName ? [controlName, key].join('.') :  key, result);
+      }
     }
   }
   // Form array
   else if (control instanceof FormArray) {
     control.controls.forEach((child, index) => {
-      getFormErrors(child, controlName + '#' + index, result);
+      getFormErrors(child, (controlName || '') + '#' + index, result);
     });
   }
   // Other type of control
-  else {
-    result[controlName] = {...control.errors};
+  else if (control.errors) {
+    if (controlName) {
+      result[controlName] = {
+        ...control.errors
+      };
+    }
+    else {
+      result = {
+        ...result,
+        ...control.errors
+      };
+    }
   }
   return result;
 }
 
 export function getControlFromPath(form: FormGroup, path: string): AbstractControl {
   const i = path.indexOf('.');
-  if (i == -1) {
+  if (i === -1) {
     return form.controls[path];
   }
   const key = path.substring(0, i);
@@ -325,12 +348,10 @@ export function getControlFromPath(form: FormGroup, path: string): AbstractContr
 }
 
 
-export function disableControls(form: FormGroup, paths: string[]) {
+export function disableControls(form: FormGroup, paths: string[], opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
   (paths || []).forEach(path => {
     const control = AppFormUtils.getControlFromPath(form, path);
-    if (control) {
-      control.disable();
-    }
+    if (control) control.disable(opts);
   });
 }
 
@@ -433,7 +454,22 @@ export function clearValueInArray(arrayControl: FormArray,
   return true;
 }
 
-export function markAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+export function markAsTouched(control: AbstractControl, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+  if (!control) return;
+  if (control instanceof FormGroup) {
+    markFormGroupAsTouched(control, { ...opts, onlySelf: true}); // recursive call
+  }
+  else if (control instanceof FormArray) {
+    control.markAsTouched({onlySelf: true});
+    (control.controls || []).forEach(c => markControlAsTouched(c, { ...opts, onlySelf: true})); // recursive call
+  }
+  else {
+    control.markAsTouched({onlySelf: true});
+    control.updateValueAndValidity({emitEvent: false, ...opts, onlySelf: true});
+  }
+}
+
+export function markFormGroupAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
   if (!form) return;
   form.markAsTouched(opts);
   Object.keys(form.controls)
@@ -493,31 +529,39 @@ export function markAsUntouched(form: FormGroup, opts?: {onlySelf?: boolean; }) 
  */
 export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?: {
   checkPeriod?: number;
+  timeout?: number;
 }): Promise<any> {
   const period = opts && opts.checkPeriod || 300;
   if (!form.pending) return;
+  let stop = false;
+  if (opts && opts.timeout) {
+    setTimeout(() => {
+      console.warn(`Waiting async validator: timeout reached (after ${opts.timeout}ms)`);
+      stop = true;
+    }, opts.timeout);
+  }
   return timer(period, period)
     .pipe(
       // For DEBUG :
-      tap(() => console.debug("Waiting async validator...", form)),
-      filter(() => !form.pending),
+      //tap(() => console.debug("Waiting async validator...", form)),
+      filter(() => stop || !form.pending),
       first()
     ).toPromise();
 }
 
-export function isControlHasInput(controls: ObjectMap<AbstractControl>, controlName: string): boolean {
+export function isControlHasInput(controls: { [key:string]: AbstractControl}, controlName: string): boolean {
   // true if the control has a value and its 'calculated' control has the value 'false'
   return controls[controlName].value && !toBoolean(controls[controlName + AppFormUtils.calculatedSuffix].value, false);
 }
 
-export function setCalculatedValue(controls: ObjectMap<AbstractControl>, controlName: string, value: number | undefined) {
+export function setCalculatedValue(controls: { [key:string]: AbstractControl}, controlName: string, value: number | undefined) {
   // set value to control
   controls[controlName].setValue(round(value));
   // set 'calculated' control to 'true'
   controls[controlName + AppFormUtils.calculatedSuffix].setValue(true);
 }
 
-export function resetCalculatedValue(controls: ObjectMap<AbstractControl>, controlName: string) {
+export function resetCalculatedValue(controls: { [key:string]: AbstractControl}, controlName: string) {
   if (!AppFormUtils.isControlHasInput(controls, controlName)) {
     // set undefined only if control already calculated
     AppFormUtils.setCalculatedValue(controls, controlName, undefined);

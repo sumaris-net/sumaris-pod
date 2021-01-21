@@ -15,14 +15,14 @@ import {debounceTime, filter, first} from "rxjs/operators";
 import {AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
 import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AppFormUtils, FormArrayHelper, isNil, isNotNil} from "../../../core/core.module";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {isNotNilOrBlank, toBoolean} from "../../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
 import {BatchValidatorService} from "../../services/validator/batch.validator";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {PlatformService} from "../../../core/services/platform.service";
 import {SharedFormGroupValidators} from "../../../shared/validator/validators";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {AppFormUtils, FormArrayHelper} from "../../../core/form/form.utils";
 
 @Component({
   selector: 'app-batch-form',
@@ -234,7 +234,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         value : weightPmfm && data.measurementValues[weightPmfm.pmfmId.toString()],
       };
 
-      // Make sure the weight is fill only in the default weight pmfm
+      // Clean all weight values and control (to keep only the weight form group)
       this.weightPmfms.forEach(p => {
         delete data.measurementValues[p.pmfmId.toString()];
         this.form.removeControl(p.pmfmId.toString());
@@ -437,7 +437,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.$allPmfms.next(pmfms);
 
     // Exclude hidden and weight PMFMs
-    return pmfms.filter(p => !PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label) && !p.hidden);
+    return pmfms.filter(p => !p.isWeight && !p.hidden);
   }
 
   protected async onUpdateControls(form?: FormGroup): Promise<void> {
@@ -481,9 +481,9 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
       // If sampling weight is required, make batch weight required also
       if (this._requiredSampleWeight) {
-        this.weightForm.setValidators(Validators.compose([
+        this.weightForm.setValidators(
           SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
-        ]));
+        );
       }
 
       // If sampling weight is required, make batch weight required also

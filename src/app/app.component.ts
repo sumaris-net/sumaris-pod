@@ -1,16 +1,17 @@
 import {Component, Inject} from '@angular/core';
-import {isNotNil, joinPropertiesPath} from './core/core.module';
 import {ConfigService} from './core/services/config.service';
 import {DOCUMENT} from "@angular/common";
 import {Configuration} from "./core/services/model/config.model";
 import {PlatformService} from "./core/services/platform.service";
 import {throttleTime} from "rxjs/operators";
-import {changeCaseToUnderscore} from "./shared/shared.module";
 import {FormFieldDefinition} from "./shared/form/field.model";
 import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} from "./shared/graph/colors.utils";
 import {AccountService} from "./core/services/account.service";
 import {LocalSettingsService} from "./core/services/local-settings.service";
 import {ReferentialRefService} from "./referential/services/referential-ref.service";
+import {MatIconRegistry} from "@angular/material/icon";
+import {DomSanitizer} from "@angular/platform-browser";
+import {changeCaseToUnderscore, isNotNil, joinPropertiesPath} from "./shared/functions";
 
 @Component({
   selector: 'app-root',
@@ -28,7 +29,9 @@ export class AppComponent {
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
     private configService: ConfigService,
-    private settings: LocalSettingsService
+    private settings: LocalSettingsService,
+    private matIconRegistry: MatIconRegistry,
+    private domSanitizer: DomSanitizer
   ) {
 
     this.start();
@@ -45,7 +48,7 @@ export class AppComponent {
     // Add additional account fields
     this.addAccountFields();
 
-    this.addSettingsFields();
+    this.addCustomSVGIcons();
 
     console.info('[app] Starting [OK]');
   }
@@ -183,49 +186,11 @@ export class AppComponent {
       });
   }
 
-  protected addSettingsFields() {
-
-    console.debug("[app] Add additional settings fields...");
-
-    this.settings.registerAdditionalFields(
-      // Configurable fields, with label and name
-      ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
-        // Map into option definition
-        .map(fieldName => {
-        return {
-          key: `sumaris.field.${fieldName}.attributes`,
-          label: `SETTINGS.FIELDS.${changeCaseToUnderscore(fieldName).toUpperCase()}`,
-          type: 'enum',
-          values: [
-            {key: 'label,name',   value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL_NAME'},
-            {key: 'name',         value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME'},
-            {key: 'name,label',   value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME_LABEL'},
-            {key: 'label',        value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL'}
-          ]
-        } as FormFieldDefinition;
-      }));
-
-
-    this.settings.registerAdditionalField({
-      key: 'sumaris.field.vesselSnapshot.attributes',
-      label: 'SETTINGS.FIELDS.VESSEL.NAME',
-      type: 'enum',
-      values: [
-        {key: 'exteriorMarking,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME'},
-        {key: 'registrationCode,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME'}
-      ]});
-
-
-
-    this.settings.registerAdditionalField({
-      key: 'sumaris.field.pmfmStrategyParameterColumnName.attributes',
-      label: 'SETTINGS.FIELDS.PMFM_STRATEGY.NAME',
-      type: 'enum',
-      values: [
-        {key: 'LONG_COLUMN_TITLE',   value: 'SETTINGS.FIELDS.PMFM_STRATEGY.ATTRIBUTES.LONG_COLUMN_TITLE'},
-        {key: 'SHORT_COLUMN_TITLE',   value: 'SETTINGS.FIELDS.PMFM_STRATEGY.ATTRIBUTES.SHORT_COLUMN_TITLE'}
-      ]});
+  protected addCustomSVGIcons() {
+    this.matIconRegistry.addSvgIcon(
+      "fish",
+      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/fish.svg")
+    );
   }
-
 }
 

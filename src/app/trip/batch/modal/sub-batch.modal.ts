@@ -1,8 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AppFormUtils} from "../../../core/core.module";
-import {ModalController} from "@ionic/angular";
+import {IonContent, ModalController} from "@ionic/angular";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
@@ -11,6 +10,7 @@ import {toBoolean} from "../../../shared/functions";
 import {SubBatchForm} from "../form/sub-batch.form";
 import {PlatformService} from "../../../core/services/platform.service";
 import {SubBatch} from "../../services/model/subbatch.model";
+import {AppFormUtils} from "../../../core/form/form.utils";
 
 @Component({
   selector: 'app-sub-batch-modal',
@@ -26,25 +26,15 @@ export class SubBatchModal implements OnInit{
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() acquisitionLevel: string;
-
   @Input() program: string;
-
   @Input() canEdit: boolean;
-
   @Input() disabled: boolean;
-
   @Input() isNew: boolean;
-
   @Input() showParent = true;
-
   @Input() showTaxonName = true;
-
   @Input() showIndividualCount = false;
-
   @Input() qvPmfm: PmfmStrategy;
-
   @Input() showSampleBatch = false;
-
   @Input() availableParents: Batch[];
 
   @Input()
@@ -53,6 +43,7 @@ export class SubBatchModal implements OnInit{
   }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
+  @ViewChild(IonContent) content: IonContent;
 
   get dirty(): boolean {
     return this.form.dirty;
@@ -133,10 +124,6 @@ export class SubBatchModal implements OnInit{
 
   /* -- protected methods -- */
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
   protected async computeTitle(data?: SubBatch) {
     data = data || this.data;
     if (this.isNew || !data) {
@@ -146,5 +133,13 @@ export class SubBatchModal implements OnInit{
       const label = BatchUtils.parentToString(data);
       this.$title.next(await this.translate.get('TRIP.SUB_BATCH.EDIT.TITLE', {label}).toPromise());
     }
+  }
+
+  async scrollToTop() {
+    return this.content.scrollToTop();
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

@@ -30,7 +30,7 @@ export class LocalSettingsValidatorService extends AppValidatorService<LocalSett
   }
 
   getPropertiesArray(array?: any) {
-    const properties = (array && array instanceof Array) ? array : EntityUtils.getObjectAsArray(array || {});
+    const properties = EntityUtils.getMapAsArray(array || {});
     return this.formBuilder.array(
       properties.map(item => this.getPropertyFormGroup(item))
     );

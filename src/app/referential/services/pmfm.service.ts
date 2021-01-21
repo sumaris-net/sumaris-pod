@@ -1,25 +1,27 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
-import {
-  EntityService,
-  EntityServiceLoadOptions, isNil, isNotNil,
-  LoadResult,
-  SuggestService,
-  EntitiesService
-} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
+import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {environment} from "../../../environments/environment";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {Pmfm} from "./model/pmfm.model";
 import {Observable, of} from "rxjs";
 import {ReferentialFragments} from "./referential.fragments";
 import {map} from "rxjs/operators";
-import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {
+  EntityServiceLoadOptions,
+  IEntitiesService,
+  IEntityService, LoadResult,
+  SuggestService
+} from "../../shared/services/entity-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 const LoadAllQuery: any = gql`
   query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -80,8 +82,8 @@ export class PmfmFilter extends ReferentialFilter {
 }
 
 @Injectable({providedIn: 'root'})
-export class PmfmService extends BaseEntityService implements EntityService<Pmfm>,
-  EntitiesService<Pmfm, PmfmFilter>,
+export class PmfmService extends BaseEntityService implements IEntityService<Pmfm>,
+  IEntitiesService<Pmfm, PmfmFilter>,
   SuggestService<Pmfm, PmfmFilter>
 {
 
@@ -90,7 +92,7 @@ export class PmfmService extends BaseEntityService implements EntityService<Pmfm
     protected accountService: AccountService,
     protected referentialService: ReferentialService
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {

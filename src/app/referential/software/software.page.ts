@@ -5,6 +5,7 @@ import {SoftwareService} from "../services/software.service";
 import {SoftwareValidatorService} from "../services/validator/software.validator";
 import {APP_CONFIG_OPTIONS} from "../../core/services/config.service";
 import {AbstractSoftwarePage} from "./abstract-software.page";
+import {HistoryPageReference} from "../../core/services/model/history.model";
 
 
 @Component({
@@ -33,5 +34,12 @@ export class SoftwarePage extends AbstractSoftwarePage<Software, SoftwareService
     //this.debug = !environment.production;
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      subtitle: 'REFERENTIAL.ENTITY.SOFTWARE',
+      icon: 'server'
+    };
+  }
 }
 

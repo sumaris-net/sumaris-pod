@@ -13,48 +13,12 @@ import {MatPaginatorI18n} from "./material/paginator/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
-import {
-  EntityService,
-  EntityServiceLoadOptions,
-  LoadResult,
-  SuggestService,
-  EntitiesService
-} from "./services/entity-service.class";
-import {
-  changeCaseToUnderscore,
-  sleep,
-  fromDateISOString,
-  isNil,
-  isNilOrBlank,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  joinPropertiesPath,
-  nullIfUndefined,
-  propertyComparator,
-  sort,
-  startsWithUpperCase,
-  toBoolean,
-  toDateISOString,
-  toFloat,
-  toInt
-} from "./functions";
-import {filterNumberInput, InputElement, selectInputContent} from "./inputs";
-import {
-  fadeInAnimation,
-  fadeInOutAnimation,
-  slideInOutAnimation,
-  slideUpDownAnimation
-} from "./material/material.animations";
-import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
 import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, FullscreenOverlayContainer, Overlay, OverlayContainer} from '@angular/cdk/overlay';
-import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
+import {SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
 import {FileService} from "./file/file.service";
-import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
-import {AppGestureConfig} from "./gesture/gesture-config";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_AUTOCOMPLETE_SCROLL_STRATEGY} from "@angular/material/autocomplete";
@@ -62,80 +26,81 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 import {SharedDirectivesModule} from "./directives/directives.module";
 import {SharedPipesModule} from "./pipes/pipes.module";
 import {AppLoadingSpinner} from "./form/loading-spinner";
-import {SharedGestureModule} from "./gesture/gesture.module";
 import {QuicklinkModule} from "ngx-quicklink";
 import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
+import {MarkdownModule} from "ngx-markdown";
+import {AppHelpModal} from "./help/help.modal";
+import {Environment, EnvironmentService} from "../../environments/environment.class";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
   return () => overlay.scrollStrategies.close();
 }
 
-export {
-  SuggestService, EntitiesService, LoadResult,
-  EntityService, EntityServiceLoadOptions,
-  isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined, sleep,
-  toBoolean, toFloat, toInt,
-  toDateISOString, fromDateISOString, filterNumberInput,
-  startsWithUpperCase,
-  propertyComparator, joinPropertiesPath, sort, selectInputContent,
-  fadeInAnimation, fadeInOutAnimation, slideInOutAnimation, slideUpDownAnimation, changeCaseToUnderscore,
-  DateFormatPipe, DateFromNowPipe,
-  ToolbarComponent,
-  Color, ColorScale, InputElement,
-  Hotkeys,
-};
-
 @NgModule({
   imports: [
     CommonModule,
-    //HammerModule,
     IonicModule,
     ReactiveFormsModule,
+    TranslateModule,
+    ColorPickerModule,
+    TextMaskModule,
+    DragDropModule,
+    QuicklinkModule, // See https://web.dev/route-preloading-in-angular/
+    MarkdownModule,
+
+    // Sub modules
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
-    TranslateModule,
-    TextMaskModule,
-    ColorPickerModule,
-    SharedHotkeysModule,
-    DragDropModule,
-    QuicklinkModule // See https://web.dev/route-preloading-in-angular/
+    SharedHotkeysModule
   ],
   declarations: [
     ToolbarComponent,
     ModalToolbarComponent,
     AppFormField,
-    AppLoadingSpinner
+    AppLoadingSpinner,
+    AppHelpModal
   ],
   exports: [
+    CommonModule,
     IonicModule,
+    TranslateModule,
     ReactiveFormsModule,
-    SharedGestureModule,
+    ColorPickerModule,
+    TextMaskModule,
+    DragDropModule,
+    QuicklinkModule,
+    MarkdownModule,
+
+    // Sub-modules
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
     SharedHotkeysModule,
+
+    // Components
     ToolbarComponent,
     ModalToolbarComponent,
-    TranslateModule,
-    ColorPickerModule,
     AppFormField,
     AppLoadingSpinner,
-    QuicklinkModule
+    AppHelpModal
   ]
 })
 export class SharedModule {
 
-  static forRoot(): ModuleWithProviders<SharedModule> {
+  static forRoot(environment: Environment): ModuleWithProviders<SharedModule> {
     console.debug('[shared] Creating module (root)');
 
     return {
       ngModule: SharedModule,
       providers: [
+
+        { provide: EnvironmentService, useValue: environment },
+
         ProgressBarService,
         AudioProvider,
         FileService,
@@ -170,6 +135,6 @@ export class SharedModule {
           }
         }
       ]
-    }
+    };
   }
 }

@@ -11,7 +11,7 @@ import {
 import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
 import {Person} from "../../../core/services/model/person.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/functions";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 /**
  * Landing entity
@@ -42,6 +42,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
   constructor() {
     super();
+    this.__typename = Landing.TYPENAME;
     this.program = new ReferentialRef();
     this.location = new ReferentialRef();
     this.observers = [];
@@ -75,11 +76,11 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   fromObject(source: any): Landing {
     super.fromObject(source);
     this.dateTime = fromDateISOString(source.dateTime);
-    source.location && this.location.fromObject(source.location);
+    this.location = source.location && ReferentialRef.fromObject(source.location);
     this.rankOrder = source.rankOrder;
     this.rankOrderOnVessel = source.rankOrderOnVessel;
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.measurementValues = source.measurementValues;
+    this.measurementValues = source.measurementValues && {...source.measurementValues};
     if (this.measurementValues === undefined) {
       console.warn("Source as no measurementValues. Should never occur ! ", source);
     }

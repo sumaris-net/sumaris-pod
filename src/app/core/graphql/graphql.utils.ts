@@ -1,13 +1,11 @@
-import {defaultDataIdFromObject} from "apollo-cache-inmemory";
-import {ApolloLink, NextLink, Operation} from "apollo-link";
-import * as uuidv4 from "uuid/v4";
+import {ApolloClient, ApolloLink, NextLink, Operation} from "@apollo/client/core";
+import * as uuidv4Imported from "uuid/v4";
+const uuidv4 = uuidv4Imported;
 import {EventEmitter} from "@angular/core";
 import {debounceTime, filter, switchMap} from "rxjs/operators";
-import {PersistedData, PersistentStorage} from "apollo-cache-persist/types";
 import {BehaviorSubject, Observable} from "rxjs";
-import {ApolloClient} from "apollo-client";
-import {environment} from "../../../environments/environment";
-import {isNotNil} from "../../shared/functions";
+import {getMainDefinition} from "@apollo/client/utilities";
+import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 
 declare let window: any;
 const _global = typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : {});
@@ -25,69 +23,16 @@ AppWebSocket.CLOSING = NativeWebSocket.CLOSING;
 AppWebSocket.CONNECTING = NativeWebSocket.CONNECTING;
 AppWebSocket.OPEN = NativeWebSocket.OPEN;
 
-
-/**
- * Custom ID generation, for the GraphQL cache
- * @param object
- */
-function dataIdFromObjectProduction(object: Object): string {
-  switch (object['__typename']) {
-
-    // For generic VO: add entityName in the cache key (to distinguish by entity)
-    case 'ReferentialVO':
-    case 'MetierVO':
-    case 'PmfmVO':
-    case 'TaxonNameVO':
-    case 'TaxonGroupVO':
-    case 'MeasurementVO':
-      if (object['entityName'] && isNotNil(object['id'])) {
-        return object['entityName'] + 'VO' + ':' + object['id'];
-      }
-      break;
-
-    // Join entity (without attribute 'id')
-    case 'TaxonGroupStrategyVO':
-      return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectProduction(object['taxonGroup'])}`;
-    case 'TaxonNameStrategyVO':
-      return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectProduction(object['taxonName'])}`;
-  }
-  return defaultDataIdFromObject(object);
+export function isMutationOperation(operation: Operation) {
+  const def = getMainDefinition(operation.query);
+  return def.kind === 'OperationDefinition' && def.operation === 'mutation';
 }
 
-function dataIdFromObjectDebug (object: Object): string {
-  switch (object['__typename']) {
-
-    // For generic VO: add entityName in the cache key (to distinguish by entity)
-    case 'MetierVO':
-    case 'PmfmVO':
-    case 'TaxonGroupVO':
-    case 'TaxonNameVO':
-    case 'LocationVO':
-    case 'ReferentialVO':
-    case 'MeasurementVO':
-      if (object['entityName'] && isNotNil(object['id'])) {
-        return object['entityName'] + 'VO' + ':' + object['id'];
-      }
-      console.warn("[dataIdFromObject] Missing attribute 'entityName' or 'id' on an entity. Both are required for graphQL cache. Make sure to fetch it, in GraphQL queries.", object);
-      break;
-
-    // Join entity classes (without 'id' attribute)
-    case 'TaxonGroupStrategyVO':
-      return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectDebug(object['taxonGroup'])}`;
-    case 'TaxonNameStrategyVO':
-      return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectDebug(object['taxonName'])}`;
-
-    // Fallback to default cache key
-    // default:
-    //   const res = defaultDataIdFromObject(object);
-    //   if (object['__typename'] === 'TripVO') console.debug(`[dataIdFromObject] Computing Trip cache id: {${res}}`);
-    //   if (object['__typename'] === 'OperationVO') console.debug(`[dataIdFromObject] Computing Operation cache id: {${res}}`);
-    //   return res;
-  }
-  return defaultDataIdFromObject(object);
+export function isSubscriptionOperation(operation: Operation) {
+  const def = getMainDefinition(operation.query);
+  return def.kind === 'OperationDefinition' && def.operation === 'subscription';
 }
 
-export const dataIdFromObject = environment.production ? dataIdFromObjectProduction : dataIdFromObjectDebug;
 
 export interface TrackedQuery {
   id: string;
@@ -100,7 +45,7 @@ export interface TrackedQuery {
 export const TRACKED_QUERIES_STORAGE_KEY = "apollo-tracker-persist";
 
 export function createTrackerLink(opts: {
-  storage?: PersistentStorage<PersistedData<TrackedQuery[]>>;
+  storage?: PersistentStorage;
   onNetworkStatusChange: Observable<string>;
   debounce?: number;
   debug?: boolean;
@@ -123,7 +68,7 @@ export function createTrackerLink(opts: {
         .map(key => trackedQueriesById[key])
         .filter(value => value !== undefined);
       if (opts.debug) console.debug("[apollo-tracker-link] Saving tracked queries to storage", trackedQueries);
-      return opts.storage.setItem(TRACKED_QUERIES_STORAGE_KEY, trackedQueries);
+      return opts.storage.setItem(TRACKED_QUERIES_STORAGE_KEY, JSON.stringify(trackedQueries));
     });
 
   return new ApolloLink((operation: Operation, forward: NextLink) => {
@@ -175,11 +120,11 @@ export function createTrackerLink(opts: {
 
 export async function restoreTrackedQueries(opts: {
   apolloClient: ApolloClient<any>;
-  storage: PersistentStorage<PersistedData<TrackedQuery[]>>;
+  storage: PersistentStorage;
   debug?: boolean;
 }) {
 
-  const list = (await opts.storage.getItem(TRACKED_QUERIES_STORAGE_KEY)) as TrackedQuery[];
+  const list = JSON.parse(await opts.storage.getItem(TRACKED_QUERIES_STORAGE_KEY)) as TrackedQuery[];
 
   if (!list) return;
   if (opts.debug) console.debug("[apollo-tracker-link] Restoring tracked queries", list);

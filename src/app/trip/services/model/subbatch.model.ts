@@ -2,7 +2,6 @@ import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from ".
 import {BatchGroup} from "./batch-group.model";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 
 export class SubBatch extends Batch<SubBatch> {
@@ -75,7 +74,7 @@ export class SubBatchUtils {
             .map(child => {
               const target = SubBatch.fromBatch(child, group);
               // Copy QV value
-              target.measurementValues = target.measurementValues || {};
+              target.measurementValues = { ...target.measurementValues };
               target.measurementValues[opts.groupQvPmfm.pmfmId] = qvBatch.measurementValues[opts.groupQvPmfm.pmfmId];
 
               return target;

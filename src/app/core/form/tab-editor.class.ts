@@ -1,19 +1,17 @@
 import {Directive, Input, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
-import {Entity} from '../services/model/entity.model';
-import {AlertController, ToastController} from '@ionic/angular';
+import {AlertController, IonContent, ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
-import {Subscription} from 'rxjs';
-import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
+import {Subscription, TeardownLogic} from 'rxjs';
 import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
 import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.utils";
-import {ToastOptions} from "@ionic/core";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
-import {HammerSwipeAction, HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
-import {TeardownLogic} from "rxjs/src/internal/types";
+import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {ToolbarComponent} from "../../shared/toolbar/toolbar";
+import {isNotNil} from "../../shared/functions";
 
 export class AppTabFormOptions {
 
@@ -44,7 +42,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   // From options
   tabCount: number;
   enableSwipe: boolean;
-  tabGroupAnimationDuration = '200ms';
+  tabGroupAnimationDuration: string;
 
   debug = false;
   previousDataId: number;
@@ -62,7 +60,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
   @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
   @ViewChild(FormButtonsBarComponent, { static: true }) formButtonsBar: FormButtonsBarComponent;
-
+  @ViewChild(IonContent, {static: true}) content: IonContent;
 
   get tables(): AppTable<any>[] {
     return this._children && (this._children.filter(c => c instanceof AppTable) as AppTable<any>[]);
@@ -77,11 +75,11 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
    */
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (DO NOT use 'invalid')
-    return (!this._children || !this._children.find(form => !form.valid));
+    return (!this._children || !this._children.filter(c => c.enabled).find(c => !c.valid));
   }
 
   get invalid(): boolean {
-    return this._children && this._children.find(c => c.invalid) && true;
+    return this._children && this._children.filter(c => c.enabled).find(c => c.invalid) && true;
   }
 
   get pending(): boolean {
@@ -142,7 +140,9 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
               this.selectedTabIndex = this.queryParams[this.queryTabIndexParamName];
             }
           }
-          this.tabGroup.realignInkBar();
+
+          // Realign tab, after a delay because the tab can be disabled when component is created
+          setTimeout(() => this.tabGroup.realignInkBar(), 500);
         }));
     }
 
@@ -220,6 +220,21 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
+  markAsLoading(opts?: { emitEvent?: boolean; }){
+    if (!this.loading) {
+      this.loading = true;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
+  markAsLoaded(opts?: { emitEvent?: boolean; }){
+    if (this.loading) {
+      this.loading = false;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
+
   onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string): boolean {
     queryTabIndexParamName = queryTabIndexParamName || this.queryTabIndexParamName;
 
@@ -269,6 +284,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
         const isLast = selectTabIndex >= (this.tabCount - 1);
         selectTabIndex = isLast ? 0 : selectTabIndex + 1;
         break;
+
 
       // Open previous tab
       case "swiperight":
@@ -543,7 +559,11 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     if (this.debug) console.debug("[root-editor-form] Page not valid. Checking where (forms, tables)...");
     this._children.forEach(c => {
       // If form
-      if (c instanceof AppForm) {
+      if (c instanceof AppTabEditor) {
+        c.logFormErrors();
+      }
+      // If form
+      else if (c instanceof AppForm) {
         if (!c.empty && !c.valid) {
           if (c.pending) {
             console.warn( `[root-editor-form] [${c.constructor.name.toLowerCase()}] - pending form state`);

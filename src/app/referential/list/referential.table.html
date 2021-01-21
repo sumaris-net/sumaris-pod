@@ -16,7 +16,7 @@
   </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
@@ -29,7 +29,7 @@
 
 <!-- error -->
 <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-  <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
@@ -124,6 +124,23 @@
     </mat-cell>
   </ng-container>
 
+  <!-- Creation date column -->
+  <ng-container matColumnDef="updateDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>REFERENTIAL.UPDATE_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="mat-form-field-disabled">
+      <ion-text class="ion-text-end" color="dark" *ngIf="row.id !== -1">
+        <small [matTooltip]="'REFERENTIAL.CREATION_DATE'|translate">
+          <ion-icon name="calendar"></ion-icon> {{row.validator.controls.creationDate.value | dateFormat: {time: true} }}
+        </small><br/>
+        <small [matTooltip]="'REFERENTIAL.UPDATE_DATE'|translate">
+          <ion-icon name="time-outline"></ion-icon> {{row.validator.controls.updateDate.value | dateFormat: {time: true} }}
+        </small>
+      </ion-text>
+    </mat-cell>
+  </ng-container>
+
   <!-- Comment column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
@@ -136,7 +153,9 @@
       </mat-form-field>
 
       <ng-template #iconComment>
-        <ion-icon color="medium" name="chatbox" *ngIf="row.validator.controls.comments.value" slot="icon-only" [title]="row.validator.controls.comments.value"></ion-icon>
+        <mat-icon color="primary" class="comment"
+                  *ngIf="row.validator.controls.comments.value"
+                  [title]="row.validator.controls.comments.value">chat_bubble</mat-icon>
       </ng-template>
     </mat-cell>
   </ng-container>

@@ -1,15 +1,16 @@
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {
-  fromDateISOString,
   isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotNil,
   joinPropertiesPath,
-  toDateISOString
 } from "../../../shared/functions";
-import {FormFieldValue} from "../../../shared/form/field.model";
 import {FilterFn} from "../../../shared/services/entity-service.class";
+import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
+import {StoreObject} from "@apollo/client/core";
+import {DataEntity} from "../../../data/services/model/data-entity.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export declare interface Cloneable<T> {
@@ -26,10 +27,10 @@ export interface EntityAsObjectOptions {
   keepLocalId?: boolean; // true by default
 }
 
-export interface IEntity<T, O extends EntityAsObjectOptions = EntityAsObjectOptions>
+export interface IEntity<T, O extends EntityAsObjectOptions = EntityAsObjectOptions, ID = number>
   extends Cloneable<T> {
-  id: number;
-  updateDate: Date | Moment;
+  id: ID;
+  updateDate: Moment;
   __typename: string;
   equals(other: T): boolean;
   clone(): T;
@@ -43,24 +44,20 @@ export declare interface ITreeItemEntity<T extends IEntity<T>> {
   children: T[];
 }
 
-export declare interface PropertiesMap {
-  [key: string]: string;
-}
-export declare interface ObjectMap<O = any> { [key: string]: O; }
 
-export abstract class Entity<T extends IEntity<any, any>, O extends EntityAsObjectOptions = EntityAsObjectOptions>
-  implements IEntity<T, O> {
+export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsObjectOptions = EntityAsObjectOptions, ID = number>
+  implements IEntity<T, O, ID> {
 
-  id: number;
-  updateDate: Date | Moment;
+  id: ID;
+  updateDate: Moment;
   __typename: string;
 
   abstract clone(): T;
 
-  asObject(opts?: O): any {
+  asObject(opts?: O): StoreObject {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
-    if (target.id < 0 && (!opts || opts.keepLocalId === false)) delete target.id;
+    if (opts && opts.keepLocalId === false && target.id < 0) delete target.id;
     target.updateDate = toDateISOString(this.updateDate);
     return target;
   }
@@ -77,6 +74,7 @@ export abstract class Entity<T extends IEntity<any, any>, O extends EntityAsObje
 
 }
 
+// @dynamic
 export abstract class EntityUtils {
   // Check that the object has a NOT nil attribute (ID by default)
   static isNotEmpty<T extends IEntity<any> | any>(obj: any | T, checkedAttribute: keyof T): boolean {
@@ -110,23 +108,14 @@ export abstract class EntityUtils {
     throw new Error(`Invalid form path: '${key}' is not an valid object.`);
   }
 
-  static getMapAsArray(source?: Map<string, string>): { key: string; value?: string; }[] {
-    return Object.getOwnPropertyNames(source || {})
-      .map(key => {
-        return {
-          key,
-          value: source[key]
-        };
-      });
+  static getArrayAsMap<T = any>(source?: ObjectMapEntry<T>[]): ObjectMap<T> {
+    return (source || []).reduce((res, item) => {
+      res[item.key] = item.value;
+      return res;
+    }, {});
   }
 
-  static getArrayAsMap(source?: { key: string; value?: string; }[]): Map<string, string> {
-    const target = new Map<string, string>();
-    (source || []).forEach(item => target.set(item.key, item.value));
-    return target;
-  }
-
-  static getObjectAsArray(source?: { [key: string]: string }): { key: string; value?: string; }[] {
+  static getMapAsArray<T = any>(source?: ObjectMap<T>): ObjectMapEntry<T>[] {
     if (source instanceof Array) return source;
     return Object.getOwnPropertyNames(source || {})
       .map(key => {
@@ -137,14 +126,14 @@ export abstract class EntityUtils {
       });
   }
 
-  static getPropertyArrayAsObject(source?: FormFieldValue[]): { [key: string]: string } {
+  static getPropertyArrayAsObject(source?: PropertiesArray): PropertiesMap {
     return (source || []).reduce((res, item) => {
       res[item.key] = item.value;
       return res;
     }, {});
   }
 
-  static copyIdAndUpdateDate(source: IEntity<any> | undefined, target: IEntity<any>, opts?: { creationDate?: boolean; }) {
+  static copyIdAndUpdateDate(source: IEntity<any> | undefined, target: IEntity<any>) {
     if (!source) return;
 
     // Update (id and updateDate)
@@ -157,6 +146,22 @@ export abstract class EntityUtils {
     }
   }
 
+  static copyControlDate(source: DataEntity<any> | undefined, target: DataEntity<any>) {
+    if (!source) return;
+
+    // Update (id and updateDate)
+    target.controlDate = fromDateISOString(source.controlDate);
+  }
+
+  static copyQualificationDateAndFlag(source: DataEntity<any> | undefined, target: DataEntity<any>) {
+    if (!source) return;
+
+    // Update (id and updateDate)
+    target.qualificationDate = fromDateISOString(source.qualificationDate); // can be null
+    target.qualificationComments = source.qualificationComments; // can be null
+    target.qualityFlagId = source.qualityFlagId; // can be = 0 (default)
+  }
+
   static async fillLocalIds<T extends IEntity<T>>(items: T[], sequenceFactory: (firstEntity: T, incrementSize: number) => Promise<number>) {
     const newItems = (items || []).filter(item => isNil(item.id) || item.id === 0);
     if (isEmptyArray(newItems)) return;
@@ -165,6 +170,16 @@ export abstract class EntityUtils {
     // Take the min (sequence, id), in case the sequence is corrupted
     currentId = items.filter(item => isNotNil(item.id) && item.id < 0).reduce((res, item) => Math.min(res, item.id), currentId);
     newItems.forEach(item => item.id = --currentId);
+  }
+
+  static cleanIdAndUpdateDate<T extends IEntity<T>>(source: T) {
+    if (!source) return; // Skip
+    source.id = null;
+    source.updateDate = null;
+  }
+
+  static cleanIdsAndUpdateDates<T extends IEntity<T>>(items: T[]) {
+    (items || []).forEach(EntityUtils.cleanIdAndUpdateDate);
   }
 
   static sort<T extends IEntity<T> | any>(data: T[], sortBy?: string, sortDirection?: string): T[] {
@@ -270,4 +285,13 @@ export abstract class EntityUtils {
       this.treeFillParent(child); // Loop
     });
   }
+
+  static isLocal(entity: IEntity<any>): boolean {
+    return entity && (isNotNil(entity.id) && entity.id < 0);
+  }
+
+  static isRemote(entity: IEntity<any>): boolean {
+    return entity && !EntityUtils.isLocal(entity);
+  }
 }
+

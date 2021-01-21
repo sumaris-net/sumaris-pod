@@ -1,31 +1,24 @@
 import {Injectable, Injector} from "@angular/core";
-import {
-  BaseEntityService,
-  environment,
-  isNotNil,
-  LoadResult,
-  EntitiesService,
-  toDateISOString,
-  isNil
-} from "../../core/core.module";
 import {AggregatedLanding} from "./model/aggregated-landing.model";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
-import {GraphqlService} from "../../core/services/graphql.service";
-import {Beans} from "../../shared/functions";
-import gql from "graphql-tag";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
+import {Beans, isNil, isNotNil} from "../../shared/functions";
+import {gql} from "@apollo/client/core";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {Observable} from "rxjs";
 import {filter, map, tap} from "rxjs/operators";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
-import {Landing} from "./model/landing.model";
-import {LandingFragments} from "./landing.service";
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {environment} from "../../../environments/environment";
+import {toDateISOString} from "../../shared/dates";
 
 export class AggregatedLandingFilter {
   programLabel?: string;
@@ -117,7 +110,7 @@ const SaveAllQuery: any = gql`
 @Injectable({providedIn: 'root'})
 export class AggregatedLandingService
   extends BaseEntityService<AggregatedLanding, AggregatedLandingFilter>
-  implements EntitiesService<AggregatedLanding, AggregatedLandingFilter> {
+  implements IEntitiesService<AggregatedLanding, AggregatedLandingFilter> {
 
   protected loading = false;
   private _lastFilter;
@@ -127,7 +120,7 @@ export class AggregatedLandingService
     protected network: NetworkService,
     protected entities: EntitiesStorage
   ) {
-    super(injector.get(GraphqlService));
+    super(injector.get(GraphqlService), environment);
 
     // FOR DEV ONLY
     this._debug = !environment.production;

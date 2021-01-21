@@ -10,7 +10,7 @@
 
 
     <!-- Status-->
-    <ion-row *ngIf="isAdmin() || !defaultStatus">
+    <ion-row *ngIf="canEditStatus">
       <ion-col>
         <mat-form-field>
           <mat-select [placeholder]="'REFERENTIAL.STATUS'|translate"
@@ -24,18 +24,20 @@
               {{ item.label | translate }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.statusId.touched && form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
 
     <!-- Registration -->
-    <ion-row [formGroup]="form.controls.registration">
+    <ion-row *ngIf="registrationForm; let registrationForm" [formGroup]="registrationForm">
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.REGISTRATION.REGISTRATION_CODE'|translate" formControlName="registrationCode"
-                 autocomplete="off" required>
-          <mat-error *ngIf="form.get('registration.registrationCode').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input matInput [placeholder]="'VESSEL.REGISTRATION.REGISTRATION_CODE'|translate"
+                 formControlName="registrationCode"
+                 autocomplete="off"
+                 required>
+          <mat-error *ngIf="registrationForm.controls.registrationCode.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
       <ion-col>
@@ -48,40 +50,46 @@
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto">
-        <mat-date-time-field [placeholder]="'VESSEL.REGISTRATION.START_DATE'|translate" formControlName="startDate" [displayTime]="false"
-                             [required]="true">
+        <mat-date-field [placeholder]="'VESSEL.REGISTRATION.START_DATE'|translate"
+                        formControlName="startDate"
+                        [required]="true">
           <mat-error *ngIf="form.get('registration.startDate').hasError('dateIsAfter')">
             {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: form.get('registration.startDate').errors.dateIsAfter }}
           </mat-error>
-        </mat-date-time-field>
+        </mat-date-field>
       </ion-col>
     </ion-row>
 
     <!-- Exterior marking -->
-    <ion-row [formGroup]="form.controls.features">
+    <ion-row *ngIf="featuresForm; let featuresForm" [formGroup]="featuresForm">
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.FEATURES.EXTERIOR_MARKING'|translate" formControlName="exteriorMarking"
-            autocomplete="off" required>
-          <mat-error *ngIf="form.get('features.exteriorMarking').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input matInput [placeholder]="'VESSEL.FEATURES.EXTERIOR_MARKING'|translate"
+                 formControlName="exteriorMarking"
+                 autocomplete="off" required>
+          <mat-error *ngIf="featuresForm.controls.exteriorMarking.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
       <ion-col size="auto">
-        <mat-date-time-field [placeholder]="'VESSEL.FEATURES.START_DATE'|translate" formControlName="startDate" [displayTime]="false"
-                             [required]="true">
-          <mat-error *ngIf="form.get('features.startDate').hasError('dateIsAfter')">
-            {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: form.get('features.startDate').errors.dateIsAfter }}
+        <mat-date-field [placeholder]="'VESSEL.FEATURES.START_DATE'|translate"
+                        formControlName="startDate"
+                        [required]="true">
+          <mat-error *ngIf="featuresForm.controls.startDate.hasError('dateIsAfter')">
+            {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: featuresForm.controls.startDate.errors.dateIsAfter }}
           </mat-error>
-        </mat-date-time-field>
+        </mat-date-field>
       </ion-col>
     </ion-row>
 
     <!-- Name -->
-    <ion-row [formGroup]="form.controls.features">
+    <ion-row *ngIf="featuresForm; let featuresForm" [formGroup]="featuresForm">
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.FEATURES.NAME'|translate" formControlName="name" required autocomplete="off">
-          <mat-error *ngIf="form.get('features.name').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input matInput autocomplete="off"
+                 formControlName="name"
+                 [placeholder]="'VESSEL.FEATURES.NAME'|translate"
+                 required>
+          <mat-error *ngIf="featuresForm.controls.name.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>

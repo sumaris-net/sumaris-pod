@@ -34,7 +34,7 @@ PROJECT_NAME=sumaris-app
 # /!\ WARN can be define in your <project>/.local/env.sh file
 #JAVA_HOME=
 
-GRADLE_VERSION=4.10.3
+GRADLE_VERSION=6.1.1
 GRADLE_HOME=${HOME}/.gradle/${GRADLE_VERSION}
 CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip
 

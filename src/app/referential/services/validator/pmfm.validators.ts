@@ -8,7 +8,7 @@ const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
 
 export class PmfmValidators {
 
-  static create(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[], opts?: {forceOptional?: boolean;} ): ValidatorFn {
+  static create(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[], opts?: { forceOptional?: boolean; } ): ValidatorFn {
     validatorFns = validatorFns || [];
     // Add required validator (if NOT force as optional - can occur when on field mode)
     if (pmfm.isMandatory && (!opts || opts.forceOptional !== true)) {
@@ -45,7 +45,7 @@ export class PmfmValidators {
       validatorFns.push(SharedValidators.entity);
     }
 
-    return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : undefined);
+    return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : null);
   }
 }
 

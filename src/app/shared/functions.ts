@@ -1,10 +1,3 @@
-import * as moment from "moment";
-import {Duration, isMoment, Moment} from "moment"
-
-
-export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
-export const DATE_UNIX_TIMESTAMP = 'X';
-export const DATE_UNIX_MS_TIMESTAMP = 'x';
 
 export function isNil<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null;
@@ -30,8 +23,18 @@ export function isEmptyArray<T>(obj: T[] | null | undefined): boolean {
 export function isNotNilString(obj: any | null | undefined): obj is string {
   return obj !== undefined && obj !== null && typeof obj === 'string';
 }
+export function notNilOrDefault<T>(obj: T | null | undefined, defaultValue: T): T {
+  return (obj !== undefined && obj !== null) ? obj : defaultValue;
+}
 export function arraySize<T>(obj: T[] | null | undefined): number {
   return isNotEmptyArray(obj) && obj.length || 0;
+}
+export function arrayGroupBy<T = any, K extends keyof T = any, M extends {[key: string]: T[]} = {[key: string]: T[]}>(obj: T[], key: keyof T): M{
+  if (isNil(obj)) return null;
+  return obj.reduce(function(rv: any, x) {
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {});
 }
 export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
   return obj === undefined ? null : obj;
@@ -59,62 +62,6 @@ export function removeDuplicatesFromArray<T>(obj: T[] | null | undefined, proper
   if(property) return (obj !== undefined && obj !== null)?obj.filter((item, i, array) => array.findIndex(t => t && item && t[property] === item[property]) === i):obj;
   return (obj !== undefined && obj !== null)?obj.filter((item, i, array) => array.findIndex(t => t && item && t === item) === i):obj;
 }
-export function toDateISOString(value: any): string | undefined {
-  if (!value) return undefined;
-
-  // Already a valid ISO date time string (without timezone): use it
-  if (typeof value === "string"
-    && value.indexOf('+') === -1
-    && value.lastIndexOf('Z') === value.length - 1) {
-
-    return value;
-  }
-  // Make sure to have a Moment object
-  value = fromDateISOString(value);
-  return value && value.toISOString() || undefined;
-}
-
-export function fromDateISOString(value: any): Moment | undefined {
-  if (value) {
-    // Already a moment object: use it
-    if (isMoment(value)) return value;
-
-    // Parse the input value, as a ISO date time
-    const date: Moment = moment(value, DATE_ISO_PATTERN);
-    if (date.isValid()) return date;
-
-    console.warn('Wrong date format - Trying to convert from local time: ' + value);
-
-    // Not valid: trying to convert from unix timestamp
-    if (typeof value === 'string') {
-      if (value.length === 10) {
-        return moment(value, DATE_UNIX_TIMESTAMP);
-      }
-      else if (value.length === 13) {
-        return moment(value, DATE_UNIX_MS_TIMESTAMP);
-      }
-    }
-  }
-  return undefined;
-}
-
-export function toDuration(value: number, unit?: moment.unitOfTime.DurationConstructor): Duration {
-  if (!value) return undefined;
-
-  const duration = moment.duration(value, unit);
-
-  // fix 990+ ms
-  if (duration.milliseconds() >= 990) {
-    duration.add(1000 - duration.milliseconds(), "ms");
-  }
-  // fix 59 s
-  if (duration.seconds() >= 59) {
-    duration.add(60 - duration.seconds(), "s");
-  }
-
-  return duration;
-}
-
 export function startsWithUpperCase(input: string, search: string): boolean {
   return input && input.toUpperCase().startsWith(search);
 }
@@ -233,12 +180,22 @@ export function propertiesPathComparator<T = any>(keys: string[], defaultValues?
 
 export function sort<T>(array: T[], attribute: string): T[] {
   return array
-    .slice(0) // copy
+    .slice() // copy
     .sort((a, b) => {
       const valueA = a[attribute];
       const valueB = b[attribute];
       return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
     });
+}
+
+const NUMBER_REGEXP = /^[-]?\d+(\.\d+)?$/;
+export function isNumber(value: string): boolean {
+  return isNotNil(value) && NUMBER_REGEXP.test(value);
+}
+
+const NUMBER_RANGE_REGEXP = /^(\d+-\d+)|([><=]*\d+)$/;
+export function isNumberRange(value: string): boolean {
+  return isNotNil(value) && NUMBER_RANGE_REGEXP.test(value);
 }
 
 export function getPropertyByPath(obj: any, path: string, defaultValue?: any): any {
@@ -322,6 +279,10 @@ export function remove<T>(array: T[], predicate: (pmfm: T) => boolean): T {
 
 export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
+export function capitalizeFirstLetter(value: string) {
+  if (!value || value.length === 0) return value;
+  return value.substr(0,1).toUpperCase() + value.substr(1);
+}
 export function uncapitalizeFirstLetter(value: string) {
   if (!value || value.length === 0) return value;
   return value.substr(0,1).toLowerCase() + value.substr(1);

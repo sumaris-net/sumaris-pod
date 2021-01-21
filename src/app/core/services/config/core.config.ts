@@ -1,13 +1,15 @@
 // TODO: rename to CONFIG_OPTIONS_MAP
 // then declare a type like this :
 // > export declare type ConfigOptions = key of CONFIG_OPTIONS_MAP
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../../shared/form/field.model";
+import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {StatusIds} from "../model/model.enum";
 import {UserProfileLabels} from "../model/person.model";
-import {Locales} from "../model/settings.model";
+import {PRIORITIZED_USER_PROFILES} from "../model/person.model";
 import {LocationLevelIds} from "../../../referential/services/model/model.enum";
+import {Property} from "../../../shared/types";
+import {APP_LOCALES} from "../model/settings.model";
 
-export const ConfigOptions = Object.freeze({
+export const CORE_CONFIG_OPTIONS = Object.freeze({
     LOGO: <FormFieldDefinition>{
         key: 'sumaris.logo',
         label: 'CONFIGURATION.OPTIONS.LOGO',
@@ -22,9 +24,7 @@ export const ConfigOptions = Object.freeze({
         key: 'sumaris.defaultLocale',
         label: 'CONFIGURATION.OPTIONS.DEFAULT_LOCALE',
         type: 'enum',
-        values: Locales.map(l => {
-            return <FormFieldValue>{key: l.id, value: l.name};
-        })
+        values: APP_LOCALES
     },
     DEFAULT_LAT_LONG_FORMAT: <FormFieldDefinition>{
         key: 'sumaris.defaultLatLongFormat',
@@ -54,6 +54,15 @@ export const ConfigOptions = Object.freeze({
             value: 'USER.PROFILE_ENUM.' + key
         }))
     },
+    EXTRACTION_NOT_SELF_ACCESS_ROLE: <FormFieldDefinition>{
+      key: "sumaris.auth.notSelfExtractionAccess.role",
+      label: "CONFIGURATION.OPTIONS.NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE",
+      type: 'enum',
+      values: PRIORITIZED_USER_PROFILES.map(key => <Property>{
+        key: 'ROLE_' + key,
+        value: 'USER.PROFILE_ENUM.' + key
+      })
+    },
     ENTITY_TRASH: <FormFieldDefinition> {
         key: 'sumaris.persistence.trash.enable',
         label: 'CONFIGURATION.OPTIONS.ENTITY_TRASH',
@@ -63,6 +72,11 @@ export const ConfigOptions = Object.freeze({
         key: 'sumaris.testing.enable',
         label: 'CONFIGURATION.OPTIONS.TESTING',
         type: 'boolean'
+    },
+    APP_MIN_VERSION: <FormFieldDefinition>{
+      key: 'sumaris.app.version.min',
+      label: 'CONFIGURATION.OPTIONS.APP_MIN_VERSION',
+      type: 'string'
     },
     VESSEL_DEFAULT_STATUS: <FormFieldDefinition>{
         key: 'sumaris.vessel.status.default',
@@ -219,3 +233,5 @@ export const ConfigOptions = Object.freeze({
       defaultValue: LocationLevelIds.ICES_DIVISION
     }
 });
+
+export const CORE_LOCAL_SETTINGS_OPTIONS = Object.freeze({});

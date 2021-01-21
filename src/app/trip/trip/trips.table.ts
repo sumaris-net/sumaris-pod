@@ -1,48 +1,38 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  environment,
-  isNil,
-  isNotNil,
-  ReferentialRef,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-} from "../../core/core.module";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {TripValidatorService} from "../services/validator/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
 import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from "rxjs/operators";
+import {FormBuilder} from "@angular/forms";
+import {debounceTime, filter, tap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
-import {ConnectionType, NetworkService} from "../../core/services/network.service";
+import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {BehaviorSubject} from "rxjs";
-import {personsToString, personToString} from "../../core/services/model/person.model";
-import {concatPromises} from "../../shared/observables";
-import {isEmptyArray} from "../../shared/functions";
+import {personToString} from "../../core/services/model/person.model";
 import {Trip} from "../services/model/trip.model";
 import {PersonService} from "../../admin/services/person.service";
 import {StatusIds} from "../../core/services/model/model.enum";
-import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
-import {OperationService} from "../services/operation.service";
 import {UserEventService} from "../../social/services/user-event.service";
+import {TripTrashModal} from "./trash/trip-trash.modal";
+import {TRIP_FEATURE_NAME} from "../services/config/trip.config";
+import {AppRootTable} from "../../data/table/root-table.class";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {isNil} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
-  FILTER_KEY: "filter"
+  FILTER_KEY: "filter",
+  FEATURE_NAME: TRIP_FEATURE_NAME
 };
 
 @Component({
@@ -54,27 +44,11 @@ export const TripsPageSettingsEnum = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
+export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
-  canEdit: boolean;
-  canDelete: boolean;
-  isAdmin: boolean;
-  filterForm: FormGroup;
-  filterIsEmpty = true;
-  offline = false;
-
-  importing = false;
-  $importProgression = new BehaviorSubject<number>(0);
-  hasOfflineMode = false;
-
-  synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
-
-  get synchronizationStatus(): SynchronizationStatus {
-    return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
-  }
+  highlightedRow: TableElement<Trip>;
 
   constructor(
-    public network: NetworkService,
     protected injector: Injector,
     protected route: ActivatedRoute,
     protected router: Router,
@@ -82,15 +56,12 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected location: Location,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
-    protected accountService: AccountService,
-    protected service: TripService,
+    protected dataService: TripService,
     protected userEventService: UserEventService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected formBuilder: FormBuilder,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -106,7 +77,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, null, {
+        dataService,
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService, environment, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -130,39 +102,19 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       //,'observer': [null]
     });
 
-    this.readOnly = false; // Allow deletion
-    this.inlineEdition = false;
-    this.confirmBeforeDelete = true;
-    this.saveBeforeSort = false;
-    this.saveBeforeFilter = false;
-    this.saveBeforeDelete = false;
     this.autoLoad = false;
-    this.sortBy = 'departureDateTime';
-    this.sortDirection = 'desc';
+    this.defaultSortBy = 'departureDateTime';
+    this.defaultSortDirection = 'desc';
 
-    this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fix value, to be able to reuse it in the trip page
+    this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
+    this.featureId = TripsPageSettingsEnum.FEATURE_NAME;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
-
   }
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.isAdmin = this.accountService.isAdmin();
-    this.canEdit = this.isAdmin || this.accountService.isUser();
-    this.canDelete = this.isAdmin;
-
-    // Listen network
-    this.offline = this.network.offline;
-    this.registerSubscription(
-      this.network.onNetworkStatusChanges
-        .pipe(
-          filter(isNotNil),
-          distinctUntilChanged()
-        )
-        .subscribe((type) => this.onNetworkStatusChanged(type)));
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -219,8 +171,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
           debounceTime(250),
           filter(() => this.filterForm.valid),
           // Applying the filter
-          tap(json => {
-            this.setFilter({
+          tap(json => this.setFilter({
               programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
               startDate: json.startDate,
               endDate: json.endDate,
@@ -229,242 +180,46 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
               synchronizationStatus: json.synchronizationStatus || undefined,
               recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
               recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
-            }, {emitEvent: this.mobile || isNil(this.filter)});
-          }),
+            }, {emitEvent: this.mobile || isNil(this.filter)})),
           // Save filter in settings (after a debounce time)
-          debounceTime(1000),
+          debounceTime(500),
           tap(json => this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY))
         )
         .subscribe());
 
-    this.registerSubscription(
-      this.onRefresh.subscribe(() => {
-        this.filterIsEmpty = TripFilter.isEmpty(this.filter);
-        this.filterForm.markAsUntouched();
-        this.filterForm.markAsPristine();
-        this.markForCheck();
-      }));
-
-    // Restore filter from settings, or load all trips
+    // Restore filter from settings, or load all
     this.restoreFilterOrLoad();
   }
 
-  onNetworkStatusChanged(type: ConnectionType) {
-    const offline = type === "none";
-    if (this.offline !== offline) {
-
-      // Update the property used in template
-      this.offline = offline;
-      this.markForCheck();
-
-      // When offline, change synchronization status to DIRTY
-      if (this.offline && this.synchronizationStatus === 'SYNC') {
-        this.setSynchronizationStatus('DIRTY');
-      }
-    }
+  clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
+    this.highlightedRow = row;
+    return super.clickRow(event, row);
   }
 
-  toggleOfflineMode(event?: UIEvent) {
-    if (this.network.offline) {
-      this.network.setForceOffline(false);
-    }
-    else {
-      this.network.setForceOffline(true, {displayToast: true});
-      this.filterForm.patchValue({synchronizationStatus: 'DIRTY'}, {emitEvent: false/*avoid refresh*/});
-      this.hasOfflineMode = true;
-    }
-    // Refresh table
-    this.onRefresh.emit();
-  }
+  async openTrashModal(event?: UIEvent) {
+    console.debug('[trips] Opening trash modal...');
+    const modal = await this.modalCtrl.create({
+      component: TripTrashModal,
+      componentProps: {
+        synchronizationStatus: this.filter.synchronizationStatus
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
 
-  async prepareOfflineMode(event?: UIEvent) {
-    if (this.importing) return; // skip
+    // Open the modal
+    await modal.present();
 
-    // If offline, warn user and ask to reconnect
-    if (this.network.offline) {
-      return this.network.showOfflineToast({
-        // Allow to retry to connect
-        showRetryButton: true,
-        onRetrySuccess: () => this.prepareOfflineMode()
-      });
-    }
-
-    this.$importProgression.next(0);
-
-    let success = false;
-    try {
-
-      await new Promise((resolve, reject) => {
-        // Run the import
-        this.service.executeImport({maxProgression: 100})
-          .pipe(
-            filter(value => value > 0),
-            map((progress) => {
-              if (!this.importing) {
-                this.importing = true;
-                this.markForCheck();
-              }
-              return Math.min(Math.trunc(progress), 100);
-            }),
-            catchError(err => {
-              reject(err);
-              throw err;
-            }),
-            throttleTime(100)
-          )
-          .subscribe(progression => this.$importProgression.next(progression))
-          .add(() => resolve());
-      });
-
-      // Enable sync status button
-      this.setSynchronizationStatus('DIRTY');
-      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
-      success = true;
-    }
-    catch (err) {
-      this.error = err && err.message || err;
-    }
-    finally {
-      this.hasOfflineMode = this.hasOfflineMode || success;
-      this.importing = false;
-      this.markForCheck();
-    }
-  }
-
-  async setSynchronizationStatus(value: SynchronizationStatus) {
-    if (!value) return; // Skip if empty
-
-    // Make sure network is UP
-    if (this.offline && value === 'SYNC') {
-      this.network.showOfflineToast({
-        // Allow to retry to connect
-        showRetryButton: true,
-        onRetrySuccess: () => this.setSynchronizationStatus(value)
-      });
-      return;
-    }
-
-    console.debug("[trips] Applying filter to synchronization status: " + value);
-    this.error = null;
-    this.filterForm.patchValue({synchronizationStatus: value}, {emitEvent: false});
-    const json = { ...this.filter, synchronizationStatus: value};
-    this.setFilter(json, {emitEvent: true});
-
-    // Save filter to settings (need to be done here, because new trip can stored filter)
-    await this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY);
-  }
-
-  hasReadyToSyncSelection(): boolean {
-    if (!this._enabled) return false;
-    if (this.loading || this.selection.isEmpty()) return false;
-    return (this.selection.selected || [])
-      .findIndex(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC') !== -1;
-  }
-
-  async synchronizeSelection() {
-    if (!this._enabled) return;
-    if (this.loading || this.selection.isEmpty()) return;
-
-    if (this.offline) {
-      this.network.showOfflineToast({
-        showRetryButton: true,
-        onRetrySuccess: () => this.synchronizeSelection()
-      });
-      return;
-    }
-
-    if (this.debug) console.debug("[trips] Starting synchronization...");
-
-    const rowsToSync = this.selection.selected.slice();
-    const tripIds = rowsToSync
-      .filter(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC')
-      .map(row => row.currentData.id);
-
-    if (isEmptyArray(tripIds)) return; // Nothing to sync
-
-    this.markAsLoading();
-    this.error = null;
-
-    try {
-      await concatPromises(tripIds.map(tripId => () => this.service.synchronizeById(tripId)));
-      this.selection.clear();
-
-      // Success message
-      this.showToast({
-        message: 'INFO.SYNCHRONIZATION_SUCCEED'
-      });
-
-      // Clean history
-      // FIXME: find a way o clean only synchronized trips ?
-      this.settings.clearPageHistory();
-
-
-    } catch (error) {
-      this.userEventService.showToastErrorWithContext({
-        error,
-        context: () => concatPromises(tripIds.map(tripId => () => this.service.load(tripId, {withOperation: true, toEntity: false})))
-      });
-    }
-    finally {
-      this.onRefresh.emit();
-    }
-  }
-
-  referentialToString = referentialToString;
-  personsToString = personsToString;
-  qualityFlagToColor = qualityFlagToColor;
-
-  programToString(item: ReferentialRef) {
-    return item && item.label || undefined;
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED
   }
 
   /* -- protected methods -- */
 
-  protected async restoreFilterOrLoad() {
-    console.debug("[trips] Restoring filter from settings...");
-    const json = this.settings.getPageSettings(this.settingsId, TripsPageSettingsEnum.FILTER_KEY);
-
-    const synchronizationStatus = json && json.synchronizationStatus;
-    const tripFilter = json && typeof json === 'object' && {...json, synchronizationStatus: undefined} || undefined;
-
-    this.hasOfflineMode = (synchronizationStatus && synchronizationStatus !== 'SYNC') ||
-      (this.settings.hasOfflineFeature() || await this.service.hasOfflineData());
-
-    // No default filter, nor synchronizationStatus
-    if (TripFilter.isEmpty(tripFilter) && !synchronizationStatus) {
-      // If offline data, show it (will refresh)
-      if (this.hasOfflineMode) {
-        this.filterForm.patchValue({
-          synchronizationStatus: 'DIRTY'
-        });
-      }
-      // No offline data: default load (online trips)
-      else {
-        // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
-        this.onRefresh.emit();
-        // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
-        this.filterForm.patchValue({}, {emitEvent: false});
-      }
-    }
-    // Restore the filter (will apply it)
-    else {
-      // Force offline
-      if (this.network.offline && this.hasOfflineMode && synchronizationStatus === 'SYNC') {
-        this.filterForm.patchValue({
-          ...tripFilter,
-          synchronizationStatus: 'DIRTY'
-        });
-      }
-      else {
-        this.filterForm.patchValue({...tripFilter, synchronizationStatus});
-      }
-    }
-  }
+  protected isFilterEmpty = TripFilter.isEmpty;
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
-
 }
-

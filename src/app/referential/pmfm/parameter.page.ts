@@ -1,18 +1,21 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
-import {AppEntityEditor, environment, isNil, referentialToString} from "../../core/core.module";
-
 import {ReferentialForm} from "../form/referential.form";
 import {ParameterValidatorService} from "../services/validator/parameter.validator";
-import {EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {Parameter} from "../services/model/parameter.model";
 import {ParameterService} from "../services/parameter.service";
 import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ReferentialTable} from "../list/referential.table";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {HistoryPageReference} from "../../core/services/model/history.model";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {environment} from "../../../environments/environment";
+import {isNil} from "../../shared/functions";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 
 @Component({
   selector: 'app-parameter',
@@ -58,7 +61,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
     // default values
     this.defaultBackHref = "/referential/list?entity=Parameter";
     this.canEdit = this.accountService.isAdmin();
-    this.tabCount = 1;
+    this.tabCount = 2;
 
     this.debug = !environment.production;
 
@@ -92,6 +95,12 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
   }
 
   /* -- protected methods -- */
+
+  updateView(data: Parameter | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+    super.updateView(data, opts);
+
+    this.tabCount = this.isQualitative ? 2 : 1;
+  }
 
   protected canUserWrite(data: Parameter): boolean {
     return (this.isNewData && this.accountService.isAdmin())
@@ -145,6 +154,15 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
 
     // Existing data
     return this.translate.get('REFERENTIAL.PARAMETER.EDIT.TITLE', data).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      title: `${this.data.label} - ${this.data.name}`,
+      subtitle: 'REFERENTIAL.ENTITY.PARAMETER',
+      icon: 'list'
+    };
   }
 
   protected getFirstInvalidTabIndex(): number {

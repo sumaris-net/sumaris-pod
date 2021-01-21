@@ -5,7 +5,11 @@
 
 <ion-content>
 
-  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+  <mat-tab-group #tabGroup
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
+                 dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'CONFIGURATION.TAB_GENERAL'|translate}}">
@@ -172,9 +176,9 @@
         <ion-label translate>CONFIGURATION.TAB_NOTIFICATIONS</ion-label>
       </ng-template>
 
-      <app-user-events-list recipient="SYSTEM"
-                            showContent="true">
-      </app-user-events-list>
+      <app-user-events-table recipient="SYSTEM"
+                             withContent="true">
+      </app-user-events-table>
     </mat-tab>
 
     <!-- TAB: cache -->

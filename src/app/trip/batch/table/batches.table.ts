@@ -2,24 +2,18 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
   Inject,
   InjectionToken,
   Injector,
   Input,
   OnDestroy,
-  OnInit,
-  Output
+  OnInit
 } from "@angular/core";
-import {of, Subject} from 'rxjs';
-import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../../core/core.module";
-import {isNilOrBlank, isNotNil} from "../../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
 import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../../core/services/model/settings.model";
-import {SubBatchesModal} from "../modal/sub-batches.modal";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {Batch} from "../../services/model/batch.model";
@@ -30,7 +24,8 @@ import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
 import {getPmfmName, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {BatchModal} from "../modal/batch.modal";
-import {SubBatch} from "../../services/model/subbatch.model";
+import {IReferentialRef, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
+import {environment} from "../../../../environments/environment";
 
 export interface BatchFilter {
   operationId?: number;
@@ -105,14 +100,9 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     return this._dirty || this.memoryDataService.dirty;
   }
 
-  @Input()
-  availableSubBatchesFn: () => Promise<SubBatch[]>;
-
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: TaxonNameRef;
 
-  @Output()
-  onSubBatchesChanges = new EventEmitter<Batch[]>();
 
   constructor(
     injector: Injector,
@@ -194,7 +184,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.updateEntityToTable(updatedData, row);
+      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
     }
     else {
       this.editedRow = null;

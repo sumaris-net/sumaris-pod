@@ -5,6 +5,7 @@ import {
   ElementRef,
   forwardRef,
   Input,
+  OnDestroy,
   OnInit,
   Optional,
   QueryList,
@@ -17,27 +18,31 @@ import {
   ControlValueAccessor,
   FormBuilder,
   FormControl,
-  FormGroup,
   FormGroupDirective,
   NG_VALUE_ACCESSOR,
+  ValidationErrors,
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {Moment} from "moment/moment";
-import {DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
-import {isNil, toBoolean, toDuration} from "../../functions";
+import {Moment} from "moment";
+import {DEFAULT_PLACEHOLDER_CHAR} from '../../constants';
+import {isNil, toBoolean} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {InputElement, setTabIndex} from "../../inputs";
+import {InputElement, moveInputCaretToSeparator, setTabIndex} from "../../inputs";
 import {isFocusableElement} from "../../focusable";
+import {DEFAULT_MAX_DECIMALS, formatDuration, parseDuration} from "./duration.utils";
+import {BehaviorSubject, Subscription} from "rxjs";
+import {filter} from "rxjs/operators";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
+const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatDuration),
   multi: true
 };
 
-const HOUR_TIME_PATTERN = /[0-1]\d\d:[0-5]\d/;
-const HOUR_MASK = [/[0-1]/, /\d/, /\d/, ':', /[0-5]/, /\d/];
+1
+const HOUR_TIME_PATTERN = /[0-9]\d\d:[0-5]\d/;
+const HOUR_MASK = [/\d/, /\d/, /\d/, ':', /[0-5]/, /\d/];
 
 const noop = () => {
 };
@@ -51,7 +56,8 @@ const noop = () => {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
+export class MatDuration implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
+  private _subscription = new Subscription();
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
   protected writing = true;
@@ -59,10 +65,8 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
   protected _tabindex: number;
   protected keyboardHideDelay: number;
 
-  mobile: boolean;
-  form: FormGroup;
+  textControl: FormControl;
   _value: number;
-  locale: string;
   hourMask = HOUR_MASK;
 
   @Input() disabled = false;
@@ -80,6 +84,8 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
   @Input() required: boolean;
 
   @Input() compact = false;
+
+  @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
@@ -111,29 +117,59 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective,
   ) {
-    // Workaround because ion-datetime has issue (do not returned a ISO date)
-    this.mobile = platform.is('mobile');
-    this.keyboardHideDelay = this.mobile && KEYBOARD_HIDE_DELAY_MS || 0;
-
-    this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
   }
 
   ngOnInit() {
+
+    if (this.maxDecimals) {
+      if (this.maxDecimals < 0) {
+        console.error("Invalid attribute 'maxDecimals'. Must a positive value.");
+        this.maxDecimals = DEFAULT_MAX_DECIMALS;
+      }
+      else if (this.maxDecimals < DEFAULT_MAX_DECIMALS) {
+        console.warn(`Invalid attribute 'maxDecimals' - Value should be more than ${DEFAULT_MAX_DECIMALS}, otherwise the round trip conversion will lose minutes.`);
+        this.maxDecimals = DEFAULT_MAX_DECIMALS;
+      }
+    }
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time-field>.");
 
     this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
 
-    this.form = this.formBuilder.group({
-      duration: [null, this.required ? Validators.compose([Validators.required, Validators.pattern(HOUR_TIME_PATTERN)]) : Validators.pattern(HOUR_TIME_PATTERN)]
-    });
+    // Redirect errors from main control, into day sub control
+    const $error = new BehaviorSubject<ValidationErrors>(null);
+    this.textControl = this.formBuilder.control(null, null);
+    this.textControl.setValidators(this.required ? [Validators.required, () => $error.getValue(), Validators.pattern(HOUR_TIME_PATTERN)] :
+      [() => $error.getValue(), Validators.pattern(HOUR_TIME_PATTERN)]);
 
-    this.form.valueChanges.subscribe((value) => this.onFormChange(value));
+    this._subscription.add(
+      this.textControl.valueChanges
+        .subscribe((value) => this.onFormChange(value))
+    );
+
+    // Listen status changes outside the component (e.g. when setErrors() is calling on the formControl)
+    this._subscription.add(
+      this.formControl.statusChanges
+        .pipe(filter(() => !this.readonly && !this.writing && !this.disabling)) // Skip
+        .subscribe((status) => {
+          if (status === 'INVALID') {
+            $error.next(this.formControl.errors);
+          }
+          else if (status === 'VALID') {
+            $error.next(null);
+          }
+          this.textControl.updateValueAndValidity({onlySelf: true, emitEvent: false});
+          this.markForCheck();
+        }));
 
     this.updateTabIndex();
 
     this.writing = false;
+  }
+
+  ngOnDestroy() {
+    this._subscription.unsubscribe();
   }
 
   writeValue(obj: any): void {
@@ -143,7 +179,7 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
 
     if (isNil(obj)) {
       this.writing = true;
-      this.form.patchValue({duration: null}, {emitEvent: false});
+      this.textControl.patchValue(null, {emitEvent: false});
       this._value = undefined;
       if (this.formControl.value) {
         this.formControl.patchValue(null, {emitEvent: false});
@@ -161,17 +197,10 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
 
     this.writing = true;
 
-    // Format
-    const duration = toDuration(this._value, "hours"); // FIXME assume is a decimal hour
-    const hour = Math.floor(duration.asHours()).toString().padStart(3, "0");
-    const minute = duration.minutes().toString().padStart(2, "0");
-    const formattedValue = hour + ':' + minute;
-    console.debug(`[mat-duration] Formatted hour:${this._value} to ${formattedValue}`);
-    // Set form value
-    this.form.patchValue({
-      duration: formattedValue
-    }, {emitEvent: false});
+    console.debug(`[mat-duration] Formatted hour: ${this._value} to ${formatDuration(this._value)}`);
 
+    // Set form value
+    this.textControl.patchValue(formatDuration(this._value), {emitEvent: false});
     this.writing = false;
     this.markForCheck();
   }
@@ -190,42 +219,32 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
     this.disabling = true;
     this.disabled = isDisabled;
     if (isDisabled) {
-      this.form.disable({onlySelf: true, emitEvent: false});
+      this.textControl.disable({onlySelf: true, emitEvent: false});
     } else {
-      this.form.enable({onlySelf: true, emitEvent: false});
+      this.textControl.enable({onlySelf: true, emitEvent: false});
     }
     this.disabling = false;
 
     this.markForCheck();
   }
 
-  private onFormChange(json): void {
+  private onFormChange(value): void {
     if (this.writing) return; // Skip if call by self
     this.writing = true;
 
-    console.debug('[mat-duration] onFormChange:', json);
+    console.debug('[mat-duration] onFormChange:', value);
 
-    if (this.form.invalid) {
+    if (this.textControl.hasError('pattern') || this.textControl.hasError('required')) {
       this.formControl.markAsPending();
-      const errors = {};
-      Object.assign(errors, this.form.controls.duration.errors);
-      this.formControl.setErrors(errors);
+      this.formControl.setErrors({
+        pattern: this.textControl.errors.pattern,
+        required: this.textControl.errors.required
+      });
       this.writing = false;
       return;
     }
 
-    let duration = json.duration || '';
-    // Make to remove placeholder chars
-    while (duration.indexOf(this.placeholderChar) !== -1) {
-      duration = duration.replace(this.placeholderChar, '');
-    }
-
-    const durationParts = duration.split(':');
-    const hour = parseInt(durationParts[0] || 0);
-    const minute = parseInt(durationParts[1] || 0);
-
-    // fixme assume unit is decimal hours
-    this._value = hour + minute / 60;
+    this._value = parseDuration(value || '', this.maxDecimals, this.placeholderChar);
 
     console.debug("[mat-duration] Setting duration: ", this._value);
     this.formControl.patchValue(this._value, {emitEvent: false});
@@ -236,8 +255,8 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
     this._onChangeCallback(this._value);
   }
 
-  public checkIfTouched() {
-    if (this.form.touched) {
+  checkIfTouched() {
+    if (this.textControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
     }
@@ -259,6 +278,11 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
         elementRef.focus();
       }
     });
+  }
+
+  moveCaretToSeparator(event: any, forward: boolean): boolean {
+    // Move to the next separator
+    return moveInputCaretToSeparator(event, ':', forward);
   }
 
   /* -- protected method -- */

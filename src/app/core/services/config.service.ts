@@ -1,23 +1,24 @@
 import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
-import gql from "graphql-tag";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {Configuration} from "./model/config.model";
-import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
-import {FetchPolicy} from "apollo-client";
-import {GraphqlService} from "./graphql.service";
+import {GraphqlService} from "../graphql/graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {filterNotNil} from "../../shared/observables";
 import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
-import {EntityServiceLoadOptions} from "../../shared/shared.module";
-import {ConfigOptions} from "./config/core.config";
+import {CORE_CONFIG_OPTIONS} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
-import {LocationLevelIds, TaxonGroupIds} from "../../referential/services/model/model.enum";
-import { UserProfileLabels } from "./model/person.model";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {ToastController} from "@ionic/angular";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {TranslateService} from "@ngx-translate/core";
+import {filter} from "rxjs/operators";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -113,9 +114,11 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   get config(): Observable<Configuration> {
     // If first call: start loading
-    if (!this._started) this.start();
+    if (!this._started) {
+      this.start();
+    }
 
-    return filterNotNil(this.$data);
+    return this.$data.pipe(filter(isNotNil));
   }
 
   constructor(
@@ -124,15 +127,17 @@ export class ConfigService extends SoftwareService<Configuration> {
     protected network: NetworkService,
     protected platform: PlatformService,
     protected file: FileService,
-    @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
+    protected toastController: ToastController,
+    protected translate: TranslateService,
+    @Inject(EnvironmentService) protected environment,
+    @Optional() @Inject(APP_CONFIG_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     this._debug = !environment.production;
     if (this._debug) console.debug("[config] Creating service");
 
-    this.defaultOptionsMap = {...ConfigOptions, ...defaultOptionsMap};
-    this._optionDefs = Object.keys(this.defaultOptionsMap).map(name => defaultOptionsMap[name]);
+    this._optionDefs = Object.values({...CORE_CONFIG_OPTIONS, ...defaultOptionsMap});
 
     // Restart if graphql service restart
     this._subscription.add(
@@ -301,7 +306,7 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   delete(data: Configuration, options?: any): Promise<any> {
-    throw new Error("Not implemented yet!")
+    throw new Error("Not implemented yet!");
   }
 
   listenChanges(id: number, options?: any): Observable<Configuration | undefined> {
@@ -343,8 +348,10 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   private async loadOrRestoreLocally() {
     let data;
+    let wasJustLoaded = false;
     try {
       data = await this.loadDefault({ fetchPolicy: "network-only" });
+      wasJustLoaded = true;
     } catch (err) {
       // Log, then continue
       console.error(err && err.message || err, err);
@@ -352,7 +359,7 @@ export class ConfigService extends SoftwareService<Configuration> {
 
     // Save it into local storage, for next startup
     if (data) {
-      setTimeout(() => this.saveLocally(data), 1000);
+      setTimeout(() => this.storeLocally(data), 1000);
     }
 
     // If not loaded remotely: try to restore it
@@ -361,13 +368,18 @@ export class ConfigService extends SoftwareService<Configuration> {
     }
 
     // Make sure label has been filled
-    data.label = data.label || environment.name;
+    data.label = data.label || this.environment.name;
 
     // Reset name (if same as label)
     data.name = (data.name !== data.label) ? data.name : undefined;
 
     // Override enumerations
     this.updateModelEnumerations(data);
+
+    // Check compatible version
+    if (wasJustLoaded) {
+      // TODO
+    }
 
     this.$data.next(data);
 
@@ -378,29 +390,32 @@ export class ConfigService extends SoftwareService<Configuration> {
 
     // Try to load from local storage
     const value: any = await this.storage.get(CONFIGURATION_STORAGE_KEY);
-    if (value && typeof value === "string") {
-      try {
-        console.debug("[config] Restoring configuration from local storage...");
-
-        const json = JSON.parse(value);
-        data = Configuration.fromObject(json as any);
-
-        console.debug("[config] Restoring configuration [OK]");
-      } catch (err) {
-        console.error(`Failed to restore config from local storage: ${err && err.message || err}`, err);
+    if (value) {
+      console.debug("[config] Restoring configuration from local storage...");
+      if (typeof value === "string") {
+        try {
+          data = Configuration.fromObject(JSON.parse(value));
+        } catch (err) {
+          console.error(`Failed to parse config found in local storage: ${err && err.message || err}`, err);
+        }
       }
+      else if (typeof value === "object") {
+        data = Configuration.fromObject(value);
+      }
+
+      console.debug("[config] Restoring configuration [OK]");
     }
 
     // Or load default value, from the environment
     if (!data) {
       console.debug("[config] No configuration found. Using environment...");
-      data = Configuration.fromObject(environment as any);
+      data = Configuration.fromObject(this.environment as any);
     }
 
     return data;
   }
 
-  private async saveLocally(data?: Configuration) {
+  private async storeLocally(data?: Configuration) {
     // Nothing to store : reset
     if (!data) {
       await this.storage.remove(CONFIGURATION_STORAGE_KEY);
@@ -434,6 +449,7 @@ export class ConfigService extends SoftwareService<Configuration> {
           // WARN: it's NOT necessary to convert AL image, but only one, for smaller memory footprint
           const index = data.backgroundImages.findIndex((img) => img && img.startsWith('http'));
           if (index !== -1) {
+            data.backgroundImages = data.backgroundImages.slice(); // Copy
             jobs.push(
               this.file.getImage(data.backgroundImages[index], options)
                 .then(dataUrl => data.backgroundImages[index] = dataUrl));
@@ -468,12 +484,11 @@ export class ConfigService extends SoftwareService<Configuration> {
         }
       }
 
-      // Saving config (as string)
+      // Saving config to storage
       {
         now = this._debug && Date.now();
         if (this._debug) console.debug("[config] Saving config into local storage...");
-        const jsonStr = JSON.stringify(data);
-        await this.storage.set(CONFIGURATION_STORAGE_KEY, jsonStr);
+        await this.storage.set(CONFIGURATION_STORAGE_KEY, data.asObject());
         if (this._debug) console.debug(`[config] Saving config into local storage [OK] in ${Date.now() - now}ms`);
       }
     }
@@ -487,22 +502,25 @@ export class ConfigService extends SoftwareService<Configuration> {
     console.info("[config] Updating model enumerations...");
 
     // Location Levels
-    LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_COUNTRY_ID);
-    LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_PORT_ID);
-    LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_AUCTION_ID);
-    LocationLevelIds.ICES_RECTANGLE = config.getProperty(ConfigOptions.LOCATION_LEVEL_ICES_RECTANGLE_ID);
-    LocationLevelIds.ICES_DIVISION = config.getProperty(ConfigOptions.LOCATION_LEVEL_ICES_DIVISION_ID);
+    LocationLevelIds.COUNTRY = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
+    LocationLevelIds.PORT = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
+    LocationLevelIds.AUCTION = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.ICES_RECTANGLE = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_RECTANGLE_ID);
+    LocationLevelIds.ICES_DIVISION = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_DIVISION_ID);
 
     // User profiles
-    UserProfileLabels.ADMIN = config.getProperty(ConfigOptions.PROFILE_ADMIN_LABEL);
-    UserProfileLabels.SUPERVISOR = config.getProperty(ConfigOptions.PROFILE_SUPERVISOR_LABEL);
-    UserProfileLabels.USER = config.getProperty(ConfigOptions.PROFILE_USER_LABEL);
+    UserProfileLabels.ADMIN = config.getProperty(CORE_CONFIG_OPTIONS.PROFILE_ADMIN_LABEL);
+    UserProfileLabels.SUPERVISOR = config.getProperty(CORE_CONFIG_OPTIONS.PROFILE_SUPERVISOR_LABEL);
+    UserProfileLabels.USER = config.getProperty(CORE_CONFIG_OPTIONS.PROFILE_USER_LABEL);
 
     // Taxon group
     // TODO: add all enumerations
     //TaxonGroupIds.FAO =
   }
 
+  protected async showToast(opts: ShowToastOptions) {
+    await Toasts.show(this.toastController, this.translate, opts);
+  }
 }
 
 

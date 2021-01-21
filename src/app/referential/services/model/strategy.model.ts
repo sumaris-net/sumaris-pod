@@ -8,9 +8,9 @@ import {
 import {Entity} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
 import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/functions";
 import {TaxonGroupRef, TaxonNameRef} from "./taxon.model";
 import {PmfmStrategy} from "./pmfm-strategy.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export class Strategy extends Referential<Strategy> {
@@ -38,14 +38,12 @@ export class Strategy extends Referential<Strategy> {
   gears: any[];
   taxonGroups: TaxonGroupStrategy[];
   taxonNames: TaxonNameStrategy[];
-
   programId: number;
-
 
   constructor(data?: {
     id?: number,
     label?: string,
-    name?: string,
+    name?: string
   }) {
     super();
     this.id = data && data.id;
@@ -86,6 +84,7 @@ export class Strategy extends Referential<Strategy> {
     this.comments = source.comments;
     this.analyticReference = source.analyticReference;
     this.statusId = source.statusId;
+    this.programId = source.programId;
     this.creationDate = fromDateISOString(source.creationDate);
     this.appliedStrategies = source.appliedStrategies && source.appliedStrategies.map(AppliedStrategy.fromObject) || [];
     this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
@@ -94,7 +93,6 @@ export class Strategy extends Referential<Strategy> {
     // Taxon groups, sorted by priority level
     this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
-    this.programId=source.programId;
   }
 
   equals(other: Strategy): boolean {
@@ -279,6 +277,7 @@ export class TaxonNameStrategy {
 
 }
 
+// TODO BLA: use pipe, on department ? ?
 export function departmentsToString(data: Strategy, separator?: string): string {
   let departments = data.departments;
   separator = separator || ", ";

@@ -1,7 +1,6 @@
 import {NgModule, Type} from "@angular/core";
 import {CdkTableModule} from "@angular/cdk/table";
 
-import {fadeInAnimation, slideInOutAnimation} from './material.animations';
 import {A11yModule} from "@angular/cdk/a11y";
 import {OverlayModule} from "@angular/cdk/overlay";
 import {ScrollingModule} from "@angular/cdk/scrolling";
@@ -35,10 +34,9 @@ import {SharedMatDateTimeModule} from "./datetime/datetime.module";
 import {SharedMatDurationModule} from "./duration/duration.module";
 import {SharedMatBooleanModule} from "./boolean/boolean.module";
 import {SharedMatNumpadModule} from "./numpad/numpad.module";
-import {InputElement} from "../inputs";
 import {SharedMatSwipeModule} from "./swipe/swipe.module";
-
-export { fadeInAnimation, slideInOutAnimation, InputElement };
+import {MatDividerModule} from "@angular/material/divider";
+import {MatTooltipModule} from "@angular/material/tooltip";
 
 const modules: Array<Type<any> | any[]> = [
   // Angular material components
@@ -71,6 +69,8 @@ const modules: Array<Type<any> | any[]> = [
   OverlayModule,
   ScrollingModule,
   MatRippleModule,
+  MatDividerModule,
+  MatTooltipModule,
   // Custom components
   SharedMatAutocompleteModule,
   SharedMatLatLongModule,

@@ -19,7 +19,6 @@ import {Configuration} from "../services/model/config.model";
 import {AccountService} from "../services/account.service";
 import {AboutModal} from '../about/modal-about';
 
-import {environment} from '../../../environments/environment';
 import {fadeInAnimation} from '../../shared/material/material.animations';
 import {TranslateService} from "@ngx-translate/core";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -28,8 +27,10 @@ import {ConfigService} from "../services/config.service";
 import {mergeMap, tap} from "rxjs/operators";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
 import {PlatformService} from "../services/platform.service";
+import {IconRef} from "../../shared/types";
+import {EnvironmentService} from "../../../environments/environment.class";
 
-export interface MenuItem {
+export interface MenuItem extends IconRef {
   title: string;
   path?: string;
   action?: string | any;
@@ -37,13 +38,14 @@ export interface MenuItem {
   matIcon?: string;
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
-  color?: string,
+  color?: string;
   cssClass?: string;
   // A config property, to enable the menu item
   ifProperty?: string;
   // A config property, to override the title
   titleProperty?: string;
   titleArgs?: {[key: string]: string};
+  children?: MenuItem[];
 }
 
 export class MenuItems {
@@ -65,9 +67,9 @@ export class MenuItems {
     }
 
     else if (item.exactProfile) {
-      const hasExactProfile =  accountService.isLogin() && accountService.hasExactProfile(item.profile);
+      const hasExactProfile =  accountService.isLogin() && accountService.hasExactProfile(item.exactProfile);
       if (!hasExactProfile) {
-        if (opts.debug) console.debug("[menu] User does not have exact profile '" + item.exactProfile + "' for ", item.path);
+        if (opts.debug) console.debug(`${opts && opts.logPrefix || '[menu]'} Hide item '${item.title}': need exact profile '${item.exactProfile}' to access path '${item.path}'`);
         return false;
       }
     }
@@ -107,7 +109,10 @@ export class MenuComponent implements OnInit {
 
   public loading = true;
   public isLogin = false;
-  public account: Account;
+  accountName: string;
+  accountAvatar: string;
+  accountEmail: string;
+
   public splitPaneOpened: boolean;
 
   @Input() logo: String;
@@ -117,7 +122,7 @@ export class MenuComponent implements OnInit {
   $filteredItems = new BehaviorSubject<MenuItem[]>(undefined);
 
   @Input()
-  appVersion: String = environment.version;
+  appVersion: String = this.environment.version;
 
   @Input() side = "left";
 
@@ -133,6 +138,7 @@ export class MenuComponent implements OnInit {
     protected translate: TranslateService,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment,
     @Optional() @Inject(APP_MENU_ITEMS) public items: MenuItem[]
   ) {
 
@@ -183,7 +189,9 @@ export class MenuComponent implements OnInit {
 
   async onLogin(account: Account) {
     console.info('[menu] Update using logged account');
-    this.account = account;
+    this.accountAvatar = account.avatar;
+    this.accountName = account.displayName;
+    this.accountEmail = account.email;
     this.isLogin = true;
     await this.refreshMenuItems();
 
@@ -198,7 +206,9 @@ export class MenuComponent implements OnInit {
     this.isLogin = false;
     //this.splitPaneOpened = false;
     //this.splitPane.when = false;
-    this.account = null;
+    this.accountAvatar = null;
+    this.accountEmail = null;
+    this.accountName = null;
     await this.refreshMenuItems();
 
     // Wait the end of fadeout, to reset the account

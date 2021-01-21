@@ -159,15 +159,9 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean'
   },
   OBSERVED_LOCATION_LOCATION_LEVEL_ID: <FormFieldDefinition>{
-    key: 'sumaris.observedLocation.locationLevel.id',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_ID",
-    type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [0,1]
-      }
-    },
+    key: 'sumaris.observedLocation.location.level.ids',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS",
+    type: 'string',
     defaultValue: LocationLevelIds.PORT.toString()
   },
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE: <FormFieldDefinition>{
@@ -222,6 +216,12 @@ export const ProgramProperties = Object.freeze({
     ],
     defaultValue: 'landing'
   },
+  VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.vessel.type.enable',
+    label: "PROGRAM.OPTIONS.VESSEL_TYPE_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   LANDING_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.dateTime.enable',
     label: "PROGRAM.OPTIONS.LANDING_DATE_TIME_ENABLE",
@@ -236,9 +236,10 @@ export const ProgramProperties = Object.freeze({
   },
 
   /* -- Landed trip options -- */
+
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID: <FormFieldDefinition>{
     key: 'sumaris.landedTrip.fishingArea.locationLevel.id',
-    label: 'CONFIGURATION.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID',
+    label: 'PROGRAM.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID',
     type: 'entity',
     autocomplete: {
       filter: {
@@ -248,7 +249,11 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
   },
-   
+
+  /* -- Program / stretgy options -- */
+
+  // TODO BLA rename this:
+  //    pourquoi ne pas appeller cela sumaris.strategy.editor, avec une enumeration ?
   // simple strategies
   SIMPLE_STRATEGIES: <FormFieldDefinition>{
     key: "sumaris.simple.strategies.enable",
@@ -257,23 +262,31 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean'
   },
 
-
   // PROGRAM STRATEGY EDITOR
-    PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
-      key: 'sumaris.program.strategy.editor.pmfm.table.column.name',
-      label: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME',
-      type: 'enum',
-      values: [
-        {
-          key: 'shortName',
-          value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME'
-        },
-        {
-          key: 'longName',
-          value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME'
-        }
-      ],
-      defaultValue: 'longName'
-    },
+  PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.editor.pmfm.table.column.name',
+    label: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME',
+    type: 'enum',
+    values: [
+      {
+        key: 'shortName',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME'
+      },
+      {
+        key: 'longName',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME'
+      }
+    ],
+    defaultValue: 'longName'
+  },
+
+  /* -- QUalitative value options -- */
+
+  MEASUREMENTS_MAX_VISIBLE_BUTTONS: <FormFieldDefinition>{
+    key: 'sumaris.measurements.maxVisibleButtons',
+    label: 'PROGRAM.OPTIONS.MEASUREMENTS_MAX_VISIBLE_BUTTONS',
+    type: 'integer',
+    defaultValue: 10 // Use -1 for all
+  },
 });
 

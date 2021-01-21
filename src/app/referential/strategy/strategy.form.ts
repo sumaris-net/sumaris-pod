@@ -1,13 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {AppEntityEditor, isNotNil, ReferentialRef, referentialToString} from "../../core/core.module";
 import {ReferentialForm} from "../form/referential.form";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmStrategiesTable, PmfmStrategyFilter} from "./pmfm-strategies.table";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {SelectReferentialModal} from "../list/select-referential.modal";
 import {ModalController} from "@ionic/angular";
 import {AppListForm, AppListFormOptions} from "../../core/form/list.form";
-import {isEmptyArray, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNotNil, toNumber} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -20,8 +19,9 @@ import {AccountService} from "../../core/services/account.service";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model/strategy.model";
 import {Program} from "../services/model/program.model";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {TableElement} from "@e-is/ngx-material-table";
+
+import {referentialToString} from "../../core/services/model/referential.model";
+import {AppEntityEditor} from "../../core/form/editor.class";
 
 @Component({
   selector: 'app-strategy-form',
@@ -36,7 +36,6 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
 
 
   private $isPmfmStrategyEmpty = new BehaviorSubject<boolean>(true);
-  private $disabledRemoveButtons = new BehaviorSubject<boolean>(true);
 
   filterForm: FormGroup;
   $filter = new BehaviorSubject<Partial<PmfmStrategyFilter>>({});
@@ -146,10 +145,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
   }
 
   ngOnInit() {
-    //this.referentialForm.setForm(this.validatorService.getFormGroup());
-
     super.ngOnInit();
-
 
     this.registerSubscription(
       this.$filter
@@ -164,7 +160,6 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
       this.referentialRefService.watchAll(0,1000, 'name', 'asc', {entityName: 'AcquisitionLevel'}, {fetchPolicy: 'cache-first', withTotal: false})
         .subscribe(res => this.$allAcquisitionLevels.next(res && res.data || []))
     );
-
 
     // Listen when Pmfm selection is empty
     this.registerSubscription(
@@ -256,7 +251,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
     });
 
     // Add to list
-    (items || []).forEach(item => this.acquisitionLevelList.add(item))
+    (items || []).forEach(item => this.acquisitionLevelList.add(item));
 
     this.markForCheck();
   }
@@ -272,7 +267,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
     });
 
     // Add to list
-    (items || []).forEach(item => this.locationListForm.add(item))
+    (items || []).forEach(item => this.locationListForm.add(item));
 
     this.markForCheck();
   }
@@ -288,7 +283,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
     });
 
     // Add to list
-    (items || []).forEach(item => this.gearListForm.add(item))
+    (items || []).forEach(item => this.gearListForm.add(item));
     this.markForCheck();
   }
 
@@ -309,7 +304,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
       priorityLevel,
       taxonGroup: taxonGroup.asObject()
     }))
-      .forEach(item => this.taxonGroupListForm.add(item))
+      .forEach(item => this.taxonGroupListForm.add(item));
     this.markForCheck();
   }
 
@@ -330,7 +325,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
       priorityLevel,
       taxonName: taxonName.asObject()
     }))
-      .forEach(item => this.taxonNameListForm.add(item))
+      .forEach(item => this.taxonNameListForm.add(item));
     this.markForCheck();
   }
 
@@ -455,7 +450,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
         if (!control) throw new Error('Control not found in row validator: ' + arrayName);
 
         const existingValues = (control.value || []) as number[];
-        let index = existingValues.indexOf(value);
+        const index = existingValues.indexOf(value);
         if (index !== -1) {
           existingValues.splice(index, 1);
           control.setValue(existingValues, {emitEvent: false});

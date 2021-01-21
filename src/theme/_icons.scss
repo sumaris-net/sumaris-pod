@@ -1,3 +1,5 @@
+@import "mixins";
+
 // Ionicons Icon Font CSS
 // --------------------------
 // Ionicons CSS for Ionic's <ion-icon> element
@@ -11,3 +13,14 @@ $ionicons-font-path: $font-path !default;
 // Import material icons
 // --------------------------------------------------
 @import '~material-design-icons/iconfont/material-icons.css';
+
+
+mat-icon > span {
+  position: absolute;
+  margin-top: -2px;
+  margin-left: -6px;
+}
+
+
+
+@include set-color-each-ion-colors('mat-icon');

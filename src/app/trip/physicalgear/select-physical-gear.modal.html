@@ -23,10 +23,10 @@
 <ion-content class="ion-no-padding">
 
     <app-physicalgears-table #table
-                             [dataService]=""
-                       [canEdit]="false"
-                       [canDelete]="false"
-                       (onOpenRow)="selectRow($event)">
+                             [canEdit]="false"
+                             [canDelete]="false"
+                             [showSelectColumn]="false"
+                             (onOpenRow)="selectRow($event)">
     </app-physicalgears-table>
 
 </ion-content>

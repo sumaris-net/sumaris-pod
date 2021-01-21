@@ -3,7 +3,7 @@
   <!-- Step 1: Username -->
   <mat-step [stepControl]="forms[0]" *ngIf="forms[0].controls; let controls">
 
-    <form [formGroup]="forms[0]" class="form-container ion-padding" (keyup.enter)="slideNext()">
+    <form [formGroup]="forms[0]" class="form-container ion-padding" (keyup.enter)="slideNext($event)">
       <ng-template matStepLabel>{{'REGISTER.STEP_EMAIL'|translate}}</ng-template>
 
       <!-- Email -->
@@ -35,22 +35,26 @@
   <!-- Step 2: Password -->
   <mat-step [stepControl]="forms[1]" *ngIf="forms[1].controls; let controls">
 
-    <form [formGroup]="forms[1]" class="form-container ion-padding" (keyup.enter)="slideNext()">
+    <form [formGroup]="forms[1]" class="form-container ion-padding" (keyup.enter)="slideNext($event)">
 
       <ng-template matStepLabel>{{'REGISTER.STEP_PASSWORD'|translate}}</ng-template>
 
       <!-- Password -->
       <mat-form-field>
-        <input matInput [placeholder]="'USER.PASSWORD'|translate" formControlName="password"
+        <input matInput [placeholder]="'USER.PASSWORD'|translate"
+               formControlName="password"
                autocomplete="section-red new-password"
                [type]="showPwd ? 'text' : 'password'"
                required>
-        <button mat-icon-button matSuffix (click)="showPwd = !showPwd" [attr.aria-pressed]="showPwd">
-          <mat-icon>{{showPwd ? 'visibility' : 'visibility_off'}}</mat-icon>
+        <button matSuffix mat-icon-button
+                type="button"
+                (click)="showPwd = !showPwd"
+                tabindex="-1">
+          <mat-icon>{{showPwd ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
         <mat-error *ngIf="controls.password.hasError('required') && controls.password.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.password.hasError('minlength') && controls.password.touched">
-          <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 8} }}</span>
+          <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 8} }}</span>
         </mat-error>
       </mat-form-field>
 
@@ -61,8 +65,10 @@
                autocomplete="section-red new-password"
                [type]="showConfirmPwd ? 'text' : 'password'"
                required>
-        <button mat-icon-button matSuffix (click)="showConfirmPwd = !showConfirmPwd" [attr.aria-pressed]="showConfirmPwd">
-          <mat-icon>{{showConfirmPwd ? 'visibility' : 'visibility_off'}}</mat-icon>
+        <button mat-icon-button matSuffix
+                (click)="showConfirmPwd = !showConfirmPwd"
+                tabindex="-1">
+          <mat-icon>{{showConfirmPwd ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
         <mat-error *ngIf="controls.confirmPassword.hasError('required') && controls.confirmPassword.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.confirmPassword.hasError('equals') && controls.confirmPassword.touched">
@@ -93,7 +99,7 @@
           required>
         <mat-error *ngIf="controls.lastName.hasError('required') && controls.lastName.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.lastName.hasError('minlength') && controls.lastName.dirty">
-          <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+          <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
         </mat-error>
       </mat-form-field>
 
@@ -103,7 +109,7 @@
           required>
         <mat-error *ngIf="controls.firstName.hasError('required') && controls.firstName.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.firstName.hasError('minlength') && controls.firstName.dirty">
-          <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+          <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
         </mat-error>
       </mat-form-field>
 

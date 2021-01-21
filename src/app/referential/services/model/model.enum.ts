@@ -40,15 +40,33 @@ export const PmfmIds = {
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102,
   IS_SAMPLING: 121,
+  BATCH_MEASURED_WEIGHT: 91,
+  BATCH_ESTIMATED_WEIGHT: 92,
+  BATCH_CALCULATED_WEIGHT: 93,
 
   /* ADAP pmfms */
   LENGTH_TOTAL_CM: 81, // Use for test only
   SELF_SAMPLING_PROGRAM: 28,
   CONTROLLED_SPECIES: 134,
   SAMPLE_MEASURED_WEIGHT: 140,
-  OUT_OF_SIZE: 142,
+  SAMPLE_INDIV_COUNT: 153,
+  OUT_OF_SIZE_WEIGHT: 142,
   OUT_OF_SIZE_PCT: 143,
-  VIVACITY: 144
+  OUT_OF_SIZE_INDIV_COUNT: 152,
+  PARASITIZED_INDIV_COUNT: 155,
+  PARASITIZED_INDIV_PCT: 156,
+  DIRTY_INDIV_COUNT: 157,
+  DIRTY_INDIV_PCT: 158,
+  VIVACITY: 144,
+
+  /* OBSDEB pmfms */
+  PACKAGING: 177,
+  SIZE_CATEGORY: 174,
+  TOTAL_PRICE: 270,
+  AVERAGE_PACKAGING_PRICE: 271,
+  AVERAGE_PRICE_WEI: 272,
+  SALE_ESTIMATED_RATIO: 278,
+  SALE_RANK_ORDER: 279,
 };
 
 export const QualitativeLabels = {
@@ -74,9 +92,22 @@ export const MethodIds = {
 };
 
 export const PmfmLabelPatterns = {
-  BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/
+  BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/,
+  LATITUDE: /^latitude$/i,
+  LONGITUDE: /^longitude$/i
 };
 
+export const UnitLabelPatterns = {
+  DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
+  DATE_TIME: /^Date[ &]+Time$/
+};
+
+// TODO Should be override by config properties
+export const UnitLabel = {
+  DECIMAL_HOURS: 'h dec.',
+  DATE_TIME: 'Date & Time',
+  KG: 'kg'
+};
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
   GOOD: 1,
@@ -120,6 +151,13 @@ export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   EXPENSE: 'EXPENSE',
   BAIT_EXPENSE: 'BAIT_EXPENSE',
   ICE_EXPENSE: 'ICE_EXPENSE'
+};
+
+export const SaleTypeIds = {
+  AUCTION: 1,
+  DIRECT: 2,
+  EXPORT: 3,
+  OTHER: 4
 };
 
 

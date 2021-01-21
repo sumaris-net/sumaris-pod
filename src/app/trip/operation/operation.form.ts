@@ -1,23 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional} from '@angular/core';
 import {OperationValidatorService} from "../services/validator/operation.validator";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {
-  AppForm,
-  EntityUtils,
-  fromDateISOString,
-  IReferentialRef,
-  isNotNil,
-  ReferentialRef
-} from '../../core/core.module';
-
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {FormGroup, ValidationErrors} from "@angular/forms";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
-import {isNotEmptyArray} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SharedValidators} from "../../shared/validator/validators";
@@ -26,6 +18,11 @@ import {BehaviorSubject} from "rxjs";
 import {distinctUntilChanged} from "rxjs/operators";
 import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {Geolocation} from "@ionic-native/geolocation/ngx";
+import {GeolocationOptions} from "@ionic-native/geolocation";
+import {AppForm} from "../../core/form/form.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {fromDateISOString} from "../../shared/dates";
 
 @Component({
   selector: 'app-form-operation',
@@ -76,19 +73,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         if (!control.touched) return null;
         const endDateTime = fromDateISOString(control.value);
 
-        console.debug("[operation] Validating endDateTime: ", endDateTime);
+        // Make sure trip.departureDateTime < operation.endDateTime
+        if (endDateTime && trip.departureDateTime && trip.departureDateTime.isBefore(endDateTime) === false) {
+          console.warn(`[operation] Invalid operation endDateTime: before the trip! `, endDateTime, trip.departureDateTime);
+          return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP')};
+        }
+        // Make sure operation.endDateTime < trip.returnDateTime
+        else if (endDateTime && trip.returnDateTime && endDateTime.isBefore(trip.returnDateTime) === false) {
+          console.warn(`[operation] Invalid operation endDateTime: after the trip! `, endDateTime, trip.returnDateTime);
+          return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP')};
+        }
 
-        // Make sure: trip.departureDateTime < operation.endDateTime < trip.returnDateTime
-        if (endDateTime) {
-          if (trip.departureDateTime && endDateTime.isBefore(trip.departureDateTime)) {
-            return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP')};
-          } else if (trip.returnDateTime && endDateTime.isAfter(trip.returnDateTime)) {
-            return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP')};
-          }
-        }
-        else {
-          SharedValidators.clearError(control, 'msg');
-        }
+        // OK: clear existing errors
+        SharedValidators.clearError(control, 'msg');
         return null;
       });
     }
@@ -102,7 +99,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected platform: PlatformService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Optional() protected geolocation: Geolocation
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
@@ -174,21 +172,43 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   /**
    * Get the position by geo loc sensor
    */
-  getGeoCoordinates(): Promise<{ latitude: number; longitude: number; }> {
+  async getGeoCoordinates(options?: GeolocationOptions): Promise<{ latitude: number; longitude: number; }> {
+    options = {
+        maximumAge: 30000/*30s*/,
+        timeout: 10000/*10s*/,
+        enableHighAccuracy: true,
+        ...options
+      };
+
+    // Use ionic-native plugin
+    if (this.geolocation != null) {
+      try {
+        const res = await this.geolocation.getCurrentPosition(options);
+        return {
+          latitude: res.coords.latitude,
+          longitude: res.coords.longitude
+        };
+      }
+      catch(err) {
+        console.error(err);
+        throw err;
+      }
+    }
+
+    // Or fallback to navigator
     return new Promise<{ latitude: number; longitude: number; }>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
-        (position: Position) => {
+        (res: Position) => {
           resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
+            latitude: res.coords.latitude,
+            longitude: res.coords.longitude
           });
         },
         (err) => {
           console.error(err);
           reject(err);
         },
-        // Options
-        { maximumAge: 3000, timeout: 1000, enableHighAccuracy: false }
+        options
       );
     });
   }

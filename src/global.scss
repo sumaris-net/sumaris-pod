@@ -20,12 +20,10 @@ body {
 
 // Text style
 // --------------------------------------------------
-*[text-italic],
 .text-italic {
   font-style: italic;
 }
-*[text-wrap],
-.text-wrap {
+.ion-text-wrap {
   white-space: normal;
   word-wrap: break-word;
 }
@@ -66,6 +64,7 @@ ion-toast-controller,
   opacity: 0;
 }
 
+ion-toolbar ion-title,
 app-toolbar ion-title {
   small {
     font-weight: normal;
@@ -75,22 +74,23 @@ app-toolbar ion-title {
     }
   }
   // Add a separator, after the <small> part
-  small:after {
+  small:first-of-type:after {
     content: " -  ";
   }
 }
 
 @media screen and (max-width: $screen-sm-max) {
+  ion-toolbar ion-title,
   app-toolbar ion-title {
     small {
-      font-size: 10pt;
+      @include font-size(10pt);
     }
     small br {
       display: unset;
       visibility: unset;
     }
     // Add a separator, after the <small> part
-    small:after {
+    small:first-of-type:after {
       content: "";
     }
   }
@@ -183,7 +183,7 @@ form.form-container {
   }
 
   mat-form-field {
-    font-size: 16px !important;
+    @include font-size-important(16px);
 
     ion-icon[matPrefix],
     mat-icon[matPrefix],
@@ -213,7 +213,7 @@ form.form-container {
     // When field use choice button, reduce the font size, and optimize layout
     button.mat-form-field-button,
     ion-button.mat-form-field-button {
-      font-size: 12px !important;
+      @include font-size-important(12px);
       margin: 0;
       white-space: normal;
     }
@@ -266,7 +266,7 @@ mat-form-field {
   }
 
   .mat-paginator-page-size-select {
-    font-size: 14px !important;
+    @include font-size-important(14px);
   }
 }
 
@@ -308,11 +308,15 @@ mat-option:not(:last-child) {
 
 .mat-select-panel {
   --min-width: 200px;
+  --max-width: 100%;
   min-width: var(--min-width) !important;
+  max-width: var(--max-width) !important;
 }
 .mat-autocomplete-panel {
   --min-width: 250px;
+  --max-width: 100%;
   min-width: var(--min-width) !important;
+  max-width: var(--max-width) !important;
 }
 
 .mat-autocomplete-panel-medium-size .mat-autocomplete-panel,
@@ -353,7 +357,7 @@ mat-option:not(:last-child) {
   ion-row.mat-autocomplete-header {
     background-color: var(--ion-color-secondary);
     color: var(--ion-color-secondary-contrast);
-    font-size: 12px;
+    @include font-size(12px);
     font-weight: 500;
     height: 20px;
     line-height: 20px;
@@ -389,14 +393,13 @@ mat-option:not(:last-child) {
 }
 
 mat-expansion-panel {
-  --expansion-panel-padding: 0 24px 16px;
-  --expansion-panel-header-padding: 0 24px;
 
+  .mat-expansion-panel-header,
   mat-expansion-panel-header {
     padding: var(--expansion-panel-header-padding, var(--expansion-panel-padding));
   }
   .mat-expansion-panel-body {
-    padding: var(--expansion-panel-padding);
+    padding: var(--expansion-panel-padding, var(--ion-padding));
   }
 }
 
@@ -487,7 +490,7 @@ mat-table {
     border-left: 2px solid transparent;
     max-height: 52px;
     z-index: 999;
-    padding: 0 !important;
+    padding: 0 0 0 5px !important;
 
     mat-cell:last-child,
     mat-footer-cell:last-child,
@@ -636,6 +639,11 @@ mat-table {
       padding-top: 0.4em;
     }
 
+    .mat-boolean-field-button.mat-form-field-appearance-legacy .mat-form-field-infix,
+    .mat-boolean-field-button .mat-form-field-infix {
+      // Increase top border (because of button height)
+      padding-top: 0.4em;
+    }
 
   }
 
@@ -649,7 +657,7 @@ mat-table {
   .mat-row.mat-small .mat-cell,
   .mat-row .mat-cell.mat-small{
     line-height: 15px;
-    font-size: 12px;
+    @include font-size(12px);
   }
 
   mat-cell .avatar {
@@ -684,6 +692,10 @@ mat-table {
 
     .mat-cell{
       color: var(--ion-color-secondary100-contrast);
+    }
+
+    &.mat-row-disabled:hover {
+      background-color: var(--ion-color-secondary100-shade) !important;
     }
   }
 
@@ -828,12 +840,22 @@ mat-tab-group.mat-tab-disabled-hidden .mat-tab-disabled {
   }
   //  Reduce the font size, on label just inside a mat-menu (e.g. see trips.page.html)
   .mat-menu-content > ion-label {
-    font-size: 12px;
+    @include font-size(12px);
   }
 
   .mat-menu-content ion-item > ion-icon[slot="start"] {
     margin-right: 16px;
     vertical-align: middle;
+  }
+
+  // Menu title (e.g. see extraction map)
+  .mat-menu-item.mat-menu-title {
+    padding: 0 8px;
+    height: 27px;
+    line-height: 27px;
+    @include font-size(12px);
+    pointer-events: none;
+    color: var(--ion-color-medium, rgba(0, 0, 0, 0.38));
   }
 }
 
@@ -934,6 +956,27 @@ ion-item {
 }
 
 // --------------------------------------------------
+// Icon tooltip, and title
+// --------------------------------------------------
+// Fix Button icon name overrides button's own title on mouse over
+/*ion-icon[name='chatbox'] {
+  pointer-events: none !important;
+}*/
+mat-icon,
+ion-icon {
+  &.comment {
+    font-size: 14pt;
+    height: 100%;
+    vertical-align: center;
+    color: var(--ion-color-tertiary, grey);
+
+    &.disabled {
+      color: var(--ion-color-medium, grey);
+    }
+  }
+}
+
+// --------------------------------------------------
 // Icon inside text
 // --------------------------------------------------
 mat-icon,
@@ -988,21 +1031,22 @@ ion-toast {
   --background:  var(--ion-color-dark);
   --color: var(--ion-color-dark-contrast);
   --button-color: var(--ion-color-secondary);
-}
-ion-toast.secondary {
-  --background: var(--ion-color-secondary);
-  --color: var(--ion-color-secondary-contrast);
-  --button-color: var(--ion-color-tertiary);
-}
-ion-toast.accent {
-  --background: var(--ion-color-accent);
-  --color: var(--ion-color-accent-contrast);
-  --button-color: var(--ion-color-tertiary);
-}
-ion-toast.danger {
-  --background: var(--ion-color-danger);
-  --color: var(--ion-color-danger-contrast);
-  --button-color: var(--ion-color-tertiary);
+
+  &.secondary {
+    --background: var(--ion-color-secondary);
+    --color: var(--ion-color-secondary-contrast);
+    --button-color: var(--ion-color-tertiary);
+  }
+  &.accent {
+    --background: var(--ion-color-accent);
+    --color: var(--ion-color-accent-contrast);
+    --button-color: var(--ion-color-primary);
+  }
+  &.danger {
+    --background: var(--ion-color-danger);
+    --color: var(--ion-color-danger-contrast);
+    --button-color: var(--ion-color-primary);
+  }
 }
 
 // --------------------------------------------------

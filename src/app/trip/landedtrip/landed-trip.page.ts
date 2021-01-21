@@ -1,29 +1,20 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, isNotNil, ReferentialRef} from '../../core/core.module';
-import {
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  isNil,
-  isNotEmptyArray,
-  isNotNilOrBlank
-} from '../../shared/shared.module';
-import * as moment from "moment";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import * as momentImported from "moment";
+import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
-import {TripService, TripServiceSaveOption} from "../services/trip.service";
+import {TripService, TripSaveOptions} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isEmptyArray} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
-import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
 import {Product, ProductFilter} from "../services/model/product.model";
@@ -33,12 +24,21 @@ import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {fillRankOrder, isRankOrderValid} from "../../data/services/model/model.utils";
 import {SaleProductUtils} from "../services/model/sale-product.model";
-import {debounceTime, filter} from "rxjs/operators";
+import {debounceTime, filter, first} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
 import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
+import {Landing} from "../services/model/landing.model";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {ReferentialRef} from "../../core/services/model/referential.model";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {Program} from "../../referential/services/model/program.model";
+import {environment} from "../../../environments/environment";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -51,8 +51,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   observedLocationId: number;
-
-  selectedCatchTabIndex = 0;
 
   showOperationGroupTab = false;
   showCatchTab = false;
@@ -76,11 +74,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
   @ViewChild('fishingAreaForm', {static: true}) fishingAreaForm: FishingAreaForm;
   @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
-  @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
   @ViewChild('packetsTable', {static: true}) packetsTable: PacketsTable;
   @ViewChild('expenseForm', {static: true}) expenseForm: ExpenseForm;
-  // @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
+
+  @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
+
   private _sale: Sale; // pending sale
 
   constructor(
@@ -90,7 +89,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
-    protected formBuilder: FormBuilder
+    protected formBuilder: FormBuilder,
   ) {
     super(injector,
       Trip,
@@ -109,31 +108,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(async program => {
-          if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
-
-          // Configure trip form
-          this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
-          if (!this.tripForm.showObservers) {
-            this.data.observers = []; // make sure to reset data observers, if any
-          }
-          this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
-          if (!this.tripForm.showMetiers) {
-            this.data.metiers = []; // make sure to reset data metiers, if any
-          } else {
-            this.tripForm.metiersForm.valueChanges.subscribe(value => {
-              const metiers = ((value || []) as ReferentialRef[]).filter(metier => isNotNilOrBlank(metier));
-              if (JSON.stringify(metiers) !== JSON.stringify(this.$metiers.value || [])) {
-                if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
-                this.$metiers.next(metiers);
-              }
-            });
-          }
-
-          // Configure fishing area form
-          this.fishingAreaForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID);
-        })
+      this.onProgramChanged.subscribe(program => this.setProgram(program))
     );
 
     this.catchFilterForm = this.formBuilder.group({
@@ -170,28 +145,74 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       })
     );
 
-    // Update catch tab index
-    if (this.catchTabGroup) {
-      if (this.selectedTabIndex === 2) {
-        const queryParams = this.route.snapshot.queryParams;
-        this.selectedCatchTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
-      } else {
-        this.selectedCatchTabIndex = 0;
-      }
-      this.catchTabGroup.realignInkBar();
-    }
+  // Read the selected tab index, from path query params
+  this.registerSubscription(this.route.queryParams
+    .pipe(first())
+    .subscribe(queryParams => {
 
+      const tabIndex = queryParams["tab"] && parseInt(queryParams["tab"]) || 0;
+      const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
+
+      // Update catch tab index
+      if (this.catchTabGroup && tabIndex === 2) {
+        this.catchTabGroup.selectedIndex = subTabIndex;
+        this.catchTabGroup.realignInkBar();
+      }
+
+      // Update expenses tab group index
+      if (this.expenseForm && tabIndex === 3) {
+        this.expenseForm.selectedTabIndex = subTabIndex;
+        this.expenseForm.realignInkBar();
+      }
+    }));
+  }
+
+  onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
+    const changed = super.onTabChange(event, queryParamName);
+    // Force sub-tabgroup realign
+    if (changed) {
+      if (this.catchTabGroup && this.selectedTabIndex === 2) this.catchTabGroup.realignInkBar();
+      if (this.expenseForm && this.selectedTabIndex === 3) this.expenseForm.realignInkBar();
+      this.markForCheck();
+    }
+    return changed;
   }
 
   protected registerForms() {
     this.addChildForms([
       this.tripForm, this.measurementsForm, this.fishingAreaForm,
-      // this.landedSaleForm //, this.saleMeasurementsForm
       this.expenseForm,
       this.operationGroupTable, this.productsTable, this.packetsTable
     ]);
   }
 
+  protected setProgram(program: Program) {
+    if (!program) return; // Skip
+    if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
+
+    // Configure trip form
+    this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
+    if (!this.tripForm.showObservers) {
+      // make sure to reset data observers, if any
+      if (this.data) this.data.observers = [];
+    }
+    this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
+    if (!this.tripForm.showMetiers) {
+      // make sure to reset data metiers, if any
+      if (this.data) this.data.metiers = [];
+    } else {
+      this.tripForm.metiersForm.valueChanges.subscribe(value => {
+        const metiers = ((value || []) as ReferentialRef[]).filter(metier => isNotNilOrBlank(metier));
+        if (JSON.stringify(metiers) !== JSON.stringify(this.$metiers.value || [])) {
+          if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
+          this.$metiers.next(metiers);
+        }
+      });
+    }
+
+    // Configure fishing area form
+    this.fishingAreaForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID);
+  }
 
   async load(id?: number, options?: EntityServiceLoadOptions): Promise<void> {
 
@@ -245,7 +266,21 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (isNotNil(queryParams['landing'])) {
       const landingId = +queryParams['landing'];
       console.debug(`[landedTrip-page] Get landing id {${landingId}}...`);
-      data.landingId = landingId;
+      if (data.landing) {
+        data.landing.id = landingId;
+      } else {
+        data.landing = Landing.fromObject({id: landingId});
+      }
+    }
+    // Get the landing rankOrder
+    if (isNotNil(queryParams['rankOrder'])) {
+      const landingRankOrder = +queryParams['rankOrder'];
+      console.debug(`[landedTrip-page] Get landing rank order {${landingRankOrder}}...`);
+      if (data.landing) {
+        data.landing.rankOrderOnVessel = landingRankOrder;
+      } else {
+        data.landing = Landing.fromObject({rankOrderOnVessel: landingRankOrder});
+      }
     }
 
     if (this.isOnFieldMode) {
@@ -336,7 +371,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       // fix sale startDateTime
       data.sale.startDateTime = !data.sale.startDateTime ? data.returnDateTime : data.sale.startDateTime;
 
-      // this.landedSaleForm.value = data.sale;
       // keep sale object in safe place
       this._sale = data.sale;
 
@@ -428,11 +462,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }
   }
 
-  async devDownloadToLocal() {
+  async copyLocally() {
     if (!this.data) return;
 
     // Copy the trip
-    await (this.dataService as TripService).copyToOffline(this.data.id, {isLandedTrip: true, withOperationGroup: true});
+    await (this.dataService as TripService).copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
 
   }
 
@@ -468,6 +502,13 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }).toPromise();
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'boat'
+    };
+  }
+
   /**
    * Called by super.save()
    */
@@ -475,11 +516,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     const json = await super.getJsonValueToSave();
 
     // parent link
-    json.landingId = this.data.landingId;
-    json.observedLocationId = this.data.observedLocationId;
+    json.landing = this.data && this.data.landing && {id: this.data.landing.id, rankOrderOnVessel: this.data.landing.rankOrderOnVessel} || undefined;
+    json.observedLocationId = this.data && this.data.observedLocationId;
 
     // recopy vesselSnapshot (disabled control)
-    json.vesselSnapshot = this.data.vesselSnapshot;
+    json.vesselSnapshot = this.data && this.data.vesselSnapshot;
 
     // json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     // Concat trip and expense measurements
@@ -497,10 +538,15 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     // Restore sale
     json.sale = this._sale && this._sale.asObject();
     // Sale
-    // json.sale = this.landedSaleForm.value;
     if (json.sale) {
       // sale products won't be saved with sale directly
       delete json.sale.products;
+    } else {
+      // need a sale object if any sale product found
+      if (products.find(product => isNotEmptyArray(product.saleProducts))
+        || packets.find(packet => isNotEmptyArray(packet.saleProducts))) {
+        json.sale = {saleType: {id: SaleTypeIds.OTHER}};
+      }
     }
 
     // Affect in each operation group : products and packets
@@ -517,8 +563,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   async save(event, options?: any): Promise<boolean> {
 
-    const saveOptions: TripServiceSaveOption = {
-      isLandedTrip: true // indicate service to reload with LandedTrip query
+    const saveOptions: TripSaveOptions = {
+      withLanding: true // indicate service to reload with LandedTrip query
     };
 
     // Save children in-memory datasources
@@ -545,7 +591,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       this.operationGroupTable.addRow(event);
     }
     else if (this.showCatchTab && this.selectedTabIndex === 2) {
-      switch (this.selectedCatchTabIndex) {
+      switch (this.catchTabGroup.selectedIndex) {
         case 0:
           this.productsTable.addRow(event);
           break;
@@ -579,15 +625,14 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
    * @param queryParams
    */
   protected async updateRoute(data: Trip, queryParams: any): Promise<boolean> {
-    return await this.router.navigateByUrl(`${this.defaultBackHref}/trip/${data.id}`, {
+    const commands = this.defaultBackHref.split('/').concat(['trip', data.id.toString()]);
+    return await this.router.navigate(commands, {
       replaceUrl: true,
       queryParams: this.queryParams
     });
   }
 
-  protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({...page, icon: 'boat'});
-  }
+
 
   protected markForCheck() {
     this.cd.markForCheck();
@@ -596,16 +641,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   filter($event: Event) {
     console.debug('[landed-trip.page] filter : ', $event);
 
-  }
-
-  // todo à suppr
-  onCatchTabChange($event: MatTabChangeEvent) {
-    super.onSubTabChange($event);
-    if (!this.loading) {
-      // todo On each tables, confirm editing row
-      // this.productTABLE.confirmEditCreate();
-      // this.batchTABLE.confirmEditCreate();
-    }
   }
 
 }

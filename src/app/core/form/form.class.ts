@@ -1,18 +1,18 @@
 import {Directive, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {FormGroup} from "@angular/forms";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {AppFormUtils, IAppForm} from "./form.utils";
-import {
-  MatAutocompleteConfigHolder,
-  MatAutocompleteFieldAddOptions,
-  MatAutocompleteFieldConfig
-} from "../../shared/material/material.autocomplete";
 import {LocalSettingsService} from "../services/local-settings.service";
+import {
+  MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig
+} from "../../shared/material/autocomplete/material.autocomplete";
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
 
   private _subscription = new Subscription();
@@ -22,6 +22,7 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   autocompleteHelper: MatAutocompleteConfigHolder;
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
   error: string = null;
+  tabGroupAnimationDuration = '200ms';
 
   @Input() debug = false;
 
@@ -99,10 +100,10 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   }
 
   @Output()
-  onCancel: EventEmitter<any> = new EventEmitter<any>();
+  onCancel = new EventEmitter<any>();
 
   @Output()
-  onSubmit: EventEmitter<any> = new EventEmitter<any>();
+  onSubmit = new EventEmitter<any>();
 
   protected constructor(
     protected dateAdapter: DateAdapter<Moment> | DateFormatPipe,
@@ -182,7 +183,6 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
     }
   }
 
-
   markAsPristine(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     this.form.markAsPristine(opts);
     this.markForCheck();
@@ -194,6 +194,7 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   }
 
   markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    // this.form.markAllAsTouched() // This is not working well (e.g. in TripFrom)
     AppFormUtils.markAsTouched(this.form, opts);
     this.markForCheck();
   }
@@ -216,8 +217,6 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   /* -- protected methods -- */
 
 
-
-
   protected registerSubscription(sub: Subscription): Subscription {
     return this._subscription.add(sub);
   }
@@ -229,6 +228,7 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
 
   protected markForCheck() {
     // Should be override by subclasses
+    console.warn("markForCheck() has been called, but is not overwritten by component " + this.constructor.name);
   }
 
 }

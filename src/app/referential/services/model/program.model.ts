@@ -1,9 +1,11 @@
-import {Entity, EntityUtils, PropertiesMap} from "../../../core/services/model/entity.model";
+import {Entity, EntityUtils} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
 import {ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../shared/functions";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {Strategy} from "./strategy.model";
+import {PropertiesMap} from "../../../shared/types";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {isNotNil} from "../../../shared/functions";
 
 
 export class Program extends Entity<Program> {
@@ -56,7 +58,7 @@ export class Program extends Entity<Program> {
     }
     const target: any = super.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
-    target.properties = this.properties;
+    target.properties = {...this.properties};
     target.gearClassification = this.gearClassification && this.gearClassification.asObject(opts);
     target.taxonGroupType = this.taxonGroupType && this.taxonGroupType.asObject(opts);
     target.locationClassifications = this.locationClassifications  && this.locationClassifications.map(item => item.asObject(opts)) || [];
@@ -77,10 +79,11 @@ export class Program extends Entity<Program> {
     if (source.properties && source.properties instanceof Array) {
       this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
     } else {
-      this.properties = source.properties;
+      this.properties = {...source.properties};
     }
     this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
-    this.taxonGroupType = source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType);
+    this.taxonGroupType = (source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType)) ||
+      (isNotNil(source.taxonGroupTypeId) ? ReferentialRef.fromObject({id: source.taxonGroupTypeId}) : undefined);
     this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
     this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
 

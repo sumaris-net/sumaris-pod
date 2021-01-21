@@ -1,21 +1,20 @@
-import {ChangeDetectorRef, Directive, EventEmitter, Injector, OnDestroy, OnInit, Optional} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Directive,
+  EventEmitter,
+  Injector,
+  OnDestroy,
+  OnInit,
+  Optional
+} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ToastController} from "@ionic/angular";
 
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
-import {
-  DateFormatPipe,
-  EntityService,
-  EntityServiceLoadOptions,
-  isNil,
-  isNilOrBlank,
-  isNotNil,
-  toBoolean
-} from '../../shared/shared.module';
 import {Moment} from "moment";
-import {LocalSettingsService} from "../services/local-settings.service";
+import {AddToPageHistoryOptions, LocalSettingsService} from "../services/local-settings.service";
 import {filter} from "rxjs/operators";
 import {Entity} from "../services/model/entity.model";
 import {HistoryPageReference, UsageMode} from "../services/model/settings.model";
@@ -23,10 +22,16 @@ import {FormGroup} from "@angular/forms";
 import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
-import {ServerErrorCodes} from "../services/errors";
+import {ErrorCodes, ServerErrorCodes} from "../services/errors";
+import {toNumber} from "../../shared/functions";
+import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
+import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
+import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;
+  autoLoadDelay?: number;
   pathIdAttribute?: string;
   enableListenChanges?: boolean;
 
@@ -42,18 +47,20 @@ export class AppEditorOptions extends AppTabFormOptions {
 
 }
 
+// @dynamic
 @Directive()
 export abstract class AppEntityEditor<
   T extends Entity<T>,
-  S extends EntityService<T> = EntityService<T>
+  S extends IEntityService<T> = IEntityService<T>
   >
   extends AppTabEditor<T, EntityServiceLoadOptions>
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy, AfterViewInit {
 
   private _usageMode: UsageMode;
   private readonly _enableListenChanges: boolean;
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad: boolean;
+  private readonly _autoLoadDelay: number;
   private readonly _autoUpdateRoute: boolean;
   private _autoOpenNextTab: boolean;
 
@@ -66,6 +73,7 @@ export abstract class AppEntityEditor<
   saving = false;
   hasRemoteListener = false;
   defaultBackHref: string;
+  historyIcon: {icon?: string; matIcon?: string; };
   onUpdateView = new EventEmitter<T>();
 
   get usageMode(): UsageMode {
@@ -91,6 +99,20 @@ export abstract class AppEntityEditor<
     return this.dataService;
   }
 
+  markAsSaving(opts?: { emitEvent?: boolean; }){
+    if (!this.saving) {
+      this.saving = true;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
+  markAsSaved(opts?: { emitEvent?: boolean; }){
+    if (this.saving) {
+      this.saving = false;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
   protected constructor(
     injector: Injector,
     protected dataType: new() => T,
@@ -104,9 +126,10 @@ export abstract class AppEntityEditor<
       options);
     options = <AppEditorOptions>{
       // Default options
-      enableListenChanges: (environment.listenRemoteChanges === true),
+      enableListenChanges: (injector.get(EnvironmentService).listenRemoteChanges === true),
       pathIdAttribute: 'id',
       autoLoad: true,
+      autoLoadDelay: 0,
       autoUpdateRoute: true,
 
       // Following options are override inside ngOnInit()
@@ -123,6 +146,7 @@ export abstract class AppEntityEditor<
     this._enableListenChanges = options.enableListenChanges;
     this._pathIdAttribute = options.pathIdAttribute;
     this._autoLoad = options.autoLoad;
+    this._autoLoadDelay = options.autoLoadDelay;
     this._autoUpdateRoute = options.autoUpdateRoute;
     this._autoOpenNextTab = options.autoOpenNextTab;
 
@@ -135,16 +159,19 @@ export abstract class AppEntityEditor<
 
     // Defaults
     this._autoOpenNextTab = toBoolean(this._autoOpenNextTab, !this.isOnFieldMode);
+    this.historyIcon = this.historyIcon || {icon: 'list'};
 
     // Register forms
     this.registerForms();
 
     // Disable page, during load
     this.disable();
+  }
 
+  ngAfterViewInit() {
     // Load data
     if (this._autoLoad) {
-      this.loadFromRoute();
+      setTimeout(() => this.loadFromRoute(), this._autoLoadDelay);
     }
   }
 
@@ -205,6 +232,7 @@ export abstract class AppEntityEditor<
     else {
       try {
         const data = await this.dataService.load(id, opts);
+        if (!data) throw {code: ErrorCodes.DATA_NOT_FOUND_ERROR, message: 'ERROR.DATA_NO_FOUND'};
         this._usageMode = this.computeUsageMode(data);
         await this.onEntityLoaded(data, opts);
         this.updateView(data, opts);
@@ -351,6 +379,7 @@ export abstract class AppEntityEditor<
   }
 
   async saveAndClose(event: Event, options?: any): Promise<boolean> {
+
     const saved = await this.save(event);
     if (saved) {
       await this.close(event);
@@ -359,6 +388,11 @@ export abstract class AppEntityEditor<
   }
 
   async close(event: Event) {
+    if (event) {
+      if (event.defaultPrevented) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (this.appToolbar && this.appToolbar.canGoBack) {
       await this.appToolbar.goBack();
     }
@@ -389,17 +423,18 @@ export abstract class AppEntityEditor<
       this.submitted = true;
       return false;
     }
-    this.saving = true;
+
+    this.markAsSaving();
     this.error = undefined;
 
     if (this.debug) console.debug("[data-editor] Saving data...");
 
-    // Get data
-    const data = await this.getValue();
-
-    this.disable();
-
     try {
+      // Get data
+      const data = await this.getValue();
+
+      this.disable();
+
       // Save form
       const updatedData = await this.dataService.save(data, options);
 
@@ -418,6 +453,7 @@ export abstract class AppEntityEditor<
       this.submitted = true;
       this.setError(err);
       this.selectedTabIndex = 0;
+      this.scrollToTop(); // Scroll to top (to show error)
       this.markAsDirty();
       this.enable();
 
@@ -429,9 +465,11 @@ export abstract class AppEntityEditor<
         });
       }
 
+
+
       return false;
     } finally {
-      this.saving = false;
+      this.markAsSaved();
     }
   }
 
@@ -473,27 +511,30 @@ export abstract class AppEntityEditor<
 
     console.debug("[data-editor] Asking to delete...");
 
-    this.saving = true;
+    this.markAsSaving();
     this.error = undefined;
 
-    // Get data
-    const data = await this.getValue();
-    const isNew = this.isNewData;
-
-    this.disable();
-
     try {
+      // Get data
+      const data = await this.getValue();
+      const isNew = this.isNewData;
+
+      this.disable();
+
       if (!isNew) {
         await this.dataService.delete(data);
       }
 
       this.onEntityDeleted(data);
 
+      // Remove page history
+      this.removePageHistory();
+
     } catch (err) {
       this.submitted = true;
       this.setError(err);
       this.selectedTabIndex = 0;
-      this.saving = false;
+      this.markAsSaved();
       this.enable();
       return false;
     }
@@ -508,6 +549,27 @@ export abstract class AppEntityEditor<
         return this.router.navigateByUrl('/');
       }
     }, 500);
+
+
+  }
+
+  async reload() {
+    this.loading = true;
+    await this.load(this.data && this.data.id);
+  }
+
+  setError(err: any) {
+    console.error("[data-editor] " + err && err.message || err, err);
+    let userMessage = err && err.message && this.translate.instant(err.message) || err;
+
+    // Add details error (if any) under the main message
+    const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
+    if (detailMessage) {
+      userMessage += `<br/><small class="hidden-xs hidden-sm" title="${detailMessage}">`;
+      userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
+      userMessage += "</small>";
+    }
+    this.error = userMessage;
   }
 
   /* -- protected methods to override -- */
@@ -532,6 +594,7 @@ export abstract class AppEntityEditor<
     this.registerForms();
     this._dirty = false;
     this.data = null;
+    this.saving = false;
   }
 
   protected async onNewEntity(data: T, options?: EntityServiceLoadOptions): Promise<void> {
@@ -576,11 +639,6 @@ export abstract class AppEntityEditor<
     return Promise.resolve(this.form.value);
   }
 
-  async reload() {
-    this.loading = true;
-    await this.load(this.data && this.data.id);
-  }
-
   /**
    * Compute the title
    * @param data
@@ -592,22 +650,31 @@ export abstract class AppEntityEditor<
 
     // If NOT data, then add to page history
     if (!this.isNewData) {
-      this.addToPageHistory({
-        title,
-        path: this.router.url
-      });
+      const page = await this.computePageHistory(title);
+      return this.addToPageHistory(page);
     }
   }
 
-  protected addToPageHistory(page: HistoryPageReference, opts?: {
-    removePathQueryParams?: boolean;
-    removeTitleSmallTag?: boolean;
-  }) {
-    this.settings.addToPageHistory(page, {
+  protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
+    if (!page) return; // Skip
+
+    return this.settings.addToPageHistory(page, {
       removePathQueryParams: true,
       removeTitleSmallTag: true,
+      emitEvent: false,
       ...opts
     });
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      title,
+      path: this.router.url
+    };
+  }
+
+  protected async removePageHistory(opts?: { emitEvent?: boolean; }) {
+    return this.settings.removePageHistory(this.router.url, opts);
   }
 
   /**
@@ -620,22 +687,22 @@ export abstract class AppEntityEditor<
     }
   }
 
+
+  protected async scrollToTop(duration?: number) {
+    duration = toNumber(duration, 500);
+
+    if (!this.content) {
+      console.warn(`[root-data-editor] Cannot scroll to top. Missing a 'content' child in the page ${this.constructor.name}`);
+      return;
+    }
+
+    return this.content.scrollToTop(duration);
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
-  public setError(err: any) {
-    console.error("[data-editor] " + err && err.message || err, err);
-    let userMessage = err && err.message && this.translate.instant(err.message) || err;
 
-    // Add details error (if any) under the main message
-    const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
-    if (detailMessage) {
-      userMessage += `<br/><small class="hidden-xs hidden-sm" title="${detailMessage}">`;
-      userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
-      userMessage += "</small>";
-    }
-    this.error = userMessage;
-  }
 }
 

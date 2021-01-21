@@ -6,6 +6,11 @@ import {BatchTreeTestPage} from "./batch/testing/batch-tree.test";
 import {TripModule} from "./trip.module";
 import {SharedModule} from "../shared/shared.module";
 import {TranslateModule} from "@ngx-translate/core";
+import {TestingPage} from "../shared/material/testing/material.testing.page";
+
+export const TRIP_TESTING_PAGES = [
+  <TestingPage>{label: 'Batch tree', page: '/testing/trip/batchTree'}
+];
 
 const routes: Routes = [
   {

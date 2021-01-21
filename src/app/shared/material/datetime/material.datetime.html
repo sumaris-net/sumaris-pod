@@ -11,12 +11,13 @@
 
 <!-- writable + time -->
 <ng-template #writable >
-  <ion-grid *ngIf="displayTime else writableNoTime" class="ion-no-padding">
-    <ion-row class="ion-no-padding no-wrap" [formGroup]="form" nowrap>
+  <ion-grid class="ion-no-padding">
+    <ion-row class="ion-no-padding no-wrap" nowrap>
 
       <!-- day -->
       <ion-col class="day ion-no-padding">
-        <mat-form-field [floatLabel]="floatLabel">
+        <mat-form-field [floatLabel]="floatLabel"
+                        [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
 
           <mat-label>{{placeholder}}</mat-label>
 
@@ -24,56 +25,56 @@
 
           <input matInput #matInput autocomplete="off" type="text"
                  *ngIf="!mobile"
-                 formControlName="day"
+                 [formControl]="dateFormControl"
                  [textMask]="{mask: dayMask, keepCharPositions: true, placeholderChar: placeholderChar}"
                  [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
                  (blur)="checkIfTouched()"
-                 (keyup.arrowdown)="openDatePicker($event, datePicker2)"
+                 (keyup.arrowdown)="openDatePicker($event, datePicker)"
                  (keyup.escape)="preventEvent($event)"
                  [required]="required"
                  [tabindex]="tabindex">
           <input matInput #matInput autocomplete="off" type="text"
                  *ngIf="mobile"
-                 formControlName="day"
-                 (click)="openDatePickerIfMobile($event, datePicker2)"
+                 [formControl]="dateFormControl"
+                 (click)="openDatePickerIfMobile($event, datePicker)"
                  [required]="required"
                  [tabindex]="tabindex"
                  readonly>
           <input matInput type="text" [formControl]="formControl"
                  hidden
-                 [matDatepicker]="datePicker2"
+                 [matDatepicker]="datePicker"
                  (dateChange)="onDatePickerChange($event)">
 
-          <button type="button" mat-icon-button tabindex="-1" matSuffix #datePickerButton2 (click)="openDatePicker($event, datePicker2)" [disabled]="formControl.disabled">
+          <button type="button" mat-icon-button tabindex="-1" matSuffix #datePickerButton2 (click)="openDatePicker($event, datePicker)" [disabled]="formControl.disabled">
             <div *ngIf="mobile; then iconDate; else iconDesktop"></div>
           </button>
           <button matSuffix mat-icon-button tabindex="-1"
                   type="button"
                   *ngIf="clearable"
-                  (click)="writeValue(null)"
+                  (click)="clear()"
                   [hidden]="formControl.disabled || !formControl.value">
             <mat-icon>close</mat-icon>
           </button>
         </mat-form-field>
-        <mat-datepicker #datePicker2
+        <mat-datepicker #datePicker
                         [touchUi]="mobile"
                         [disabled]="formControl.disabled"
                         [startAt]="startDate"></mat-datepicker>
-        <div class="mat-form-field-subscript mat-form-field-subscript-wrapper">
+        <div class="mat-form-field-subscript mat-form-field-subscript-wrapper" >
           <!-- errors -->
-          <ng-container *ngIf="formControl.touched">
-            <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-            <mat-error *ngIf="formControl.hasError('validDate')" translate>ERROR.FIELD_NOT_VALID_DATE_TIME</mat-error>
-            <mat-error *ngIf="formControl.hasError('dateIsAfter')">{{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: formControl.errors.dateIsAfter }}</mat-error>
-            <mat-error *ngIf="formControl.hasError('dateRange')" translate>ERROR.FIELD_NOT_VALID_DATE_RANGE</mat-error>
-            <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMaxDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MAX_DURATION</mat-error>
-            <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMinDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MIN_DURATION</mat-error>
-            <mat-error *ngIf="formControl.hasError('msg')">{{formControl.errors['msg']}}</mat-error>
-            <ng-content select="mat-error"></ng-content>
+          <ng-container [ngSwitch]="formControl.touched && formControl.errors|mapKeys|arrayFirst">
+            <mat-error *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngSwitchCase="'validDate'" translate>ERROR.FIELD_NOT_VALID_DATE_TIME</mat-error>
+            <mat-error *ngSwitchCase="'dateIsAfter'">{{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: formControl.errors.dateIsAfter }}</mat-error>
+            <mat-error *ngSwitchCase="'dateRange'" translate>ERROR.FIELD_NOT_VALID_DATE_RANGE</mat-error>
+            <mat-error *ngSwitchCase="'dateMaxDuration'" translate>ERROR.FIELD_NOT_VALID_DATE_MAX_DURATION</mat-error>
+            <mat-error *ngSwitchCase="'dateMinDuration'" translate>ERROR.FIELD_NOT_VALID_DATE_MIN_DURATION</mat-error>
+            <mat-error *ngSwitchCase="'msg'">{{formControl.errors.msg}}</mat-error>
           </ng-container>
+          <ng-content select="mat-error"></ng-content>
 
           <!-- mat hint -->
-          <div class="mat-form-field-hint-wrapper" [hidden]="formControl.invalid">
+          <div class="mat-form-field-hint-wrapper" [class.cdk-visually-hidden]="formControl.invalid">
             <div class="mat-form-field-hint-spacer"></div>
             <ng-content select="mat-hint"></ng-content>
           </div>
@@ -83,13 +84,14 @@
 
       <!-- hour -->
       <ion-col class="hour ion-no-padding">
-        <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-invalid]="formControl.touched && form.controls.hour.invalid">
+        <mat-form-field [floatLabel]="floatLabel"
+                        [class.mat-form-field-invalid]="formControl.touched && (timeFormControl.invalid || formControl.invalid)">
           <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.TIME</mat-label>
           <input matInput #matInput type="text"
+                 *ngIf="!mobile"
+                 [formControl]="timeFormControl"
                  autocomplete="off"
                  min="0" max="23"
-                 *ngIf="!mobile"
-                 formControlName="hour"
                  [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar, guide: true}"
                  [placeholder]="'COMMON.TIME_PLACEHOLDER'|translate"
                  [required]="required"
@@ -99,13 +101,13 @@
                  [tabindex]="tabindex !== undefined ? tabindex+1 : undefined">
 
           <input matInput #matInput type="text"
-                 formControlName="hour"
                  *ngIf="mobile"
+                 [formControl]="timeFormControl"
                  (click)="openTimePickerIfMobile($event)"
                  readonly>
 
           <input matInput type="text"
-                 formControlName="hour"
+                 [formControl]="timeFormControl"
                  hidden
                  [ngxTimepicker]="timePicker"
                  [format]="24">
@@ -154,68 +156,6 @@
     </ion-row>
   </ion-grid>
 
-
-</ng-template>
-
-<!-- no time (day without time) -->
-<ng-template #writableNoTime>
-  <form [formGroup]="form">
-    <mat-form-field [floatLabel]="floatLabel">
-
-      <mat-label>{{placeholder}}</mat-label>
-      <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
-
-      <input matInput #matInput autocomplete="off" type="text"
-             *ngIf="!mobile"
-             formControlName="day"
-             [textMask]="{mask: dayMask, keepCharPositions: true, placeholderChar: placeholderChar}"
-             [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-             (blur)="checkIfTouched()"
-             (keyup.arrowdown)="openDatePicker($event, datePicker1)"
-             (keyup.escape)="preventEvent($event)"
-             [required]="required"
-             [tabindex]="tabindex">
-      <input matInput #matInput autocomplete="off" type="text"
-             *ngIf="mobile"
-             formControlName="day"
-             (click)="openDatePickerIfMobile($event, datePicker1)"
-             [required]="required"
-             [tabindex]="tabindex"
-             readonly>
-      <input matInput type="text" [formControl]="formControl"
-             hidden
-             [matDatepicker]="datePicker1"
-             (dateChange)="onDatePickerChange($event)">
-
-      <button matSuffix mat-icon-button tabindex="-1"
-              type="button"
-              (click)="openDatePicker($event, datePicker1)"
-              [disabled]="formControl.disabled">
-        <div *ngIf="mobile; then iconDate; else iconDesktop"></div>
-      </button>
-      <button matSuffix mat-icon-button tabindex="-1"
-              type="button"
-              *ngIf="clearable"
-              (click)="writeValue(null)"
-              [hidden]="formControl.disabled || !formControl.value">
-        <mat-icon>close</mat-icon>
-      </button>
-
-      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      <mat-error *ngIf="formControl.hasError('validDate')" translate>ERROR.FIELD_NOT_VALID_DATE</mat-error>
-      <mat-error *ngIf="formControl.hasError('dateIsAfter')">{{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: formControl.errors.dateIsAfter }}</mat-error>
-      <mat-error *ngIf="formControl.hasError('dateRange')" translate>ERROR.FIELD_NOT_VALID_DATE_RANGE</mat-error>
-      <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMaxDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MAX_DURATION</mat-error>
-      <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMinDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MIN_DURATION</mat-error>
-      <mat-error *ngIf="formControl.hasError('msg')">{{formControl.errors['msg']}}</mat-error>
-      <ng-content select="mat-error"></ng-content>
-    </mat-form-field>
-  </form>
-
-  <mat-datepicker #datePicker1
-                  [touchUi]="mobile"
-                  [disabled]="formControl.disabled"
-                  [startAt]="startDate"></mat-datepicker>
 
 </ng-template>
 

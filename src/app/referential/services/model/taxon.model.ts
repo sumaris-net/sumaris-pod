@@ -1,9 +1,14 @@
-import {Entity, IReferentialRef, isNil, Referential, ReferentialRef} from "../../../core/core.module";
-import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {uncapitalizeFirstLetter} from "../../../shared/functions";
+import {
+  IReferentialRef,
+  Referential,
+  ReferentialAsObjectOptions, ReferentialRef,
+  ReferentialUtils
+} from "../../../core/services/model/referential.model";
+import {isNil, isNotNil, uncapitalizeFirstLetter} from "../../../shared/functions";
+import {Entity} from "../../../core/services/model/entity.model";
 
 
-export const TaxonGroupIds = {
+export const TaxonGroupTypeIds = {
   FAO: 2,
   METIER: 3
 };
@@ -17,6 +22,9 @@ export const TaxonomicLevelIds = {
   SUBSPECIES: 29
 };
 
+export const TaxonGroupLabels = {
+  FISH: 'MZZ'
+};
 
 export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRef {
 
@@ -30,7 +38,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
   }
 
   static equalsOrSameReferenceTaxon(v1: TaxonNameRef, v2: TaxonNameRef): boolean {
-    return ReferentialUtils.equals(v1, v2) || (v1 && v2 && v1.referenceTaxonId === v2.referenceTaxonId);
+    return ReferentialUtils.equals(v1, v2) || (v1 && v2 && isNotNil(v1.referenceTaxonId) && v1.referenceTaxonId === v2.referenceTaxonId);
   }
 
   label: string;

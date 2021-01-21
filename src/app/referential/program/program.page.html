@@ -42,6 +42,17 @@
                 <app-form-field [definition]="fieldDefinitions.gearClassification" [formControl]="form.controls.gearClassification">
                 </app-form-field>
 
+                <mat-form-field floatLabel="always">
+                  <input matInput class="cdk-visually-hidden" type="text"
+                         [placeholder]="'PROGRAM.LOCATION_CLASSIFICATION'|translate">
+                  <app-list-form #locationClassificationList
+                                 [displayWith]="referentialToString"
+                                 [formArray]="form.controls.locationClassifications"
+                                 [equals]="referentialEquals"
+                                 [options]="{allowEmptyArray: false, allowMultipleSelection: false}"
+                                 (onNewItem)="addLocationClassification()"></app-list-form>
+                </mat-form-field>
+
               </app-referential-form>
             </ion-col>
 
@@ -73,8 +84,36 @@
 
     </mat-tab>
 
+    <!-- TAB: strategies -->
+    <!-- TODO BLA disabled a revoir (editor) -->
+    <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="simpleStrategiesOption || isNewData">
+      <ng-template mat-tab-label>
+        <mat-icon>date_range</mat-icon>
+        <ion-label translate>PROGRAM.TAB_STRATEGIES</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable.invalid || (strategiesTable.editedRow && strategyForm.invalid)"></ion-icon>
+      </ng-template>
+
+      <div class="ion-no-padding">
+
+        <!-- error -->
+        <ion-item *ngIf="strategiesTable.error; let strategyError" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="strategyError |translate"></ion-label>
+        </ion-item>
+
+        <!-- strategies table -->
+        <app-strategy-table #strategiesTable
+                            [canEdit]="enabled"
+                            [canDelete]="enabled"
+                            [inlineEdition]="false"
+                            (onOpenRow)="onOpenStrategy($event)"
+                            (onNewRow)="onNewStrategy($event)">
+        </app-strategy-table>
+      </div>
+    </mat-tab>
+
     <!-- TAB: simpleStrategiesTable -->
-    <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="!simpleStrategiesOption" >
+    <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="!simpleStrategiesOption || isNewData" >
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="contract"></ion-icon>
@@ -93,47 +132,30 @@
 
         <!-- strategies table -->
         <app-simple-strategies-table  #simpleStrategiesTable
-                            [canEdit]="enabled"
-                            [canDelete]="enabled">
+                                      [canEdit]="enabled"
+                                      [canDelete]="enabled">
         </app-simple-strategies-table>
 
       </div>
     </mat-tab>
 
+    <!-- TAB: properties -->
+    <mat-tab label="{{'PROGRAM.TAB_PROPERTIES'|translate}}" [disabled]="isNewData">
+      <ng-template mat-tab-label>
+        <mat-icon matPrefix>build</mat-icon>
+        <ion-label translate>PROGRAM.TAB_PROPERTIES</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="propertiesForm.invalid"></ion-icon>
+      </ng-template>
 
- <!-- TAB: strategies   -->
- <mat-tab  label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="simpleStrategiesOption" >
-  <ng-template mat-tab-label>
-    <mat-icon>
-      <ion-icon matPrefix slot="start" name="contract"></ion-icon>
-    </mat-icon>
-    <ion-label translate>PROGRAM.TAB_STRATEGIES</ion-label>
-    <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable.invalid || (strategiesTable.editedRow && strategyForm.invalid)"></ion-icon>
-  </ng-template>
+      <div class="ion-padding">
 
-  <div class="ion-no-padding">
+        <app-properties-form #propertiesForm [definitions]="propertyDefinitions" [options]="{allowEmptyArray: true}">
 
+        </app-properties-form>
 
-    <ion-item *ngIf="(strategiesTable.error || (strategiesTable.editedRow && strategyForm.error)) as strategyError" visible-xs visible-sm visible-mobile lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" class="error" [innerHTML]="strategyError |translate"></ion-label>
-    </ion-item>
+      </div>
 
-
-    <app-strategy-table #strategiesTable
-                        [canEdit]="enabled"
-                        [canDelete]="enabled">
-    </app-strategy-table>
-
-    <app-strategy-form #strategyForm
-                       [@fadeIn]="strategyFormState"
-                       (@fadeIn.done)="onStrategyAnimationDone($event)"
-                       [showBaseForm]="false">
-    </app-strategy-form>
-  </div>
-</mat-tab>
-
-
+    </mat-tab>
 
     <!-- TAB: access rights -->
     <mat-tab label="{{'PROGRAM.TAB_ACCESS_RIGHTS'|translate}}" [disabled]="isNewData">
@@ -151,12 +173,11 @@
       </div>
     </mat-tab>
 
-
   </mat-tab-group>
 
 </ion-content>
 
-<ion-footer  hidden-xs hidden-sm hidden-mobile>
+<ion-footer hidden-xs hidden-sm hidden-mobile>
 
   <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
@@ -170,11 +191,10 @@
   </form-buttons-bar>
 </ion-footer>
 
-
-<!--  FAB Button: add strategy  -->
+<!-- FAB Button: add strategy -->
 <ion-fab slot="fixed" vertical="bottom" horizontal="end"
-        *ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
-        visible-xs visible-sm visible-mobile>
+         *ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="strategiesTable.addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

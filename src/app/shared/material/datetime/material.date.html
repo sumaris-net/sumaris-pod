@@ -17,14 +17,14 @@
            [textMask]="{mask: dayMask, keepCharPositions: true, placeholderChar: placeholderChar}"
            [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
            (blur)="checkIfTouched()"
-           (keyup.arrowdown)="openDatePicker($event, datePicker1)"
+           (keyup.arrowdown)="openDatePicker($event, datePicker)"
            (keyup.escape)="preventEvent($event)"
            [required]="required"
            [tabindex]="tabindex">
     <input matInput #matInput autocomplete="off" type="text"
            *ngIf="mobile"
            [formControl]="dayControl"
-           (click)="openDatePickerIfMobile($event, datePicker1)"
+           (click)="openDatePickerIfMobile($event, datePicker)"
            [required]="required"
            [tabindex]="tabindex"
            readonly>
@@ -33,13 +33,12 @@
     <input matInput type="text"
            [formControl]="formControl"
            hidden
-           [matDatepicker]="datePicker1"
+           [matDatepicker]="datePicker"
            (dateChange)="onDatePickerChange($event)">
-
 
     <button matSuffix mat-icon-button tabindex="-1"
             type="button"
-            (click)="openDatePicker($event, datePicker1)"
+            (click)="openDatePicker($event, datePicker)"
             [disabled]="formControl.disabled">
       <div *ngIf="mobile; then iconDate; else iconDesktop"></div>
     </button>
@@ -58,10 +57,9 @@
     <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMaxDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MAX_DURATION</mat-error>
     <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMinDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MIN_DURATION</mat-error>
     <mat-error *ngIf="formControl.hasError('msg')">{{formControl.errors['msg']}}</mat-error>
-    <ng-content select="mat-error"></ng-content>
   </mat-form-field>
 
-  <mat-datepicker #datePicker1
+  <mat-datepicker #datePicker
                   [touchUi]="mobile"
                   [disabled]="formControl.disabled"
                   [startAt]="startDate"></mat-datepicker>

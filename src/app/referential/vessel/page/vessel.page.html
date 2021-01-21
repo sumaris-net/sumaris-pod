@@ -1,10 +1,20 @@
 <app-toolbar [title]="title$ | async" color="primary"
-             [hasValidate]="!loading && dirty" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+             [hasValidate]="!loading && dirty"
+             (onValidate)="save($event)"
+             [hasClose]="!loading && !dirty"
+             (onValidateAndClose)="saveAndClose($event)"
+             (onClose)="close($event)"
+             [defaultBackHref]="defaultBackHref"
+             [canGoBack]="true">
 </app-toolbar>
 
-<ion-content>
-  <mat-tab-group>
+<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
+                 dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'VESSEL.TAB_GENERAL'|translate}}">
@@ -18,7 +28,7 @@
           <form-vessel (onSubmit)="save($event)" #vesselForm>
           </form-vessel>
         </ion-col>
-        <ion-col size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3" class="ion-no-padding">
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="4" size-xl="3" class="ion-no-padding">
           <app-entity-metadata [value]="data">
             <!-- Vessel actions -->
             <mat-menu #selectTypeMenu="matMenu" xPosition="after">
@@ -36,6 +46,12 @@
               <mat-icon slot="end" class="ion-float-end">arrow_drop_down</mat-icon>
             </ion-button>
 
+            <ion-button *ngIf="editing"
+                        fill="clear" expand="block" color="dark"
+                        class="visible-mobile visible-xs visible-sm"
+                        (click)="cancel()">
+              <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+            </ion-button>
           </app-entity-metadata>
         </ion-col>
       </ion-row>
@@ -43,7 +59,7 @@
 
     <mat-tab label="{{'VESSEL.TAB_HISTORY'|translate}}">
       <ng-template mat-tab-label>
-        <ion-icon name="calendar"></ion-icon>&nbsp;
+        <mat-icon>history</mat-icon>&nbsp;
         <ion-label translate>VESSEL.TAB_HISTORY</ion-label>
       </ng-template>
 

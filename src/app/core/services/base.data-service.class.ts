@@ -1,11 +1,12 @@
-import {GraphqlService, MutateQueryOptions, WatchQueryOptions} from "./graphql.service";
+import {GraphqlService, MutateQueryOptions, WatchQueryOptions} from "../graphql/graphql.service";
 import {Page} from "../../shared/services/entity-service.class";
-import {R} from "apollo-angular/types";
+import {EmptyObject} from "apollo-angular/types";
 import {Observable} from "rxjs";
-import {DataProxy} from "apollo-cache";
-import {FetchResult} from "apollo-link";
-import {environment} from "../../../environments/environment";
+import {FetchResult} from "@apollo/client/link/core";
 import {EntityUtils} from "./model/entity.model";
+import {ApolloCache} from "@apollo/client/core";
+import {Environment} from "../../../environments/environment.class";
+import {changeCaseToUnderscore, isNotEmptyArray} from "../../shared/functions";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
 
@@ -14,7 +15,7 @@ export interface QueryVariables<F= any> extends Partial<Page> {
   [key: string]: any;
 }
 
-export interface MutateQueryWithCacheUpdateOptions<T = any, V = R> extends MutateQueryOptions<T, V> {
+export interface MutateQueryWithCacheUpdateOptions<T = any, V = EmptyObject> extends MutateQueryOptions<T, V> {
   cacheInsert?: {
     query: any;
     fetchData: (variables: V, mutationResult: FetchResult<T>) => any;
@@ -26,14 +27,14 @@ export interface MutateQueryWithCacheUpdateOptions<T = any, V = R> extends Mutat
   }[];
 }
 
-export interface MutableWatchQueryOptions<D, T = any, V = R> extends WatchQueryOptions<V> {
-  queryName?: string,
+export interface MutableWatchQueryOptions<D, T = any, V = EmptyObject> extends WatchQueryOptions<V> {
+  queryName?: string;
   arrayFieldName: keyof D;
   totalFieldName?: keyof D ;
-  insertFilterFn?: (data: T) => boolean
+  insertFilterFn?: (data: T) => boolean;
 }
 
-export interface MutableWatchQueryInfo<D, T = any, V = R> {
+export interface MutableWatchQueryInfo<D, T = any, V = EmptyObject> {
   id?: string;
   query: any;
   variables: V;
@@ -44,47 +45,49 @@ export interface MutableWatchQueryInfo<D, T = any, V = R> {
   counter: number;
 }
 
-export abstract class BaseEntityService<T = any, F = any>{
+export abstract class BaseEntityService<T = any, F = any> {
 
   protected _debug: boolean;
+  protected _debugPrefix: string;
   protected _mutableWatchQueries: MutableWatchQueryInfo<any>[] = [];
 
   // Max updated queries, for this entity.
   // - Can be override by subclasses (in constructor)
   // - Use value -1 for no max size
   // - Default value to 3, because it usually enough (e.g. OperationService and LandingService need at least 2)
-  protected _mutableWatchQueriesMaxCount: number = 3;
+  protected _mutableWatchQueriesMaxCount = 3;
 
   protected constructor(
-    protected graphql: GraphqlService
+    protected graphql: GraphqlService,
+    protected environment: Environment
   ) {
 
     // for DEV only
     this._debug = !environment.production;
+    this._debugPrefix = this._debug && `[${changeCaseToUnderscore(this.constructor.name).replace(/_/g, '-' )}]`;
   }
 
-  mutableWatchQuery<D, V = R>(opts: MutableWatchQueryOptions<D, T, V>): Observable<D> {
+  mutableWatchQuery<D, V = EmptyObject>(opts: MutableWatchQueryOptions<D, T, V>): Observable<D> {
 
     if (!opts.arrayFieldName) {
       return this.graphql.watchQuery(opts);
     }
     else {
-      // Create the query info to remember
-      const queryName = opts.queryName || sha256().update(JSON.stringify(opts.query)).digest('hex').substring(0, 8);
-      const variablesKey = sha256().update(JSON.stringify(opts.variables)).digest('hex').substring(0, 8);
-      const queryId = [queryName, opts.arrayFieldName, variablesKey].join('|');
+      // Create the query id
+      const queryId = this.computeMutableWatchQueryId(opts);
 
-      const existingQueries = opts.queryName ? this._mutableWatchQueries.filter(q => q.id === queryId) :
+      const exactMatchQueries = opts.queryName ? this._mutableWatchQueries.filter(q => q.id === queryId) :
         this._mutableWatchQueries.filter(q => q.query === opts.query);
       let mutableQuery: MutableWatchQueryInfo<D, T, V>;
 
-      if (existingQueries.length === 1) {
-        mutableQuery = existingQueries[0] as MutableWatchQueryInfo<D, T, V>;
+      if (exactMatchQueries.length === 1) {
+        mutableQuery = exactMatchQueries[0] as MutableWatchQueryInfo<D, T, V>;
         mutableQuery.counter += 1;
-        console.debug('[base-data-service] Find existing mutable watching query (same variables): ' + queryName);
-        if (mutableQuery.counter > 3) {
-          console.warn('[base-data-service] TODO: clean previous queries with name: ' + queryName);
-        }
+        if (this._debug) console.debug(this._debugPrefix + `Find same mutable watch query (same variables) {${queryId}}. Skip register`);
+
+        //if (mutableQuery.counter > 3) {
+        //  console.warn(this._debugPrefix + 'TODO: clean previous queries with name: ' + queryName);
+        //}
       }
       else {
         this.registerNewMutableWatchQuery({
@@ -95,81 +98,74 @@ export abstract class BaseEntityService<T = any, F = any>{
           insertFilterFn: opts.insertFilterFn,
           counter: 1
         });
-
       }
 
       return this.graphql.watchQuery(opts);
     }
   }
 
-  insertIntoMutableCachedQuery(proxy: DataProxy, opts: {
+  insertIntoMutableCachedQuery(cache: ApolloCache<any>, opts: {
     query?: any;
     queryName?: string;
     data?: T[] | T;
   }) {
-    if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
-    const existingQueries = opts.queryName ?
-      this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|')) :
-      this._mutableWatchQueries.filter(q => q.query === opts.query);
-    if (!existingQueries.length)  return;
+    const queries = this.findMutableWatchQueries(opts);
+    if (!queries.length)  return;
 
-    existingQueries.forEach(watchQuery => {
+    queries.forEach(query => {
 
         if (opts.data instanceof Array) {
           // Filter values, if a filter function exists
-          const data = watchQuery.insertFilterFn ? opts.data.filter(i => watchQuery.insertFilterFn(i)) : opts.data;
-          if (this._debug && data.length) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
-          this.graphql.addManyToQueryCache(proxy, {
-            query: opts.query,
-            variables: watchQuery.variables,
-            arrayFieldName: watchQuery.arrayFieldName as string,
-            sortFn: watchQuery.sortFn,
-            data
-          });
-        }
-        else {
-          // Filter value, if a filter function exists
-          if (!watchQuery.insertFilterFn || watchQuery.insertFilterFn(opts.data)) {
-            if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
-            this.graphql.insertIntoQueryCache(proxy, {
+          const data = query.insertFilterFn ? opts.data.filter(i => query.insertFilterFn(i)) : opts.data;
+          if (isNotEmptyArray(data)) {
+            if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, query.id);
+            this.graphql.addManyToQueryCache(cache, {
               query: opts.query,
-              variables: watchQuery.variables,
-              arrayFieldName: watchQuery.arrayFieldName as string,
-              sortFn: watchQuery.sortFn,
-              data: opts.data
+              variables: query.variables,
+              arrayFieldName: query.arrayFieldName as string,
+              sortFn: query.sortFn,
+              data
             });
           }
+        }
+        // Filter value, if a filter function exists
+        else if (!query.insertFilterFn || query.insertFilterFn(opts.data)) {
+          if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, query.id);
+          this.graphql.insertIntoQueryCache(cache, {
+            query: opts.query,
+            variables: query.variables,
+            arrayFieldName: query.arrayFieldName as string,
+            sortFn: query.sortFn,
+            data: opts.data
+          });
         }
       });
   }
 
-  removeFromMutableCachedQueryByIds(proxy: DataProxy, opts: {
+  removeFromMutableCachedQueryByIds(cache: ApolloCache<any>, opts: {
     query?: any;
     queryName?: string;
-    ids?: number|number[];
+    ids: number|number[];
   }){
-    if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
-    const existingQueries = opts.queryName ?
-      this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|')) :
-      this._mutableWatchQueries.filter(q => q.query === opts.query);
-    if (!existingQueries.length)  return;
+    const queries = this.findMutableWatchQueries(opts);
+    if (!queries.length)  return;
 
-    console.debug(`[base-data-service] Removing data from watching queries: `, existingQueries);
-    existingQueries.forEach(watchQuery => {
+    console.debug(`[base-data-service] Removing data from watching queries: `, queries);
+    queries.forEach(query => {
       if (opts.ids instanceof Array) {
-        this.graphql.removeFromCachedQueryByIds(proxy, {
-          query: watchQuery.query,
-          variables: watchQuery.variables,
-          arrayFieldName: watchQuery.arrayFieldName as string,
+        this.graphql.removeFromCachedQueryByIds(cache, {
+          query: query.query,
+          variables: query.variables,
+          arrayFieldName: query.arrayFieldName as string,
           ids: opts.ids
         });
       }
       else {
-        this.graphql.removeFromCachedQueryById(proxy, {
-          query: watchQuery.query,
-          variables: watchQuery.variables,
-          arrayFieldName: watchQuery.arrayFieldName as string,
-          id: opts.ids as number
+        this.graphql.removeFromCachedQueryById(cache, {
+          query: query.query,
+          variables: query.variables,
+          arrayFieldName: query.arrayFieldName as string,
+          id: opts.ids.toString()
         });
       }
     });
@@ -177,9 +173,23 @@ export abstract class BaseEntityService<T = any, F = any>{
 
   /* -- protected methods -- */
 
-  registerNewMutableWatchQuery(mutableQuery: MutableWatchQueryInfo<any>) {
+  protected computeMutableWatchQueryId<D, T, V = EmptyObject>(opts: MutableWatchQueryOptions<D, T, V>) {
+    const queryName = opts.queryName || sha256().update(JSON.stringify(opts.query)).digest('hex').substring(0, 8);
+    const variablesKey = opts.variables && sha256().update(JSON.stringify(opts.variables)).digest('hex').substring(0, 8) || '';
+    return [queryName, opts.arrayFieldName, variablesKey].join('|');
+  }
 
-    if (this._debug) console.debug('[base-data-service] Adding new mutable watching query: ' + mutableQuery.id);
+  protected findMutableWatchQueries(opts?: {query?: any; queryName?: string; }) {
+    if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
+    // Search by queryName (if any) or by query
+    return opts.queryName ?
+      this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|')) :
+      this._mutableWatchQueries.filter(q => q.query === opts.query);
+  }
+
+  protected registerNewMutableWatchQuery(mutableQuery: MutableWatchQueryInfo<any>) {
+
+    if (this._debug) console.debug(this._debugPrefix + `Register new mutable watch query {${mutableQuery.id}}`);
 
     // If exceed the max size of mutable queries: remove some
     if (this._mutableWatchQueriesMaxCount > 0 && this._mutableWatchQueries.length >= this._mutableWatchQueriesMaxCount) {

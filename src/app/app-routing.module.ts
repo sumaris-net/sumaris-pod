@@ -72,7 +72,10 @@ const routes: Routes = [
   {
     path: 'extraction',
     canActivate: [AuthGuardService],
-    loadChildren: () => import('./trip/extraction/extraction.module').then(m => m.ExtractionModule)
+    data: {
+      profile: 'GUEST'
+    },
+    loadChildren: () => import('./extraction/extraction.module').then(m => m.ExtractionModule)
   },
 
   // Test module (disable in menu, by default - can be enable by the Pod configuration page)

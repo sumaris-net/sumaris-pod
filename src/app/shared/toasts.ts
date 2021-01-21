@@ -2,16 +2,14 @@ import {createAnimation, IonicSafeString, ToastController} from "@ionic/angular"
 import {TranslateService} from "@ngx-translate/core";
 import {OverlayEventDetail, ToastOptions} from "@ionic/core";
 import {ToastButton} from "@ionic/core/dist/types/components/toast/toast-interface";
-import {isEmptyArray, isNotEmptyArray, isNotNil} from "./functions";
-import {AnimationBuilder} from "@angular/animations";
-import {Toast} from "@ionic/core/dist/types/components/toast/toast";
-import {dismiss} from "@ionic/core/dist/types/utils/overlays";
+import {isEmptyArray, isNotNil} from "./functions";
 
 const TOAST_MAX_HEIGHT_PX = 75;
 const TOAST_MAX_STACK_SIZE = 4;
 
 export declare interface ShowToastOptions extends ToastOptions {
   type?: 'error'|'warning'|'info';
+  messageParams?: any;
   showCloseButton?: boolean;
   onWillPresent?: (toast: HTMLIonToastElement) => void;
 }
@@ -28,7 +26,7 @@ export class Toasts {
     if (!toastController || !translate) {
       console.error("Missing required argument 'toastController' or 'translate'");
       if (opts.message instanceof IonicSafeString) console.info("[toasts] message: " + (translate && translate.instant(opts.message.value) || opts.message.value));
-      else if (typeof opts.message === "string") console.info("[toasts] message: " + (translate && translate.instant(opts.message) || opts.message));
+      else if (typeof opts.message === "string") console.info("[toasts] message: " + (translate && translate.instant(opts.message, opts.messageParams) || opts.message));
       return Promise.resolve({});
     }
 
@@ -97,7 +95,10 @@ export class Toasts {
 
     opts.cssClass = cssArray;
 
-    const translations = await translate.instant(i18nKeys);
+    const translations = translate.instant(i18nKeys);
+    if (opts.messageParams) {
+      translations[message] = translate.instant(message, opts.messageParams);
+    }
 
     if (closeButton) {
       closeButton.text = translations[closeButton.text];

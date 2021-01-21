@@ -99,14 +99,14 @@
       <ion-label>{{fieldDefinitionsMap.defaultValue.label | translate}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
-      <ng-container *ngIf="row.currentData.pmfm">
+      <ng-container *ngIf="row.validator.controls.pmfm.value; let pmfm">
         <app-pmfm-field floatLabel="never"
                         [formControl]="row.validator.controls.defaultValue"
-                        [pmfm]="row.currentData.pmfm"
+                        [pmfm]="pmfm"
                         [compact]="true">
         </app-pmfm-field>
         <ng-template #pmfmReadonly>
-          {{pmfmValueToString(row.currentData.defaultValue, row.currentData.pmfm)}}
+          <ion-text [innerHTML]="row.currentData.defaultValue | pmfmValueToString: {pmfm: row.currentData.pmfm}"></ion-text>
         </ng-template>
       </ng-container>
     </mat-cell>

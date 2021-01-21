@@ -68,7 +68,7 @@
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{referentialToString(row.currentData.taxonGroup || row.currentData.parent?.taxonGroup)}}
+      {{ (row.currentData.taxonGroup || row.currentData.parent?.taxonGroup) | referentialToString: autocompleteFields.taxonGroup.attributes }}
     </mat-cell>
   </ng-container>
 
@@ -78,8 +78,7 @@
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-
-      {{referentialToString(row.currentData.taxonName)}}
+      {{ row.currentData.taxonName | referentialToString: autocompleteFields.taxonName.attributes }}
     </mat-cell>
 
   </ng-container>
@@ -94,14 +93,11 @@
 
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
-    <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.isDate">
-      <ion-label>
-        <span>{{getPmfmColumnHeader(pmfm)}}</span>
-        <small *ngIf="pmfm.hasUnit"><br/>({{pmfm.unitLabel}})</small>
-      </ion-label>
+    <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm | isDatePmfm">
+      <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
-      {{measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm) }}
+    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm | isDatePmfm">
+      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.pmfmId] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
     </mat-cell>
   </ng-container>
 

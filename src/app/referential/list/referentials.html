@@ -204,7 +204,7 @@
 
     <!-- Level column -->
     <ng-container matColumnDef="level">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!showLevelColumn">
+      <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showLevelColumn">
         <span translate>REFERENTIAL.LEVEL</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing" [class.cdk-visually-hidden]="!showLevelColumn">
@@ -242,24 +242,40 @@
       </mat-cell>
     </ng-container>
 
+    <!-- Creation date column -->
+    <ng-container matColumnDef="updateDate">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>REFERENTIAL.UPDATE_DATE</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="mat-form-field-disabled">
+        <ion-text class="ion-text-end" color="medium" *ngIf="row.id!==-1">
+          <small [matTooltip]="'REFERENTIAL.CREATION_DATE'|translate" *ngIf="row.currentData.updateDate; let creationDate">
+            <ion-icon name="calendar"></ion-icon> {{ creationDate | dateFormat: {time: true} }}
+          </small><br/>
+          <small [matTooltip]="'REFERENTIAL.UPDATE_DATE'|translate" *ngIf="row.currentData.updateDate; let updateDate">
+            <ion-icon name="time-outline"></ion-icon> {{ updateDate | dateFormat: {time: true} }}
+          </small>
+        </ion-text>
+      </mat-cell>
+    </ng-container>
+
     <!-- Comment column -->
     <ng-container matColumnDef="comments">
       <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
         <span translate>REFERENTIAL.COMMENTS</span>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatLabel="never" *ngIf="row.editing; else iconComment">
+      <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" >
+        <mat-form-field floatLabel="never" *ngIf="row.editing; else iconComment"
+                        >
           <textarea matInput [formControl]="row.validator.controls.comments" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
                  [readonly]="!row.editing">
           </textarea>
         </mat-form-field>
 
         <ng-template #iconComment>
-          <ion-label class="ion-text-center">
-            <ion-icon color="medium" name="chatbox"
-                      *ngIf="row.validator.controls.comments.value"
-                      [title]="row.validator.controls.comments.value"></ion-icon>
-          </ion-label>
+          <mat-icon class="comment"
+                    *ngIf="row.validator.controls.comments.value"
+                    [title]="row.validator.controls.comments.value">chat_bubble</mat-icon>
         </ng-template>
       </mat-cell>
     </ng-container>
@@ -305,7 +321,7 @@
   <ion-row class="ion-no-padding">
     <ion-col></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      <mat-paginator [length]="resultsLength" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>

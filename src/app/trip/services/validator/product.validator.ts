@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {
   SharedFormArrayValidators,
   SharedFormGroupValidators,
@@ -81,8 +81,8 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
     return formConfig;
   }
 
-  getFormGroupOptions(data?: Product, opts?: O): { [p: string]: any } {
-    return {
+  getFormGroupOptions(data?: Product, opts?: O): AbstractControlOptions {
+    return <AbstractControlOptions>{
       validator: [
         SharedFormGroupValidators.requiredIfEmpty('weight', 'individualCount'),
         SharedFormGroupValidators.requiredIfEmpty('individualCount', 'weight')

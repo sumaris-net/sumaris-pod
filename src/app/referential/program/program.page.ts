@@ -1,9 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild, OnDestroy, ComponentFactoryResolver} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
-import {Strategy} from "../services/model/strategy.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
@@ -11,9 +9,9 @@ import {StrategiesTable} from "../strategy/strategies.table";
 import {SimpleStrategiesTable} from "../simpleStrategy/simple-strategies.table";
 import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppPropertiesForm} from "../../core/form/properties.form";
-import {ReferentialRefService} from "../services/referential-ref.service";
+import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {StrategyForm} from "../strategy/strategy.form";
@@ -22,6 +20,14 @@ import {debounceTime, filter, first} from "rxjs/operators";
 import {ProgramProperties} from "../services/config/program.config";
 import {ActivatedRoute} from "@angular/router";
 
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {changeCaseToUnderscore, isNil} from "../../shared/functions";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {HistoryPageReference} from "../../core/services/model/history.model";
+import {SelectReferentialModal} from "../list/select-referential.modal";
+import {AppListForm} from "../../core/form/list.form";
+import {environment} from "../../../environments/environment";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -34,22 +40,6 @@ export enum AnimationState {
   providers: [
     {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
-  animations: [fadeInOutAnimation,
-    // Fade in
-    trigger('fadeIn', [
-      state('*', style({opacity: 0, display: 'none', visibility: 'hidden'})),
-      state(AnimationState.ENTER, style({opacity: 1, display: 'inherit', visibility: 'inherit'})),
-      state(AnimationState.LEAVE, style({opacity: 0, display: 'none', visibility: 'hidden'})),
-      // Modal
-      transition(`* => ${AnimationState.ENTER}`, [
-        style({display: 'inherit',  visibility: 'inherit', transform: 'translateX(50%)'}),
-        animate('0.4s ease-out', style({opacity: 1, transform: 'translateX(0)'}))
-      ]),
-      transition(`${AnimationState.ENTER} => ${AnimationState.LEAVE}`, [
-        animate('0.2s ease-out', style({opacity: 0, transform: 'translateX(50%)'})),
-        style({display: 'none',  visibility: 'hidden'})
-      ]) ])
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
@@ -58,14 +48,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
-  strategyFormState: AnimationState;
-  simpleStrategiesOption = false;
+  simpleStrategiesOption = false; // TODO BLA: use editor
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
   @ViewChild('simpleStrategiesTable', { static: true }) simpleStrategiesTable: SimpleStrategiesTable;
   @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
-  @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
+  @ViewChild('locationClassificationList', { static: true }) locationClassificationList: AppListForm;
 
   constructor(
     protected injector: Injector,
@@ -79,7 +68,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   ) {
     super(injector,
       Program,
-      dataService);
+      dataService, {
+        pathIdAttribute: 'programId'
+      });
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -87,7 +78,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -98,23 +89,16 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // update simpleStrategiesOption when UpdateView
     this.onUpdateView
       .subscribe(async option => {
-        this.simpleStrategiesOption=  option.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
-        this.markForCheck();
-      }
-    );
+          this.simpleStrategiesOption=  option.getPropertyAsBoolean(ProgramProperties.SIMPLE_STRATEGIES);
+          this.markForCheck();
+        }
+      );
 
     // register on strategies tables actions
     this.registerSubscription(this.simpleStrategiesTable.onOpenRow
       .subscribe(row => this.onOpenSimpleStrategy(row)));
     this.registerSubscription(this.simpleStrategiesTable.onNewRow
       .subscribe((event) => this.addSimpleStrategy(event)));
-    this.registerSubscription(this.strategiesTable.onStartEditingRow
-        .subscribe(row => this.onStartEditStrategy(row)));
-    this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
-        .subscribe(row => this.onConfirmEditCreateStrategy(row)));
-    this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
-        .subscribe(row => this.onCancelOrDeleteStrategy(row)));
-
 
     // Set entity name (required for referential form validator)
     this.referentialForm.entityName = 'Program';
@@ -150,6 +134,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   /* -- protected methods -- */
+
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
@@ -160,7 +145,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       key: fieldName,
       label: this.i18nFieldPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
       ...def
-    }
+    };
     this.fieldDefinitions[fieldName] = definition;
   }
 
@@ -171,8 +156,11 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   }
 
-  enable() {
-    super.enable();
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.enable(opts);
+
+    // TODO BLA remove this ?
+    this.locationClassificationList.enable(opts);
 
     if (!this.isNewData) {
       this.form.get('label').disable();
@@ -183,24 +171,38 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.addChildForms([
       this.referentialForm,
       this.propertiesForm,
-      this.simpleStrategiesTable,
-      this.strategiesTable
+      this.locationClassificationList,
+      this.strategiesTable,
+      this.simpleStrategiesTable
     ]);
-}
+  }
 
   protected setValue(data: Program) {
     if (!data) return; // Skip
 
-    this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
-    this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
+    this.form.patchValue({...data,
+      properties: [],
+      locationClassifications: [],
+      strategies: []}, {emitEvent: false});
 
-    // simples strategies
-    this.simpleStrategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    // Program properties
+    this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties);
+
+    // Location classification
+    this.locationClassificationList.setValue(data.locationClassifications);
 
     // strategies
-    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    // TODO BLA: replace with a programSubject
+    this.strategiesTable.setProgram(data); // Will load strategies
+    this.simpleStrategiesTable.setProgram(data); // Will load strategies
 
     this.markForCheck();
+  }
+
+  // TOD BLA: remove this override
+  async save(event?: Event, options?: any): Promise<boolean> {
+    //console.debug('TODO saving program...');
+    return super.save(event, options);
   }
 
   protected async getJsonValueToSave(): Promise<any> {
@@ -211,6 +213,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     data.properties = this.propertiesForm.value;
 
     // Finish edition of simple strategies
+    // TODO BLA: is this table editable ?
     if(this.simpleStrategiesOption){
       if (this.simpleStrategiesTable.dirty) {
         if (this.simpleStrategiesTable.editedRow) {
@@ -218,21 +221,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
         }
         await this.simpleStrategiesTable.save();
       }
-    data.strategies = this.simpleStrategiesTable.value;
-  }
-
-  // Finish edition of strategy
-  if(!this.simpleStrategiesOption){
-    if (this.strategiesTable.dirty) {
-
-      if (this.strategiesTable.editedRow) {
-
-        await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
-      }
-      await this.strategiesTable.save();
+      data.strategies = this.simpleStrategiesTable.value;
     }
-    data.strategies = this.strategiesTable.value;
-  }
 
     return data;
   }
@@ -247,11 +237,22 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     return this.translate.get('PROGRAM.EDIT.TITLE', data).toPromise();
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      icon: 'contract',
+      title: `${this.data.label} - ${this.data.name}`,
+      subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
+    };
+  }
+
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
-    if (this.propertiesForm.invalid) return 1;
-    if (this.strategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
-        return 0;
+    if (this.strategiesTable.invalid) return 1;
+    if (this.simstrategiesTable.invalid) return 1; // TODO BLA check this
+    if (this.propertiesForm.invalid) return 2;
+    // TODO users rights
+    return 0;
   }
 
 
@@ -290,125 +291,74 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
 
-  protected async onStartEditStrategy(row: TableElement<Strategy>) {
+  async addLocationClassification() {
+    if (this.disabled) return; // Skip
 
-    if (!row) return; // skip
-
-    const strategy = this.loadOrCreateStrategy(row.currentData);
-    console.debug("[program] Start editing strategy", strategy);
-
-    if (!row.isValid()) {
-      row.validator.valueChanges
-        .pipe(
-          debounceTime(450),
-          filter(() => row.isValid()),
-          first()
-        )
-        .subscribe(() => {
-          strategy.fromObject(row.currentData);
-          this.showStrategyForm(strategy);
-        });
-    }
-    else {
-
-
-      this.showStrategyForm(strategy);
-    }
-  }
-  protected async onCancelOrDeleteStrategy(row: TableElement<Strategy>) {
-    if (!row) return; // skip
-
-    this.hideStrategyForm();
-  }
-
-  protected async onConfirmEditCreateStrategy(row: TableElement<Strategy>) {
-    if (!row) return; // skip
-
-    // DEBUG
-    console.debug('[program] Confirm edit/create of a strategy row', row);
-
-    // Copy some properties from row
-    const source = row.currentData;
-    this.strategyForm.form.patchValue({
-      label: source.label,
-      name: source.name,
-      description: source.description,
-      statusId: source.statusId,
-      comments: source.comments
+    const items = await this.openSelectReferentialModal({
+      filter: {
+        entityName: 'LocationClassification'
+      }
     });
 
-    let target = await this.strategyForm.saveAndGetDataIfValid();
-    if (!target) throw new Error('strategyForm has error');
+    // Add to list
+    (items || []).forEach(item => this.locationClassificationList.add(item));
 
-    // Update the row
-    row.validator = this.strategyForm.form;
-
-    console.debug("[program] End editing strategy", row.currentData);
-
-    this.hideStrategyForm();
+    this.markForCheck();
   }
 
-  showStrategyForm(strategy: Strategy) {
-    this.strategyForm.program = this.data;
-    this.strategyForm.updateView(strategy);
+  async onOpenStrategy({id, row}: { id?: number; row: TableElement<any>; }) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      this.markAsLoading();
 
-    if (this.strategyFormState !== AnimationState.ENTER) {
-      // Wait 200ms, during form loading, then start animation
-      setTimeout(() => {
-        this.strategyFormState = AnimationState.ENTER;
-        this.markForCheck();
-      }, 200);
+      setTimeout(async () => {
+        await this.router.navigate(['referential', 'program',  this.data.id, 'strategies', id], {
+          queryParams: {}
+        });
+        this.markAsLoaded();
+      });
     }
   }
 
-  hideStrategyForm() {
-    if (this.strategyFormState == AnimationState.ENTER) {
-      this.strategyFormState = AnimationState.LEAVE;
-      this.markForCheck();
+  async onNewStrategy(event?: any) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      this.markAsLoading();
+
+      setTimeout(async () => {
+        await this.router.navigate(['referential', 'program', this.data.id, 'strategies', 'new'], {
+          queryParams: {}
+        });
+        this.markAsLoaded();
+      });
     }
   }
 
-  onStrategyAnimationDone(event: AnimationEvent): void {
-    if (event.phaseName === 'done') {
+  protected async openSelectReferentialModal(opts: {
+    filter: ReferentialRefFilter
+  }): Promise<ReferentialRef[]> {
 
-      // After enter
-      if (event.toState === AnimationState.ENTER) {
-        // Enable form
-        this.strategyForm.enable();
-      }
+    const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
+      componentProps: {
+        filter: opts.filter
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
 
-      // After leave
-      else if (event.toState === AnimationState.LEAVE) {
+    await modal.present();
 
-        // Disable form
-        this.strategyForm.disable({emitEvent: false});
-      }
-    }
+    const {data} = await modal.onDidDismiss();
+
+    return data;
   }
 
-  protected loadOrCreateStrategy(json: any): Strategy|undefined {
-    const existingStrategy = this.data.strategies.find(s => s.equals(json));
-    if (existingStrategy) return existingStrategy;
-    return Strategy.fromObject(json);
-  }
-
-  protected updateStrategy(strategy: Strategy) {
-
-    const existingStrategy = this.data.strategies.find(s => s.equals(strategy));
-    if (!existingStrategy) {
-      this.data.strategies.push(strategy);
-      return strategy;
-    }
-    else {
-      // Copy
-      existingStrategy.fromObject(strategy);
-      return existingStrategy;
-    }
-
-  }
+  referentialToString = referentialToString;
+  referentialEquals = ReferentialUtils.equals;
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
 }
+
