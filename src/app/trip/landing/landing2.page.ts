@@ -1,38 +1,36 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild} from '@angular/core';
-
-import {isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { FormGroup } from "@angular/forms";
+import { MatTabGroup } from "@angular/material/tabs";
 import * as moment from "moment";
-import {Moment} from "moment";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {LandingService} from "../services/landing.service";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {FormGroup} from "@angular/forms";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {ObservedLocationService} from "../services/observed-location.service";
-import {TripService} from "../services/trip.service";
-import {filter, throttleTime} from "rxjs/operators";
-import {Observable} from "rxjs";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {Landing} from "../services/model/landing.model";
-import {Trip} from "../services/model/trip.model";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {environment} from "../../../environments/environment";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {AppEditorOptions} from "../../core/form/editor.class";
-import {Landing2Form} from "./landing2.form";
-import {MatTabGroup} from "@angular/material/tabs";
-import {Samples2Table} from "../sample/samples2.table";
-import {StrategyService} from "../../referential/services/strategy.service";
-import {Strategy} from "../../referential/services/model/strategy.model";
-import {MeasurementModelValues, MeasurementUtils} from "../services/model/measurement.model";
-import {Sample} from "../services/model/sample.model";
-import {PmfmIds} from "../../referential/services/model/model.enum";
-import {Pmfm} from "../../referential/services/model/pmfm.model";
-import {Parameter} from "../../referential/services/model/parameter.model";
+import { Moment } from "moment";
+import { Observable } from "rxjs";
+import { filter, throttleTime } from "rxjs/operators";
+import { environment } from "../../../environments/environment";
+import { AppEditorOptions } from "../../core/form/editor.class";
+import { ReferentialUtils } from "../../core/services/model/referential.model";
+import { UsageMode } from "../../core/services/model/settings.model";
+import { PlatformService } from "../../core/services/platform.service";
+import { AppRootDataEditor } from "../../data/form/root-data-editor.class";
+import { ProgramProperties } from "../../referential/services/config/program.config";
+import { PmfmIds } from "../../referential/services/model/model.enum";
+import { PmfmStrategy } from "../../referential/services/model/pmfm-strategy.model";
+import { Strategy } from "../../referential/services/model/strategy.model";
+import { ReferentialRefService } from "../../referential/services/referential-ref.service";
+import { StrategyService } from "../../referential/services/strategy.service";
+import { VesselSnapshotService } from "../../referential/services/vessel-snapshot.service";
+import { isNil, isNotEmptyArray, isNotNil } from '../../shared/functions';
+import { EntityServiceLoadOptions } from "../../shared/services/entity-service.class";
+import { Samples2Table } from "../sample/samples2.table";
+import { LandingService } from "../services/landing.service";
+import { Landing } from "../services/model/landing.model";
+import { MeasurementModelValues } from "../services/model/measurement.model";
+import { ObservedLocation } from "../services/model/observed-location.model";
+import { Sample } from "../services/model/sample.model";
+import { Trip } from "../services/model/trip.model";
+import { ObservedLocationService } from "../services/observed-location.service";
+import { TripService } from "../services/trip.service";
+import { Landing2Form } from "./landing2.form";
+
 
 @Component({
   selector: 'app-landing2-page',
@@ -58,8 +56,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   protected platform: PlatformService;
   protected strategyService: StrategyService;
 
-
   mobile: boolean;
+
+  program;
 
   @ViewChild('landing2Form', { static: true }) landing2Form: Landing2Form;
   @ViewChild('sample2TabGroup', { static: true }) sample2TabGroup: MatTabGroup;
@@ -94,14 +93,27 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   ngOnInit() {
     super.ngOnInit();
 
+    this.route.params
+    .subscribe(params => {
+      // Get ObservedLocation Id and ask to get associted Program
+      this.observedLocationService.load(params.observedLocationId).then(res => {
+        this.program = res.program;
+        this.landing2Form.program = res.program.label;
+
+
+        this.registerSubscription(
+          this.onProgramChanged
+            .subscribe(program => {
+              if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
+              this.landing2Form.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+              //this.markForCheck();
+            }));
+      })
+    });
+    
+    // this.landing2Form.program = this.program.label;
     // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(program => {
-          if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-          this.landing2Form.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
-          //this.markForCheck();
-        }));
+
 
     // Use landing date as default dateTime for samples
     this.registerSubscription(
@@ -327,6 +339,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     //data.samples = data.samples.concat(this.samples2Table.value);
     data.samples =this.samples2Table.value;
     data.samples.map(s => s.rankOrder = 1);
+    data.program = this.program;
     return data;
   }
 
