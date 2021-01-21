@@ -184,6 +184,7 @@
     "EXTRACTION_DIVIDER": "Extractions",
     "OBSERVED_LOCATIONS": "Observations",
     "AUCTION_CONTROL": "Contrôles en criée",
+    "OCCASION": "Sorties",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
     "USERS": "Utilisateurs",
@@ -971,8 +972,8 @@
       "TAB_GENERAL": "Détails",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type de valeur",
-      "CODE": "code paramètre",
-      "NAME": "nom",
+      "CODE": "Code paramètre",
+      "NAME": "Nom",
       "NEW": {
         "TITLE": "Nouveau Paramètre"
       },
@@ -1204,7 +1205,6 @@
       "QUARTER_4": "Trimestre 4",
       "PARAMETERS_TITLE": "Paramètres à mesurer :",
       "COMMENT" :"Commentaire",
-      "PARAMETERS_TITLE_TABLE": "Paramètres à mesurer",
       "QUARTER_1_TABLE": "Efforts T1" ,
       "QUARTER_2_TABLE": "Efforts T2",
       "QUARTER_3_TABLE": "Efforts T3",

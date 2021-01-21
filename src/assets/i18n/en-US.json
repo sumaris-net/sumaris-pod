@@ -183,7 +183,8 @@
     "DATA_ENTRY_DIVIDER": "Data entry",
     "EXTRACTION_DIVIDER": "Extractions",
     "OBSERVED_LOCATIONS": "Observations",
-    "AUCTION_CONTROL": "Auction control",
+    "AUCTION_CONTROL": "Auction controls",
+    "OCCASION": "Occasions",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Referential",
     "USERS": "Users",
@@ -314,6 +315,13 @@
         "ATTRIBUTES": {
           "EXTERIOR_MARKING_NAME": "Exterior marking - Name",
           "REGISTRATION_CODE_NAME": "Registration code - Name"
+        }
+      },
+      "PMFM_STRATEGY": {
+        "NAME": "Strategy > PMFM Parameter",
+        "ATTRIBUTES": {
+          "LONG_NAME": "PMFM Parameter (PMFM)",
+          "SHORT_NAME": "PMFM"
         }
       }
     },
@@ -964,6 +972,8 @@
       "TAB_GENERAL": "Details",
       "TAB_QUALITATIVE_VALUE": "Qualitative value",
       "TYPE": "Value type",
+      "CODE": "Parameter code",
+      "NAME": "Name",
       "NEW": {
         "TITLE": "New parameter"
       },
@@ -989,13 +999,9 @@
       "MAXIMUM_NUMBER_DECIMALS": "Maximal number of decimals",
       "SIGNIF_FIGURES_NUMBER": "Significant number of digits",
       "PARAMETER": "Parameter",
-      "PARAMETER_ID": "Parameter",
       "MATRIX": "Matrix",
-      "MATRIX_ID": "Matrix",
       "FRACTION": "Fraction",
-      "FRACTION_ID": "Fraction",
       "METHOD": "Data collecting method",
-      "METHOD_ID": "Data collecting method",
       "UNIT": "Unit",
       "BTN_ADD_PARAMETER": "Create a new parameter",
       "BTN_OPEN_PARAMETER": "Open the parameter",
@@ -1005,6 +1011,18 @@
       "EDIT": {
         "TITLE": "PMFM {{label}} - {{name}}"
       }
+    },
+    "MATRIX": {
+      "NAME": "Matrix",
+      "DESCRIPTION": "description"
+    },
+    "FRACTION": {
+      "NAME": "Fraction",
+      "DESCRIPTION": "description"
+    },
+    "METHOD": {
+      "NAME": "Data collection method",
+      "DESCRIPTION": "description"
     },
     "LIST": {
       "TITLE": "Referential",
@@ -1031,7 +1049,7 @@
       "VESSEL_TYPE": "Vessel types",
       "PMFM": "Collected parameters",
       "MATRIX": "Matrices",
-      "FRACTION": "Fractions",
+      "FRACTION": "Fractions of the matrix",
       "QUALITATIVE_VALUE": "Qualitative values",
       "TAXON_GROUP_TYPE": "Species group types",
       "TAXON_GROUP": "Species group",
@@ -1168,22 +1186,21 @@
       "SEX": "Sexe",
       "AGE": "Age",
       "YEAR": "Year",
-      "WEIGHT": "Weight : ",
-      "SIZE": "Size : ",
-      "MATURITY": "Maturity : ",
+      "WEIGHT": "Weights: ",
+      "SIZE": "Sizes: ",
+      "MATURITY": "Maturities: ",
       "WEIGHT_TABLE": "Weights",
       "SIZE_TABLE": "Sizes",
       "MATURITY_TABLE": "Maturities",
-      "CALCIFIED_TYPE": "Type of calcified part : " ,
+      "CALCIFIED_TYPE": "Types of calcified parts: " ,
       "SIZE_INCREMENT": "Size increment",
       "EFFORT": "Effort : ",
       "QUARTER_1": "Quarter 1" ,
       "QUARTER_2": "Quarter 2",
       "QUARTER_3": "Quarter 3",
       "QUARTER_4": "Quarter 4",
-      "PARAMETERS_TITLE": "Mesured parameters :",
+      "PARAMETERS_TITLE": "Mesured parameters:",
       "COMMENT" :"Comment",
-      "PARAMETERS_TITLE": "Mesured parameters",
       "QUARTER_1_TABLE": "Efforts T1" ,
       "QUARTER_2_TABLE": "Efforts T2",
       "QUARTER_3_TABLE": "Efforts T3",
