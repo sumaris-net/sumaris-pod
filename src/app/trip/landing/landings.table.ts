@@ -27,7 +27,7 @@ import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -117,7 +117,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       injector.get(ValidatorService),
       {
         prependNewElements: false,
-        suppressErrors: injector.get(EnvironmentService).production,
+        suppressErrors: environment.production,
         reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
         reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
@@ -136,7 +136,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
     // FOR DEV ONLY ----
-    this.debug = !injector.get(EnvironmentService).production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

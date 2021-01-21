@@ -7,7 +7,7 @@ import {ReferentialRefFilter, ReferentialRefService} from "../services/referenti
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {ReferentialRefTable} from "./referential-ref.table";
 import {ReferentialRef} from "../../core/services/model/referential.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-select-referential-modal',
@@ -33,7 +33,6 @@ export class SelectReferentialModal implements OnInit {
     protected viewCtrl: ModalController,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
   ) {
   }
 
@@ -44,7 +43,7 @@ export class SelectReferentialModal implements OnInit {
     }
     this.table.setDatasource(new EntitiesTableDataSource<ReferentialRef, ReferentialRefFilter>(ReferentialRef,
       this.referentialRefService,
-      this.environment,
+      environment,
       null,
       {
         prependNewElements: false,

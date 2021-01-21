@@ -1,5 +1,6 @@
-import * as moment from "moment";
 import {Duration, isMoment, Moment} from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';

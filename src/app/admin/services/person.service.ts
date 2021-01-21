@@ -1,7 +1,6 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {IEntitiesService, isNil, isNotEmptyArray, LoadResult, SuggestService} from "../../shared/shared.module";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
@@ -9,14 +8,14 @@ import {GraphqlService} from "../../core/graphql/graphql.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {environment} from "../../../environments/environment";
-import {Beans, KeysEnum} from "../../shared/functions";
+import {Beans, isNil, isNotEmptyArray, KeysEnum} from "../../shared/functions";
 import {Person} from "../../core/services/model/person.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
 import {JobUtils} from "../../shared/services/job.utils";
-import {FilterFn} from "../../shared/services/entity-service.class";
+import {FilterFn, IEntitiesService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -135,9 +134,10 @@ export class PersonService extends BaseEntityService<Person, PersonFilter>
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // for DEV only -----
     this._debug = !environment.production;

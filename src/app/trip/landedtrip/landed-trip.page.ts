@@ -1,14 +1,6 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, isNotNil, ReferentialRef} from '../../core/core.module';
-import {
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  isNil,
-  isNotEmptyArray,
-  isNotNilOrBlank
-} from '../../shared/shared.module';
 import * as momentImported from "moment";
 import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
@@ -21,7 +13,7 @@ import {HistoryPageReference, UsageMode} from "../../core/services/model/setting
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isEmptyArray} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
@@ -43,8 +35,8 @@ import {AddToPageHistoryOptions} from "../../core/services/local-settings.servic
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {ReferentialRef} from "../../core/services/model/referential.model";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {EnvironmentService} from "../../../environments/environment.class";
 import {Program} from "../../referential/services/model/program.model";
+import {environment} from "../../../environments/environment";
 
 const moment = momentImported;
 
@@ -98,7 +90,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     protected vesselService: VesselSnapshotService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
     protected formBuilder: FormBuilder,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       Trip,

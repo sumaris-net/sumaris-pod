@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AppFormUtils} from "../../../core/core.module";
 import {IonContent, ModalController} from "@ionic/angular";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
@@ -11,6 +10,7 @@ import {toBoolean} from "../../../shared/functions";
 import {SubBatchForm} from "../form/sub-batch.form";
 import {PlatformService} from "../../../core/services/platform.service";
 import {SubBatch} from "../../services/model/subbatch.model";
+import {AppFormUtils} from "../../../core/form/form.utils";
 
 @Component({
   selector: 'app-sub-batch-modal',

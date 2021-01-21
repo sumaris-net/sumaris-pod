@@ -16,8 +16,7 @@ import {
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion} from "../services/model/extraction.model";
 import {Location} from "@angular/common";
-import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
-import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
+import {Color, ColorScale, ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
 import {CRS, GeoJSON, MapOptions, WMSParams} from 'leaflet';
 import {Feature} from "geojson";

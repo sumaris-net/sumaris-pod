@@ -2,11 +2,9 @@ import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/mode
 import {FormGroup} from "@angular/forms";
 import {
   arraySize,
-  fromDateISOString,
   isEmptyArray,
   isNil, isNotNil,
   notNilOrDefault,
-  toDateISOString
 } from "../../../shared/functions";
 import * as momentImported from "moment";
 const moment = momentImported;
@@ -17,6 +15,7 @@ import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.mo
 import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export declare interface MeasurementModelValues {

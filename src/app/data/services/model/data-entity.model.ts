@@ -3,7 +3,8 @@ import {ReferentialAsObjectOptions} from "../../../core/services/model/referenti
 import {IWithRecorderDepartmentEntity} from "./model.utils";
 import {Entity} from "../../../core/services/model/entity.model";
 import {Department} from "../../../core/services/model/department.model";
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../shared/functions";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {isNotNil} from "../../../shared/functions";
 
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {

@@ -24,7 +24,7 @@ import {
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DEFAULT_PLACEHOLDER_CHAR} from '../../constants';
 import {isNil, toBoolean} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";

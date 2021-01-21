@@ -24,7 +24,7 @@ import {SubBatch, SubBatchUtils} from "../services/model/subbatch.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {AppTabEditor} from "../../core/form/tab-editor.class";
 import {AppTableUtils} from "../../core/table/table.utils";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-batch-tree',
@@ -104,7 +104,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     protected operationService: OperationService,
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(route, router, alertCtrl, translate,
           {

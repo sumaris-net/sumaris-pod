@@ -10,7 +10,7 @@ import {
 } from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Metier} from "../../../referential/services/model/taxon.model";
-import {fromDateISOString, isEmptyArray, isNotNil, toDateISOString} from "../../../shared/functions";
+import {isEmptyArray, isNotNil} from "../../../shared/functions";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {IWithProductsEntity, Product} from "./product.model";
@@ -27,6 +27,7 @@ import {RootDataEntity} from "../../../data/services/model/root-data-entity.mode
 import {Landing} from "./landing.model";
 import {Person} from "../../../core/services/model/person.model";
 import {EntityUtils} from "../../../core/services/model/entity.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 /* -- Helper function -- */
 

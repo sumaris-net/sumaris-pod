@@ -1,9 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, environment, isNil, isNotNil} from "../../core/core.module";
 import {Strategy} from "../services/model/strategy.model";
-import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
@@ -18,6 +16,10 @@ import {Program} from "../services/model/program.model";
 import {ReferentialForm} from "../form/referential.form";
 import {firstNotNilPromise} from "../../shared/observables";
 import {debounceTime, filter} from "rxjs/operators";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
 
 export enum AnimationState {
   ENTER = 'enter',

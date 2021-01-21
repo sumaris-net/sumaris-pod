@@ -14,7 +14,7 @@ import {VesselRegistrationService} from "../../services/vessel-registration.serv
 import {VesselRegistrationValidatorService} from "../../services/validator/vessel-registration.validator";
 import {VesselRegistration} from "../../services/model/vessel.model";
 import {referentialToString} from "../../../core/services/model/referential.model";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {environment} from "../../../../environments/environment";
 
 @Component({
   selector: 'app-vessel-registration-history-table',
@@ -40,8 +40,8 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     protected settings: LocalSettingsService,
     protected vesselRegistrationValidator: VesselRegistrationValidatorService,
     protected vesselRegistrationService: VesselRegistrationService,
-    protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment) {
+    protected cd: ChangeDetectorRef
+  ) {
 
     super(route, router, platform, location, modalCtrl, settings,
       // columns

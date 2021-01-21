@@ -107,7 +107,7 @@
     "tslib": "^2.0.3",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",
-    "uuid": "^8.3.2",
+    "uuid": "^3.3.3",
     "zone.js": "~0.10.3"
   },
   "devDependencies": {

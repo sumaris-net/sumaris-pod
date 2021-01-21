@@ -16,7 +16,7 @@ import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -58,7 +58,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected cd: ChangeDetectorRef,
     protected validatorService: PhysicalGearValidatorService,
     protected referentialRefService: ReferentialRefService,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
     this._enable = true;

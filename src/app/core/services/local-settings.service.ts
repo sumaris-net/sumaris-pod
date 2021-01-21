@@ -5,7 +5,6 @@ import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
 import {
-  fromDateISOString,
   getPropertyByPath,
   isEmptyArray,
   isNil,
@@ -19,12 +18,11 @@ import {Platform} from "@ionic/angular";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import * as momentImported from "moment";
 import {Moment} from "moment";
-import {Moment} from "moment";
 import {debounceTime, filter} from "rxjs/operators";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
-import {CORE_LOCAL_SETTINGS_OPTIONS} from "./config/core.config";
 import {EnvironmentService} from "../../../environments/environment.class";
 import {environment} from "../../../environments/environment";
+import {fromDateISOString} from "../../shared/dates";
 
 const moment = momentImported;
 

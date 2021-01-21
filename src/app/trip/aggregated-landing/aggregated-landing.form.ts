@@ -29,7 +29,7 @@ import {getMaxRankOrder} from "../../data/services/model/model.utils";
 import {AppForm} from "../../core/form/form.class";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {isNil} from "../../shared/functions";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 export class AggregatedLandingFormOption {
   dates: Observable<Moment[]> | Moment[];
@@ -115,7 +115,6 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     protected settings: LocalSettingsService,
     public network: NetworkService,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(dateAdapter, null, settings);
     this.mobile = this.settings.mobile;

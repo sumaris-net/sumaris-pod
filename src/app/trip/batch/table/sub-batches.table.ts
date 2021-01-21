@@ -41,7 +41,7 @@ import {BatchGroup} from "../../services/model/batch-group.model";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {EntityUtils} from "../../../core/services/model/entity.model";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {environment} from "../../../../environments/environment";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -58,7 +58,7 @@ export interface SubBatchFilter {
 const subBatchTableOptionsFactory = (injector: Injector) => {
   return {
     prependNewElements: false,
-    suppressErrors: injector.get(EnvironmentService).production,
+    suppressErrors: environment.production,
     reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
     reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
   };

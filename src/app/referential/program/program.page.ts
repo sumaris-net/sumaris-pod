@@ -1,16 +1,14 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, environment, isNil, ReferentialRef} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
 import {Strategy} from "../services/model/strategy.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
-import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppPropertiesForm} from "../../core/form/properties.form";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
@@ -22,6 +20,11 @@ import {ProgramProperties} from "../services/config/program.config";
 import {HistoryPageReference} from "../../core/services/model/history.model";
 import {SelectReferentialModal} from "../list/select-referential.modal";
 import {AppListForm} from "../../core/form/list.form";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {environment} from "../../../environments/environment";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {changeCaseToUnderscore, isNil} from "../../shared/functions";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 export enum AnimationState {
   ENTER = 'enter',

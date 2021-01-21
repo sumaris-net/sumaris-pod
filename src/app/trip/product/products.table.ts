@@ -22,7 +22,7 @@ import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {filterNotNil} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -73,7 +73,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     protected validatorService: ProductValidatorService,
     protected memoryDataService: InMemoryEntitiesService<Product, ProductFilter>,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       Product,

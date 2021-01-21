@@ -64,6 +64,7 @@ export * from './src/app/shared/validator/validators';
 
 // Shared test
 export * from './src/app/shared/shared.testing.module';
+export * from './src/app/shared/material/testing/material.testing.module';
 export * from './src/app/shared/material/testing/material.testing.page';
 
 // Core
@@ -90,7 +91,7 @@ export * from './src/app/core/services/pipes/account.pipes';
 export * from './src/app/core/services/platform.service';
 export * from './src/app/core/services/network.service';
 export * from './src/app/core/services/config.service';
-export {ConfigOptions} from './src/app/core/services/config/core.config';
+export {CORE_CONFIG_OPTIONS} from './src/app/core/services/config/core.config';
 export * from './src/app/core/services/local-settings.service';
 export * from './src/app/core/services/account.service';
 export * from './src/app/core/services/crypto.service';

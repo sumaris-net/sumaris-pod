@@ -9,7 +9,7 @@ import {
 } from "../../../core/services/model/referential.model";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
-import {fromDateISOString, toDateISOString} from "../../../shared/functions";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 import {Person} from "../../../core/services/model/person.model";
 
 

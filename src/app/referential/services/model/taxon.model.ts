@@ -1,6 +1,11 @@
-import {Entity, IReferentialRef, isNil, isNotNil, Referential, ReferentialRef} from "../../../core/core.module";
-import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {uncapitalizeFirstLetter} from "../../../shared/functions";
+import {
+  IReferentialRef,
+  Referential,
+  ReferentialAsObjectOptions, ReferentialRef,
+  ReferentialUtils
+} from "../../../core/services/model/referential.model";
+import {isNil, isNotNil, uncapitalizeFirstLetter} from "../../../shared/functions";
+import {Entity} from "../../../core/services/model/entity.model";
 
 
 export const TaxonGroupTypeIds = {

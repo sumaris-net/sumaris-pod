@@ -20,7 +20,7 @@ import {MetierService} from "../../referential/services/metier.service";
 import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -66,7 +66,6 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationFilter>,
     protected metierService: MetierService,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       OperationGroup,

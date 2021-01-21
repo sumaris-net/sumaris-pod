@@ -10,7 +10,6 @@ import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
-import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {CORE_CONFIG_OPTIONS} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";

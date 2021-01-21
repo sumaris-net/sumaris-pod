@@ -16,7 +16,7 @@ import {SortDirection} from "@angular/material/sort";
 import {isNil, isNotNil} from "../../shared/functions";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 export class MetierFilter extends ReferentialRefFilter {
 
@@ -85,7 +85,6 @@ export class MetierService extends BaseEntityService
     protected accountService: AccountService,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(graphql, environment);
 

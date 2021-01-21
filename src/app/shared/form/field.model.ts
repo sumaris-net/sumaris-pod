@@ -1,7 +1,7 @@
-import {MatAutocompleteFieldAddOptions} from "../material/material.autocomplete";
 import {ObjectMap, Property} from "../types";
 import {isNotNil} from "../functions";
 import {InjectionToken} from "@angular/core";
+import {MatAutocompleteFieldAddOptions} from "../material/autocomplete/material.autocomplete";
 
 export declare type DisplayFn = (obj: any) => string;
 

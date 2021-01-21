@@ -13,7 +13,7 @@ import {EntitiesTableDataSource} from "../../../core/table/entities-table-dataso
 import {VesselFeaturesService} from "../../services/vessel-features.service";
 import {VesselFeaturesValidatorService} from "../../services/validator/vessel-features.validator";
 import {referentialToString} from "../../../core/services/model/referential.model";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {environment} from "../../../../environments/environment";
 
 @Component({
   selector: 'app-vessel-features-history-table',
@@ -39,8 +39,8 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     protected settings: LocalSettingsService,
     protected vesselFeaturesValidator: VesselFeaturesValidatorService,
     protected vesselFeaturesService: VesselFeaturesService,
-    protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment) {
+    protected cd: ChangeDetectorRef
+  ) {
 
     super(route, router, platform, location, modalCtrl, settings,
       // columns

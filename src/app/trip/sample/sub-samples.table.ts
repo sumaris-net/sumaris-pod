@@ -12,7 +12,7 @@ import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-s
 import {SortDirection} from "@angular/material/sort";
 import {PmfmValueUtils} from "../../referential/services/model/pmfm-value.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -92,7 +92,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
       injector.get(ValidatorService),
       {
         prependNewElements: false,
-        suppressErrors: injector.get(EnvironmentService).production,
+        suppressErrors: environment.production,
         reservedStartColumns: SUB_SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS
       }
@@ -105,7 +105,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     this.inlineEdition = true;
 
     //this.debug = false;
-    this.debug = !injector.get(EnvironmentService).production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

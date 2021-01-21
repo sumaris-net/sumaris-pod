@@ -8,7 +8,7 @@ import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {Storage} from '@ionic/storage';
 
-import {sleep, toDateISOString} from "../../shared/functions";
+import {sleep} from "../../shared/functions";
 import {BaseEntityService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {GraphqlService} from "../graphql/graphql.service";
@@ -20,6 +20,7 @@ import {Referential, ReferentialUtils} from "./model/referential.model";
 import {StatusIds} from "./model/model.enum";
 import {Base58} from "./base58";
 import {EnvironmentService} from "../../../environments/environment.class";
+import {toDateISOString} from "../../shared/dates";
 
 
 export declare interface AccountHolder {

@@ -24,7 +24,7 @@ import {Alerts} from "../../../shared/alerts";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {AppFormUtils} from "../../../core/form/form.utils";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {environment} from "../../../../environments/environment";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -113,7 +113,6 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;

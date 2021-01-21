@@ -1,6 +1,5 @@
-import {BehaviorSubject, Observable} from "rxjs";
+import {Observable} from "rxjs";
 import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {isNil, isNotNil} from "../functions";
 import {SortDirection} from "@angular/material/sort";
 
 export declare interface Page {

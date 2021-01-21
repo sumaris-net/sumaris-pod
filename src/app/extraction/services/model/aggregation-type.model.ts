@@ -1,10 +1,11 @@
 /* -- Extraction -- */
 
 import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {fromDateISOString, isNotEmptyArray, toBoolean, toDateISOString} from "../../../shared/functions";
+import {isNotEmptyArray, toBoolean} from "../../../shared/functions";
 import {Moment} from "moment";
 import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from "../../../data/services/model/model.utils";
-import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./extraction.model";
+import {ExtractionColumn, ExtractionFilter, ExtractionType} from "./extraction.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export type StrataAreaType = 'area' | 'statistical_rectangle' | 'sub_polygon' | 'square';
 export type StrataTimeType = 'year' | 'quarter' | 'month';

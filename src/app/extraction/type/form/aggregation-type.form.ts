@@ -1,5 +1,4 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {AppForm, EntityUtils, FormArrayHelper, isNil, StatusIds} from "../../../core/core.module";
 import {
   ExtractionColumn
 } from "../../services/model/extraction.model";
@@ -7,7 +6,7 @@ import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
-import {arraySize} from "../../../shared/functions";
+import {arraySize, isNil} from "../../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -16,6 +15,10 @@ import {debounceTime} from "rxjs/operators";
 import {AggregationStrata, AggregationType} from "../../services/model/aggregation-type.model";
 import {ExtractionUtils} from "../../services/extraction.utils";
 import {AggregationService} from "../../services/aggregation.service";
+import {FormArrayHelper} from "../../../core/form/form.utils";
+import {AppForm} from "../../../core/form/form.class";
+import {StatusIds} from "../../../core/services/model/model.enum";
+import {EntityUtils} from "../../../core/services/model/entity.model";
 
 declare interface ColumnMap {
   [sheetName: string]: ExtractionColumn[];

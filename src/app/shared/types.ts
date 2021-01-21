@@ -13,8 +13,6 @@ export declare type Property = ObjectMapEntry<string>;
 
 export declare type PropertiesArray = Property[];
 
-export declare type DisplayFn = (obj: any) => string;
-
 export declare interface IconRef {
   icon?: string; // An ion-icon name
   matIcon?: string; // A mat icon

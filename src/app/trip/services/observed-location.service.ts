@@ -9,7 +9,8 @@ import {
 } from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
 import {defer, Observable, ObservedValueOf} from "rxjs";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {Moment} from "moment";
 import {gql} from "@apollo/client/core";
 import {Fragments} from "./trip.queries";
@@ -21,13 +22,11 @@ import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
 import {
   Beans,
-  fromDateISOString,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
   KeysEnum,
-  toDateISOString
 } from "../../shared/functions";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
@@ -42,6 +41,7 @@ import {Landing} from "./model/landing.model";
 import {ObservedLocationValidatorService} from "./validator/observed-location.validator";
 import {environment} from "../../../environments/environment";
 import {JobUtils} from "../../shared/services/job.utils";
+import {fromDateISOString, toDateISOString} from "../../shared/dates";
 
 
 export class ObservedLocationFilter {

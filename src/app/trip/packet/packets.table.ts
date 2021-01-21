@@ -17,7 +17,7 @@ import {isNil, isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-packets-table',
@@ -83,7 +83,6 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     protected memoryDataService: InMemoryEntitiesService<Packet, PacketFilter>,
     protected programService: ProgramService,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       // columns

@@ -1,7 +1,8 @@
 import {Moment} from "moment";
-import {fromDateISOString, joinPropertiesPath, toDateISOString} from "../../../shared/functions";
+import {joinPropertiesPath} from "../../../shared/functions";
 import {Entity, EntityAsObjectOptions, EntityUtils} from "./entity.model";
 import {StatusIds} from "./model.enum";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export function referentialToString(obj: Referential | any, properties?: string[]): string | undefined {
   return obj && obj.id && joinPropertiesPath(obj, properties || ['label', 'name']) || undefined;

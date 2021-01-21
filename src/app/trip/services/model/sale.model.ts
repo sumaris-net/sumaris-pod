@@ -5,8 +5,9 @@ import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entit
 import {Sample} from "./sample.model";
 import {Measurement, MeasurementUtils} from "./measurement.model";
 import {IWithProductsEntity, Product} from "./product.model";
-import {fromDateISOString, isNotEmptyArray, toDateISOString} from "../../../shared/functions";
 import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {isNotEmptyArray} from "../../../shared/functions";
 
 
 export class Sale extends DataRootVesselEntity<Sale>

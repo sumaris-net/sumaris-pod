@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit} from '@angular/core';
 import {DataEntity, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from '../services/model/data-entity.model';
 // import fade in animation
-import {fadeInAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AccountService} from "../../core/services/account.service";
 import {IDataEntityQualityService, isDataQualityService} from "../services/data-quality-service.class";
 import {QualityFlags} from "../../referential/services/model/model.enum";
@@ -18,12 +17,13 @@ import {AppRootDataEditor} from "../form/root-data-editor.class";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
 import {ReferentialRef} from "../../core/services/model/referential.model";
 import {qualityFlagToColor} from "../services/model/model.utils";
-import {StatusIds} from "../../core/core.module";
 import {UserEventService} from "../../social/services/user-event.service";
 import {OverlayEventDetail} from "@ionic/core";
 import {RootDataSynchroService} from "../services/root-data-synchro-service.class";
 import {isDataSynchroService} from "../services/root-data-synchro-service.class";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {fadeInAnimation} from "../../shared/material/material.animations";
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -73,8 +73,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     protected translate: TranslateService,
     public network: NetworkService,
     protected userEventService: UserEventService,
-    protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
+    protected cd: ChangeDetectorRef
   ) {
 
     this._debug = !environment.production;

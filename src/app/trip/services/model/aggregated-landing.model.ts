@@ -2,8 +2,9 @@ import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, Measure
 import {Moment} from "moment";
 import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
 import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
-import {fromDateISOString, isEmptyArray, isNotNil, toDateISOString} from "../../../shared/functions";
+import {isEmptyArray, isNotNil} from "../../../shared/functions";
 import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export class VesselActivity extends Entity<VesselActivity> {
 

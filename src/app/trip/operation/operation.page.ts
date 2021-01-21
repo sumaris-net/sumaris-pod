@@ -3,16 +3,8 @@ import {OperationSaveOptions, OperationService} from '../services/operation.serv
 import {OperationForm} from './operation.form';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppEntityEditor, EntityUtils, environment} from '../../core/core.module';
 import {ReferentialUtils} from '../../core/services/model/referential.model';
 import {HistoryPageReference, UsageMode} from '../../core/services/model/settings.model';
-import {
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  isNil,
-  isNotEmptyArray,
-  isNotNil
-} from '../../shared/shared.module';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from "rxjs/operators";
@@ -24,15 +16,19 @@ import {Program} from "../../referential/services/model/program.model";
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
 import {Batch} from "../services/model/batch.model";
-import {isNotNilOrBlank} from "../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
 import {ProgramService} from "../../referential/services/program.service";
-import {IEntity} from "../../core/services/model/entity.model";
+import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {BatchTreeComponent} from "../batch/batch-tree.component";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-operation-page',

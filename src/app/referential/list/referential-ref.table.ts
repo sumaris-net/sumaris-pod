@@ -8,7 +8,7 @@ import {ReferentialRefFilter, ReferentialRefService} from "../services/referenti
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {debounceTime, filter} from "rxjs/operators";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 
 @Component({
@@ -51,7 +51,6 @@ export class ReferentialRefTable extends AppTable<ReferentialRef, ReferentialRef
     protected referentialRefService: ReferentialRefService,
     formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(injector.get(ActivatedRoute),
       injector.get(Router),

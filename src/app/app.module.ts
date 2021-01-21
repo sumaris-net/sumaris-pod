@@ -4,7 +4,6 @@ import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from "@angular/core";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
-import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
 import {StatusBar} from '@ionic-native/status-bar/ngx';
@@ -59,6 +58,7 @@ import {
 import {FormFieldDefinitionMap} from "./shared/form/field.model";
 import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 import {TranslateHttpLoader} from "@ngx-translate/http-loader";
+import {DATE_ISO_PATTERN} from "./shared/dates";
 
 
 @NgModule({

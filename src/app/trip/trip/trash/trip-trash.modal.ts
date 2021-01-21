@@ -27,7 +27,7 @@ import {OperationService} from "../../services/operation.service";
 import {EntitiesStorage} from "../../../core/services/storage/entities-storage.service";
 import {TrashRemoteService} from "../../../core/services/trash-remote.service";
 import {chainPromises} from "../../../shared/observables";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {environment} from "../../../../environments/environment";
 
 @Component({
   selector: 'app-trip-trash-modal',
@@ -72,7 +72,6 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
     protected viewCtrl: ModalController,
-    @Inject(EnvironmentService) protected environment
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,

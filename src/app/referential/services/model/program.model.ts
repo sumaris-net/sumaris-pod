@@ -1,10 +1,11 @@
 import {Entity, EntityUtils} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
 import {ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../shared/functions";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {Strategy} from "./strategy.model";
 import {PropertiesMap} from "../../../shared/types";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {isNotNil} from "../../../shared/functions";
 
 
 export class Program extends Entity<Program> {

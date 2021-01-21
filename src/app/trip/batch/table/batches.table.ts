@@ -10,8 +10,7 @@ import {
   OnInit
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../../core/core.module";
-import {isNilOrBlank, isNotNil} from "../../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
 import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../../core/services/model/settings.model";
@@ -25,8 +24,8 @@ import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
 import {getPmfmName, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {BatchModal} from "../modal/batch.modal";
-import {IReferentialRef, ReferentialRef} from "../../../core/services/model/referential.model";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {IReferentialRef, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
+import {environment} from "../../../../environments/environment";
 
 export interface BatchFilter {
   operationId?: number;
@@ -109,7 +108,6 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     injector: Injector,
     validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<T, F>,
-    @Inject(EnvironmentService) protected environment,
     @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
   ) {
     super(injector,

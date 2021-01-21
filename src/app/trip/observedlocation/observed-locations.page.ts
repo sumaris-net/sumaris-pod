@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, isNil, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -21,6 +20,9 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {Trip} from "../services/model/trip.model";
 import {AppRootTable} from "../../data/table/root-table.class";
 import {OBSERVED_LOCATION_FEATURE_NAME} from "../services/config/trip.config";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {isNil} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -67,7 +69,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
           'comments'])
         .concat(RESERVED_END_COLUMNS),
       dataService,
-      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
+      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, environment, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

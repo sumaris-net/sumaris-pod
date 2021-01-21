@@ -14,8 +14,7 @@ import {OperationsMap} from "./map/operations.map";
 import {AccountService} from "../../core/services/account.service";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {referentialToString} from "../../core/services/model/referential.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 
 @Component({
@@ -77,7 +76,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     protected translate: TranslateService,
     protected accountService: AccountService,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS

@@ -16,7 +16,7 @@ import {SampleValidatorService} from "../services/validator/sample.validator";
 import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AppFormUtils} from "../../core/form/form.utils";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-sample-form',
@@ -56,7 +56,6 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     protected validatorService: SampleValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService,
-    @Inject(EnvironmentService) protected environment
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
       validatorService.getFormGroup()

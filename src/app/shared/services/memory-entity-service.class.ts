@@ -1,9 +1,8 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {IEntitiesService, isNotNil, LoadResult} from "../../core/core.module";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {filter, mergeMap} from "rxjs/operators";
-import {isNotEmptyArray} from "../functions";
-import {FilterFnFactory} from "./entity-service.class";
+import {isNotEmptyArray, isNotNil} from "../functions";
+import {FilterFnFactory, IEntitiesService, LoadResult} from "./entity-service.class";
 import {SortDirection} from "@angular/material/sort";
 
 export interface InMemoryEntitiesServiceOptions<T, F> {

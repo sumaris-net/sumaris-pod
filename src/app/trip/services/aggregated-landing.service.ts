@@ -1,20 +1,11 @@
 import {Injectable, Injector} from "@angular/core";
-import {
-  BaseEntityService,
-  environment,
-  IEntitiesService,
-  isNil,
-  isNotNil,
-  LoadResult,
-  toDateISOString
-} from "../../core/core.module";
 import {AggregatedLanding} from "./model/aggregated-landing.model";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {Beans} from "../../shared/functions";
+import {Beans, isNil, isNotNil} from "../../shared/functions";
 import {gql} from "@apollo/client/core";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
@@ -24,6 +15,10 @@ import {SynchronizationStatus} from "../../data/services/model/root-data-entity.
 import {SortDirection} from "@angular/material/sort";
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {environment} from "../../../environments/environment";
+import {toDateISOString} from "../../shared/dates";
 
 export class AggregatedLandingFilter {
   programLabel?: string;
@@ -125,7 +120,7 @@ export class AggregatedLandingService
     protected network: NetworkService,
     protected entities: EntitiesStorage
   ) {
-    super(injector.get(GraphqlService));
+    super(injector.get(GraphqlService), environment);
 
     // FOR DEV ONLY
     this._debug = !environment.production;

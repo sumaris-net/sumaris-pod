@@ -9,7 +9,7 @@ import * as momentImported from "moment";
 const moment = momentImported;
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
-import {fromDateISOString, isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SharedValidators} from "../../shared/validator/validators";
@@ -22,6 +22,7 @@ import {Geolocation} from "@ionic-native/geolocation/ngx";
 import {GeolocationOptions} from "@ionic-native/geolocation";
 import {AppForm} from "../../core/form/form.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {fromDateISOString} from "../../shared/dates";
 
 @Component({
   selector: 'app-form-operation',

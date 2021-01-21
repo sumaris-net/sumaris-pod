@@ -12,8 +12,9 @@ import {Entity} from "../services/model/entity.model";
 import {timer} from "rxjs";
 import {filter, first} from "rxjs/operators";
 import {SharedFormArrayValidators} from "../../shared/validator/validators";
-import {isNil, nullIfUndefined, round, sleep, toBoolean, toDateISOString} from "../../shared/functions";
+import {isNil, nullIfUndefined, round, sleep, toBoolean} from "../../shared/functions";
 import {filterNumberInput, selectInputContent} from "../../shared/inputs";
+import {toDateISOString} from "../../shared/dates";
 
 export declare type IAppFormFactory = () => IAppForm;
 
@@ -39,7 +40,7 @@ export interface IAppForm  {
 /**
  * A form that do nothing
  */
-class AppNullForm implements IAppForm {
+export class AppNullForm implements IAppForm {
   readonly invalid = false;
   readonly valid = false;
   readonly dirty = false;
@@ -165,7 +166,7 @@ export class AppFormUtils {
  */
 export function copyForm2Entity(source: FormGroup, target: any): Object {
   target = target || {};
-  for (let key in source.controls) {
+  for (const key in source.controls) {
     const control = source.controls[key];
     if (control instanceof FormGroup) {
       target[key] = this.copyForm2Entity(control as FormGroup, target[key]);
@@ -194,7 +195,7 @@ export function copyEntity2Form(source: any, target: FormGroup, opts?: { emitEve
  */
 export function getFormValueFromEntity(source: any, form: FormGroup): { [key: string]: any } {
   const value = {};
-  for (let key in form.controls) {
+  for (const key in form.controls) {
     // If sub-group: recursive call
     if (form.controls[key] instanceof FormGroup) {
       value[key] = getFormValueFromEntity(source[key] || {}, form.controls[key] as FormGroup);
@@ -304,7 +305,7 @@ export function getFormErrors(control: AbstractControl, controlName?: string, re
     }
 
     // Loop on children controls
-    for (let key in control.controls) {
+    for (const key in control.controls) {
       const child = control.controls[key];
       if (child && child.enabled) {
         getFormErrors(child, controlName ? [controlName, key].join('.') :  key, result);
@@ -336,7 +337,7 @@ export function getFormErrors(control: AbstractControl, controlName?: string, re
 
 export function getControlFromPath(form: FormGroup, path: string): AbstractControl {
   const i = path.indexOf('.');
-  if (i == -1) {
+  if (i === -1) {
     return form.controls[path];
   }
   const key = path.substring(0, i);

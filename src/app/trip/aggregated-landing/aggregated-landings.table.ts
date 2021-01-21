@@ -38,7 +38,7 @@ import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.m
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {referentialToString} from "../../core/services/model/referential.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
 
 const moment = momentImported;
 
@@ -117,7 +117,6 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
