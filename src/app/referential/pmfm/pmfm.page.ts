@@ -20,12 +20,6 @@ import {AppEntityEditor} from "../../core/form/editor.class";
 import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
 import {EnvironmentService} from "../../../environments/environment.class";
 import {HistoryPageReference} from "../../core/services/model/history.model";
-import {isNil, joinPropertiesPath} from "../../shared/functions";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {AppEntityEditor} from "../../core/form/editor.class";
-import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
-import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-pmfm',

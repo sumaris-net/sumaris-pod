@@ -4,7 +4,6 @@ import {isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import * as momentImported from "moment";
 import {Moment} from "moment";
 import {LandingForm} from "./landing.form";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
@@ -15,7 +14,6 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
 import {filter, throttleTime} from "rxjs/operators";
-import {Observable} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -26,9 +24,6 @@ import {ProgramProperties} from "../../referential/services/config/program.confi
 import {AppEditorOptions} from "../../core/form/editor.class";
 import {EnvironmentService} from "../../../environments/environment.class";
 import {Program} from "../../referential/services/model/program.model";
-import {environment} from "../../../environments/environment";
-
-const moment = momentImported;
 
 const moment = momentImported;
 
