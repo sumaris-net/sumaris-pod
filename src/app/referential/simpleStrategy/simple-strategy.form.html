@@ -26,7 +26,7 @@
       <ion-col>
         <mat-autocomplete-field
           formControlName="analyticReference"
-          [placeholder]="'PROGRAM.STRATEGY.EOTP'|translate"
+          [placeholder]="'PROGRAM.STRATEGY.ANALYTIC_REFERENCE'|translate"
           [config]="autocompleteFields.analyticReference"
           [tabindex]="tabindex+1">
 
@@ -51,7 +51,7 @@
       <ion-col [formGroup]="strategyDepartmentHelper.at(i)">
         <mat-autocomplete-field
           formControlName="department"
-          [placeholder]="('PROGRAM.STRATEGY.LABORATORY'|translate) + (i+1)"
+          [placeholder]="('PROGRAM.STRATEGY.STRATEGY_DEPARTMENTS'|translate) + (i+1)"
           [config]="autocompleteFields.strategyDepartment"
           [tabindex]="tabindex+10+i*3"
           [required]="true">
@@ -92,7 +92,7 @@
       <ion-col [formGroup]="appliedStrategiesHelper.at(i)">
         <mat-autocomplete-field
           formControlName="location"
-          [placeholder]="('PROGRAM.STRATEGY.FISHING_AREA'|translate) + (i+1)"
+          [placeholder]="('PROGRAM.STRATEGY.APPLIED_STRATEGIES'|translate) + (i+1)"
           [config]="autocompleteFields.appliedStrategy"
           [tabindex]="tabindex+10+i*3"
           [required]="true">
@@ -133,7 +133,7 @@
       <ion-col [formGroup]="taxonNameHelper.at(i)">
         <mat-autocomplete-field
           formControlName="taxonName"
-          [placeholder]="('PROGRAM.STRATEGY.TARGET_SPECIE'|translate)"
+          [placeholder]="('PROGRAM.STRATEGY.TAXON_NAMES'|translate)"
           [config]="autocompleteFields.taxonName"
           [tabindex]="tabindex+10+i*3"
           [required]="true">
@@ -156,7 +156,7 @@
       </ion-col>
         <ion-col [formGroup]="taxonNameHelper.at(i)">
         <mat-autocomplete-field formControlName="name"
-                                [placeholder]="'PROGRAM.STRATEGY.TARGET_SPECIE'|translate"
+                                [placeholder]="'PROGRAM.STRATEGY.TAXON_NAMES'|translate"
                                 [config]="autocompleteFields.taxonName"
                                 [tabindex]="tabindex+1"
                                 [required]="true"

@@ -60,7 +60,7 @@
   <!-- codeLine column -->
   <ng-container matColumnDef="label">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PROGRAM.STRATEGY.SAMPLE_ROW_CODE</span>
+      <span translate>PROGRAM.STRATEGY.LABEL</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       {{row.currentData.label}}
@@ -70,7 +70,7 @@
     <!-- eotp column -->
     <ng-container matColumnDef="analyticReference">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.EOTP</span>
+        <span translate>PROGRAM.STRATEGY.ANALYTIC_REFERENCE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{row.currentData.analyticReference}}
@@ -80,7 +80,7 @@
     <!-- LABORATORY column -->
     <ng-container matColumnDef="strategyDepartments">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.LABORATORY</span>
+        <span translate>PROGRAM.STRATEGY.STRATEGY_DEPARTMENTS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{strategyDepartmentsToString(row.currentData)}}
@@ -90,7 +90,7 @@
     <!-- FISHING_AREA column -->
     <ng-container matColumnDef="appliedStrategies">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.FISHING_AREA</span>
+        <span translate>PROGRAM.STRATEGY.APPLIED_STRATEGIES</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{appliedStategiesToString(row.currentData)}}
@@ -100,7 +100,7 @@
      <!-- TARGET_SPECIE column -->
      <ng-container matColumnDef="taxonNames">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.TARGET_SPECIE</span>
+        <span translate>PROGRAM.STRATEGY.TAXON_NAMES</span>
       </mat-header-cell>
        <mat-cell *matCellDef="let row">
          {{taxonsNameStrategyToString(row.currentData)}}
