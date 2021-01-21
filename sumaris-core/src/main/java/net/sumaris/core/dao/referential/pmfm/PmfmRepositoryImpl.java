@@ -26,6 +26,7 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -40,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -63,6 +65,14 @@ public class PmfmRepositoryImpl
     @Cacheable(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", unless = "#result == null")
     public PmfmVO get(int id) {
         return super.get(id);
+    }
+
+    @Override
+    public List<PmfmVO> findAll(Parameter parameter, Matrix matrix, Fraction fraction, Method method) {
+        return findAll(BindableSpecification.where(hasPmfmPart(parameter, matrix, fraction, method)))
+                .stream()
+                .map(entity -> toVO(entity))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -180,6 +190,14 @@ public class PmfmRepositoryImpl
         }
 
         target.setQualitativeValues(entities);
+    }
+
+    @Override
+    protected Specification<Pmfm> toSpecification(ReferentialFilterVO filter) {
+
+        return super.toSpecification(filter)
+                .and(inLevelIds(Pmfm.Fields.PARAMETER, filter))
+                .and(inLevelLabels(Pmfm.Fields.PARAMETER, filter));
     }
 
     @Override

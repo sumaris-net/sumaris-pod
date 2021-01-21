@@ -115,6 +115,16 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean strategiesByIdCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.STRATEGIES_BY_ID, 100, CacheDurations.DEFAULT, 100);
+    }
+
+    @Bean
+    public EhCacheFactoryBean strategiesByLabelCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.STRATEGIES_BY_LABEL, 100);
+    }
+
+    @Bean
     public EhCacheFactoryBean pmfmByStrategyIdCache() {
         return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 100);
     }
@@ -172,6 +182,11 @@ public class CacheConfiguration {
     @Bean
     public EhCacheFactoryBean locationLevelByLabel() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.LOCATION_LEVEL_BY_LABEL, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean analyticReferenceByLabelCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.ANALYTIC_REFERENCES_BY_FILTER, 100);
     }
 
     @Bean

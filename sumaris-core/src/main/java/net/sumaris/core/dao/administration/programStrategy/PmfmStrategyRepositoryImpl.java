@@ -36,9 +36,7 @@ import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.pmfm.Parameter;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
-import net.sumaris.core.model.referential.pmfm.UnitEnum;
+import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
@@ -141,12 +139,11 @@ public class PmfmStrategyRepositoryImpl
         if (source == null) return null;
 
         Pmfm pmfm = source.getPmfm();
-        Preconditions.checkNotNull(pmfm);
 
         PmfmStrategyVO target = new PmfmStrategyVO();
 
         // Copy properties, from Pmfm first (if inherit enable), then from source
-        if (fetchOptions.isWithPmfmStrategyInheritance()) {
+        if (fetchOptions.isWithPmfmStrategyInheritance() && pmfm != null) {
             Beans.copyProperties(pmfm, target);
         }
         Beans.copyProperties(source, target);
@@ -155,47 +152,64 @@ public class PmfmStrategyRepositoryImpl
         target.setStrategyId(source.getStrategy().getId());
 
         // Set some attributes from Pmfm
-        target.setPmfmId(pmfm.getId());
+        if (pmfm != null) {
+            target.setPmfmId(pmfm.getId());
 
-        // Apply default values from Pmfm
-        if (pmfm.getMethod() != null) {
-            target.setMethodId(pmfm.getMethod().getId());
-        }
-        if (target.getMinValue() == null) {
-            target.setMinValue(pmfm.getMinValue());
-        }
-        if (target.getMaxValue() == null) {
-            target.setMaxValue(pmfm.getMaxValue());
-        }
-        if (target.getDefaultValue() == null) {
-            target.setDefaultValue(pmfm.getDefaultValue());
+            // Apply default values from Pmfm
+            if (target.getMinValue() == null) {
+                target.setMinValue(pmfm.getMinValue());
+            }
+            if (target.getMaxValue() == null) {
+                target.setMaxValue(pmfm.getMaxValue());
+            }
+            if (target.getDefaultValue() == null) {
+                target.setDefaultValue(pmfm.getDefaultValue());
+            }
+
+            // Parameter name
+            Parameter parameter = pmfm.getParameter();
+            target.setName(parameter.getName());
+
+            // Value Type
+            PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
+            target.setType(type.name().toLowerCase());
+
+            // Unit symbol
+            if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
+                target.setUnitLabel(pmfm.getUnit().getLabel());
+            }
+
+            // Qualitative values
+            if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
+                List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
+                        .stream()
+                        .map(referentialDao::toVO)
+                        .collect(Collectors.toList());
+                target.setQualitativeValues(qualitativeValues);
+            }
         }
 
-        // Parameter name
-        Parameter parameter = pmfm.getParameter();
-        target.setName(parameter.getName());
-
-        // Value Type
-        PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
-        target.setType(type.name().toLowerCase());
-
-        // Unit symbol
-        if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
-            target.setUnitLabel(pmfm.getUnit().getLabel());
+        // Parameter, Matrix, Fraction, Method Ids
+        if (source.getParameter() != null) {
+            target.setParameterId(source.getParameter().getId());
+            target.setParameter(referentialDao.toVO(source.getParameter()));
+        }
+        if (source.getMatrix() != null) {
+            target.setMatrixId(source.getMatrix().getId());
+            target.setMatrix(referentialDao.toVO(source.getMatrix()));
+        }
+        if (source.getFraction() != null) {
+            target.setFractionId(source.getFraction().getId());
+            target.setFraction(referentialDao.toVO(source.getFraction()));
+        }
+        if (source.getMethod() != null) {
+            target.setMethodId(source.getMethod().getId());
+            target.setMethod(referentialDao.toVO(source.getMethod()));
         }
 
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {
             target.setAcquisitionLevel(source.getAcquisitionLevel().getLabel());
-        }
-
-        // Qualitative values
-        if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
-            List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
-                .stream()
-                .map(referentialDao::toVO)
-                .collect(Collectors.toList());
-            target.setQualitativeValues(qualitativeValues);
         }
 
         // Gears
@@ -252,7 +266,7 @@ public class PmfmStrategyRepositoryImpl
             parent.getPmfmStrategies().remove(ps);
         });
 
-        return sources;
+        return sources.isEmpty() ? null : sources;
     }
 
     @Override
@@ -266,10 +280,35 @@ public class PmfmStrategyRepositoryImpl
         }
 
         // Pmfm
-        Integer pmfmId = source.getPmfmId() != null ? source.getPmfmId() :
-            (source.getPmfm() != null ? source.getPmfm().getId() : null);
-        if (pmfmId == null) throw new DataIntegrityViolationException("Missing pmfmId or pmfm.id in a PmfmStrategyVO");
-        target.setPmfm(load(Pmfm.class, pmfmId));
+        Integer pmfmId = source.getPmfmId() != null ? source.getPmfmId()
+                : (source.getPmfm() != null ? source.getPmfm().getId() : null);
+        //if (pmfmId == null) throw new DataIntegrityViolationException("Missing pmfmId or pmfm.id in a PmfmStrategyVO");
+        if (pmfmId != null) {
+            target.setPmfm(load(Pmfm.class, pmfmId));
+        }
+
+        // Parameter, Matrix, Fraction, Method
+        Integer parameterId = source.getParameterId() != null ? source.getParameterId()
+                : (source.getParameter() != null ? source.getParameter().getId() : null);
+        Integer matrixId = source.getMatrixId() != null ? source.getMatrixId()
+                : (source.getMatrix() != null ? source.getMatrix().getId() : null);
+        Integer fractionId = source.getFractionId() != null ? source.getFractionId()
+                : (source.getFraction() != null ? source.getFraction().getId() : null);
+        Integer methodId = source.getMethodId() != null ? source.getMethodId()
+                : (source.getMethod() != null ? source.getMethod().getId() : null);
+
+        if (parameterId != null) {
+            target.setParameter(load(Parameter.class, parameterId));
+        }
+        if (matrixId != null) {
+            target.setMatrix(load(Matrix.class, matrixId));
+        }
+        if (fractionId != null) {
+            target.setFraction(load(Fraction.class, fractionId));
+        }
+        if (methodId != null) {
+            target.setMethod(load(Method.class, methodId));
+        }
 
         // Acquisition Level
         target.setAcquisitionLevel(load(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(source.getAcquisitionLevel())));

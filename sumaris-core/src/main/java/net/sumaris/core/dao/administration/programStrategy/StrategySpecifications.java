@@ -23,7 +23,6 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
@@ -69,5 +68,21 @@ public interface StrategySpecifications {
     List<TaxonGroupStrategyVO> getTaxonGroupStrategies(int strategyId);
 
     List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
+
+    List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
+
+    List<StrategyDepartmentVO> getStrategyDepartments(int strategyId);
+
+    List<TaxonGroupStrategyVO> saveTaxonGroupStrategiesByStrategyId(int strategyId, List<TaxonGroupStrategyVO> sources);
+
+    List<TaxonNameStrategyVO> saveReferenceTaxonStrategiesByStrategyId(int strategyId, List<TaxonNameStrategyVO> sources);
+
+    List<AppliedStrategyVO> saveAppliedStrategiesByStrategyId(int strategyId, List<AppliedStrategyVO> sources);
+
+    List<StrategyDepartmentVO> saveStrategyDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources);
+
+    String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+
+    void saveProgramLocationsByStrategyId(int strategyId);
 
 }

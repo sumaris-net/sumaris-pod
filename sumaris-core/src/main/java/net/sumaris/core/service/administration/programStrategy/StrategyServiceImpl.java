@@ -23,9 +23,11 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.StrategyRepository;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
@@ -52,8 +54,36 @@ public class StrategyServiceImpl implements StrategyService {
 	private PmfmStrategyRepository pmfmStrategyRepository;
 
 	@Override
+	public StrategyVO get(int id) {
+		return strategyRepository.get(id);
+	}
+
+	@Override
 	public StrategyVO get(int id, StrategyFetchOptions fetchOptions) {
 		return strategyRepository.get(id, fetchOptions);
+	}
+
+	@Override
+	public StrategyVO getByLabel(String label) {
+		Preconditions.checkNotNull(label);
+		return strategyRepository.getByLabel(label);
+	}
+
+	@Override
+	public StrategyVO getByLabel(String label, StrategyFetchOptions fetchOptions) {
+		Preconditions.checkNotNull(label);
+		return strategyRepository.getByLabel(label, fetchOptions);
+	}
+
+	@Override
+	public List<StrategyVO> getAll() {
+		return strategyRepository.findAll(StrategyFilterVO.builder().build());
+	}
+
+	@Override
+	public List<StrategyVO> findByFilter(StrategyFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		if (filter == null) filter = StrategyFilterVO.builder().build();
+		return strategyRepository.findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
 	}
 
 	@Override
@@ -67,8 +97,8 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, StrategyFetchOptions fetchOptions) {
-		return pmfmStrategyRepository.findByStrategyId(strategy, fetchOptions);
+	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategyId, StrategyFetchOptions fetchOptions) {
+		return pmfmStrategyRepository.findByStrategyId(strategyId, fetchOptions);
 	}
 
 	@Override
@@ -108,8 +138,22 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public StrategyVO save(StrategyVO source) {
+	public List<AppliedStrategyVO> getAppliedStrategies(int strategyId) {
+		return strategyRepository.getAppliedStrategies(strategyId);
+	}
 
+	@Override
+	public List<StrategyDepartmentVO> getStrategyDepartments(int strategyId) {
+		return strategyRepository.getStrategyDepartments(strategyId);
+	}
+
+	@Override
+	public String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
+		return strategyRepository.findNextLabelByProgramId(programId, labelPrefix, nbDigit);
+	}
+
+	@Override
+	public StrategyVO save(StrategyVO source) {
 		StrategyVO result = strategyRepository.save(source);
 
 		// Save children entities
@@ -137,8 +181,27 @@ public class StrategyServiceImpl implements StrategyService {
 
 	protected void saveChildrenEntities(StrategyVO source) {
 
-		// Pmfm strategies
-		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(source.getId(), Beans.getList(source.getPmfmStrategies()));
+		// Save taxon Group strategy
+		List<TaxonGroupStrategyVO> savedTaxonGroupStrategies = strategyRepository.saveTaxonGroupStrategiesByStrategyId(strategyId, Beans.getList(source.getTaxonGroups()));
+		source.setTaxonGroups(savedTaxonGroupStrategies);
+
+		// Save reference Names strategy
+		List<TaxonNameStrategyVO> savedReferenceTaxonStrategies = strategyRepository.saveReferenceTaxonStrategiesByStrategyId(strategyId, Beans.getList(source.getTaxonNames()));
+		source.setTaxonNames(savedReferenceTaxonStrategies);
+
+		// Save applied strategies
+		List<AppliedStrategyVO> savedAppliedStrategies = strategyRepository.saveAppliedStrategiesByStrategyId(strategyId, Beans.getList(source.getAppliedStrategies()));
+		source.setAppliedStrategies(savedAppliedStrategies);
+
+		// Save strategy departments
+		List<StrategyDepartmentVO> savedStrategyDepartments = strategyRepository.saveStrategyDepartmentsByStrategyId(strategyId, Beans.getList(source.getStrategyDepartments()));
+		source.setStrategyDepartments(savedStrategyDepartments);
+
+		// Save pmfm strategies
+		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(strategyId, Beans.getList(source.getPmfmStrategies()));
 		source.setPmfmStrategies(savedPmfmStrategies);
+
+		// Save program locations
+		strategyRepository.saveProgramLocationsByStrategyId(strategyId);
 	}
 }

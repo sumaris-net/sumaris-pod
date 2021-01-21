@@ -149,6 +149,34 @@ public class ProgramGraphQLService {
         return referentialService.countByFilter(Strategy.class.getSimpleName(), filter);
     }
 
+    @GraphQLQuery(name = "strategy", description = "Get a strategy")
+    @Transactional(readOnly = true)
+    public StrategyVO getStrategy(
+            @GraphQLArgument(name = "label") String label,
+            @GraphQLArgument(name = "id") Integer id,
+            @GraphQLArgument(name = "expandedPmfmStrategy", defaultValue = "false") Boolean expandedPmfmStrategy
+    ) {
+        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
+        if (id != null) {
+            return strategyService.get(id, getStrategyFetchOptions(expandedPmfmStrategy));
+        }
+        return strategyService.getByLabel(label, getStrategyFetchOptions(expandedPmfmStrategy));
+    }
+
+    @GraphQLQuery(name = "strategies", description = "Search in strategies")
+    @Transactional(readOnly = true)
+    public List<StrategyVO> findStrategiesByFilter(
+            @GraphQLArgument(name = "filter") StrategyFilterVO filter,
+            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+            @GraphQLArgument(name = "sortBy", defaultValue = StrategyVO.Fields.LABEL) String sort,
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        if (filter == null) {
+            return strategyService.getAll();
+        }
+        return strategyService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+    }
+
     @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")
     public ReferentialVO getProgramTaxonGroupType(@GraphQLContext ProgramVO program) {
         if (program.getTaxonGroupTypeId() != null && program.getTaxonGroupType() == null) {
@@ -212,6 +240,17 @@ public class ProgramGraphQLService {
         return null;
     }
 
+    // TODO BLA rename ?
+    @GraphQLQuery(name = "strategyNextLabel", description = "Get next label for strategy")
+    public String findNextLabelByProgramId(
+            @GraphQLArgument(name = "programId") int programId,
+            @GraphQLArgument(name = "labelPrefix", defaultValue = "") String labelPrefix,
+            @GraphQLArgument(name = "nbDigit", defaultValue = "0") Integer nbDigit) {
+        return strategyService.findNextLabelByProgramId(programId,
+                labelPrefix == null ? "" : labelPrefix,
+                nbDigit == null ? 0 : nbDigit);
+    }
+
     /* -- Mutations -- */
 
     @GraphQLMutation(name = "saveProgram", description = "Save a program (with strategies)")
@@ -264,8 +303,15 @@ public class ProgramGraphQLService {
         return StrategyFetchOptions.builder()
                 .withPmfmStrategyInheritance(
                         fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.LABEL))
-                        && !fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.PMFM))
+                                && !fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.PMFM))
                 )
+                .build();
+    }
+
+    // TODO BLA: voir si on ne pas deduire la valeur de exapanded, par la grappe demandée ?
+    protected StrategyFetchOptions getStrategyFetchOptions(Boolean expandedPmfmStrategy) {
+        return StrategyFetchOptions.builder()
+                .withPmfmStrategyExpanded(expandedPmfmStrategy)
                 .build();
     }
 

@@ -35,4 +35,7 @@ public class StrategyFetchOptions implements IFetchOptions {
     @Builder.Default
     private boolean withPmfmStrategyInheritance = false;
 
+    @Builder.Default
+    private boolean withPmfmStrategyExpanded = false;
+
 }

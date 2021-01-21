@@ -23,6 +23,7 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -41,7 +42,22 @@ import java.util.List;
 public interface StrategyService {
 
 	@Transactional(readOnly = true)
+	//TODO BLA: à supprimer (fetch nullable)
+	StrategyVO get(int id);
+
+	@Transactional(readOnly = true)
 	StrategyVO get(int id, StrategyFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	//TODO BLA: à supprimer (fetch nullable)
+	StrategyVO getByLabel(String label);
+
+	@Transactional(readOnly = true)
+	StrategyVO getByLabel(String label, StrategyFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	//TODO BLA: à supprimer
+	List<StrategyVO> getAll();
 
 	@Transactional(readOnly = true)
 	List<StrategyVO> findByFilter(StrategyFilterVO filter, Pageable pageable, StrategyFetchOptions fetchOptions);
@@ -56,7 +72,7 @@ public interface StrategyService {
 	List<PmfmStrategyVO> findPmfmStrategiesByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getGears(int strategyId);
@@ -67,10 +83,19 @@ public interface StrategyService {
 	@Transactional(readOnly = true)
 	List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
 
+	@Transactional(readOnly = true)
+	List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
+
+	@Transactional(readOnly = true)
+	List<StrategyDepartmentVO> getStrategyDepartments(int strategyId);
+
+	@Transactional(readOnly = true)
+	String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+
 	StrategyVO save(StrategyVO source);
 
-	void delete(int id);
-
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
+
+	void delete(int id);
 
 }

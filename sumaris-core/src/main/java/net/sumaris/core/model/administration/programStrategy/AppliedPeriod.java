@@ -49,4 +49,6 @@ public class AppliedPeriod implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date endDate;
 
+    private Integer acquisitionNumber;
+
 }
