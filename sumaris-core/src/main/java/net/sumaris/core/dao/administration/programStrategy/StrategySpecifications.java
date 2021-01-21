@@ -23,6 +23,7 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.vo.administration.programStrategy.*;
@@ -83,4 +84,7 @@ public interface StrategySpecifications {
 
     void saveProgramLocationsByStrategyId(int strategyId);
 
+    boolean hasUserPrivilege(int strategyId, int personId, ProgramPrivilegeEnum privilege);
+
+    boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege);
 }

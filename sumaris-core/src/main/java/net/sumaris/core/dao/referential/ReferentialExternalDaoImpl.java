@@ -30,6 +30,9 @@ import com.google.gson.JsonParser;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
@@ -41,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -61,19 +65,28 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
     @Autowired
     private SumarisConfiguration config;
 
+    private boolean enableAnalyticReferences = false;
     private List<ReferentialVO> analyticReferences;
     private Date analyticReferencesUpdateDate = new Date(0L);
 
-    public ReferentialExternalDaoImpl() {
-    }
-
+    @Autowired
     public ReferentialExternalDaoImpl(SumarisConfiguration config) {
         this.config = config;
     }
 
-    @PostConstruct
-    private void init() {
-        loadAnalyticReferences();
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+
+        boolean enableAnalyticReferences = event.getConfiguration().enableAnalyticReferencesService();
+
+        if (this.enableAnalyticReferences != enableAnalyticReferences) {
+            this.enableAnalyticReferences = enableAnalyticReferences;
+
+            // Load references
+            if (this.enableAnalyticReferences) {
+                loadAnalyticReferences();
+            }
+        }
     }
 
     @Override
@@ -83,6 +96,9 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                                             int size,
                                             String sortAttribute,
                                             SortDirection sortDirection) {
+
+        if (!enableAnalyticReferences) throw new UnsupportedOperationException("Analytic references not supported");
+
         loadAnalyticReferences();
 
         return analyticReferences.stream()
@@ -94,7 +110,9 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                 );
     }
 
+    // TODO NRannou: add cache (with a time to live) - or transcribing
     public void loadAnalyticReferences() {
+
         Date updateDate = new Date();
         int delta = DateUtil.getDifferenceInDays(analyticReferencesUpdateDate, updateDate);
         int delay = config.getAnalyticReferencesServiceDelay();
@@ -102,7 +120,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
         String authStr = config.getAnalyticReferencesServiceAuth();
 
         // load analyticReferences if not loaded or too old
-        if (urlStr != null && (delta > delay || analyticReferences == null)) {
+        if (StringUtils.isNotBlank(urlStr) && (delta > delay || analyticReferences == null)) {
             log.info(String.format("Loading analytic references from {%s}", urlStr));
             BufferedReader content = requestAnalyticReferenceService(urlStr, authStr);
             analyticReferences = parseAnalyticReferencesToVO(content);

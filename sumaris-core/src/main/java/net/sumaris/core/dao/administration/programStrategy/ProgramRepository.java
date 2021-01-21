@@ -35,5 +35,4 @@ public interface ProgramRepository
     extends ReferentialRepository<Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>,
     ProgramSpecifications {
 
-    boolean existsByIdAndDepartmentIdAndDepartment(int id, int departmentId);
 }

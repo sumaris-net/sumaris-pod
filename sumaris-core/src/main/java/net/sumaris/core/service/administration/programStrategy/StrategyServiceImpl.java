@@ -173,16 +173,12 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Override
 	public boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege) {
-		//programRepository.existsByIdAndDepartmentId(programId, personId, privilege);
-		log.warn("TODO: implement StrategyService.hasUserPrivilege()");
-		return true;
+		return strategyRepository.hasUserPrivilege(programId, personId, privilege);
 	}
 
 	@Override
 	public boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege) {
-		//programRepository.existsByIdAndDepartmentId(programId, personId, privilege);
-		log.warn("TODO: implement StrategyService.hasDepartmentPrivilege()");
-		return true;
+		return strategyRepository.hasDepartmentPrivilege(programId, departmentId, privilege);
 	}
 
 	/* -- protected methods -- */

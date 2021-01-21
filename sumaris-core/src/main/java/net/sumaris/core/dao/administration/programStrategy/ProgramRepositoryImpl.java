@@ -31,10 +31,7 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
+import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -251,6 +248,27 @@ public class ProgramRepositoryImpl
                 target.getLocations().addAll(loadAllAsSet(Location.class, locationIds, true));
             }
         }
+    }
+
+
+    @Override
+    public boolean hasUserPrivilege(int strategyId, int personId, ProgramPrivilegeEnum privilege) {
+        log.warn("TODO: implement StrategyService.hasUserPrivilege()");
+
+        return false;
+    }
+
+    @Override
+    public boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege) {
+        return getEntityManager().createQuery(
+                "SELECT count(*) FROM Program2Department t " +
+                        " WHERE t.department.id = :departmentId" +
+                        " AND t.program.id = :programId" +
+                        " AND t.privilege.id :privilegeId ", Long.class)
+                .setParameter("programId", programId)
+                .setParameter("departmentId", departmentId)
+                .setParameter("privilegeId", privilege.getId())
+                .getSingleResult() > 0;
     }
 
     @Override

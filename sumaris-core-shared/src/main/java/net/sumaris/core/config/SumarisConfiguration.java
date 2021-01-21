@@ -740,6 +740,16 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      *
      * @return a {@link String}
      */
+    public boolean enableAnalyticReferencesService() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ANALYTIC_REFERENCES.getKey());
+    }
+
+
+    /**
+     * <p>find the analytic references service URL.</p>
+     *
+     * @return a {@link String}
+     */
     public String getAnalyticReferencesServiceUrl() {
         return applicationConfig.getOption(SumarisConfigurationOption.ANALYTIC_REFERENCES_SERVICE_URL.getKey());
     }

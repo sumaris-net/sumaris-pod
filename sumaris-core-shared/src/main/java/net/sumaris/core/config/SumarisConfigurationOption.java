@@ -402,15 +402,22 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+    ENABLE_ANALYTIC_REFERENCES (
+            "sumaris.analyticReferences.enable",
+            n("sumaris.config.option.analyticReferences.enable.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class,
+            false),
+
     ANALYTIC_REFERENCES_SERVICE_URL(
-            "analyticReferences.service.url",
+            "sumaris.analyticReferences.service.url",
             n("sumaris.config.option.analyticReferences.service.url.description"),
             "http://vsap7-dgw.ifremer.fr:8001/sap/opu/odata/sap/ZUI5_WS_EOTP_SRV/EotpSet/?$format=json",
             String.class,
             false),
 
     ANALYTIC_REFERENCES_SERVICE_AUTH(
-            "analyticReferences.service.auth",
+            "sumaris.analyticReferences.service.auth",
             n("sumaris.config.option.analyticReferences.service.auth.description"),
             "ws_eotp:eotp-sap-20201022",
             String.class,

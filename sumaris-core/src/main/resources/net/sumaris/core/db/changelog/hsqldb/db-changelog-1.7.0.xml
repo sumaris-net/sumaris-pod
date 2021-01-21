@@ -27,6 +27,60 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.7.0.xml">
 
+  <!-- Add PROGRAM2DEPARTMENT table -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-01">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="program2department"/></not>
+    </preConditions>
+    <createTable tableName="program2department">
+      <column name="id" type="integer">
+        <constraints primaryKey="true" primaryKeyName="program2department_pk"/>
+      </column>
+      <column name="program_fk" type="integer">
+        <constraints nullable="false" foreignKeyName="program2department_program_fkc" referencedTableName="program" referencedColumnNames="id"/>
+      </column>
+      <column name="location_fk" type="integer">
+        <constraints foreignKeyName="program2department_location_fkc" referencedTableName="location" referencedColumnNames="id"/>
+      </column>
+      <column name="program_privilege_fk" type="integer">
+        <constraints nullable="false" foreignKeyName="program2department_privilege_fkc" referencedTableName="program_privilege" referencedColumnNames="id"/>
+      </column>
+      <column name="department_fk" type="integer">
+        <constraints nullable="false" foreignKeyName="program2department_department_fkc" referencedTableName="department" referencedColumnNames="id"/>
+      </column>
+      <column name="update_date" type="timestamp"/>
+    </createTable>
+    <createSequence sequenceName="PROGRAM2DEPARTMENT_SEQ"/>
+  </changeSet>
+
+  <!-- Add PROGRAM2PERSON table -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-02">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="program2person"/></not>
+    </preConditions>
+    <createTable tableName="program2person">
+      <column name="id" type="integer">
+        <constraints primaryKey="true" primaryKeyName="program2person_pk"/>
+      </column>
+      <column name="program_fk" type="integer">
+        <constraints nullable="false" foreignKeyName="program2person_program_fkc" referencedTableName="program" referencedColumnNames="id"/>
+      </column>
+      <column name="location_fk" type="integer">
+        <constraints foreignKeyName="program2person_location_fkc" referencedTableName="location" referencedColumnNames="id"/>
+      </column>
+      <column name="program_privilege_fk" type="integer">
+        <constraints nullable="false" foreignKeyName="program2person_privilege_fkc" referencedTableName="program_privilege" referencedColumnNames="id"/>
+      </column>
+      <column name="person_fk" type="integer">
+        <constraints nullable="false" foreignKeyName="program2person_person_fkc" referencedTableName="person" referencedColumnNames="id"/>
+      </column>
+      <column name="reference_person_fk" type="integer">
+        <constraints nullable="true" foreignKeyName="program2person_ref_person_fkc" referencedTableName="person" referencedColumnNames="id"/>
+      </column>
+      <column name="update_date" type="timestamp"/>
+    </createTable>
+    <createSequence sequenceName="PROGRAM2PERSON_SEQ"/>
+  </changeSet>
 
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-200" runOnChange="true">
@@ -37,11 +91,13 @@
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
       <column name="LABEL">1.7.0</column>
       <column name="DESCRIPTION">
+        - Add tables PROGRAM2DEPARTMENT, PROGRAM2PERSON
         - Add PMFM_STRATEGY (ADAP DB)
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
       <column name="COMMENTS">
+        - Add tables PROGRAM2DEPARTMENT, PROGRAM2PERSON
         - Add PMFM_STRATEGY (ADAP DB)
       </column>
     </insert>

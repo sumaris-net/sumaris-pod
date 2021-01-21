@@ -62,6 +62,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -736,6 +737,30 @@ public class StrategyRepositoryImpl
 
         return sources.isEmpty() ? null : sources;
     }
+
+
+    @Override
+    public boolean hasUserPrivilege(int strategyId, int personId, ProgramPrivilegeEnum privilege) {
+        log.warn("TODO: implement StrategyService.hasUserPrivilege()");
+
+        return false;
+    }
+
+    @Override
+    public boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege) {
+        return getEntityManager().createQuery(
+                "SELECT count(*) FROM StrategyDepartment t " +
+                        " WHERE t.department.id = :departmentId" +
+                        " AND t.strategy.id = :strategyId" +
+                        " AND t.privilege.id :privilegeId ", Long.class)
+                .setParameter("strategyId", strategyId)
+                .setParameter("departmentId", departmentId)
+                .setParameter("privilegeId", privilege.getId())
+                .getSingleResult() > 0;
+    }
+
+
+    /* -- -- */
 
     protected List<PmfmStrategyVO> getPmfmStrategies(Strategy source, StrategyFetchOptions fetchOptions) {
         Preconditions.checkNotNull(fetchOptions);
