@@ -160,24 +160,14 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
     // Combo: observers
     this.registerAutocompleteField('observer', {
-      suggestFn: (value, filter) => {
-        const actualEntity = ReferentialUtils.isNotEmpty(value) ? value : null;
-        const excludedIds = (this.observersForm.value || [])
-          .filter(ReferentialUtils.isNotEmpty)
-          .filter(person => !actualEntity || actualEntity !== person)
-          .map(person => parseInt(person.id));
-        return this.personService.suggest(actualEntity ? '*' : value, {
-          ...filter,
-          excludedIds
-        });
-      },
+      // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.suggestObservers(value, filter),
+      // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
         userProfiles: ['SUPERVISOR', 'USER']
       },
-
-      // Important, to get the focused control value, in the suggest fn. Otherwise suggestFn will received '*'.
-      showAllOnFocus: false,
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: personToString
     });
@@ -280,6 +270,22 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
     }
+  }
+
+  protected suggestObservers(value: any, filter?: any): Promise<any[]> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing observers, BUT keep the current control value
+    const excludedIds = (this.observersForm.value || [])
+    .filter(ReferentialUtils.isNotEmpty)
+    .filter(person => !currentControlValue || currentControlValue !== person)
+    .map(person => parseInt(person.id));
+
+    return this.personService.suggest(newValue, {
+      ...filter,
+      excludedIds
+    });
   }
 
   protected markForCheck() {

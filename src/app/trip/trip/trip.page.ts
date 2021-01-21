@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
@@ -125,8 +125,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
   protected registerForms() {
     this.addChildForms([
-      this.tripForm, this.saleForm, this.measurementsForm,
-      this.physicalGearsTable, this.operationsTable
+      this.tripForm,
+      this.saleForm,
+      this.measurementsForm,
+      this.physicalGearsTable,
+      this.operationsTable
     ]);
   }
 
@@ -146,6 +149,18 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+
+    // Toggle showMap to false, when offline
+    if (this.operationsTable.showMap) {
+      const subscription = this.network.onNetworkStatusChanges
+        .pipe(filter(status => status === "none"))
+        .subscribe(status => {
+          this.operationsTable.showMap = false;
+          this.markForCheck();
+          subscription.unsubscribe(); // Remove the subscription (not need anymore)
+        });
+      this.registerSubscription(subscription);
+    }
 
     if (this.isNewData) {
       // If new data, enable gears tab

@@ -172,6 +172,11 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.markAsPristine();
   }
 
+  async save(event?: Event, options?: any): Promise<boolean> {
+    //console.debug('TODO saving program...');
+    return super.save(event, options);
+  }
+
   protected async getJsonValueToSave(): Promise<any> {
 
     const data = await super.getJsonValueToSave();
