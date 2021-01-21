@@ -49,6 +49,8 @@ public class ExtractionContextVO implements IExtractionFormat {
 
     ExtractionFilterVO filter;
 
+    String tableNamePrefix;
+
     @FieldNameConstants.Exclude
     Map<String, String> tableNames = new LinkedHashMap<>();
 

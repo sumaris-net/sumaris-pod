@@ -22,13 +22,24 @@ package net.sumaris.core.extraction.dao.technical;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.core.extraction.vo.ExtractionContextVO;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.util.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.dialect.Dialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +48,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Query;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,16 +71,35 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
     @Autowired
     ApplicationContext applicationContext;
 
+    @Autowired
+    protected SumarisDatabaseMetadata databaseMetadata;
+
+
     protected DatabaseType databaseType = null;
 
-    @Autowired
-    public ExtractionBaseDaoImpl() {
-        super();
-    }
+    protected String dropTableQuery;
 
     @PostConstruct
-    protected void init() {
+    public void init() {
         this.databaseType = Daos.getDatabaseType(configuration.getJdbcURL());
+        this.dropTableQuery = getDialect().getDropTableString("%s");
+    }
+
+    protected Dialect getDialect() {
+        return databaseMetadata.getDialect();
+    }
+
+    protected void dropTable(String tableName) {
+        Preconditions.checkNotNull(tableName);
+
+        log.debug(String.format("Dropping extraction table {%s}...", tableName));
+        try {
+            String sql = String.format(dropTableQuery, tableName.toUpperCase());
+            getSession().createSQLQuery(sql).executeUpdate();
+
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(String.format("Cannot drop extraction table {%s}...", tableName), e);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -98,7 +125,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
 
 
     protected int queryUpdate(String query) {
-        if (log.isDebugEnabled()) log.debug("aggregate: " + query);
+        if (log.isDebugEnabled()) log.debug("execute update: " + query);
         Query nativeQuery = getEntityManager().createNativeQuery(query);
         return nativeQuery.executeUpdate();
     }
@@ -151,5 +178,60 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
         return applicationContext.getBean("xmlQuery", XMLQuery.class);
     }
 
+    protected <C extends ExtractionContextVO> void clean(@NonNull C context) {
+        Preconditions.checkNotNull(context.getTableNamePrefix());
 
+        Set<String> tableNames = ImmutableSet.<String>builder()
+                .addAll(context.getTableNames())
+                .addAll(context.getRawTableNames())
+                .build();
+
+        if (CollectionUtils.isEmpty(tableNames)) return;
+
+        tableNames.stream()
+                // Keep only tables with EXT_ prefix
+                .filter(tableName -> tableName != null && tableName.startsWith(context.getTableNamePrefix()))
+                .forEach(tableName -> {
+                    try {
+                        dropTable(tableName);
+                        databaseMetadata.clearCache(tableName);
+                    }
+                    catch (SumarisTechnicalException e) {
+                        log.error(e.getMessage());
+                        // Continue
+                    }
+                });
+    }
+
+    protected <F extends ExtractionFilterVO> int cleanRow(String tableName, F filter, String sheetName) {
+        Preconditions.checkNotNull(tableName);
+        if (filter == null) return 0;
+
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
+        Preconditions.checkNotNull(table);
+
+        String whereClauseContent = SumarisTableMetadatas.getSqlWhereClauseContent(table, filter, sheetName, table.getAlias());
+        if (StringUtils.isBlank(whereClauseContent)) return 0;
+
+        String deleteQuery = table.getDeleteQuery(String.format("NOT(%s)", whereClauseContent));
+        return queryUpdate(deleteQuery);
+    }
+
+    protected <C extends ExtractionContextVO> void dropHiddenColumns(C context) {
+        Map<String, Set<String>> hiddenColumns = context.getHiddenColumnNames();
+        context.getTableNames().forEach(tableName -> {
+            dropHiddenColumns(tableName, hiddenColumns.get(tableName));
+            databaseMetadata.clearCache(tableName);
+        });
+    }
+
+    protected void dropHiddenColumns(final String tableName, Set<String> hiddenColumnNames) {
+        Preconditions.checkNotNull(tableName);
+        if (CollectionUtils.isEmpty(hiddenColumnNames)) return; // Skip
+
+        hiddenColumnNames.forEach(columnName -> {
+            String sql = String.format("ALTER TABLE %s DROP column %s", tableName, columnName);
+            queryUpdate(sql);
+        });
+    }
 }

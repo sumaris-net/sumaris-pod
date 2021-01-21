@@ -100,12 +100,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     @Autowired
     protected ResourceLoader resourceLoader;
 
-    @Autowired
-    protected SumarisDatabaseMetadata databaseMetadata;
-
-    @Autowired
-    protected ExtractionTableDao extractionTableDao;
-
     @Override
     public <R extends C> R execute(F filter) {
         ExtractionTripFilterVO tripFilter = toTripFilterVO(filter);
@@ -116,6 +110,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setFilter(filter);
         context.setId(System.currentTimeMillis());
         context.setFormat(LiveFormatEnum.RDB);
+        context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
@@ -191,26 +186,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     @Override
     public void clean(C context) {
-        Set<String> tableNames = ImmutableSet.<String>builder()
-                .addAll(context.getTableNames())
-                .addAll(context.getRawTableNames())
-                .build();
-
-        if (CollectionUtils.isEmpty(tableNames)) return;
-
-        tableNames.stream()
-            // Keep only tables with EXT_ prefix
-            .filter(tableName -> tableName != null && tableName.startsWith(TABLE_NAME_PREFIX))
-            .forEach(tableName -> {
-                try {
-                    extractionTableDao.dropTable(tableName);
-                    databaseMetadata.clearCache(tableName);
-                }
-                catch (SumarisTechnicalException e) {
-                    log.error(e.getMessage());
-                    // Continue
-                }
-            });
+        super.clean(context);
     }
 
     /* -- protected methods -- */
@@ -578,19 +554,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
     }
 
-    protected int cleanRow(String tableName, ExtractionFilterVO filter, String sheetName) {
-        Preconditions.checkNotNull(tableName);
-        if (filter == null) return 0;
 
-        SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
-        Preconditions.checkNotNull(table);
-
-        String whereClauseContent = SumarisTableMetadatas.getSqlWhereClauseContent(table, filter, sheetName, table.getAlias());
-        if (StringUtils.isBlank(whereClauseContent)) return 0;
-
-        String deleteQuery = table.getDeleteQuery(String.format("NOT(%s)", whereClauseContent));
-        return queryUpdate(deleteQuery);
-    }
 
 
 }

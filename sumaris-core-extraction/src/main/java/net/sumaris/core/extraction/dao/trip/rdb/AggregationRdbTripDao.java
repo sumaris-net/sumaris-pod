@@ -44,7 +44,6 @@ public interface AggregationRdbTripDao<C extends AggregationRdbTripContextVO,
 
     MinMaxVO getAggMinMaxByTech(String tableName, F filter, S strata);
 
-    <R extends C> void clean(R context);
+    void clean(C context);
 
-    <R extends C> void dropHiddenColumns(R context);
 }

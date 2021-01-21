@@ -57,11 +57,6 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
     @Autowired
     private DataSource dataSource;
 
-    @Autowired
-    public ExtractionCsvDaoImpl() {
-        super();
-    }
-
     @Override
     public void dumpQueryToCSV(File file, String query,
                                Map<String, String> aliasByColumnMap,

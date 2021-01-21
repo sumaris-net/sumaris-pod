@@ -101,13 +101,10 @@ public class AggregationRdbTripDaoImpl<
     protected ResourceLoader resourceLoader;
 
     @Autowired
-    protected SumarisDatabaseMetadata databaseMetadata;
+    protected ExtractionTableDao extractionTableDao;
 
     @javax.annotation.Resource(name = "extractionRdbTripDao")
     protected ExtractionRdbTripDao extractionRdbTripDao;
-
-    @Autowired
-    protected ExtractionTableDao extractionTableDao;
 
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata) {
@@ -120,13 +117,7 @@ public class AggregationRdbTripDaoImpl<
         context.setStrata(strata);
         context.setId(System.currentTimeMillis());
         context.setFormat(ProductFormatEnum.AGG_RDB);
-
-        // Compute table names
-        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthMapTableName(String.format(HL_MAP_TABLE_NAME_PATTERN, context.getId()));
-        context.setLandingTableName(String.format(CL_TABLE_NAME_PATTERN, context.getId()));
+        context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
@@ -141,6 +132,8 @@ public class AggregationRdbTripDaoImpl<
             log.info(String.format("Starting aggregation #%s-%s... %s", context.getLabel(), context.getId(), filterInfo.toString()));
         }
 
+        // Fill context table names
+        fillContextTableNames(context);
 
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
@@ -258,36 +251,8 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public <R extends C> void clean(R context) {
-        Set<String> tableNames = ImmutableSet.<String>builder()
-                .addAll(context.getTableNames())
-                .addAll(context.getRawTableNames())
-                .build();
-
-        if (CollectionUtils.isEmpty(tableNames)) return; // Nothing to drop
-
-        tableNames.stream()
-                // Keep only tables with AGG_ prefix
-                .filter(tableName -> tableName != null && tableName.startsWith(TABLE_NAME_PREFIX))
-                .forEach(tableName -> {
-                    try {
-                        extractionTableDao.dropTable(tableName);
-                        databaseMetadata.clearCache(tableName);
-                    }
-                    catch (SumarisTechnicalException e) {
-                        log.error(e.getMessage());
-                        // Continue
-                    }
-                });
-    }
-
-    @Override
-    public <R extends C> void dropHiddenColumns(R context) {
-        Map<String, Set<String>> hiddenColumns = context.getHiddenColumnNames();
-        context.getTableNames().forEach(tableName -> {
-            dropHiddenColumns(tableName, hiddenColumns.get(tableName));
-            databaseMetadata.clearCache(tableName);
-        });
+    public void clean(C context) {
+        super.clean(context);
     }
 
     /* -- protected methods -- */
@@ -305,6 +270,15 @@ public class AggregationRdbTripDaoImpl<
 
     protected Class<? extends AggregationRdbTripContextVO> getContextClass() {
         return AggregationRdbTripContextVO.class;
+    }
+
+    protected void fillContextTableNames(C context) {
+        // Set unique table names
+        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthMapTableName(String.format(HL_MAP_TABLE_NAME_PATTERN, context.getId()));
+        context.setLandingTableName(String.format(CL_TABLE_NAME_PATTERN, context.getId()));
     }
 
     protected long createStationTable(ExtractionProductVO source, C context) {
@@ -895,18 +869,6 @@ public class AggregationRdbTripDaoImpl<
                 .map(String::toLowerCase)
                 .filter(SPATIAL_COLUMNS::contains)
                 .collect(Collectors.toSet());
-    }
-
-
-    protected void dropHiddenColumns(final String tableName, Set<String> hiddenColumnNames) {
-        Preconditions.checkNotNull(tableName);
-        if (CollectionUtils.isEmpty(hiddenColumnNames)) return; // Skip
-
-        hiddenColumnNames.forEach(columnName -> {
-            String sql = String.format("ALTER TABLE %s DROP column %s", tableName, columnName);
-            queryUpdate(sql);
-        });
-
     }
 
     /**

@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -68,18 +69,6 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionTableDaoImpl.class);
 
-    private String dropTableQuery;
-
-    @Autowired
-    protected SumarisDatabaseMetadata databaseMetadata;
-
-    @Autowired
-    protected DataSource dataSource = null;
-
-    @PostConstruct
-    public void init() {
-        dropTableQuery = getDialect().getDropTableString("%s");
-    }
 
     @Override
     public List<String> getAllTableNames() {
@@ -136,14 +125,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         Preconditions.checkArgument(tableName.toUpperCase().startsWith(ExtractionDao.TABLE_NAME_PREFIX)
             || tableName.toUpperCase().startsWith(AggregationDao.TABLE_NAME_PREFIX));
 
-        log.debug(String.format("Dropping extraction table {%s}...", tableName));
-        try {
-            String sql = String.format(dropTableQuery, tableName.toUpperCase());
-            getSession().createSQLQuery(sql).executeUpdate();
-
-        } catch (Exception e) {
-            throw new SumarisTechnicalException(String.format("Cannot drop extraction table {%s}...", tableName), e);
-        }
+        super.dropTable(tableName);
     }
 
     @Override
@@ -368,9 +350,6 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     /* -- protected method -- */
 
-    protected Dialect getDialect() {
-        return databaseMetadata.getDialect();
-    }
 
     protected Number getRowCount(SumarisTableMetadata table, String whereClause) {
 
