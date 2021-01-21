@@ -75,7 +75,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   get strategyDepartmentFormArray(): FormArray {
-    return this.form.controls.strategyDepartments as FormArray;
+    return this.form.controls.departments as FormArray;
   }
 
   get taxonNamesForm(): FormArray {
@@ -321,7 +321,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.programId = data.programId;
 
     // Resize strategy department array
-    this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
+    this.strategyDepartmentHelper.resize(Math.max(1, data.departments.length));
 
     // Resize strategy department array
     this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
@@ -556,7 +556,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   // Laboratory Helper -----------------------------------------------------------------------------------------------
   protected initstrategyDepartmentHelper() {
     this.strategyDepartmentHelper = new FormArrayHelper<StrategyDepartment>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'strategyDepartments'),
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'departments'),
       (department) => this.validatorService.getStrategyDepartmentsControl(department),
       (d1, d2) => EntityUtils.equals(d1.department, d2.department, 'label'),
       value => isNil(value) && isNil(value.department),

@@ -76,7 +76,7 @@ export const StrategyFragments = {
       pmfmStrategies {
         ...PmfmStrategyRefFragment
       }
-      strategyDepartments {
+      departments {
         ...StrategyDepartmentFragment
       }
     }
@@ -122,7 +122,7 @@ export const StrategyFragments = {
       pmfmStrategies {
         ...PmfmStrategyFragment
       }
-      strategyDepartments {
+      departments {
         ...StrategyDepartmentFragment
       }
     }

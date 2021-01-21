@@ -163,7 +163,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
 
     // FIXME : how to get privilege previously ??
-    data.strategyDepartments.map((dpt: StrategyDepartment) => {
+    data.departments.map((dpt: StrategyDepartment) => {
       const observer: ReferentialRef = new ReferentialRef();
       observer.id = 2;
       observer.label = "Observer";

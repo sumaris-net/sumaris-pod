@@ -33,7 +33,7 @@ export class Strategy extends Referential<Strategy> {
   statusId: number;
   appliedStrategies: AppliedStrategy[];
   pmfmStrategies: PmfmStrategy[];
-  strategyDepartments: StrategyDepartment[];
+  departments: StrategyDepartment[];
 
   gears: any[];
   taxonGroups: TaxonGroupStrategy[];
@@ -53,7 +53,7 @@ export class Strategy extends Referential<Strategy> {
     this.name = data && data.name;
     this.appliedStrategies = [];
     this.pmfmStrategies = [];
-    this.strategyDepartments = [];
+    this.departments = [];
     this.gears = [];
     this.taxonGroups = [];
     this.taxonNames = [];
@@ -71,7 +71,7 @@ export class Strategy extends Referential<Strategy> {
     target.creationDate = toDateISOString(this.creationDate);
     target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.pmfmStrategies = this.pmfmStrategies && this.pmfmStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.strategyDepartments = this.strategyDepartments && this.strategyDepartments.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.departments = this.departments && this.departments.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.gears = this.gears && this.gears.map(s => s.asObject(opts));
     target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
@@ -89,7 +89,7 @@ export class Strategy extends Referential<Strategy> {
     this.creationDate = fromDateISOString(source.creationDate);
     this.appliedStrategies = source.appliedStrategies && source.appliedStrategies.map(AppliedStrategy.fromObject) || [];
     this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
-    this.strategyDepartments = source.strategyDepartments && source.strategyDepartments.map(StrategyDepartment.fromObject) || [];
+    this.departments = source.departments && source.departments.map(StrategyDepartment.fromObject) || [];
     this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
     // Taxon groups, sorted by priority level
     this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
@@ -279,10 +279,10 @@ export class TaxonNameStrategy {
 
 }
 
-export function strategyDepartmentsToString(data: Strategy, separator?: string): string {
-  let strategyDepartments = data.strategyDepartments;
+export function departmentsToString(data: Strategy, separator?: string): string {
+  let departments = data.departments;
   separator = separator || ", ";
-  return strategyDepartments.reduce((result: string, strategyDepartment: StrategyDepartment, index: number) => {
+  return departments.reduce((result: string, strategyDepartment: StrategyDepartment, index: number) => {
     return index ? (result + separator + strategyDepartment.convertToString()) : strategyDepartment.convertToString();
   }, '');
 }

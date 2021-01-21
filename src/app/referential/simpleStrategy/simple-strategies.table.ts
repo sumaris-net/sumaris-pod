@@ -12,7 +12,7 @@ import {AppliedPeriod, AppliedStrategy, Strategy} from "../services/model/strate
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
-import {strategyDepartmentsToString, appliedStategiesToString, taxonsNameStrategyToString} from "../../referential/services/model/strategy.model";
+import {departmentsToString, appliedStategiesToString, taxonsNameStrategyToString} from "../../referential/services/model/strategy.model";
 
 export declare interface StrategyFilter {
 }
@@ -150,7 +150,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   }
 
   referentialToString = referentialToString;
-  strategyDepartmentsToString = strategyDepartmentsToString;
+  departmentsToString = departmentsToString;
   appliedStategiesToString = appliedStategiesToString;
   taxonsNameStrategyToString = taxonsNameStrategyToString;
 

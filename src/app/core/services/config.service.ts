@@ -480,13 +480,18 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   private updateModelEnumerations(config: Configuration) {
-    console.log("[config] Updating model enumerations...");
+    if (!config.properties) {
+      console.warn("[config] No properties found in pod config! Skip model enumerations update");
+      return;
+    }
+    console.info("[config] Updating model enumerations...");
 
     // Location Levels
     LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_COUNTRY_ID);
     LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_PORT_ID);
     LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_AUCTION_ID);
     LocationLevelIds.ICES_RECTANGLE = config.getProperty(ConfigOptions.LOCATION_LEVEL_ICES_RECTANGLE_ID);
+    LocationLevelIds.ICES_DIVISION = config.getProperty(ConfigOptions.LOCATION_LEVEL_ICES_DIVISION_ID);
 
     // User profiles
     UserProfileLabels.ADMIN = config.getProperty(ConfigOptions.PROFILE_ADMIN_LABEL);

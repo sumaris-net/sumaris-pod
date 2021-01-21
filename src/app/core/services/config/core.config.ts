@@ -205,5 +205,17 @@ export const ConfigOptions = Object.freeze({
         }
       },
       defaultValue: LocationLevelIds.ICES_RECTANGLE
+    },
+    LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
+      key: 'sumaris.enumeration.locationLevel.ICES_DIVISION.id',
+      label: 'CONFIGURATION.OPTIONS.ENUMERATION.ICES_DIVISION',
+      type: 'entity',
+      autocomplete: {
+        filter: {
+          entityName: 'LocationLevel',
+          statusIds: [0,1]
+        }
+      },
+      defaultValue: LocationLevelIds.ICES_DIVISION
     }
 });
