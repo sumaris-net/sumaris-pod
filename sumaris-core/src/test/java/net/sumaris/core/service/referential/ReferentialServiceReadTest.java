@@ -23,8 +23,7 @@ package net.sumaris.core.service.referential;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.ReferentialDaoImpl;
+import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -62,7 +61,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
     public void getAllTypes() {
         List<ReferentialTypeVO> types = service.getAllTypes();
         Assert.assertNotNull(types);
-        Assert.assertEquals(ReferentialDao.REFERENTIAL_CLASSES.size(), types.size());
+        Assert.assertEquals(ReferentialEntities.REFERENTIAL_CLASSES.size(), types.size());
     }
 
     @Test

@@ -51,7 +51,7 @@ public interface MetierSpecifications
 
 
     default Specification<Metier> inGearIds(Integer[] gearIds) {
-        return inLevelIds(Metier.Fields.GEAR, gearIds);
+        return inJoinPropertyIds(Metier.Fields.GEAR, gearIds);
     }
 
     default Specification<Metier> alreadyPracticedMetier(Integer vesselId) {

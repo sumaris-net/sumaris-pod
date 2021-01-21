@@ -139,7 +139,7 @@ public class MetierRepositoryImpl
     @Override
     protected Specification<Metier> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-                .and(inLevelIds(Metier.Fields.GEAR, filter))
+                .and(inLevelIds(Metier.class, filter.getLevelIds()))
                 .and(alreadyPracticedMetier(filter));
     }
 

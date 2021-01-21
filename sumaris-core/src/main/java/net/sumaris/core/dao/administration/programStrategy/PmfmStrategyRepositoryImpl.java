@@ -59,7 +59,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -81,9 +83,6 @@ public class PmfmStrategyRepositoryImpl
 
     @Autowired
     private ReferentialDao referentialDao;
-
-    @Autowired
-    private SumarisConfiguration configuration;
 
     @Autowired
     PmfmStrategyRepositoryImpl(EntityManager entityManager) {
@@ -131,14 +130,17 @@ public class PmfmStrategyRepositoryImpl
 
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source) {
-        return toVO(source, StrategyFetchOptions.builder().withPmfmStrategyInheritance(false).build());
+        return toVO(source, StrategyFetchOptions.DEFAULT);
     }
 
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions) {
-        if (source == null) return null;
+        return toVO(source, source.getPmfm(), fetchOptions);
+    }
 
-        Pmfm pmfm = source.getPmfm();
+    @Override
+    public PmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, StrategyFetchOptions fetchOptions) {
+        if (source == null) return null;
 
         PmfmStrategyVO target = new PmfmStrategyVO();
 
@@ -179,13 +181,19 @@ public class PmfmStrategyRepositoryImpl
                 target.setUnitLabel(pmfm.getUnit().getLabel());
             }
 
-            // Qualitative values
-            if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
-                List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
-                        .stream()
-                        .map(referentialDao::toVO)
-                        .collect(Collectors.toList());
-                target.setQualitativeValues(qualitativeValues);
+            // Qualitative values (from Pmfm if any, or from Parameter)
+            if (type == PmfmValueType.QUALITATIVE_VALUE) {
+                Collection<QualitativeValue> qualitativeValues = CollectionUtils.isNotEmpty(pmfm.getQualitativeValues()) ?
+                        pmfm.getQualitativeValues() : parameter.getQualitativeValues();
+                if (CollectionUtils.isNotEmpty(qualitativeValues)) {
+                    target.setQualitativeValues(qualitativeValues
+                            .stream()
+                            .map(referentialDao::toVO)
+                            .collect(Collectors.toList()));
+                }
+                else {
+                    log.warn("Missing qualitative values, in PMFM #{}", pmfm.getId());
+                }
             }
         }
 
@@ -243,7 +251,7 @@ public class PmfmStrategyRepositoryImpl
             @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, allEntries = true) // FIXME fix error 'null' when using key='#strategyId'
         }
     )
-    public List<PmfmStrategyVO> saveByStrategyId(int strategyId, List<PmfmStrategyVO> sources) {
+    public List<PmfmStrategyVO> saveByStrategyId(int strategyId, @Nonnull List<PmfmStrategyVO> sources) {
         Preconditions.checkNotNull(sources);
 
         Strategy parent = getOne(Strategy.class, strategyId);

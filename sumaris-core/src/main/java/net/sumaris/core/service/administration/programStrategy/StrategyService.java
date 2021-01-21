@@ -24,6 +24,7 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -90,12 +91,16 @@ public interface StrategyService {
 	List<StrategyDepartmentVO> getStrategyDepartments(int strategyId);
 
 	@Transactional(readOnly = true)
-	String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+	String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
 
 	StrategyVO save(StrategyVO source);
 
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
 
 	void delete(int id);
+
+	boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege);
+
+	boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege);
 
 }

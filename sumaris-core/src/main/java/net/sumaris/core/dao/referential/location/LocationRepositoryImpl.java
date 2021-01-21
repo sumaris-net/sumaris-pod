@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationAssociation;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
@@ -35,8 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.StoredProcedureQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
@@ -47,7 +46,7 @@ import java.sql.Timestamp;
  * @author peck7 on 18/08/2020.
  */
 public class LocationRepositoryImpl
-    extends ReferentialRepositoryImpl<Location, LocationVO, ReferentialFilterVO, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Location, LocationVO, IReferentialFilter, ReferentialFetchOptions>
     implements LocationSpecifications {
 
     private static final Logger log = LoggerFactory.getLogger(LocationRepositoryImpl.class);
@@ -57,9 +56,9 @@ public class LocationRepositoryImpl
     }
 
     @Override
-    protected Specification<Location> toSpecification(ReferentialFilterVO filter, ReferentialFetchOptions fetchOptions) {
+    protected Specification<Location> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(inLevelIds(Location.Fields.LOCATION_LEVEL, filter));
+            .and(inLevelIds(Location.class, filter.getLevelIds()));
     }
 
     @Override

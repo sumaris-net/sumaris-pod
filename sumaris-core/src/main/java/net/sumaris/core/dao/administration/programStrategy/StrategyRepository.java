@@ -35,5 +35,5 @@ public interface StrategyRepository
     extends ReferentialRepository<Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>,
     StrategySpecifications {
 
-
+    boolean existsByIdAndDepartmentDepartmentIdAndDepartmentPrivilegeId(int id, int departmentId, int privilegeId);
 }

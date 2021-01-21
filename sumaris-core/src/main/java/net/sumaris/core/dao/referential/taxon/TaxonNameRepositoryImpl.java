@@ -115,7 +115,7 @@ public class TaxonNameRepositoryImpl
             .and(withTaxonGroupIds(filter.getTaxonGroupIds()))
             .and(withSynonyms(filter.getWithSynonyms()))
             .and(withReferenceTaxonId(filter.getReferenceTaxonId()))
-            .and(inLevelIds(TaxonName.Fields.TAXONOMIC_LEVEL, filter));
+            .and(inLevelIds(TaxonName.class, filter.getLevelIds()));
     }
 
     @Override

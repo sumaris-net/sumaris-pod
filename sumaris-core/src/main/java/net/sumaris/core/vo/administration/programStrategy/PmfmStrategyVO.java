@@ -80,4 +80,5 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IVa
     // ****
 
     List<ReferentialVO> qualitativeValues;
+
 }

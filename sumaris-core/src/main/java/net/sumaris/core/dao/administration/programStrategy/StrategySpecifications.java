@@ -25,9 +25,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.TaxonGroupStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.TaxonNameStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.ArrayUtils;
@@ -71,7 +69,7 @@ public interface StrategySpecifications {
 
     List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
 
-    List<StrategyDepartmentVO> getStrategyDepartments(int strategyId);
+    List<StrategyDepartmentVO> getDepartmentsById(int strategyId);
 
     List<TaxonGroupStrategyVO> saveTaxonGroupStrategiesByStrategyId(int strategyId, List<TaxonGroupStrategyVO> sources);
 
@@ -79,9 +77,9 @@ public interface StrategySpecifications {
 
     List<AppliedStrategyVO> saveAppliedStrategiesByStrategyId(int strategyId, List<AppliedStrategyVO> sources);
 
-    List<StrategyDepartmentVO> saveStrategyDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources);
+    List<StrategyDepartmentVO> saveDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources);
 
-    String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+    String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
 
     void saveProgramLocationsByStrategyId(int strategyId);
 

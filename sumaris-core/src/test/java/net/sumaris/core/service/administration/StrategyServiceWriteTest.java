@@ -69,8 +69,8 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         Assert.assertEquals(10, strategy.getPmfmStrategies().size());
         Assert.assertNotNull(strategy.getAppliedStrategies());
         Assert.assertEquals(3, strategy.getAppliedStrategies().size());
-        Assert.assertNotNull(strategy.getStrategyDepartments());
-        Assert.assertEquals(2, strategy.getStrategyDepartments().size());
+        Assert.assertNotNull(strategy.getDepartments());
+        Assert.assertEquals(2, strategy.getDepartments().size());
 
         // Modify name
         strategy.setName("Strategy Name changed");
@@ -83,7 +83,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         strategyDepartment.setPrivilege(privilege);
         strategyDepartment.setDepartment(department);
         strategyDepartment.setId(-1);
-        strategy.setStrategyDepartments(Lists.newArrayList(strategyDepartment));
+        strategy.setDepartments(Lists.newArrayList(strategyDepartment));
         // Add an applied period
         AppliedPeriodVO appliedPeriod = new AppliedPeriodVO();
         appliedPeriod.setAppliedStrategyId(30);
@@ -100,9 +100,9 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(strategy);
         Assert.assertEquals("Strategy Name changed", strategy.getName());
 
-        Assert.assertNotNull(strategy.getStrategyDepartments());
-        Assert.assertEquals(1, strategy.getStrategyDepartments().size());
-        StrategyDepartmentVO actualStrategyDepartment = strategy.getStrategyDepartments().get(0);
+        Assert.assertNotNull(strategy.getDepartments());
+        Assert.assertEquals(1, strategy.getDepartments().size());
+        StrategyDepartmentVO actualStrategyDepartment = strategy.getDepartments().get(0);
         Assert.assertEquals(privilege, actualStrategyDepartment.getPrivilege());
         Assert.assertEquals(department, actualStrategyDepartment.getDepartment());
 

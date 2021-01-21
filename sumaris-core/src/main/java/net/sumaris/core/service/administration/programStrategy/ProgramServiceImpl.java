@@ -26,6 +26,7 @@ package net.sumaris.core.service.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.vo.administration.programStrategy.ProgramSaveOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
@@ -90,6 +91,20 @@ public class ProgramServiceImpl implements ProgramService {
 	@Override
 	public void delete(int id) {
 		programRepository.deleteById(id);
+	}
+
+	@Override
+	public boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege) {
+		//programRepository.existsByIdAndDepartmentId(programId, personId, privilege);
+		log.warn("TODO: implement ProgramService.hasUserPrivilege()");
+		return true;
+	}
+
+	@Override
+	public boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege) {
+		//programRepository.existsByIdAndDepartmentId(programId, personId, privilege);
+		log.warn("TODO: implement ProgramService.hasDepartmentPrivilege()");
+		return true;
 	}
 }
 

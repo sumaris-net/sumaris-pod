@@ -39,12 +39,12 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
@@ -222,8 +222,8 @@ public class StrategyRepositoryImpl
     }
 
     @Override
-    public List<StrategyDepartmentVO> getStrategyDepartments(int strategyId) {
-        return getStrategyDepartments(load(Strategy.class, strategyId));
+    public List<StrategyDepartmentVO> getDepartmentsById(int strategyId) {
+        return getDepartments(load(Strategy.class, strategyId));
     }
 
     /**
@@ -232,8 +232,7 @@ public class StrategyRepositoryImpl
      * @return next strategy label for this prefix (ex: AAAA_BIO_0001)
      */
     @Override
-    // TODO BLA rename ?
-    public String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
+    public String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
         final String prefix = (labelPrefix == null) ? "" : labelPrefix;
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
@@ -262,7 +261,7 @@ public class StrategyRepositoryImpl
         if (!StringUtils.isNumeric(result)) {
             throw new SumarisTechnicalException(String.format("Unable to increment label '%s' on strategy", prefix.concat(result)));
         }
-        result = String.valueOf(Integer.valueOf(result) + 1);
+        result = String.valueOf(Integer.parseInt(result) + 1);
         result = prefix.concat(StringUtils.leftPad(result, nbDigit, '0'));
         return result;
     }
@@ -346,8 +345,7 @@ public class StrategyRepositoryImpl
     @Override
     protected void toVO(Strategy source, StrategyVO target, StrategyFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
-        StrategyFetchOptions finalFetchOptions = (fetchOptions != null) ? fetchOptions
-                : StrategyFetchOptions.builder().withPmfmStrategyInheritance(false).withPmfmStrategyExpanded(false).build();
+        StrategyFetchOptions finalFetchOptions = StrategyFetchOptions.nullToDefault(fetchOptions);
 
         // Program
         target.setProgramId(source.getProgram().getId());
@@ -372,7 +370,7 @@ public class StrategyRepositoryImpl
         target.setAppliedStrategies(getAppliedStrategies(source));
 
         // Strategy departments
-        target.setStrategyDepartments(getStrategyDepartments(source));
+        target.setDepartments(getDepartments(source));
 
         // Pmfm strategies
         target.setPmfmStrategies(getPmfmStrategies(source, finalFetchOptions));
@@ -664,9 +662,9 @@ public class StrategyRepositoryImpl
         return sources.isEmpty() ? null : sources;
     }
 
-    protected List<StrategyDepartmentVO> getStrategyDepartments(Strategy source) {
-        if (CollectionUtils.isEmpty(source.getStrategyDepartments())) return null;
-        return source.getStrategyDepartments()
+    protected List<StrategyDepartmentVO> getDepartments(Strategy source) {
+        if (CollectionUtils.isEmpty(source.getDepartments())) return null;
+        return source.getDepartments()
                 .stream()
                 // Sort by id
                 .sorted(Comparator.comparingInt((item) -> item.getId()))
@@ -687,7 +685,7 @@ public class StrategyRepositoryImpl
                 .collect(Collectors.toList());
     }
 
-    public List<StrategyDepartmentVO> saveStrategyDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources) {
+    public List<StrategyDepartmentVO> saveDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources) {
         Preconditions.checkNotNull(sources);
 
         Strategy parent = getOne(Strategy.class, strategyId);
@@ -699,7 +697,7 @@ public class StrategyRepositoryImpl
         EntityManager em = getEntityManager();
 
         // Remember existing entities
-        Map<Integer, StrategyDepartment> sourcesToRemove = Beans.splitById(parent.getStrategyDepartments());
+        Map<Integer, StrategyDepartment> sourcesToRemove = Beans.splitById(parent.getDepartments());
 
         // Save each strategy department
         List<StrategyDepartment> result = Beans.getStream(sources).map(source -> {
@@ -744,20 +742,17 @@ public class StrategyRepositoryImpl
         if (CollectionUtils.isEmpty(source.getPmfmStrategies())) return null;
         List<PmfmStrategyVO> pmfmStrategies = new ArrayList<>();
 
-        if (fetchOptions.isWithPmfmStrategyExpanded()) {
-            for (PmfmStrategy pmfmStrategy : source.getPmfmStrategies()) {
-                if (pmfmStrategy.getPmfm() != null) {
-                    pmfmStrategies.add(pmfmStrategyRepository.toVO(pmfmStrategy, fetchOptions));
-                } else {
-                    List<PmfmVO> targetPmfms = pmfmRepository.findAll(pmfmStrategy.getParameter(), pmfmStrategy.getMatrix(), pmfmStrategy.getFraction(), pmfmStrategy.getMethod());
-                    for (PmfmVO targetPmfm : targetPmfms) {
-                        PmfmStrategyVO targetPmfmStrategy = pmfmStrategyRepository.toVO(pmfmStrategy, fetchOptions);
-                        targetPmfmStrategy.setPmfm(targetPmfm);
-                        targetPmfmStrategy.setPmfmId(targetPmfm.getId());
-                        pmfmStrategies.add(targetPmfmStrategy);
-                    }
-                }
-            }
+        // Applied inheritance: denormalize PmfmStrategy using applied pmfm
+        if (fetchOptions.isWithPmfmStrategyInheritance()) {
+            pmfmStrategies = source.getPmfmStrategies().stream().flatMap(pmfmStrategy -> {
+                // Get Pmfm to applied
+                List<Pmfm> appliedPmfms = pmfmStrategy.getPmfm() != null ?
+                        ImmutableList.of(pmfmStrategy.getPmfm()) :
+                        pmfmRepository.findAll(pmfmStrategy.getParameter(), pmfmStrategy.getMatrix(), pmfmStrategy.getFraction(), pmfmStrategy.getMethod());
+
+                // Convert to one or more PmfmStrategy
+                return appliedPmfms.stream().map(pmfm -> pmfmStrategyRepository.toVO(pmfmStrategy, pmfm, fetchOptions));
+            }).collect(Collectors.toList());
         } else {
             pmfmStrategies = source.getPmfmStrategies()
                     .stream()

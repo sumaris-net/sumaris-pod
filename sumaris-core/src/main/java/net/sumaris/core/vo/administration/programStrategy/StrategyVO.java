@@ -49,7 +49,7 @@ public class StrategyVO implements IReferentialVO {
     private List<AppliedStrategyVO> appliedStrategies;
     private List<PmfmStrategyVO> pmfmStrategies;
 
-    private List<StrategyDepartmentVO> strategyDepartments;
+    private List<StrategyDepartmentVO> departments;
 
     private List<Integer> gearIds;
     private List<ReferentialVO> gears;

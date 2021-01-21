@@ -126,7 +126,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         }
         program.setStrategies(strategies);
 
-        service.save(program);
+        service.save(program, null);
 
         // reload by id
         ProgramVO actualProgram = service.get(40);

@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential.pmfm;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
@@ -31,7 +32,6 @@ import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
@@ -68,11 +68,10 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    public List<PmfmVO> findAll(Parameter parameter, Matrix matrix, Fraction fraction, Method method) {
-        return findAll(BindableSpecification.where(hasPmfmPart(parameter, matrix, fraction, method)))
-                .stream()
-                .map(entity -> toVO(entity))
-                .collect(Collectors.toList());
+    public List<Pmfm> findAll(Parameter parameter, Matrix matrix, Fraction fraction, Method method) {
+        Preconditions.checkArgument(parameter != null || matrix != null
+                || fraction != null || method != null, "At least on argument must be not null");
+        return findAll(BindableSpecification.where(hasPmfmPart(parameter, matrix, fraction, method)));
     }
 
     @Override
@@ -193,11 +192,11 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    protected Specification<Pmfm> toSpecification(ReferentialFilterVO filter) {
+    protected Specification<Pmfm> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
 
-        return super.toSpecification(filter)
-                .and(inLevelIds(Pmfm.Fields.PARAMETER, filter))
-                .and(inLevelLabels(Pmfm.Fields.PARAMETER, filter));
+        return super.toSpecification(filter, fetchOptions)
+                .and(inLevelIds(Pmfm.class, filter.getLevelIds()))
+                .and(inLevelLabels(Pmfm.class, filter.getLevelLabels()));
     }
 
     @Override

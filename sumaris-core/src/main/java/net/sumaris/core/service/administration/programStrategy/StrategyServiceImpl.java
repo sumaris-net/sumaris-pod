@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.StrategyRepository;
-import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
@@ -78,12 +78,6 @@ public class StrategyServiceImpl implements StrategyService {
 	@Override
 	public List<StrategyVO> getAll() {
 		return strategyRepository.findAll(StrategyFilterVO.builder().build());
-	}
-
-	@Override
-	public List<StrategyVO> findByFilter(StrategyFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		if (filter == null) filter = StrategyFilterVO.builder().build();
-		return strategyRepository.findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
 	}
 
 	@Override
@@ -144,12 +138,12 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Override
 	public List<StrategyDepartmentVO> getStrategyDepartments(int strategyId) {
-		return strategyRepository.getStrategyDepartments(strategyId);
+		return strategyRepository.getDepartmentsById(strategyId);
 	}
 
 	@Override
-	public String findNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
-		return strategyRepository.findNextLabelByProgramId(programId, labelPrefix, nbDigit);
+	public String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
+		return strategyRepository.computeNextLabelByProgramId(programId, labelPrefix, nbDigit);
 	}
 
 	@Override
@@ -177,9 +171,30 @@ public class StrategyServiceImpl implements StrategyService {
 		strategyRepository.deleteById(id);
 	}
 
+	@Override
+	public boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege) {
+		//programRepository.existsByIdAndDepartmentId(programId, personId, privilege);
+		log.warn("TODO: implement StrategyService.hasUserPrivilege()");
+		return true;
+	}
+
+	@Override
+	public boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege) {
+		//programRepository.existsByIdAndDepartmentId(programId, personId, privilege);
+		log.warn("TODO: implement StrategyService.hasDepartmentPrivilege()");
+		return true;
+	}
+
 	/* -- protected methods -- */
 
 	protected void saveChildrenEntities(StrategyVO source) {
+		Preconditions.checkNotNull(source);
+		Preconditions.checkNotNull(source.getId());
+		saveChildrenEntities(source.getId(), source);
+	}
+
+	protected void saveChildrenEntities(int strategyId, StrategyVO source) {
+		Preconditions.checkNotNull(source);
 
 		// Save taxon Group strategy
 		List<TaxonGroupStrategyVO> savedTaxonGroupStrategies = strategyRepository.saveTaxonGroupStrategiesByStrategyId(strategyId, Beans.getList(source.getTaxonGroups()));
@@ -194,8 +209,8 @@ public class StrategyServiceImpl implements StrategyService {
 		source.setAppliedStrategies(savedAppliedStrategies);
 
 		// Save strategy departments
-		List<StrategyDepartmentVO> savedStrategyDepartments = strategyRepository.saveStrategyDepartmentsByStrategyId(strategyId, Beans.getList(source.getStrategyDepartments()));
-		source.setStrategyDepartments(savedStrategyDepartments);
+		List<StrategyDepartmentVO> savedDepartments = strategyRepository.saveDepartmentsByStrategyId(strategyId, Beans.getList(source.getDepartments()));
+		source.setDepartments(savedDepartments);
 
 		// Save pmfm strategies
 		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(strategyId, Beans.getList(source.getPmfmStrategies()));
