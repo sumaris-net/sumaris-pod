@@ -39,7 +39,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.BatchVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.DenormalizedBatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;

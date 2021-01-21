@@ -28,6 +28,7 @@ import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ParameterVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
@@ -54,7 +55,7 @@ public class PmfmServiceImpl implements PmfmService {
     protected ParameterRepository parameterRepository;
 
     @Override
-    public List<PmfmVO> findByFilter(ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
         return pmfmRepository.findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
     }
 

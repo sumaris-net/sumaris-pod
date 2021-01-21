@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -49,6 +50,7 @@ import java.util.Properties;
 /**
  * Abstract class for unit test on services.
  */
+@ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {DaoTestConfiguration.class})
 @TestPropertySource(locations="classpath:sumaris-core-test.properties")
@@ -62,11 +64,10 @@ public class AbstractDaoTest extends net.sumaris.core.test.AbstractDaoTest {
 	@Autowired
 	protected SumarisConfiguration config;
 
-	/* -- Internal method -- */
+	@Autowired
+	protected DatabaseFixtures fixtures;
 
-	protected SumarisConfiguration getConfig() {
-		return config;
-	}
+	/* -- Internal method -- */
 
 	/**
 	 * Delete all existing observations and linked data

@@ -29,6 +29,10 @@ import java.io.Serializable;
  */
 public interface IReferentialFilter extends Serializable {
 
+    Integer getId();
+
+    void setId(Integer id);
+
     String getLabel();
 
     void setLabel(String label);
@@ -60,4 +64,9 @@ public interface IReferentialFilter extends Serializable {
     String getSearchAttribute();
 
     void setSearchAttribute(String searchAttribute);
+
+
+    Integer[] getExcludedIds();
+
+    void setExcludedIds(Integer[] excludedIds);
 }

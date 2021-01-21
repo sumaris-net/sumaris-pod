@@ -26,5 +26,5 @@ import net.sumaris.core.dao.cache.CacheNames;
 
 public interface RdfCacheNames extends CacheNames {
 
-    String ONTOLOGY_BY_NAME = "net.sumaris.rdf.dao.ontologyByName";
+    String ONTOLOGY_BY_NAME = "net.sumaris.rdf.service.schema.ontologyByName";
 }

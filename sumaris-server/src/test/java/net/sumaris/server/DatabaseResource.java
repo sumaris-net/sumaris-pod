@@ -23,7 +23,6 @@ package net.sumaris.server;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-import net.sumaris.core.config.SumarisConfiguration;
 
 
 /**
@@ -34,37 +33,39 @@ import net.sumaris.core.config.SumarisConfiguration;
  */
 public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 
-	public static final String MODULE_NAME = "sumaris-core-server";
+	public static DatabaseResource readDb() {
+		return new DatabaseResource("", true);
+	}
 
-	protected DatabaseResource(String configName, boolean writeDb) {
-		super(configName, writeDb);
+	public static DatabaseResource readDb(String configName) {
+		return new DatabaseResource(configName, true);
+	}
+
+	public static DatabaseResource writeDb() {
+		return new DatabaseResource("", false);
+	}
+
+	public static DatabaseResource writeDb(String configName) {
+		return new DatabaseResource(configName, false);
+	}
+
+	protected DatabaseResource(String configName, boolean readOnly) {
+		super(configName, readOnly);
 	}
 
 	@Override
-	public String getBuildEnvironment() {
-		return "hsqldb";
+	public String getDatasourcePlatform() {
+		return ServiceTestConfiguration.DATASOURCE_PLATFORM;
 	}
 
 	@Override
 	protected String getConfigFilesPrefix() {
-		return MODULE_NAME +"-test";
+		return ServiceTestConfiguration.CONFIG_FILE_PREFIX;
 	}
 
 	@Override
 	protected String getModuleDirectory() {
-		return MODULE_NAME;
-	}
-
-	@Override
-	protected String getI18nBundleName() {
-		return MODULE_NAME + "-i18n";
-	}
-
-	@Override
-	protected void initConfiguration(String configFilename) {
-		String[] configArgs = getConfigArgs();
-		SumarisConfiguration config = new SumarisConfiguration(configFilename, configArgs);
-		SumarisConfiguration.setInstance(config);
+		return ServiceTestConfiguration.MODULE_NAME;
 	}
 
 }

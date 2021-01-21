@@ -35,6 +35,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -42,6 +43,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @Repository("softwareDao")
 public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
@@ -54,7 +56,16 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
     }
 
     public SoftwareVO getByLabel(String label) {
-        return toVO(softwareRepository.getOneByLabel(label));
+        Software source = softwareRepository.getOneByLabel(label);
+        if (source == null) {
+            throw new DataRetrievalFailureException(String.format("Software with label '%s' not found", label));
+        }
+        return toVO(source);
+    }
+
+    public Optional<SoftwareVO> findByLabel(String label) {
+        return softwareRepository.findOneByLabel(label)
+                .map(this::toVO);
     }
 
     public SoftwareVO save(SoftwareVO source)  {

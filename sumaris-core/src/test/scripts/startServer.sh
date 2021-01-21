@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export HSQLDB_VERSION=2.5.0
+export HSQLDB_VERSION=2.4.1
 export HOME=`eval echo "~${USER}"`
 export M2_REPO="$HOME/.m2/repository"
 export CLASSPATH="${M2_REPO}/org/hsqldb/hsqldb/${HSQLDB_VERSION}/hsqldb-${HSQLDB_VERSION}.jar"

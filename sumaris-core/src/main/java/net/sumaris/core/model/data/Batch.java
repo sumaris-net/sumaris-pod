@@ -27,7 +27,6 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import org.hibernate.annotations.Cascade;
@@ -40,7 +39,6 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @Entity
-@Table(name = "batch")
 public class Batch implements IDataEntity<Integer>,
         ITreeNodeEntityBean<Integer, Batch> {
 
@@ -118,11 +116,11 @@ public class Batch implements IDataEntity<Integer>,
 
     /* -- measurements -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchSortingMeasurement.class, mappedBy = BatchSortingMeasurement.Fields.BATCH)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = BatchSortingMeasurement.Fields.BATCH)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<BatchSortingMeasurement> sortingMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchQuantificationMeasurement.class, mappedBy = BatchQuantificationMeasurement.Fields.BATCH)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = BatchQuantificationMeasurement.Fields.BATCH)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<BatchQuantificationMeasurement> quantificationMeasurements = new ArrayList<>();
 

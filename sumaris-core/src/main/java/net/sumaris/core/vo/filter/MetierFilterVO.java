@@ -34,6 +34,10 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 public class MetierFilterVO extends ReferentialFilterVO {
 
+    public static MetierFilterVO nullToEmpty(MetierFilterVO filter) {
+        return filter == null ? new MetierFilterVO() : filter;
+    }
+
     // options used for predocumentation
     private Date date;
     private Integer vesselId;

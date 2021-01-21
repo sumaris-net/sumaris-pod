@@ -1,0 +1,793 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.7.0.xml">
+
+  <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+  <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+  <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+  <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance ! Do not include this changelog file in the master file">
+    <or>
+      <!-- Test if database is empty -->
+      <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+      <!-- OR if expected production database -->
+      <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+    </or>
+  </preConditions>
+
+  <!-- Add units -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-401">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM unit WHERE id=34 or label='Nb Ind'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="17"/>
+      <column name="LABEL">€</column>
+      <column name="NAME">Euros</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="20"/>
+      <column name="LABEL">€/Kg</column>
+      <column name="NAME">Euros par kilo</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="21"/>
+      <column name="LABEL">€/L</column>
+      <column name="NAME">Euros par litre</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="22"/>
+      <column name="LABEL">€/unité</column>
+      <column name="NAME">Euros par unité</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="23"/>
+      <column name="LABEL">€/12</column>
+      <column name="NAME">Euros par douzaine</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="24"/>
+      <column name="LABEL">€/100</column>
+      <column name="NAME">Euros par centaine</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="25"/>
+      <column name="LABEL">€/pcs</column>
+      <column name="NAME">Euros par morceau</column>
+      <column name="STATUS_FK" valueNumeric="0"/><!-- disable -->
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="30"/>
+      <column name="LABEL">Unités</column>
+      <column name="NAME">Unités</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="31"/>
+      <column name="LABEL">L</column>
+      <column name="NAME">Litre</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="32"/>
+      <column name="LABEL">Bags</column>
+      <column name="NAME">Bags</column>
+      <column name="STATUS_FK" valueNumeric="0"/><!-- disable -->
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="33"/>
+      <column name="LABEL">Packets</column>
+      <column name="NAME">Packets</column>
+      <column name="STATUS_FK" valueNumeric="0"/><!-- disable -->
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="34"/>
+      <column name="LABEL">Nb Ind</column>
+      <column name="NAME">Nombre d'individus</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- Add PARAMETER and PMFM -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-402">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER WHERE label='BOX_NUMBER'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PMFM WHERE label='BOX_NUMBER'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PARAMETER">
+      <column name="ID" valueNumeric="149"/>
+      <column name="LABEL">BOX_NUMBER</column>
+      <column name="NAME">Caisse</column>
+      <column name="IS_BOOLEAN" valueNumeric="0"/>
+      <column name="IS_QUALITATIVE" valueNumeric="0"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="149"/>
+      <column name="PARAMETER_FK" valueNumeric="149"/>
+      <column name="LABEL">BOX_NUMBER</column>
+      <column name="MIN_VALUE" valueNumeric="0"/>
+      <column name="MAX_VALUE" valueNumeric="10"/>
+      <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="0"/>
+      <column name="UNIT_FK" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+
+  </changeSet>
+
+  <!-- Add PARAMETER and PMFM -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-403">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER WHERE label='INDIVIDUAL_COUNT'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER WHERE label='PARASITIZED_INDIVIDUAL'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER WHERE label='DIRTY_INDIVIDUAL'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER WHERE label='GENERAL_STATE'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PARAMETER">
+      <column name="ID" valueNumeric="153"/>
+      <column name="LABEL">INDIVIDUAL_COUNT</column>
+      <column name="NAME">Nombre d'individu</column>
+      <column name="IS_BOOLEAN" valueNumeric="0"/>
+      <column name="IS_QUALITATIVE" valueNumeric="0"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PARAMETER">
+      <column name="ID" valueNumeric="155"/>
+      <column name="LABEL">PARASITIZED_INDIVIDUAL</column>
+      <column name="NAME">Parasité</column>
+      <column name="IS_BOOLEAN" valueNumeric="0"/>
+      <column name="IS_QUALITATIVE" valueNumeric="0"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PARAMETER">
+      <column name="ID" valueNumeric="157"/>
+      <column name="LABEL">DIRTY_INDIVIDUAL</column>
+      <column name="NAME">Sale</column>
+      <column name="IS_BOOLEAN" valueNumeric="0"/>
+      <column name="IS_QUALITATIVE" valueNumeric="0"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PARAMETER">
+      <column name="ID" valueNumeric="159"/>
+      <column name="LABEL">GENERAL_STATE</column>
+      <column name="NAME">Etat général</column>
+      <column name="IS_BOOLEAN" valueNumeric="0"/>
+      <column name="IS_QUALITATIVE" valueNumeric="0"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+
+  </changeSet>
+
+  <!-- Add PMFM -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-404" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PMFM WHERE label in ('OUT_OF_SIZE_INDIV_COUNT', 'SAMPLE_INDIV_COUNT')</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="152"/>
+      <column name="PARAMETER_FK" valueNumeric="142"/>
+      <column name="LABEL">OUT_OF_SIZE_INDIV_COUNT</column>
+      <column name="MIN_VALUE" valueNumeric="0"/>
+      <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="0"/>
+      <column name="UNIT_FK" valueNumeric="34"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="153"/>
+      <column name="PARAMETER_FK" valueNumeric="153"/>
+      <column name="LABEL">SAMPLE_INDIV_COUNT</column>
+      <column name="MIN_VALUE" valueNumeric="0"/>
+      <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="0"/>
+      <column name="MATRIX_FK" valueNumeric="24"/>
+      <column name="METHOD_FK" valueNumeric="1"/>
+      <column name="UNIT_FK" valueNumeric="34"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="154"/>
+      <column name="PARAMETER_FK" valueNumeric="141"/>
+      <column name="LABEL">AUCTION_SIZE_CAT_SCE</column>
+      <column name="UNIT_FK" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="155"/>
+      <column name="PARAMETER_FK" valueNumeric="155"/>
+      <column name="LABEL">PARASITIZED_INDIV_COUNT</column>
+      <column name="MIN_VALUE" valueNumeric="0"/>
+      <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="0"/>
+      <column name="UNIT_FK" valueNumeric="34"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="156"/>
+      <column name="PARAMETER_FK" valueNumeric="155"/>
+      <column name="LABEL">PARASITIZED_PCT</column>
+      <column name="MIN_VALUE" valueNumeric="0"/>
+      <column name="MAX_VALUE" valueNumeric="100"/>
+      <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="2"/>
+      <column name="METHOD_FK" valueNumeric="4"/>
+      <column name="UNIT_FK" valueNumeric="14"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="157"/>
+      <column name="PARAMETER_FK" valueNumeric="157"/>
+      <column name="LABEL">DIRTY_INDIV_COUNT</column>
+      <column name="MIN_VALUE" valueNumeric="0"/>
+      <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="0"/>
+      <column name="UNIT_FK" valueNumeric="34"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="158"/>
+      <column name="PARAMETER_FK" valueNumeric="157"/>
+      <column name="LABEL">DIRTY_PCT</column>
+      <column name="MIN_VALUE" valueNumeric="0"/>
+      <column name="MAX_VALUE" valueNumeric="100"/>
+      <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="2"/>
+      <column name="METHOD_FK" valueNumeric="4"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="UNIT_FK" valueNumeric="14"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="159"/>
+      <column name="PARAMETER_FK" valueNumeric="159"/>
+      <column name="LABEL">GENERAL_STATE_PCT</column>
+      <column name="MIN_VALUE" valueNumeric="0"/>
+      <column name="MAX_VALUE" valueNumeric="100"/>
+      <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="2"/>
+      <column name="METHOD_FK" valueNumeric="4"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="UNIT_FK" valueNumeric="14"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+
+  </changeSet>
+
+  <!-- Add TAXON_GROUP_STRATEGY -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-405" runOnChange="true">
+  <preConditions onFail="MARK_RAN">
+    <and>
+      <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+      <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP WHERE LABEL='MZZ' and TAXON_GROUP_TYPE_FK=2</sqlCheck>
+    </and>
+  </preConditions>
+    <insert tableName="TAXON_GROUP">
+      <column name="ID">1613</column>
+      <column name="LABEL">...</column>
+      <column name="NAME">Pisces miscellanea</column>
+      <column name="COMMENTS">Pisces miscellanea</column>
+      <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+      <column name="STATUS_FK" valueNumeric="0"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="TAXON_GROUP">
+      <column name="ID">1712</column>
+      <column name="LABEL">MZZ</column>
+      <column name="NAME">Poissons marins nca</column>
+      <column name="COMMENTS">Osteichthyes</column>
+      <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+      <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1613"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- Add TAXON_GROUP_STRATEGY -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-406" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="1">SELECT count(*) FROM TAXON_GROUP_STRATEGY WHERE STRATEGY_FK=11</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="TAXON_GROUP_FK" valueNumeric="1174"/> <!-- SCR - Araignée européenne -->
+    </insert>
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="TAXON_GROUP_FK" valueNumeric="1178"/> <!-- SCE - Coquille St Jacques -->
+    </insert>
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="TAXON_GROUP_FK" valueNumeric="1179"/> <!-- PIL - Sardine commune -->
+    </insert>
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="TAXON_GROUP_FK" valueNumeric="1171"/> <!-- ANE - Anchois -->
+    </insert>
+  </changeSet>
+
+  <!-- Add TAXON_GROUP_STRATEGY -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-407" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP_STRATEGY WHERE STRATEGY_FK=11 and TAXON_GROUP_FK=1712</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="TAXON_GROUP_FK" valueNumeric="1712"/> <!-- MZZ - Autres poissons -->
+    </insert>
+  </changeSet>
+
+
+  <!-- Add QUALITATIVE_VALUE for MZZ -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-408" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM QUALITATIVE_VALUE WHERE PARAMETER_FK IN (SELECT ID FROM PARAMETER WHERE LABEL='TAXON_GROUP') and LABEL='MZZ'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueNumeric="306"/>
+      <column name="LABEL">MZZ</column>
+      <column name="NAME">Autres poissons</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='TAXON_GROUP')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- Add PMFM_STRATEGY for ADAP-CONTROLE -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-409" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="12">SELECT count(*) FROM PMFM_STRATEGY WHERE STRATEGY_FK=11</sqlCheck>
+      </and>
+    </preConditions>
+
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="319"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="149"/>
+      <column name="RANK_ORDER" valueNumeric="10"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="320"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="152"/>
+      <column name="RANK_ORDER" valueNumeric="14"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="321"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="153"/>
+      <column name="RANK_ORDER" valueNumeric="1"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="322"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="154"/>
+      <column name="RANK_ORDER" valueNumeric="2"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="323"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="155"/>
+      <column name="RANK_ORDER" valueNumeric="5"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="324"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="156"/>
+      <column name="RANK_ORDER" valueNumeric="6"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="325"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="157"/>
+      <column name="RANK_ORDER" valueNumeric="7"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="326"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="158"/>
+      <column name="RANK_ORDER" valueNumeric="8"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="327"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="159"/>
+      <column name="RANK_ORDER" valueNumeric="9"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="328"/>
+      <column name="STRATEGY_FK" valueNumeric="11"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="12"/>
+      <column name="PMFM_FK" valueNumeric="140"/>
+      <column name="RANK_ORDER" valueNumeric="11"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+    <sql endDelimiter=";">
+      UPDATE PMFM_STRATEGY SET RANK_ORDER=11 WHERE ID=310;
+      UPDATE PMFM_STRATEGY SET RANK_ORDER=12 WHERE ID=311;
+      UPDATE PMFM_STRATEGY SET RANK_ORDER=13 WHERE ID=312;
+      UPDATE PMFM_STRATEGY SET RANK_ORDER=14 WHERE ID=313;
+      UPDATE PMFM_STRATEGY SET RANK_ORDER=15 WHERE ID=314;
+      UPDATE PMFM_STRATEGY SET RANK_ORDER=16 WHERE ID=315;
+      UPDATE PMFM_STRATEGY SET RANK_ORDER=17 WHERE ID=316;
+      UPDATE PMFM_STRATEGY SET RANK_ORDER=18 WHERE ID=317;
+      UPDATE PMFM_STRATEGY SET RANK_ORDER=19 WHERE ID=318;
+    </sql>
+  </changeSet>
+
+  <!-- Add PMFM_STRATEGY2TAXON_GROUP -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-410" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="9">SELECT count(*) FROM PMFM_STRATEGY2TAXON_GROUP WHERE PMFM_STRATEGY_FK in (select ID from PMFM_STRATEGY where STRATEGY_FK=11)</sqlCheck>
+      </and>
+    </preConditions>
+    <!-- SCR - Araignée -->
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="310"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="311"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="314"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="315"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="316"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="317"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="318"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="319"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="320"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR')"/>
+    </insert>
+
+    <!-- SCR - Coquille St Jacques -->
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="313"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="315"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="316"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="317"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="318"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="320"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="321"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="322"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="323"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="324"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="325"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="326"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="327"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE')"/>
+    </insert>
+
+    <!-- PIL -->
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="310"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="311"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="312"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="313"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="314"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="315"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="316"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="317"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="318"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL')"/>
+    </insert>
+
+    <!-- ANE -->
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="310"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="311"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="312"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="313"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="314"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="315"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="316"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="317"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="318"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE')"/>
+    </insert>
+
+    <!-- MZZ -->
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="328"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MZZ')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="311"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MZZ')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="312"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MZZ')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="313"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MZZ')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="315"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MZZ')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="316"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MZZ')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="317"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MZZ')"/>
+    </insert>
+    <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+      <column name="PMFM_STRATEGY_FK" valueNumeric="318"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MZZ')"/>
+    </insert>
+  </changeSet>
+
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-411" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PROGRAM2LOCATION_CLASSIF WHERE PROGRAM_FK in (select ID from PROGRAM where LABEL like 'ADAP-%')</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PROGRAM2LOCATION_CLASSIF">
+      <column name="PROGRAM_FK" valueNumeric="10"/>
+      <column name="LOCATION_CLASSIFICATION_FK" valueNumeric="2"/>
+    </insert>
+    <insert tableName="PROGRAM2LOCATION_CLASSIF">
+      <column name="PROGRAM_FK" valueNumeric="11"/>
+      <column name="LOCATION_CLASSIFICATION_FK" valueNumeric="1"/>
+    </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-412" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      UPDATE STRATEGY set UPDATE_DATE=current_timestamp where PROGRAM_FK in (SELECT ID FROM PROGRAM WHERE LABEL='ADAP-CONTROLE');
+      UPDATE PROGRAM set UPDATE_DATE=current_timestamp where LABEL='ADAP-CONTROLE';
+    </sql>
+  </changeSet>
+
+
+</databaseChangeLog>

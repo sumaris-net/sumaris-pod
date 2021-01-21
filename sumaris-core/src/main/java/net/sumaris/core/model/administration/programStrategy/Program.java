@@ -27,11 +27,11 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
@@ -109,5 +109,18 @@ public class Program implements IItemReferentialEntity {
         return String.format("Program{id=%s, label=%s}",
                 id,
                 label);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Program that = (Program) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .isEquals();
     }
 }

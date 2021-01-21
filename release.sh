@@ -18,7 +18,7 @@ release_description=$3
 if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
-  echo " > ./release-gitflow.sh pre|rel <version> <release_description>"
+  echo " > $0 pre|rel <version> <release_description>"
   echo "with:"
   echo " - pre: use for pre-release"
   echo " - rel: for full release"
@@ -42,7 +42,7 @@ echo "Prepare release [OK]"
 echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
-mvn clean deploy -DperformRelease -DskipTests -Denv=hsqldb
+mvn clean deploy -DperformRelease -DskipTests -Dspring.datasource.platform=hsqldb
 [[ $? -ne 0 ]] && exit 1
 
 echo "**********************************"
@@ -76,15 +76,14 @@ echo "* Pushing changes to upstream..."
 echo "**********************************"
 git commit -a -m "Release $version\n$release_description"
 git status
-mvn gitflow:release-finish -DfetchRemote=false
+mvn gitflow:release-finish
 [[ $? -ne 0 ]] && exit 1
 
 # Remove release branch
-# TODO BLA
-# git branch -d
-# Pause (if propagation is need between hosted git server and github)
-#sleep 10s
-#echo "Push changes to upstream [OK]"
+git branch -d "release/$version"
+
+
+echo "Push changes to upstream [OK]"
 
 echo "----------------------------------"
 echo "RELEASE finished !"

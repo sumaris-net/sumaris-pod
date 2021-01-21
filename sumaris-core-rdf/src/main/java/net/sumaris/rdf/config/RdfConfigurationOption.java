@@ -125,7 +125,7 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
     RDF_MAX_PAGE_SIZE(
             "rdf.data.pageSize.max",
             n("sumaris.config.option.rdf.data.pageSize.max.description"),
-            "1000",
+            "10000",
             Integer.class,
             false),
 
@@ -134,6 +134,13 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.rdf.tdb2.enabled.description"),
             Boolean.TRUE.toString(),
             String.class,
+            false),
+
+    RDF_TDB2_DIRECTORY(
+            "rdf.tdb2.directory",
+            n("sumaris.config.option.rdf.tdb2.directory.description"),
+            "${rdf.directory}/tdb2",
+            File.class,
             false),
 
     RDF_DATA_IMPORT_ENABLED(

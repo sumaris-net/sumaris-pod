@@ -22,13 +22,10 @@ package net.sumaris.core.extraction.vo;
  * #L%
  */
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.sumaris.core.model.data.IWithRecorderPersonEntity;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 
 import java.util.Date;
 import java.util.List;
@@ -37,18 +34,17 @@ import java.util.List;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@EqualsAndHashCode(callSuper = true)
-public class AggregationTypeVO extends ExtractionTypeVO implements
-        IWithRecorderPersonEntity<Integer, PersonVO> {
+@FieldNameConstants
+public class AggregationTypeVO extends ExtractionTypeVO {
 
-    public static final String PROPERTY_STRATUM  = "stratum";
+    String documentation;
+    String filter;
 
-    String description;
-    String comments;
     Date updateDate;
+    Date creationDate;
 
-    PersonVO recorderPerson;
-
-    List<ExtractionProductStrataVO> stratum;
+    List<AggregationStrataVO> stratum;
 }

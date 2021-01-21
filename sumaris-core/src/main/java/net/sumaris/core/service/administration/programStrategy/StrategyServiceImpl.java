@@ -33,6 +33,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -49,6 +50,16 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Autowired
 	private PmfmStrategyRepository pmfmStrategyRepository;
+
+	@Override
+	public StrategyVO get(int id, StrategyFetchOptions fetchOptions) {
+		return strategyRepository.get(id, fetchOptions);
+	}
+
+	@Override
+	public List<StrategyVO> findByFilter(StrategyFilterVO filter, Pageable pageable, StrategyFetchOptions fetchOptions) {
+		return strategyRepository.findAll(filter, pageable, fetchOptions).getContent();
+	}
 
 	@Override
 	public List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions) {
@@ -101,9 +112,8 @@ public class StrategyServiceImpl implements StrategyService {
 
 		StrategyVO result = strategyRepository.save(source);
 
-		// Save pmfm stratgeies
-		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(result.getId(), Beans.getList(source.getPmfmStrategies()));
-		source.setPmfmStrategies(savedPmfmStrategies);
+		// Save children entities
+		saveChildrenEntities(source);
 
 		return result;
 	}
@@ -112,12 +122,23 @@ public class StrategyServiceImpl implements StrategyService {
 	public List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources) {
 		List<StrategyVO> result = strategyRepository.saveByProgramId(programId, sources);
 
-		// Save pmfm strategies
-		sources.forEach(source -> {
-			List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(source.getId(), Beans.getList(source.getPmfmStrategies()));
-			source.setPmfmStrategies(savedPmfmStrategies);
-		});
+		// Save children entities
+		sources.forEach(this::saveChildrenEntities);
 
 		return result;
+	}
+
+	@Override
+	public void delete(int id) {
+		strategyRepository.deleteById(id);
+	}
+
+	/* -- protected methods -- */
+
+	protected void saveChildrenEntities(StrategyVO source) {
+
+		// Pmfm strategies
+		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(source.getId(), Beans.getList(source.getPmfmStrategies()));
+		source.setPmfmStrategies(savedPmfmStrategies);
 	}
 }

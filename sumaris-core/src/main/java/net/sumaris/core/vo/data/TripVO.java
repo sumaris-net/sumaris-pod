@@ -47,6 +47,8 @@ public class TripVO implements IRootDataVO<Integer>,
         IWithObserversEntity<Integer, PersonVO>,
         IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> {
 
+    public static final String TYPENAME = "TripVO";
+
     @EqualsAndHashCode.Exclude
     private Integer id;
     private String comments;
@@ -93,8 +95,10 @@ public class TripVO implements IRootDataVO<Integer>,
 
     // Parent
     private Integer landingId;
-    private Integer landingRankOrder;
+    private LandingVO landing;
+
     private Integer observedLocationId;
+    private ObservedLocationVO observedLocation;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

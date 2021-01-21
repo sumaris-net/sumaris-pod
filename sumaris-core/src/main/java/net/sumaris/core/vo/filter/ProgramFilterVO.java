@@ -32,6 +32,7 @@ import lombok.experimental.FieldNameConstants;
 @AllArgsConstructor
 public class ProgramFilterVO implements IReferentialFilter {
 
+    private Integer id;
     private String label;
     private String name;
 
@@ -46,4 +47,5 @@ public class ProgramFilterVO implements IReferentialFilter {
 
     private String withProperty;
 
+    private Integer[] excludedIds;
 }

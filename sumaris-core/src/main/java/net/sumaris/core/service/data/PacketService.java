@@ -33,6 +33,8 @@ import java.util.List;
 @Transactional
 public interface PacketService {
 
+    String RATIO_SEPARATOR = " ";
+
     @Transactional(readOnly = true)
     List<PacketVO> getAllByOperationId(int operationId);
 

@@ -92,7 +92,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
 
     private boolean debug;
 
-    protected List<IModelVisitor<Model, RdfSchemaOptions>> modelVisitors = Lists.newCopyOnWriteArrayList();
+    protected List<IModelVisitor<Model, RdfSchemaFetchOptions>> modelVisitors = Lists.newCopyOnWriteArrayList();
 
     @PostConstruct
     protected void init() {
@@ -119,7 +119,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     }
 
     @Override
-    public void register(IModelVisitor<Model, RdfSchemaOptions> visitor) {
+    public void register(IModelVisitor<Model, RdfSchemaFetchOptions> visitor) {
         if (!modelVisitors.contains(modelVisitors)) modelVisitors.add(visitor);
     }
 
@@ -129,7 +129,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     }
 
     @Override
-    public Model getOntology(RdfSchemaOptions options) {
+    public Model getOntology(RdfSchemaFetchOptions options) {
         Preconditions.checkNotNull(options);
 
         int cacheKey = options.hashCode();
@@ -151,15 +151,15 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
 
     /* -- protected methods -- */
 
-    protected RdfSchemaOptions createOptions(ModelVocabulary voc) {
-        RdfSchemaOptions options = RdfSchemaOptions.builder()
+    protected RdfSchemaFetchOptions createOptions(ModelVocabulary voc) {
+        RdfSchemaFetchOptions options = RdfSchemaFetchOptions.builder()
                 .domain(voc)
                 .build();
         fillOptions(options);
         return options;
     }
 
-    protected RdfSchemaOptions fillOptions(RdfSchemaOptions options) {
+    protected RdfSchemaFetchOptions fillOptions(RdfSchemaFetchOptions options) {
         Preconditions.checkNotNull(options);
 
         ModelVocabulary domain = options.getDomain();
@@ -235,7 +235,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         return schema;
     }
 
-    protected Model getSchemaOntologyNoCache(RdfSchemaOptions options) {
+    protected Model getSchemaOntologyNoCache(RdfSchemaFetchOptions options) {
         Preconditions.checkNotNull(options);
         Preconditions.checkNotNull(options.getDomain());
 
@@ -289,7 +289,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         return uri;
     }
 
-    protected Stream<Class<?>> getClassesAsStream(RdfSchemaOptions options) {
+    protected Stream<Class<?>> getClassesAsStream(RdfSchemaFetchOptions options) {
 
         Reflections reflections;
         Stream<Class<?>> result;
@@ -365,7 +365,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
 
     }
 
-    public List<IModelVisitor> getModelVisitors(Model model, String ns, String schemaUri, RdfSchemaOptions options) {
+    public List<IModelVisitor> getModelVisitors(Model model, String ns, String schemaUri, RdfSchemaFetchOptions options) {
         return modelVisitors.stream().filter(visitor -> visitor.accept(model, ns, schemaUri, options)).collect(Collectors.toList());
     }
 }

@@ -30,12 +30,10 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.util.Files;
 import net.sumaris.rdf.action.RdfDatasetAction;
 import net.sumaris.rdf.config.RdfConfigurationOption;
-import net.sumaris.rdf.service.store.DatasetService;
+import net.sumaris.rdf.service.store.RdfDatasetService;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.event.ContextClosedEvent;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -89,9 +87,8 @@ public class InitTests extends net.sumaris.core.test.InitTests {
 
     @Override
     protected String getModuleName() {
-        return DatabaseResource.MODULE_NAME;
+        return TestConfiguration.MODULE_NAME;
     }
-
 
     @Override
     protected void before() throws Throwable {
@@ -118,9 +115,10 @@ public class InitTests extends net.sumaris.core.test.InitTests {
         // Set log levels
         System.setProperty("logging.level.root", "error");
         System.setProperty("logging.level.net.sumaris", "warn");
-        System.setProperty("logging.level." + DatasetService.class.getName(), "info");
+        System.setProperty("logging.level." + RdfDatasetService.class.getName(), "info");
         System.setProperty("logging.level.net.sumaris.core", "error");
         System.setProperty("logging.level.org.hibernate", "error");
+        System.setProperty("logging.level.Hibernate Types", "error");
 
         String[] args = ImmutableList.<String>builder()
                 .add(RdfDatasetAction.LOAD_ALIAS)

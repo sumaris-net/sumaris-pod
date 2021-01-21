@@ -24,12 +24,16 @@ package net.sumaris.core.dao.technical;
 
 import net.sumaris.core.vo.technical.SoftwareVO;
 
+import java.util.Optional;
+
 public interface SoftwareDao {
 
 
     SoftwareVO get(int id);
 
     SoftwareVO getByLabel(String label);
+
+    Optional<SoftwareVO> findByLabel(String label);
 
     SoftwareVO save(SoftwareVO source);
 

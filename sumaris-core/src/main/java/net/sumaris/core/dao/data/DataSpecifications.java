@@ -37,7 +37,7 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
 
     String RECORDER_DEPARTMENT_ID_PARAM = "recorderDepartmentId";
 
-    default Specification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
+    default BindableSpecification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
         BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.distinct(true); // Set distinct here because hasRecorderDepartmentId is always used (usually ...)
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, RECORDER_DEPARTMENT_ID_PARAM);
@@ -49,4 +49,5 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
         specification.addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
         return specification;
     }
+
 }

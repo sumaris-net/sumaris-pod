@@ -40,7 +40,7 @@ import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
-import net.sumaris.server.http.rest.RestPaths;
+import net.sumaris.server.http.ontology.RestPaths;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;

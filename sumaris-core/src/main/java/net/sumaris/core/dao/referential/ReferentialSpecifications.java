@@ -43,12 +43,25 @@ import java.util.List;
 
 public interface ReferentialSpecifications<E extends IReferentialWithStatusEntity> {
 
+    String ID_PARAMETER = "id";
     String STATUS_PARAMETER = "status";
     String STATUS_SET_PARAMETER = "statusSet";
     String LABEL_PARAMETER = "label";
     String LEVEL_PARAMETER = "level";
     String LEVEL_SET_PARAMETER = "levelSet";
     String SEARCH_TEXT_PARAMETER = "searchText";
+    String EXCLUDED_IDS_PARAMETER = "excludedIds";
+
+    default Specification<E> hasId(Integer id) {
+        if (id == null) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
+            ParameterExpression<Integer> idParam = criteriaBuilder.parameter(Integer.class, ID_PARAMETER);
+            return criteriaBuilder.equal(root.get(IEntity.Fields.ID), idParam);
+        });
+        specification.addBind(ID_PARAMETER, id);
+        return specification;
+    }
 
     default Specification<E> inStatusIds(IReferentialFilter filter) {
         Integer[] statusIds = filter.getStatusIds();
@@ -155,6 +168,18 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             );
         });
         specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
+        return specification;
+    }
+
+    default Specification<E> excludedIds(Integer[] excludedIds) {
+        if (ArrayUtils.isEmpty(excludedIds)) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
+            return criteriaBuilder.not(
+                    criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param)
+            );
+        });
+        specification.addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
         return specification;
     }
 }

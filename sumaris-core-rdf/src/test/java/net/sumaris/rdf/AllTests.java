@@ -27,9 +27,9 @@ package net.sumaris.rdf;
 
 import net.sumaris.rdf.dao.referential.taxon.SandreLoaderTest;
 import net.sumaris.rdf.dao.referential.taxon.TaxrefLoaderTest;
-import net.sumaris.rdf.service.DatasetServiceTest;
-import net.sumaris.rdf.service.ExportServicesTest;
-import net.sumaris.rdf.service.data.DataServiceTest;
+import net.sumaris.rdf.service.store.RdfDatasetServiceTest;
+import net.sumaris.rdf.service.data.IndividualServicesTest;
+import net.sumaris.rdf.service.data.remote.RdfIndividualRemoteServiceTest;
 import net.sumaris.rdf.service.schema.SchemaServiceTest;
 import net.sumaris.rdf.util.ModelUtilsTest;
 import org.junit.ClassRule;
@@ -48,10 +48,10 @@ import org.junit.runners.Suite;
         SandreLoaderTest.class,
         TaxrefLoaderTest.class,
         // Service
-        DatasetServiceTest.class,
-        ExportServicesTest.class,
+        RdfDatasetServiceTest.class,
+        IndividualServicesTest.class,
         SchemaServiceTest.class,
-        DataServiceTest.class,
+        RdfIndividualRemoteServiceTest.class,
         // Util
         ModelUtilsTest.class
 })

@@ -72,11 +72,12 @@ public class PmfmGraphQLService {
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
 
-        return pmfmService.findByFilter(filter != null ? filter : new ReferentialFilterVO(),
+        return pmfmService.findByFilter(
+                ReferentialFilterVO.nullToEmpty(filter),
                 offset == null ? 0 : offset,
                 size == null ? 1000 : size,
                 sort == null ? ReferentialVO.Fields.LABEL : sort,
-                direction == null ? SortDirection.ASC : SortDirection.valueOf(direction.toUpperCase()));
+                SortDirection.fromString(direction, SortDirection.ASC));
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get a PMFM")

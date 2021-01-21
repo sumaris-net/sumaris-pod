@@ -1,0 +1,74 @@
+
+.container {
+    min-height: calc(100vh - 58px/*menu*/);
+}
+
+/* debug mode */
+
+#debug {
+    max-height: 300px;
+}
+#debug .col {
+    padding: 0;
+}
+
+#output {
+   overflow-y: scroll;
+   max-height: 300px;
+}
+#output > * {
+    padding-left: 5px;
+}
+
+
+/* The markdown preview content */
+
+#preview table,
+#preview table>thead>tr>th,
+#preview table>thead>tr>td, table>tbody>tr>th, table>tbody>tr>td, table>tfoot>tr>th, table>tfoot>tr>td {
+    border: 1px solid #ddd;
+}
+
+#preview table {
+    width: auto;
+    max-width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: transparent;
+}
+#preview table > caption+thead>tr:first-child>th,
+#preview table > caption+thead>tr:first-child>td,
+#preview table > colgroup+thead>tr:first-child>th,
+#preview table > colgroup+thead>tr:first-child>td,
+#preview table > thead:first-child>tr:first-child>th,
+#preview table > thead:first-child>tr:first-child>td {
+  border-top: 0;
+}
+
+#preview table > thead>tr>th,
+#preview table > thead>tr>td {
+      border-bottom-width: 2px;
+  }
+
+#preview table>thead>tr>th {
+     vertical-align: bottom;
+     border-bottom: 2px solid #ddd;
+ }
+#preview table>thead>tr>th {
+     padding: 8px;
+     border-top: 1px solid #ddd;
+ }
+#preview table th,
+#preview table td {
+    padding: 12px;
+}
+#preview table th {
+    text-align: left;
+}
+
+#preview table>tbody>tr:nth-child(odd)>td,
+#preview table>tbody>tr:nth-child(odd)>th {
+    background-color: #f9f9f9;
+}
+

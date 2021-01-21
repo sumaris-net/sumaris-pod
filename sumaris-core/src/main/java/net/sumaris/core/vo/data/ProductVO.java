@@ -29,6 +29,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;

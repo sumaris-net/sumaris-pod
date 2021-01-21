@@ -10,12 +10,12 @@ package net.sumaris.core.extraction.service;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,17 +23,25 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Create aggregation tables, from a data extraction.
+ *
  * @author benoit.lavenier@e-is.pro
  * @since 0.12.0
  */
@@ -41,34 +49,52 @@ import java.util.List;
 public interface AggregationService {
 
     @Transactional(readOnly = true)
-    List<AggregationTypeVO> findByFilter(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
+    AggregationTypeVO getTypeByFormat(IExtractionFormat format);
 
     @Transactional(readOnly = true)
-    AggregationTypeVO get(int id, ExtractionProductFetchOptions fetchOptions);
+    List<AggregationTypeVO> findTypesByFilter(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
+
+    @Transactional(readOnly = true)
+    AggregationTypeVO getTypeById(int id, ExtractionProductFetchOptions fetchOptions);
+
 
     /**
      * Do an aggregate
+     *
      * @param type
      * @param filter
      */
     @Transactional
     AggregationContextVO execute(AggregationTypeVO type,
-                                 @Nullable ExtractionFilterVO filter);
+                                 @Nullable ExtractionFilterVO filter,
+                                 @Nullable AggregationStrataVO strata);
 
     @Transactional(readOnly = true)
-    AggregationResultVO read(AggregationTypeVO type,
-                             @Nullable  ExtractionFilterVO filter,
-                             @Nullable AggregationStrataVO strata,
-                             int offset, int size, String sort, SortDirection direction);
+    AggregationResultVO getAggBySpace(AggregationTypeVO type,
+                                      @Nullable ExtractionFilterVO filter,
+                                      @Nullable AggregationStrataVO strata,
+                                      int offset, int size, String sort, SortDirection direction);
 
     @Transactional(readOnly = true)
-    AggregationResultVO read(AggregationContextVO context,
-                             @Nullable  ExtractionFilterVO filter,
-                             @Nullable AggregationStrataVO strata,
-                             int offset, int size, String sort, SortDirection direction);
+    AggregationResultVO getAggBySpace(AggregationContextVO context,
+                                      @Nullable ExtractionFilterVO filter,
+                                      @Nullable AggregationStrataVO strata,
+                                      int offset, int size, String sort, SortDirection direction);
 
-    @Transactional(readOnly = true)
-    List<ExtractionProductColumnVO> getColumnsBySheetName(AggregationTypeVO type, String sheetName);
+    AggregationTechResultVO getAggByTech(AggregationTypeVO format,
+                                         ExtractionFilterVO filter,
+                                         AggregationStrataVO strata,
+                                         String sort,
+                                         SortDirection direction);
+
+    MinMaxVO getAggMinMaxByTech(AggregationTypeVO format,
+                                ExtractionFilterVO filter,
+                                AggregationStrataVO strata);
+
+    @Transactional(rollbackFor = IOException.class)
+    File executeAndDump(AggregationTypeVO type,
+                        @Nullable ExtractionFilterVO filter,
+                        @Nullable AggregationStrataVO strata);
 
     @Transactional
     AggregationResultVO executeAndRead(AggregationTypeVO type,
@@ -81,6 +107,14 @@ public interface AggregationService {
     @Transactional
     AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
 
-    @Transactional
-    void delete(int id);
+    @Async
+    @Transactional(timeout = -1, propagation = Propagation.REQUIRES_NEW)
+    CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
+    void clean(AggregationContextVO context);
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Async
+    CompletableFuture<Boolean> asyncClean(AggregationContextVO context);
 }

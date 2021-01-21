@@ -52,7 +52,7 @@ public class TaxonNameServiceImpl implements TaxonNameService {
     }
 
     @Override
-    public List<TaxonNameVO> getAllByTaxonGroup(Integer taxonGroupId) {
+    public List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId) {
         return taxonNameRepository.getAllByTaxonGroupId(taxonGroupId);
     }
 }

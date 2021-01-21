@@ -37,6 +37,7 @@ import java.io.Serializable;
 public class ProductRdbSpeciesList implements Serializable, IEntity<Integer> {
 
     public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_RDB_SPECIES_LIST;
+    public static final String SHEET_NAME = "SL";
 
     public static final String COLUMN_SAMPLING_TYPE = ProductRdbStation.COLUMN_SAMPLING_TYPE;
     public static final String COLUMN_VESSEL_FLAG_COUNTRY = ProductRdbStation.COLUMN_VESSEL_FLAG_COUNTRY;
@@ -50,8 +51,8 @@ public class ProductRdbSpeciesList implements Serializable, IEntity<Integer> {
     public static final String COLUMN_SEX = "sex";
     public static final String COLUMN_CATCH_CATEGORY = "catch_category";
     public static final String COLUMN_LANDING_CATEGORY = "landing_category";
-    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE = "comm_size_cat_scale";
-    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY = "comm_size_cat";
+    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE = "commercial_size_category_scale";
+    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY = "commercial_size_category";
     public static final String COLUMN_SUBSAMPLING_CATEGORY = "subsampling_category";
     public static final String COLUMN_WEIGHT= "weight";
     public static final String COLUMN_SUBSAMPLING_WEIGHT = "subsampling_weight";
@@ -94,10 +95,10 @@ public class ProductRdbSpeciesList implements Serializable, IEntity<Integer> {
     private String landingCategory;
 
     @Column(length = 25, name = COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE)
-    private String commercialCategoryScale;
+    private String commercialSizeCategoryScale;
 
     @Column(length = 25, name = COLUMN_COMMERCIAL_SIZE_CATEGORY)
-    private String commercialCategory;
+    private String commercialSizeCategory;
 
     @Column(length = 25, name = COLUMN_SUBSAMPLING_CATEGORY)
     private String subsamplingCategory;

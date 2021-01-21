@@ -23,13 +23,12 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.AbstractDaoTest;
-import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.dao.data.sample.SampleRepository;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.*;
 import org.slf4j.Logger;
@@ -54,8 +53,6 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
     private SampleRepository sampleRepository;
 
     private OperationVO parentOperation;
-    
-    private DatabaseFixtures fixtures;
 
     @Before
     public void setUp() throws Exception {
@@ -64,8 +61,6 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
 
         parentOperation = operationRepository.get(1);
         Assume.assumeNotNull(parentOperation);
-
-        this.fixtures = dbResource.getFixtures();
     }
 
     @Test

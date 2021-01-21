@@ -63,7 +63,7 @@ public abstract class Owl2Bean {
         return entityManager;
     }
 
-    public Optional<Class> ontToJavaClass(OntClass ontClass, RdfImportContext context) {
+    public Optional<Class> ontToJavaClass(OntClass ontClass, RdfOwlConversionContext context) {
         String uri = ontClass.getURI();
         if (uri != null) {
             if (uri.contains("#")) {
@@ -104,7 +104,7 @@ public abstract class Owl2Bean {
     protected abstract List getCacheTL();
     protected abstract List getCacheStatus();
 
-    protected Object getTranslatedReference(RDFNode val, Class<?> setterParam, Object obj, RdfImportContext context) {
+    protected Object getTranslatedReference(RDFNode val, Class<?> setterParam, Object obj, RdfOwlConversionContext context) {
 
         String identifier = val.toString();
         String ontClass = null;
@@ -179,7 +179,7 @@ public abstract class Owl2Bean {
         }
     }
 
-    public Optional<Object> owl2Bean(Resource ont, OntResource ontResource, Class clazz, RdfImportContext context) {
+    public Optional<Object> owl2Bean(Resource ont, OntResource ontResource, Class clazz, RdfOwlConversionContext context) {
         log.info("processing ont Instance " + ontResource + " - " +
                 ontResource
                         .asIndividual()
@@ -244,7 +244,7 @@ public abstract class Owl2Bean {
     }
 
 
-    protected Optional<Method> findSetterAnnotatedID(Resource ont, Class clazz, RdfImportContext context) {
+    protected Optional<Method> findSetterAnnotatedID(Resource ont, Class clazz, RdfOwlConversionContext context) {
         for (Field f : clazz.getDeclaredFields())
             for (Annotation an : f.getDeclaredAnnotations())
                 if (an instanceof Id) {

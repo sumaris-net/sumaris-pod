@@ -39,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
@@ -74,6 +76,11 @@ public class FishingAreaRepositoryImpl
         this.config = config;
         this.locationRepository = locationRepository;
         this.referentialDao = referentialDao;
+    }
+
+    @Override
+    public List<FishingAreaVO> findAllVO(Specification<FishingArea> spec) {
+        return super.findAll(spec).stream().map(this::toVO).collect(Collectors.toList());
     }
 
     @Override
@@ -151,7 +158,7 @@ public class FishingAreaRepositoryImpl
     }
 
     @Override
-    public List<FishingAreaVO> getAllVOByOperationId(Integer operationId) {
+    public List<FishingAreaVO> getAllVOByOperationId(int operationId) {
         return self.getAllByOperationId(operationId).stream()
             .map(this::toVO).collect(Collectors.toList());
     }

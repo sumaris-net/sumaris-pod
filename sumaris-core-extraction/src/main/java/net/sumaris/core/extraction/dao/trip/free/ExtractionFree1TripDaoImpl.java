@@ -25,7 +25,8 @@ package net.sumaris.core.extraction.dao.trip.free;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.core.extraction.specification.Free1Specification;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.format.specification.Free1Specification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -37,18 +38,18 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionFree1TripDao")
 @Lazy
-public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO> extends ExtractionRdbTripDaoImpl<C>
-        implements ExtractionFree1TripDao, Free1Specification {
+public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
+        extends ExtractionRdbTripDaoImpl<C, F>
+        implements ExtractionFree1TripDao<C, F>, Free1Specification {
 
     private static final String XML_QUERY_FREE_PATH = "free/v%s/%s";
 
     @Override
-    public C execute(ExtractionFilterVO filter) {
-        C context = super.execute(filter);
+    public <R extends C> R execute(F filter) {
+        R context = super.execute(filter);
 
         // Override some context properties
-        context.setFormatName(FORMAT);
-        context.setFormatVersion(VERSION_1);
+        context.setFormat(LiveFormatEnum.FREE1);
 
         return context;
     }
@@ -121,7 +122,7 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO> ex
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getVersion());
 
         String versionStr = VERSION_1.replaceAll("[.]", "_");
         switch (queryName) {

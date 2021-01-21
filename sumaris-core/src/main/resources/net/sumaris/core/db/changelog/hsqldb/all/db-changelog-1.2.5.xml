@@ -72,6 +72,19 @@
     </insert>
   </changeSet>
 
+  <changeSet id="benoit.lavenier@e-is.pro" author="1583765897856-303-1" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">select count(*) from (select max(id) MAX_ID from PARAMETER HAVING max(id) &gt;= 200)</sqlCheck>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      ALTER SEQUENCE PARAMETER_SEQ RESTART WITH 200;
+      commit;
+    </sql>
+  </changeSet>
+
   <!-- add Parameter 'BATCH_SORTING' -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-303">
     <preConditions onFail="MARK_RAN">
@@ -119,6 +132,20 @@
       <column name="CREATION_DATE" valueComputed="sysdate" />
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
     </insert>
+  </changeSet>
+
+
+  <changeSet id="benoit.lavenier@e-is.pro" author="1583765897856-305-1" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">select count(*) from (select max(id) MAX_ID from PMFM HAVING max(id) &gt;= 200)</sqlCheck>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      ALTER SEQUENCE PMFM_SEQ RESTART WITH 200;
+      commit;
+    </sql>
   </changeSet>
 
   <!-- add PMFM 'BATCH_SORTING' -->

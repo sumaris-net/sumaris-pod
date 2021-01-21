@@ -23,6 +23,9 @@ package net.sumaris.core.dao;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+import net.sumaris.core.TestConfiguration;
+
 /**
  * To be able to manage database connection for unit test.
  * 
@@ -31,53 +34,39 @@ package net.sumaris.core.dao;
  */
 public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 
-	public static final String MODULE_NAME = "sumaris-core";
-
-	private final DatabaseFixtures fixtures;
-
 	public static DatabaseResource readDb() {
-		return new DatabaseResource("", false);
-	}
-
-	public static DatabaseResource readDb(String configName) {
-		return new DatabaseResource(configName, false);
-	}
-
-	public static DatabaseResource writeDb() {
 		return new DatabaseResource("", true);
 	}
 
-	public static DatabaseResource writeDb(String configName) {
+	public static DatabaseResource readDb(String configName) {
 		return new DatabaseResource(configName, true);
 	}
 
-	protected DatabaseResource(String configName, boolean writeDb) {
-		super(configName, writeDb);
-		fixtures = new DatabaseFixtures();
+	public static DatabaseResource writeDb() {
+		return new DatabaseResource("", false);
 	}
 
-	public DatabaseFixtures getFixtures() {
-		return fixtures;
+	public static DatabaseResource writeDb(String configName) {
+		return new DatabaseResource(configName, false);
+	}
+
+	protected DatabaseResource(String configName, boolean readOnly) {
+		super(configName, readOnly);
 	}
 
 	@Override
-	public String getBuildEnvironment() {
-		return "hsqldb";
+	public String getDatasourcePlatform() {
+		return TestConfiguration.DATASOURCE_PLATFORM;
 	}
 
 	@Override
 	protected String getConfigFilesPrefix() {
-		return MODULE_NAME +"-test";
+		return TestConfiguration.CONFIG_FILE_PREFIX;
 	}
 
 	@Override
 	protected String getModuleDirectory() {
-		return MODULE_NAME;
-	}
-
-	@Override
-	protected String getI18nBundleName() {
-		return MODULE_NAME + "-i18n";
+		return TestConfiguration.MODULE_NAME;
 	}
 
 }

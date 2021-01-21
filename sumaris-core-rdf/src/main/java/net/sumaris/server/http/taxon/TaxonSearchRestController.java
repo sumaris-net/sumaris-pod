@@ -27,7 +27,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
 import org.slf4j.Logger;
@@ -44,7 +43,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.Collection;
@@ -63,13 +61,6 @@ public class TaxonSearchRestController {
 
     private static final Logger log = LoggerFactory.getLogger(TaxonSearchRestController.class);
 
-    @Resource
-    private RdfSchemaService schemaExportService;
-
-    @Resource
-    private RdfConfiguration config;
-
-
     @PostConstruct
     public void init() {
         log.info("Starting Taxon endpoint {{}}...", SEARCH_PATH);
@@ -84,6 +75,7 @@ public class TaxonSearchRestController {
                     RdfMediaType.APPLICATION_XML_VALUE,
                     RdfMediaType.APPLICATION_RDF_JSON_VALUE,
                     RdfMediaType.APPLICATION_JSON_VALUE,
+                    RdfMediaType.APPLICATION_JSON_UTF8_VALUE,
                     RdfMediaType.APPLICATION_JSON_LD_VALUE,
                     RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
                     RdfMediaType.APPLICATION_N_QUADS_VALUE,

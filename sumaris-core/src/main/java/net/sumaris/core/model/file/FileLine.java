@@ -45,7 +45,8 @@ public class FileLine implements Serializable {
     private Long lineNumber;
 
     @Column(nullable = false)
-    private Clob content;
+    @Lob
+    private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "file_fk", nullable = false)

@@ -25,28 +25,22 @@ package net.sumaris.server.http.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.server.ServerTestConfiguration;
-import net.sumaris.server.service.AbstractServiceTest;
+import net.sumaris.server.AbstractServiceTest;
 import org.geojson.Feature;
 import org.geojson.FeatureCollection;
 import org.geojson.Point;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = {JsonMapperConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-server-test.properties")
-public class JsonMapperTest {
+
+public class JsonMapperTest extends AbstractServiceTest {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -61,7 +55,7 @@ public class JsonMapperTest {
     }
 
     @Test
-    public void testGeoJsonSerialisation() throws JsonProcessingException, UnsupportedEncodingException, IOException {
+    public void testGeoJsonSerialisation() throws IOException {
 
         FeatureCollection features = new FeatureCollection();
 

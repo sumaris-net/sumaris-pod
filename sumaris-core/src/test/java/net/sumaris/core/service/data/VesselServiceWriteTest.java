@@ -47,7 +47,7 @@ public class VesselServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void save() {
-        int vesselId = dbResource.getFixtures().getVesselId(0);
+        int vesselId = fixtures.getVesselId(0);
 
         // declare a feature change (vessel1 represent previous version, vessel2 the new version)
         VesselVO vessel1 = service.getVesselById(vesselId);

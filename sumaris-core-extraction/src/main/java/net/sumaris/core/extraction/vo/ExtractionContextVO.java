@@ -23,11 +23,12 @@ package net.sumaris.core.extraction.vo;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.*;
@@ -38,14 +39,17 @@ import java.util.*;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExtractionContextVO {
+public class ExtractionContextVO implements IExtractionFormat {
 
     long id;
 
     String label;
-    String formatName;
-    String formatVersion;
+    String version;
+    ExtractionCategoryEnum category;
+
     ExtractionFilterVO filter;
+
+    String tableNamePrefix;
 
     @FieldNameConstants.Exclude
     Map<String, String> tableNames = new LinkedHashMap<>();
@@ -68,16 +72,17 @@ public class ExtractionContextVO {
 
         this.id = source.id;
         this.label = source.label;
-        this.formatName = source.formatName;
-        this.formatVersion = source.formatVersion;
+        this.version = source.version;
+        this.category = source.category;
         this.tableNames.putAll(source.tableNames);
         this.hiddenColumnNames.putAll(source.hiddenColumnNames);
         this.tableNameWithDistinct.addAll(source.tableNameWithDistinct);
     }
 
-
-    public String getLabel() {
-        return label != null ? label : (this.formatName != null ? this.formatName.toLowerCase() : null);
+    public void setFormat(IExtractionFormat format) {
+        this.category = format.getCategory();
+        this.label = format.getLabel();
+        this.version = format.getVersion();
     }
 
     /**
@@ -122,6 +127,11 @@ public class ExtractionContextVO {
 
     public Set<String> getTableNames() {
         return tableNames.keySet();
+    }
+
+    @Override
+    public String[] getSheetNames() {
+        return tableNames.values().toArray(new String[tableNames.size()]);
     }
 
     public Set<String> getRawTableNames() {

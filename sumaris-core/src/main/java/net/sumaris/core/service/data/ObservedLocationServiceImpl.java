@@ -27,20 +27,23 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.ObservedLocationMeasurement;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.ObservedLocationVO;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("observedLocationService")
@@ -54,6 +57,11 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	@Autowired
 	protected MeasurementDao measurementDao;
 
+	@Autowired
+	protected LandingService landingService;
+
+	@Autowired
+	private ApplicationEventPublisher publisher;
 
 	@Override
 	public List<ObservedLocationVO> getAll(int offset, int size) {
@@ -87,42 +95,55 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public ObservedLocationVO save(final ObservedLocationVO source, final boolean withObservedVessel) {
-		Preconditions.checkNotNull(source);
-		Preconditions.checkNotNull(source.getProgram(), "Missing program");
-		Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
-		Preconditions.checkNotNull(source.getStartDateTime(), "Missing startDateTime");
-		Preconditions.checkNotNull(source.getLocation(), "Missing location");
-		Preconditions.checkNotNull(source.getLocation().getId(), "Missing location.id");
-		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
-		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+	public ObservedLocationVO save(final ObservedLocationVO source, ObservedLocationSaveOptions options) {
+		checkCanSave(source);
+
+		// Init options, if empty
+		options = ObservedLocationSaveOptions.defaultIfEmpty(options);
 
 		// Reset control date
 		source.setControlDate(null);
 
+		boolean isNew = source.getId() == null;
+
 		// Save
-		ObservedLocationVO savedObservedLocation = observedLocationRepository.save(source);
+		ObservedLocationVO result = observedLocationRepository.save(source);
 
 		// Save measurements
-		if (savedObservedLocation.getMeasurementValues() != null) {
-			measurementDao.saveObservedLocationMeasurementsMap(savedObservedLocation.getId(), savedObservedLocation.getMeasurementValues());
+		if (result.getMeasurementValues() != null) {
+			measurementDao.saveObservedLocationMeasurementsMap(result.getId(), result.getMeasurementValues());
 		}
 		else {
-			List<MeasurementVO> measurements = Beans.getList(savedObservedLocation.getMeasurements());
-			measurements.forEach(m -> fillDefaultProperties(savedObservedLocation, m));
-			measurements = measurementDao.saveObservedLocationMeasurements(savedObservedLocation.getId(), measurements);
-			savedObservedLocation.setMeasurements(measurements);
+			List<MeasurementVO> measurements = Beans.getList(result.getMeasurements());
+			measurements.forEach(m -> fillDefaultProperties(result, m));
+			measurements = measurementDao.saveObservedLocationMeasurements(result.getId(), measurements);
+			result.setMeasurements(measurements);
 		}
 
-		return savedObservedLocation;
+		// Save landings (only if asked)
+		if (options.getWithLanding()) {
+			List<LandingVO> landings = Beans.getList(source.getLandings());
+			fillDefaultProperties(result, landings);
+			List<LandingVO> savedLandings = landingService.saveAllByObservedLocationId(result.getId(), landings);
+			result.setLandings(savedLandings);
+		}
+
+		// Publish event
+		if (isNew) {
+			publisher.publishEvent(new EntityInsertEvent(result.getId(), ObservedLocation.class.getSimpleName(), result));
+		} else {
+			publisher.publishEvent(new EntityUpdateEvent(result.getId(), ObservedLocation.class.getSimpleName(), result));
+		}
+
+		return result;
 	}
 
 	@Override
-	public List<ObservedLocationVO> save(List<ObservedLocationVO> observedLocations, final boolean withObservedVessel) {
+	public List<ObservedLocationVO> save(List<ObservedLocationVO> observedLocations, ObservedLocationSaveOptions saveOptions) {
 		Preconditions.checkNotNull(observedLocations);
 
 		return observedLocations.stream()
-				.map(t -> save(t, withObservedVessel))
+				.map(t -> save(t, saveOptions))
 				.collect(Collectors.toList());
 	}
 
@@ -155,7 +176,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
-		return observedLocationRepository.validateNoSave(observedLocation); // todo no save !
+		return observedLocationRepository.validate(observedLocation);
 	}
 
 	@Override
@@ -165,12 +186,33 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-		return observedLocationRepository.unvalidateNoSave(observedLocation); // todo no save
+		return observedLocationRepository.unValidate(observedLocation);
 	}
 
-	/* protected methods */
+	@Override
+	public ObservedLocationVO qualify(ObservedLocationVO observedLocation) {
+		Preconditions.checkNotNull(observedLocation);
+		Preconditions.checkNotNull(observedLocation.getId());
+		Preconditions.checkNotNull(observedLocation.getControlDate());
+		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-	void fillDefaultProperties(ObservedLocationVO parent, MeasurementVO measurement) {
+		return observedLocationRepository.qualify(observedLocation);
+	}
+
+	/* -- protected methods -- */
+
+	protected void checkCanSave(ObservedLocationVO source) {
+		Preconditions.checkNotNull(source);
+		Preconditions.checkNotNull(source.getProgram(), "Missing program");
+		Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
+		Preconditions.checkNotNull(source.getStartDateTime(), "Missing startDateTime");
+		Preconditions.checkNotNull(source.getLocation(), "Missing location");
+		Preconditions.checkNotNull(source.getLocation().getId(), "Missing location.id");
+		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+	}
+
+	protected void fillDefaultProperties(ObservedLocationVO parent, MeasurementVO measurement) {
 		if (measurement == null) return;
 
 		// Set default value for recorder department and person
@@ -178,5 +220,22 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
 
 		measurement.setEntityName(ObservedLocationMeasurement.class.getSimpleName());
+	}
+
+	protected void fillDefaultProperties(ObservedLocationVO parent, List<LandingVO> sources) {
+		// Program
+		ProgramVO program = new ProgramVO();
+		program.setId(parent.getProgram().getId());
+
+		// Date/Time
+		Date defaultLandingDateTime = parent.getStartDateTime() != null ? parent.getStartDateTime() : parent.getEndDateTime();
+
+		// Apply to all sources
+		Beans.getStream(sources).forEach(source -> {
+			source.setProgram(program);
+			if (source.getDateTime() == null) source.setDateTime(defaultLandingDateTime);
+			source.setLocation(parent.getLocation());
+			DataBeans.setDefaultRecorderDepartment(source, parent.getRecorderDepartment());
+		});
 	}
 }

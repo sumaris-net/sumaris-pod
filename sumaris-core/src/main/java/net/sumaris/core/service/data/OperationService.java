@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +42,10 @@ public interface OperationService {
 
 
 	@Transactional(readOnly = true)
-	List<OperationVO> findAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+	List<OperationVO> findAllByTripId(int tripId, DataFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<OperationVO> findAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	Long countByTripId(int tripId);

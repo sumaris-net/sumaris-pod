@@ -27,6 +27,8 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
@@ -43,7 +45,7 @@ import java.util.stream.Collectors;
  */
 @Data
 @FieldNameConstants
-public class ExtractionProductVO implements IReferentialVO,
+public class ExtractionProductVO implements IReferentialVO, IExtractionFormat,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
@@ -51,10 +53,14 @@ public class ExtractionProductVO implements IReferentialVO,
     private String label;
     private String name;
     private String description;
+    private String format;
+    private String version;
+    private String documentation;
     private String comments;
     private Date updateDate;
     private Date creationDate;
     private Boolean isSpatial;
+    private String filter;
 
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
@@ -62,44 +68,48 @@ public class ExtractionProductVO implements IReferentialVO,
     private Integer statusId;
     private Integer parentId;
 
-    private List<ExtractionProductTableVO> tables;
-    private List<ExtractionProductStrataVO> stratum;
+    private List<ExtractionTableVO> tables;
+    private List<AggregationStrataVO> stratum;
 
     public List<String> getTableNames() {
         if (tables == null) return null;
-        return tables.stream().map(ExtractionProductTableVO::getTableName).collect(Collectors.toList());
+        return tables.stream().map(ExtractionTableVO::getTableName).collect(Collectors.toList());
     }
 
-    public List<String> getSheetNames() {
+    public String[] getSheetNames() {
         if (tables == null) return null;
-        return tables.stream().map(ExtractionProductTableVO::getLabel).collect(Collectors.toList());
+        return tables.stream().map(ExtractionTableVO::getLabel).toArray(String[]::new);
     }
 
     public Map<String, String> getItems() {
         if (tables == null) return null;
-        return tables.stream().collect(Collectors.toMap(ExtractionProductTableVO::getLabel, ExtractionProductTableVO::getTableName));
+        return tables.stream().collect(Collectors.toMap(ExtractionTableVO::getLabel, ExtractionTableVO::getTableName));
     }
 
-    public Optional<String> getTableNameBySheetName(String sheetName) {
+    public Optional<String> findTableNameBySheetName(String sheetName) {
         Preconditions.checkNotNull(sheetName);
         return ListUtils.emptyIfNull(tables).stream()
                 .filter(t -> sheetName.equalsIgnoreCase(t.getLabel()))
-                .map(ExtractionProductTableVO::getTableName)
+                .map(ExtractionTableVO::getTableName)
                 .findFirst();
     }
 
-    public Optional<String> getSheetNameByTableName(String tableName) {
+    public Optional<String> findSheetNameByTableName(String tableName) {
         Preconditions.checkNotNull(tableName);
         return ListUtils.emptyIfNull(tables).stream()
                 .filter(t -> tableName.equalsIgnoreCase(t.getTableName()))
-                .map(ExtractionProductTableVO::getLabel)
+                .map(ExtractionTableVO::getLabel)
                 .findFirst();
     }
 
     public boolean hasSpatialSheet() {
         return ListUtils.emptyIfNull(tables).stream()
                 .anyMatch(t -> t.getIsSpatial() != null && t.getIsSpatial());
+    }
 
+    @Override
+    public ExtractionCategoryEnum getCategory() {
+        return ExtractionCategoryEnum.PRODUCT;
     }
 
 }

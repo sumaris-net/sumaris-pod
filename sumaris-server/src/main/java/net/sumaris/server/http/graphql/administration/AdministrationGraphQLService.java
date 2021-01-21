@@ -37,7 +37,7 @@ import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.http.rest.RestPaths;
+import net.sumaris.server.http.ontology.RestPaths;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;
@@ -100,7 +100,7 @@ public class AdministrationGraphQLService {
                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                               @GraphQLEnvironment() Set<String> fields
     ) {
-        List<PersonVO> result = personService.findByFilter(filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        List<PersonVO> result = personService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
 
         // Fill avatar Url
         if (fields.contains(PersonVO.Fields.AVATAR)) {
@@ -181,7 +181,7 @@ public class AdministrationGraphQLService {
                                               @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                               @GraphQLEnvironment() Set<String> fields) {
-        List<DepartmentVO> result = departmentService.findByFilter(filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        List<DepartmentVO> result = departmentService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
 
         // Fill logo Url (if need)
         if (fields.contains(DepartmentVO.Fields.LOGO)) {

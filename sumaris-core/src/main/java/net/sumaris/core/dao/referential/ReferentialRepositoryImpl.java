@@ -91,7 +91,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
 
     @Override
     public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
-        return findAll(PageRequest.of(offset / size, size, Sort.Direction.fromString(sortDirection.toString()), sortAttribute))
+        return findAll(Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
@@ -244,12 +244,21 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
         }
     }
 
-    protected Specification<E> toSpecification(F filter) {
+    protected final Specification<E> toSpecification(F filter) {
+        return toSpecification(filter, null);
+    }
+
+    protected Specification<E> toSpecification(F filter, O fetchOptions) {
+        // Special case when filtering by ID:
+        if (filter.getId() != null) {
+            return BindableSpecification.where(hasId(filter.getId()));
+        }
         // default specification
         return BindableSpecification
             .where(inStatusIds(filter))
             .and(hasLabel(filter.getLabel()))
-            .and(searchOrJoinSearchText(filter));
+            .and(searchOrJoinSearchText(filter))
+            .and(excludedIds(filter.getExcludedIds()));
     }
 
 }

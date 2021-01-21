@@ -25,9 +25,11 @@ package net.sumaris.core.model.administration.user;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.UserProfile;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
@@ -118,5 +120,18 @@ public class Person implements IReferentialWithStatusEntity {
 
     public int hashCode() {
         return Objects.hash(id, pubkey, email);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Person that = (Person) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .isEquals();
     }
 }

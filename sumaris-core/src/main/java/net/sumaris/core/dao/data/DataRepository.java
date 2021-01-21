@@ -34,6 +34,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,11 +83,23 @@ public interface DataRepository<
 
     V control(V vo);
 
+    default Date control(Integer id, Date updateDate) {
+        V vo = get(id);
+        vo = control(vo);
+        return vo.getUpdateDate();
+    }
+
     V validate(V vo);
 
-    V unvalidate(V vo);
+    //Date validate(Integer id, Date updateDate);
+
+    V unValidate(V vo);
+
+    //Date unValidate(Integer id, Date updateDate);
 
     V qualify(V vo);
+
+    //Date qualify(Integer id, Date updateDate);
 
     V toVO(E source, O fetchOptions);
 

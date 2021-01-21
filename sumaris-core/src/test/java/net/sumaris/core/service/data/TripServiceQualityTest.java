@@ -46,7 +46,7 @@ public class TripServiceQualityTest extends AbstractServiceTest {
     @Test
     public void control() {
 
-        TripVO trip = service.get(dbResource.getFixtures().getTripId(1));
+        TripVO trip = service.get(fixtures.getTripId(1));
         Assert.assertNotNull(trip);
         Assert.assertNull(trip.getControlDate());
 
@@ -58,7 +58,7 @@ public class TripServiceQualityTest extends AbstractServiceTest {
     @Test
     public void validate() {
 
-        TripVO trip = service.get(dbResource.getFixtures().getTripId(1));
+        TripVO trip = service.get(fixtures.getTripId(1));
         Assert.assertNotNull(trip);
 
         trip.setControlDate(new Date());
@@ -73,7 +73,7 @@ public class TripServiceQualityTest extends AbstractServiceTest {
     @Test
     public void unvalidate() {
 
-        TripVO trip = service.get(dbResource.getFixtures().getTripId(0));
+        TripVO trip = service.get(fixtures.getTripId(0));
         Assert.assertNotNull(trip);
 
         trip.setControlDate(new Date());

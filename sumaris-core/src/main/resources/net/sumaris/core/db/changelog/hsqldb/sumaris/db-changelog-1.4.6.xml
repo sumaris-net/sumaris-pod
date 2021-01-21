@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/sumaris/db-changelog-1.4.6.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.sumaris.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'"/>
+    <property name="sqlCheck.sumaris.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a SUMARiS database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Fix wrong position, in FRA ope {id: 103} -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-300" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM VESSEL_POSITION WHERE OPERATION_FK=103 AND LATITUDE=0.96 AND DATE_TIME='2018-07-10 02:05:00.000000'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE VESSEL_POSITION set LATITUDE=50.5628333 WHERE OPERATION_FK=103 AND DATE_TIME='2018-07-10 02:05:00.000000';
+            commit;
+        </sql>
+
+    </changeSet>
+
+    <!-- Fix wrong position, in FRA ope {id: 625} -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-301" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM VESSEL_POSITION WHERE OPERATION_FK=625 AND LATITUDE =21.3373 AND DATE_TIME='2019-04-30 03:40:00.000000'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE VESSEL_POSITION set LATITUDE=51.3373 WHERE OPERATION_FK=625 AND DATE_TIME='2019-04-30 03:40:00.000000';
+            commit;
+        </sql>
+
+    </changeSet>
+
+    <!-- Fix HL table -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-302" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM P01_RDB_SPECIES_LENGTH where UPPER(CATCH_CATEGORY) in ('DIS', 'LAN')</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update P01_RDB_SPECIES_LENGTH set CATCH_CATEGORY=LANDING_CATEGORY;
+            update P01_RDB_SPECIES_LENGTH set LANDING_CATEGORY=COMMERCIAL_SIZE_CATEGORY_SCALE;
+            update P01_RDB_SPECIES_LENGTH set COMMERCIAL_SIZE_CATEGORY_SCALE=COMMERCIAL_SIZE_CATEGORY;
+            update P01_RDB_SPECIES_LENGTH set COMMERCIAL_SIZE_CATEGORY=null;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Fix wrong GEAR_TYPE, in GBR data -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-303" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="42">SELECT count(distinct gear_type) FROM P01_RDB_STATION where EU_METIER_LEVEL5 iS NOT NULL</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE P01_RDB_STATION set MESH_SIZE=GEAR_TYPE where MESH_SIZE is null and GEAR_TYPE is not null AND GEAR_TYPE NOT IN ('DRB', 'GND', 'GNS', 'GTR', 'LLS', 'OTB', 'UNK');
+            UPDATE P01_RDB_STATION set GEAR_TYPE='UNK' where GEAR_TYPE is not null AND GEAR_TYPE NOT IN ('DRB', 'GND', 'GNS', 'GTR', 'LLS', 'OTB', 'UNK');
+            UPDATE P01_RDB_STATION set GEAR_TYPE=substr(EU_METIER_LEVEL5, 0, 4) where GEAR_TYPE='UNK' AND EU_METIER_LEVEL5 IS NOT NULL AND substr(EU_METIER_LEVEL5, 4, 1) = '_';
+            commit;
+        </sql>
+
+    </changeSet>
+
+    <!-- Remove duplicated station -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-304" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0"><![CDATA[select count(*) from (
+                        select TRIP_CODE, STATION_NUMBER
+                        from P01_RDB_STATION S1
+                        group by TRIP_CODE, STATION_NUMBER
+                        having count(*) > 1
+                     )]]></sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            DELETE FROM P01_RDB_SPECIES_LIST where ID in (
+                select T2.ID
+                from
+                    (select TRIP_CODE, STATION_NUMBER, count(*) NB
+                     from P01_RDB_STATION
+                     group by TRIP_CODE, STATION_NUMBER
+                    ) S
+                    inner join  P01_RDB_SPECIES_LIST T1
+                        on T1.TRIP_CODE = S.TRIP_CODE
+                        AND T1.STATION_NUMBER = S.STATION_NUMBER
+                    inner join P01_RDB_SPECIES_LIST T2
+                        on T1.ID < T2.ID
+                        AND T1.TRIP_CODE = T2.TRIP_CODE
+                        AND T1.STATION_NUMBER = T2.STATION_NUMBER
+                        AND T1.WEIGHT = T2.WEIGHT
+                        AND T1.LANDING_CATEGORY = T2.LANDING_CATEGORY
+                        AND T1.CATCH_CATEGORY = T2.CATCH_CATEGORY
+                        AND T1.SUBSAMPLING_WEIGHT = T2.SUBSAMPLING_WEIGHT
+                where S.NB > 1
+            );
+            DELETE FROM P01_RDB_SPECIES_LENGTH where ID in (
+                select T2.ID
+                from
+                    (select TRIP_CODE, STATION_NUMBER, count(*) NB
+                     from P01_RDB_STATION
+                     group by TRIP_CODE, STATION_NUMBER
+                    ) S
+                        inner join  P01_RDB_SPECIES_LENGTH T1
+                                    on T1.TRIP_CODE = S.TRIP_CODE
+                                        AND T1.STATION_NUMBER = S.STATION_NUMBER
+                        inner join P01_RDB_SPECIES_LENGTH T2
+                                   on T1.ID < T2.ID
+                                       AND T1.TRIP_CODE = T2.TRIP_CODE
+                                       AND T1.STATION_NUMBER = T2.STATION_NUMBER
+                                       AND T1.LANDING_CATEGORY = T2.LANDING_CATEGORY
+                                       AND T1.CATCH_CATEGORY = T2.CATCH_CATEGORY
+                                       AND T1.LENGTH_CLASS = T2.LENGTH_CLASS
+                                       AND T1.NUMBER_AT_LENGTH = T2.NUMBER_AT_LENGTH
+                where S.NB > 1
+            );
+            DELETE FROM P01_RDB_STATION where ID in (
+                select T2.ID from
+                    (select
+                        TRIP_CODE,
+                        STATION_NUMBER,
+                        MIN(ID) "ID",
+                        count(*) NB
+                     from P01_RDB_STATION
+                     group by TRIP_CODE, STATION_NUMBER
+                    ) T1
+                      inner join  P01_RDB_STATION T2
+                        on T1.ID < T2.ID
+                        AND T1.TRIP_CODE = T2.TRIP_CODE
+                        AND T1.STATION_NUMBER = T2.STATION_NUMBER
+                    where T1.NB > 1
+            );
+            commit;
+        ]]></sql>
+    </changeSet>
+
+    <!-- Insert LOCATION_LEVEL -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-305" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM LOCATION_LEVEL where ID IN (101, 110, 111, 140, 141)</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (101, 'FAO_AREA', 'FAO Area', sysdate, now, null, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (110, 'ICES_SUB_AREA', 'ICES Sub-area', sysdate, now, 101, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (111, 'ICES_DIVISION', 'ICES Division', sysdate, now, 110, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (112, 'ICES_SUB_DIVISION', 'ICES Sub-division', sysdate, now, 111, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (140, 'GFCM_SUB_AREA', 'GFCM Sub-area', sysdate, now, 101, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (141, 'GFCM_DIVISION', 'GFCM Division', sysdate, now, 140, 2, null, null, 1);
+            INSERT INTO LOCATION_LEVEL (ID, LABEL, NAME, CREATION_DATE, UPDATE_DATE, PARENT_LOCATION_LEVEL_FK, LOCATION_CLASSIFICATION_FK, COMMENTS, DESCRIPTION, STATUS_FK) VALUES (142, 'GFCM_SUB_DIVISION', 'GFCM Sub-division', sysdate, now, 141, 2, null, null, 1);
+            ALTER SEQUENCE LOCATION_LEVEL_SEQ RESTART WITH 300;
+            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from STATUS where ID=1;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Insert LOCATION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-306">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM LOCATION where LOCATION_LEVEL_FK in (111,145)</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_location-1.4.6.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-307">
+        <preConditions onFail="MARK_RAN">
+            <and>
+            <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+            <not><sqlCheck expectedResult="0">SELECT count(*) FROM p01_rdb_landing where VESSEL_LENGTH_CATEGORY in ('u10','o40')</sqlCheck></not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE p01_rdb_landing set VESSEL_LENGTH_CATEGORY='>40' where VESSEL_LENGTH_CATEGORY='o40';
+            UPDATE p01_rdb_landing set VESSEL_LENGTH_CATEGORY='0-10' where VESSEL_LENGTH_CATEGORY='u10';
+            commit;
+        </sql>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-308">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <not><sqlCheck expectedResult="0">SELECT count(*) FROM p01_rdb_landing where SPECIES in ('Raja brachyura', 'Raja clavata', 'Raja montagui', 'Raja spp', 'Raja undulata')</sqlCheck></not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE P01_RDB_LANDING set SPECIES='RJH' where SPECIES = 'Raja brachyura';
+            UPDATE P01_RDB_LANDING set SPECIES='RJC' where SPECIES = 'Raja clavata';
+            UPDATE P01_RDB_LANDING set SPECIES='RJM' where SPECIES = 'Raja montagui';
+            UPDATE P01_RDB_LANDING set SPECIES='SKA' where SPECIES = 'Raja spp';
+            UPDATE P01_RDB_LANDING set SPECIES='RJU' where SPECIES = 'Raja undulata';
+            commit;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

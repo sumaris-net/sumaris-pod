@@ -42,13 +42,14 @@ public class ExtractionTripFilterVO extends TripFilterVO {
 
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;
-        return new StringBuilder()
-            .append(separator).append("Program (label): ").append(this.getProgramLabel())
-            .append(separator).append("Location (id): ").append(this.getLocationId())
-            .append(separator).append("Start date: ").append(this.getStartDate())
-            .append(separator).append("End date: ").append(this.getEndDate())
-            .append(separator).append("Vessel (id): ").append(this.getVesselId())
-            .append(separator).append("Recorder department (id): ").append(this.getRecorderDepartmentId())
-            .toString();
+        StringBuilder sb = new StringBuilder();
+        if (this.getProgramLabel() != null) sb.append(separator).append("Program (label): ").append(this.getProgramLabel());
+        if (this.getStartDate() != null) sb.append(separator).append("Start date: ").append(this.getStartDate());
+        if (this.getEndDate() != null) sb.append(separator).append("End date: ").append(this.getEndDate());
+        if (this.getLocationId() != null) sb.append(separator).append("Location (id): ").append(this.getLocationId());
+        if (this.getVesselId() != null) sb.append(separator).append("Vessel (id): ").append(this.getVesselId());
+        if (this.getTripId() != null) sb.append(separator).append("Trip (id): ").append(this.getTripId());
+        if (this.getRecorderDepartmentId() != null) sb.append(separator).append("Recorder department (id): ").append(this.getRecorderDepartmentId());
+        return sb.toString();
     }
 }

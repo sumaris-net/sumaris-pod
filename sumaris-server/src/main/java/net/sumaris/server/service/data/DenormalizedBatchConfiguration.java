@@ -24,7 +24,7 @@ package net.sumaris.server.service.data;
 
 
 import net.sumaris.core.service.data.DenormalizedBatchService;
-import net.sumaris.core.vo.data.BatchVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

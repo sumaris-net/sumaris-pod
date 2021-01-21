@@ -63,8 +63,8 @@ public class DepartmentServiceImpl implements DepartmentService {
 
 
 	@Override
-	public DepartmentVO get(int departmentId) {
-		return departmentRepository.get(departmentId);
+	public DepartmentVO get(int id) {
+		return departmentRepository.get(id);
 	}
 
 	@Override

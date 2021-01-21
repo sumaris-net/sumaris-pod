@@ -22,7 +22,6 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
-import net.sumaris.server.vo.security.AuthDataVO;
 import org.springframework.security.core.authority.AuthorityUtils;
 
 /**

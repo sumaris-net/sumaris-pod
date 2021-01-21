@@ -39,7 +39,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.domain.Specification;
@@ -49,10 +48,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -80,25 +76,34 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
+    @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL)
     public ExtractionProductVO getByLabel(String label, ExtractionProductFetchOptions fetchOption) {
         return super.getByLabel(label, fetchOption);
     }
 
     @Override
-    protected Specification<ExtractionProduct> toSpecification(ExtractionProductFilterVO filter) {
-        return super.toSpecification(filter)
-            .and(withDepartmentId(filter.getDepartmentId()));
+    protected Specification<ExtractionProduct> toSpecification(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
+            .and(withRecorderPersonIdOrPublic(filter.getRecorderPersonId()))
+            .and(withRecorderDepartmentId(filter.getRecorderDepartmentId()));
     }
 
     @Override
     protected void toVO(ExtractionProduct source, ExtractionProductVO target, ExtractionProductFetchOptions fetchOptions, boolean copyIfNull) {
-        super.toVO(source, target, fetchOptions, copyIfNull);
+        target.setStatusId(source.getStatus().getId());
+
+        // Copy without/with documentation (can be very long)
+        if (fetchOptions == null || !fetchOptions.isWithDocumentation()) {
+            Beans.copyProperties(source, target, ExtractionProduct.Fields.DOCUMENTATION);
+        }
+        else {
+            Beans.copyProperties(source, target);
+        }
 
         // Tables
         if (fetchOptions == null || fetchOptions.isWithTables()) {
             if (CollectionUtils.isNotEmpty(source.getTables())) {
-                List<ExtractionProductTableVO> tables = source.getTables().stream()
+                List<ExtractionTableVO> tables = source.getTables().stream()
                     .map(t -> toProductTableVO(t, fetchOptions))
                     .collect(Collectors.toList());
                 target.setTables(tables);
@@ -108,7 +113,7 @@ public class ExtractionProductRepositoryImpl
         // Stratum
         if (fetchOptions == null || fetchOptions.isWithStratum()) {
             if (CollectionUtils.isNotEmpty(source.getStratum())) {
-                List<ExtractionProductStrataVO> stratum = source.getStratum().stream()
+                List<AggregationStrataVO> stratum = source.getStratum().stream()
                     .map(this::toProductStrataVO)
                     .collect(Collectors.toList());
                 target.setStratum(stratum);
@@ -124,8 +129,8 @@ public class ExtractionProductRepositoryImpl
         }
     }
 
-    protected ExtractionProductTableVO toProductTableVO(ExtractionProductTable source, ExtractionProductFetchOptions fetchOptions) {
-        ExtractionProductTableVO target = new ExtractionProductTableVO();
+    protected ExtractionTableVO toProductTableVO(ExtractionProductTable source, ExtractionProductFetchOptions fetchOptions) {
+        ExtractionTableVO target = new ExtractionTableVO();
         Beans.copyProperties(source, target);
 
         // parent
@@ -150,8 +155,8 @@ public class ExtractionProductRepositoryImpl
         return target;
     }
 
-    protected ExtractionProductStrataVO toProductStrataVO(ExtractionProductStrata source) {
-        ExtractionProductStrataVO target = new ExtractionProductStrataVO();
+    protected AggregationStrataVO toProductStrataVO(ExtractionProductStrata source) {
+        AggregationStrataVO target = new AggregationStrataVO();
         Beans.copyProperties(source, target);
 
         // parent
@@ -174,7 +179,7 @@ public class ExtractionProductRepositoryImpl
             target.setTimeColumnName(source.getTimeColumn().getColumnName());
         }
         if (source.getSpaceColumn() != null) {
-            target.setSpaceColumnName(source.getSpaceColumn().getColumnName());
+            target.setSpatialColumnName(source.getSpaceColumn().getColumnName());
         }
         if (source.getTechColumn() != null) {
             target.setTechColumnName(source.getTechColumn().getColumnName());
@@ -189,12 +194,9 @@ public class ExtractionProductRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#vo.label", condition = "#vo != null && #vo.id != null"),
+            @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_FILTER, allEntries = true),
-        },
-        put = {
-            @CachePut(cacheNames= CacheNames.PRODUCT_BY_LABEL, key="#vo.label", condition = "#vo != null && #vo.label != null")
         }
     )
     public ExtractionProductVO save(ExtractionProductVO vo) {
@@ -257,7 +259,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     private void saveProductTables(ExtractionProductVO vo, ExtractionProduct entity) {
-        List<ExtractionProductTableVO> sources = vo.getTables();
+        List<ExtractionTableVO> sources = vo.getTables();
         Date updateDate = entity.getUpdateDate();
 
         final EntityManager em = getEntityManager();
@@ -323,7 +325,7 @@ public class ExtractionProductRepositoryImpl
         }
     }
 
-    private void saveProductTableColumns(List<ExtractionProductColumnVO> sources, int tableId, Date updateDate) {
+    private void saveProductTableColumns(List<ExtractionTableColumnVO> sources, int tableId, Date updateDate) {
         final EntityManager em = getEntityManager();
 
         // Load parent
@@ -435,7 +437,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     private void saveProductStratum(ExtractionProductVO vo, ExtractionProduct entity) {
-        List<ExtractionProductStrataVO> sources = vo.getStratum();
+        List<AggregationStrataVO> sources = vo.getStratum();
         Date updateDate = entity.getUpdateDate();
 
         final EntityManager em = getEntityManager();
@@ -454,8 +456,7 @@ public class ExtractionProductRepositoryImpl
             }
 
             // Save each table
-            sources.stream()
-                .filter(Objects::nonNull)
+            sources.stream().filter(Objects::nonNull)
                 .forEach(source -> {
                     ExtractionProductStrata target = existingItems.remove(source.getLabel());
                     boolean isNew = (target == null);
@@ -472,13 +473,14 @@ public class ExtractionProductRepositoryImpl
                     target.setUpdateDate(updateDate);
 
                     // Link to table (find by sheet anem, or find as singleton)
-                    ExtractionProductTable table = StringUtils.isNotBlank(source.getSheetName())
-                        ? existingTables.get(source.getSheetName())
+                    String sheetName = source.getSheetName();
+                    ExtractionProductTable table = StringUtils.isNotBlank(sheetName)
+                        ? existingTables.get(sheetName)
                         : (existingTables.size() == 1 ? existingTables.values().iterator().next() : null);
                     if (table != null) {
                         target.setTable(table);
                         target.setTimeColumn(findColumnByName(table, source.getTimeColumnName()));
-                        target.setSpaceColumn(findColumnByName(table, source.getSpaceColumnName()));
+                        target.setSpaceColumn(findColumnByName(table, source.getSpatialColumnName()));
                         target.setAggColumn(findColumnByName(table, source.getAggColumnName()));
                         target.setTechColumn(findColumnByName(table, source.getTechColumnName()));
                     }
@@ -494,6 +496,7 @@ public class ExtractionProductRepositoryImpl
                         target.setCreationDate(updateDate);
                         em.persist(target);
                         source.setId(target.getId());
+                        entity.getStratum().add(target);
                     } else {
                         em.merge(target);
                     }
@@ -501,22 +504,23 @@ public class ExtractionProductRepositoryImpl
                     source.setUpdateDate(updateDate);
                 });
 
-            em.flush();
-
             // Remove old tables
-            if (MapUtils.isNotEmpty(existingItems)) {
-                entity.getStratum().removeAll(existingItems.values());
-                existingItems.values().forEach(em::remove);
+            List<Integer> strataIdsToRemove = existingItems.values().stream()
+                    .map(ExtractionProductStrata::getId)
+                    .filter(Objects::nonNull).collect(Collectors.toList());
+            entity.getStratum().removeAll(existingItems.values());
+
+
+            em.merge(entity);
+
+            em.flush();
+            em.clear();
+
+            // Remove old stratum
+            if (CollectionUtils.isNotEmpty(strataIdsToRemove)) {
+                strataIdsToRemove.forEach(id -> this.deleteById(id, ExtractionProductStrata.class));
             }
-
         }
-    }
-
-    protected ExtractionProductColumn findColumnByName(ExtractionProductTable table, String columnName) {
-        if (StringUtils.isBlank(columnName)) return null;
-        return table.getColumns().stream()
-            .filter(c -> columnName.equalsIgnoreCase(c.getColumnName()))
-            .findFirst().orElse(null);
     }
 
     @Override
@@ -530,7 +534,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    public List<ExtractionProductColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel) {
+    public List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel) {
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<ExtractionProductColumn> query = cb.createQuery(ExtractionProductColumn.class);
         Root<ExtractionProductColumn> root = query.from(ExtractionProductColumn.class);
@@ -561,8 +565,23 @@ public class ExtractionProductRepositoryImpl
             .collect(Collectors.toList());
     }
 
-    protected ExtractionProductColumnVO toColumnVO(ExtractionProductColumn source, ExtractionProductFetchOptions fetchOptions) {
-        ExtractionProductColumnVO target = new ExtractionProductColumnVO();
+
+    protected ExtractionProductColumn findColumnByName(ExtractionProductTable table, String columnName) {
+        if (StringUtils.isBlank(columnName)) return null;
+        final String columnNameLowerCase = columnName.toLowerCase();
+        return table.getColumns().stream()
+                .filter(c -> columnNameLowerCase.equalsIgnoreCase(c.getColumnName()))
+                .findFirst().orElse(null);
+    }
+
+    protected int deleteById(int id, Class<?> entityClass) {
+        return getEntityManager().createQuery(String.format("delete from %s where id=:id", entityClass.getSimpleName()))
+                .setParameter("id", id)
+                .executeUpdate();
+    }
+
+    protected ExtractionTableColumnVO toColumnVO(ExtractionProductColumn source, ExtractionProductFetchOptions fetchOptions) {
+        ExtractionTableColumnVO target = new ExtractionTableColumnVO();
         Beans.copyProperties(source, target);
 
         if (fetchOptions == null || fetchOptions.isWithColumnValues()) {

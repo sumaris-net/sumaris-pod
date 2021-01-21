@@ -23,34 +23,24 @@ package net.sumaris.server.http.security;
  */
 
 import com.google.common.collect.ImmutableList;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.server.vo.security.AuthDataVO;
+import net.sumaris.server.security.IAuthService;
+import net.sumaris.server.util.security.AuthDataVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Transactional
-public interface AuthService {
+public interface AuthService extends IAuthService<PersonVO> {
+
+    String AUTHORITY_PREFIX = "ROLE_";
 
     List<String> PRIORITIZED_AUTHORITIES = ImmutableList.of("ROLE_ADMIN", "ROLE_SUPERVISOR", "ROLE_USER", "ROLE_GUEST");
 
-    default boolean isSupervisor() {
-        return hasAuthority("ROLE_SUPERVISOR");
-    }
 
-    default boolean isAdmin() {
-        return hasAuthority("ROLE_ADMIN");
-    }
-
-    default boolean isUser() {
-        return hasAuthority("ROLE_USER");
-    }
-
-    Optional<AuthUser> authenticate(String token);
-
-    @Transactional(readOnly = true)
-    AuthDataVO createNewChallenge();
+    Optional<PersonVO> getAuthenticatedUser();
 
     /**
      * Check in the security context, that user has the expected authority
@@ -59,6 +49,24 @@ public interface AuthService {
      */
     boolean hasAuthority(String authority);
 
-    Optional<PersonVO> getAuthenticatedUser();
+    default boolean isGuest() {
+        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.GUEST.label);
+    }
 
+    default boolean isUser() {
+        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.USER.label);
+    }
+
+    default boolean isSupervisor() {
+        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.SUPERVISOR.label);
+    }
+
+    default boolean isAdmin() {
+        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.ADMIN.label);
+    }
+
+    Optional<AuthUser> authenticate(String token);
+
+    @Transactional(readOnly = true)
+    AuthDataVO createNewChallenge();
 }

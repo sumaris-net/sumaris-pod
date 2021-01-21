@@ -22,6 +22,7 @@ package net.sumaris.core.dao.technical.hibernate.spatial;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.hibernate.types.IntegerArrayUserType;
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.dialect.HSQLDialect;
 import org.hibernate.service.ServiceRegistry;
@@ -30,6 +31,8 @@ import org.hibernate.spatial.GeolatteGeometryType;
 import org.hibernate.spatial.JTSGeometryJavaTypeDescriptor;
 import org.hibernate.spatial.JTSGeometryType;
 import org.hibernate.type.descriptor.sql.LongVarcharTypeDescriptor;
+
+import java.sql.Types;
 
 /**
  * @author peck7 on 16/10/2019.
@@ -46,5 +49,7 @@ public class HSQLSpatialDialect extends HSQLDialect {
 
         typeContributions.contributeJavaTypeDescriptor(GeolatteGeometryJavaTypeDescriptor.INSTANCE);
         typeContributions.contributeJavaTypeDescriptor(JTSGeometryJavaTypeDescriptor.INSTANCE);
+
+        registerHibernateType(Types.ARRAY, IntegerArrayUserType.class.getName());
     }
 }

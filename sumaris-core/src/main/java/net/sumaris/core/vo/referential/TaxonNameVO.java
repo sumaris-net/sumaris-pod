@@ -27,13 +27,25 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 
+import java.util.Date;
+
 @Data
 @FieldNameConstants
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class TaxonNameVO extends ReferentialVO {
 
     private Integer referenceTaxonId;
+
+    private String completeName;
+    private Date startDate;
+    private Date endDate;
+
     private Boolean isReferent;
+    private Boolean isNaming;
+    private Boolean isVirtual;
+    private Integer upperRank;
+
+    private Integer taxonomicLevelId;
 
     public TaxonNameVO() {
         this.setEntityName(TaxonName.class.getSimpleName()); // Need by client (e.f. GraphQL cache)

@@ -27,11 +27,13 @@ import com.google.common.collect.ImmutableMap;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.execution.SubscriptionExecutionStrategy;
+import graphql.schema.GraphQLSchema;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.AuthUser;
-import net.sumaris.server.vo.security.AuthDataVO;
+import net.sumaris.server.util.security.AuthDataVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,7 +71,6 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
     private List<WebSocketSession> sessions = new CopyOnWriteArrayList();
 
-    @Autowired
     private GraphQL graphQL;
 
     @Autowired
@@ -79,8 +80,11 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
     private AuthService authService;
 
     @Autowired
-    public SubscriptionWebSocketHandler() {
+    public SubscriptionWebSocketHandler(GraphQLSchema graphQLSchema) {
         this.debug = log.isDebugEnabled();
+        this.graphQL = GraphQL.newGraphQL(graphQLSchema)
+                .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
+                .build();
     }
 
     @Override

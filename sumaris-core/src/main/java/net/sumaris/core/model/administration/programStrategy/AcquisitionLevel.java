@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -70,4 +71,16 @@ public class AcquisitionLevel implements IItemReferentialEntity {
         return Objects.hash(label);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AcquisitionLevel that = (AcquisitionLevel) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .isEquals();
+    }
 }

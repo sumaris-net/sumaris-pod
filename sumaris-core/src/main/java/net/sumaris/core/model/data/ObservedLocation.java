@@ -30,10 +30,12 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.FetchProfile;
 import org.hibernate.annotations.FetchProfiles;
+import org.nuiton.i18n.I18n;
 
 import javax.persistence.*;
 import java.util.*;
@@ -50,6 +52,10 @@ import java.util.*;
 @Entity
 @Table(name="observed_location")
 public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserversEntity<Integer, Person> {
+
+    static {
+        I18n.n("sumaris.persistence.table.observedLocation");
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OBSERVED_LOCATION_SEQ")
@@ -140,4 +146,16 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
         return Objects.hash(id, program, startDateTime, location);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ObservedLocation that = (ObservedLocation) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .isEquals();
+    }
 }
