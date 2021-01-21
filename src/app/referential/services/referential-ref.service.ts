@@ -1,30 +1,14 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
-import {BehaviorSubject, Observable} from "rxjs";
+import {FetchPolicy, gql} from "@apollo/client/core";
+import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {map} from "rxjs/operators";
-import {
-  isNotEmptyArray,
-  isNotNil,
-  LoadResult,
-  IEntitiesService,
-  toDateISOString,
-  fromDateISOString
-} from "../../shared/shared.module";
-import {
-  BaseEntityService,
-  EntityUtils,
-  environment,
-  IReferentialRef,
-  Referential,
-  StatusIds
-} from "../../core/core.module";
+import {fromDateISOString, IEntitiesService, isNotEmptyArray, isNotNil, LoadResult} from "../../shared/shared.module";
+import {BaseEntityService, Referential, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-
-import {FetchPolicy} from "@apollo/client/core";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
-import {fetchAllPagesWithProgress, FilterFn, SuggestService} from "../../shared/services/entity-service.class";
+import {FilterFn, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {TaxonNameRef} from "./model/taxon.model";
@@ -34,17 +18,48 @@ import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 import {Moment} from "moment";
 import {toNumber} from "../../shared/functions";
+import {JobUtils} from "../../shared/services/job.utils";
+import {chainPromises} from "../../shared/observables";
 
 export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];
-  excludedIds?: number[];
 }
 
-export type TaxonNameRefFilter = Partial<ReferentialRefFilter> & {
+export class TaxonNameRefFilter extends ReferentialRefFilter {
 
   taxonGroupId?: number;
   taxonGroupIds?: number[];
-};
+
+  static searchFilter(f: TaxonNameRefFilter): FilterFn<TaxonNameRef> {
+
+    const filterFns: FilterFn<TaxonNameRef>[] = [];
+
+    // Filter by taxon group id, or list of id
+    if (isNotNil(f.taxonGroupId)) {
+      filterFns.push((entity: TaxonNameRef) =>  {
+        const res = entity.taxonGroupIds && entity.taxonGroupIds.indexOf(f.taxonGroupId) !== -1;
+        console.debug(`TODO TaxonName offline filter, by {taxonGroupId: ${f.taxonGroupId} => ${entity.label}:${res}`);
+        return res;
+      });
+    }
+    else if (isNotEmptyArray(f.taxonGroupIds)) {
+      filterFns.push((entity: TaxonNameRef) => {
+        const res = f.taxonGroupIds.findIndex(filterTgId =>
+          entity.taxonGroupIds && entity.taxonGroupIds.indexOf(filterTgId) !== -1) !== -1;
+        console.debug(`TODO TaxonName offline filter, by {taxonGroupIds: ${f.taxonGroupIds.join(',')} => ${entity.label}:${res}`);
+        return res;
+      });
+    }
+
+    // Base referential filter fn
+    const baseSearchFilter = ReferentialRefFilter.searchFilter(f);
+    if (baseSearchFilter) filterFns.push(baseSearchFilter);
+
+    if (!filterFns.length) return undefined;
+
+    return (entity: TaxonNameRef) => !filterFns.find(fn => !fn(entity));
+  }
+}
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{
@@ -145,7 +160,7 @@ export class ReferentialRefService extends BaseEntityService
       $loadResult = this.entities.watchAll(entityName,
         {
           ...variables,
-          filter: this.createSearchFilterFn(filter)
+          filter: ReferentialRefFilter.searchFilter(filter)
         }).pipe(
           map(res => {
             return {
@@ -274,7 +289,7 @@ export class ReferentialRefService extends BaseEntityService
         || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
         || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: this.createSearchFilterFn(filter)
+      filter: ReferentialRefFilter.searchFilter(filter)
     };
 
     const res = await this.entities.loadAll(uniqueEntityName + 'VO', variables);
@@ -345,7 +360,7 @@ export class ReferentialRefService extends BaseEntityService
     if (offline) {
       const res = await this.entities.loadAll('TaxonNameVO', {
         ...variables,
-        filter: this.createSearchTaxonNameRefFilterFn(filter)
+        filter: TaxonNameRefFilter.searchFilter(filter)
       });
       taxonNames = res && res.data;
     }
@@ -378,26 +393,10 @@ export class ReferentialRefService extends BaseEntityService
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return await this.loadAllTaxonNames(0, !value ? 30 : 10, undefined, undefined,
       {
+        entityName: 'TaxonName',
         ...options,
         searchText: value as string
       });
-  }
-
-  executeImport(opts?: {
-    entityNames?: string[],
-    statusIds?: number[];
-    maxProgression?: number;
-  }): Observable<number>{
-
-    const progress = new BehaviorSubject(0);
-    this.executeImportWithProgress(progress, opts)
-      .then(() => progress.complete())
-      .catch((err: any) => {
-        console.error("[referential-ref-service] Error during importation: " + (err && err.message || err), err);
-        progress.error(err);
-      });
-
-    return progress;
   }
 
   saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {
@@ -424,18 +423,14 @@ export class ReferentialRefService extends BaseEntityService
     }
   }
 
-  /* -- protected methods -- */
-
-  protected async executeImportWithProgress(progression: BehaviorSubject<number>,
-                                            opts?: {
-                                              entityNames?: string[],
-                                              maxProgression?: number;
-                                              statusIds?: number[];
-                                            }) {
+  async executeImport(progression: BehaviorSubject<number>,
+                      opts?: {
+                        maxProgression?: number;
+                        entityNames?: string[],
+                        statusIds?: number[];
+                      }) {
 
     const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'MetierTaxonGroup', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType'];
-
-    const statusIds = opts && opts.statusIds || [StatusIds.ENABLE, StatusIds.TEMPORARY];
 
     const maxProgression = opts && opts.maxProgression || 100;
     const stepCount = entityNames.length;
@@ -450,73 +445,15 @@ export class ReferentialRefService extends BaseEntityService
     }
 
     const importedEntities = [];
-    const jobs = entityNames.map(entityName => {
-      let filter: ReferentialFilter;
-      let promise: Promise<LoadResult<any>>;
-      const logPrefix = this._debug && `[referential-ref-service] [${entityName}]`;
-      switch (entityName) {
-        case 'TaxonName':
-          promise = fetchAllPagesWithProgress<any>((offset, size) =>
-              this.loadAllTaxonNames(offset, size, 'id', null,  {
-                statusIds: [StatusIds.ENABLE],
-                levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
-              }, {
-                fetchPolicy: 'network-only',
-                debug: false,
-                toEntity: false
-              }).then(data => {
-                return {data};
-              }),
-            progression,
-            progressionStep,
-          null,
-            logPrefix);
-          break;
-        case 'MetierTaxonGroup':
-          filter = {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup' };
-          break;
-        case 'TaxonGroup':
-          filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO] };
-          break;
-        case 'Location':
-          filter = {entityName, statusIds, levelIds: Object.values(LocationLevelIds)
-              // Exclude rectangles (because more than 7200 rect exists !)
-              // => Maybe find a way to add it, depending on the program properties ?
-              .filter(id => id != LocationLevelIds.ICES_RECTANGLE)};
-          break;
-        default:
-          filter = {entityName, statusIds};
-          break;
-      }
-      if (!promise) {
-        promise = fetchAllPagesWithProgress<any>((offset, size) =>
-            this.referentialService.loadAll(offset, size, 'id', null, filter, {
-              debug: false,
-              fetchPolicy: 'network-only',
-              withTotal: (offset === 0), // Compute total only once
-              toEntity: false
-            }),
-          progression,
-          progressionStep,
-          null,
-          logPrefix);
-      }
-      return promise
-        .then((res) => {
-          importedEntities.push(entityName);
-          return this.entities.saveAll(res.data, {
-            entityName: entityName + 'VO', reset: true
-          });
-        })
-        .catch(err => {
-          const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
-          console.error(`[referential-ref-service] Failed to import ${entityName}: ${detailMessage || err && err.message || err}`);
-          throw err;
-        });
-    });
-
-    // Import by filter
-    await Promise.all(jobs);
+    await chainPromises(entityNames.map(entityName =>
+      () => this.executeImportEntity(progression, {
+          ...opts,
+          entityName,
+          maxProgression: progressionStep
+          })
+          .then(() => importedEntities.push(entityName))
+      )
+    );
 
     // Not all entity imported: error
     if (importedEntities.length < entityNames.length) {
@@ -528,70 +465,87 @@ export class ReferentialRefService extends BaseEntityService
       console.info(`[referential-ref-service] Successfully import ${entityNames.length} entities in ${Date.now() - now}ms`);
       this._importedEntities = importedEntities;
     }
-
-    // Fill the progression to max
-    progression.next(maxProgression);
   }
 
-  protected createSearchFilterFn<T extends Referential|IReferentialRef>(f: Partial<ReferentialRefFilter>): FilterFn<T> {
+  async executeImportEntity(progression: BehaviorSubject<number>,
+                            opts: {
+                              entityName: string;
+                              maxProgression?: number;
+                              statusIds?: number[];
+                            }) {
+    const entityName = opts && opts.entityName;
+    if (!entityName) throw new Error("Missing 'opts.entityName'");
 
-    const filterFns: FilterFn<T>[] = [];
+    const maxProgression = opts.maxProgression || 100;
+    const logPrefix = this._debug && `[referential-ref-service] [${entityName}]`;
+    const statusIds = opts && opts.statusIds || [StatusIds.ENABLE, StatusIds.TEMPORARY];
 
-    // Filter by levels ids
-    const levelIds = f.levelIds || (isNotNil(f.levelId) && [f.levelId]) || undefined;
-    if (levelIds) {
-      filterFns.push((entity: T) => !!levelIds.find(v => entity.levelId === v));
+    try {
+      let res: LoadResult<any>;
+      let filter: ReferentialFilter;
+
+      switch (entityName) {
+        case 'TaxonName':
+          res = await JobUtils.fetchAllPages<any>((offset, size) =>
+              this.loadAllTaxonNames(offset, size, 'id', null, {
+                statusIds: [StatusIds.ENABLE],
+                levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+              }, {
+                fetchPolicy: 'network-only',
+                debug: false,
+                toEntity: false
+              }).then(data => {
+                return {data};
+              }),
+            progression,
+            {maxProgression, logPrefix}
+            );
+          break;
+        case 'MetierTaxonGroup':
+          filter = {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup'};
+          break;
+        case 'TaxonGroup':
+          filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO]};
+          break;
+        case 'Location':
+          filter = {
+            entityName, statusIds, levelIds: Object.values(LocationLevelIds)
+              // Exclude rectangles (because more than 7200 rect exists !)
+              // => Maybe find a way to add it, depending on the program properties ?
+              .filter(id => id !== LocationLevelIds.ICES_RECTANGLE)
+          };
+          break;
+        default:
+          filter = {entityName, statusIds};
+          break;
+      }
+
+      if (!res) {
+        res = await JobUtils.fetchAllPages<any>((offset, size) =>
+            this.referentialService.loadAll(offset, size, 'id', null, filter, {
+              debug: false,
+              fetchPolicy: 'network-only',
+              withTotal: (offset === 0), // Compute total only once
+              toEntity: false
+            }),
+          progression,
+          {
+            maxProgression,
+            logPrefix
+          });
+      }
+
+      // Save locally
+      await this.entities.saveAll(res.data, {
+          entityName: entityName + 'VO',
+          reset: true
+        });
+
     }
-
-    // Filter by status
-    const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]) || undefined;
-    if (statusIds) {
-      filterFns.push((entity: T) => !!statusIds.find(v => entity.statusId === v));
+    catch (err) {
+      const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
+      console.error(`[referential-ref-service] Failed to import ${entityName}: ${detailMessage || err && err.message || err}`);
+      throw err;
     }
-
-    const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || f.searchAttributes, f.searchText);
-    if (searchTextFilter) filterFns.push(searchTextFilter);
-
-    // Excluded ids
-    if (f.excludedIds && f.excludedIds.length) {
-      filterFns.push((entity: T) => !f.excludedIds.includes(entity.id));
-    }
-
-    if (!filterFns.length) return undefined;
-
-    return (entity) => {
-      return !filterFns.find(fn => !fn(entity));
-    };
-  }
-
-  protected createSearchTaxonNameRefFilterFn(f: TaxonNameRefFilter): FilterFn<TaxonNameRef> {
-
-    const filterFns: FilterFn<TaxonNameRef>[] = [];
-
-    // Filter by taxon group id, or list of id
-    if (isNotNil(f.taxonGroupId)) {
-      filterFns.push((entity: TaxonNameRef) =>  {
-        const res = entity.taxonGroupIds && entity.taxonGroupIds.indexOf(f.taxonGroupId) !== -1;
-        console.debug(`TODO TaxonName offline filter, by {taxonGroupId: ${f.taxonGroupId} => ${entity.label}:${res}`);
-        return res;
-      });
-    }
-    else if (isNotEmptyArray(f.taxonGroupIds)) {
-      filterFns.push((entity: TaxonNameRef) => {
-        const res = f.taxonGroupIds.findIndex(filterTgId =>
-          entity.taxonGroupIds && entity.taxonGroupIds.indexOf(filterTgId) !== -1) !== -1;
-        console.debug(`TODO TaxonName offline filter, by {taxonGroupIds: ${f.taxonGroupIds.join(',')} => ${entity.label}:${res}`);
-        return res;
-      });
-    }
-
-    const baseSearchFilter = this.createSearchFilterFn<TaxonNameRef>(f);
-    if (baseSearchFilter) filterFns.push(baseSearchFilter);
-
-    if (!filterFns.length) return undefined;
-
-    return (entity: TaxonNameRef) => {
-      return !filterFns.find(fn => !fn(entity));
-    };
   }
 }

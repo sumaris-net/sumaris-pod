@@ -36,7 +36,6 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
 
 
   private $isPmfmStrategyEmpty = new BehaviorSubject<boolean>(true);
-  private $disabledRemoveButtons = new BehaviorSubject<boolean>(true);
 
   filterForm: FormGroup;
   $filter = new BehaviorSubject<Partial<PmfmStrategyFilter>>({});

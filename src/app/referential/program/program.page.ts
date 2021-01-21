@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, isNil, ReferentialRef} from "../../core/core.module";
+import {AppEntityEditor, EntityUtils, environment, isNil, ReferentialRef} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
 import {Strategy} from "../services/model/strategy.model";
 import {ProgramService} from "../services/program.service";
@@ -34,22 +34,6 @@ export enum AnimationState {
   providers: [
     {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
-  animations: [fadeInOutAnimation,
-    // Fade in
-    trigger('fadeIn', [
-      state('*', style({opacity: 0, display: 'none', visibility: 'hidden'})),
-      state(AnimationState.ENTER, style({opacity: 1, display: 'inherit', visibility: 'inherit'})),
-      state(AnimationState.LEAVE, style({opacity: 0, display: 'none', visibility: 'hidden'})),
-      // Modal
-      transition(`* => ${AnimationState.ENTER}`, [
-        style({display: 'inherit',  visibility: 'inherit', transform: 'translateX(50%)'}),
-        animate('0.4s ease-out', style({opacity: 1, transform: 'translateX(0)'}))
-      ]),
-      transition(`${AnimationState.ENTER} => ${AnimationState.LEAVE}`, [
-        animate('0.2s ease-out', style({opacity: 0, transform: 'translateX(50%)'})),
-        style({display: 'none',  visibility: 'hidden'})
-      ]) ])
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
@@ -58,13 +42,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
-  strategyFormState: AnimationState;
-
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
   @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
-  @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
   @ViewChild('locationClassificationList', { static: true }) locationClassificationList: AppListForm;
 
   constructor(
@@ -79,7 +60,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     super(injector,
       Program,
       dataService, {
-        autoOpenNextTab: false
+        autoOpenNextTab: false,
+        pathIdAttribute: 'programId'
       });
     this.form = validatorService.getFormGroup();
 
@@ -88,9 +70,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
-
-
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -127,15 +107,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       }
     });
 
-    this.strategyForm.disable();
 
-    // Listen start editing strategy
-    this.registerSubscription(this.strategiesTable.onStartEditingRow
-      .subscribe(row => this.onStartEditStrategy(row)));
-    this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
-      .subscribe(row => this.onConfirmEditCreateStrategy(row)));
-    this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
-      .subscribe(row => this.onCancelOrDeleteStrategy(row)));
   }
 
   /* -- protected methods -- */
@@ -144,7 +116,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
-
 
   protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
     const definition = <FormFieldDefinition>{
@@ -177,8 +148,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       this.referentialForm,
       this.propertiesForm,
       this.locationClassificationList,
-      this.strategiesTable,
-      this.strategyForm
+      this.strategiesTable
     ]);
   }
 
@@ -197,7 +167,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.locationClassificationList.setValue(data.locationClassifications);
 
     // strategies
-    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    this.strategiesTable.setProgram(data); // Will load strategies
 
     this.markAsPristine();
   }
@@ -209,16 +179,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
     data.properties = this.propertiesForm.value;
-
-    // Finish edition of strategy
-    if (this.strategiesTable.dirty) {
-      if (this.strategiesTable.editedRow) {
-        await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
-      }
-      await this.strategiesTable.save();
-    }
-
-    data.strategies = this.strategiesTable.value;
 
     return data;
   }
@@ -244,104 +204,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
-    if (this.propertiesForm.invalid) return 1;
-    if (this.strategiesTable.invalid || (this.strategyForm.enabled && this.strategyForm.invalid)) return 2;
+    if (this.strategiesTable.invalid) return 1;
+    if (this.propertiesForm.invalid) return 2;
+    // TODO users rights
     return 0;
-  }
-
-  protected async onStartEditStrategy(row: TableElement<Strategy>) {
-    if (!row) return; // skip
-
-    const strategy = this.loadOrCreateStrategy(row.currentData);
-    console.debug("[program] Start editing strategy", strategy);
-
-    if (!row.isValid()) {
-      row.validator.valueChanges
-        .pipe(
-          debounceTime(450),
-          filter(() => row.isValid()),
-          first()
-        )
-        .subscribe(() => {
-          strategy.fromObject(row.currentData);
-          this.showStrategyForm(strategy);
-        });
-    }
-    else {
-
-
-      this.showStrategyForm(strategy);
-    }
-  }
-  protected async onCancelOrDeleteStrategy(row: TableElement<Strategy>) {
-    if (!row) return; // skip
-
-    this.hideStrategyForm();
-  }
-
-  protected async onConfirmEditCreateStrategy(row: TableElement<Strategy>) {
-    if (!row) return; // skip
-
-    // DEBUG
-    console.debug('[program] Confirm edit/create of a strategy row', row);
-
-    // Copy some properties from row
-    const source = row.currentData;
-    this.strategyForm.form.patchValue({
-      label: source.label,
-      name: source.name,
-      description: source.description,
-      statusId: source.statusId,
-      comments: source.comments
-    });
-
-    const target = await this.strategyForm.saveAndGetDataIfValid();
-    if (!target) throw new Error('strategyForm has error');
-
-    // Update the row
-    row.validator = this.strategyForm.form;
-
-    console.debug("[program] End editing strategy", row.currentData);
-
-    this.hideStrategyForm();
-  }
-
-  showStrategyForm(strategy: Strategy) {
-    this.strategyForm.program = this.data;
-    this.strategyForm.updateView(strategy);
-
-    if (this.strategyFormState !== AnimationState.ENTER) {
-      // Wait 200ms, during form loading, then start animation
-      setTimeout(() => {
-        this.strategyFormState = AnimationState.ENTER;
-        this.markForCheck();
-      }, 200);
-    }
-  }
-
-  hideStrategyForm() {
-    if (this.strategyFormState === AnimationState.ENTER) {
-      this.strategyFormState = AnimationState.LEAVE;
-      this.markForCheck();
-    }
-  }
-
-  onStrategyAnimationDone(event: AnimationEvent): void {
-    if (event.phaseName === 'done') {
-
-      // After enter
-      if (event.toState === AnimationState.ENTER) {
-        // Enable form
-        this.strategyForm.enable();
-      }
-
-      // After leave
-      else if (event.toState === AnimationState.LEAVE) {
-
-        // Disable form
-        this.strategyForm.disable({emitEvent: false});
-      }
-    }
   }
 
   async addLocationClassification() {
@@ -359,25 +225,32 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.markForCheck();
   }
 
-  protected loadOrCreateStrategy(json: any): Strategy|undefined {
-    const existingStrategy = this.data.strategies.find(s => s.equals(json));
-    if (existingStrategy) return existingStrategy;
-    return Strategy.fromObject(json);
+  async onOpenStrategy({id, row}: { id?: number; row: TableElement<any>; }) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      this.markAsLoading();
+
+      setTimeout(async () => {
+        await this.router.navigate(['referential', 'program',  this.data.id, 'strategies', id], {
+          queryParams: {}
+        });
+        this.markAsLoaded();
+      });
+    }
   }
 
-  protected updateStrategy(strategy: Strategy) {
+  async onNewStrategy(event?: any) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      this.markAsLoading();
 
-    const existingStrategy = this.data.strategies.find(s => s.equals(strategy));
-    if (!existingStrategy) {
-      this.data.strategies.push(strategy);
-      return strategy;
+      setTimeout(async () => {
+        await this.router.navigate(['referential', 'program', this.data.id, 'strategies', 'new'], {
+          queryParams: {}
+        });
+        this.markAsLoaded();
+      });
     }
-    else {
-      // Copy
-      existingStrategy.fromObject(strategy);
-      return existingStrategy;
-    }
-
   }
 
   protected async openSelectReferentialModal(opts: {

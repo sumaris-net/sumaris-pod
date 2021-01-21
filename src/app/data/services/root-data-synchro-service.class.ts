@@ -1,7 +1,7 @@
 import {concat, defer, Observable, of, timer} from "rxjs";
 import {catchError, map, switchMap, tap} from "rxjs/operators";
 import {RootDataEntity, SynchronizationStatusEnum} from "./model/root-data-entity.model";
-import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {RootDataService, RootEntityMutations} from "../../trip/services/root-data-service.class";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
@@ -14,8 +14,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Moment} from "moment";
 import {isNil} from "../../shared/functions";
 import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "./model/data-entity.model";
-import {Trip} from "../../trip/services/model/trip.model";
-import {ErrorCodes} from "../../trip/services/trip.errors";
+import {JobUtils} from "../../shared/services/job.utils";
 
 
 export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServiceLoadOptions> {
@@ -41,7 +40,6 @@ export function isDataSynchroService(object: any): object is IDataSynchroService
   return object && DataSynchroServiceFnName.filter(fnName => (typeof object[fnName] === 'function'))
     .length === DataSynchroServiceFnName.length || false;
 }
-
 
 export const DEFAULT_FEATURE_NAME = 'synchro';
 
@@ -222,15 +220,15 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>, F = an
 
   /**
    * List of importation jobs. Can be override by subclasses, to add or remove some jobs
-   * @param jobOpts
+   * @param opts
    * @protected
    */
-  protected getImportJobs(jobOpts: {maxProgression: undefined}): Observable<number>[] {
-    return [
-      defer(() => this.referentialRefService.executeImport(jobOpts)),
-      defer(() =>  this.personService.executeImport(jobOpts)),
-      defer(() => this.vesselSnapshotService.executeImport(jobOpts)),
-      defer(() => this.programService.executeImport(jobOpts)),
-    ];
+  protected getImportJobs(opts: {maxProgression: undefined}): Observable<number>[] {
+    return JobUtils.defers([
+      (p, o) => this.referentialRefService.executeImport(p, o),
+      (p, o) => this.personService.executeImport(p, o),
+      (p, o) => this.vesselSnapshotService.executeImport(p, o),
+      (p, o) => this.programService.executeImport(p, o)
+    ], opts);
   }
 }

@@ -238,7 +238,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     }
   }
 
-  async onOpenOperation({id, row}) {
+  async onOpenOperation({id, row}: { id?: number; row: TableElement<any>; }) {
 
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {

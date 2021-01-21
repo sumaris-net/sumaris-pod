@@ -11,7 +11,7 @@ import {
   LoadResult,
   toDateISOString
 } from "../../shared/shared.module";
-import {AppFormUtils, Department, Entity, EntityUtils, environment} from "../../core/core.module";
+import {AppFormUtils, Entity, EntityUtils, environment} from "../../core/core.module";
 import {filter, map} from "rxjs/operators";
 import * as moment from "moment";
 import {Moment} from "moment";
@@ -46,7 +46,7 @@ import {
   SynchronizationStatus,
   SynchronizationStatusEnum
 } from "../../data/services/model/root-data-entity.model";
-import {fillRankOrder, IWithRecorderDepartmentEntity} from "../../data/services/model/model.utils";
+import {fillRankOrder} from "../../data/services/model/model.utils";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
@@ -57,8 +57,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {ToastController} from "@ionic/angular";
 import {TrashRemoteService} from "../../core/services/trash-remote.service";
 import {TRIP_FEATURE_NAME} from "./config/trip.config";
-import {IDataSynchroService, RootDataSynchroService} from "../../data/services/data-synchro-service.class";
-import {RootEntityMutations} from "./root-data-service.class";
+import {IDataSynchroService, RootDataSynchroService} from "../../data/services/root-data-synchro-service.class";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -270,7 +269,7 @@ export class TripFilter {
       filterFns.push(t => t.returnDateTime ? startDate.isSameOrBefore(t.returnDateTime) : startDate.isSameOrBefore(t.departureDateTime));
     }
     if (endDate) {
-      endDate = endDate.add(1, 'day');
+      endDate = endDate.add(1, 'day').startOf('day');
       filterFns.push(t => t.departureDateTime && endDate.isAfter(t.departureDateTime));
     }
 

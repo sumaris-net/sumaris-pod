@@ -16,6 +16,7 @@ import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {HammerTapEvent} from "../gesture/hammer.utils";
 import {HAMMER_PRESS_TIME} from "../gesture/gesture-config";
+import {PredefinedColors} from "@ionic/core";
 
 @Component({
   selector: 'app-toolbar',
@@ -30,11 +31,9 @@ export class ToolbarComponent implements OnInit {
   private _defaultBackHref: string;
   private _backHref: string;
 
-  @Input()
-  title = '';
+  @Input() title: String = '';
 
-  @Input()
-  color = 'primary';
+  @Input() color: PredefinedColors = 'primary';
 
   @Input()
   class = '';

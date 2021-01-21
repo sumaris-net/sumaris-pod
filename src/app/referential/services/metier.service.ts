@@ -31,7 +31,7 @@ export class MetierFilter extends ReferentialRefFilter {
     // Filter by status
     const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]) || undefined;
     if (statusIds) {
-      filterFns.push((entity) => !!statusIds.find(v => entity.statusId === v));
+      filterFns.push((entity) => statusIds.includes(entity.statusId));
     }
 
     const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || f.searchAttributes, f.searchText);

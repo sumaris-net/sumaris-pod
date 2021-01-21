@@ -695,14 +695,15 @@
     "END_DATE_TIME": "Date/heure de fin",
     "START": "Début :",
     "END": "Fin :",
-    "LOCATION": "Criée",
+    "START_END": "Début / Fin :",
+    "LOCATION": "Lieu d'observation",
     "LOCATION_AND_DATE": "Lieu / Date :",
     "TAB_GENERAL": "Détails",
     "TAB_VESSELS": "Navires observés",
     "OBSERVER_PLACEHOLDER": "Observateur #",
     "OBSERVERS": "Observateurs :",
     "NEW": {
-      "TITLE": "Nouveau contrôle"
+      "TITLE": "Nouvelle observation"
     },
     "EDIT": {
       "TITLE": "{{location}} - {{dateTime}}",
@@ -1065,11 +1066,10 @@
       "SOFTWARE": "Logiciels"
     },
     "ERROR": {
-      "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde du référentiel.",
-      "SAVE_REFERENTIALS_ERROR": "Erreur de sauvegarde des référentiels.",
-      "LOAD_REFERENTIAL_ERROR": "Erreur de chargement des référentiels.",
-      "LOAD_REFERENTIAL_ENTITIES_ERROR": "Erreur de chargement des types de référentiel.",
-      "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression de référentiels",
+      "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
+      "LOAD_REFERENTIAL_ERROR": "Erreur de chargement.",
+      "DELETE_REFERENTIAL_ERROR": "Erreur lors de la suppression",
+      "SUBSCRIBE_REFERENTIAL_ERROR": "Echec d'abonnement aux modifications distantes.",
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
       "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme",
       "LOAD_PROGRAM_GEARS_ERROR": "Erreur lors de chargement des engins du programme",
@@ -1101,8 +1101,9 @@
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Caractéritiques optionelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
-      "TRIP_MAP_CENTER": "Marée > Carte : Position du centre",
-      "TRIP_MAP_ZOOM": "Marée > Carte : Niveau du zoom",
+      "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
+      "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",
+      "TRIP_MAP_ZOOM": "Marée > Carte: Niveau du zoom",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
@@ -1125,11 +1126,13 @@
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
-      "MEASUREMENTS_MOBILE_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)"
+      "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
+      "VESSEL_TYPE_ENABLE": "Nouveau navire > Saisir le type de navire ?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
       "LOCATIONS": "Lieux",
+      "TAB_PMFM": "PMFM",
       "GEARS": "Engins",
       "TAXON_GROUPS": "Espèces commerciales",
       "TAXON_NAMES": "Espèces scientifiques",
@@ -1137,6 +1140,9 @@
       "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "NEW": {
         "TITLE": "Nouvelle stratégie"
+      },
+      "EDIT": {
+        "TITLE": "<small>{{program}}<br></small>Stratégie {{label}}"
       },
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",

@@ -21,8 +21,8 @@ import {qualityFlagToColor} from "../services/model/model.utils";
 import {StatusIds} from "../../core/core.module";
 import {UserEventService} from "../../social/services/user-event.service";
 import {OverlayEventDetail} from "@ionic/core";
-import {RootDataSynchroService} from "../services/data-synchro-service.class";
-import {isDataSynchroService} from "../services/data-synchro-service.class";
+import {RootDataSynchroService} from "../services/root-data-synchro-service.class";
+import {isDataSynchroService} from "../services/root-data-synchro-service.class";
 
 @Component({
   selector: 'app-entity-quality-form',

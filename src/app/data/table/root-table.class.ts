@@ -23,7 +23,7 @@ import {RootDataEntity, SynchronizationStatus} from "../../data/services/model/r
 import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {UserEventService} from "../../social/services/user-event.service";
 import * as moment from "moment";
-import {IDataSynchroService} from "../services/data-synchro-service.class";
+import {IDataSynchroService} from "../services/root-data-synchro-service.class";
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: "filter"
@@ -79,7 +79,9 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
-      columns, _dataSource, _filter, injector
+      columns,
+      _dataSource,
+      _filter, injector
     );
     this.network = injector && injector.get(NetworkService);
     this.accountService = injector && injector.get(AccountService);

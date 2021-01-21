@@ -13,6 +13,8 @@ import {PmfmStrategy} from "./pmfm-strategy.model";
 
 export class Strategy extends Referential<Strategy> {
 
+  static TYPENAME = "StrategyVO";
+
   static fromObject(source: any): Strategy {
     if (!source || source instanceof Strategy) return source;
     const res = new Strategy();
@@ -31,7 +33,6 @@ export class Strategy extends Referential<Strategy> {
   gears: any[];
   taxonGroups: TaxonGroupStrategy[];
   taxonNames: TaxonNameStrategy[];
-
   programId: number;
 
   constructor(data?: {
@@ -73,6 +74,7 @@ export class Strategy extends Referential<Strategy> {
     this.description = source.description;
     this.comments = source.comments;
     this.statusId = source.statusId;
+    this.programId = source.programId;
     this.creationDate = fromDateISOString(source.creationDate);
     this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
     this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];

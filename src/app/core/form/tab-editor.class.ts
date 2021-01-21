@@ -558,7 +558,11 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     if (this.debug) console.debug("[root-editor-form] Page not valid. Checking where (forms, tables)...");
     this._children.forEach(c => {
       // If form
-      if (c instanceof AppForm) {
+      if (c instanceof AppTabEditor) {
+        c.logFormErrors();
+      }
+      // If form
+      else if (c instanceof AppForm) {
         if (!c.empty && !c.valid) {
           if (c.pending) {
             console.warn( `[root-editor-form] [${c.constructor.name.toLowerCase()}] - pending form state`);

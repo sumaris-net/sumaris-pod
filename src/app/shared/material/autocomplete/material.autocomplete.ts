@@ -32,11 +32,7 @@ import {firstNotNilPromise} from "../../observables";
 import {CompareWithFn, DisplayFn} from "../../form/field.model";
 import {FloatLabelType} from "@angular/material/form-field";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
-  provide: NG_VALUE_ACCESSOR,
-  useExisting: forwardRef(() => MatAutocompleteField),
-  multi: true
-};
+
 
 export declare interface MatAutocompleteFieldConfig<T = any, F = any> {
   attributes: string[];
@@ -119,6 +115,12 @@ export class MatAutocompleteConfigHolder {
     return this.fields[fieldName] || this.add(fieldName) as MatAutocompleteFieldConfig<T>;
   }
 }
+
+const DEFAULT_VALUE_ACCESSOR: any = {
+  provide: NG_VALUE_ACCESSOR,
+  useExisting: forwardRef(() => MatAutocompleteField),
+  multi: true
+};
 
 @Component({
   selector: 'mat-autocomplete-field',

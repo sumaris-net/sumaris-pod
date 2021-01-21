@@ -159,15 +159,9 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean'
   },
   OBSERVED_LOCATION_LOCATION_LEVEL_ID: <FormFieldDefinition>{
-    key: 'sumaris.observedLocation.locationLevel.id',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_ID",
-    type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [0,1]
-      }
-    },
+    key: 'sumaris.observedLocation.location.level.ids',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS",
+    type: 'string',
     defaultValue: LocationLevelIds.PORT.toString()
   },
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE: <FormFieldDefinition>{

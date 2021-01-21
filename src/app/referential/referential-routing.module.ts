@@ -9,6 +9,7 @@ import {ParameterPage} from "./pmfm/parameter.page";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {SharedRoutingModule} from "../shared/shared-routing.module";
 import {ReferentialModule} from "./referential.module";
+import {StrategyPage} from "./strategy/strategy.page";
 
 const routes: Routes = [
   {
@@ -39,15 +40,30 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'program/:id',
+    path: 'program/:programId',
     children: [
       {
         path: '',
         pathMatch: 'full',
         component: ProgramPage,
         data: {
-          profile: 'ADMIN'
+          profile: 'ADMIN',
+          pathIdParam: 'programId'
         }
+      },
+      {
+        path: 'strategies/:strategyId',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: StrategyPage,
+            data: {
+              profile: 'ADMIN',
+              pathIdParam: 'strategyId'
+            }
+          }
+        ]
       }
     ]
   },

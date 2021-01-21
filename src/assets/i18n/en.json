@@ -696,14 +696,14 @@
     "END_DATE_TIME": "End date/time",
     "START": "Start:",
     "END": "End:",
-    "LOCATION": "Auction",
+    "LOCATION": "Observed location",
     "LOCATION_AND_DATE": "Location / Date:",
     "TAB_GENERAL": "Details",
     "TAB_VESSELS": "Observed vessels",
     "OBSERVER_PLACEHOLDER": "Observer #",
     "OBSERVERS": "Observers:",
     "NEW": {
-      "TITLE": "New control"
+      "TITLE": "New observation"
     },
     "EDIT": {
       "TITLE": "{{location}} - {{dateTime}}",

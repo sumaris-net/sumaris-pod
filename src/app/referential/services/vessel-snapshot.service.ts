@@ -1,20 +1,20 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {isNotNil, LoadResult} from "../../shared/shared.module";
 import {BaseEntityService, StatusIds} from "../../core/core.module";
 
 import {ErrorCodes} from "./errors";
-import {fetchAllPagesWithProgress, SuggestService} from "../../shared/services/entity-service.class";
+import {SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
-import {FetchPolicy} from "@apollo/client/core";
 import {VesselFilter} from "./vessel-service";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {VesselSnapshot} from "./model/vessel-snapshot.model";
 import {SortDirection} from "@angular/material/sort";
+import {JobUtils} from "../../shared/services/job.utils";
 
 export const VesselSnapshotFragments = {
   lightVesselSnapshot: gql`fragment LightVesselSnapshotFragment on VesselSnapshotVO {
@@ -203,20 +203,19 @@ export class VesselSnapshotService
     return json && ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(json) : json as VesselSnapshot)  || null;
   }
 
-  executeImport(opts?: {
-    maxProgression?: number;
-  }): Observable<number>{
+  async executeImport(progression: BehaviorSubject<number>,
+    opts?: {
+      maxProgression?: number;
+    }): Promise<void> {
 
     const maxProgression = opts && opts.maxProgression || 100;
-    const progression = new BehaviorSubject<number>(0);
     const filter: VesselFilter = {
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
     };
 
-    const now = Date.now();
     console.info("[vessel-snapshot-service] Importing vessels (snapshot)...");
 
-    fetchAllPagesWithProgress((offset, size) =>
+    const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
           debug: false,
           fetchPolicy: "network-only",
@@ -224,19 +223,14 @@ export class VesselSnapshotService
           toEntity: false
         }),
       progression,
-      maxProgression * 0.9
-    )
-      .then(res =>  this.entities.saveAll(res.data, {entityName: 'VesselSnapshotVO'}))
-      .then(data =>  {
-        console.info(`[vessel-snapshot-service] Successfully import ${data && data.length || 0} vessels in ${Date.now() - now}ms`);
-        progression.next(maxProgression);
-        progression.complete();
-      })
-      .catch((err: any) => {
-        console.error("[vessel-snapshot-service] Error during importation: " + (err && err.message || err), err);
-        progression.error(err);
-      });
-    return progression;
+      {
+        maxProgression: maxProgression * 0.9,
+        logPrefix: '[vessel-snapshot-service]'
+      }
+    );
+
+    // Save locally
+    await this.entities.saveAll(res.data, {entityName: 'VesselSnapshotVO'});
   }
 
   /* -- protected methods -- */

@@ -97,7 +97,6 @@ export abstract class BaseEntityService<T = any, F = any> {
           insertFilterFn: opts.insertFilterFn,
           counter: 1
         });
-
       }
 
       return this.graphql.watchQuery(opts);

@@ -25,6 +25,7 @@ import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
 import {ReferentialToStringPipe} from "./services/pipes/referential-to-string.pipe";
 import {TranslateModule} from "@ngx-translate/core";
 import {IsComputedPmfmPipe, IsDatePmfmPipe, PmfmNamePipe, PmfmValueToStringPipe} from "./pipes/pmfms.pipe";
+import {StrategyPage} from "./strategy/strategy.page";
 
 
 @NgModule({
@@ -49,6 +50,7 @@ import {IsComputedPmfmPipe, IsDatePmfmPipe, PmfmNamePipe, PmfmValueToStringPipe}
     VesselForm,
     VesselModal,
     ProgramPage,
+    StrategyPage,
     StrategyForm,
     StrategiesTable,
     PmfmStrategiesTable,
@@ -80,6 +82,7 @@ import {IsComputedPmfmPipe, IsDatePmfmPipe, PmfmNamePipe, PmfmValueToStringPipe}
     VesselPage,
     VesselForm,
     ProgramPage,
+    StrategyPage,
     StrategyForm,
     SoftwarePage,
     VesselsPage,

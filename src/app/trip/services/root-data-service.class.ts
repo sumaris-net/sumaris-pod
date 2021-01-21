@@ -1,22 +1,17 @@
-import {DataEntityAsObjectOptions, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
-import {Directive, Injector, Optional} from "@angular/core";
+import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
+import {Directive, Injector} from "@angular/core";
 import {BaseEntityService, Department, EntityUtils, isNil, isNotNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
 import {FormErrors} from "../../core/form/form.utils";
-import {
-  DataRootEntityUtils,
-  RootDataEntity,
-  SynchronizationStatusEnum
-} from "../../data/services/model/root-data-entity.model";
+import {DataRootEntityUtils, RootDataEntity} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {Trip} from "./model/trip.model";
 import {ErrorCodes} from "./trip.errors";
 import {IWithRecorderDepartmentEntity} from "../../data/services/model/model.utils";
 
 
-export declare abstract class RootEntityMutations {
+export interface RootEntityMutations {
   terminate: any;
   validate: any;
   unvalidate: any;
@@ -24,6 +19,7 @@ export declare abstract class RootEntityMutations {
 }
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
   extends BaseEntityService<T, F>
   implements IDataEntityQualityService<T> {

@@ -1,34 +1,28 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
-import {AcquisitionLevelCodes} from "./model/model.enum";
 import {
   BaseEntityService,
   EntityUtils,
-  environment,
-  IReferentialRef, isNil,
+  IEntitiesService,
+  IReferentialRef,
+  isNil,
   isNotNil,
   LoadResult,
-  ReferentialRef,
-  IEntitiesService
+  ReferentialRef
 } from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {
-  IEntityService,
-  EntityServiceLoadOptions,
-  fetchAllPagesWithProgress, FilterFn
-} from "../../shared/services/entity-service.class";
-import {TaxonGroupTypeIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
+import {EntityServiceLoadOptions, FilterFn, IEntityService} from "../../shared/services/entity-service.class";
+import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
 import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
-import {ReferentialRefFilter, ReferentialRefQueries, ReferentialRefService} from "./referential-ref.service";
+import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
-import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {
   NOT_MINIFY_OPTIONS,
@@ -43,6 +37,9 @@ import {PmfmStrategy} from "./model/pmfm-strategy.model";
 import {IWithProgramEntity} from "../../data/services/model/model.utils";
 import {SortDirection} from "@angular/material/sort";
 import {ReferentialQueries} from "./referential.service";
+import {StrategyFragments} from "./strategy.service";
+import {AcquisitionLevelCodes} from "./model/model.enum";
+import {JobUtils} from "../../shared/services/job.utils";
 
 
 export class ProgramFilter {
@@ -122,9 +119,6 @@ const ProgramFragments = {
       locations {
         ...ReferentialFragment
       }
-      strategies {
-        ...StrategyFragment
-      }
     }
     `,
   strategyRef: gql`
@@ -148,31 +142,6 @@ const ProgramFragments = {
       }
       pmfmStrategies {
         ...PmfmStrategyRefFragment
-      }
-    }
-  `,
-  strategy: gql`
-    fragment StrategyFragment on StrategyVO {
-      id
-      label
-      name
-      description
-      comments
-      updateDate
-      creationDate
-      statusId
-      programId
-      gears {
-        ...ReferentialFragment
-      }
-      taxonGroups {
-        ...TaxonGroupStrategyFragment
-      }
-      taxonNames {
-        ...TaxonNameStrategyFragment
-      }
-      pmfmStrategies {
-        ...PmfmStrategyFragment
       }
     }
   `,
@@ -205,51 +174,7 @@ const ProgramFragments = {
         __typename
       }
       __typename
-  }`,
-  pmfmStrategy: gql`
-    fragment PmfmStrategyFragment on PmfmStrategyVO {
-      id
-      acquisitionLevel
-      rankOrder
-      isMandatory
-      acquisitionNumber
-      defaultValue
-      pmfmId
-      pmfm {
-        ...PmfmFragment
-      }
-      gearIds
-      taxonGroupIds
-      referenceTaxonIds
-      strategyId
-      __typename
-  }`,
-  taxonGroupStrategy: gql`
-    fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
-      strategyId
-      priorityLevel
-      taxonGroup {
-          id
-          label
-          name
-          entityName
-          taxonNames {
-              ...TaxonNameFragment
-          }
-      }
-      __typename
-    }
-  `,
-  taxonNameStrategy: gql`
-    fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
-      strategyId
-      priorityLevel
-      taxonName {
-          ...TaxonNameFragment
-      }
-      __typename
-    }
-  `
+  }`
 };
 const LoadRefQuery: any = gql`
   query ProgramRef($id: Int, $label: String){
@@ -260,8 +185,8 @@ const LoadRefQuery: any = gql`
   ${ProgramFragments.programRef}
   ${ProgramFragments.strategyRef}
   ${ProgramFragments.pmfmStrategyRef}
-  ${ProgramFragments.taxonGroupStrategy}
-  ${ProgramFragments.taxonNameStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
 `;
@@ -273,17 +198,11 @@ const LoadQuery: any = gql`
       }
   }
   ${ProgramFragments.program}
-  ${ProgramFragments.strategy}
-  ${ProgramFragments.pmfmStrategy}
-  ${ProgramFragments.taxonGroupStrategy}
-  ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
-  ${ReferentialFragments.taxonName}
 `;
 
 const LoadAllQuery: any = gql`
-  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
+  query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightProgramFragment
     }
@@ -292,9 +211,7 @@ const LoadAllQuery: any = gql`
 `;
 
 const LoadAllWithTotalQuery: any = gql`
-  query ProgramsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String,
-        $filter: ProgramFilterVOInput
-  ){
+  query ProgramsWithTotal($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightProgramFragment
     }
@@ -305,9 +222,7 @@ const LoadAllWithTotalQuery: any = gql`
 
 
 const LoadAllRefWithTotalQuery: any = gql`
-  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String,
-        $filter: ProgramFilterVOInput
-  ){
+  query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ProgramRefFragment
     }
@@ -316,26 +231,20 @@ const LoadAllRefWithTotalQuery: any = gql`
   ${ProgramFragments.programRef}
   ${ProgramFragments.strategyRef}
   ${ProgramFragments.pmfmStrategyRef}
-  ${ProgramFragments.taxonGroupStrategy}
-  ${ProgramFragments.taxonNameStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
 `;
 
 const SaveQuery: any = gql`
-  mutation SaveProgram($program:ProgramVOInput){
+  mutation SaveProgram($program:ProgramVOInput!){
     saveProgram(program: $program){
       ...ProgramFragment
     }
   }
   ${ProgramFragments.program}
-  ${ProgramFragments.strategy}
-  ${ProgramFragments.pmfmStrategy}
-  ${ProgramFragments.taxonGroupStrategy}
-  ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
-  ${ReferentialFragments.taxonName}
 `;
 
 const ProgramCacheKeys = {
@@ -868,9 +777,9 @@ export class ProgramService extends BaseEntityService
         program: json
       },
       error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"},
-      refetchQueries: [
-        { query: ReferentialQueries.loadAll},
-        { query: ReferentialQueries.loadAllWithTotal}
+      refetchQueries: [ // TODO FIXME this has no effect !!
+        { query: ReferentialQueries.loadAll, variables: {entityName: 'Program'} },
+        { query: ReferentialQueries.loadAllWithTotal, variables: {entityName: 'Program'} }
       ],
       update: (cache, {data}) => {
         // Update entity
@@ -912,42 +821,16 @@ export class ProgramService extends BaseEntityService
     return this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
   }
 
-  executeImport(opts?: {
-    maxProgression?: number;
-  }): Observable<number>{
-
-    const maxProgression = opts && opts.maxProgression || 100;
-    const progression = new BehaviorSubject<number>(0);
-    this.doExecuteImport(progression, maxProgression)
-      .then(() => progression.complete())
-      .catch(err => progression.error(err));
-    return progression;
-  }
-
-  /* -- protected methods -- */
-
-  protected asObject(source: Program, opts?: ReferentialAsObjectOptions): any {
-    return source.asObject(
-      <ReferentialAsObjectOptions>{
-        ...opts,
-        ...NOT_MINIFY_OPTIONS, // Force NOT minify, because program is a referential that can be minify in just an ID
-      });
-  }
-
-  protected async doExecuteImport(progression: BehaviorSubject<number>,
-                                  maxProgression: number,
-                                  opts?: {
-                                    acquisitionLevels?: string[];
-                                  }) {
+  async executeImport(progression: BehaviorSubject<number>,
+                      opts?: {
+                        maxProgression?: number;
+                        acquisitionLevels?: string[];
+                      }) {
 
     // TODO: BLA - idea => why not use acquisitionLevels to filter programs ?
     const acquisitionLevels: string[] = opts && opts.acquisitionLevels || Object.keys(AcquisitionLevelCodes).map(key => AcquisitionLevelCodes[key]);
+    const maxProgression = opts && opts.maxProgression || 100;
 
-    const stepCount = 2;
-    const progressionStep = maxProgression ? maxProgression / stepCount : undefined;
-    const progressionRest = progressionStep && (maxProgression - progressionStep * stepCount) || undefined;
-
-    const now = Date.now();
     console.info("[program-service] Importing programs...");
 
     try {
@@ -959,7 +842,7 @@ export class ProgramService extends BaseEntityService
       const loadFilter = {
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
-      const res = await fetchAllPagesWithProgress((offset, size) =>
+      const res = await JobUtils.fetchAllPages<any>((offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', loadFilter, {
             debug: false,
             query: LoadAllRefWithTotalQuery,
@@ -968,33 +851,33 @@ export class ProgramService extends BaseEntityService
             toEntity: false
           }),
         progression,
-        progressionStep,
-        (page) => {
-          const labels = (page && page.data || []).map(p => p.label) as string[];
-          programLabels.push(...labels);
-        },
-        '[program-service]'
+        {
+          maxProgression: maxProgression * 0.9,
+          onPageLoaded: ({data}) => {
+            const labels = (data || []).map(p => p.label) as string[];
+            programLabels.push(...labels);
+          },
+          logPrefix: '[program-service]'
+        }
       );
-      progression.next(progression.getValue() + progressionStep);
 
       // Step 2. Saving locally
       await this.entities.saveAll(res.data, {entityName: 'ProgramVO', reset: true});
-      progression.next(progression.getValue() + progressionStep);
-
-      // Make sure to fill the progression at least once
-      if (progressionRest) {
-        progression.next(progression.getValue() + progressionRest);
-      }
-      else if (isNil(progressionStep) && isNotNil(maxProgression)) {
-        progression.next(progression.getValue() + maxProgression);
-      }
-
-      console.info(`[program-service] Successfully import programs in ${Date.now() - now}ms`);
     }
     catch (err) {
-      console.error(`[program-service] Error during programs importation (at step #${progressionStep && progression.getValue() / progressionStep || '?'})`, err);
+      console.error("[program-service] Error during programs importation", err);
       throw err;
     }
+  }
+
+  /* -- protected methods -- */
+
+  protected asObject(source: Program, opts?: ReferentialAsObjectOptions): any {
+    return source.asObject(
+      <ReferentialAsObjectOptions>{
+        ...opts,
+        ...NOT_MINIFY_OPTIONS, // Force NOT minify, because program is a referential that can be minify in just an ID
+      });
   }
 
   protected fillDefaultProperties(program: Program) {

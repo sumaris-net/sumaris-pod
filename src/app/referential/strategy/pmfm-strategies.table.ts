@@ -16,9 +16,10 @@ import {Pmfm} from "../services/model/pmfm.model";
 import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {Program} from "../services/model/program.model";
+import {UnitLabel} from "../services/model/model.enum";
 
 export class PmfmStrategyFilter {
 
@@ -146,7 +147,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       }),
       validatorService,
       <AppTableDataSourceOptions<PmfmStrategy>>{
-        prependNewElements: true,
+        prependNewElements: false,
         suppressErrors: true,
         onRowCreated: (row) => this.onRowCreated(row)
       },
@@ -212,6 +213,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           }
         }),
         columnNames: pmfmColumnNames,
+        displayWith: (pmfm) => getPmfmName(pmfm, {withUnit: true}),
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
@@ -256,7 +258,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             switchMap(row => {
               const control = row.validator && row.validator.get('pmfm');
               if (control) {
-                return control.valueChanges.pipe(startWith(control.value))
+                return control.valueChanges.pipe(startWith(control.value));
               } else {
                 return of(row.currentData.pmfm);
               }

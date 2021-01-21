@@ -2,11 +2,11 @@ import {Injectable, Injector} from "@angular/core";
 import {
   BaseEntityService,
   environment,
+  IEntitiesService,
+  isNil,
   isNotNil,
   LoadResult,
-  IEntitiesService,
-  toDateISOString,
-  isNil
+  toDateISOString
 } from "../../core/core.module";
 import {AggregatedLanding} from "./model/aggregated-landing.model";
 import {Moment} from "moment";
@@ -22,8 +22,6 @@ import {Observable} from "rxjs";
 import {filter, map, tap} from "rxjs/operators";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
-import {Landing} from "./model/landing.model";
-import {LandingFragments} from "./landing.service";
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 

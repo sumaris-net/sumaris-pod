@@ -8,7 +8,7 @@ import {
   LoadResult
 } from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
-import {Observable} from "rxjs";
+import {defer, Observable, ObservedValueOf} from "rxjs";
 import * as moment from "moment";
 import {Moment} from "moment";
 import {gql} from "@apollo/client/core";
@@ -16,11 +16,7 @@ import {Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {
-  DataEntityAsObjectOptions,
-  SAVE_AS_OBJECT_OPTIONS,
-  SAVE_LOCALLY_AS_OBJECT_OPTIONS
-} from "../../data/services/model/data-entity.model";
+import {SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
 import {
@@ -33,25 +29,19 @@ import {
   KeysEnum,
   toDateISOString
 } from "../../shared/functions";
-import {
-  DataRootEntityUtils,
-  SynchronizationStatus,
-  SynchronizationStatusEnum
-} from "../../data/services/model/root-data-entity.model";
+import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {NetworkService} from "../../core/services/network.service";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
 import {Entity} from "../../core/services/model/entity.model";
 import {LandingFilter, LandingService} from "./landing.service";
-import {IDataSynchroService, RootDataSynchroService} from "../../data/services/data-synchro-service.class";
+import {IDataSynchroService, RootDataSynchroService} from "../../data/services/root-data-synchro-service.class";
 import {chainPromises} from "../../shared/observables";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {Landing} from "./model/landing.model";
 import {ObservedLocationValidatorService} from "./validator/observed-location.validator";
 import {environment} from "../../../environments/environment";
-import {TripFragments} from "./trip.service";
-import {RootEntityMutations} from "./root-data-service.class";
+import {JobUtils} from "../../shared/services/job.utils";
 
 
 export class ObservedLocationFilter {
@@ -253,38 +243,38 @@ const SaveQuery: any = gql`
   ${ObservedLocationFragments.observedLocation}
 `;
 
-const ControlMutation: any = gql`
-  mutation TerminateObservedLocation($entity: ObservedLocationVOInput!){
-    entity: controlObservedLocation(observedLocation: $entity){
-      ...ObservedLocationFragment
+const mutations = {
+  terminate: gql`
+    mutation TerminateObservedLocation($entity: ObservedLocationVOInput!){
+      entity: controlObservedLocation(observedLocation: $entity){
+        ...ObservedLocationFragment
+      }
     }
-  }
-  ${ObservedLocationFragments.observedLocation}
-`;
-const ValidateMutation: any = gql`
-  mutation ValidateObservedLocation($entity: ObservedLocationVOInput!){
+    ${ObservedLocationFragments.observedLocation}
+  `,
+    validate:  gql`mutation ValidateObservedLocation($entity: ObservedLocationVOInput!){
     entity: validateObservedLocation(observedLocation: $entity){
       ...ObservedLocationFragment
     }
   }
   ${ObservedLocationFragments.observedLocation}
-`;
-const QualifyMutation: any = gql`
-  mutation QualifyObservedLocation($entity: ObservedLocationVOInput!){
-    entity: qualifyObservedLocation(observedLocation: $entity){
-      ...ObservedLocationFragment
-    }
-  }
-  ${ObservedLocationFragments.observedLocation}
-`;
-const UnvalidateMutation: any = gql`
-  mutation UnvalidateObservedLocation($entity: ObservedLocationVOInput!){
+`,
+  unvalidate: gql`mutation UnvalidateObservedLocation($entity: ObservedLocationVOInput!){
     entity: unvalidateObservedLocation(observedLocation: $entity){
       ...ObservedLocationFragment
     }
   }
   ${ObservedLocationFragments.observedLocation}
-`;
+`,
+  qualify: gql`mutation QualifyObservedLocation($entity: ObservedLocationVOInput!){
+  entity: qualifyObservedLocation(observedLocation: $entity){
+    ...ObservedLocationFragment
+  }
+}
+${ObservedLocationFragments.observedLocation}
+`
+};
+
 const DeleteByIdsMutation: any = gql`
   mutation DeleteObservedLocations($ids:[Int]!){
     deleteObservedLocations(ids: $ids)
@@ -321,12 +311,7 @@ export class ObservedLocationService
     protected validatorService: ObservedLocationValidatorService,
     protected landingService: LandingService
   ) {
-    super(injector, {
-      terminate: ControlMutation,
-      validate: ValidateMutation,
-      unvalidate: UnvalidateMutation,
-      qualify: QualifyMutation
-    });
+    super(injector, mutations);
 
     // FOR DEV ONLY
     this._debug = !environment.production;
@@ -771,4 +756,16 @@ export class ObservedLocationService
 
   /* -- protected methods -- */
 
+  /**
+   * List of importation jobs.
+   * @param jobOpts
+   * @protected
+   */
+  protected getImportJobs(opts: {maxProgression: undefined}): Observable<number>[] {
+    return [
+      ...super.getImportJobs(opts),
+      // Landing predoc
+      JobUtils.defer((p,o) => this.landingService.executeImport(p, o), opts)
+    ];
+  }
 }
