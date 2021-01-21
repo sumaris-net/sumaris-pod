@@ -17,7 +17,7 @@ import {
   catchError,
   debounceTime,
   distinctUntilChanged,
-  filter, map,
+  filter,
   mergeMap,
   startWith,
   switchMap,
@@ -37,17 +37,14 @@ import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
-import {
-  MatAutocompleteConfigHolder,
-  MatAutocompleteFieldAddOptions,
-  MatAutocompleteFieldConfig
-} from "../../shared/material/material.autocomplete";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
-import {environment} from "../../../environments/environment";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {Sample} from "../../trip/services/model/sample.model";
+import {Environment, EnvironmentService} from "../../../environments/environment.class";
+import {
+  MatAutocompleteConfigHolder,
+  MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig
+} from "../../shared/material/autocomplete/material.autocomplete";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
@@ -72,6 +69,7 @@ export interface IModalDetailOptions<T = any> {
   onDelete: (event: UIEvent, data: T) => Promise<boolean>;
 }
 
+// @dynamic
 @Directive()
 export abstract class AppTable<T extends Entity<T>, F = any>
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {
@@ -92,6 +90,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
+  protected environment: Environment;
 
   excludesColumns: string[] = [];
   displayedColumns: string[];
@@ -305,8 +304,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
     this.toastController = injector && injector.get(ToastController);
+    this.environment = injector && injector.get(EnvironmentService);
     this._autocompleteConfigHolder = new MatAutocompleteConfigHolder({
-      getUserAttributes: (a,b) => settings.getFieldDisplayAttributes(a, b)
+      getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
     });
     this.autocompleteFields = this._autocompleteConfigHolder.fields;
   }
@@ -389,7 +389,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   ngAfterViewInit() {
-    if (!environment.production) {
+    if (!this.environment.production) {
       // Warn if table not exists
       if (!this.table) {
         setTimeout(() => {
@@ -571,6 +571,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           }
           row.validator.markAllAsTouched();
         }
+        // fix: mark all controls as touched to show errors
+        row.validator.markAllAsTouched();
         return false;
       }
       // If edit finished, forget edited row
@@ -775,12 +777,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.onEditRow(event, row);
   }
 
-
-  async openSelectColumnsModal(event?: UIEvent): Promise<any> {
+  getCurrentColumns(): { visible: boolean; name: string; label: string }[] {
     const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
     const hiddenColumns = this.columns.slice(fixedColumns.length)
       .filter(name => this.displayedColumns.indexOf(name) === -1);
-    const columns = this.displayedColumns.slice(fixedColumns.length)
+    return this.displayedColumns.slice(fixedColumns.length)
       .concat(hiddenColumns)
       .filter(name => name !== "actions")
       .filter(name => !this.excludesColumns.includes(name))
@@ -791,6 +792,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           visible: this.displayedColumns.indexOf(name) !== -1
         };
       });
+  }
+
+  async openSelectColumnsModal(event?: UIEvent): Promise<any> {
+
+    const columns = this.getCurrentColumns();
 
     const modal = await this.modalCtrl.create({
       component: TableSelectColumnsComponent,

@@ -1,6 +1,6 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {distinctUntilChanged, filter} from 'rxjs/operators';
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
@@ -57,7 +57,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected validatorService: PhysicalGearValidatorService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
     this._enable = true;

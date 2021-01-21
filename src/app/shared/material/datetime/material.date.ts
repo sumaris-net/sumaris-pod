@@ -23,10 +23,10 @@ import {
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
 import {SharedValidators} from '../../validator/validators';
-import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
+import {sleep, isNil, isNilOrBlank, toBoolean} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {filter, first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
@@ -35,8 +35,9 @@ import {FloatLabelType} from "@angular/material/form-field";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
 import {DateAdapter} from "@angular/material/core";
 import {isFocusableElement} from "../../focusable";
+import {toDateISOString} from "../../dates";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
+const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatDate),
   multi: true

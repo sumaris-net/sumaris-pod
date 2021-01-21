@@ -1,8 +1,8 @@
-import {Moment} from "moment/moment";
-import {fromDateISOString, toDateISOString} from "../../../shared/functions";
+import {Moment} from "moment";
 import {ReferentialAsObjectOptions} from "./referential.model";
 import {Entity} from "./entity.model";
 import {Department} from "./department.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';

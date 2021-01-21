@@ -1,5 +1,3 @@
-import {toDuration, toDateISOString, fromDateISOString, DATE_ISO_PATTERN} from "./dates";
-export {toDuration, fromDateISOString, toDateISOString, DATE_ISO_PATTERN};
 
 export function isNil<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null;

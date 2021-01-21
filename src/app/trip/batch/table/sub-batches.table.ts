@@ -12,7 +12,6 @@ import {
 } from "@angular/core";
 import {isObservable, Observable, Subscription} from 'rxjs';
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {AppFormUtils, EntityUtils, environment, IReferentialRef} from "../../../core/core.module";
 import {FormGroup, Validators} from "@angular/forms";
 import {
   isEmptyArray,
@@ -23,7 +22,7 @@ import {
   startsWithUpperCase,
   toBoolean
 } from "../../../shared/functions";
-import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {UsageMode} from "../../../core/services/model/settings.model";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
@@ -40,6 +39,9 @@ import {SortDirection} from "@angular/material/sort";
 import {SubBatch, SubBatchUtils} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
+import {AppFormUtils} from "../../../core/form/form.utils";
+import {EntityUtils} from "../../../core/services/model/entity.model";
+import {environment} from "../../../../environments/environment";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -53,6 +55,15 @@ export interface SubBatchFilter {
   landingId?: number;
 }
 
+const subBatchTableOptionsFactory = (injector: Injector) => {
+  return {
+    prependNewElements: false,
+    suppressErrors: environment.production,
+    reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
+    reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
+  };
+};
+
 @Component({
   selector: 'app-sub-batches-table',
   templateUrl: 'sub-batches.table.html',
@@ -61,12 +72,8 @@ export interface SubBatchFilter {
     {provide: ValidatorService, useExisting: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
-      useValue: {
-        prependNewElements: false,
-        suppressErrors: environment.production,
-        reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
-        reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
-      }
+      useFactory: subBatchTableOptionsFactory,
+      deps: [Injector]
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -278,7 +285,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
                 control.setValue(null);
               }
             }
-          })
+          });
         });
     }
   }
@@ -731,8 +738,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
               parentGroup = undefined; // remove link to parent
             } else {
               parentGroup = this._availableParents.find(p =>
-                (p && ((!p.taxonGroup && !parentTaxonGroupId) || (p.taxonGroup && p.taxonGroup.id == parentTaxonGroupId))
-                  && ((!p.taxonName && !parentTaxonNameId) || (p.taxonName && p.taxonName.id == parentTaxonNameId))));
+                (p && ((!p.taxonGroup && !parentTaxonGroupId) || (p.taxonGroup && p.taxonGroup.id === parentTaxonGroupId))
+                  && ((!p.taxonName && !parentTaxonNameId) || (p.taxonName && p.taxonName.id === parentTaxonNameId))));
             }
           }
         }
@@ -773,7 +780,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected refreshPmfms() {
-    let pmfms = this.$pmfms.getValue();
+    const pmfms = this.$pmfms.getValue();
     if (!pmfms) return; // Not loaded
 
     this.measurementsDataService.pmfms = pmfms;

@@ -1,7 +1,10 @@
-import {Department, Entity, fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
 import {IWithRecorderDepartmentEntity} from "./model.utils";
+import {Entity} from "../../../core/services/model/entity.model";
+import {Department} from "../../../core/services/model/department.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {isNotNil} from "../../../shared/functions";
 
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {

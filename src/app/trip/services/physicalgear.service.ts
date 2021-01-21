@@ -9,7 +9,7 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {environment} from "../../../environments/environment";
 import {Moment} from "moment";
 import {EMPTY, Observable} from "rxjs";
-import {fromDateISOString, isNil} from "../../shared/functions";
+import {isNil} from "../../shared/functions";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {TripFilter} from "./trip.service";
 import {ErrorCodes} from "./trip.errors";
@@ -17,6 +17,7 @@ import {gql} from "@apollo/client/core";
 import {PhysicalGearFragments} from "./trip.queries";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {SortDirection} from "@angular/material/sort";
+import {fromDateISOString} from "../../shared/dates";
 
 
 export class PhysicalGearFilter {
@@ -66,7 +67,7 @@ export class PhysicalGearService extends BaseEntityService
     protected accountService: AccountService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // -- For DEV only
     this._debug = !environment.production;

@@ -1,5 +1,4 @@
 import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {AppForm, isNotNil} from "../../core/core.module";
 import {FishingArea} from "../services/model/fishing-area.model";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
@@ -12,6 +11,7 @@ import {FishingAreaValidatorService} from "../services/validator/fishing-area.va
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {debounceTime, distinctUntilChanged, filter, pluck} from "rxjs/operators";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {AppForm} from "../../core/form/form.class";
 
 @Component({
   selector: 'app-fishing-area-form',

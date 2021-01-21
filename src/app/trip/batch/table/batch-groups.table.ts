@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {BatchGroupValidatorService} from "../../services/validator/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
 import {
@@ -33,6 +32,7 @@ import {map, takeUntil} from "rxjs/operators";
 import {SubBatchesModal} from "../modal/sub-batches.modal";
 import {TaxonGroupRef} from "../../../referential/services/model/taxon.model";
 import {MatMenuTrigger} from "@angular/material/menu";
+import {BatchGroupValidatorService} from "../../services/validator/batch-group.validator";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 

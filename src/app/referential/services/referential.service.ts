@@ -2,24 +2,24 @@ import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, MutationUpdaterFn} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {IEntitiesService, isNil, isNotEmptyArray, isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, Referential} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";
-import {Beans, KeysEnum} from "../../shared/functions";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {Beans, isNil, isNotEmptyArray, isNotNil, KeysEnum} from "../../shared/functions";
+import {Referential, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
 import {PlatformService} from "../../core/services/platform.service";
-import {FilterFn} from "../../shared/services/entity-service.class";
+import {FilterFn, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
-export class ReferentialFilter {
+export class ReferentialFilter<ID = number> {
   entityName?: string;
 
-  id?: number;
+  id?: ID;
   label?: string;
   name?: string;
 
@@ -173,7 +173,7 @@ export class ReferentialService extends BaseEntityService<Referential> implement
     protected accountService: AccountService,
     protected platform: PlatformService
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     platform.ready().then(() => {
       // No limit for updatable watch queries, if desktop

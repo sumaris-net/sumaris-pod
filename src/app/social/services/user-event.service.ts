@@ -1,23 +1,28 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {IEntitiesService, EntityServiceLoadOptions, isNil, isNilOrBlank, LoadResult} from "../../shared/shared.module";
-import {BaseEntityService, Entity, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {environment} from "../../../environments/environment";
 import {Observable, of} from "rxjs";
 import {UserEvent, UserEventAction, UserEventTypes} from "./model/user-event.model";
 import {SocialFragments} from "./social.fragments";
 import {SortDirection} from "@angular/material/sort";
-import {EntitiesServiceWatchOptions, Page} from "../../shared/services/entity-service.class";
+import {
+  EntitiesServiceWatchOptions,
+  EntityServiceLoadOptions,
+  IEntitiesService, LoadResult,
+  Page
+} from "../../shared/services/entity-service.class";
 import {map} from "rxjs/operators";
-import {isEmptyArray, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, toNumber} from "../../shared/functions";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {NetworkService} from "../../core/services/network.service";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {Entity, EntityUtils} from "../../core/services/model/entity.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export class UserEventFilter {
   issuer?: string;
@@ -76,9 +81,10 @@ export class UserEventService extends BaseEntityService<UserEvent>
     protected accountService: AccountService,
     protected network: NetworkService,
     protected translate: TranslateService,
-    protected toastController: ToastController
+    protected toastController: ToastController,
+    @Inject(EnvironmentService) protected environment,
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // For DEV only
     this._debug = !environment.production;

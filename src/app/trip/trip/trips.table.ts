@@ -1,12 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {
-  EntitiesTableDataSource,
-  environment,
-  isNil,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-} from "../../core/core.module";
 import {TripValidatorService} from "../services/validator/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
 import {AlertController, ModalController} from "@ionic/angular";
@@ -31,6 +24,10 @@ import {UserEventService} from "../../social/services/user-event.service";
 import {TripTrashModal} from "./trash/trip-trash.modal";
 import {TRIP_FEATURE_NAME} from "../services/config/trip.config";
 import {AppRootTable} from "../../data/table/root-table.class";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {isNil} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -81,7 +78,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           'comments'])
         .concat(RESERVED_END_COLUMNS),
         dataService,
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService, null, {
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService, environment, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

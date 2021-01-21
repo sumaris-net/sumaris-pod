@@ -5,7 +5,6 @@ import {DOCUMENT} from "@angular/common";
 import {MatDialog} from '@angular/material/dialog';
 import {HotkeysDialogComponent} from './dialog/hotkeys-dialog.component';
 import {isNotNilOrBlank} from "../functions";
-import {environment} from "../../../environments/environment";
 import {ModalController} from "@ionic/angular";
 
 interface Options {
@@ -31,7 +30,7 @@ export class Hotkeys {
 
   constructor(private eventManager: EventManager,
               private dialog: MatDialog,
-              @Inject(DOCUMENT) private document: Document,
+              @Inject(DOCUMENT) private document: any,
               private modalController: ModalController) {
     if (this._debug) console.debug("[hotkeys] Starting hotkeys service... Press Shift+? to get help modal.");
 

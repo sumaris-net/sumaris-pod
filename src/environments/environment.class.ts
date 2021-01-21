@@ -1,5 +1,9 @@
 import {FetchPolicy} from "@apollo/client/core";
 import {StorageConfig} from "@ionic/storage";
+import {InjectionToken} from "@angular/core";
+
+export const EnvironmentService = new InjectionToken<Environment>("ENV");
+
 export class Environment {
   name: string;
   version: string;

@@ -5,14 +5,6 @@ import {
   QualityFlagIds
 } from "./model/model.enum";
 import {
-  IEntityService, EntityServiceLoadOptions, isNil,
-  isNilOrBlank,
-  isNotEmptyArray, isNotNil,
-  LoadResult,
-  IEntitiesService
-} from "../../shared/shared.module";
-
-import {
   MINIFY_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS,
   SAVE_LOCALLY_AS_OBJECT_OPTIONS
@@ -25,7 +17,7 @@ import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {FetchPolicy} from "@apollo/client/core";
-import {isEmptyArray} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
 import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
@@ -38,6 +30,13 @@ import {Department} from "../../core/services/model/department.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "./model/vessel-snapshot.model";
 import {SortDirection} from "@angular/material/sort";
+import {
+  EntityServiceLoadOptions,
+  IEntitiesService,
+  IEntityService,
+  LoadResult
+} from "../../shared/services/entity-service.class";
+import {environment} from "../../../environments/environment";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -196,7 +195,7 @@ export class VesselService
     private vesselFeatureService: VesselFeaturesService,
     private vesselRegistrationService: VesselRegistrationService,
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**

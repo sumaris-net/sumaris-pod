@@ -1,7 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
-import {BaseEntityService, EntityUtils, isNil, isNotNil, StatusIds} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
@@ -17,6 +16,11 @@ import {FilterFn} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AggregationType, IAggregationStrata} from "./model/aggregation-type.model";
 import {ExtractionFragments, LoadExtractionTypesQuery} from "./extraction.service";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 
 export const AggregationFragments = {
@@ -167,7 +171,7 @@ export class AggregationService extends BaseEntityService {
     protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**

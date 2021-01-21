@@ -1,13 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
-import {
-  changeCaseToUnderscore,
-  fadeInOutAnimation,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  toBoolean
-} from '../../shared/shared.module';
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
@@ -15,9 +8,8 @@ import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ModalController} from "@ionic/angular";
-import {environment, ReferentialRef} from "../../core/core.module";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {SelectVesselsModal} from "./vessels/select-vessel.modal";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
@@ -25,21 +17,22 @@ import {LandingFilter} from "../services/landing.service";
 import {LandingEditor, ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {BehaviorSubject} from "rxjs";
-import {firstNotNilPromise, firstTruePromise} from "../../shared/observables";
+import {firstTruePromise} from "../../shared/observables";
 import {filter, first} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
 import {Program} from "../../referential/services/model/program.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {TripsPageSettingsEnum} from "../trip/trips.table";
 import {ObservedLocationsPageSettingsEnum} from "./observed-locations.page";
-import {Trip} from "../services/model/trip.model";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {isNil, isNotNil, toBoolean} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
 
 
 const ObservedLocationPageTabs = {
   GENERAL: 0,
   LANDINGS: 1
-}
+};
 
 @Component({
   selector: 'app-observed-location-page',

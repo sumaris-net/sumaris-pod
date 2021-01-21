@@ -3,9 +3,9 @@ import {Page} from "../../shared/services/entity-service.class";
 import {EmptyObject} from "apollo-angular/types";
 import {Observable} from "rxjs";
 import {FetchResult} from "@apollo/client/link/core";
-import {environment} from "../../../environments/environment";
 import {EntityUtils} from "./model/entity.model";
 import {ApolloCache} from "@apollo/client/core";
+import {Environment} from "../../../environments/environment.class";
 import {changeCaseToUnderscore, isNotEmptyArray} from "../../shared/functions";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
@@ -28,7 +28,7 @@ export interface MutateQueryWithCacheUpdateOptions<T = any, V = EmptyObject> ext
 }
 
 export interface MutableWatchQueryOptions<D, T = any, V = EmptyObject> extends WatchQueryOptions<V> {
-  queryName?: string,
+  queryName?: string;
   arrayFieldName: keyof D;
   totalFieldName?: keyof D ;
   insertFilterFn?: (data: T) => boolean;
@@ -58,7 +58,8 @@ export abstract class BaseEntityService<T = any, F = any> {
   protected _mutableWatchQueriesMaxCount = 3;
 
   protected constructor(
-    protected graphql: GraphqlService
+    protected graphql: GraphqlService,
+    protected environment: Environment
   ) {
 
     // for DEV only

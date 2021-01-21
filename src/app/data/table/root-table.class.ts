@@ -1,11 +1,4 @@
 import {Directive, Injector} from "@angular/core";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  isNotNil,
-  referentialToString,
-  toDateISOString,
-} from "../../core/core.module";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -18,12 +11,17 @@ import {ConnectionType, NetworkService} from "../../core/services/network.servic
 import {BehaviorSubject} from "rxjs";
 import {personsToString} from "../../core/services/model/person.model";
 import {chainPromises} from "../../shared/observables";
-import {isEmptyArray} from "../../shared/functions";
-import {RootDataEntity, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
-import {qualityFlagToColor} from "../../data/services/model/model.utils";
+import {isEmptyArray, isNotNil} from "../../shared/functions";
+import {RootDataEntity, SynchronizationStatus} from "../services/model/root-data-entity.model";
+import {qualityFlagToColor} from "../services/model/model.utils";
 import {UserEventService} from "../../social/services/user-event.service";
-import * as moment from "moment";
 import {IDataSynchroService} from "../services/root-data-synchro-service.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {referentialToString} from "../../core/services/model/referential.model";
+import {AppTable} from "../../core/table/table.class";
+import {toDateISOString} from "../../shared/dates";
+import * as momentImported from "moment";
+const moment = momentImported;
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: "filter"

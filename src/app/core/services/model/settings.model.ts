@@ -2,33 +2,16 @@ import {isNil} from "../../../shared/functions";
 import {Entity, EntityAsObjectOptions} from "./entity.model";
 import {Moment} from "moment";
 import {LatLongPattern} from "../../../shared/material/latlong/latlong.utils";
-import {PropertiesMap} from "../../../shared/types";
+import {PropertiesMap, Property} from "../../../shared/types";
+import {InjectionToken} from "@angular/core";
 
 export type UsageMode = 'DESK' | 'FIELD';
 
-export declare interface LocaleConfig {
-  id: string;
-  name: string;
+export declare interface LocaleConfig extends Property {
   country?: string;
 }
 
-export const Locales: LocaleConfig[] = [
-  {
-    id: 'fr',
-    name: 'Français',
-    country: 'fr'
-  },
-  {
-    id: 'en',
-    name: 'English (UK)',
-    country: 'gb'
-  },
-  {
-    id: 'en-US',
-    name: 'English (US)',
-    country: 'us'
-  }
-];
+export const APP_LOCALES = new InjectionToken<LocaleConfig[]>('locales');
 
 export declare interface LocalSettings {
   pages?: any;

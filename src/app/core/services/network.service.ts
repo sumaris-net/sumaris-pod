@@ -2,7 +2,6 @@ import {EventEmitter, Inject, Injectable, Optional} from "@angular/core";
 import {CryptoService} from "./crypto.service";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
-import {environment} from "../../../environments/environment";
 import {Peer} from "./model/peer.model";
 import {LocalSettings} from "./model/settings.model";
 import {ModalController, Platform, ToastController} from "@ionic/angular";
@@ -21,6 +20,7 @@ import {OverlayEventDetail} from "@ionic/core";
 import {NodeInfo} from "./network.utils";
 import {HttpUtils} from "../../shared/http/http.utils";
 import {VersionUtils} from "../../shared/version/versions";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 export type ConnectionType = 'none' | 'wifi' | 'ethernet' | 'cell' | 'unknown' ;
 
@@ -114,7 +114,7 @@ export class NetworkService {
   }
 
   constructor(
-    @Inject(DOCUMENT) private _document: HTMLDocument,
+    @Inject(DOCUMENT) private _document: any,
     private platform: Platform,
     private modalCtrl: ModalController,
     private cryptoService: CryptoService,
@@ -124,6 +124,7 @@ export class NetworkService {
     private network: Network,
     private cache: CacheService,
     private http: HttpClient,
+    @Inject(EnvironmentService) protected environment,
     @Optional() private translate: TranslateService,
     @Optional() private toastController: ToastController
   ) {
@@ -150,7 +151,7 @@ export class NetworkService {
    * @param eventType
    * @param callback
    */
-  on<T=any>(eventType: NetworkEventType, callback: (data?: T) => Promise<void>): Subscription {
+  on<T= any>(eventType: NetworkEventType, callback: (data?: T) => Promise<void>): Subscription {
     switch (eventType) {
       case "start":
         return this.onStart.subscribe(() => callback());
@@ -287,7 +288,7 @@ export class NetworkService {
 
       }
     }
-    catch(err) {
+    catch (err) {
       console.error(err && err.message || err);
       // Continue
     }
@@ -394,15 +395,15 @@ export class NetworkService {
     }
 
     // Else, use default peer in env, if exists
-    if (environment.defaultPeer) {
-      return Peer.fromObject(environment.defaultPeer);
+    if (this.environment.defaultPeer) {
+      return Peer.fromObject(this.environment.defaultPeer);
     }
 
     // Else, if App is hosted, try the web site as a peer
     const location = this._document && this._document.location;
     if (location && location.protocol && location.protocol.startsWith("http")) {
       const hostname = this._document.location.host;
-      const detectedPeer = Peer.parseUrl(`${this._document.location.protocol}${hostname}${environment.baseUrl}`);
+      const detectedPeer = Peer.parseUrl(`${this._document.location.protocol}${hostname}${this.environment.baseUrl}`);
       if (await this.checkPeerAlive(detectedPeer)) {
         return detectedPeer;
       }
@@ -496,10 +497,10 @@ export class NetworkService {
   }
 
   async checkPeerCompatible(peerInfo: NodeInfo, opts?: { showToast?: boolean; }): Promise<boolean> {
-    if (!environment.peerMinVersion) return true; // Skip compatibility check
+    if (!this.environment.peerMinVersion) return true; // Skip compatibility check
 
     // Check the min pod version, defined by the app
-    const isCompatible = peerInfo && peerInfo.softwareVersion && VersionUtils.isCompatible(environment.peerMinVersion, peerInfo.softwareVersion);
+    const isCompatible = peerInfo && peerInfo.softwareVersion && VersionUtils.isCompatible(this.environment.peerMinVersion, peerInfo.softwareVersion);
 
     // Display toast, if not compatible
     if (!isCompatible && (!opts || opts.showToast !== false)) {
@@ -507,7 +508,7 @@ export class NetworkService {
         type: 'error',
         message: 'NETWORK.ERROR.NOT_COMPATIBLE_PEER',
         messageParams: {
-          version: environment.peerMinVersion
+          version: this.environment.peerMinVersion
         },
         showCloseButton: true
       });
@@ -523,7 +524,7 @@ export class NetworkService {
     let peerUrl = (peer instanceof Peer) ? peer.url : (peer as string);
     // Remove trailing slash
     if (peerUrl.endsWith('/')) {
-      peerUrl = peerUrl.substr(0, peerUrl.length -1);
+      peerUrl = peerUrl.substr(0, peerUrl.length - 1);
     }
     return this.get(peerUrl + '/api/node/info');
   }
@@ -617,7 +618,7 @@ export class NetworkService {
 
       // Remove trailing slash
       if (peerUrl.endsWith('/')) {
-        peerUrl = peerUrl.substr(0, peerUrl.length -1 );
+        peerUrl = peerUrl.substr(0, peerUrl.length - 1 );
       }
 
       // Add first path
@@ -689,7 +690,7 @@ export class NetworkService {
    * Get default peers, from environment
    */
   protected async getDefaultPeers(): Promise<Peer[]> {
-    const peers = (environment.defaultPeers || []).map(Peer.fromObject);
+    const peers = (this.environment.defaultPeers || []).map(Peer.fromObject);
     return Promise.resolve(peers);
   }
 
@@ -697,7 +698,7 @@ export class NetworkService {
     return Toasts.show(this.toastController, this.translate, opts);
   }
 
-  protected addListener<T=any>(name: NetworkEventType, callback: (data?: T) => Promise<void>): Subscription {
+  protected addListener<T= any>(name: NetworkEventType, callback: (data?: T) => Promise<void>): Subscription {
     this._listeners[name] = this._listeners[name] || [];
     this._listeners[name].push(callback);
 
@@ -707,10 +708,10 @@ export class NetworkService {
       if (index !== -1) {
         this._listeners[name].splice(index, 1);
       }
-    })
+    });
   }
 
-  protected async emit<T=any>(name: NetworkEventType, data?: T) {
+  protected async emit<T= any>(name: NetworkEventType, data?: T) {
     const hooks = this._listeners[name];
     if (isNotEmptyArray(hooks)) {
       console.info(`[network-service] Trigger ${name} hook: Executing ${hooks.length} callbacks...`);

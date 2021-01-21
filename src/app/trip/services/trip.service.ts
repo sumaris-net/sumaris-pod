@@ -1,19 +1,8 @@
 import {Injectable, Injector, Optional} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {
-  EntityServiceLoadOptions,
-  fromDateISOString,
-  IEntitiesService,
-  IEntityService,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  LoadResult,
-  toDateISOString
-} from "../../shared/shared.module";
-import {AppFormUtils, Entity, EntityUtils, environment} from "../../core/core.module";
 import {filter, map} from "rxjs/operators";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
@@ -29,7 +18,12 @@ import {
 import {NetworkService} from "../../core/services/network.service";
 import {Observable} from "rxjs";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Beans, isEmptyArray, KeysEnum} from "../../shared/functions";
+import {
+  Beans,
+  isEmptyArray, isNil,
+  isNotEmptyArray, isNotNil,
+  KeysEnum
+} from "../../shared/functions";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
 import {OperationFilter, OperationService} from "./operation.service";
 import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -39,7 +33,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {chainPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./validator/trip.validator";
-import {FormErrors} from "../../core/form/form.utils";
+import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
 import {Operation, PhysicalGear, Trip} from "./model/trip.model";
 import {
   DataRootEntityUtils,
@@ -49,7 +43,12 @@ import {
 import {fillRankOrder} from "../../data/services/model/model.utils";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
-import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
+import {
+  EntitiesServiceWatchOptions,
+  EntityServiceLoadOptions,
+  FilterFn,
+  IEntitiesService, IEntityService, LoadResult
+} from "../../shared/services/entity-service.class";
 import {UserEventService} from "../../social/services/user-event.service";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
@@ -58,6 +57,9 @@ import {ToastController} from "@ionic/angular";
 import {TrashRemoteService} from "../../core/services/trash-remote.service";
 import {TRIP_FEATURE_NAME} from "./config/trip.config";
 import {IDataSynchroService, RootDataSynchroService} from "../../data/services/root-data-synchro-service.class";
+import {Entity, EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
+import {fromDateISOString, toDateISOString} from 'src/app/shared/dates';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {

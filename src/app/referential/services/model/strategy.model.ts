@@ -7,9 +7,9 @@ import {
 } from "../../../core/services/model/referential.model";
 import {Moment} from "moment";
 import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/functions";
 import {TaxonGroupRef, TaxonNameRef} from "./taxon.model";
 import {PmfmStrategy} from "./pmfm-strategy.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export class Strategy extends Referential<Strategy> {
 

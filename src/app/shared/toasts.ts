@@ -2,10 +2,7 @@ import {createAnimation, IonicSafeString, ToastController} from "@ionic/angular"
 import {TranslateService} from "@ngx-translate/core";
 import {OverlayEventDetail, ToastOptions} from "@ionic/core";
 import {ToastButton} from "@ionic/core/dist/types/components/toast/toast-interface";
-import {isEmptyArray, isNotEmptyArray, isNotNil} from "./functions";
-import {AnimationBuilder} from "@angular/animations";
-import {Toast} from "@ionic/core/dist/types/components/toast/toast";
-import {dismiss} from "@ionic/core/dist/types/utils/overlays";
+import {isEmptyArray, isNotNil} from "./functions";
 
 const TOAST_MAX_HEIGHT_PX = 75;
 const TOAST_MAX_STACK_SIZE = 4;

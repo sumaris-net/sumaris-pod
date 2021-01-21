@@ -1,10 +1,9 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
-import * as moment from "moment";
+import * as momentImported from "moment";
 import {Moment} from "moment";
 import {LandingForm} from "./landing.form";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
@@ -15,17 +14,18 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
 import {filter, throttleTime} from "rxjs/operators";
-import {Observable} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Landing} from "../services/model/landing.model";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {environment} from "../../../environments/environment";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AppEditorOptions} from "../../core/form/editor.class";
+import {EnvironmentService} from "../../../environments/environment.class";
 import {Program} from "../../referential/services/model/program.model";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-landing-page',
@@ -73,7 +73,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.debug = !injector.get(EnvironmentService).production;
   }
 
   ngAfterViewInit() {

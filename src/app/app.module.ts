@@ -4,7 +4,6 @@ import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from "@angular/core";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
-import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
 import {StatusBar} from '@ionic-native/status-bar/ngx';
@@ -21,7 +20,7 @@ import {Camera} from "@ionic-native/camera/ngx";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
 import {APP_LOCAL_SETTINGS, APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
-import {LocalSettings} from "./core/services/model/settings.model";
+import {APP_LOCALES, LocalSettings} from "./core/services/model/settings.model";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
 import {
@@ -58,6 +57,8 @@ import {
 } from "./referential/services/config/referential.config";
 import {FormFieldDefinitionMap} from "./shared/form/field.model";
 import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
+import {TranslateHttpLoader} from "@ngx-translate/http-loader";
+import {DATE_ISO_PATTERN} from "./shared/dates";
 
 
 @NgModule({
@@ -77,7 +78,16 @@ import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: HttpTranslateLoaderFactory,
+        useFactory: HttpTranslateLoaderFactory.build,
+        /* pass environment to this builder like:
+        useFactory: (httpClient) => {
+          if (environment.production) {
+            // This is need to force a reload, after an app update
+            return new TranslateHttpLoader(httpClient, './assets/i18n/', `-${environment.version}.json`);
+          }
+          return new TranslateHttpLoader(httpClient, './assets/i18n/', `.json`);
+        },
+        */
         deps: [HttpClient]
       }
     }),
@@ -98,7 +108,7 @@ import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 
     // functional modules
     CoreModule.forRoot(),
-    SharedModule.forRoot(),
+    SharedModule.forRoot(environment),
     SocialModule.forRoot(),
     HammerModule,
     AppRoutingModule
@@ -116,6 +126,27 @@ import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 
     {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
+
+    {provide: APP_LOCALES, useValue:
+        [
+          {
+            key: 'fr',
+            value: 'Français',
+            country: 'fr'
+          },
+          {
+            key: 'en',
+            value: 'English (UK)',
+            country: 'gb'
+          },
+          {
+            key: 'en-US',
+            value: 'English (US)',
+            country: 'us'
+          }
+        ]
+    },
+
     {provide: MAT_DATE_LOCALE, useValue: 'en'},
     {
       provide: MAT_DATE_FORMATS, useValue: {

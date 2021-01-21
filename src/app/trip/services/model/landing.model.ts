@@ -11,7 +11,7 @@ import {
 import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
 import {Person} from "../../../core/services/model/person.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/functions";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 /**
  * Landing entity

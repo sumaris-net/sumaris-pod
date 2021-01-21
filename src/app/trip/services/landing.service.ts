@@ -1,4 +1,4 @@
-import {Injectable, Injector} from "@angular/core";
+import {Inject, Injectable, Injector} from "@angular/core";
 import {
   EntitiesServiceWatchOptions,
   EntityServiceLoadOptions, FilterFn,
@@ -7,20 +7,17 @@ import {
   LoadResult
 } from "../../shared/services/entity-service.class";
 import {BehaviorSubject, EMPTY, Observable} from "rxjs";
-import {environment} from "../../../environments/environment";
 import {Landing} from "./model/landing.model";
-import {gql} from "@apollo/client/core";
+import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";
 import {
-  fromDateISOString,
   isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  toDateISOString
 } from "../../shared/functions";
 import {RootDataService} from "./root-data-service.class";
 import {Sample} from "./model/sample.model";
@@ -35,13 +32,17 @@ import {VesselSnapshotFragments} from "../../referential/services/vessel-snapsho
 import {FormErrors} from "../../core/form/form.utils";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {Moment} from "moment";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {JobUtils} from "../../shared/services/job.utils";
+import {environment} from "../../../environments/environment";
+import {fromDateISOString, toDateISOString} from "../../shared/dates";
+
 
 export class LandingFilter {
 
@@ -328,7 +329,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
   constructor(
     injector: Injector,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
   ) {
     super(injector,
       null // TODO: add root mutations ? (control, validate, unvalidate, qualify)

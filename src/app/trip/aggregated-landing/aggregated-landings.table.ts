@@ -3,19 +3,12 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  Inject,
   Injector,
   Input,
   OnDestroy,
   OnInit
 } from "@angular/core";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  environment, isNil, isNotNil, referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  StatusIds
-} from "../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -28,22 +21,26 @@ import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
 import {filterNotNil} from "../../shared/observables";
-import {isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
 import {AggregatedLandingFilter, AggregatedLandingService} from "../services/aggregated-landing.service";
+import * as momentImported from "moment";
 import {Moment} from "moment";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import * as moment from "moment";
 import {TableElement} from "@e-is/ngx-material-table";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {add} from "ionicons/icons";
-import {PacketModal} from "../packet/packet.modal";
 import {AggregatedLandingModal} from "./aggregated-landing.modal";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {referentialToString} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-aggregated-landings-table',
@@ -119,12 +116,12 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
       ['vessel'],
-      new EntitiesTableDataSource<AggregatedLanding, AggregatedLandingFilter>(AggregatedLanding, service, null, {
+      new EntitiesTableDataSource<AggregatedLanding, AggregatedLandingFilter>(AggregatedLanding, service, environment, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         serviceOptions: {
@@ -336,7 +333,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   }
 
   async vesselIdsAlreadyPresent(): Promise<number[]> {
-    const rows = await this.dataSource.getRows()
+    const rows = await this.dataSource.getRows();
     return (rows || []).map(row => row.currentData.vesselSnapshot.id);
   }
 

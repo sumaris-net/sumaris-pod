@@ -1,18 +1,11 @@
-import {
-  Department,
-  Entity,
-  EntityAsObjectOptions,
-  fromDateISOString,
-  isNotNil,
-  joinPropertiesPath,
-  Person,
-  ReferentialRef,
-  toDateISOString
-} from "../../../core/core.module";
-import {Moment} from "moment/moment";
-import {IEntity} from "../../../core/services/model/entity.model";
-import {NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
+import {Moment} from "moment";
+import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
+import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
 import {Vessel} from "./vessel.model";
+import {Department} from "../../../core/services/model/department.model";
+import {isNotNil, joinPropertiesPath} from "../../../shared/functions";
+import {Person} from "../../../core/services/model/person.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export interface IWithVesselSnapshotEntity<T> extends IEntity<T> {
   vesselSnapshot: VesselSnapshot;

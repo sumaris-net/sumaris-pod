@@ -1,13 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {AppEntityEditor, isNotNil, ReferentialRef} from "../../core/core.module";
 import {ReferentialForm} from "../form/referential.form";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmStrategiesTable, PmfmStrategyFilter} from "./pmfm-strategies.table";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {SelectReferentialModal} from "../list/select-referential.modal";
 import {ModalController} from "@ionic/angular";
 import {AppListForm, AppListFormOptions} from "../../core/form/list.form";
-import {isEmptyArray, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNotNil, toNumber} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -22,6 +21,7 @@ import {Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model
 import {Program} from "../services/model/program.model";
 
 import {referentialToString} from "../../core/services/model/referential.model";
+import {AppEntityEditor} from "../../core/form/editor.class";
 
 @Component({
   selector: 'app-strategy-form',

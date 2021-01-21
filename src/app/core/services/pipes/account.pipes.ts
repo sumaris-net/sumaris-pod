@@ -1,7 +1,4 @@
 import {Injectable, Pipe, PipeTransform} from '@angular/core';
-
-import {UsageMode} from "../model/settings.model";
-import {LocalSettingsService} from "../local-settings.service";
 import {Account, accountToString} from "../model/account.model";
 
 @Pipe({

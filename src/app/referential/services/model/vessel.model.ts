@@ -1,21 +1,14 @@
-import {
-  Department,
-  Entity,
-  EntityAsObjectOptions,
-  fromDateISOString,
-  isNil,
-  isNotNil,
-  Person,
-  ReferentialRef,
-  toDateISOString
-} from "../../../core/core.module";
-import {Moment} from "moment/moment";
-import {isNilOrBlank} from "../../../shared/functions";
+import {Moment} from "moment";
+import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
 import {
   NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
+  ReferentialAsObjectOptions, ReferentialRef,
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
+import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {Department} from "../../../core/services/model/department.model";
+import {Person} from "../../../core/services/model/person.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export class Vessel extends Entity<Vessel> {
 

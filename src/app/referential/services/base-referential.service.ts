@@ -56,7 +56,7 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     protected filterAsObjectFn: (filter: F) => any = ReferentialFilter.asPodObject,
     protected createFilterFn: (filter: F) => ((data: E) => boolean) = ReferentialFilter.searchFilter
   ) {
-    super(graphql/*, environment*/);
+    super(graphql, environment);
 
     platform.ready().then(() => {
       // No limit for updatable watch queries, if desktop

@@ -6,9 +6,8 @@ import {SubBatchForm} from "../form/sub-batch.form";
 import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
 import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "../table/sub-batches.table";
 import {AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
-import {AppFormUtils, isNil} from "../../../core/core.module";
 import {Animation, IonContent, ModalController} from "@ionic/angular";
-import {isEmptyArray, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
+import {isEmptyArray, isNil, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
 import {AudioProvider} from "../../../shared/audio/audio";
 import {Alerts} from "../../../shared/alerts";
 import {isObservable, Observable, of, Subject} from "rxjs";
@@ -16,6 +15,7 @@ import {createAnimation} from "@ionic/core";
 import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {AppFormUtils} from "../../../core/form/form.utils";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];

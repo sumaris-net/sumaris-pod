@@ -1,6 +1,6 @@
 import {Pipe, Injectable, PipeTransform} from '@angular/core';
 import {TranslateService} from "@ngx-translate/core";
-import {toDuration} from "../functions";
+import {toDuration} from "../dates";
 
 @Pipe({
   name: 'duration'

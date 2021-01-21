@@ -1,15 +1,7 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, isNotNil, ReferentialRef} from '../../core/core.module';
-import {
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  isNil,
-  isNotEmptyArray,
-  isNotNilOrBlank
-} from '../../shared/shared.module';
-import * as moment from "moment";
+import * as momentImported from "moment";
 import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
@@ -21,7 +13,7 @@ import {HistoryPageReference, UsageMode} from "../../core/services/model/setting
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isEmptyArray} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
@@ -39,7 +31,14 @@ import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {ReferentialRef} from "../../core/services/model/referential.model";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {Program} from "../../referential/services/model/program.model";
+import {environment} from "../../../environments/environment";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -90,7 +89,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
-    protected formBuilder: FormBuilder
+    protected formBuilder: FormBuilder,
   ) {
     super(injector,
       Trip,

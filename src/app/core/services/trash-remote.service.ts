@@ -1,9 +1,11 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {BaseEntityService} from "./base.data-service.class";
 import {GraphqlService} from "../graphql/graphql.service";
 import {ErrorCodes} from "./errors";
 import {gql} from "@apollo/client/core";
 import {chainPromises} from "../../shared/observables";
+import {EntitiesStorage} from "./storage/entities-storage.service";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 // Load a trash file
 const LoadQuery: any = gql`
@@ -23,9 +25,10 @@ export class TrashRemoteService extends BaseEntityService<string, any> {
 
 
   constructor(
-    protected graphql: GraphqlService
+    protected graphql: GraphqlService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     if (this._debug) console.debug("[trash-service] Creating service");
   }

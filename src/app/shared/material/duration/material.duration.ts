@@ -24,7 +24,7 @@ import {
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DEFAULT_PLACEHOLDER_CHAR} from '../../constants';
 import {isNil, toBoolean} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
@@ -34,7 +34,7 @@ import {DEFAULT_MAX_DECIMALS, formatDuration, parseDuration} from "./duration.ut
 import {BehaviorSubject, Subscription} from "rxjs";
 import {filter} from "rxjs/operators";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
+const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatDuration),
   multi: true

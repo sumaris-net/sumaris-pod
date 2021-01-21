@@ -1,7 +1,5 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {EntityServiceLoadOptions, IEntityService, isNil, isNotNil} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -9,6 +7,12 @@ import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
 import {Parameter} from "./model/parameter.model";
 import {ReferentialFragments} from "./referential.fragments";
+import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {environment} from "../../../environments/environment";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){
@@ -38,7 +42,7 @@ export class ParameterService extends BaseEntityService implements IEntityServic
     protected accountService: AccountService,
     protected referentialService: ReferentialService
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {

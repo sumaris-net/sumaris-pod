@@ -1,14 +1,16 @@
-import {fromDateISOString, Person, ReferentialRef, toDateISOString} from "../../../core/core.module";
-
 import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-
-
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Landing} from "./landing.model";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
+import {
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialRef
+} from "../../../core/services/model/referential.model";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {Person} from "../../../core/services/model/person.model";
 
 
 export class ObservedLocation extends RootDataEntity<ObservedLocation>

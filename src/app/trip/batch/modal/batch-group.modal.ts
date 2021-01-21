@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  Inject,
   Injector,
   Input,
   OnDestroy,
@@ -10,19 +11,20 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AppFormUtils, environment, IReferentialRef, isNil} from "../../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/services/model/model.enum";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BatchGroupForm} from "../form/batch-group.form";
-import {toBoolean} from "../../../shared/functions";
+import {isNil, toBoolean} from "../../../shared/functions";
 import {debounceTime, map, startWith} from "rxjs/operators";
 import {PlatformService} from "../../../core/services/platform.service";
 import {Alerts} from "../../../shared/alerts";
 import {BatchGroup} from "../../services/model/batch-group.model";
-import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
+import {AppFormUtils} from "../../../core/form/form.utils";
+import {environment} from "../../../../environments/environment";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -110,7 +112,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -176,7 +178,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
       if (isNil(saveBeforeLeave) || event && event.defaultPrevented) return; // User cancelled
 
       // Ask a second confirmation, if observed individual count > 0
-      if (saveBeforeLeave == false && this.isNew && this.data.observedIndividualCount > 0) {
+      if (saveBeforeLeave === false && this.isNew && this.data.observedIndividualCount > 0) {
         saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
         if (isNil(saveBeforeLeave) || event && event.defaultPrevented) return; // User cancelled
       }

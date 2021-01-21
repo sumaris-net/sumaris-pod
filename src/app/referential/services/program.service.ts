@@ -2,22 +2,24 @@ import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
-import {
-  BaseEntityService,
-  EntityUtils,
-  IEntitiesService,
-  IReferentialRef,
-  isNil,
-  isNotNil,
-  LoadResult,
-  ReferentialRef
-} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {EntityServiceLoadOptions, FilterFn, IEntityService} from "../../shared/services/entity-service.class";
+import {
+  EntityServiceLoadOptions,
+  FilterFn,
+  IEntitiesService,
+  IEntityService, LoadResult
+} from "../../shared/services/entity-service.class";
 import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
-import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
+import {
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  propertiesPathComparator,
+  suggestFromArray
+} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
@@ -25,8 +27,9 @@ import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {
+  IReferentialRef,
   NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
+  ReferentialAsObjectOptions, ReferentialRef,
   ReferentialUtils,
   SAVE_AS_OBJECT_OPTIONS
 } from "../../core/services/model/referential.model";
@@ -40,6 +43,9 @@ import {ReferentialQueries} from "./referential.service";
 import {StrategyFragments} from "./strategy.service";
 import {AcquisitionLevelCodes} from "./model/model.enum";
 import {JobUtils} from "../../shared/services/job.utils";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 
 export class ProgramFilter {
@@ -273,7 +279,7 @@ export class ProgramService extends BaseEntityService
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql);
+    super(graphql, environment);
     if (this._debug) console.debug('[program-service] Creating service');
   }
 

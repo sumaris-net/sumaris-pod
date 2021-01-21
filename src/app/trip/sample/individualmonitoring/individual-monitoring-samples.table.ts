@@ -1,11 +1,11 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {isNotNil} from "../../../core/core.module";
 import {SubSampleValidatorService} from "../../services/validator/sub-sample.validator";
 import {FormGroup, Validators} from "@angular/forms";
 import {AcquisitionLevelCodes, PmfmIds} from "../../../referential/services/model/model.enum";
 import {filter} from "rxjs/operators";
 import {SubSamplesTable} from "../sub-samples.table";
+import {isNotNil} from "../../../shared/functions";
 
 
 @Component({

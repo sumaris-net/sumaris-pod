@@ -1,6 +1,5 @@
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {Directive, Injector} from "@angular/core";
-import {BaseEntityService, Department, EntityUtils, isNil, isNotNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
@@ -9,6 +8,11 @@ import {DataRootEntityUtils, RootDataEntity} from "../../data/services/model/roo
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {ErrorCodes} from "./trip.errors";
 import {IWithRecorderDepartmentEntity} from "../../data/services/model/model.utils";
+import {Department} from "../../core/services/model/department.model";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 
 export interface RootEntityMutations {
@@ -30,7 +34,7 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
     injector: Injector,
     protected mutations: RootEntityMutations
   ) {
-    super(injector.get(GraphqlService));
+    super(injector.get(GraphqlService), environment);
 
     this.accountService = this.accountService || injector && injector.get(AccountService) || undefined;
   }

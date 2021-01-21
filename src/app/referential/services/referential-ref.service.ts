@@ -2,13 +2,11 @@ import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {map} from "rxjs/operators";
-import {fromDateISOString, IEntitiesService, isNotEmptyArray, isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseEntityService, Referential, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
-import {FilterFn, SuggestService} from "../../shared/services/entity-service.class";
+import {FilterFn, IEntitiesService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {TaxonNameRef} from "./model/taxon.model";
@@ -17,9 +15,13 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 import {Moment} from "moment";
-import {toNumber} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
 import {JobUtils} from "../../shared/services/job.utils";
 import {chainPromises} from "../../shared/observables";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {environment} from "../../../environments/environment";
+import {fromDateISOString} from "../../shared/dates";
 
 export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];
@@ -114,7 +116,7 @@ export class ReferentialRefService extends BaseEntityService
     protected network: NetworkService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**

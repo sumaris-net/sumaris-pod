@@ -1,25 +1,15 @@
 import {Directive, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  environment,
-  isNil,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  IEntitiesService, Entity
-} from "../../core/core.module";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
-import {MeasurementsValidatorService} from "../services/validator/trip.validators";
-import {isNotNil} from "../../shared/functions";
+import {isNil, isNotNil} from "../../shared/functions";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {MeasurementsDataService} from "./measurements.service";
-import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
+import {AppTableDataSourceOptions, EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {AcquisitionLevelType} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -27,6 +17,10 @@ import {Alerts} from "../../shared/alerts";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 import {ProgramService} from "../../referential/services/program.service";
+import {IEntitiesService} from "../../shared/services/entity-service.class";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
+import {Entity} from "../../core/services/model/entity.model";
 
 
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
@@ -36,6 +30,7 @@ export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>
 }
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, F> extends AppTable<T, F>
   implements OnInit, OnDestroy, ValidatorService {
 
@@ -150,13 +145,13 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
     // Default options
-    this.options = this.options || {prependNewElements: false, suppressErrors: environment.production};
+    this.options = this.options || {prependNewElements: false, suppressErrors: this.environment.production};
     if (!this.options.onRowCreated) {
       this.options.onRowCreated = (row) => this.onRowCreated(row);
     }
 
     const encapsulatedValidator = this.validatorService ? this : null;
-    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, options));
+    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, this.environment, encapsulatedValidator, options));
 
     // For DEV only
     //this.debug = !environment.production;
@@ -344,6 +339,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    * The new row will be the edited row.
    *
    * @param data the entity to insert.
+   * @param opts
    */
   protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
     if (!data) throw new Error("Missing data to add");
@@ -403,6 +399,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    *
    * @param data the input entity
    * @param row the row to update
+   * @param opts
    */
   protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
     if (!data || !row) throw new Error("Missing data, or table row to update");

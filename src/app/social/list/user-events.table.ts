@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {TableElement} from "@e-is/ngx-material-table";
 import {UserEventFilter, UserEventService, UserEventWatchOptions} from "../services/user-event.service";
 import {AccountService} from "../../core/services/account.service";
@@ -13,11 +22,9 @@ import {Location} from "@angular/common";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {SortDirection} from "@angular/material/sort";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Trip} from "../../trip/services/model/trip.model";
 import {PredefinedColors} from "@ionic/core";
 import {IEntity} from "../../core/services/model/entity.model";
-import {RootDataEntity, SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
-import {ObservedLocation} from "../../trip/services/model/observed-location.model";
+import {EnvironmentService} from "../../../environments/environment.class";
 
 
 export interface UserEventDetail<T extends IEntity<T>> {
@@ -31,7 +38,7 @@ export interface UserEventDetail<T extends IEntity<T>> {
 
   icon?: string;
   matIcon?: string;
-  color?: string,
+  color?: string;
   cssClass?: string;
   time?: Moment;
 
@@ -51,7 +58,7 @@ export interface UserEventIcon{
 const ICONS_MAP: {[key: string]: UserEventIcon } = {
   "DEBUG_DATA": {matIcon: "bug_report"},
   "INBOX_MESSAGE": {matIcon: "mail"},
-}
+};
 
 // TODO: refactor with a registration done by data service:
 // - userEventService.registerEventAction({__typename: 'TripVO', ...})
@@ -103,7 +110,8 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
     protected accountService: AccountService,
     protected service: UserEventService,
     protected entities: EntitiesStorage,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector.get(ActivatedRoute),
       injector.get(Router),
@@ -147,6 +155,7 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
 
     this.setDatasource(new EntitiesTableDataSource<UserEvent, UserEventFilter>(UserEvent,
       this.service,
+      this.environment,
       null,
       {
         prependNewElements: false,
@@ -185,7 +194,7 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
     if (source.content && source.eventType === UserEventTypes.DEBUG_DATA) {
       const context = source.content.context;
       if (context && context.__typename) {
-        const actions = this.service.getActionsByTypename(context.__typename)
+        const actions = this.service.getActionsByTypename(context.__typename);
         return {
           actions,
           title: source.content.error && source.content.error.message || source.content.message,

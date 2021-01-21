@@ -1,14 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {Moment} from 'moment/moment';
-import {
-  EntityUtils,
-  FormArrayHelper,
-  fromDateISOString,
-  isNil,
-  isNotNil,
-  Person,
-  referentialToString
-} from '../../core/core.module';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, map, pluck} from 'rxjs/operators';
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
@@ -16,17 +7,17 @@ import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-
-import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {Person, personToString} from "../../core/services/model/person.model";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isNotEmptyArray, isNotNilOrBlank, toBoolean} from "../../shared/functions";
+import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
-import {start} from "repl";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {fromDateISOString} from "../../shared/dates";
 
 @Component({
   selector: 'form-observed-location',

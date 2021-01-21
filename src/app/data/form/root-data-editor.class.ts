@@ -1,6 +1,5 @@
 import {Directive, Injector, OnInit, ViewChild} from '@angular/core';
 
-import {ReferentialRef} from '../../core/core.module';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {changeCaseToUnderscore, isNil, isNotNil, isNotNilOrBlank, toNumber} from '../../shared/functions';
 import {distinctUntilChanged, filter, switchMap, tap} from "rxjs/operators";
@@ -8,7 +7,7 @@ import {Program} from "../../referential/services/model/program.model";
 import {ProgramService} from "../../referential/services/program.service";
 import {IEntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor, AppEditorOptions} from "../../core/form/editor.class";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
 import {

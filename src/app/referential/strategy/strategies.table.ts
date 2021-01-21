@@ -1,12 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
 import {
-  AppTable, EntitiesTableDataSource,
-  environment,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from "../../core/core.module";
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {Strategy} from "../services/model/strategy.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
@@ -19,6 +21,9 @@ import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Program} from "../services/model/program.model";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {environment} from "../../../environments/environment";
 
 
 @Component({
@@ -48,7 +53,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     injector: Injector,
     dataService: StrategyService,
     validatorService: ValidatorService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
   ) {
     super(route,
       router,
@@ -65,7 +70,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
           'status',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource(Strategy, dataService, validatorService, {
+      new EntitiesTableDataSource(Strategy, dataService, environment, validatorService, {
         prependNewElements: false,
         suppressErrors: false,
         dataServiceOptions: {

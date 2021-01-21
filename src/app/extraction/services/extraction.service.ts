@@ -1,17 +1,18 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
-import {BaseEntityService, isNil, isNotNil} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction.model";
-import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Fragments} from "../../trip/services/trip.queries";
 import {SortDirection} from "@angular/material/sort";
 import {firstNotNilPromise} from "../../shared/observables";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {environment} from "../../../environments/environment";
 
 
 export const ExtractionFragments = {
@@ -77,9 +78,9 @@ export class ExtractionService extends BaseEntityService {
 
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**
@@ -109,7 +110,7 @@ export class ExtractionService extends BaseEntityService {
             .filter(json => {
               // Workaround because saveAggregation() doest not add NEW extraction type correctly
               if (!json || isNil(json.label)) {
-                console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?')
+                console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?');
                 return false;
               }
               return true;
@@ -129,11 +130,13 @@ export class ExtractionService extends BaseEntityService {
 
   /**
    * Load many trips
+   * @param type
    * @param offset
    * @param size
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param options
    */
 
   async loadRows(

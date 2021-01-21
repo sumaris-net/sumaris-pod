@@ -1,23 +1,15 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional} from '@angular/core';
 import {OperationValidatorService} from "../services/validator/operation.validator";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {
-  AppForm,
-  EntityUtils,
-  fromDateISOString,
-  IReferentialRef,
-  isNotNil,
-  ReferentialRef
-} from '../../core/core.module';
-
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {FormGroup, ValidationErrors} from "@angular/forms";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
-import {isNotEmptyArray} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SharedValidators} from "../../shared/validator/validators";
@@ -28,6 +20,9 @@ import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {Geolocation} from "@ionic-native/geolocation/ngx";
 import {GeolocationOptions} from "@ionic-native/geolocation";
+import {AppForm} from "../../core/form/form.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {fromDateISOString} from "../../shared/dates";
 
 @Component({
   selector: 'app-form-operation',

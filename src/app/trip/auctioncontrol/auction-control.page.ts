@@ -9,7 +9,6 @@ import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {fadeInOutAnimation, isNil, isNotEmptyArray, isNotNil} from "../../shared/shared.module";
 import {IReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
@@ -18,10 +17,11 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {TaxonGroupLabels, TaxonGroupRef} from "../../referential/services/model/taxon.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {toNumber} from "../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
 import {AppHelpModal} from "../../shared/help/help.modal";
 import {SharedValidators} from "../../shared/validator/validators";
 import {Program} from "../../referential/services/model/program.model";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
 
 @Component({
   selector: 'app-auction-control',

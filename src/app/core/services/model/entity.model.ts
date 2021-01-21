@@ -1,17 +1,16 @@
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {
-  fromDateISOString,
   isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotNil,
   joinPropertiesPath,
-  toDateISOString
 } from "../../../shared/functions";
 import {FilterFn} from "../../../shared/services/entity-service.class";
 import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
 import {StoreObject} from "@apollo/client/core";
 import {DataEntity} from "../../../data/services/model/data-entity.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export declare interface Cloneable<T> {
@@ -75,6 +74,7 @@ export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsOb
 
 }
 
+// @dynamic
 export abstract class EntityUtils {
   // Check that the object has a NOT nil attribute (ID by default)
   static isNotEmpty<T extends IEntity<any> | any>(obj: any | T, checkedAttribute: keyof T): boolean {

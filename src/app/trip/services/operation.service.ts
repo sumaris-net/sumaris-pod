@@ -2,20 +2,10 @@ import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {EMPTY, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
-import {
-  EntityServiceLoadOptions,
-  IEntitiesService,
-  IEntityService,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  LoadResult
-} from "../../shared/shared.module";
-import {BaseEntityService, Department, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {isEmptyArray, isNilOrBlank} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {
@@ -33,10 +23,18 @@ import {Sample} from "./model/sample.model";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
-import {QueryVariables} from "../../core/services/base.data-service.class";
+import {
+  EntitiesServiceWatchOptions, EntityServiceLoadOptions,
+  FilterFn,
+  IEntitiesService,
+  IEntityService, LoadResult
+} from "../../shared/services/entity-service.class";
+import {BaseEntityService, QueryVariables} from "../../core/services/base.data-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {chainPromises, firstNotNilPromise} from "../../shared/observables";
+import {Department} from "../../core/services/model/department.model";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -243,7 +241,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     protected accountService: AccountService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     this._mutableWatchQueriesMaxCount = 2;
 

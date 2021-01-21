@@ -38,7 +38,7 @@
         </mat-radio-button>
       </mat-radio-group>
 
-      <ng-content matSuffix select="[matSuffix]"></ng-content>
+      <div matSuffix #injectMatSuffix></div>
 
       <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     </mat-form-field>
@@ -69,7 +69,7 @@
                     [tabindex]="tabindex">
       </mat-checkbox>
 
-      <ng-content matSuffix select="[matSuffix]"></ng-content>
+      <div matSuffix #injectMatSuffix></div>
 
       <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     </mat-form-field>
@@ -114,11 +114,15 @@
         <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
       </ng-template>
 
-      <ng-content matSuffix select="[matSuffix]"></ng-content>
+      <div matSuffix #injectMatSuffix></div>
 
       <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     </mat-form-field>
   </ng-container>
+
+  <div class="cdk-visually-hidden">
+    <div #suffix><ng-content select="[matSuffix]"></ng-content></div>
+  </div>
 
 </ng-template>
 

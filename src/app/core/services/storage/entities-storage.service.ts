@@ -2,13 +2,13 @@ import {concat, defer, merge, Observable, Subject, Subscription, timer} from "rx
 import {EventEmitter, Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
-import {environment} from "../../../../environments/environment";
 import {catchError, first, switchMap, throttleTime} from "rxjs/operators";
 import {Entity} from "../model/entity.model";
 import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
 import {ENTITIES_STORAGE_KEY_PREFIX, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
 import {ProgressBarService} from "../../../shared/services/progress-bar.service";
+import {EnvironmentService} from "../../../../environments/environment.class";
 
 
 export interface EntitiesStorageTypePolicies {
@@ -44,6 +44,7 @@ export class EntitiesStorage {
     private platform: Platform,
     private progressBarService: ProgressBarService,
     private storage: Storage,
+    @Inject(EnvironmentService) protected environment,
     @Optional() @Inject(APP_LOCAL_STORAGE_TYPE_POLICIES) typePolicies: EntitiesStorageTypePolicies
   ) {
     this._typePolicies = typePolicies || {};

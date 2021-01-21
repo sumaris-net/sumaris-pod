@@ -10,11 +10,11 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {SampleValidatorService} from "../services/validator/sample.validator";
-import {isEmptyArray, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {Moment} from "moment";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
@@ -27,6 +27,8 @@ import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {BatchGroup} from "../services/model/batch-group.model";
+import {IReferentialRef, ReferentialRef} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 export interface SampleFilter {
   operationId?: number;

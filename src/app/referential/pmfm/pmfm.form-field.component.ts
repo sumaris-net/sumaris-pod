@@ -13,14 +13,14 @@ import {
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material/form-field";
-import {AppFormUtils, isNil} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {toBoolean} from "../../shared/functions";
+import {isNil, toBoolean} from "../../shared/functions";
 import {filterNumberInput, focusInput, InputElement, setTabIndex} from "../../shared/inputs";
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
 import {PmfmValidators} from "../services/validator/pmfm.validators";
 import {PmfmLabelPatterns, UnitLabel, UnitLabelPatterns} from "../services/model/model.enum";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 const noop = () => {
 };

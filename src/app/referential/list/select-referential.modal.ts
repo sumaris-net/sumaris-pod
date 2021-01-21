@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {changeCaseToUnderscore, isNotNil, toBoolean} from "../../shared/functions";
 import {ReferentialFilter} from "../services/referential.service";
@@ -7,6 +7,7 @@ import {ReferentialRefFilter, ReferentialRefService} from "../services/referenti
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {ReferentialRefTable} from "./referential-ref.table";
 import {ReferentialRef} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-select-referential-modal',
@@ -31,7 +32,7 @@ export class SelectReferentialModal implements OnInit {
   constructor(
     protected viewCtrl: ModalController,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
   ) {
   }
 
@@ -42,15 +43,16 @@ export class SelectReferentialModal implements OnInit {
     }
     this.table.setDatasource(new EntitiesTableDataSource<ReferentialRef, ReferentialRefFilter>(ReferentialRef,
       this.referentialRefService,
+      environment,
       null,
       {
         prependNewElements: false,
         suppressErrors: true
-      }))
+      }));
     this.table.filter = this.filter;
 
     // Compute title
-    this.$title.next('REFERENTIAL.ENTITY.' + changeCaseToUnderscore(this.filter.entityName).toUpperCase())
+    this.$title.next('REFERENTIAL.ENTITY.' + changeCaseToUnderscore(this.filter.entityName).toUpperCase());
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);

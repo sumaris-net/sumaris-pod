@@ -1,15 +1,14 @@
 import {Moment} from "moment";
 import {ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {
-  fromDateISOString,
   isNil, isNilOrBlank,
   isNotNil,
   isNotNilOrNaN,
   joinPropertiesPath,
-  toDateISOString
 } from "../../../shared/functions";
 import {Pmfm} from "./pmfm.model";
 import {PmfmStrategy} from "./pmfm-strategy.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
 

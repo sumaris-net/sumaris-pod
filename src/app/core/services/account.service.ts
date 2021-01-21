@@ -1,24 +1,26 @@
-import {Injectable} from "@angular/core";
-import {base58, CryptoService, KeyPair} from "./crypto.service";
+import {Inject, Injectable} from "@angular/core";
+import {CryptoService, KeyPair} from "./crypto.service";
 import {Department} from "./model/department.model";
 import {Account} from "./model/account.model";
 import {Person, PersonUtils, UserProfileLabel} from "./model/person.model";
 import {UsageMode, UserSettings} from "./model/settings.model";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {Storage} from '@ionic/storage';
-import {FetchPolicy} from "@apollo/client/core";
 
-import {sleep, toDateISOString} from "../../shared/functions";
+import {sleep} from "../../shared/functions";
 import {BaseEntityService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
-import {environment} from "../../../environments/environment";
 import {GraphqlService} from "../graphql/graphql.service";
 import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {NetworkService} from "./network.service";
 import {FileService} from "../../shared/file/file.service";
-import {Referential, ReferentialUtils, StatusIds} from "./model/referential.model";
+import {Referential, ReferentialUtils} from "./model/referential.model";
+import {StatusIds} from "./model/model.enum";
+import {Base58} from "./base58";
+import {EnvironmentService} from "../../../environments/environment.class";
+import {toDateISOString} from "../../shared/dates";
 
 
 export declare interface AccountHolder {
@@ -51,7 +53,7 @@ const DEFAULT_AVATAR_IMAGE = "assets/img/person.png";
 /* ------------------------------------
  * GraphQL queries
  * ------------------------------------*/
-export const Fragments = {
+const Fragments = {
   account: gql`
     fragment AccountFragment on AccountVO {
       id
@@ -100,10 +102,10 @@ const IsEmailExistsQuery: any = gql`
     isEmailExists(email: $email, hash: $hash)
   }
 `;
-export declare type IsEmailExistsVariables = {
+export declare interface IsEmailExistsVariables {
   email: string;
   hash: string;
-};
+}
 
 // Save (create or update) account mutation
 const SaveMutation: any = gql`
@@ -212,9 +214,10 @@ export class AccountService extends BaseEntityService {
     protected graphql: GraphqlService,
     protected settings: LocalSettingsService,
     protected storage: Storage,
-    protected file: FileService
+    protected file: FileService,
+    @Inject(EnvironmentService) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
     this._debug = !environment.production;
     if (this._debug) console.debug('[account-service] Creating service');
 
@@ -392,18 +395,18 @@ export class AccountService extends BaseEntityService {
 
     try {
       const keypair = await this.cryptoService.scryptKeypair(data.username, data.password);
-      data.account.pubkey = base58.encode(keypair.publicKey);
+      data.account.pubkey = Base58.encode(keypair.publicKey);
 
       // Default values
       data.account.settings.locale = this.settings.locale;
       data.account.settings.latLongFormat = this.settings.latLongFormat;
-      data.account.department.id = data.account.department.id || environment.defaultDepartmentId;
+      data.account.department.id = data.account.department.id || this.environment.defaultDepartmentId;
 
       this.data.keypair = keypair;
       const account = await this.saveAccount(data.account, keypair);
 
       // Default values
-      account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
+      account.avatar = account.avatar || (this.environment.baseUrl + DEFAULT_AVATAR_IMAGE);
       this.data.mainProfile = PersonUtils.getMainProfile(account.profiles);
 
       this.data.account = account;
@@ -442,7 +445,7 @@ export class AccountService extends BaseEntityService {
     }
 
     // Store pubkey+keypair
-    this.data.pubkey = base58.encode(keypair.publicKey);
+    this.data.pubkey = Base58.encode(keypair.publicKey);
     this.data.keypair = keypair;
 
     // Try to load previous token
@@ -541,7 +544,7 @@ export class AccountService extends BaseEntityService {
       const account = (await this.loadAccount(this.data.pubkey, opts)) || new Account();
 
       // Set defaults
-      account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
+      account.avatar = account.avatar || (this.environment.baseUrl + DEFAULT_AVATAR_IMAGE);
       account.settings = account.settings || new UserSettings();
       account.settings.locale = account.settings.locale || this.settings.locale;
       account.settings.latLongFormat = account.settings.latLongFormat || this.settings.latLongFormat || 'DDMM';
@@ -593,8 +596,8 @@ export class AccountService extends BaseEntityService {
 
     this.data.pubkey = pubkey;
     this.data.keypair = seckey && {
-      publicKey: base58.decode(pubkey),
-      secretKey: base58.decode(seckey)
+      publicKey: Base58.decode(pubkey),
+      secretKey: Base58.decode(seckey)
     } || null;
 
     // Online mode: try to connect to pod
@@ -657,7 +660,7 @@ export class AccountService extends BaseEntityService {
 
     // Convert account to json
     const jsonAccount = this.data.account.asObject({keepTypename: true});
-    const seckey = this.data.keypair && this.data.keypair.secretKey && base58.encode(this.data.keypair.secretKey) || null;
+    const seckey = this.data.keypair && this.data.keypair.secretKey && Base58.encode(this.data.keypair.secretKey) || null;
 
     // Convert avatar URL to dataUrl (e.g. 'data:image/png:<base64 content>')
     const hasAvatarUrl = jsonAccount.avatar && !jsonAccount.avatar.endsWith(DEFAULT_AVATAR_IMAGE) &&
@@ -702,7 +705,7 @@ export class AccountService extends BaseEntityService {
     account = await this.saveAccount(account, this.data.keypair);
 
     // Set defaults
-    account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
+    account.avatar = account.avatar || (this.environment.baseUrl + DEFAULT_AVATAR_IMAGE);
     this.data.mainProfile = PersonUtils.getMainProfile(account.profiles);
 
     this.data.account = account;
@@ -787,7 +790,7 @@ export class AccountService extends BaseEntityService {
           pubkey: pubkey
         },
         error: { code: ErrorCodes.LOAD_ACCOUNT_ERROR, message: "ERROR.LOAD_ACCOUNT_ERROR" },
-        fetchPolicy: opts && opts.fetchPolicy || environment.apolloFetchPolicy || undefined
+        fetchPolicy: opts && opts.fetchPolicy || this.environment.apolloFetchPolicy || undefined
       });
       accountJson = res && res.account;
     }
@@ -809,7 +812,7 @@ export class AccountService extends BaseEntityService {
    * @param keyPair
    */
   public async saveAccount(account: Account, keyPair: KeyPair): Promise<Account> {
-    account.pubkey = account.pubkey || base58.encode(keyPair.publicKey);
+    account.pubkey = account.pubkey || Base58.encode(keyPair.publicKey);
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[account] Saving account {${account.pubkey.substring(0, 6)}} remotely...`);

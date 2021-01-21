@@ -31,16 +31,15 @@ import {
   toBoolean,
   toNumber
 } from "../../shared/functions";
-import {AppFormUtils, ReferentialRef, referentialToString} from "../../core/core.module";
 import {focusInput, InputElement} from "../../shared/inputs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmIds} from "../services/model/model.enum";
 import {Pmfm} from "../services/model/pmfm.model";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {IonButton} from "@ionic/angular";
-import {MatMenu, MatMenuItem} from "@angular/material/menu";
 import {DOCUMENT} from "@angular/common";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-pmfm-qv-field',
