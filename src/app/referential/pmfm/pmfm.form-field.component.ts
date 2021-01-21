@@ -19,6 +19,7 @@ import {filterNumberInput, focusInput, InputElement, setTabIndex} from "../../sh
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
 import {PmfmValidators} from "../services/validator/pmfm.validators";
+import {AppFormUtils} from "../../core/form/form.utils";
 import {PmfmLabelPatterns, UnitLabel, UnitLabelPatterns} from "../services/model/model.enum";
 import {AppFormUtils} from "../../core/form/form.utils";
 

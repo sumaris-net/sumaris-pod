@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
 import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
@@ -13,6 +13,12 @@ import {ReferentialRefService} from "../services/referential-ref.service";
 import {ParameterService} from "../services/parameter.service";
 import {filter, mergeMap} from "rxjs/operators";
 import {Observable} from "rxjs";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {isNil, joinPropertiesPath} from "../../shared/functions";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
+import {EnvironmentService} from "../../../environments/environment.class";
 import {HistoryPageReference} from "../../core/services/model/history.model";
 import {isNil, joinPropertiesPath} from "../../shared/functions";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
@@ -54,7 +60,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     protected validatorService: PmfmValidatorService,
     protected pmfmService: PmfmService,
     protected parameterService: ParameterService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    @Inject(EnvironmentService) protected environment
   ) {
     super(injector,
       Pmfm,

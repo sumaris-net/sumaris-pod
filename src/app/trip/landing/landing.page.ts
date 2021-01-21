@@ -24,8 +24,11 @@ import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AppEditorOptions} from "../../core/form/editor.class";
+import {EnvironmentService} from "../../../environments/environment.class";
 import {Program} from "../../referential/services/model/program.model";
 import {environment} from "../../../environments/environment";
+
+const moment = momentImported;
 
 const moment = momentImported;
 
@@ -75,7 +78,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.debug = !injector.get(EnvironmentService).production;
   }
 
   ngAfterViewInit() {

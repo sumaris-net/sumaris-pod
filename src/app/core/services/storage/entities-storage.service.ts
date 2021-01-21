@@ -6,6 +6,7 @@ import {catchError, first, switchMap, throttleTime} from "rxjs/operators";
 import {Entity} from "../model/entity.model";
 import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
+import {EnvironmentService} from "../../../../environments/environment.class";
 import {ENTITIES_STORAGE_KEY_PREFIX, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
 import {ProgressBarService} from "../../../shared/services/progress-bar.service";
 import {EnvironmentService} from "../../../../environments/environment.class";
