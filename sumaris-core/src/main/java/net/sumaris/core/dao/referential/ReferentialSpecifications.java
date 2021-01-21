@@ -43,6 +43,7 @@ import java.util.List;
 
 public interface ReferentialSpecifications<E extends IReferentialWithStatusEntity> {
 
+    String ID_PARAMETER = "id";
     String STATUS_PARAMETER = "status";
     String STATUS_SET_PARAMETER = "statusSet";
     String LABEL_PARAMETER = "label";
@@ -50,6 +51,17 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String LEVEL_SET_PARAMETER = "levelSet";
     String SEARCH_TEXT_PARAMETER = "searchText";
     String EXCLUDED_IDS_PARAMETER = "excludedIds";
+
+    default Specification<E> hasId(Integer id) {
+        if (id == null) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
+            ParameterExpression<Integer> idParam = criteriaBuilder.parameter(Integer.class, ID_PARAMETER);
+            return criteriaBuilder.equal(root.get(IEntity.Fields.ID), idParam);
+        });
+        specification.addBind(ID_PARAMETER, id);
+        return specification;
+    }
 
     default Specification<E> inStatusIds(IReferentialFilter filter) {
         Integer[] statusIds = filter.getStatusIds();

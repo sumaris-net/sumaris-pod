@@ -168,4 +168,6 @@ public interface ReferentialDao {
 
     Long countByLevelId(String entityName, Integer... levelIds);
 
+    Class<? extends IReferentialEntity> getEntityClass(String entityName);
+
 }

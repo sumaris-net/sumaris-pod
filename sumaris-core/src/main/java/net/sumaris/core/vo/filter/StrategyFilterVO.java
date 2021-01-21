@@ -4,7 +4,7 @@ package net.sumaris.core.vo.filter;
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 - 2020 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,12 +22,15 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import org.apache.commons.lang3.ArrayUtils;
 
-/**
- * @author peck7 on 24/08/2020.
- */
+import java.util.Arrays;
+
 @Data
 @FieldNameConstants
 @Builder
@@ -35,20 +38,41 @@ import lombok.experimental.FieldNameConstants;
 @AllArgsConstructor
 public class StrategyFilterVO implements IReferentialFilter {
 
+    /* -- Inherited from IReferentialFilter -- */
     private Integer id;
     private String label;
     private String name;
 
     private Integer[] statusIds;
 
-    private Integer levelId;
-    private Integer[] levelIds;
-
     private String searchJoin;
     private String searchText;
     private String searchAttribute;
 
-    private Integer programId;
+    private String withProperty;
 
     private Integer[] excludedIds;
+
+    /* -- Specific properties -- */
+
+    private Integer programId;
+    private Integer[] programIds;
+
+    /* -- Synonym properties (need by IReferentialFilter) -- */
+
+    public Integer getLevelId() {
+        return programId;
+    }
+
+    public void setLevelId(Integer levelId) {
+        this.programId = levelId;
+    }
+
+    public Integer[] getLevelIds() {
+        return programIds;
+    }
+
+    public void setLevelIds(Integer[] levelIds) {
+        this.programIds = levelIds;
+    }
 }

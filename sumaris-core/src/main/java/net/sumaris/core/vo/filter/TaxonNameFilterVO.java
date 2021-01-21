@@ -35,6 +35,10 @@ import lombok.experimental.FieldNameConstants;
 @AllArgsConstructor
 public class TaxonNameFilterVO implements IReferentialFilter {
 
+    public static TaxonNameFilterVO nullToEmpty(TaxonNameFilterVO filter) {
+        return filter == null ? new TaxonNameFilterVO() : filter;
+    }
+
     private Integer id;
     private String label;
     private String name;

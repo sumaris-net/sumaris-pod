@@ -22,16 +22,17 @@ package net.sumaris.server.http.graphql.referential;
  * #L%
  */
 
-import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLContext;
-import io.leangen.graphql.annotations.GraphQLMutation;
-import io.leangen.graphql.annotations.GraphQLQuery;
+import com.google.common.base.Preconditions;
+import io.leangen.graphql.annotations.*;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
@@ -40,6 +41,9 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.http.security.IsAdmin;
+import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.service.technical.ChangesPublisherService;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -63,6 +67,12 @@ public class ReferentialGraphQLService {
 
     @Autowired
     private MetierRepository metierRepository;
+
+    @Autowired
+    private ReferentialDao referentialDao;
+
+    @Autowired
+    private ChangesPublisherService changesPublisherService;
 
     /* -- Referential queries -- */
 
@@ -91,16 +101,17 @@ public class ReferentialGraphQLService {
         // Special case
         if (Metier.class.getSimpleName().equals(entityName)) {
             return metierRepository.findByFilter(
-                    filter != null ? filter : new ReferentialFilterVO(),
+                    ReferentialFilterVO.nullToEmpty(filter),
                     offset, size, sort,
                     SortDirection.valueOf(direction.toUpperCase()));
         }
 
-        return referentialService.findByFilter(entityName, filter,
+        return referentialService.findByFilter(entityName,
+                ReferentialFilterVO.nullToEmpty(filter),
                 offset == null ? 0 : offset,
                 size == null ? 1000 : size,
                 sort == null ? ReferentialVO.Fields.LABEL : sort,
-                direction == null ? SortDirection.ASC : SortDirection.valueOf(direction.toUpperCase()));
+                SortDirection.fromString(direction, SortDirection.ASC));
     }
 
     @GraphQLQuery(name = "metiers", description = "Search in metiers")
@@ -112,12 +123,9 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
-        if (filter == null)
-            filter = new MetierFilterVO();
-
-//        return metierRepository.findAll(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()), null).getContent();
-
-        return metierRepository.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+        return metierRepository.findByFilter(
+                MetierFilterVO.nullToEmpty(filter),
+                offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
 
     }
 
@@ -155,6 +163,19 @@ public class ReferentialGraphQLService {
         return referentialService.save(referential);
     }
 
+    @GraphQLSubscription(name = "updateReferential", description = "Subscribe to changes on a referential")
+    @IsUser
+    public Publisher<ReferentialVO> updateReferential(@GraphQLNonNull @GraphQLArgument(name = "entityName") final String entityName,
+                                                      @GraphQLNonNull @GraphQLArgument(name = "id") final int id,
+                                                      @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+        Preconditions.checkNotNull(entityName, "Missing 'entityName'");
+        Preconditions.checkArgument(id >= 0, "Invalid 'id'");
+
+        return changesPublisherService.getPublisher(
+                referentialDao.getEntityClass(entityName),
+                ReferentialVO.class, id, minIntervalInSecond, true);
+    }
+
     @GraphQLMutation(name = "saveReferentials", description = "Create or update many referential")
     @IsAdmin
     public List<ReferentialVO> saveReferentials(
@@ -189,12 +210,8 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
-        filter = filter != null ? filter : new TaxonNameFilterVO();
-        List<TaxonNameVO> result = taxonNameService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
-
-
-
-        return result;
+        return taxonNameService.findByFilter(TaxonNameFilterVO.nullToEmpty(filter),
+                offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
     @GraphQLQuery(name = "taxonGroupIds", description = "Get taxon groups from a taxon name")

@@ -64,7 +64,7 @@ public class TrashGraphQLService {
         @GraphQLArgument(name = "sortBy", defaultValue = IUpdateDateEntityBean.Fields.UPDATE_DATE) String sort,
         @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction
         ) {
-        Pageable pageable = Pageables.create(offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        Pageable pageable = Pageables.create(offset, size, sort, direction != null ? SortDirection.fromString(direction) : null);
 
         Page<String> page = service.findAll(entityName, pageable, String.class);
         return page.hasContent() ? page.getContent() : ImmutableList.of();

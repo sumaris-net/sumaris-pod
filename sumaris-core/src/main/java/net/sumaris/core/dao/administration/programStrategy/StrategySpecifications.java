@@ -25,13 +25,18 @@ package net.sumaris.core.dao.administration.programStrategy;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.TaxonGroupStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.TaxonNameStrategyVO;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,17 +44,21 @@ import java.util.List;
  */
 public interface StrategySpecifications {
 
-    String PROGRAM_ID_PARAM = "programId";
+    String PROGRAM_IDS_PARAM = "programIds";
+    String HAS_PROGRAM_PARAM = "hasProgram";
 
-    default Specification<Strategy> hasProgramId(Integer programId) {
+    default Specification<Strategy> hasProgramIds(StrategyFilterVO filter) {
+        Integer[] programIds = filter.getProgramId() != null ? new Integer[]{filter.getProgramId()} : filter.getProgramIds();
         BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PROGRAM_ID_PARAM);
+            ParameterExpression<Collection> programIdsParam = criteriaBuilder.parameter(Collection.class, PROGRAM_IDS_PARAM);
+            ParameterExpression<Boolean> hasProgramParam = criteriaBuilder.parameter(Boolean.class, HAS_PROGRAM_PARAM);
             return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), param)
+                    criteriaBuilder.isFalse(hasProgramParam),
+                    criteriaBuilder.in(root.get(Strategy.Fields.PROGRAM).get(Status.Fields.ID)).value(programIdsParam)
             );
         });
-        specification.addBind(PROGRAM_ID_PARAM, programId);
+        specification.addBind(HAS_PROGRAM_PARAM, !ArrayUtils.isEmpty(programIds));
+        specification.addBind(PROGRAM_IDS_PARAM, ArrayUtils.isEmpty(programIds) ? null : Arrays.asList(programIds));
         return specification;
     }
 

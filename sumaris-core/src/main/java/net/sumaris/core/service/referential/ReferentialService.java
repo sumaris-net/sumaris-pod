@@ -80,4 +80,5 @@ public interface ReferentialService {
     Long countByLevelId(String entityName, Integer... levelIds);
 
 
+
 }

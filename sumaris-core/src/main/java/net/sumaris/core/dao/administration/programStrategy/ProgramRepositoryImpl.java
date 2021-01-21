@@ -24,6 +24,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.cache.CacheNames;
@@ -263,9 +264,10 @@ public class ProgramRepositoryImpl
             }
         }
         else {
-            Map<String, ProgramProperty> existingProperties = Beans.splitByProperty(
+            ListMultimap<String, ProgramProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
                 Beans.getList(parent.getProperties()),
                 ProgramProperty.Fields.LABEL);
+            List<ProgramProperty> existingValues = Beans.getList(existingPropertiesMap.values());
             final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getProperties() == null) {
                 parent.setProperties(Lists.newArrayList());
@@ -273,36 +275,36 @@ public class ProgramRepositoryImpl
             final List<ProgramProperty> targetProperties = parent.getProperties();
 
             // Transform each entry into ProgramProperty
-            source.entrySet().stream()
-                .filter(e -> Objects.nonNull(e.getKey())
-                    && Objects.nonNull(e.getValue())
-                )
-                .map(e -> {
-                    ProgramProperty prop = existingProperties.remove(e.getKey());
-                    boolean isNew = (prop == null);
-                    if (isNew) {
-                        prop = new ProgramProperty();
-                        prop.setLabel(e.getKey());
-                        prop.setProgram(parent);
-                        prop.setCreationDate(updateDate);
-                    }
-                    prop.setName(e.getValue());
-                    prop.setStatus(enableStatus);
-                    prop.setUpdateDate(updateDate);
-                    if (isNew) {
-                        em.persist(prop);
-                    }
-                    else {
-                        em.merge(prop);
-                    }
-                    return prop;
-                })
-                .forEach(targetProperties::add);
+            source.keySet().stream()
+                    .map(key -> {
+                        ProgramProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
+                        boolean isNew = (prop == null);
+                        if (isNew) {
+                            prop = new ProgramProperty();
+                            prop.setLabel(key);
+                            prop.setProgram(parent);
+                            prop.setCreationDate(updateDate);
+                        }
+                        else {
+                            existingValues.remove(prop);
+                        }
+                        prop.setName(source.get(key));
+                        prop.setStatus(enableStatus);
+                        prop.setUpdateDate(updateDate);
+                        if (isNew) {
+                            em.persist(prop);
+                        }
+                        else {
+                            em.merge(prop);
+                        }
+                        return prop;
+                    })
+                    .forEach(targetProperties::add);
 
             // Remove old properties
-            if (MapUtils.isNotEmpty(existingProperties)) {
-                parent.getProperties().removeAll(existingProperties.values());
-                existingProperties.values().forEach(em::remove);
+            if (CollectionUtils.isNotEmpty(existingValues)) {
+                parent.getProperties().removeAll(existingValues);
+                existingValues.forEach(em::remove);
             }
 
         }

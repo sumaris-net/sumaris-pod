@@ -24,7 +24,9 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -37,6 +39,12 @@ import java.util.List;
  */
 @Transactional()
 public interface StrategyService {
+
+	@Transactional(readOnly = true)
+	StrategyVO get(int id, StrategyFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<StrategyVO> findByFilter(StrategyFilterVO filter, Pageable pageable, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
@@ -60,6 +68,8 @@ public interface StrategyService {
 	List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
 
 	StrategyVO save(StrategyVO source);
+
+	void delete(int id);
 
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
 

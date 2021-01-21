@@ -37,8 +37,10 @@ import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,6 +52,9 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Autowired
 	protected ReferentialDao referentialDao;
+
+	@Autowired
+	protected GenericConversionService conversionService;
 
 	@Override
 	public Date getLastUpdateDate() {
@@ -152,5 +157,14 @@ public class ReferentialServiceImpl implements ReferentialService {
 		return beans.stream()
 				.map(this::save)
 				.collect(Collectors.toList());
+	}
+
+	@PostConstruct
+	private void initConverters() {
+
+		// Entity->ReferentialVO converters
+		referentialDao.REFERENTIAL_CLASSES.forEach(entityClass -> {
+			conversionService.addConverter(entityClass, ReferentialVO.class, referentialDao::toVO);
+		});
 	}
 }

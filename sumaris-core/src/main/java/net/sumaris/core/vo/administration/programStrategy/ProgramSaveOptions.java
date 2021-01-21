@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.filter;
+package net.sumaris.core.vo.administration.programStrategy;
 
 /*-
  * #%L
@@ -26,32 +26,21 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.jpa.ISaveOptions;
 
 @Data
-@FieldNameConstants
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReferentialFilterVO implements IReferentialFilter {
+public class ProgramSaveOptions implements ISaveOptions {
 
-    public static ReferentialFilterVO nullToEmpty(ReferentialFilterVO filter) {
-        return filter == null ? new ReferentialFilterVO() : filter;
+    public static ProgramSaveOptions DEFAULT = ProgramSaveOptions.builder().build();
+
+    public static ProgramSaveOptions defaultIfEmpty(ProgramSaveOptions options) {
+        return options != null ? options : DEFAULT;
     }
 
-    private Integer id;
-    private String label;
-    private String name;
-
-    private Integer[] statusIds;
-
-    private Integer levelId;
-    private Integer[] levelIds;
-
-    private String searchJoin;
-    private String searchText;
-    private String searchAttribute;
-
-    private Integer[] excludedIds;
+    @Builder.Default
+    private Boolean withStrategies = false;
 
 }

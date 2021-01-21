@@ -473,6 +473,17 @@ public class ReferentialDaoImpl
         }
     }
 
+    public Class<? extends IReferentialEntity> getEntityClass(String entityName) {
+        Preconditions.checkNotNull(entityName);
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = REFERENTIAL_CLASSES_BY_NAME.get(entityName);
+        if (entityClass == null)
+            throw new IllegalArgumentException(String.format("Referential entity [%s] not exists", entityName));
+
+        return entityClass;
+    }
+
     /* -- protected methods -- */
 
     protected ReferentialTypeVO getTypeByEntityName(final String entityName) {
@@ -774,17 +785,6 @@ public class ReferentialDaoImpl
 
         return getEntityManager().createQuery(query)
             .setParameter(labelParam, label);
-    }
-
-    protected Class<? extends IReferentialEntity> getEntityClass(String entityName) {
-        Preconditions.checkNotNull(entityName);
-
-        // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = REFERENTIAL_CLASSES_BY_NAME.get(entityName);
-        if (entityClass == null)
-            throw new IllegalArgumentException(String.format("Referential entity [%s] not exists", entityName));
-
-        return entityClass;
     }
 
     protected String getTableName(String entityName) {

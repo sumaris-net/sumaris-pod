@@ -179,6 +179,7 @@ public class PersonRepositoryImpl
                     Person.Fields.LAST_NAME
                 },
                 Daos.getEscapedSearchText(filter.getSearchText(), true)))
+            .and(excludedIds(filter.getExcludedIds()))
             ;
     }
 

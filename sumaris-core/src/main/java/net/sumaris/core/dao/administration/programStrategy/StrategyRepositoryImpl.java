@@ -201,7 +201,7 @@ public class StrategyRepositoryImpl
     @Override
     protected Specification<Strategy> toSpecification(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(hasProgramId(filter.getProgramId()));
+            .and(hasProgramIds(filter));
     }
 
     @Override

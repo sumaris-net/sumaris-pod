@@ -249,6 +249,10 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
     }
 
     protected Specification<E> toSpecification(F filter, O fetchOptions) {
+        // Special case when filtering by ID:
+        if (filter.getId() != null) {
+            return BindableSpecification.where(hasId(filter.getId()));
+        }
         // default specification
         return BindableSpecification
             .where(inStatusIds(filter))
