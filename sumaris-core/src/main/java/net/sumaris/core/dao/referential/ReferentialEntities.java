@@ -226,7 +226,7 @@ public class ReferentialEntities {
     }
 
     public static Optional<PropertyDescriptor> getLevelProperty(String entityName) {
-        return Optional.of(LEVEL_PROPERTY_BY_CLASS_NAME.get(entityName));
+        return Optional.ofNullable(LEVEL_PROPERTY_BY_CLASS_NAME.get(entityName));
     }
 
     public static Optional<PropertyDescriptor> getLevelPropertyByClass(Class<? extends IReferentialEntity> entityClass) {

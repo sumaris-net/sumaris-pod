@@ -327,12 +327,12 @@
                       QUALITY_FLAG_FK="0"
                       NUMERICAL_VALUE="4"/>
   <!-- taille -->
-<!--  <SAMPLE_MEASUREMENT ID="52"-->
-<!--                      SAMPLE_FK="5"-->
-<!--                      RECORDER_DEPARTMENT_FK="2"-->
-<!--                      PMFM_FK="141"-->
-<!--                      QUALITY_FLAG_FK="0"-->
-<!--                      NUMERICAL_VALUE="7"/>-->
+  <SAMPLE_MEASUREMENT ID="52"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="81"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="7"/>
 
   <!-- autre -->
   <SAMPLE_MEASUREMENT ID="53"
@@ -402,7 +402,7 @@
     <SAMPLE_MEASUREMENT ID="522"
                         SAMPLE_FK="51"
                         RECORDER_DEPARTMENT_FK="2"
-                        PMFM_FK="141"
+                        PMFM_FK="81"
                         QUALITY_FLAG_FK="0"
                         NUMERICAL_VALUE="7"/>
 
@@ -471,12 +471,12 @@
                       QUALITY_FLAG_FK="0"
                       NUMERICAL_VALUE="4"/>
   <!-- taille -->
-  <!--  <SAMPLE_MEASUREMENT ID="523"-->
-  <!--                      SAMPLE_FK="5"-->
-  <!--                      RECORDER_DEPARTMENT_FK="2"-->
-  <!--                      PMFM_FK="141"-->
-  <!--                      QUALITY_FLAG_FK="0"-->
-  <!--                      NUMERICAL_VALUE="7"/>-->
+  <SAMPLE_MEASUREMENT ID="523"
+                      SAMPLE_FK="5"
+                      RECORDER_DEPARTMENT_FK="2"
+                      PMFM_FK="81"
+                      QUALITY_FLAG_FK="0"
+                      NUMERICAL_VALUE="7"/>
 
   <!-- autre -->
   <SAMPLE_MEASUREMENT ID="533"
@@ -560,7 +560,7 @@
   <SAMPLE_MEASUREMENT ID="62"
                       SAMPLE_FK="6"
                       RECORDER_DEPARTMENT_FK="2"
-                      PMFM_FK="141"
+                      PMFM_FK="81"
                       QUALITY_FLAG_FK="0"
                       NUMERICAL_VALUE="30"/>
   <!-- autre -->

@@ -4,6 +4,7 @@
     <SOFTWARE ID="2" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="ADAP" NAME="Application d’assistance à l’auto-échantillonnage en mer et aux contrôles en criées." />
     <SOFTWARE ID="3" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="SAR" NAME="Service d'Administration des Référentiels Marins" />
     <SOFTWARE ID="4" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="OBSDEB" NAME="Application de saisie des débarquements observés" />
+    <SOFTWARE ID="5" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="IMAGINE" NAME="Suivi des paramètres biologique" />
 
     <!-- ****** SUMARiS properties ****** -->
 
@@ -66,5 +67,14 @@
     <SOFTWARE_PROPERTY ID="79" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.vessel.status.default" NAME="2"/>
     <SOFTWARE_PROPERTY ID="80" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
     <SOFTWARE_PROPERTY ID="81" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.enumeration.QualitativeValue.SORTING_BULK.id" NAME="390"/> <!-- VRAC -->
+
+
+    <!-- ****** IMAGINE properties ****** -->
+    <SOFTWARE_PROPERTY ID="100" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
+    <SOFTWARE_PROPERTY ID="101" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="https://image.ifremer.fr/html/tmp/logo4.jpg"/>
+    <SOFTWARE_PROPERTY ID="102" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.OCCASION"/>
+    <SOFTWARE_PROPERTY ID="103" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="104" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00665/77740/md/31271.jpg"/>
+    <SOFTWARE_PROPERTY ID="105" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
 
 </dataset>

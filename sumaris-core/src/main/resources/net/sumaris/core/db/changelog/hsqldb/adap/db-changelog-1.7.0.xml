@@ -41,11 +41,11 @@
   </preConditions>
 
   <!-- Add units -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-401">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1603121055000-401" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <and>
         <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-        <sqlCheck expectedResult="0">SELECT count(*) FROM unit WHERE id=34 or label='Nb Ind'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM unit WHERE id=35 or label='Nb Ind'</sqlCheck>
       </and>
     </preConditions>
     <insert tableName="UNIT">
@@ -138,6 +138,14 @@
     </insert>
     <insert tableName="UNIT">
       <column name="ID" valueNumeric="34"/>
+      <column name="LABEL">years</column>
+      <column name="NAME">Years</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="UNIT">
+      <column name="ID" valueNumeric="35"/>
       <column name="LABEL">Nb Ind</column>
       <column name="NAME">Nombre d'individus</column>
       <column name="STATUS_FK" valueNumeric="1"/>
