@@ -65,7 +65,7 @@
   <!-- TODO : add mat-sort-header-->
   <ng-container matColumnDef="samples">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>LANDING.TABLE.SAMPLING_PLAN_CODE</span>
+      <span translate>LANDING.TABLE.SAMPLES</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <!-- <ion-label>{{referentialToString(row.currentData?.vesselSnapshot, autocompleteFields.vesselSnapshot.attributes)}}</ion-label> -->
@@ -97,7 +97,7 @@
   <!-- Vessel base port Column -->
   <ng-container matColumnDef="location">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>LANDING.TABLE.VESSEL_PORT_LOCATION</span>
+      <span translate>LANDING.TABLE.LOCATION</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.basePortLocation)}}</ion-label>
@@ -162,12 +162,12 @@
     </mat-cell>
   </ng-container>
 
-  <!-- Comment column --><!-- Comments column -->
+  <!-- comment column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-icon color="medium" name="chatbox" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+      <mat-icon color="primary" *ngIf="row.currentData.comments" [title]="row.currentData.comments">comments</mat-icon>
     </mat-cell>
   </ng-container>
 
