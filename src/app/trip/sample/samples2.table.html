@@ -70,7 +70,7 @@
 <!--                     [class.hidden-mobile]="col.rankOrder % 5 !== 0"-->
 <!--                     [class.show]="col.rankOrder % 5 === 0">-->
       <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="!col.disabled">
-        <span>{{col.defaultValue}}</span>
+        <span>{{col.label|translate}}</span>
       </mat-label>
     </mat-header-cell>
   </ng-container>

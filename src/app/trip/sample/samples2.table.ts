@@ -278,7 +278,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicWeightColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
       key: pmfmColumnName,
-      label: pmfmColumnName,
+      label: 'PROGRAM.STRATEGY.WEIGHT_TABLE',
       defaultValue: "WEIGHT",
       type: 'string',
       computed : false,
@@ -295,7 +295,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicSizeColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.SIZE_TABLE',
         defaultValue: "SIZE",
         type: 'string',
         computed : false,
@@ -312,7 +312,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicMaturityColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.MATURITY_TABLE',
         defaultValue: "MATURITY",
         type: 'string',
         computed : false,
@@ -329,7 +329,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicSexColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.SEX',
         defaultValue: "SEX",
         type: 'string',
         computed : false,
@@ -346,7 +346,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicAgeColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.AGE',
         defaultValue: "AGE",
         type: 'string',
         computed : false,
@@ -363,7 +363,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicOthersColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.OTHER_TABLE',
         defaultValue: "OTHER",
         type: 'string',
         computed : false,
