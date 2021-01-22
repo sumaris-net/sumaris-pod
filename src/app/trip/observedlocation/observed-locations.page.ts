@@ -22,6 +22,8 @@ import {ObservedLocation} from "../services/model/observed-location.model";
 import {PersonService} from "../../admin/services/person.service";
 import {SharedValidators} from "../../shared/validator/validators";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {ConfigService} from "../../core/services/config.service";
+import {TripConfigOptions} from "../services/config/trip.config";
 
 @Component({
   selector: 'app-observed-locations-page',
@@ -39,6 +41,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
   isAdmin: boolean;
   filterForm: FormGroup;
   filterIsEmpty = true;
+  observedLocationName: string;
 
   constructor(
     protected injector: Injector,
@@ -55,7 +58,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    private configService: ConfigService
   ) {
 
     super(route, router, platform, location, modalCtrl, settings,
@@ -175,6 +179,17 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         this.filterForm.markAsPristine();
         this.markForCheck();
       }));
+
+    this.registerSubscription(
+      this.configService.config.subscribe(config => {
+        if (config && config.properties) {
+          const observedLocationName = config.properties[TripConfigOptions.OBSERVED_LOCATION_NAME.key];
+          if (observedLocationName) {
+            this.observedLocationName = observedLocationName;
+          }
+        }
+      })
+    );
 
     // Restore filter from settings, or load all rows
     this.restoreFilterOrLoad();

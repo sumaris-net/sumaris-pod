@@ -1,4 +1,4 @@
-<app-toolbar [title]="'OBSERVED_LOCATION.TABLE.TITLE'|translate" color="primary" (onValidate)="save()"
+<app-toolbar [title]="observedLocationName|translate" color="primary" (onValidate)="save()"
              [hasValidate]="(loadingSubject|async) && dirty"
              [canGoBack]="false">
 </app-toolbar>
