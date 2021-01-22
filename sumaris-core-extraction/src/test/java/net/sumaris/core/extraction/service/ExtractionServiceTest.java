@@ -102,6 +102,12 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(stFile) > 1);
     }
 
+    @Test
+    public void exportProgFormat() {
+
+        // Test the Program format
+        service.executeAndDumpTrips(LiveFormatEnum.PROG, null);
+    }
 
     @Test
     public void save() {

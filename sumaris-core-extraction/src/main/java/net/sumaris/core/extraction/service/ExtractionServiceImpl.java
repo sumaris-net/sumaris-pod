@@ -38,6 +38,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.administration.program.ExtractionProgramDao;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
@@ -125,6 +126,9 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Autowired
     protected ExtractionSurvivalTestDao extractionSurvivalTestDao;
+
+    @Autowired
+    protected ExtractionProgramDao extractionProgramDao;
 
     @Autowired
     protected ExtractionProductRepository extractionProductRepository;
@@ -594,6 +598,9 @@ public class ExtractionServiceImpl implements ExtractionService {
                 break;
             case SURVIVAL_TEST:
                 context = extractionSurvivalTestDao.execute(filter);
+                break;
+            case PROG:
+                context = extractionProgramDao.execute(filter);
                 break;
             default:
                 throw new SumarisTechnicalException("Unknown extraction type: " + format);
