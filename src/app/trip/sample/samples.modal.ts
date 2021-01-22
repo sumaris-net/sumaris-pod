@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {AppFormUtils, ReferentialRef} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, Observable} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
@@ -14,6 +13,7 @@ import {Sample} from "../services/model/sample.model";
 import {SamplesTable} from "./samples.table";
 import {TaxonGroupRef} from "../../referential/services/model/taxon.model";
 import {Moment} from "moment";
+import {ReferentialRef} from "../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-samples-modal',

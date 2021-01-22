@@ -60,6 +60,7 @@ import {IDataSynchroService, RootDataSynchroService} from "../../data/services/r
 import {Entity, EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
 import {fromDateISOString, toDateISOString} from 'src/app/shared/dates';
+import {Sample} from "./model/sample.model";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
