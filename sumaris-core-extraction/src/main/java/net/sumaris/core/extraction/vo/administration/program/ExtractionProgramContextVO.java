@@ -28,7 +28,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
-import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
@@ -52,7 +51,7 @@ public class ExtractionProgramContextVO extends ExtractionContextVO {
     String strategySheetName; // ST
     String strategyMonitoringSheetName; // SM
 
-    LandingFilterVO landingFilter;
+    ExtractionLandingFilterVO landingFilter;
 
     public Date getStartDate() {
         return landingFilter != null ? landingFilter.getStartDate() : null;
@@ -80,5 +79,9 @@ public class ExtractionProgramContextVO extends ExtractionContextVO {
 
     public List<Integer> getLocationIds() {
         return landingFilter != null && landingFilter.getLocationId() != null ? ImmutableList.of(landingFilter.getLocationId()) : null;
+    }
+
+    public List<Integer> getStrategyIds() {
+        return landingFilter != null && landingFilter.getStrategyIds() != null ? landingFilter.getStrategyIds() : null;
     }
 }

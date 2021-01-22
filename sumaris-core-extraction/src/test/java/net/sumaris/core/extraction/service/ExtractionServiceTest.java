@@ -52,6 +52,13 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
 
     @Test
+    public void exportProgFormat() {
+
+        // Test the Program format
+        service.executeAndDumpPrograms(LiveFormatEnum.PROG, null);
+    }
+
+    @Test
     public void exportRdbFormat() {
 
         // Test the RDB format
@@ -103,13 +110,6 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void exportProgFormat() {
-
-        // Test the Program format
-        service.executeAndDumpTrips(LiveFormatEnum.PROG, null);
-    }
-
-    @Test
     public void save() {
 
         ExtractionTypeVO type = new ExtractionTypeVO();
@@ -125,7 +125,6 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
         Assert.assertNotNull(savedType);
     }
-
 
     @Test
     public void getByFormat() {

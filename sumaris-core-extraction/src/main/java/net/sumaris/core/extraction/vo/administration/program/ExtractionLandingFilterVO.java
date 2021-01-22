@@ -27,6 +27,8 @@ import lombok.EqualsAndHashCode;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 
+import java.util.List;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
@@ -40,6 +42,8 @@ public class ExtractionLandingFilterVO extends LandingFilterVO {
 
     private Page page;
 
+    private List<Integer> strategyIds;
+
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;
         StringBuilder sb = new StringBuilder();
@@ -51,6 +55,7 @@ public class ExtractionLandingFilterVO extends LandingFilterVO {
         if (this.getObservedLocationId() != null) sb.append(separator).append("Observed location (id): ").append(this.getObservedLocationId());
         if (this.getRecorderPersonId() != null) sb.append(separator).append("Recorder person (id): ").append(this.getRecorderPersonId());
         if (this.getRecorderDepartmentId() != null) sb.append(separator).append("Recorder department (id): ").append(this.getRecorderDepartmentId());
+        if (this.getStrategyIds() != null) sb.append(separator).append("Strategies (id): ").append(this.getStrategyIds());
         return sb.toString();
     }
 }

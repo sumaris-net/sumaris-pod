@@ -22,14 +22,19 @@ package net.sumaris.core.extraction.dao.administration.program;
  * #L%
  */
 
+import com.google.common.collect.Lists;
 import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.specification.ProgSpecification;
+import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.administration.program.ExtractionLandingFilterVO;
 import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramContextVO;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.List;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -62,6 +67,29 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
                         }
                     });
         }
+        return target;
+    }
+
+    default ExtractionFilterVO toExtractionFilterVO(ExtractionLandingFilterVO source,
+                                                    String programSheetName){
+        ExtractionFilterVO target = new ExtractionFilterVO();
+        if (source == null) return target;
+
+        Beans.copyProperties(source, target);
+
+        List<ExtractionFilterCriterionVO> criteria = Lists.newArrayList();
+        target.setCriteria(criteria);
+
+        // Program
+        if (StringUtils.isNotBlank(source.getProgramLabel())) {
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .sheetName(programSheetName)
+                    .name(ProgSpecification.COLUMN_PROJECT)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value(source.getProgramLabel())
+                    .build());
+        }
+
         return target;
     }
 }

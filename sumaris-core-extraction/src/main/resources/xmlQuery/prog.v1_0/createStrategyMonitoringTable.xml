@@ -53,11 +53,10 @@
     <where operator="AND" group="programFilter">
       <in field="P.LABEL"><![CDATA[&progLabels]]></in>
     </where>
-    <where operator="AND" group="strategyFilter"><![CDATA[S.ID = &strategyId]]></where>
-    <where operator="AND" group="strategiesFilter">
+    <where operator="AND" group="strategyFilter">
       <in field="S.ID"><![CDATA[&strategyIds]]></in>
     </where>
-    <where operator="AND" group="periodFilter"><![CDATA[L.LANDING_DATE_TIME BETWEEN &appliedPeriodStartDate AND &appliedPeriodEndDate]]></where>
+    <where operator="AND" group="periodFilter"><![CDATA[L.LANDING_DATE_TIME BETWEEN &startDate AND &endDate]]></where>
 
     <where operator="AND" group="departmentFilter">
       <in field="L.RECORDER_DEPARTMENT_FK"><![CDATA[&recDepIds]]></in>
