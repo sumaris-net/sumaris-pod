@@ -711,7 +711,6 @@
       "TAB_NEW_VESSEL": "Create new vessel"
     },
     "TABLE": {
-      "TITLE": "Observations",
       "PROGRAM": "Program",
       "START_DATE_TIME": "Date/time",
       "QUALITY": "Status",
@@ -738,18 +737,19 @@
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - Landing {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
     "TAB_GENERAL": "Details",
     "PROGRAM": "Program",
     "VESSEL": "Vessel",
     "LANDING": "Landing:",
     "DATE_TIME": "Date/Time",
-    "LOCATION": "Landing site",
+    "LOCATION": "Sampling site",
     "OBSERVERS": "Observers:",
     "OBSERVER_PLACEHOLDER": "Observer #",
     "TAB_SAMPLES": "Samples",
     "NEW": {
-      "TITLE": "New landing"
+      "TITLE": "New landing",
+      "SAMPLE_TITLE": "New sample"
     },
     "EDIT": {
       "TITLE": "Landing {{vessel}}",
@@ -1194,6 +1194,7 @@
       "WEIGHT_TABLE": "Weights",
       "SIZE_TABLE": "Sizes",
       "MATURITY_TABLE": "Maturities",
+      "OTHER_TABLE": "Other",
       "CALCIFIED_TYPE": "Type of calcified part" ,
       "SIZE_INCREMENT": "Size increment",
       "EFFORT": "Effort : ",
@@ -1472,7 +1473,10 @@
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
     "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode.",
     "COPY_STORAGE_ERROR": "Error during data copy",
-    "DATA_MIGRATION_FAILED": "Faile to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>"
+    "DATA_MIGRATION_FAILED": "Faile to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "LOAD_ERROR": "Error while loading",
+    "SAVE_ERROR": "Error while saving",
+    "SUBSCRIBE_ERROR": "Error while subscribe to changes"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
