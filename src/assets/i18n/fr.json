@@ -701,7 +701,7 @@
     "LOCATION_AND_DATE": "Lieu / Date :",
     "TAB_GENERAL": "Détails",
     "TAB_VESSELS": "Navires observés",
-    "TAB_LANDING": "Débarquement",
+    "TAB_LANDING": "Échantillonnage",
     "OBSERVER_PLACEHOLDER": "Observateur #",
     "OBSERVERS": "Observateurs :",
     "NEW": {
@@ -718,7 +718,6 @@
       "TAB_NEW_VESSEL": "Nouveau navire"
     },
     "TABLE": {
-      "TITLE": "Contrôles en criée",
       "PROGRAM": "Programme",
       "START_DATE_TIME": "Date/heure",
       "QUALITY": "État",
@@ -735,17 +734,10 @@
     "OPTIONS": {
       "ENABLE": "Observations > Activer ?",
       "NAME": "Observations > Titre (menu, etc.)"
-    },
-    "ERROR": {
-      "LOAD_ERROR": "Erreur de chargement du contrôle en criée",
-      "LOAD_ALL_ERROR": "Erreur de chargement des contrôles en criée",
-      "SAVE_ERROR": "Erreur de sauvegarde du contrôle en criée",
-      "SAVE_ALL_ERROR": "Erreur de sauvegarde des contrôles en criée",
-      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du contrôle en criée."
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - Débarquement {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
     "TAB_GENERAL": "Détails",
     "PROGRAM": "Programme",
     "SAMPLE_ROW_CODE": "Code ligne de plan",
@@ -756,12 +748,13 @@
     "VESSEL": "Navire",
     "LANDING": "Débarquement :",
     "DATE_TIME": "Date/Heure",
-    "LOCATION": "Lieu de débarquement",
+    "LOCATION": "Lieu d'échantillonnage",
     "OBSERVERS": "Observateurs :",
     "OBSERVER_PLACEHOLDER": "Observateur #",
     "TAB_SAMPLES": "Echantillons",
     "NEW": {
-      "TITLE": "Nouveau debarquement"
+      "TITLE": "Nouveau débarquement",
+      "SAMPLE_TITLE": "Nouvel échantillonnage"
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
@@ -1499,7 +1492,10 @@
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
     "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
     "COPY_STORAGE_ERROR": "Erreur de copie des données",
-    "DATA_MIGRATION_FAILED": "Echec de la migration de données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+    "DATA_MIGRATION_FAILED": "Echec de la migration de données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "LOAD_ERROR": "Erreur de chargement",
+    "SAVE_ERROR": "Erreur de sauvegarde",
+    "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

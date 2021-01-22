@@ -271,6 +271,14 @@ const LoadAllAnalyticReferencesQuery: any = gql`
   ${ReferentialFragments.referential}
 `;
 
+const LoadQueryWithoutFragment: any = gql`
+  query Strategy($label: String!) {
+    strategy(label: $label) {
+      id
+    }
+  }
+`;
+
 const LoadQuery: any = gql`
   query Strategy($id: Int!) {
     strategy(id: $id) {
@@ -420,6 +428,39 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       // Transform to entity
       const data = Strategy.fromObject(json);
       if (data && this._debug) console.debug(`[strategy-service] Strategy #${id} loaded in ${Date.now() - now}ms`, data);
+      return data;
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async ExistLabel(label: string): Promise<Strategy | null> {
+    if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[strategy-service] Loading strategy #${label}...`);
+    this.loading = true;
+
+    try {
+      let json: any;
+
+      // Load from pod
+        const res = await this.graphql.query<{ strategy: Strategy }>({
+          query: LoadQueryWithoutFragment,
+          variables: {
+            label: label
+          },
+
+          error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "STRATEGY.ERROR.LOAD_STRATEGY_ERROR"},
+          fetchPolicy: undefined,
+
+        });
+        json = res && res.strategy;
+
+
+      // Transform to entity
+      const data = Strategy.fromObject(json);
+      if (data && this._debug) console.debug(`[strategy-service] Strategy #${label} loaded in ${Date.now() - now}ms`, data);
       return data;
     } finally {
       this.loading = false;

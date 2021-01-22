@@ -79,17 +79,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // Configure using program properties
     this.onProgramChanged
-      .subscribe(program1 => {
-        // FIXME CLT bug in PROGRAM providing from PARAM-BIO program
-        let program = program1;
-        if (program == undefined)
-        {
-          program = new Program();
-          program.id = 40;
-          program.label = "PARAM-BIO";
-          program.name = "PARAM-BIO";
-          this.$childLoaded.next(true);
-        }
+      .subscribe(program => {
+
         if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);

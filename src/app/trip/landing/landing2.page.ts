@@ -454,7 +454,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + (await this.translate.get('LANDING.NEW.TITLE').toPromise());
+      return titlePrefix + (await this.translate.get('LANDING.NEW.SAMPLE_TITLE').toPromise());
     }
 
     // Existing data

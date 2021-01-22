@@ -279,7 +279,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
         totalFieldName: 'observedLocationsCount',
         insertFilterFn: ObservedLocationFilter.searchFilter(dataFilter),
         variables: variables,
-        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"},
+        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "ERROR.LOAD_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
       })
       .pipe(
@@ -338,7 +338,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
         variables: {
           id: id
         },
-        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"},
+        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "ERROR.LOAD_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
       });
       const data = res && res.observedLocation && ObservedLocation.fromObject(res.observedLocation);
@@ -364,7 +364,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       },
       error: {
         code: ErrorCodes.SUBSCRIBE_OBSERVED_LOCATION_ERROR,
-        message: 'OBSERVED_LOCATION.ERROR.SUBSCRIBE_ERROR'
+        message: 'ERROR.SUBSCRIBE_ERROR'
       }
     })
       .pipe(
@@ -399,7 +399,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       variables: {
         observedLocations: [json]
       },
-      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"},
+      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "ERROR.SAVE_ERROR"},
       update: (proxy, {data}) => {
         const savedEntity = data && data.saveObservedLocations && data.saveObservedLocations[0];
         if (savedEntity !== entity) {
@@ -438,7 +438,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       variables: {
         trips: json
       },
-      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ALL_ERROR"}
+      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATIONS_ERROR, message: "ERROR.SAVE_ERROR"}
     });
     (res && res.saveObservedLocations && entities || [])
       .forEach(entity => {
