@@ -160,6 +160,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
         .subscribe(async (date: Moment) => this.onDateChange(date))
     );
 
+
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggestTaxonName(value, {
@@ -313,6 +314,18 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     console.debug("[simpleStrategy-form] Setting Strategy value", data);
     if (!data) return;
+
+
+    this.form.get('label').setAsyncValidators([
+      async (control) => {
+        if (data && control.value !== data.label) {
+          return await this.strategyService.ExistLabel(control.value)
+          .then(() => {return <ValidationErrors>{unique: false};})
+          .catch(() => {SharedValidators.clearError(control, 'unique'); return null;});
+        }
+        return null;
+      }
+    ]);
 
     // TODO : look if it's possible to init programId in another way
     this.programId = data.programId;

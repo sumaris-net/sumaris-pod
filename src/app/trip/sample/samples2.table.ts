@@ -209,6 +209,27 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     return (column.qvIndex % 2 !== 0);
   }
 
+  getFlexSize(columns :ColumnDefinition[], column: ColumnDefinition) {
+    let columnSize = 0;
+    let columnDisplayLabel = false;
+    columns.forEach(colIter =>
+    {
+      if (colIter.defaultValue ===column.defaultValue)
+      {
+        columnSize = columnSize + 1;
+        if ((columnSize == 1) && colIter === column)
+        {
+          columnDisplayLabel = true;
+        }
+      }
+    })
+    if (columnDisplayLabel)
+    {
+      return columnSize;
+    }
+    return 0;
+  }
+
   protected getDisplayColumns(): string[] {
 
     const pmfms = this.$pmfms.getValue();
@@ -286,12 +307,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       rankOrder : rankOrderIdx,
       disabled : false
     };
-        idx = idx +1;
         dynamicColumnNames.push(pmfmColumnName);
         this.dynamicColumns.push(col);
-
     });
-    rankOrderIdx = 200;
+    idx = idx +1;
     dynamicSizeColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
@@ -303,12 +322,11 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      idx = idx +1;
       rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    rankOrderIdx = 300;
+    idx = idx +1;
     dynamicMaturityColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
@@ -320,7 +338,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      idx = idx +1;
       rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
@@ -337,12 +354,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      idx = idx +1;
       rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    rankOrderIdx = 500;
     dynamicAgeColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
@@ -354,12 +369,11 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      idx = idx +1;
       rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    rankOrderIdx = 600;
+    idx = idx +1;
     dynamicOthersColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
@@ -371,7 +385,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      idx = idx +1;
       rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
