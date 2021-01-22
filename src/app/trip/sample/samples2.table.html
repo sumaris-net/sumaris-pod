@@ -66,7 +66,9 @@
   <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef" [matColumnDef]="col.key">
     <mat-header-cell *matHeaderCellDef class="qv"
                      [class.even]="isQvEven(col)"
-                     [class.odd]="isQvOdd(col)">
+                     [class.odd]="isQvOdd(col)"
+                     [class.show]="true"
+                      [style.flex]="getFlexSize(dynamicColumns, col)">
 <!--                     [class.hidden-mobile]="col.rankOrder % 5 !== 0"-->
 <!--                     [class.show]="col.rankOrder % 5 === 0">-->
       <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="!col.disabled">
