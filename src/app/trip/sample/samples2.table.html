@@ -63,15 +63,14 @@
   </ng-container>
 
   <!-- Dynamic columns -->
-  <ng-container *ngFor="let col of dynamicColumns" [matColumnDef]="col.key">
+  <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef" [matColumnDef]="col.key">
     <mat-header-cell *matHeaderCellDef class="qv"
                      [class.even]="isQvEven(col)"
-                     [class.odd]="isQvOdd(col)"
-                     [class.hidden-mobile]="col.rankOrder % 5 !== 0"
-                     [class.show]="col.rankOrder % 5 === 0">
-      <ion-label>{{col.defaultValue}}</ion-label>
-      <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="col.rankOrder % 5 === 0">
-        <span>TODO</span><br/>
+                     [class.odd]="isQvOdd(col)">
+<!--                     [class.hidden-mobile]="col.rankOrder % 5 !== 0"-->
+<!--                     [class.show]="col.rankOrder % 5 === 0">-->
+      <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="!col.disabled">
+        <span>{{col.defaultValue}}</span>
       </mat-label>
     </mat-header-cell>
   </ng-container>

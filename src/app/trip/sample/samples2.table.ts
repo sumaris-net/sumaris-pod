@@ -273,69 +273,106 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
 
     this.dynamicColumns = [];
+    let idx = 1;
+    let rankOrderIdx = 100;
     dynamicWeightColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
       key: pmfmColumnName,
       label: pmfmColumnName,
       defaultValue: "WEIGHT",
       type: 'string',
-      computed : false
+      computed : false,
+      qvIndex : idx,
+      rankOrder : rankOrderIdx,
+      disabled : false
     };
+        idx = idx +1;
         dynamicColumnNames.push(pmfmColumnName);
         this.dynamicColumns.push(col);
+
     });
+    rankOrderIdx = 200;
     dynamicSizeColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: pmfmColumnName,
         defaultValue: "SIZE",
         type: 'string',
-        computed : false
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
       };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
+    rankOrderIdx = 300;
     dynamicMaturityColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: pmfmColumnName,
         defaultValue: "MATURITY",
         type: 'string',
-        computed : false
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
       };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
+    rankOrderIdx = 400;
     dynamicSexColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: pmfmColumnName,
         defaultValue: "SEX",
         type: 'string',
-        computed : false
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
       };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
+    rankOrderIdx = 500;
     dynamicAgeColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: pmfmColumnName,
         defaultValue: "AGE",
         type: 'string',
-        computed : false
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
       };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
+    rankOrderIdx = 600;
     dynamicOthersColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: pmfmColumnName,
         defaultValue: "OTHER",
         type: 'string',
-        computed : false
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
       };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
