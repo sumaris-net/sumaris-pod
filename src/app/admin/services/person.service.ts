@@ -15,7 +15,7 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
 import {JobUtils} from "../../shared/services/job.utils";
 import {FilterFn, IEntitiesService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -135,7 +135,7 @@ export class PersonService extends BaseEntityService<Person, PersonFilter>
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
     super(graphql, environment);
 

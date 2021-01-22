@@ -15,7 +15,7 @@ import {fadeInAnimation} from "../../shared/material/material.animations";
 import {HttpClient} from "@angular/common/http";
 import {NetworkUtils, NodeInfo} from "../services/network.utils";
 import {VersionUtils} from "../../shared/version/versions";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 @Component({
   selector: 'select-peer-modal',
@@ -40,7 +40,7 @@ export class SelectPeerModal implements OnDestroy {
     private viewCtrl: ModalController,
     private cd: ChangeDetectorRef,
     private http: HttpClient,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
   }
 

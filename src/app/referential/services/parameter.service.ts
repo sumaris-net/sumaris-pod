@@ -17,21 +17,21 @@ import {EntityUtils} from "../../core/services/model/entity.model";
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){
     saveParameter(parameter: $parameter){
-      ...FullParameterFragment
+      ...ParameterFragment
     }
   }
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.parameter}
 `;
 
 const LoadQuery: any = gql`
   query Parameter($label: String, $id: Int){
     parameter(label: $label, id: $id){
-      ...FullParameterFragment
+      ...ParameterFragment
     }
   }
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.parameter}
 `;
 
 @Injectable({providedIn: 'root'})

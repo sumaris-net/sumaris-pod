@@ -1,8 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, OnInit} from "@angular/core";
-import {Person, PRIORITIZED_USER_PROFILES} from "../../../core/services/model/person.model";
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
-import {AppTable, EntitiesTableDataSource, isNil, isNotNil} from "../../../core/core.module";
-import { Person, UserProfileLabels} from "../../../core/services/model/person.model";
+import {Person, UserProfileLabels} from "../../../core/services/model/person.model";
 import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/validator/person.validator";
@@ -19,7 +16,7 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {debounceTime, filter} from "rxjs/operators";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
 import {isNotNil} from "../../../shared/functions";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../../environments/environment.class";
 
 @Component({
   selector: 'app-users-table',
@@ -54,7 +51,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     protected cd: ChangeDetectorRef,
     formBuilder: FormBuilder,
     injector: Injector,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
@@ -119,7 +116,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
           filter(() => this.filterForm.valid)
         )
         // Applying the filter
-        .subscribe(json => this.setFilter(json, {emitEvent: this.mobile})));
+        .subscribe(json => this.setFilter(json, { emitEvent: this.mobile })));
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {

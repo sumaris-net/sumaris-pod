@@ -40,7 +40,7 @@ import {PlatformService} from "../services/platform.service";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
-import {Environment, EnvironmentService} from "../../../environments/environment.class";
+import {Environment, ENVIRONMENT} from "../../../environments/environment.class";
 import {
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig
@@ -304,7 +304,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
     this.toastController = injector && injector.get(ToastController);
-    this.environment = injector && injector.get(EnvironmentService);
+    this.environment = injector && injector.get(ENVIRONMENT);
     this._autocompleteConfigHolder = new MatAutocompleteConfigHolder({
       getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
     });

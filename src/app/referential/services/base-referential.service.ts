@@ -233,9 +233,9 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     const isNew = !json.id;
 
     const now = Date.now();
-    if (this._debug) console.debug(`[referential-service] Saving ${entity.entityName}...`, json);
+    if (this._debug) console.debug(`[referential-service] Saving ${this._entityName}...`, json);
 
-    await this.graphql.mutate<LoadResult<any>>({
+    await this.graphql.mutate< {data: any}>({
       mutation: this.mutations.save,
       variables: {
         data: json
@@ -243,7 +243,7 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
       error: {code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR"},
       update: (proxy, {data}) => {
         // Update entity
-        const savedEntity = data && data.data && data.data[0];
+        const savedEntity = data && data.data;
         this.copyIdAndUpdateDate(savedEntity, entity);
         if (this._debug) console.debug(`[referential-service] ${entity.entityName} saved in ${Date.now() - now}ms`, entity);
 

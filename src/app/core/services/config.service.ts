@@ -18,7 +18,8 @@ import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
 import {filter} from "rxjs/operators";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+import {UserProfileLabels} from "./model/person.model";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -129,7 +130,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     protected file: FileService,
     protected toastController: ToastController,
     protected translate: TranslateService,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_CONFIG_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {
     super(graphql, environment);

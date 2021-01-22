@@ -40,7 +40,7 @@ import {PmfmStrategy} from "./model/pmfm-strategy.model";
 import {IWithProgramEntity} from "../../data/services/model/model.utils";
 import {SortDirection} from "@angular/material/sort";
 import {ReferentialQueries} from "./referential.service";
-import {StrategyFragments} from "./strategy.service";
+import {StrategyFragments} from "./strategy.fragments";
 import {AcquisitionLevelCodes} from "./model/model.enum";
 import {JobUtils} from "../../shared/services/job.utils";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
@@ -433,10 +433,10 @@ export class ProgramService extends BaseEntityService
         const debug = this._debug && (!opts || opts !== false);
         now = debug && Date.now();
         if (now) console.debug(`[program-service] Loading program {${label}}...`);
-        let $loadResult: Observable<{ program: any }>;
+        let res: Observable<{ data: any }>;
 
         if (this.network.offline) {
-          $loadResult = this.entities.watchAll<Program>('ProgramVO', {
+          res = this.entities.watchAll<Program>('ProgramVO', {
             filter: (p) => p.label ===  label
           })
           .pipe(
@@ -448,7 +448,7 @@ export class ProgramService extends BaseEntityService
         }
         else {
           const query = opts && opts.query || LoadRefQuery;
-          $loadResult = this.graphql.watchQuery<{ data: any }>({
+          res = this.graphql.watchQuery<{ data: any }>({
             query: query,
             variables: {
               label
@@ -456,7 +456,7 @@ export class ProgramService extends BaseEntityService
             error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
           });
         }
-        return $loadResult.pipe(filter(isNotNil));
+        return res.pipe(filter(isNotNil));
       }),
       ProgramCacheKeys.CACHE_GROUP
     )
@@ -783,6 +783,7 @@ export class ProgramService extends BaseEntityService
         program: json
       },
       error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"},
+      awaitRefetchQueries: true,
       refetchQueries: [ // TODO BLA FIXME this has no effect !!
         { query: ReferentialQueries.loadAll, variables: {entityName: 'Program'} },
         { query: ReferentialQueries.loadAllWithTotal, variables: {entityName: 'Program'} }
@@ -910,22 +911,6 @@ export class ProgramService extends BaseEntityService
 
         // Make sure tp copy programId (need by equals)
         entity.programId = source.id;
-
-        const savedStrategy = source.strategies.find(json => entity.equals(json));
-        EntityUtils.copyIdAndUpdateDate(savedStrategy, entity);
-
-        // Update pmfm strategy (id)
-        if (savedStrategy.pmfmStrategies && savedStrategy.pmfmStrategies.length > 0) {
-
-          entity.pmfmStrategies.forEach(targetPmfmStrategy => {
-
-            // Make sure to copy strategyId (need by equals)
-            targetPmfmStrategy.strategyId = savedStrategy.id;
-
-            const savedPmfmStrategy = entity.pmfmStrategies.find(srcPmfmStrategy => targetPmfmStrategy.equals(srcPmfmStrategy));
-            targetPmfmStrategy.id = savedPmfmStrategy.id;
-          });
-        }
 
       });
     }

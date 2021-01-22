@@ -19,7 +19,7 @@ import {FileService} from "../../shared/file/file.service";
 import {Referential, ReferentialUtils} from "./model/referential.model";
 import {StatusIds} from "./model/model.enum";
 import {Base58} from "./base58";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 import {toDateISOString} from "../../shared/dates";
 
 
@@ -215,7 +215,7 @@ export class AccountService extends BaseEntityService {
     protected settings: LocalSettingsService,
     protected storage: Storage,
     protected file: FileService,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
     super(graphql, environment);
     this._debug = !environment.production;

@@ -1,4 +1,4 @@
-<app-toolbar [title]="'REFERENTIAL.LIST.TITLE'|translate" color="primary">
+<app-toolbar [title]="title|translate" color="primary">
 </app-toolbar>
 
 <!-- change entity menu  -->
@@ -16,7 +16,7 @@
     <mat-toolbar-row>
 
       <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-        <ion-button *ngIf="$entity | async as entity" color="secondary" [matMenuTriggerFor]="selectEntityMenu">
+        <ion-button *ngIf="$selectedEntity | async as entity" color="secondary" [matMenuTriggerFor]="selectEntityMenu">
           <ion-label>{{entity.label}}</ion-label>
           <mat-icon slot="end">arrow_drop_down</mat-icon>
         </ion-button>
@@ -27,7 +27,7 @@
                 (click)="addRow()" >
           <mat-icon>add</mat-icon>
         </button>
-        <button mat-icon-button small color="light" [title]="'COMMON.BTN_REFRESH'|translate"
+        <button mat-icon-button color="light" [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
           <mat-icon>refresh</mat-icon>
         </button>

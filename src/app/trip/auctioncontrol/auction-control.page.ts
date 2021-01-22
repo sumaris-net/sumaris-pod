@@ -22,6 +22,7 @@ import {AppHelpModal} from "../../shared/help/help.modal";
 import {SharedValidators} from "../../shared/validator/validators";
 import {Program} from "../../referential/services/model/program.model";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {ProgramService} from "../../referential/services/program.service";
 
 @Component({
   selector: 'app-auction-control',
@@ -55,7 +56,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     injector: Injector,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected programService: ProgramService
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',

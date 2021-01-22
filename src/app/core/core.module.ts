@@ -27,6 +27,7 @@ import {IsNotOnFieldModePipe, IsOnFieldModePipe} from "./services/pipes/usage-mo
 import {PersonToStringPipe} from "./services/pipes/person-to-string.pipe";
 import {AppInstallUpgradeCard} from "./install/install-upgrade-card.component";
 import {AccountToStringPipe, IsLoginAccountPipe} from "./services/pipes/account.pipes";
+import {DepartmentToStringPipe} from "./services/pipes/department-to-string.pipe";
 
 @NgModule({
   imports: [
@@ -45,6 +46,7 @@ import {AccountToStringPipe, IsLoginAccountPipe} from "./services/pipes/account.
     PersonToStringPipe,
     IsLoginAccountPipe,
     AccountToStringPipe,
+    DepartmentToStringPipe,
 
     // Home and menu
     HomePage,
@@ -96,6 +98,7 @@ import {AccountToStringPipe, IsLoginAccountPipe} from "./services/pipes/account.
     AppPropertiesForm,
     AppListForm,
     AppInstallUpgradeCard,
+    DepartmentToStringPipe,
   ]
 })
 export class CoreModule {

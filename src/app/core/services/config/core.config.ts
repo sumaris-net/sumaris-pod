@@ -4,9 +4,7 @@
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {StatusIds} from "../model/model.enum";
 import {UserProfileLabels} from "../model/person.model";
-import {PRIORITIZED_USER_PROFILES} from "../model/person.model";
 import {LocationLevelIds} from "../../../referential/services/model/model.enum";
-import {Property} from "../../../shared/types";
 import {APP_LOCALES} from "../model/settings.model";
 
 export const CORE_CONFIG_OPTIONS = Object.freeze({
@@ -58,10 +56,10 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
       key: "sumaris.auth.notSelfExtractionAccess.role",
       label: "CONFIGURATION.OPTIONS.NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE",
       type: 'enum',
-      values: PRIORITIZED_USER_PROFILES.map(key => <Property>{
+      values: Object.keys(UserProfileLabels).map(key => ({
         key: 'ROLE_' + key,
         value: 'USER.PROFILE_ENUM.' + key
-      })
+      }))
     },
     ENTITY_TRASH: <FormFieldDefinition> {
         key: 'sumaris.persistence.trash.enable',
@@ -179,7 +177,7 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
         autocomplete: {
           filter: {
             entityName: 'LocationLevel',
-            statusIds: [0,1]
+            statusIds: [0, 1]
           }
         },
         defaultValue: LocationLevelIds.COUNTRY
@@ -191,7 +189,7 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
         autocomplete: {
           filter: {
             entityName: 'LocationLevel',
-            statusIds: [0,1]
+            statusIds: [0, 1]
           }
         },
         defaultValue: LocationLevelIds.PORT
@@ -203,7 +201,7 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
         autocomplete: {
           filter: {
             entityName: 'LocationLevel',
-            statusIds: [0,1]
+            statusIds: [0, 1]
           }
         },
         defaultValue: LocationLevelIds.AUCTION
@@ -215,19 +213,19 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
       autocomplete: {
         filter: {
           entityName: 'LocationLevel',
-          statusIds: [0,1]
+          statusIds: [0, 1]
         }
       },
       defaultValue: LocationLevelIds.ICES_RECTANGLE
     },
     LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
       key: 'sumaris.enumeration.locationLevel.ICES_DIVISION.id',
-      label: 'CONFIGURATION.OPTIONS.ENUMERATION.ICES_DIVISION',
+      label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_DIVISION_ID',
       type: 'entity',
       autocomplete: {
         filter: {
           entityName: 'LocationLevel',
-          statusIds: [0,1]
+          statusIds: [0, 1]
         }
       },
       defaultValue: LocationLevelIds.ICES_DIVISION

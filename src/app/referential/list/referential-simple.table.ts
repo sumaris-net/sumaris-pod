@@ -16,9 +16,9 @@ import {environment} from "../../../environments/environment";
 
 
 @Component({
-  selector: 'app-referential-table',
-  templateUrl: 'referential.table.html',
-  styleUrls: ['referential.table.scss'],
+  selector: 'app-simple-referential-table',
+  templateUrl: 'referential-simple.table.html',
+  styleUrls: ['referential-simple.table.scss'],
   providers: [
     {provide: ValidatorService, useExisting: ReferentialValidatorService},
     {
@@ -30,7 +30,7 @@ import {environment} from "../../../environments/environment";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialFilter> {
+export class SimpleReferentialTable extends AppInMemoryTable<Referential, ReferentialFilter> {
 
   statusList = DefaultStatusList;
   statusById: any;

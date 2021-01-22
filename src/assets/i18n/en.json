@@ -59,6 +59,7 @@
     "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
+    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_YEAR_PATTERN": "YYYY",
     "DATE_YEAR_PLACEHOLDER": "yyyy",
     "DATE_PLACEHOLDER": "dd/mm/yyyy",
@@ -753,7 +754,7 @@
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - Landing {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
     "TAB_GENERAL": "Details",
     "PROGRAM": "Program",
     "VESSEL": "Vessel",

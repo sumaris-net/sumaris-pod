@@ -3,6 +3,8 @@ import {LocationLevelIds} from "../model/model.enum";
 
 export type LandingEditor = 'landing' | 'control' | 'trip';
 
+export type StrategyEditor = 'legacy' | 'sampling';
+
 export const ProgramProperties = Object.freeze({
   // Trip
   TRIP_SALE_ENABLE: <FormFieldDefinition>{
@@ -250,16 +252,23 @@ export const ProgramProperties = Object.freeze({
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
   },
 
-  /* -- Program / stretgy options -- */
+  /* -- Program / Strategy options -- */
 
-  // TODO BLA rename this:
-  //    pourquoi ne pas appeller cela sumaris.strategy.editor, avec une enumeration ?
-  // simple strategies
-  SIMPLE_STRATEGIES: <FormFieldDefinition>{
-    key: "sumaris.simple.strategies.enable",
-    label: "PROGRAM.OPTIONS.SIMPLE_STRATEGIES",
-    defaultValue: "false",
-    type: 'boolean'
+  PROGRAM_STRATEGY_EDITOR: <FormFieldDefinition>{
+    key: "sumaris.program.strategy.editor",
+    label: "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR",
+    type: 'enum',
+    values: [
+      {
+        key: 'legacy',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_LEGACY'
+      },
+      {
+        key: 'sampling',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_SAMPLING'
+      }
+    ],
+    defaultValue: "legacy"
   },
 
   // PROGRAM STRATEGY EDITOR

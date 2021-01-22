@@ -1,20 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {Strategy} from "../services/model/strategy.model";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {toBoolean} from "../../shared/functions";
+import {isNotNil, toBoolean} from "../../shared/functions";
 import {DefaultStatusList} from "../../core/services/model/referential.model";
-import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {StrategyFilter, StrategyService} from "../services/strategy.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
@@ -37,11 +26,28 @@ import {environment} from "../../../environments/environment";
 })
 export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implements OnInit, OnDestroy {
 
+  private _program: Program;
+
   statusList = DefaultStatusList;
   statusById: any;
 
   @Input() canEdit = false;
   @Input() canDelete = false;
+
+  @Input() set program(program: Program) {
+    if (program && isNotNil(program.id) && this._program !== program) {
+      this._program = program;
+      console.debug('[strategy-table] Setting program:', program);
+      this.setFilter( {
+        ...this.filter,
+        levelId: program.id
+      });
+    }
+  }
+
+  get program(): Program {
+    return this._program;
+  }
 
   constructor(
     route: ActivatedRoute,
@@ -93,16 +99,10 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
   }
 
   ngOnInit() {
-    this.inlineEdition = toBoolean(this.inlineEdition, true);
+    this.inlineEdition = toBoolean(this.inlineEdition, false);
     super.ngOnInit();
   }
 
-  setProgram(program: Program) {
-    console.debug('[strategy-table] Setting program:', program);
-    this.setFilter( {
-      levelId: program && program.id
-    });
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();

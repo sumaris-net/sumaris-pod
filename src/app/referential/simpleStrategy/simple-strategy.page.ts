@@ -6,17 +6,9 @@ import { ValidatorService } from "@e-is/ngx-material-table";
 import * as moment from "moment";
 import { HistoryPageReference } from "src/app/core/services/model/settings.model";
 import { PlatformService } from "src/app/core/services/platform.service";
-import {
-  AppEntityEditor,
-  isNil, ReferentialRef
-} from "../../core/core.module";
 import { AccountService } from "../../core/services/account.service";
-import { ReferentialUtils } from "../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import { FormFieldDefinitionMap } from "../../shared/form/field.model";
-import {
-  EntityServiceLoadOptions,
-  fadeInOutAnimation, isNotNil
-} from "../../shared/shared.module";
 import { ProgramProperties } from "../services/config/program.config";
 import { PmfmStrategy } from "../services/model/pmfm-strategy.model";
 import {
@@ -28,6 +20,9 @@ import { StrategyService } from "../services/strategy.service";
 import { ProgramValidatorService } from "../services/validator/program.validator";
 import { StrategyValidatorService } from "../services/validator/strategy.validator";
 import { SimpleStrategyForm } from "./simple-strategy.form";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -37,25 +32,6 @@ export enum AnimationState {
 @Component({
   selector: 'app-simple-strategy',
   templateUrl: 'simple-strategy.page.html',
-  providers: [
-    { provide: ValidatorService, useExisting: ProgramValidatorService }
-  ],
-  animations: [fadeInOutAnimation,
-    // Fade in
-    trigger('fadeIn', [
-      state('*', style({ opacity: 0, display: 'none', visibility: 'hidden' })),
-      state(AnimationState.ENTER, style({ opacity: 1, display: 'inherit', visibility: 'inherit' })),
-      state(AnimationState.LEAVE, style({ opacity: 0, display: 'none', visibility: 'hidden' })),
-      // Modal
-      transition(`* => ${AnimationState.ENTER}`, [
-        style({ display: 'inherit', visibility: 'inherit', transform: 'translateX(50%)' }),
-        animate('0.4s ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
-      ]),
-      transition(`${AnimationState.ENTER} => ${AnimationState.LEAVE}`, [
-        animate('0.2s ease-out', style({ opacity: 0, transform: 'translateX(50%)' })),
-        style({ display: 'none', visibility: 'hidden' })
-      ])])
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyService> implements OnInit {
@@ -164,7 +140,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     // FIXME : how to get privilege previously ??
     data.departments.map((dpt: StrategyDepartment) => {
-      const observer: ReferentialRef = new ReferentialRef();
+      const observer = new ReferentialRef();
       observer.id = 2;
       observer.label = "Observer";
       observer.name = "Observer privilege";
@@ -197,7 +173,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     pmfmStrategies = pmfmStrategies
       .concat(this.simpleStrategyForm.weightPmfmStrategiesTable.value.filter(p => p.pmfm))
       .concat(this.simpleStrategyForm.sizePmfmStrategiesTable.value.filter(p => p.pmfm))
-      .concat(this.simpleStrategyForm.maturityPmfmStrategiesTable.value.filter(p => p.pmfm))
+      .concat(this.simpleStrategyForm.maturityPmfmStrategiesTable.value.filter(p => p.pmfm));
 
     const pmfmStrategiesFractions = data.pmfmStrategiesFraction.filter(p => p !== null);
 
@@ -228,7 +204,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       pmfm.acquisitionNumber = 1;
       pmfm.isMandatory = false;
       pmfm.rankOrder = 1;
-      return pmfm
+      return pmfm;
     });
 
     //--------------------------------------------------------------------------------------------------------------------
@@ -291,8 +267,13 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     }
   }
 
-  protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'list-outline' });
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      matIcon: 'date_range',
+      title: `${this.data.label} - ${this.data.name}`,
+      subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
+    };
   }
 }
 

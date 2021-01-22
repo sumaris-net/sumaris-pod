@@ -10,6 +10,8 @@ import {isNotNil} from "../../../shared/functions";
 
 export class Program extends Entity<Program> {
 
+  static TYPENAME = 'ProgramVO';
+
   static fromObject(source: any): Program {
     if (!source || source instanceof Program) return source;
     const res = new Program();
@@ -32,15 +34,10 @@ export class Program extends Entity<Program> {
 
   strategies: Strategy[];
 
-  constructor(data?: {
-    id?: number,
-    label?: string,
-    name?: string
-  }) {
+  constructor() {
     super();
-    this.id = data && data.id;
-    this.label = data && data.label;
-    this.name = data && data.name;
+    this.__typename = Program.TYPENAME;
+    this.properties = {};
   }
 
   clone(): Program {

@@ -113,7 +113,7 @@ export const ReferentialFragments = {
     }
     __typename
   }`,
-  pmfm: gql`fragment PmfmFragment on PmfmVO {
+  lightPmfm: gql`fragment LightPmfmFragment on PmfmVO {
     id
     label
     name
@@ -132,7 +132,7 @@ export const ReferentialFragments = {
     entityName
     __typename
   }`,
-  fullPmfm: gql`fragment FullPmfmFragment on PmfmVO {
+  pmfm: gql`fragment PmfmFragment on PmfmVO {
     id
     label
     name
@@ -147,7 +147,7 @@ export const ReferentialFragments = {
     maximumNumberDecimals
     signifFiguresNumber
     parameter {
-      ...FullParameterFragment
+      ...ParameterFragment
     }
     matrix {
       ...ReferentialFragment
@@ -163,7 +163,7 @@ export const ReferentialFragments = {
     }
     __typename
   }`,
-  fullParameter: gql`fragment FullParameterFragment on ParameterVO {
+  parameter: gql`fragment ParameterFragment on ParameterVO {
     id
     label
     name

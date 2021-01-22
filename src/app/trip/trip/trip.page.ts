@@ -38,7 +38,7 @@ const TripPageTabs = {
   GENERAL: 0,
   PHYSICAL_GEARS: 1,
   OPERATIONS: 2
-}
+};
 
 @Component({
   selector: 'app-trip-page',

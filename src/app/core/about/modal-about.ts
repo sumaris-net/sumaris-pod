@@ -1,6 +1,6 @@
 import {Component, Inject} from "@angular/core";
 import {ModalController} from "@ionic/angular";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 
 @Component({
@@ -14,7 +14,7 @@ export class AboutModal {
 
     constructor(
         protected modalController: ModalController,
-        @Inject(EnvironmentService) protected environment
+        @Inject(ENVIRONMENT) protected environment
     ) {
       this.appVersion = environment.version;
     }

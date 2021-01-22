@@ -18,7 +18,7 @@ import {isNil, joinPropertiesPath} from "../../shared/functions";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 import {HistoryPageReference} from "../../core/services/model/history.model";
 
 @Component({
@@ -55,7 +55,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     protected pmfmService: PmfmService,
     protected parameterService: ParameterService,
     protected referentialRefService: ReferentialRefService,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
     super(injector,
       Pmfm,

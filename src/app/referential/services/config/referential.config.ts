@@ -29,8 +29,17 @@ export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   }
 };
 
+export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
+  TESTING: <FormFieldDefinition>{
+    key: 'sumaris.referential.vessel.enable',
+    label: 'REFERENTIAL.OPTIONS.VESSELS_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  }
+};
 
 export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
+
   // Display attributes for vessel
   FIELD_VESSEL_SNAPSHOT_ATTRIBUTES: <FormFieldDefinition>{
     key: 'sumaris.field.vesselSnapshot.attributes',

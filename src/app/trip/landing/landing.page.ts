@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild} from '@angular/core';
 
 import {isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import * as momentImported from "moment";
@@ -22,7 +22,7 @@ import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AppEditorOptions} from "../../core/form/editor.class";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 import {Program} from "../../referential/services/model/program.model";
 
 const moment = momentImported;
@@ -43,7 +43,6 @@ const moment = momentImported;
 export class LandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit {
 
   protected parent: Trip | ObservedLocation;
-  protected dataService: LandingService;
   protected observedLocationService: ObservedLocationService;
   protected tripService: TripService;
   protected referentialRefService: ReferentialRefService;
@@ -62,9 +61,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   constructor(
     injector: Injector,
-    options: AppEditorOptions
+    @Optional() options: AppEditorOptions
   ) {
-    super(injector, Landing, injector.get(LandingService), options);
+    super(injector, Landing, injector.get(LandingService),
+      {
+        tabCount: 2,
+        pathIdAttribute: 'landingId',
+        ...options
+      });
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -73,7 +77,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
-    this.debug = !injector.get(EnvironmentService).production;
+    this.debug = !injector.get(ENVIRONMENT).production;
   }
 
   ngAfterViewInit() {

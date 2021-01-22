@@ -204,6 +204,7 @@
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
     "REFERENTIAL": "Listes de références",
+    "PROGRAMS": "Programmes",
     "EXTRACTIONS": "Extractions",
     "MAP": "Cartes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
@@ -755,7 +756,7 @@
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - Débarquement {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
     "TAB_GENERAL": "Détails",
     "PROGRAM": "Programme",
     "VESSEL": "Navire",
@@ -1091,6 +1092,9 @@
       "METIER": "Métiers",
       "SOFTWARE": "Logiciels"
     },
+    "OPTIONS": {
+      "VESSELS_ENABLE": "Référentiel > Navires: Activer ?"
+    },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
       "LOAD_REFERENTIAL_ERROR": "Erreur de chargement.",
@@ -1120,6 +1124,9 @@
     },
     "EDIT": {
       "TITLE": "Programme {{label}} - {{name}}"
+    },
+    "LIST": {
+      "TITLE": "Programmes de collecte"
     },
     "OPTIONS": {
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
@@ -1152,7 +1159,9 @@
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
-      "SIMPLE_STRATEGIES": "Simple strategies",
+      "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
+      "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
+      "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Paramètres biologiques",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)",
@@ -1211,8 +1220,8 @@
       "FISHING_AREA": "Zone(s) de pêche",
       "SAMPLE_ROW_CODE": "Code de la ligne",
       "SAMPLE_ROW_TITLE": "Code ligne de plan - incrément",
-      "EOTP": "EOTP",
-      "LABORATORY": "Laboratoire(s) saisisseur(s)",
+      "ANALYTIC_REFERENCE": "EOTP",
+      "DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
       "TARGET_SPECIE": "Espèce cible",
       "LANDING_PORT": "Port de débarquement",
       "SEX": "Sexe",
@@ -1414,6 +1423,10 @@
       "CE": "Efforts",
       "ST": "Tests de survie",
       "RL": "Relachés"
+    },
+    "OPTIONS": {
+      "ENABLE": "Extraction > Activer ?",
+      "MAP_ENABLE": "Extraction > Cartes: Activer ?"
     },
     "PRODUCT": {
       "P01_RDB": {

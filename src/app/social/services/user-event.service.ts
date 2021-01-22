@@ -22,7 +22,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {NetworkService} from "../../core/services/network.service";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {Entity, EntityUtils} from "../../core/services/model/entity.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export class UserEventFilter {
   issuer?: string;
@@ -82,7 +82,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
     protected network: NetworkService,
     protected translate: TranslateService,
     protected toastController: ToastController,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
   ) {
     super(graphql, environment);
 

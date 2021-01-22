@@ -26,55 +26,55 @@ import {EntityUtils} from "../../core/services/model/entity.model";
 const LoadAllQuery: any = gql`
   query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...PmfmFragment
+      ...LightPmfmFragment
     }
   }
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.lightPmfm}
 `;
 const LoadAllWithDetailsQuery: any = gql`
   query PmfmsWithDetails($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...FullPmfmFragment
-    }
-    referentialsCount(entityName: "Pmfm", filter: $filter)
-  }
-  ${ReferentialFragments.fullPmfm}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.fullParameter}
-`;
-const LoadAllWithTotalQuery: any = gql`
-  query PmfmsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...PmfmFragment
     }
     referentialsCount(entityName: "Pmfm", filter: $filter)
   }
   ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.parameter}
+`;
+const LoadAllWithTotalQuery: any = gql`
+  query PmfmsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightPmfmFragment
+    }
+    referentialsCount(entityName: "Pmfm", filter: $filter)
+  }
+  ${ReferentialFragments.lightPmfm}
 `;
 
 const LoadQuery: any = gql`
   query Pmfm($label: String, $id: Int){
     pmfm(label: $label, id: $id){
-      ...FullPmfmFragment
+      ...PmfmFragment
     }
   }
-  ${ReferentialFragments.fullPmfm}
+  ${ReferentialFragments.pmfm}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.parameter}
 `;
 
 const SaveQuery: any = gql`
   mutation SavePmfm($pmfm:PmfmVOInput){
     savePmfm(pmfm: $pmfm){
-      ...FullPmfmFragment
+      ...PmfmFragment
     }
   }
-  ${ReferentialFragments.fullPmfm}
+  ${ReferentialFragments.pmfm}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.parameter}
 `;
 
 export class PmfmFilter extends ReferentialFilter {

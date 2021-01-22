@@ -26,7 +26,8 @@ import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
 import {SharedValidators} from '../../validator/validators';
-import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
+import {isNil, isNilOrBlank, sleep, toBoolean} from "../../functions";
+import {toDateISOString} from "../../dates";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
@@ -56,8 +57,6 @@ const noop = () => {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-
-
 export class MatDateShort implements OnInit, ControlValueAccessor, InputElement {
 
   private _onChangeCallback: (_: any) => void = noop;
@@ -226,7 +225,7 @@ export class MatDateShort implements OnInit, ControlValueAccessor, InputElement 
   }
 
   onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
-    console.log("onDatePickerChange called !!")
+    //console.debug("onDatePickerChange called !!")
     if (this.writing || !(event && event.value)) return; // Skip if call by self
     this.writing = true;
 
@@ -322,15 +321,15 @@ export class MatDateShort implements OnInit, ControlValueAccessor, InputElement 
       if (event) this.preventEvent(event);
 
       if (!datePicker.opened) {
-       
-       // datePicker.startView =  "multi-year";     
-        datePicker.open();   
+
+       // datePicker.startView =  "multi-year";
+        datePicker.open();
       }
     }
   }
 
   //  select only year
-  closeDatePicker(eventData: any, matDatepicker?:any) {
+  closeDatePicker(eventData: any, matDatepicker?: any) {
    this.formControl.setValue(eventData);
    matDatepicker.close();
   }

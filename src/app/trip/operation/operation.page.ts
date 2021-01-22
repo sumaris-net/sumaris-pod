@@ -80,7 +80,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   constructor(
     injector: Injector,
-    protected dataService: OperationService,
+    dataService: OperationService,
     protected tripService: TripService,
     protected programService: ProgramService,
     protected platform: PlatformService
@@ -635,7 +635,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected async getValue(): Promise<Operation> {
     const data = await super.getValue();
 
-    await this.batchTree.save()
+    await this.batchTree.save();
 
     // Get batch tree,rom the batch tree component
     data.catchBatch = this.batchTree.value;
@@ -659,7 +659,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
           return sample;
         });
-      console.log(data.samples);
 
     } else {
       data.samples = undefined;

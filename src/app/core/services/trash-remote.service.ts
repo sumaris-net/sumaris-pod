@@ -4,8 +4,7 @@ import {GraphqlService} from "../graphql/graphql.service";
 import {ErrorCodes} from "./errors";
 import {gql} from "@apollo/client/core";
 import {chainPromises} from "../../shared/observables";
-import {EntitiesStorage} from "./storage/entities-storage.service";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 // Load a trash file
 const LoadQuery: any = gql`
@@ -26,7 +25,7 @@ export class TrashRemoteService extends BaseEntityService<string, any> {
 
   constructor(
     protected graphql: GraphqlService,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
     super(graphql, environment);
 

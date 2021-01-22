@@ -20,7 +20,7 @@ import {CORE_CONFIG_OPTIONS} from "../services/config/core.config";
 import {VersionUtils} from "../../shared/version/versions";
 import {fadeInAnimation, slideUpDownAnimation} from "../../shared/material/material.animations";
 import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank} from "../../shared/functions";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 
 export declare interface InstallAppLink {
@@ -85,7 +85,7 @@ export class AppInstallUpgradeCard implements OnInit, OnDestroy {
     private platform: PlatformService,
     private cd: ChangeDetectorRef,
     public network: NetworkService,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
 
   }

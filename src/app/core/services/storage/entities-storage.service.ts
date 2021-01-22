@@ -8,7 +8,7 @@ import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
 import {ENTITIES_STORAGE_KEY_PREFIX, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
 import {ProgressBarService} from "../../../shared/services/progress-bar.service";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../../environments/environment.class";
 
 
 export interface EntitiesStorageTypePolicies {
@@ -44,7 +44,7 @@ export class EntitiesStorage {
     private platform: Platform,
     private progressBarService: ProgressBarService,
     private storage: Storage,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_LOCAL_STORAGE_TYPE_POLICIES) typePolicies: EntitiesStorageTypePolicies
   ) {
     this._typePolicies = typePolicies || {};

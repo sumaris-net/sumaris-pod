@@ -21,7 +21,7 @@ import {DateAdapter} from "@angular/material/core";
 import {AccountService} from "./account.service";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 const moment = momentImported;
 
@@ -58,7 +58,7 @@ export class PlatformService {
     private cache: CacheService,
     private storage: Storage,
     private audioProvider: AudioProvider,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() private browser: InAppBrowser
   ) {
 

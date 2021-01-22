@@ -6,7 +6,7 @@ import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
-import {StrategyForm} from "../strategy/strategy.form";
+import {StrategyForm} from "./strategy.form";
 import {HistoryPageReference} from "../../core/services/model/history.model";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {StrategyService} from "../services/strategy.service";
@@ -63,7 +63,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
       });
 
     // default values
-    this.defaultBackHref = "/referential?entity=Program";
+    this.defaultBackHref = "/referential/programs";
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -77,7 +77,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     this.registerSubscription(
       this.programSubject.subscribe(program => {
         if (program && isNotNil(program.id)) {
-          this.defaultBackHref = `/referential/program/${program.id}?tab=1`;
+          this.defaultBackHref = `/referential/programs/${program.id}?tab=1`;
           this.markForCheck();
         }
       }));

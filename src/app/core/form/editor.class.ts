@@ -27,7 +27,7 @@ import {toNumber} from "../../shared/functions";
 import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
 import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export class AppEditorOptions extends AppTabFormOptions {
   autoLoad?: boolean;
@@ -126,7 +126,7 @@ export abstract class AppEntityEditor<
       options);
     options = <AppEditorOptions>{
       // Default options
-      enableListenChanges: (injector.get(EnvironmentService).listenRemoteChanges === true),
+      enableListenChanges: (injector.get(ENVIRONMENT).listenRemoteChanges === true),
       pathIdAttribute: 'id',
       autoLoad: true,
       autoLoadDelay: 0,

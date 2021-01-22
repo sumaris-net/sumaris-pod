@@ -19,6 +19,7 @@ import {IonContent} from "@ionic/angular";
 
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppRootDataEditor<
     T extends RootDataEntity<T>,
     S extends IEntityService<T> = IEntityService<T>

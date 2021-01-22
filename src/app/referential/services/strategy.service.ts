@@ -3,7 +3,7 @@ import {gql} from "@apollo/client/core";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {CacheService} from "ionic-cache";
-import {ReferentialRefService} from "./referential-ref.service";
+import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
@@ -15,95 +15,16 @@ import {
   BaseReferentialService, BaseReferentialSubscriptions
 } from "./base-referential.service";
 import {PlatformService} from "../../core/services/platform.service";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {SortDirection} from "@angular/material/sort";
+import {ReferentialRefFilter} from "./referential-ref.service";
+import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {StrategyFragments} from "./strategy.fragments";
 
 
 export class StrategyFilter extends ReferentialFilter {
+  entityName: 'Strategy';
 }
-
-
-export const StrategyFragments = {
-  strategy: gql`
-    fragment StrategyFragment on StrategyVO {
-      id
-      label
-      name
-      description
-      comments
-      analyticReference
-      updateDate
-      creationDate
-      statusId
-      programId
-      gears {
-        ...ReferentialFragment
-      }
-      taxonGroups {
-        ...TaxonGroupStrategyFragment
-      }
-      taxonNames {
-        ...TaxonNameStrategyFragment
-      }
-      appliedStrategies {
-        ...AppliedStrategyFragment
-      }
-      pmfmStrategies {
-        ...PmfmStrategyFragment
-      }
-      departments {
-        ...StrategyDepartmentFragment
-      }
-    }
-  `,
-  pmfmStrategy: gql`
-    fragment PmfmStrategyFragment on PmfmStrategyVO {
-      id
-      acquisitionLevel
-      rankOrder
-      isMandatory
-      acquisitionNumber
-      defaultValue
-      pmfmId
-      pmfm {
-        ...FullPmfmFragment  # TODO BLA rename as PmfmFragment ?
-      }
-      parameterId
-      matrixId
-      fractionId
-      methodId
-      gearIds
-      taxonGroupIds
-      referenceTaxonIds
-      strategyId
-      __typename
-  }`,
-  taxonGroupStrategy: gql`
-    fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
-      strategyId
-      priorityLevel
-      taxonGroup {
-          id
-          label
-          name
-          entityName
-          taxonNames {
-              ...TaxonNameFragment
-          }
-      }
-      __typename
-    }
-  `,
-  taxonNameStrategy: gql`
-    fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
-      strategyId
-      priorityLevel
-      taxonName {
-          ...TaxonNameFragment
-      }
-      __typename
-    }
-  `
-}
-
 
 const FindStrategyNextLabel: any = gql`
   query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
@@ -120,18 +41,21 @@ const LoadAllAnalyticReferencesQuery: any = gql`
   ${ReferentialFragments.referential}
 `;
 
-const LoadQuery: any = gql`
-  query Strategy($id: Int!) {
-    strategy(id: $id) {
+const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQueries = {
+  load: gql`query Strategy($id: Int!) {
+    data: strategy(id: $id) {
       ...StrategyFragment
     }
   }
   ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}
   `,
   loadAll: gql`query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -140,11 +64,14 @@ const LoadQuery: any = gql`
     }
   }
   ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}
   `,
   loadAllWithTotal: gql`query StrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -154,11 +81,14 @@ const LoadQuery: any = gql`
     total: strategiesCount(filter: $filter)
   }
   ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}
   `
 };
@@ -166,16 +96,19 @@ const LoadQuery: any = gql`
 
 const StrategyMutations: BaseReferentialEntityMutations = {
   save: gql`mutation SaveStrategy($data:StrategyVOInput!){
-    saveStrategy(strategy: $data){
+    data: saveStrategy(strategy: $data){
       ...StrategyFragment
     }
   }
   ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}
   `,
   delete: gql`mutation DeleteAllStrategies($id:Int!){
@@ -229,8 +162,7 @@ export class StrategyService extends BaseReferentialService<Strategy, Referentia
     return res && res.strategyNextLabel;
   }
 
-  // TODO BLA rename (L majuscule)
-  async LoadAllAnalyticReferences(
+  async loadAllAnalyticReferences(
     offset: number,
     size: number,
     sortBy?: string,
@@ -246,29 +178,28 @@ export class StrategyService extends BaseReferentialService<Strategy, Referentia
     };
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[strategy-service] Loading analytic references items...`, variables);
+    if (this._debug) console.debug(`[strategy-service] Loading analytic references...`, variables);
 
     const res = await this.graphql.query<{ analyticReferences: Referential[] }>({
       query: LoadAllAnalyticReferencesQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_REFERENCES_ERROR" },
+      error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR" },
       fetchPolicy: 'cache-first'
     });
 
-    if (this._debug) console.debug(`[strategy-service] Analytic references items loaded in ${Date.now() - now}ms`);
+    if (this._debug) console.debug(`[strategy-service] Analytic references loaded in ${Date.now() - now}ms`);
     return (res && res.analyticReferences || []) as ReferentialRef[];
   }
 
   async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<ReferentialRef[]> {
     if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    const res = await this.LoadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
+    return await this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value}
     );
-    return res;
   }
 
-  protected copyIdAndUpdateDate(source: Strategy, target: Strategy) {
+  copyIdAndUpdateDate(source: Strategy, target: Strategy) {
 
     EntityUtils.copyIdAndUpdateDate(source, target);
 

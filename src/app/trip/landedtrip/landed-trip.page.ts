@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import * as momentImported from "moment";
@@ -8,7 +8,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
-import {TripService, TripSaveOptions} from "../services/trip.service";
+import {TripSaveOptions, TripService} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
@@ -31,7 +31,6 @@ import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {ReferentialRef} from "../../core/services/model/referential.model";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
@@ -416,7 +415,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (savedOrContinue) {
       this.loading = true;
       try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
+        await this.router.navigate(['trips', this.data.id, 'operations', id],
+          {
+            queryParams: {}
+          });
       } finally {
         this.loading = false;
       }
@@ -466,7 +468,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (!this.data) return;
 
     // Copy the trip
-    await (this.dataService as TripService).copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
+    await this.dataService.copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
 
   }
 

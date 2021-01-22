@@ -183,6 +183,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     this.appliedPeriods = source.appliedPeriods && source.appliedPeriods.map(AppliedPeriod.fromObject) || [];
   }
 
+  // TODO BLA: à déplacer
   convertToString(): string {
     return this && this.strategyId && (this.location.name) || undefined;
   }
@@ -271,33 +272,21 @@ export class TaxonNameStrategy {
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName);
   }
 
+  // TODO BLA: à déplacer
   convertToString(): string {
+    // TODO BLA: Pourquoi test sur strategyId
     return this && this.strategyId && this.taxonName && (this.taxonName.name) || undefined;
   }
-
 }
 
-// TODO BLA: use pipe, on department ? ?
-export function departmentsToString(data: Strategy, separator?: string): string {
-  let departments = data.departments;
-  separator = separator || ", ";
-  return departments.reduce((result: string, strategyDepartment: StrategyDepartment, index: number) => {
-    return index ? (result + separator + strategyDepartment.convertToString()) : strategyDepartment.convertToString();
-  }, '');
+export function strategyDepartmentsToString(departments: StrategyDepartment[], separator?: string) {
+  return (departments || []).map(d => d.department && d.department.name).join(separator || ", ");
 }
 
-export function appliedStategiesToString(data: Strategy, separator?: string) {
-  let appliedStrategies = data.appliedStrategies;
-  separator = separator || ", ";
-  return appliedStrategies.reduce((result: string, appliedStrategy: AppliedStrategy, index: number) => {
-    return index ? (result + separator + appliedStrategy.convertToString()) : appliedStrategy.convertToString();
-  }, '');
+export function appliedStrategiesToString(appliedStrategies: AppliedStrategy[], separator?: string) {
+  return (appliedStrategies || []).map(as => as.convertToString()).join(separator || ", ");
 }
 
-export function taxonsNameStrategyToString(data: Strategy, separator?: string) {
-  let taxonNames = data.taxonNames;
-  separator = separator || ", ";
-  return taxonNames.reduce((result: string, taxonNameStrategy: TaxonNameStrategy, index: number) => {
-    return index ? (result + separator + taxonNameStrategy.convertToString()) : taxonNameStrategy.convertToString();
-  }, '');
+export function taxonNamesStrategyToString(taxonNames: TaxonNameStrategy[], separator?: string) {
+  return (taxonNames || []).map(tn => tn.convertToString()).join(separator || ", ");
 }
