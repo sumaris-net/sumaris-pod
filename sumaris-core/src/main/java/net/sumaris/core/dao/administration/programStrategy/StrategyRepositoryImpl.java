@@ -748,11 +748,7 @@ public class StrategyRepositoryImpl
 
     @Override
     public boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege) {
-        return getEntityManager().createQuery(
-                "SELECT count(*) FROM StrategyDepartment t " +
-                        " WHERE t.department.id = :departmentId" +
-                        " AND t.strategy.id = :strategyId" +
-                        " AND t.privilege.id :privilegeId ", Long.class)
+        return getEntityManager().createNamedQuery("StrategyDepartment.count", Long.class)
                 .setParameter("strategyId", strategyId)
                 .setParameter("departmentId", departmentId)
                 .setParameter("privilegeId", privilege.getId())
