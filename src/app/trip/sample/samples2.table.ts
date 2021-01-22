@@ -10,7 +10,14 @@ import {
   Output, ViewChild
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
+import {
+  environment,
+  IReferentialRef,
+  isNil,
+  ReferentialRef,
+  referentialToString, RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {isNilOrBlank, isNotNil} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -23,9 +30,11 @@ import {FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, ParameterLabelStrategies} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
+import {BehaviorSubject} from "rxjs";
+import {FormFieldDefinition, FormFieldType} from "../../shared/form/field.model";
 
 export interface SampleFilter {
   operationId?: number;
@@ -33,6 +42,13 @@ export interface SampleFilter {
 }
 export const SAMPLE2_RESERVED_START_COLUMNS: string[] = ['sampleCode','morseCode','comment'/*,'weight','totalLenghtCm','totalLenghtMm','indexGreaseRate'*/];
 export const SAMPLE2_RESERVED_END_COLUMNS: string[] = [];
+
+declare interface ColumnDefinition extends FormFieldDefinition {
+  computed: boolean;
+  unitLabel?: string;
+  rankOrder: number;
+  qvIndex: number;
+}
 
 
 @Component({
@@ -83,6 +99,11 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     return this.memoryDataService.value;
   }
 
+  get $dynamicPmfms(): BehaviorSubject<PmfmStrategy[]> {
+    return this.measurementsDataService.$pmfms;
+  }
+  dynamicColumns: ColumnDefinition[];
+
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
   // @Input() showCommentsColumn = true;
@@ -111,6 +132,8 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
 
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
+
+
 
   constructor(
     injector: Injector
@@ -167,6 +190,200 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
     //  });
+  }
+
+  /**
+   * Use in ngFor, for trackBy
+   * @param index
+   * @param column
+   */
+  trackColumnDef(index: number, column: ColumnDefinition) {
+    return column.rankOrder;
+  }
+
+  isQvEven(column: ColumnDefinition) {
+    return (column.qvIndex % 2 === 0);
+  }
+
+  isQvOdd(column: ColumnDefinition) {
+    return (column.qvIndex % 2 !== 0);
+  }
+
+  protected getDisplayColumns(): string[] {
+
+    const pmfms = this.$pmfms.getValue();
+    if (!pmfms) return this.columns;
+
+    const userColumns = this.getUserColumns();
+
+    let dynamicColumnNames = [];
+    let dynamicWeightColumnNames = [];
+    let dynamicSizeColumnNames = [];
+    let dynamicMaturityColumnNames = [];
+    let dynamicSexColumnNames = [];
+    let dynamicAgeColumnNames = [];
+    let dynamicOthersColumnNames = [];
+
+    // FIXME CLT WIP
+    // filtrer sur les pmfms pour les mettres dans les différents tableaux
+    (pmfms || []).map(pmfmStrategy => {
+      let pmfm = pmfmStrategy.pmfm;
+      if (pmfm)
+      {
+        if (pmfm.parameter && pmfm.parameter.label)
+        {
+          let label = pmfm.parameter.label;
+          if (label === ParameterLabelStrategies.AGE)
+          {
+            dynamicAgeColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else if (label === ParameterLabelStrategies.SEX)
+          {
+            dynamicSexColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else if (ParameterLabelStrategies.WEIGHTS.includes(label))
+          {
+            dynamicWeightColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else if (ParameterLabelStrategies.LENGTHS.includes(label))
+          {
+            dynamicSizeColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else if (ParameterLabelStrategies.MATURITIES.includes(label))
+          {
+            dynamicMaturityColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+          else
+          {
+            dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
+        }
+        else {
+          // Display pmfm without parameter label like fractions ?
+        }
+
+      }
+    });
+
+    const pmfmColumnNames = pmfms
+      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
+      .map(p => p.pmfmId.toString());
+
+    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
+    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
+
+    this.dynamicColumns = [];
+    let idx = 1;
+    let rankOrderIdx = 100;
+    dynamicWeightColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+      key: pmfmColumnName,
+      label: 'PROGRAM.STRATEGY.WEIGHT_TABLE',
+      defaultValue: "WEIGHT",
+      type: 'string',
+      computed : false,
+      qvIndex : idx,
+      rankOrder : rankOrderIdx,
+      disabled : false
+    };
+        idx = idx +1;
+        dynamicColumnNames.push(pmfmColumnName);
+        this.dynamicColumns.push(col);
+
+    });
+    rankOrderIdx = 200;
+    dynamicSizeColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.SIZE_TABLE',
+        defaultValue: "SIZE",
+        type: 'string',
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
+      };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+    rankOrderIdx = 300;
+    dynamicMaturityColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.MATURITY_TABLE',
+        defaultValue: "MATURITY",
+        type: 'string',
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
+      };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+    rankOrderIdx = 400;
+    dynamicSexColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.SEX',
+        defaultValue: "SEX",
+        type: 'string',
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
+      };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+    rankOrderIdx = 500;
+    dynamicAgeColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.AGE',
+        defaultValue: "AGE",
+        type: 'string',
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
+      };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+    rankOrderIdx = 600;
+    dynamicOthersColumnNames.forEach(pmfmColumnName => {
+      let col = <ColumnDefinition>{
+        key: pmfmColumnName,
+        label: 'PROGRAM.STRATEGY.OTHER_TABLE',
+        defaultValue: "OTHER",
+        type: 'string',
+        computed : false,
+        qvIndex : idx,
+        rankOrder : rankOrderIdx,
+        disabled : false
+      };
+      idx = idx +1;
+      rankOrderIdx = rankOrderIdx +1;
+      dynamicColumnNames.push(pmfmColumnName);
+      this.dynamicColumns.push(col);
+    });
+
+    return RESERVED_START_COLUMNS
+      .concat(startColumns)
+      .concat(dynamicColumnNames)
+      .concat(endColumns)
+      .concat(RESERVED_END_COLUMNS)
+      // Remove columns to hide
+      .filter(column => !this.excludesColumns.includes(column));
   }
 
   async getMaxRankOrder(): Promise<number> {
