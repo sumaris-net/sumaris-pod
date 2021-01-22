@@ -99,8 +99,8 @@ public interface StrategyService {
 
 	void delete(int id);
 
-	boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege);
+	boolean hasUserPrivilege(int strategyId, int personId, ProgramPrivilegeEnum privilege);
 
-	boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege);
+	boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege);
 
 }

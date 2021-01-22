@@ -250,27 +250,6 @@ public class ProgramRepositoryImpl
         }
     }
 
-
-    @Override
-    public boolean hasUserPrivilege(int strategyId, int personId, ProgramPrivilegeEnum privilege) {
-        log.warn("TODO: implement StrategyService.hasUserPrivilege()");
-
-        return false;
-    }
-
-    @Override
-    public boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege) {
-        return getEntityManager().createQuery(
-                "SELECT count(*) FROM Program2Department t " +
-                        " WHERE t.department.id = :departmentId" +
-                        " AND t.program.id = :programId" +
-                        " AND t.privilege.id :privilegeId ", Long.class)
-                .setParameter("programId", programId)
-                .setParameter("departmentId", departmentId)
-                .setParameter("privilegeId", privilege.getId())
-                .getSingleResult() > 0;
-    }
-
     @Override
     protected void onAfterSaveEntity(ProgramVO vo, Program savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
@@ -410,5 +389,23 @@ public class ProgramRepositoryImpl
             .getResultStream()
             .map(referentialDao::toVO)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean hasUserPrivilege(int id, int personId, ProgramPrivilegeEnum privilege) {
+        return getEntityManager().createNamedQuery("ProgramPerson.count", Long.class)
+                .setParameter("programId", id)
+                .setParameter("personId", personId)
+                .setParameter("privilegeId", privilege.getId())
+                .getSingleResult() > 0;
+    }
+
+    @Override
+    public boolean hasDepartmentPrivilege(int id, int departmentId, ProgramPrivilegeEnum privilege) {
+        return getEntityManager().createNamedQuery("ProgramDepartment.count", Long.class)
+                .setParameter("programId", id)
+                .setParameter("departmentId", departmentId)
+                .setParameter("privilegeId", privilege.getId())
+                .getSingleResult() > 0;
     }
 }

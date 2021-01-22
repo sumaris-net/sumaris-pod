@@ -295,12 +295,12 @@ public class ProgramGraphQLService {
     protected void checkCanEditProgram(Integer programId) {
 
         if (programId == null) {
-            checkIsAdmin("Cannot create a program");
+            checkIsAdmin("Cannot create a program. Not an admin.");
             return;
         }
 
         // Admin can create a program
-        if(authService.isAdmin()) return; // OK
+        if (authService.isAdmin()) return; // OK
 
         PersonVO user = authService.getAuthenticatedUser().orElse(null);
         boolean isManager = programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
@@ -311,14 +311,23 @@ public class ProgramGraphQLService {
     }
 
     protected void checkCanEditStrategy(int programId, Integer strategyId) {
+        // Is new strategy: must have right on program
         if (strategyId == null) {
             checkCanEditProgram(programId);
             return;
         }
 
+        // Admin can edit strategy
+        if (authService.isAdmin()) return; // OK
+
         PersonVO user = authService.getAuthenticatedUser().orElse(null);
-        boolean isManager = strategyService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
-                || strategyService.hasDepartmentPrivilege(programId, user.getDepartment().getId(), ProgramPrivilegeEnum.MANAGER);
+        boolean isManager =
+                // Program manager
+                programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
+                || programService.hasDepartmentPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
+                // Strategy manager
+                || strategyService.hasUserPrivilege(strategyId, user.getId(), ProgramPrivilegeEnum.MANAGER)
+                || strategyService.hasDepartmentPrivilege(strategyId, user.getDepartment().getId(), ProgramPrivilegeEnum.MANAGER);
         if (!isManager) {
             throw new AccessDeniedException("Forbidden");
         }
