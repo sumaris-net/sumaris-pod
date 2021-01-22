@@ -1194,6 +1194,7 @@
       "WEIGHT_TABLE": "Weights",
       "SIZE_TABLE": "Sizes",
       "MATURITY_TABLE": "Maturities",
+      "OTHER_TABLE": "Other",
       "CALCIFIED_TYPE": "Type of calcified part" ,
       "SIZE_INCREMENT": "Size increment",
       "EFFORT": "Effort : ",

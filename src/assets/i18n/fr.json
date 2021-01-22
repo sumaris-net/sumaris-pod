@@ -1213,6 +1213,7 @@
       "WEIGHT_TABLE": "Poids",
       "SIZE_TABLE": "Tailles",
       "MATURITY_TABLE": "Maturités",
+      "OTHER_TABLE": "Autre",
       "CALCIFIED_TYPE": "Types de pièces calcifiées",
       "SIZE_INCREMENT": "incrément de taille",
       "EFFORT": "Effort : ",
