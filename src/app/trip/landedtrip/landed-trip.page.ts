@@ -17,7 +17,7 @@ import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from ".
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
-import {Product, ProductFilter} from "../services/model/product.model";
+import {Product, ProductFilter, ProductUtils} from "../services/model/product.model";
 import {PacketsTable} from "../packet/packets.table";
 import {Packet, PacketFilter} from "../services/model/packet.model";
 import {OperationGroup, Trip} from "../services/model/trip.model";
@@ -31,6 +31,7 @@ import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
+import {Sample} from "../services/model/sample.model";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {ReferentialRef} from "../../core/services/model/referential.model";
@@ -352,24 +353,34 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     this.operationGroupTable.value = operationGroups;
     this.$operationGroups.next(operationGroups);
 
-    let products: Product[] = [];
-    let packets: Packet[] = [];
+    let allProducts: Product[] = [];
+    let allPackets: Packet[] = [];
+    // Iterate over operation groups to collect products, samples and packets
     operationGroups.forEach(operationGroup => {
-      products = products.concat(operationGroup.products);
-      packets = packets.concat(operationGroup.packets);
+      // collect all operation group's samples and dispatch to products
+      const products = operationGroup.products || [];
+      if (isNotEmptyArray(operationGroup.samples)) {
+        products.forEach(product => {
+          product.samples = operationGroup.samples.filter(sample => ProductUtils.isSampleOfProduct(product, sample))
+        });
+      }
+      // collect all operation group's products (with related samples)
+      allProducts = allProducts.concat(products);
+      // collect all operation group's packets
+      allPackets = allPackets.concat(operationGroup.packets);
     });
 
     // Fix products and packets rank orders (reset if rank order are invalid, ie. from SIH)
-    if (!isRankOrderValid(products))
-      fillRankOrder(products);
-    if (!isRankOrderValid(packets))
-      fillRankOrder(packets);
+    if (!isRankOrderValid(allProducts))
+      fillRankOrder(allProducts);
+    if (!isRankOrderValid(allPackets))
+      fillRankOrder(allPackets);
 
     // Sale
     if (data && data.sale && this.productSalePmfms) {
 
       // fix sale startDateTime
-      data.sale.startDateTime = !data.sale.startDateTime ? data.returnDateTime : data.sale.startDateTime;
+      data.sale.startDateTime = data.sale.startDateTime || data.returnDateTime;
 
       // keep sale object in safe place
       this._sale = data.sale;
@@ -378,19 +389,19 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       if (isNotEmptyArray(data.sale.products)) {
 
         // First, reset products and packets sales
-        products.forEach(product => product.saleProducts = []);
-        packets.forEach(packet => packet.saleProducts = []);
+        allProducts.forEach(product => product.saleProducts = []);
+        allPackets.forEach(packet => packet.saleProducts = []);
 
         data.sale.products.forEach(saleProduct => {
           if (isNil(saleProduct.batchId)) {
             // = product
-            const productFound = products.find(product => SaleProductUtils.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
+            const productFound = allProducts.find(product => SaleProductUtils.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
             if (productFound) {
               productFound.saleProducts.push(saleProduct);
             }
           } else {
             // = packet
-            const packetFound = packets.find(packet => SaleProductUtils.isSaleOfPacket(packet, saleProduct));
+            const packetFound = allPackets.find(packet => SaleProductUtils.isSaleOfPacket(packet, saleProduct));
             if (packetFound) {
               packetFound.saleProducts.push(saleProduct);
             }
@@ -398,15 +409,15 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         });
 
         // need fill products.saleProducts.rankOrder
-        products.forEach(p => fillRankOrder(p.saleProducts));
+        allProducts.forEach(p => fillRankOrder(p.saleProducts));
       }
     }
 
     // Products table
-    this.productsTable.value = products;
+    this.productsTable.value = allProducts;
 
     // Packets table
-    this.packetsTable.value = packets;
+    this.packetsTable.value = allPackets;
 
   }
 
@@ -537,21 +548,39 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Restore sale
     json.sale = this._sale && this._sale.asObject();
-    // Sale
-    if (json.sale) {
-      // sale products won't be saved with sale directly
-      delete json.sale.products;
-    } else {
-      // need a sale object if any sale product found
+    if (!json.sale) {
+      // Create a sale object if any sale product found
       if (products.find(product => isNotEmptyArray(product.saleProducts))
         || packets.find(packet => isNotEmptyArray(packet.saleProducts))) {
-        json.sale = {saleType: {id: SaleTypeIds.OTHER}};
+        json.sale = {
+          startDateTime: json.returnDateTime,
+          saleType: {id: SaleTypeIds.OTHER}
+        };
       }
     }
 
-    // Affect in each operation group : products and packets
+    if (json.sale) {
+      // Gather all sale products
+      const saleProducts: Product[] = [];
+      products.forEach(product => isNotEmptyArray(product.saleProducts) && saleProducts.push(...product.saleProducts));
+      packets.forEach(packet => {
+        if (isNotEmptyArray(packet.saleProducts)) {
+          packet.saleProducts.forEach(saleProduct => {
+            // Affect batchId (= packet.id)
+            saleProduct.batchId = packet.id;
+          })
+          saleProducts.push(...packet.saleProducts);
+        }
+      })
+      json.sale.products = saleProducts;
+    }
+
+    // Affect in each operation group : products, samples and packets
     operationGroups.forEach(operationGroup => {
       operationGroup.products = products.filter(product => operationGroup.equals(product.parent as OperationGroup));
+      let samples: Sample[] = [];
+      (operationGroup.products || []).forEach(product => samples = samples.concat(product.samples || []));
+      operationGroup.samples = samples;
       operationGroup.packets = packets.filter(packet => operationGroup.equals(packet.parent as OperationGroup));
     });
 

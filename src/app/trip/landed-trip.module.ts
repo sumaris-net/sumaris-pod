@@ -31,6 +31,7 @@ import {ReferentialModule} from "../referential/referential.module";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {DataModule} from "../data/data.module";
 import {TranslateModule} from "@ngx-translate/core";
+import {SamplesModal} from "./sample/samples.modal";
 
 
 @NgModule({
@@ -68,7 +69,8 @@ import {TranslateModule} from "@ngx-translate/core";
     PacketSaleForm,
     PacketSaleModal,
     FishingAreaForm,
-    SelectVesselsModal
+    SelectVesselsModal,
+    SamplesModal
   ],
   exports: [
     // Modules

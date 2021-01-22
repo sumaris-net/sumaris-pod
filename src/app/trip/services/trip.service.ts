@@ -1235,6 +1235,11 @@ export class TripService
           });
         }
 
+        // Operation group's samples (recursively)
+        if (sourceOperationGroup && sourceOperationGroup.samples && targetOperationGroup.samples) {
+          this.copyIdAndUpdateDateOnSamples(sourceOperationGroup.samples, targetOperationGroup.samples);
+        }
+
         // Operation group's packets
         if (sourceOperationGroup && sourceOperationGroup.packets && targetOperationGroup.packets) {
           targetOperationGroup.packets.forEach(targetPacket => {
@@ -1249,6 +1254,26 @@ export class TripService
               });
             }
           });
+        }
+      });
+    }
+  }
+
+  /**
+   * Copy Id and update, in sample tree (recursively)
+   * @param sources
+   * @param targets
+   */
+  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
+    // Update samples
+    if (sources && targets) {
+      targets.forEach(target => {
+        const source = sources.find(json => target.equals(json));
+        EntityUtils.copyIdAndUpdateDate(source, target);
+
+        // Apply to children
+        if (target.children && target.children.length) {
+          this.copyIdAndUpdateDateOnSamples(sources, target.children);
         }
       });
     }
