@@ -32,14 +32,21 @@
     <select alias="STRATEGY_DESCRIPTION" type="text">S.DESCRIPTION</select>
     <select alias="STRATEGY_COMMENT" type="text">S.COMMENTS</select>
 
+    <select alias="START_DATE" type="text">min(APP.START_DATE)</select>
+    <select alias="END_DATE" type="text">max(APP.END_DATE)</select>
+
+    <select alias="LOCATION_CODES" group="hsqldb" type="text">GROUP_CONCAT(L.LABEL SEPARATOR ', ')</select>
+    <select alias="LOCATION_CODES" group="oracle" type="text">LISTAGG(L.LABEL, ', ')</select>
+
     <!-- hidden columns -->
     <select alias="PROGRAM_ID" type="hidden">P.ID</select>
     <select alias="STRATEGY_ID" type="hidden">S.ID</select>
 
     <from alias="S">STRATEGY</from>
     <from join="true">INNER JOIN PROGRAM P ON S.PROGRAM_FK = P.ID</from>
-    <from join="true">INNER JOIN APPLIED_STRATEGY APS ON APS.STRATEGY_FK = S.ID</from>
-    <from join="true">INNER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
+    <from join="true">LEFT OUTER JOIN APPLIED_STRATEGY APS ON APS.STRATEGY_FK = S.ID</from>
+    <from join="true">LEFT OUTER JOIN LOCATION L ON L.ID = APS.LOCATION_FK</from>
+    <from join="true">LEFT OUTER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
 
     <where operator="AND" group="idsFilter">
       <in field="S.ID"><![CDATA[&ids]]></in>
@@ -55,6 +62,11 @@
     <where operator="AND" group="locationIdsFilter">
       <in field="S.LABEL"><![CDATA[&locationIds]]></in>
     </where>
+
+    <groupby>
+      RECORD_TYPE, PROJECT, STRATEGY, STRATEGY_NAME, STRATEGY_DESCRIPTION, STRATEGY_COMMENT,
+      PROGRAM_ID, STRATEGY_ID
+    </groupby>
 
     <orderby direction="ASC">S.ID</orderby>
 

@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.dao.administration.program;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
@@ -213,6 +214,9 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         xmlQuery.setGroup("labelsFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
         xmlQuery.bind("labels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
 
+        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+
         return xmlQuery;
     }
 
@@ -256,6 +260,7 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         xmlQuery.bind("labels", Daos.getSqlInEscapedStrings(context.getStrategyLabels()));
 
         // Date filters
+        xmlQuery.setGroup("dateFilter", context.getStartDate() != null || context.getEndDate() != null);
         xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
         xmlQuery.bind("startDate", Daos.getSqlToDate(Dates.resetTime(context.getStartDate())));
         xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
@@ -264,6 +269,10 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         // Location Filter
         xmlQuery.setGroup("locationIdsFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
         xmlQuery.bind("locationIds", Daos.getSqlInNumbers(context.getLocationIds()));
+
+        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+
 
         return xmlQuery;
     }

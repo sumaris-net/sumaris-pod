@@ -39,9 +39,8 @@
     <from alias="S">&amp;strategyTableName</from>
     <from join="true">INNER JOIN LANDING L ON L.PROGRAM_FK = S.PROGRAM_ID</from>
     <!-- landing strategy link -->
-    <from join="true">INNER JOIN LANDING_MEASUREMENT LM ON LM.LANDING_FK = L.ID AND LM.PMFM_FK = &amp;strategyLabelPmfmId</from>
+    <from join="true">INNER JOIN LANDING_MEASUREMENT LM ON LM.LANDING_FK = L.ID AND LM.PMFM_FK = &amp;strategyLabelPmfmId and LM.ALPHANUMERICAL_VALUE = S.STRATEGY</from>
     <!-- landing strategy -->
-    <from join="true">INNER JOIN STRATEGY S ON S.LABEL = LM.ALPHANUMERICAL_VALUE</from>
     <from join="true">INNER JOIN APPLIED_STRATEGY APS ON APS.STRATEGY_FK = S.ID</from>
     <from join="true">INNER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
 

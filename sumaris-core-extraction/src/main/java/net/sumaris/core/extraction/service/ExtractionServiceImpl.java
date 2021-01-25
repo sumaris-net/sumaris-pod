@@ -220,10 +220,10 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Make sure type has category AND label filled
         type = getByFormat(type);
 
+        filter = filter != null ? filter : new ExtractionFilterVO();
+
         // Force preview
         filter.setPreview(true);
-
-        filter = filter != null ? filter : new ExtractionFilterVO();
 
         switch (type.getCategory()) {
             case PRODUCT:
