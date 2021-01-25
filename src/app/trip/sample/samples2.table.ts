@@ -314,7 +314,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         dynamicColumnNames.push(pmfmColumnName);
         this.dynamicColumns.push(col);
     });
-    idx = idx +1;
+    if (dynamicWeightColumnNames)
+    {
+      idx = idx +1;
+    }
     dynamicSizeColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
@@ -330,7 +333,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    idx = idx +1;
+    if (dynamicSizeColumnNames)
+    {
+      idx = idx +1;
+    }
     dynamicMaturityColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
@@ -346,7 +352,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    idx = idx +1;
+    if (dynamicMaturityColumnNames)
+    {
+      idx = idx +1;
+    }
     dynamicSexColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
@@ -362,7 +371,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    idx = idx +1;
+    if (dynamicSexColumnNames)
+    {
+      idx = idx +1;
+    }
     dynamicAgeColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
@@ -378,7 +390,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    idx = idx +1;
+    if (dynamicAgeColumnNames)
+    {
+      idx = idx +1;
+    }
     dynamicOthersColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
