@@ -299,7 +299,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
     this.dynamicColumns = [];
     let idx = 1;
-    let rankOrderIdx = 100;
+    let rankOrderIdx = 1;
     dynamicWeightColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
       key: pmfmColumnName,
@@ -346,7 +346,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    rankOrderIdx = 400;
+    idx = idx +1;
     dynamicSexColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
@@ -362,6 +362,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
+    idx = idx +1;
     dynamicAgeColumnNames.forEach(pmfmColumnName => {
       let col = <ColumnDefinition>{
         key: pmfmColumnName,
