@@ -36,7 +36,7 @@
     <select alias="START_DATE" type="date">min(APP.START_DATE)</select>
     <select alias="END_DATE" type="date">max(APP.END_DATE)</select>
 
-    <select alias="LOCATION_CODES" group="hsqldb" type="text">GROUP_CONCAT(L.LABEL SEPARATOR ', ')</select>
+    <select alias="LOCATION_CODES" group="hsqldb" type="text">GROUP_CONCAT(distinct L.LABEL SEPARATOR ', ')</select>
     <select alias="LOCATION_CODES" group="oracle" type="text">LISTAGG(L.LABEL, ', ')</select>
 
     <!-- hidden columns -->
@@ -49,6 +49,7 @@
     <from join="true">LEFT OUTER JOIN LOCATION L ON L.ID = APS.LOCATION_FK</from>
     <from join="true">LEFT OUTER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
 
+    <where>1=1</where>
     <where operator="AND" group="idsFilter">
       <in field="S.ID"><![CDATA[&ids]]></in>
     </where>
@@ -56,7 +57,6 @@
       <in field="S.LABEL"><![CDATA[&labels]]></in>
     </where>
 
-    <where>1=1</where>
     <where operator="AND" group="startDateFilter"><![CDATA[APP.END_DATE >= &startDate]]></where>
     <where operator="AND" group="endDateFilter"><![CDATA[APP.START_DATE <= &endDate]]></where>
 

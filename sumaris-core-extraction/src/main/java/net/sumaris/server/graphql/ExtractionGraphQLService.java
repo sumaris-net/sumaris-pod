@@ -41,7 +41,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -92,6 +95,38 @@ public class ExtractionGraphQLService {
         //securityService.checkReadAccess(type);
 
         return extractionService.executeAndRead(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+    }
+
+    @GraphQLQuery(name = "extractionMappedRows", description = "Preview some extraction rows")
+    @Transactional
+    public List<Map<String, String>> getExtractionMappedRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
+                                                            @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                                            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                            @GraphQLArgument(name = "sortBy") String sort,
+                                                            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
+    ) {
+        Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
+        Preconditions.checkNotNull(type.getLabel(), "Argument 'type.label' must not be null.");
+        Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
+        Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
+
+        //securityService.checkReadAccess(type);
+
+        List<Map<String, String>> results = new ArrayList<>();
+
+        ExtractionResultVO resultVO = extractionService.executeAndRead(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+
+        resultVO.getRows().forEach(row -> {
+            Map<String, String> rowMap = new LinkedHashMap<>();
+            for (int i = 0; i < row.length; i++) {
+                String columnName = resultVO.getColumns().get(i).getLabel();
+                rowMap.put(columnName, row[i]);
+            }
+            results.add(rowMap);
+        });
+
+        return results;
     }
 
     @GraphQLQuery(name = "extractionFile", description = "Execute extraction to a file")

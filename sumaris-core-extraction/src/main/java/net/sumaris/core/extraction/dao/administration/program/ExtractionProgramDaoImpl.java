@@ -249,7 +249,6 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
     protected XMLQuery createStrategyQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createStrategyTable");
         xmlQuery.bind("strategyTableName", context.getStrategyTableName());
-        xmlQuery.bind("programTableName", context.getProgramTableName());
 
         // Ids Filter
         xmlQuery.setGroup("idsFilter", CollectionUtils.isNotEmpty(context.getStrategyIds()));
