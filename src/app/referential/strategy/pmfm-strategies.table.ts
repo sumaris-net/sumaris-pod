@@ -15,6 +15,7 @@ import {PmfmService} from "../services/pmfm.service";
 import {Pmfm} from "../services/model/pmfm.model";
 import {
   IReferentialRef,
+  Referential,
   ReferentialRef,
   referentialToString,
   ReferentialUtils
@@ -320,7 +321,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           })
         ),
         attributes: pmfmParameterAttributes,
-        displayWith: this.displayParameter,
+        displayWith: (obj) => this.displayParameter(obj),
         columnSizes: [4,8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
@@ -342,7 +343,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           })
         ),
         attributes: ['name'],
-        displayWith: this.displayMatrix,
+        displayWith: (obj) => this.displayMatrix(obj),
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-medium-size'
       })
@@ -361,7 +362,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           })
         ),
         attributes: mfmAttributes,
-        displayWith: this.displayFraction,
+        displayWith: (obj) => this.displayFraction(obj),
         class: 'mat-autocomplete-panel-medium-size',
         showAllOnFocus: false
       })
@@ -675,31 +676,22 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     }
   }
 
-  displayMatrix(id) {
-    if (id) {
-      id = id && id.id ? id.id : id;
-      const t = this['items']['source']['source']['value'];
-      return t.find(pmfm => pmfm.matrix?.id === id) ? t.find(pmfm => pmfm.matrix?.id === id).matrix.name : "";
-    }
-    return "";
+  displayMatrix(obj: number|ReferentialRef) {
+    const matrixId = (obj instanceof ReferentialRef) ? obj.id : obj as number;
+    const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.matrix?.id === matrixId);
+    return pmfm && pmfm.matrix && pmfm.matrix.name || '';
   }
 
-  displayFraction(id) {
-    if (id) {
-      id = id && id.id ? id.id : id;
-      const t = this['items']['source']['source']['value'];
-      return t.find(pmfm => pmfm.fraction?.id === id) ? t.find(pmfm => pmfm.fraction?.id === id).fraction.name : "";
-    }
-    return "";
+  displayFraction(obj: number|ReferentialRef) {
+    const fractionId = (obj instanceof ReferentialRef) ? obj.id : obj as number;
+    const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.fraction?.id === fractionId);
+    return pmfm && pmfm.fraction && pmfm.fraction.name || '';
   }
 
-  displayParameter(id) {
-    if (id) {
-      id = id && id.id ? id.id : id;
-      const t = this['items']['source']['source']['value'];
-      return t.find(pmfm => pmfm.parameter?.id === id) ? t.find(pmfm => pmfm.parameter?.id === id).parameter.name : "";
-    }
-    return "";
+  displayParameter(obj: number|Referential) {
+    const parameterId = (obj instanceof Referential) ? obj.id : obj as number;
+    const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.parameter?.id === parameterId);
+    return pmfm && pmfm.parameter && pmfm.parameter.name || '';
   }
 
   displayMethod(id) {
