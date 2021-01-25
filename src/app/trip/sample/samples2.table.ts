@@ -276,7 +276,11 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
           }
           else
           {
-            dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
+            // Filter on type. Fractions pmfm doesn't provide type.
+            if (pmfmStrategy.type)
+            {
+              dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
+            }
           }
         }
         else {
