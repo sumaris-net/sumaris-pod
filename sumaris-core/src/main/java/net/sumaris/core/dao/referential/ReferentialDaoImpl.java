@@ -24,6 +24,7 @@ package net.sumaris.core.dao.referential;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.Daos;
@@ -51,8 +52,6 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
@@ -465,7 +464,7 @@ public class ReferentialDaoImpl
             return (Timestamp)getEntityManager().createQuery(hql).getSingleResult();
         }
         catch (Exception e) {
-            logger.error("Error while getting max(updateDate) from " + entityName, e);
+            log.error("Error while getting max(updateDate) from " + entityName, e);
             return null;
         }
     }

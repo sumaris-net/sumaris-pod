@@ -204,13 +204,13 @@ public class BatchRepositoryImpl
                 .collect(Collectors.toList());
 
         if (CollectionUtils.isEmpty(roots)) {
-            logger.warn("No catch batches found in this source list. Will return null.");
+            log.warn("No catch batches found in this source list. Will return null.");
             return null;
         }
 
         // Assume there is only 1 catch batch
         if (CollectionUtils.size(roots) > 1) {
-            logger.warn("Multiple catch batches in this source list, will return the first one.");
+            log.warn("Multiple catch batches in this source list, will return the first one.");
         }
 
         // Get root

@@ -25,7 +25,6 @@ package net.sumaris.importation;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.importation.dao.DatabaseResource;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.sql.Connection;
