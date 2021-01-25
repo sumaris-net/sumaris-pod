@@ -314,7 +314,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         dynamicColumnNames.push(pmfmColumnName);
         this.dynamicColumns.push(col);
     });
-    if (dynamicWeightColumnNames)
+    if (dynamicWeightColumnNames && dynamicWeightColumnNames.length)
     {
       idx = idx +1;
     }
@@ -333,7 +333,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    if (dynamicSizeColumnNames)
+    if (dynamicSizeColumnNames && dynamicSizeColumnNames.length)
     {
       idx = idx +1;
     }
@@ -352,7 +352,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    if (dynamicMaturityColumnNames)
+    if (dynamicMaturityColumnNames && dynamicMaturityColumnNames.length)
     {
       idx = idx +1;
     }
@@ -371,7 +371,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    if (dynamicSexColumnNames)
+    if (dynamicSexColumnNames && dynamicSexColumnNames.length)
     {
       idx = idx +1;
     }
@@ -390,7 +390,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    if (dynamicAgeColumnNames)
+    if (dynamicAgeColumnNames && dynamicAgeColumnNames.length)
     {
       idx = idx +1;
     }
