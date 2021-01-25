@@ -1203,6 +1203,34 @@
         "TITLE": "<small>{{program}}<br></small>Stratégie {{label}}",
         "SAMPLING_TITLE": "Ligne de plan {{label}}"
       },
+      "TABLE": {
+        "LABEL": "Code",
+        "APPLIED_STRATEGIES": "Lieu(x)",
+        "ANALYTIC_REFERENCE": "Code analytique",
+        "RECORDER_DEPARTMENTS": "Service(s) saisisseur(s)",
+        "TAXON_NAMES": "Espèce(s) scientifique(s)",
+        "EFFORT_Q1": "Efforts T1" ,
+        "EFFORT_Q2": "Efforts T2",
+        "EFFORT_Q3": "Efforts T3",
+        "EFFORT_Q4": "Efforts T4",
+        "PARAMETERS": "Paramètres à mesurer",
+        "COMMENT": "",
+
+        "SAMPLING": {
+          "LABEL": "Code de la ligne",
+          "APPLIED_STRATEGIES": "Zone(s) de pêche",
+          "ANALYTIC_REFERENCE": "EOTP",
+          "RECORDER_DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
+          "TAXON_NAMES": "Espèce(s) cible(s)",
+          "EFFORT_Q1": "Efforts T1" ,
+          "EFFORT_Q2": "Efforts T2",
+          "EFFORT_Q3": "Efforts T3",
+          "EFFORT_Q4": "Efforts T4",
+          "PARAMETERS": "Paramètres à mesurer",
+          "COMMENT": "Commentaires"
+        }
+      },
+
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
@@ -1239,7 +1267,7 @@
       "LABEL": "Code de la ligne",
       "SAMPLE_ROW_TITLE": "Code ligne de plan - incrément",
       "ANALYTIC_REFERENCE": "EOTP",
-      "STRATEGY_DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
+      "DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
       "LANDING_PORT": "Port de débarquement",
       "SEX": "Sexe",
       "AGE": "Age",
@@ -1260,10 +1288,7 @@
       "QUARTER_4": "Trimestre 4",
       "PARAMETERS_TITLE": "Paramètres à mesurer :",
       "COMMENT" :"Commentaire",
-      "QUARTER_1_TABLE": "Efforts T1" ,
-      "QUARTER_2_TABLE": "Efforts T2",
-      "QUARTER_3_TABLE": "Efforts T3",
-      "QUARTER_4_TABLE": "Efforts T4",
+
       "ADD_LANDING": "Ajouter un débarquement"
     },
     "ERROR": {

@@ -1,22 +1,22 @@
 .mat-table {
 
-  .mat-column-eotp,
-  .mat-column-quarter_1_table,
-  .mat-column-quarter_2_table,
-  .mat-column-quarter_3_table,
-  .mat-column-quarter_4_table{
+  .mat-column-analyticReference,
+  .mat-column-effortQ1,
+  .mat-column-effortQ2,
+  .mat-column-effortQ3,
+  .mat-column-effortQ4 {
     max-width: 80px;
   }
 
-  .mat-column-sampleRowCode,
+  .mat-column-label,
   .mat-column-comment,
-  .mat-column-parametersTitleTable{
+  .mat-column-parameters{
     max-width: 100px;
   }
 
-  .mat-column-laboratory,
-  .mat-column-fishingArea,
-  .mat-column-targetSpecie,
+  .mat-column-departments,
+  .mat-column-appliedStrategies,
+  .mat-column-taxonNames,
    {
     white-space: nowrap;
     overflow: hidden;

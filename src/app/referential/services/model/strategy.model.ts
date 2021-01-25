@@ -151,6 +151,8 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
 
 export class AppliedStrategy extends Entity<AppliedStrategy> {
 
+  static TYPENAME = 'AppliedStrategyVO';
+
   strategyId: number;
   location: ReferentialRef;
   appliedPeriods: AppliedPeriod[];
@@ -160,6 +162,11 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     const res = new AppliedStrategy();
     res.fromObject(source);
     return res;
+  }
+
+  constructor() {
+    super();
+    this.__typename = AppliedStrategy.TYPENAME;
   }
 
   clone(): AppliedStrategy {

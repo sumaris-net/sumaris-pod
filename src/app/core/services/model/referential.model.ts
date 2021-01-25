@@ -3,11 +3,14 @@ import {joinPropertiesPath} from "../../../shared/functions";
 import {Entity, EntityAsObjectOptions, EntityUtils} from "./entity.model";
 import {StatusIds} from "./model.enum";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {Person, personToString} from "./person.model";
 
 export function referentialToString(obj: Referential | any, properties?: string[]): string | undefined {
   return obj && obj.id && joinPropertiesPath(obj, properties || ['label', 'name']) || undefined;
 }
-
+export function referentialsToString(values: Referential[], properties?: string[], separator?: string): string {
+  return (values || []).map(v => referentialToString(v, properties)).join(separator || ", ");
+}
 
 export declare interface StatusValue {
   id: number;

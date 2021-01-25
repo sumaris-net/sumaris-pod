@@ -23,11 +23,11 @@ import {ReferentialRefFilter} from "./referential-ref.service";
 import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
 import {firstArrayValue, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
-import {EntityServiceLoadOptions, LoadResult} from "../../shared/services/entity-service.class";
+import {LoadResult} from "../../shared/services/entity-service.class";
 
 
 export class StrategyFilter extends ReferentialFilter {
-  entityName: 'Strategy';
+  //entityName: 'Strategy';
 }
 
 const FindStrategyNextLabel: any = gql`
@@ -160,7 +160,7 @@ const strategySubscriptions: BaseReferentialSubscriptions = {
 };
 
 @Injectable({providedIn: 'root'})
-export class StrategyService extends BaseReferentialService<Strategy, ReferentialFilter> {
+export class StrategyService extends BaseReferentialService<Strategy, StrategyFilter> {
 
   constructor(
     graphql: GraphqlService,
@@ -174,16 +174,16 @@ export class StrategyService extends BaseReferentialService<Strategy, Referentia
       StrategyQueries,
       StrategyMutations,
       strategySubscriptions,
-      ReferentialFilter.asPodObject, StrategyFilter.searchFilter);
+      StrategyFilter.asPodObject, StrategyFilter.searchFilter);
   }
 
   async existLabel(label: string, programId?: number): Promise<boolean> {
     if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
 
-    const filter: ReferentialFilter = {
+    const filter = StrategyFilter.asPodObject({
       label,
       levelId: isNotNil(programId) ? programId : undefined
-    };
+    });
     // Load from pod
     const {total} = await this.graphql.query<{ total: number }>({
       query: StrategyQueries.count,
@@ -204,7 +204,7 @@ export class StrategyService extends BaseReferentialService<Strategy, Referentia
                    size: number,
                    sortBy?: string,
                    sortDirection?: SortDirection,
-                   filter?: ReferentialFilter,
+                   filter?: StrategyFilter,
                    opts?: {
                      [key: string]: any;
                      fetchPolicy?: FetchPolicy;

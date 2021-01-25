@@ -60,57 +60,57 @@
   <!-- label column -->
   <ng-container matColumnDef="label">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PROGRAM.STRATEGY.LABEL</span>
+      <span>{{i18nColumnPrefix + 'LABEL'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{row.currentData.label}}
+      {{row.currentData.label }}
     </mat-cell>
   </ng-container>
 
     <!-- analyticReference column -->
     <ng-container matColumnDef="analyticReference">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.ANALYTIC_REFERENCE</span>
+        <span>{{i18nColumnPrefix + 'ANALYTIC_REFERENCE'|translate}}</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{row.currentData.analyticReference}}
+        {{ row.currentData.analyticReference }}
       </mat-cell>
     </ng-container>
 
-    <!-- departments column -->
-    <ng-container matColumnDef="departments">
+    <!-- Departments column -->
+    <ng-container matColumnDef="recorderDepartments">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.DEPARTMENTS</span>
+        <span>{{i18nColumnPrefix + 'RECORDER_DEPARTMENTS'|translate}}</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{row.currentData.departments | arrayPluck:{property: 'department'} | departmentToString}}
+        <ion-text>{{row.currentData.departments | arrayPluck:{property: 'department'} | departmentToString}}</ion-text>
       </mat-cell>
     </ng-container>
 
-    <!-- FISHING_AREA column -->
+    <!-- Applied strategies column -->
     <ng-container matColumnDef="appliedStrategies">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.APPLIED_STRATEGIES</span>
+        <span>{{i18nColumnPrefix + 'APPLIED_STRATEGIES'|translate}}</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{appliedStrategiesToString(row.currentData.appliedStrategies)}}
+        {{row.currentData.appliedStrategies | arrayPluck: {property: 'location'} | referentialToString: ['name'] }}
       </mat-cell>
     </ng-container>
 
      <!-- TARGET_SPECIE column -->
      <ng-container matColumnDef="taxonNames">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.TAXON_NAMES</span>
+        <span>{{i18nColumnPrefix + 'TAXON_NAMES'|translate}}</span>
       </mat-header-cell>
        <mat-cell *matCellDef="let row">
-         {{taxonNamesStrategyToString(row.currentData.taxonNames)}}
+         {{row.currentData.taxonNames | arrayPluck: {property: 'taxonName'} | referentialToString: ['name'] }}
        </mat-cell>
     </ng-container>
 
   <!-- comment column -->
   <ng-container matColumnDef="comment">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>PROGRAM.STRATEGY.COMMENT</span>
+      <span>{{i18nColumnPrefix + 'COMMENT'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-icon color="primary" class="comment"
@@ -119,20 +119,20 @@
     </mat-cell>
   </ng-container>
 
-    <!-- PARAMETERS_TITLE column -->
-    <ng-container matColumnDef="parametersTitleTable">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.PARAMETERS_TITLE_TABLE</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        {{parametersToString(row.currentData)}}
-      </mat-cell>
-    </ng-container>
+  <!-- Parameters column -->
+  <ng-container matColumnDef="parameters">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span>{{i18nColumnPrefix + 'PARAMETERS'|translate}}</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      {{parametersToString(row.currentData.pmfmStrategies)}}
+    </mat-cell>
+  </ng-container>
 
-  <!-- QUARTER_1_TABLE column -->
-  <ng-container matColumnDef="quarter_1_table">
+  <!-- Effort / Q1 column -->
+  <ng-container matColumnDef="effortQ1">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>PROGRAM.STRATEGY.QUARTER_1_TABLE</span>
+      <span>{{i18nColumnPrefix + 'EFFORT_Q1'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text
@@ -146,10 +146,10 @@
     </mat-cell>
   </ng-container>
 
-  <!-- QUARTER_2_TABLE column -->
-  <ng-container matColumnDef="quarter_2_table">
+  <!-- Effort / Q2 column -->
+  <ng-container matColumnDef="effortQ2">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>PROGRAM.STRATEGY.QUARTER_2_TABLE</span>
+      <span>{{i18nColumnPrefix + 'EFFORT_Q2'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text
@@ -163,10 +163,10 @@
     </mat-cell>
   </ng-container>
 
-  <!-- QUARTER_3_TABLE column -->
-  <ng-container matColumnDef="quarter_3_table">
+  <!-- Effort / Q3  column -->
+  <ng-container matColumnDef="effortQ3">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>PROGRAM.STRATEGY.QUARTER_3_TABLE</span>
+      <span>{{i18nColumnPrefix + 'EFFORT_Q3'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text
@@ -180,10 +180,10 @@
     </mat-cell>
   </ng-container>
 
-  <!-- QUARTER_4_TABLE column -->
-  <ng-container matColumnDef="quarter_4_table">
+  <!-- Effort / Q4 column -->
+  <ng-container matColumnDef="effortQ4">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>PROGRAM.STRATEGY.QUARTER_4_TABLE</span>
+      <span>{{i18nColumnPrefix + 'EFFORT_Q4'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text [color]="getRealizedEffortColor(row.currentData, 4)"
@@ -210,7 +210,7 @@
         <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
       </button>
       <!-- validate -->
-      <button small mat-icon-button color="light"
+      <button mat-icon-button color="light"
               [title]="'COMMON.BTN_VALIDATE'|translate"
               (click)="confirmEditCreate($event, row)">
         <mat-icon>check</mat-icon>

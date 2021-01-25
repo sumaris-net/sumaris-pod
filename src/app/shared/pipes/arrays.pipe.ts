@@ -70,7 +70,7 @@ export class ArrayFirstPipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class ArrayPluckPipe implements PipeTransform {
 
-  transform<T>(val: T[], opts: { property: keyof T; omitNil?: boolean }): any[] {
+  transform<T>(val: T[], opts: { property: string; omitNil?: boolean }): any[] {
     return (opts.omitNil !== true) ?
       (val || []).map(value => value && value[opts.property]) :
       (val || []).map(value => value && value[opts.property]).filter(isNotNil);

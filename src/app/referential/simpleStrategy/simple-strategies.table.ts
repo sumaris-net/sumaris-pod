@@ -18,6 +18,8 @@ import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
 import {ParameterLabel, ParameterLabelList} from "../services/model/model.enum";
 import {PredefinedColors} from "@ionic/core";
+import {ReferentialFilter} from "../services/referential.service";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-simple-strategies-table',
@@ -25,7 +27,7 @@ import {PredefinedColors} from "@ionic/core";
   styleUrls: ['simple-strategies.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SimpleStrategiesTable extends AppTable<Strategy, StrategyFilter> {
+export class SimpleStrategiesTable extends AppTable<Strategy, ReferentialFilter> {
 
   private _program: Program;
 
@@ -59,7 +61,6 @@ export class SimpleStrategiesTable extends AppTable<Strategy, StrategyFilter> {
     localSettingsService: LocalSettingsService,
     injector: Injector,
     dataService: StrategyService,
-    validatorService: ValidatorService,
     protected cd: ChangeDetectorRef,
     @Inject(ENVIRONMENT) protected environment
   ) {
@@ -74,27 +75,27 @@ export class SimpleStrategiesTable extends AppTable<Strategy, StrategyFilter> {
         .concat([
           'label',
           'analyticReference',
-          'departments',
+          'recorderDepartments',
           'appliedStrategies',
           'taxonNames',
           'comment',
-          'parametersTitleTable',
-          'quarter_1_table',
-          'quarter_2_table',
-          'quarter_3_table',
-          'quarter_4_table'])
+          'parameters',
+          'effortQ1',
+          'effortQ2',
+          'effortQ3',
+          'effortQ4'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource(Strategy, dataService, environment, validatorService, {
+      new EntitiesTableDataSource(Strategy, dataService, environment, null, {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         dataServiceOptions: {
-          saveOnlyDirtyRows: false
+          readOnly: true,
         }
       }),
       null,
       injector);
 
-    this.i18nColumnPrefix = 'PROGRAM.STRATEGY.';
+    this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.SAMPLING.';
     this.autoLoad = true; // waiting parent to load
 
     this.confirmBeforeDelete = true;
@@ -107,11 +108,6 @@ export class SimpleStrategiesTable extends AppTable<Strategy, StrategyFilter> {
     this.debug = !environment.production;
   }
 
-  ngOnInit() {
-
-    //this.inlineEdition = toBoolean(this.inlineEdition, true);
-    super.ngOnInit();
-  }
 
   getRealizedEffortColor(data: Strategy, quarter): PredefinedColors {
     let color : PredefinedColors = 'dark';
