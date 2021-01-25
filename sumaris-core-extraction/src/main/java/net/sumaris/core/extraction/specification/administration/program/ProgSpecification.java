@@ -34,7 +34,7 @@ public interface ProgSpecification {
     String SM_SHEET_NAME = "SM"; // Strategy Monitoring
 
     String COLUMN_PROJECT = "project";
-    String COLUMN_YEAR = "year";
+    String COLUMN_STRATEGY = "strategy";
     String COLUMN_START_DATE = "start_date";
     String COLUMN_END_DATE = "end_date";
 

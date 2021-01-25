@@ -22,6 +22,7 @@ package net.sumaris.core.extraction.dao.administration.program;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
@@ -66,18 +67,20 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
                             case ProgSpecification.COLUMN_PROJECT:
                                 target.setProgramLabel(criterion.getValue());
                                 break;
-                            case ProgSpecification.COLUMN_YEAR:
-                                int year = Integer.parseInt(criterion.getValue());
-                                target.setStartDate(Dates.getFirstDayOfYear(year));
-                                target.setEndDate(Dates.getLastSecondOfYear(year));
+                            case ProgSpecification.COLUMN_STRATEGY:
+                                target.setStrategyLabels(ImmutableList.of(criterion.getValue()));
                                 break;
                             case ProgSpecification.COLUMN_START_DATE:
-                                Date startDate = Dates.fromISODateTimeString(criterion.getValue());
-                                target.setStartDate(startDate);
+                                if (ExtractionFilterOperatorEnum.GREATER_THAN_OR_EQUALS.name().equals(criterion.getOperator())) {
+                                    Date startDate = Dates.fromISODateTimeString(criterion.getValue());
+                                    target.setStartDate(startDate);
+                                }
                                 break;
                             case ProgSpecification.COLUMN_END_DATE:
-                                Date endDate = Dates.fromISODateTimeString(criterion.getValue());
-                                target.setEndDate(endDate);
+                                if (ExtractionFilterOperatorEnum.LESS_THAN_OR_EQUALS.name().equals(criterion.getOperator())) {
+                                    Date endDate = Dates.fromISODateTimeString(criterion.getValue());
+                                    target.setEndDate(endDate);
+                                }
                                 break;
                         }
                     });
