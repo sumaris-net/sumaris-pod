@@ -113,18 +113,19 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         // -- Execute the extraction --
 
         try {
-            // Program
-            long rowCount = createProgramTable(context);
-            if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
-
             // Strategy
-            /*rowCount = createStrategyTable(context);
+            long rowCount = createStrategyTable(context);
             if (rowCount == 0) return context;
             if (sheetName != null && context.hasSheet(sheetName)) return context;
 
+            // Program
+             rowCount = createProgramTable(context);
+            if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+
             // StrategyMonitoring
-            rowCount = createStrategyMonitoringTable(context);
+            /*rowCount = createStrategyMonitoringTable(context);
             if (rowCount == 0) return context;
             if (sheetName != null && context.hasSheet(sheetName)) return context;*/
 
@@ -259,6 +260,10 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         xmlQuery.bind("startDate", Daos.getSqlToDate(Dates.resetTime(context.getStartDate())));
         xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
         xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));
+
+        // Location Filter
+        xmlQuery.setGroup("locationIdsFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
+        xmlQuery.bind("locationIds", Daos.getSqlInNumbers(context.getLocationIds()));
 
         return xmlQuery;
     }

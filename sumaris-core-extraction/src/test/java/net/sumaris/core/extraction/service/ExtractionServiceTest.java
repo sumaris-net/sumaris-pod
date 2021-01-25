@@ -56,7 +56,7 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
         // Test the Program format
         File outputFile = service.executeAndDumpPrograms(LiveFormatEnum.PROG, null);
-        //unpack(outputFile, LiveFormatEnum.PROG.getLabel());
+        unpack(outputFile, LiveFormatEnum.PROG.getLabel());
     }
 
     @Test
