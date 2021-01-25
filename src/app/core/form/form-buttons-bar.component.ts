@@ -20,16 +20,16 @@ export class FormButtonsBarComponent implements OnDestroy{
     disabledCancel = false;
 
     @Output()
-    onCancel: EventEmitter<Event> = new EventEmitter<Event>();
+    onCancel = new EventEmitter<Event>();
 
     @Output()
-    onSave: EventEmitter<Event> = new EventEmitter<Event>();
+    onSave = new EventEmitter<Event>();
 
     @Output()
-    onNext: EventEmitter<Event> = new EventEmitter<Event>();
+    onNext = new EventEmitter<Event>();
 
     @Output()
-    onBack: EventEmitter<Event> = new EventEmitter<Event>();
+    onBack = new EventEmitter<Event>();
 
     constructor(private hotkeys: Hotkeys) {
 

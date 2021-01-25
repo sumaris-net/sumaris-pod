@@ -2,6 +2,19 @@
              [hasValidate]="form.dirty && !saving"
              (onValidate)="save($event)"
              [canGoBack]="false">
+
+  <ion-buttons slot="end">
+    <!-- loader -->
+    <ion-spinner *ngIf="loading || saving; else endButtons"></ion-spinner>
+
+    <ng-template #endButtons>
+      <!-- refresh button -->
+      <ion-button [matTooltip]="'COMMON.BTN_REFRESH'|translate"
+                  (click)="refresh($event)">
+        <mat-icon slot="icon-only">refresh</mat-icon>
+      </ion-button>
+    </ng-template>
+  </ion-buttons>
 </app-toolbar>
 
 <ion-content>
@@ -85,7 +98,7 @@
                 <mat-error *ngIf="form.controls.lastName.hasError('required') && form.controls.lastName.dirty"
                   translate>ERROR.FIELD_REQUIRED</mat-error>
                 <mat-error *ngIf="form.controls.lastName.hasError('minlength') && form.controls.lastName.dirty">
-                  <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+                  <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
                 </mat-error>
               </mat-form-field>
 
@@ -96,7 +109,7 @@
                 <mat-error *ngIf="form.controls.firstName.hasError('required') && form.controls.firstName.dirty"
                   translate>ERROR.FIELD_REQUIRED</mat-error>
                 <mat-error *ngIf="form.controls.firstName.hasError('minlength') && form.controls.firstName.dirty">
-                  <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+                  <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
                 </mat-error>
               </mat-form-field>
 
@@ -161,8 +174,8 @@
 
               <mat-form-field>
                 <mat-select [placeholder]="'ACCOUNT.SETTINGS.LOCALE'|translate" formControlName="locale" required>
-                  <mat-option *ngFor="let item of locales" [value]="item.id">
-                    {{item.name}}
+                  <mat-option *ngFor="let item of locales" [value]="item.key">
+                    {{item.value}}
                   </mat-option>
                 </mat-select>
                 <mat-error *ngIf="settingsForm.controls.locale.hasError('required') && settingsForm.controls.locale.dirty"

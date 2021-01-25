@@ -32,11 +32,7 @@ import {firstNotNilPromise} from "../../observables";
 import {CompareWithFn, DisplayFn} from "../../form/field.model";
 import {FloatLabelType} from "@angular/material/form-field";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
-  provide: NG_VALUE_ACCESSOR,
-  useExisting: forwardRef(() => MatAutocompleteField),
-  multi: true
-};
+
 
 export declare interface MatAutocompleteFieldConfig<T = any, F = any> {
   attributes: string[];
@@ -119,6 +115,12 @@ export class MatAutocompleteConfigHolder {
     return this.fields[fieldName] || this.add(fieldName) as MatAutocompleteFieldConfig<T>;
   }
 }
+
+const DEFAULT_VALUE_ACCESSOR: any = {
+  provide: NG_VALUE_ACCESSOR,
+  useExisting: forwardRef(() => MatAutocompleteField),
+  multi: true
+};
 
 @Component({
   selector: 'mat-autocomplete-field',
@@ -218,7 +220,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() set items(value: Observable<any[]> | any[]) {
     // Remove previous subscription on items, (if exits)
     if (this._itemsSubscription) {
-      console.warn("Items received twice !");
+      console.warn("[mat-autocomplete-field] Items received twice !");
       this._subscription.remove(this._itemsSubscription);
       this._itemsSubscription.unsubscribe();
     }
@@ -379,7 +381,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         this.onDropButtonClick
           .pipe(
             filter(event => (!event || !event.defaultPrevented) && this.formControl.enabled),
-            map((_) => "*")
+            map((_) =>  this.showAllOnFocus ? '*' : this.formControl.value)
           ),
         this.formControl.valueChanges
           .pipe(

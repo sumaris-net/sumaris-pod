@@ -1,19 +1,21 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {LoadResult, EntitiesService} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
-import {GraphqlService} from "../../core/services/graphql.service";
-import {WatchQueryFetchPolicy} from "apollo-client";
+import {GraphqlService} from "../../core/graphql/graphql.service";
+import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {AccountService} from "../../core/services/account.service";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {Sale} from "./model/sale.model";
 import {Sample} from "./model/sample.model";
 import {SortDirection} from "@angular/material/sort";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
@@ -128,13 +130,13 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class SaleService extends BaseEntityService<Sale, SaleFilter> implements EntitiesService<Sale, SaleFilter>{
+export class SaleService extends BaseEntityService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter>{
 
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // -- For DEV only
     //this._debug = !environment.production;
@@ -159,7 +161,7 @@ export class SaleService extends BaseEntityService<Sale, SaleFilter> implements 
 
     const variables: any = {
       offset: offset || 0,
-      size: size || 1000,
+      size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'startDateTime',
       sortDirection: sortDirection || 'asc',
       filter: filter
@@ -181,21 +183,23 @@ export class SaleService extends BaseEntityService<Sale, SaleFilter> implements 
           const data = (res && res.sales || []).map(Sale.fromObject);
           if (this._debug) console.debug(`[sale-service] Loaded ${data.length} sales`);
 
-          // Compute rankOrderOnPeriod, by parent entity
-          if (filter && filter.observedLocationId) {
-            let rankOrder = 1;
-            // apply a sorted copy (do NOT change original order), then compute rankOrder
-            data.slice().sort(sortByEndDateOrStartDateFn)
-              .forEach(o => o.rankOrder = rankOrder++);
+          // Compute rankOrderOnPeriod, when loading by parent entity
+          if (offset === 0 && (size === -1) && filter && filter.observedLocationId) {
+            if (offset === 0 && (size === -1)) {
+              let rankOrder = 1;
+              // apply a sorted copy (do NOT change original order), then compute rankOrder
+              data.slice().sort(sortByEndDateOrStartDateFn)
+                .forEach(o => o.rankOrder = rankOrder++);
 
-            // sort by rankOrder (aka id)
-            if (!sortBy || sortBy == 'id') {
-              const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-              data.sort((a, b) => {
-                const valueA = a.rankOrder;
-                const valueB = b.rankOrder;
-                return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-              });
+              // sort by rankOrder (aka id)
+              if (!sortBy || sortBy == 'id') {
+                const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+                data.sort((a, b) => {
+                  const valueA = a.rankOrder;
+                  const valueB = b.rankOrder;
+                  return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+                });
+              }
             }
           }
 

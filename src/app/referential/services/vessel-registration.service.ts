@@ -1,15 +1,16 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {VesselRegistration} from "./model/vessel.model";
-import {LoadResult, EntitiesService} from "../../shared/shared.module";
-import {BaseEntityService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {VesselFilter} from "./vessel-service";
 import {SortDirection} from "@angular/material/sort";
+import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {environment} from "../../../environments/environment";
 
 export const RegistrationFragments = {
   registration: gql`fragment RegistrationFragment on VesselRegistrationVO {
@@ -37,12 +38,12 @@ export const LoadRegistrationsQuery: any = gql`
 @Injectable({providedIn: 'root'})
 export class VesselRegistrationService
   extends BaseEntityService
-  implements EntitiesService<VesselRegistration, VesselFilter> {
+  implements IEntitiesService<VesselRegistration, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**

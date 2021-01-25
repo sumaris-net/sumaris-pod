@@ -1,8 +1,8 @@
-import {Moment} from "moment/moment";
-import {fromDateISOString, toDateISOString} from "../../../shared/functions";
+import {Moment} from "moment";
 import {ReferentialAsObjectOptions} from "./referential.model";
 import {Entity} from "./entity.model";
-import {Department} from "./department.model";
+import {Department, departmentToString} from "./department.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
@@ -118,9 +118,5 @@ export function personToString(obj: Person): string {
 }
 
 export function personsToString(data: Person[], separator?: string): string {
-  if (!data || !data.length) return '';
-  separator = separator || ", ";
-  return data.reduce((result: string, person: Person, index: number) => {
-    return index ? (result + separator + personToString(person)) : personToString(person);
-  }, '');
+  return (data || []).map(personToString).join(separator || ", ");
 }

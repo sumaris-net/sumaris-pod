@@ -1,12 +1,20 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {ProductValidatorService} from "../services/validator/product.validator";
 import {IWithProductsEntity, Product, ProductFilter} from "../services/model/product.model";
 import {Platform} from "@ionic/angular";
-import {environment} from "../../../environments/environment";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject} from "rxjs";
 import {IReferentialRef} from "../../core/services/model/referential.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {ProductSaleModal} from "../sale/product-sale.modal";
@@ -14,6 +22,7 @@ import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {filterNotNil} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {environment} from "../../../environments/environment";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -63,7 +72,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     protected platform: Platform,
     protected validatorService: ProductValidatorService,
     protected memoryDataService: InMemoryEntitiesService<Product, ProductFilter>,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
   ) {
     super(injector,
       Product,
@@ -80,7 +89,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
-    this.pageSize = 1000; // Do not use paginator
+    this.defaultPageSize = -1; // Do not use paginator
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
@@ -141,8 +150,11 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   }
 
   confirmEditCreate(event?: any, row?: TableElement<Product>): boolean {
+    row = row || this.editedRow;
+
     const confirmed = super.confirmEditCreate(event, row);
-    if (confirmed && row && row.currentData) {
+
+    if (confirmed && row) {
       // update sales if any
       if (isNotEmptyArray(row.currentData.saleProducts)) {
         const updatedSaleProducts = SaleProductUtils.updateSaleProducts(row.currentData, this.productSalePmfms);

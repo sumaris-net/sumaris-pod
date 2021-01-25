@@ -1,10 +1,9 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild} from '@angular/core';
 
 import {isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
-import * as moment from "moment";
+import * as momentImported from "moment";
 import {Moment} from "moment";
 import {LandingForm} from "./landing.form";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
@@ -15,16 +14,18 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
 import {filter, throttleTime} from "rxjs/operators";
-import {Observable} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Landing} from "../services/model/landing.model";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {environment} from "../../../environments/environment";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AppEditorOptions} from "../../core/form/editor.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+import {Program} from "../../referential/services/model/program.model";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-landing-page',
@@ -42,7 +43,6 @@ import {AppEditorOptions} from "../../core/form/editor.class";
 export class LandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit {
 
   protected parent: Trip | ObservedLocation;
-  protected dataService: LandingService;
   protected observedLocationService: ObservedLocationService;
   protected tripService: TripService;
   protected referentialRefService: ReferentialRefService;
@@ -50,13 +50,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected platform: PlatformService;
 
   mobile: boolean;
+  showQualityForm = false;
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
-
-  get pmfms(): Observable<PmfmStrategy[]> {
-    return this.landingForm.$pmfms.pipe(filter(isNotNil));
-  }
 
   get form(): FormGroup {
     return this.landingForm.form;
@@ -64,9 +61,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   constructor(
     injector: Injector,
-    options: AppEditorOptions
+    @Optional() options: AppEditorOptions
   ) {
-    super(injector, Landing, injector.get(LandingService), options);
+    super(injector, Landing, injector.get(LandingService),
+      {
+        tabCount: 2,
+        pathIdAttribute: 'landingId',
+        ...options
+      });
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -75,24 +77,20 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.debug = !injector.get(ENVIRONMENT).production;
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(program => {
-          if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-          this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
-          //this.markForCheck();
-        }));
+      this.onProgramChanged.subscribe(program => this.setProgram(program))
+    );
 
     // Use landing date as default dateTime for samples
     this.registerSubscription(
-      this.landingForm.form.controls['dateTime'].valueChanges
+      this.landingForm.form.get('dateTime').valueChanges
         .pipe(throttleTime(200), filter(isNotNil))
         .subscribe((dateTime) => {
           this.samplesTable.defaultSampleDate = dateTime as Moment;
@@ -102,6 +100,19 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected registerForms() {
     this.addChildForms([this.landingForm, this.samplesTable]);
+  }
+
+  protected setProgram(program: Program) {
+    if (!program) return; // Skip
+    if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
+
+    // Customize the UI, using program options
+    this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+    this.samplesTable.modalOptions = {
+      ...this.samplesTable.modalOptions,
+      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
+    };
+
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -154,6 +165,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       }
     }
 
+    // Landing as root
+    else {
+      this.showQualityForm = true;
+    }
+
   }
 
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -182,7 +198,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         this.defaultBackHref = `/trips/${this.parent.id}?tab=2`;
       }
     }
-
+    // Landing as root
+    else {
+      this.showQualityForm = true;
+    }
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
@@ -198,7 +217,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       return await this.tripService.load(data.tripId, {fetchPolicy: 'cache-first'});
     }
     else {
-      throw new Error('No parent found in path. Landing without parent not implemented yet !');
+      throw new Error('No parent found in path. Landing without parent is not implemented yet !');
     }
   }
 
@@ -249,6 +268,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         this.landingForm.showLocation = true;
         this.landingForm.showDateTime = true;
         this.landingForm.showObservers = true;
+
+      }
+      // Set program
+      if (isNil(this.programSubject.getValue()) && this.parent.program) {
+        this.programSubject.next(this.parent.program.label);
       }
     } else {
 
@@ -278,7 +302,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected computePageUrl(id: number|'new') {
-    let parentUrl = this.getParentPageUrl();
+    const parentUrl = this.getParentPageUrl();
     return `${parentUrl}/landing/${id}`;
   }
 
@@ -288,8 +312,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected computeUsageMode(landing: Landing): UsageMode {
     return this.settings.isUsageMode('FIELD')
-    && isNotNil(landing && landing.dateTime)
-    && landing.dateTime.diff(moment(), "day") <= 1 ? 'FIELD' : 'DESK';
+      // Force desktop mode if landing date/time is 1 day later than now
+      && (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), "day") <= 1) ? 'FIELD' : 'DESK';
   }
 
   /* -- protected methods -- */

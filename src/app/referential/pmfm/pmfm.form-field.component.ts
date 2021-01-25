@@ -13,13 +13,14 @@ import {
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material/form-field";
-import {AppFormUtils, isNil} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {toBoolean} from "../../shared/functions";
+import {isNil, toBoolean} from "../../shared/functions";
 import {filterNumberInput, focusInput, InputElement, setTabIndex} from "../../shared/inputs";
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
 import {PmfmValidators} from "../services/validator/pmfm.validators";
+import {PmfmLabelPatterns, UnitLabel, UnitLabelPatterns} from "../services/model/model.enum";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 const noop = () => {
 };
@@ -69,7 +70,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() listenStatusChanges: boolean;
 
   @Output('keyup.enter')
-  onPressEnter: EventEmitter<any> = new EventEmitter<any>();
+  onPressEnter = new EventEmitter<any>();
 
   get value(): any {
     return this.formControl.value;
@@ -117,15 +118,21 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       type = "hidden";
     }
     else if (type === "double") {
-      if (this.pmfm.label === "LATITUDE") {
+      if (PmfmLabelPatterns.LATITUDE.test(this.pmfm.label) ) {
         type = "latitude";
-      } else if (this.pmfm.label === "LONGITUDE") {
+      } else if (PmfmLabelPatterns.LONGITUDE.test(this.pmfm.label)) {
         type = "longitude";
-      } else if (this.pmfm.unitLabel === 'h dec.') { // TODO get from program properties
+      }
+      else if (this.pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(this.pmfm.unitLabel)) {
         type = "duration";
       }
       else {
         this.numberInputStep = this.computeNumberInputStep(this.pmfm);
+      }
+    }
+    else if (type === "date") {
+      if (this.pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(this.pmfm.unitLabel)) {
+         type = 'dateTime';
       }
     }
     this.type = type;
@@ -176,10 +183,6 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     else {
       focusInput(this.matInput);
     }
-  }
-
-  displayTime(): boolean {
-    return this.pmfm && this.pmfm.unitLabel === 'Date & Time'; // TODO get it from program properties
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

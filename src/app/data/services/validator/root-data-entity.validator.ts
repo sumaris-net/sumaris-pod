@@ -27,15 +27,14 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
     [key: string]: any;
   } {
 
-    return Object.assign(
-      super.getFormGroupConfig(data),
-      {
-        program: [data && data.program || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        creationDate: [data && data.creationDate || null],
-        recorderPerson: [data && data.recorderPerson || null, SharedValidators.entity],
-        comments: [data && data.comments || null, Validators.maxLength(2000)],
-        synchronizationStatus: [data && data.synchronizationStatus || null]
-      });
+    return {
+      ...super.getFormGroupConfig(data),
+      program: [data && data.program || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      creationDate: [data && data.creationDate || null],
+      recorderPerson: [data && data.recorderPerson || null, SharedValidators.entity],
+      comments: [data && data.comments || null, Validators.maxLength(2000)],
+      synchronizationStatus: [data && data.synchronizationStatus || null]
+    };
   }
 
   getObserversFormArray(data?: IWithObserversEntity<T>) {

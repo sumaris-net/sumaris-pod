@@ -1,12 +1,53 @@
-<app-toolbar [title]="title$ | async" color="primary" [hasValidate]="!loading && dirty" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+<app-toolbar [title]="title$ | async" color="primary"
+             [hasValidate]="!loading && dirty"
+             (onValidate)="save($event)"
+             (onValidateAndClose)="saveAndClose($event)"
+             [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
+             [defaultBackHref]="defaultBackHref"
+             [canGoBack]="true">
+
+  <ion-buttons slot="end">
+    <ion-spinner *ngIf="loading"></ion-spinner>
+
+    <ion-button *ngIf="enabled && !isNewData || debug"
+                [matMenuTriggerFor]="optionsMenu"
+                [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" >
+
+  <!-- delete -->
+  <button mat-menu-item
+          [disabled]="isNewData || disabled"
+          (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
+  </button>
+
+</mat-menu>
 
 <ion-content>
 
   <mat-tab-group #tabGroup
-                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
                  animationDuration="0s">
 
     <!-- TAB: general -->
@@ -25,7 +66,7 @@
 
       <ion-grid class="ion-no-padding">
         <ion-row class="ion-no-padding">
-          <ion-col class="ion-no-padding ion-padding-top">
+          <ion-col class="ion-padding ">
 
             <!-- landing form-->
             <app-landing-form #landingForm
@@ -35,7 +76,7 @@
                               (onSubmit)="save($event)">
             </app-landing-form>
           </ion-col>
-          <ion-col class="ion-no-padding" size="12" size-xl="3">
+          <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="showQualityForm">
             <app-entity-metadata [value]="data">
               <app-entity-quality-form [editor]="this">
               </app-entity-quality-form>
@@ -56,42 +97,62 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="samplesTable?.error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
+        <ion-label color="danger" class="error" [innerHTML]="samplesTable?.error|translate"></ion-label>
       </ion-item>
 
-      <div class="ion-no-padding">
+      <div  class="ion-no-padding">
 
-        <form *ngIf="landingForm.$pmfms | async; let pmfms; else measurementsSkeleton;"
+        <form *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
               [formGroup]="landingForm.measurementValuesForm"
               class="form-container ion-padding">
 
           <ion-grid class="ion-no-padding">
             <ion-row class="ion-no-padding" >
               <!-- pmfms -->
-              <ion-col *ngFor="let pmfm of pmfms; index as i;"
-                  size="12" size-md="6">
-                <app-pmfm-field [formControlName]="pmfm.pmfmId.toString()"
-                                [pmfm]="pmfm"
-                                [tabindex]="50 + i*2">
-                </app-pmfm-field>
-              </ion-col>
+              <ng-container *ngFor="let pmfm of pmfms; index as i;">
+                <ion-col size="12" size-md="6">
+                  <app-pmfm-field [formControlName]="''+pmfm.pmfmId"
+                                  [pmfm]="pmfm">
+                  </app-pmfm-field>
+                </ion-col>
+                <ion-col *ngIf="pmfm.pmfmId===controlledSpeciesPmfmId && showOtherTaxonGroup"
+                         size="12" size-md="6">
+
+                  <!-- Special case for controlled species: add a combo, for 'MZZ' species -->
+                  <mat-autocomplete-field [formControl]="taxonGroupControl"
+                                          [tabindex]="60"
+                                          [required]="false"
+                                          [config]="autocompleteFields.taxonGroup"
+                                          [placeholder]="'AUCTION_CONTROL.EDIT.OTHER_TAXON_GROUP'|translate">
+                  </mat-autocomplete-field>
+
+                </ion-col>
+              </ng-container>
             </ion-row>
+
           </ion-grid>
         </form>
 
         <app-samples-table #samplesTable
-                           [class.cdk-visually-hidden]="!samplesTable.defaultTaxonGroup"
-                           [program]="programSubject|async"
+                           [class.cdk-visually-hidden]="!showSamplesTable"
                            [showLabelColumn]="true"
                            [showDateTimeColumn]="false"
                            [showTaxonNameColumn]="false"
                            [showTaxonGroupColumn]="false"
+                           [tabIndex]="61"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
-                           (onInitForm)="onStartSampleEditingForm($event)"
-                           [debug]="debug">
+                           (onInitForm)="onInitSampleForm($event)">
+          <ion-buttons slot="end">
+            <!-- Help button -->
+            <button mat-icon-button *ngIf="helpContent"
+                    [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+                    (click)="openHelpModal($event)">
+              <mat-icon>help_outline</mat-icon>
+            </button>
+          </ion-buttons>
         </app-samples-table>
       </div>
     </mat-tab>
@@ -114,9 +175,10 @@
   </form-buttons-bar>
 </ion-footer>
 
-
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="selectedTabIndex === 1 && samplesTable.defaultTaxonGroup" @fadeInOutAnimation
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         *ngIf="selectedTabIndex === 1 && samplesTable.defaultTaxonGroup"
+         @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>

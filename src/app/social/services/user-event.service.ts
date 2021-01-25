@@ -1,25 +1,28 @@
-import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
-import {EntitiesService, EntityServiceLoadOptions, isNil, isNilOrBlank, LoadResult} from "../../shared/shared.module";
-import {BaseEntityService, Entity, EntityUtils} from "../../core/core.module";
+import {Inject, Injectable} from "@angular/core";
+import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/services/graphql.service";
-import {environment} from "../../../environments/environment";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Observable, of} from "rxjs";
-import {UserEvent, UserEventTypes} from "./model/user-event.model";
+import {UserEvent, UserEventAction, UserEventTypes} from "./model/user-event.model";
 import {SocialFragments} from "./social.fragments";
 import {SortDirection} from "@angular/material/sort";
-import {EntitiesServiceWatchOptions, Page} from "../../shared/services/entity-service.class";
+import {
+  EntitiesServiceWatchOptions,
+  EntityServiceLoadOptions,
+  IEntitiesService, LoadResult,
+  Page
+} from "../../shared/services/entity-service.class";
 import {map} from "rxjs/operators";
-import {toNumber} from "../../shared/functions";
-import {IEntity} from "../../core/services/model/entity.model";
+import {isEmptyArray, isNil, isNilOrBlank, toNumber} from "../../shared/functions";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {NetworkService} from "../../core/services/network.service";
-import {options} from "ionicons/icons";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {Entity, EntityUtils} from "../../core/services/model/entity.model";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export class UserEventFilter {
   issuer?: string;
@@ -44,6 +47,11 @@ const LoadAllQuery: any = gql`
   ${SocialFragments.lightUserEvent}
 `;
 
+const DeleteByIdsMutation: any = gql`
+  mutation DeleteUserEvents($ids:[Int]){
+    deleteUserEvents(ids: $ids)
+  }
+`;
 
 const LoadAllWithContentQuery: any = gql`
   query UserEventsWithContent($filter: UserEventFilterVOInput, $page: PageInput){
@@ -58,33 +66,28 @@ export declare interface UserEventWatchOptions extends EntitiesServiceWatchOptio
   withContent?: boolean; // Default to false
 }
 
+export interface UserEventActionDefinition extends UserEventAction<any> {
+  __typename: string;
+}
+
 @Injectable({providedIn: 'root'})
 export class UserEventService extends BaseEntityService<UserEvent>
-  implements EntitiesService<UserEvent, UserEventFilter, UserEventWatchOptions> {
+  implements IEntitiesService<UserEvent, UserEventFilter, UserEventWatchOptions> {
+
+  private _userEventActions: UserEventActionDefinition[] = [];
 
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected network: NetworkService,
     protected translate: TranslateService,
-    protected toastController: ToastController
+    protected toastController: ToastController,
+    @Inject(ENVIRONMENT) protected environment,
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // For DEV only
     this._debug = !environment.production;
-  }
-
-  saveAll(data: UserEvent[], options?: any): Promise<UserEvent[]> {
-    return Promise.all(data
-      .map(entity => this.save(entity, options))
-    );
-  }
-
-  deleteAll(data: UserEvent[], options?: any): Promise<any> {
-    return Promise.all(data
-      .map(entity => this.delete(entity, options))
-    );
   }
 
   /**
@@ -111,7 +114,8 @@ export class UserEventService extends BaseEntityService<UserEvent>
             options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug("[user-event-service] Loading user events...", filter);
+    //if (this._debug)
+    console.debug("[user-event-service] Loading user events...", filter);
 
     filter = filter || {};
 
@@ -132,8 +136,8 @@ export class UserEventService extends BaseEntityService<UserEvent>
       variables: {
         page: {
           sortBy: 'updateDate',
-          sortDirection: 'DESC',
-          ...page
+          ...page,
+          sortDirection: (page.sortDirection || 'DESC').toUpperCase(),
         },
         filter
       },
@@ -142,18 +146,25 @@ export class UserEventService extends BaseEntityService<UserEvent>
       error: {code: ErrorCodes.LOAD_USER_EVENTS_ERROR, message: "SOCIAL.ERROR.LOAD_USER_EVENTS_ERROR"},
       fetchPolicy: options && options.fetchPolicy || undefined
     })
-    .pipe(
-      map(res => {
-        const data = res && res.userEvents.map(UserEvent.fromObject);
-        if (now) {
-          console.debug(`[user-event-service] ${data.length} user events loaded in ${Date.now() - now}ms`);
-          now = null;
-        }
-        return {
-          data,
-          total: res && toNumber(res.userEventCount, data.length)
-        };
-      })
+      .pipe(
+        map(res => {
+          const data = res && (res.userEvents || []).map(UserEvent.fromObject);
+
+          if (now) {
+            console.debug(`[user-event-service] ${data.length} user events loaded in ${Date.now() - now}ms`);
+            now = null;
+          }
+          return {
+            data,
+            total: res && toNumber(res.userEventCount, data.length)
+          };
+        })
+      );
+  }
+
+  saveAll(data: UserEvent[], options?: any): Promise<UserEvent[]> {
+    return Promise.all(data
+      .map(entity => this.save(entity, options))
     );
   }
 
@@ -189,6 +200,13 @@ export class UserEventService extends BaseEntityService<UserEvent>
           if (isNew) {
             this.insertIntoMutableCachedQuery(proxy,{
               query: LoadAllQuery,
+              data: {
+                ...savedEntity,
+                content: null
+              }
+            });
+            this.insertIntoMutableCachedQuery(proxy,{
+              query: LoadAllWithContentQuery,
               data: savedEntity
             });
           }
@@ -199,17 +217,66 @@ export class UserEventService extends BaseEntityService<UserEvent>
     return entity;
   }
 
+
+
+  /**
+   * Save many trips
+   * @param entities
+   * @param opts
+   */
+  async deleteAll(entities: UserEvent[], opts?: {
+    trash?: boolean; // True by default
+  }): Promise<any> {
+
+    const ids = entities && entities
+      .map(t => t.id);
+    if (isEmptyArray(ids)) return; // stop, if nothing else to do
+
+    const now = Date.now();
+    if (this._debug) console.debug("[user-event-service] Deleting events... ids:", ids);
+
+    await this.graphql.mutate<any>({
+      mutation: DeleteByIdsMutation,
+      variables: {
+        ids
+      },
+      update: (proxy) => {
+        // Remove from caches
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllQuery,
+          ids
+        });
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllWithContentQuery,
+          ids
+        });
+
+        if (this._debug) console.debug(`[user-event-service] Events deleted in ${Date.now() - now}ms`);
+      }
+    });
+  }
+
   /**
    * Delete userEvent entities
    */
-  async delete(entity: UserEvent, options?: any): Promise<any> {
-    throw new Error('Not implemented yet');
+  async delete(data: UserEvent): Promise<any> {
+    if (!data) return; // skip
+    await this.deleteAll([data]);
   }
 
   listenChanges(id: number, options?: any): Observable<UserEvent | undefined> {
     // TODO
     console.warn("TODO: implement listen changes on user events");
     return of();
+  }
+
+  registerAction(definition: UserEventActionDefinition) {
+    console.info(`[user-event-service] Registering action ${definition.name} for ${definition.__typename}`);
+    this._userEventActions.push(definition);
+  }
+
+  getActionsByTypename(typename: string): UserEventAction<any>[] {
+    return this._userEventActions.filter(def => def.__typename === typename);
   }
 
   async showToastErrorWithContext(opts: {
@@ -260,7 +327,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
         context = context();
       }
       if (context instanceof Promise) {
-        context = await opts.context;
+        context = await context;
       }
 
       // Send the message

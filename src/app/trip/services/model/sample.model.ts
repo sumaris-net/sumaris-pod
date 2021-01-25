@@ -1,17 +1,18 @@
-import {fromDateISOString, isNotNil, referentialToString, toDateISOString} from "../../../core/core.module";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {
   NOT_MINIFY_OPTIONS,
   ReferentialAsObjectOptions,
-  ReferentialRef,
+  ReferentialRef, referentialToString,
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {ITreeItemEntity} from "../../../core/services/model/entity.model";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
+import {isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export class Sample extends RootDataEntity<Sample>
@@ -25,6 +26,41 @@ export class Sample extends RootDataEntity<Sample>
     return res;
   }
 
+  /**
+   * Transform a samples tree, into a array of object.
+   * Parent & children links are removed, to keep only a parentId
+   * @param source
+   * @param opts
+   * @throw Error if a sample has no id
+   */
+  static treeAsObjectArray(sources: Sample[],
+                           opts?: DataEntityAsObjectOptions & {
+                             parent?: any;
+                           }): any[] {
+    return sources && sources
+      // Reduce to array
+      .reduce((res, source) => {
+        // Convert entity into object, WITHOUT children (will be add later)
+        const target = source.asObject ? source.asObject({...opts, withChildren: false}) : {...source, children: undefined};
+
+        // Link target with the given parent
+        const parent = opts && opts.parent;
+        if (parent) {
+          if (isNil(parent.id)) {
+            throw new Error(`Cannot convert sample tree into array: No id found for sample ${parent.label}!`);
+          }
+          target.parentId = parent.id;
+          delete target.parent; // not need
+        }
+
+        if (isNotEmptyArray(source.children)) {
+          return res.concat(target)
+            .concat(...this.treeAsObjectArray(source.children, {...opts, parent: target}));
+        }
+        return res.concat(target);
+      }, []) || undefined;
+  }
+
   static equals(s1: Sample | any, s2: Sample | any): boolean {
     return s1 && s2 && s1.id === s2.id
       || (s1.rankOrder === s2.rankOrder
@@ -35,6 +71,7 @@ export class Sample extends RootDataEntity<Sample>
         // Warn: compare using the parent ID is too complicated
       );
   }
+
 
   label: string;
   rankOrder: number;
@@ -104,7 +141,7 @@ export class Sample extends RootDataEntity<Sample>
     this.parent = source.parent;
     this.batchId = source.batchId;
     this.operationId = source.operationId;
-    this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.measurementValues = source.measurementValues && { ...source.measurementValues } || MeasurementUtils.toMeasurementValues(source.measurements);
 
     if (source.children && (!opts || opts.withChildren !== false)) {
       this.children = source.children.map(child => Sample.fromObject(child, opts));

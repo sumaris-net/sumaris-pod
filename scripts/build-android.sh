@@ -14,5 +14,6 @@ cd ${PROJECT_DIR}
 
 # Run the build
 echo "Running cordova build..."
-ionic cordova build android --warning-mode=none --color
+#ionic cordova build android --warning-mode=none --color
 #ionic cordova build android --warning-mode=none --color --verbose
+ionic cordova build android --warning-mode=none --color --prod --release

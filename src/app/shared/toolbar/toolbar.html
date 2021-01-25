@@ -25,6 +25,8 @@
 
     <ng-content select="ion-title"></ng-content>
 
+    <ng-content select="ion-buttons[slot=end]"></ng-content>
+
     <ion-buttons slot="end" collapse="true">
 
       <ng-content select="[slot=end]"></ng-content>
@@ -47,20 +49,21 @@
 
       <!-- close button -->
       <ion-button *ngIf="hasClose"
-                  (click)="onClose.emit($event)"
-                  visible-xs visible-sm visible-mobile>
+                  (tap)="tapClose($event)"
+                  class="visible-xs visible-sm visible-mobile">
         <ion-icon slot="icon-only" name="close"></ion-icon>
       </ion-button>
 
       <!-- validate button -->
       <ion-button *ngIf="hasValidate"
-                  (click)="onValidate.emit($event)"
-                  (tap)="doValidateTap($event)"
-                  visible-xs visible-sm visible-mobile>
+                  (tap)="tapValidate($event)"
+                  class="visible-xs visible-sm visible-mobile">
         <ion-icon slot="icon-only" name="save"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- progress bar -->
   <mat-progress-bar [color]="color" [mode]="$progressBarMode | async">
   </mat-progress-bar>
 </ion-header>

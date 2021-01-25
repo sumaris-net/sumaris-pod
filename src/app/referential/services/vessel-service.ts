@@ -1,17 +1,9 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {
   QualityFlagIds
 } from "./model/model.enum";
-import {
-  EntityService, EntityServiceLoadOptions, isNil,
-  isNilOrBlank,
-  isNotEmptyArray, isNotNil,
-  LoadResult,
-  EntitiesService
-} from "../../shared/shared.module";
-
 import {
   MINIFY_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS,
@@ -22,15 +14,15 @@ import {Moment} from "moment";
 
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
-import {FetchPolicy} from "apollo-client";
-import {isEmptyArray} from "../../shared/functions";
+import {FetchPolicy} from "@apollo/client/core";
+import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
 import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
 import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {Vessel} from "./model/vessel.model";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {Person} from "../../core/services/model/person.model";
@@ -38,6 +30,13 @@ import {Department} from "../../core/services/model/department.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "./model/vessel-snapshot.model";
 import {SortDirection} from "@angular/material/sort";
+import {
+  EntityServiceLoadOptions,
+  IEntitiesService,
+  IEntityService,
+  LoadResult
+} from "../../shared/services/entity-service.class";
+import {environment} from "../../../environments/environment";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -79,8 +78,6 @@ export const VesselFragments = {
       id
       comments
       statusId
-      #        qualityFlagId
-      #        program
       creationDate
       controlDate
       validationDate
@@ -108,8 +105,6 @@ export const VesselFragments = {
         id
         comments
         statusId
-        #        qualityFlagId
-        #        program
         creationDate
         controlDate
         validationDate
@@ -190,7 +185,7 @@ const DeleteVessels: any = gql`
 @Injectable({providedIn: 'root'})
 export class VesselService
   extends BaseEntityService
-  implements EntitiesService<Vessel, VesselFilter>, EntityService<Vessel> {
+  implements IEntitiesService<Vessel, VesselFilter>, IEntityService<Vessel> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -200,7 +195,7 @@ export class VesselService
     private vesselFeatureService: VesselFeaturesService,
     private vesselRegistrationService: VesselRegistrationService,
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**

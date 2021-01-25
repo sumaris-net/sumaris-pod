@@ -13,6 +13,7 @@
       <ion-col class="ion-no-padding">
         <mat-autocomplete-field #inputField
                                 formControlName="parentGroup"
+                                [floatLabel]="floatLabel"
                                 [placeholder]="'TRIP.BATCH.EDIT.PARENT_GROUP'|translate"
                                 [config]="autocompleteFields.parentGroup"
                                 [required]="true"
@@ -34,15 +35,15 @@
 
   <!-- QV pmfm -->
   <app-pmfm-qv-field #inputField
-                                 *ngIf="!($loadingControls | async) && qvPmfm"
-                                 [pmfm]="qvPmfm"
-                                 [style]="mobile? 'button' : 'autocomplete'"
-                                 [formControl]="measurementValuesForm.controls[qvPmfm.pmfmId.toString()]"
-                                 [floatLabel]="floatLabel"
-                                 [compact]="compact"
-                                 [tabindex]="tabindex+1"
-                                 (keydown.tab)="focusNextInput($event)"
-                                 (keydown.enter)="focusNextInput($event)">
+                     *ngIf="!($loadingControls | async) && qvPmfm"
+                     [pmfm]="qvPmfm"
+                     [style]="mobile? 'button' : 'autocomplete'"
+                     [floatLabel]="floatLabel"
+                     [formControl]="measurementValuesForm.controls[qvPmfm.pmfmId.toString()]"
+                     [compact]="compact"
+                     [tabindex]="tabindex+1"
+                     (keydown.tab)="focusNextInput($event)"
+                     (keydown.enter)="focusNextInput($event)">
     <!-- checkbox to freeze -->
     <mat-checkbox  matSuffix
                    *ngIf="!mobile"
@@ -60,6 +61,7 @@
     <!-- Taxon name (desktop) -->
     <mat-autocomplete-field #inputField *ngIf="!mobile || freezeTaxonName; else taxonNameMobile"
                             formControlName="taxonName"
+                            [floatLabel]="floatLabel"
                             [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                             [config]="autocompleteFields.taxonName"
                             [required]="true"
@@ -86,10 +88,10 @@
                [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                required>
 
-        <ion-grid class="ion-no-padding" *ngIf="taxonNames.length > 1; else defaultTaxonName">
+        <ion-grid class="ion-no-padding" *ngIf="taxonNames | isArrayLength: {greaterThan: 1}; else defaultTaxonName">
           <ion-row class="ion-no-padding">
             <ion-col *ngFor="let item of taxonNames; index as i;">
-              <ion-button mat-button #inputField
+              <ion-button mat-button
                           style="width: 100%;"
                           class="mat-form-field-button"
                           [color]="selectedTaxonNameIndex === -1 ? 'danger' : (selectedTaxonNameIndex === i ? 'accent' : 'light')"
@@ -141,25 +143,49 @@
         [formGroup]="measurementValuesForm">
 
     <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
-      <!-- If mobile, force 'button' style for qualitative value PMFMs -->
-      <app-pmfm-qv-field #inputField
-                         *ngIf="mobile && !pmfm.hidden && pmfm.isQualitative; else otherField"
-                         [pmfm]="pmfm"
-                         [style]="'button'"
-                         [sortAttribute]="['name']"
-                         [formControlName]="pmfm.pmfmId.toString()"
-                         [compact]="compact"
-                         [tabindex]="tabindex + 20 + i*2"
-                         (keyup.enter)="focusNextInput($event)">
-      </app-pmfm-qv-field>
+      <ng-container [ngSwitch]="pmfm.type">
 
-      <!-- NOT mobile and qualitative value -->
-      <ng-template #otherField>
+        <!-- qualitative value PMFM -->
+        <ng-container *ngSwitchCase="'qualitative_value'">
+          <!-- If mobile, force 'button' style -->
+          <app-pmfm-qv-field *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
+                             [pmfm]="pmfm"
+                             [style]="'button'"
+                             [floatLabel]="floatLabel"
+                             [sortAttribute]="['name']"
+                             [formControlName]="pmfm.pmfmId.toString()"
+                             [compact]="compact"
+                             [tabindex]="tabindex + 20 + i*2"
+                             (keyup.enter)="focusNextInputOrSubmit($event, last)">
+          </app-pmfm-qv-field>
+        </ng-container>
+
+        <!-- qualitative value PMFM -->
+        <ng-container *ngSwitchCase="'boolean'">
+          <!-- If mobile, force 'button' style -->
+          <mat-boolean-field *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
+                             [style]="'button'"
+                             [floatLabel]="floatLabel"
+                             [placeholder]="pmfm|pmfmName"
+                             [formControlName]="pmfm.pmfmId.toString()"
+                             [compact]="compact"
+                             [tabindex]="tabindex + 20 + i*2"
+                             (keyup.enter)="focusNextInputOrSubmit($event, last)">
+          </mat-boolean-field>
+        </ng-container>
+
+        <!-- other PMFM types -->
+        <ng-container *ngSwitchDefault [ngTemplateOutlet]="defaultPmfmField">
+        </ng-container>
+      </ng-container>
+
+      <ng-template #defaultPmfmField>
         <app-pmfm-field #inputField
                         [pmfm]="pmfm"
+                        [floatLabel]="floatLabel"
                         [hidden]="pmfm.hidden"
                         [formControlName]="pmfm.pmfmId.toString()"
-                        [compact]="compact"
+                        [compact]="mobile"
                         (keyup.enter)="focusNextInputOrSubmit($event, last)"
                         [tabindex]="tabindex + 20 + i*2">
         </app-pmfm-field>
@@ -196,7 +222,7 @@
             {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}
           </mat-error>
 
-          <!-- checkbox, when compact -->
+          <!-- checkbox (to manually set the individual count, otherwise it increment one by one) -->
           <mat-checkbox matSuffix [formControl]="enableIndividualCountControl"
                         labelPosition="after"
                         tabindex="-1">
@@ -208,7 +234,7 @@
 
         <ion-button color="tertiary" class="ion-float-end"
                     [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || invalid"
+                    [disabled]="loading && !valid"
                     (click)="doSubmit($event)"
                     (keyup.enter)="doSubmit($event)"
                     [tabindex]="tabindex + 101">

@@ -25,10 +25,8 @@ export const environment: Environment = Object.freeze({
   // TODO: make this works
   //offline: true,
 
-  // defaultPeer: {
-  //   host: '192.168.0.28',
-  //   port: 8080
-  // },
+  peerMinVersion: '1.6.0',
+
   defaultPeers: [
     {
       host: 'localhost',
@@ -39,7 +37,7 @@ export const environment: Environment = Object.freeze({
       port: 8081
     },
     {
-      host: '192.168.0.20',
+      host: '192.168.0.45',
       port: 8080
     },
     {
@@ -49,6 +47,10 @@ export const environment: Environment = Object.freeze({
     {
       host: '192.168.0.29',
       port: 8080
+    },
+    {
+      host: 'server.e-is.pro',
+      port: 443
     },
     {
       host: 'adap.pecheursdebretagne.eu',

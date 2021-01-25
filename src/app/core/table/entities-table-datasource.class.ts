@@ -1,15 +1,15 @@
 import {TableDataSource, TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService, toBoolean} from '../../shared/shared.module';
 import {Entity, IEntity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
-import {catchError, first, map, takeUntil} from "rxjs/operators";
+import {catchError, map, takeUntil} from "rxjs/operators";
 import {Directive, OnDestroy} from "@angular/core";
-import {EntitiesServiceWatchOptions} from "../../shared/services/entity-service.class";
+import {EntitiesServiceWatchOptions, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {CollectionViewer} from "@angular/cdk/collections";
 import {firstNotNilPromise} from "../../shared/observables";
-import {environment} from "../../../environments/environment";
+import {isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
+import {Environment} from "../../../environments/environment.class";
 
 
 export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> extends EntitiesServiceWatchOptions {
@@ -25,7 +25,9 @@ export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extend
   [key: string]: any;
 }
 
+// @dynamic
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
     extends TableDataSource<T>
     implements OnDestroy {
@@ -58,14 +60,15 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
 
   /**
    * Creates a new TableDataSource instance, that can be used as datasource of `@angular/cdk` data-table.
-   * @param data Array containing the initial values for the TableDataSource. If not specified, then `dataType` must be specified.
    * @param dataService A service to load and save data
    * @param dataType Type of data contained by the Table. If not specified, then `data` with at least one element must be specified.
+   * @param environment
    * @param validatorService Service that create instances of the FormGroup used to validate row fields.
    * @param config Additional configuration for table.
    */
   constructor(dataType: new() => T,
-              public readonly dataService: EntitiesService<T, F, O>,
+              public readonly dataService: IEntitiesService<T, F, O>,
+              environment: Environment,
               validatorService?: ValidatorService,
               config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);
@@ -208,7 +211,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   confirmCreate(row: TableElement<T>) {
     if (!super.confirmCreate(row)) return false;
     if (row.editing && row.validator) {
-      console.warn('[table-datasource] Row has editing=true after confirmCreate! Force set to false');
+      console.warn('[table-datasource] Row still has {editing: true} after confirmCreate()! Force editing to false');
       row.validator.disable({onlySelf: true, emitEvent: false});
     }
     return true;
@@ -217,7 +220,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   confirmEdit(row: TableElement<T>): boolean {
     if (!super.confirmEdit(row)) return false;
     if (row.editing && row.validator) {
-      console.warn('[table-datasource] Row has editing=true after confirmCreate! Force set to false');
+      console.warn('[table-datasource] Row still has {editing: true} after confirmCreate()! Force editing to false');
       row.validator.disable({onlySelf: true, emitEvent: false});
     }
     return true;
@@ -233,21 +236,26 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     row.cancelOrDelete();
   }
 
-  public handleError(error: any, message: string): Observable<LoadResult<T>> {
+  handleError(error: any, message: string): Observable<LoadResult<T>> {
+    const errorMsg = error && error.message || error;
+    if (this.dataService) {
+      console.error(`${errorMsg} (dataService: ${this.dataService.constructor.name})`, error);
+    }
+    else {
+      console.error(errorMsg, error);
+    }
+    this.$busy.next(false);
+    throw new Error(message || errorMsg);
+  }
+
+  handleErrorPromise(error: any, message: string) {
     const errorMsg = error && error.message || error;
     console.error(`${errorMsg} (dataService: ${this.dataService.constructor.name})`, error);
     this.$busy.next(false);
     throw new Error(message || errorMsg);
   }
 
-  public handleErrorPromise(error: any, message: string) {
-    const errorMsg = error && error.message || error;
-    console.error(`${errorMsg} (dataService: ${this.dataService.constructor.name})`, error);
-    this.$busy.next(false);
-    throw new Error(message || errorMsg);
-  }
-
-  public delete(id: number): void {
+  delete(id: number): void {
     const row = this.getRow(id);
     this.$busy.next(true);
 
@@ -310,8 +318,8 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
         try {
           await res;
         }
-        catch(err)  {
-          console.error(err && err.message | err, err);
+        catch (err)  {
+          console.error(err && err.message || err, err);
         }
       }
     }
@@ -328,7 +336,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     let errorsMessage = "";
     Object.getOwnPropertyNames(row.validator.controls)
       .forEach(key => {
-        let control = row.validator.controls[key];
+        const control = row.validator.controls[key];
         if (control.invalid) {
           errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unknown error') + "),";
         }

@@ -4,18 +4,32 @@ import {Peer} from "./model/peer.model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
-import {getPropertyByPath, isNotNil, isNotNilOrBlank, toBoolean, toDateISOString} from "../../shared/functions";
-import {environment} from "../../../environments/environment";
+import {
+  getPropertyByPath,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  toBoolean
+} from "../../shared/functions";
 import {Subject} from "rxjs";
 import {Platform} from "@ionic/angular";
-import {FormFieldDefinition} from "../../shared/form/field.model";
-import * as moment from "moment";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
+import * as momentImported from "moment";
+import {Moment} from "moment";
 import {debounceTime, filter} from "rxjs/operators";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+import {environment} from "../../../environments/environment";
+import {fromDateISOString} from "../../shared/dates";
+
+const moment = momentImported;
 
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
 
+// fixme: this constant points to static environment
 const DEFAULT_SETTINGS: LocalSettings = {
   accountInheritance: true,
   locale: environment.defaultLocale,
@@ -23,18 +37,25 @@ const DEFAULT_SETTINGS: LocalSettings = {
   pageHistoryMaxSize: 3
 };
 
-export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<Partial<LocalSettings>>('LocalSettingsOptions');
+export const APP_LOCAL_SETTINGS = new InjectionToken<Partial<LocalSettings>>('DefaultLocalSettings');
+export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('LocalSettingsOptions');
+
+export declare interface AddToPageHistoryOptions {
+  removePathQueryParams?: boolean;
+  removeTitleSmallTag?: boolean;
+  emitEvent?: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
-  deps: [APP_LOCAL_SETTINGS_OPTIONS]
+  deps: [APP_LOCAL_SETTINGS, APP_LOCAL_SETTINGS_OPTIONS]
 })
 export class LocalSettingsService {
 
   private readonly _debug: boolean;
   private _started = false;
   private _startPromise: Promise<any>;
-  private _additionalFields: FormFieldDefinition[] = [];
+  private readonly _optionDefs: FormFieldDefinition[];
   private _$persist: EventEmitter<any>;
   private data: LocalSettings;
 
@@ -80,12 +101,13 @@ export class LocalSettingsService {
     private translate: TranslateService,
     private platform: Platform,
     private storage: Storage,
-    @Optional() @Inject(APP_LOCAL_SETTINGS_OPTIONS) private readonly defaultSettings: LocalSettings
+    @Inject(ENVIRONMENT) protected environment,
+    @Optional() @Inject(APP_LOCAL_SETTINGS) private readonly defaultSettings: LocalSettings,
+    @Optional() @Inject(APP_LOCAL_SETTINGS_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {
     this.defaultSettings = {...DEFAULT_SETTINGS, ...this.defaultSettings};
 
-    // Register default options
-    //this.registerFields(Object.getOwnPropertyNames(CoreOptions).map(key => CoreOptions[key]));
+    this._optionDefs = Object.values(defaultOptionsMap);
 
     this.resetData();
 
@@ -157,24 +179,66 @@ export class LocalSettingsService {
     return this.data;
   }
 
-  getLocalSetting(key: string, defaultValue?: string): string {
-    return this.data && isNotNil(this.data[key]) && this.data[key] || defaultValue;
+  setProperty<T = string>(keyOrDef: string|FormFieldDefinition, value: T){
+    if (!this.data) return;
+    if (typeof keyOrDef === 'object') {
+      this.setProperty(keyOrDef.key, value);
+      return;
+    }
+    this.data.properties = this.data.properties || {};
+    this.data.properties[keyOrDef] = isNil(value) ? undefined : value.toString();
   }
 
-  async apply(settings: Partial<LocalSettings>) {
+  getProperty(keyOrDef: string|FormFieldDefinition, defaultValue?: any): any {
+    if (typeof keyOrDef === 'object') {
+      return this.getProperty(keyOrDef.key, isNil(defaultValue) ? keyOrDef.defaultValue : defaultValue);
+    }
+    const value = this.data && this.data.properties && this.data.properties[keyOrDef];
+    return isNotNil(value) ? value : defaultValue;
+  }
+
+  getPropertyAsBoolean(definition: FormFieldDefinition, defaultValue?: boolean): boolean {
+    const value = this.getProperty(definition, defaultValue);
+    return isNotNil(value) ? (value && value !== "false") : undefined;
+  }
+
+  getPropertyAsInt(definition: FormFieldDefinition, defaultValue?: number): number {
+    const value = this.getProperty(definition, defaultValue);
+    return isNotNil(value) ? parseInt(value) : undefined;
+  }
+
+  getPropertyAsNumbers(definition: FormFieldDefinition, defaultValue?: number[]): number[] {
+    const value = this.getProperty(definition, defaultValue);
+    if (typeof value === 'string') return value.split(',').map(parseFloat) || undefined;
+    return isNotNil(value) ? [parseFloat(value)] : undefined;
+  }
+
+  getPropertyAsStrings(definition: FormFieldDefinition, defaultValue?: string[]): string[] {
+    const value = this.getProperty(definition, defaultValue);
+    return value && value.split(',') || undefined;
+  }
+
+  async apply(settings: Partial<LocalSettings>, opts?: { emitEvent?: boolean; persistImmediate?: boolean; }) {
     this.data = { ...this.data, ...settings};
 
     // Save locally
-    this.persistLocally();
+    if (opts && opts.persistImmediate) {
+      await this.persistLocally(true);
+    }
+    else {
+      this.persistLocally(); // No AWAIT
+    }
 
     // Emit event
-    this.onChange.next(this.data);
+    if (!opts || opts.emitEvent !== false) {
+      this.onChange.next(this.data);
+    }
   }
 
-  async applyProperty(key: keyof LocalSettings, value: any) {
+  async applyProperty(key: keyof LocalSettings, value: any, opts?: { emitEvent?: boolean; persistImmediate?: boolean; }) {
     const changes = {};
     changes[key] = value;
-    await this.apply(changes);
+    await this.apply(changes, opts);
   }
 
   getPageSettings<T = any>(pageId: string, propertyName?: string): T {
@@ -208,7 +272,7 @@ export class LocalSettingsService {
     this.data.offlineFeatures = this.data.offlineFeatures || [];
 
     const featurePrefix = featureName.toLowerCase() + '#';
-    const featureAndLastSyncDate = featurePrefix + toDateISOString(new Date());
+    const featureAndLastSyncDate = featurePrefix + moment().toISOString();
     const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase().startsWith(featurePrefix));
     if (existingIndex !== -1) {
       this.data.offlineFeatures[existingIndex] = featureAndLastSyncDate;
@@ -231,11 +295,23 @@ export class LocalSettingsService {
   }
 
   hasOfflineFeature(featureName?: string): boolean {
-    return this.data && this.data.offlineFeatures
-      && (
-        (featureName && this.data.offlineFeatures.findIndex(f => f.toLowerCase() === featureName.toLowerCase()) !== -1)
-        || (this.data.offlineFeatures.length > 0)
-      );
+    if (!this.data || !this.data.offlineFeatures) return false;
+
+    if (!featureName) return isNotEmptyArray(this.data.offlineFeatures);
+
+    const featurePrefix = featureName.toLowerCase() + '#';
+    const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase().startsWith(featurePrefix));
+    return existingIndex !== -1;
+  }
+
+  getOfflineFeatureLastSyncDate(featureName: string): Moment {
+    if (!this.data || !this.data.offlineFeatures || isEmptyArray(this.data.offlineFeatures))
+      return undefined;
+    if (!featureName) throw Error("Missing 'featureName' argument");
+
+    const featurePrefix = featureName.toLowerCase() + '#';
+    const featureAndSyncDate = this.data.offlineFeatures.find(f => f.toLowerCase().startsWith(featurePrefix));
+    return featureAndSyncDate && fromDateISOString(featureAndSyncDate.substring(featurePrefix.length));
   }
 
   getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
@@ -250,24 +326,24 @@ export class LocalSettingsService {
     return this.getPageSettings(pageId, `field.${fieldName}.defaultValue`);
   }
 
-  get additionalFields(): FormFieldDefinition[] {
-    return this._additionalFields;
+  get optionDefs(): FormFieldDefinition[] {
+    return this._optionDefs;
   }
 
-  registerAdditionalField(def: FormFieldDefinition) {
-    if (this._additionalFields.findIndex(f => f.key === def.key) !== -1) {
+  registerOption(def: FormFieldDefinition) {
+    if (this._optionDefs.findIndex(f => f.key === def.key) !== -1) {
       throw new Error(`Additional additional property {${def.key}} already define.`);
     }
     if (this._debug) console.debug(`[settings] Adding additional property {${def.key}}`, def);
-    this._additionalFields.push(def);
+    this._optionDefs.push(def);
   }
 
-  registerAdditionalFields(defs: FormFieldDefinition[]) {
-    (defs || []).forEach(def => this.registerAdditionalField(def));
+  registerOptions(defs: FormFieldDefinition[]) {
+    (defs || []).forEach(def => this.registerOption(def));
   }
 
   async addToPageHistory(page: HistoryPageReference,
-                         opts?: {removePathQueryParams?: boolean; removeTitleSmallTag?: boolean; },
+                         opts?: AddToPageHistoryOptions,
                          pageHistory?: HistoryPageReference[] // used for recursive call to children
   ) {
     // If not inside recursive call: fill page history defaults
@@ -316,7 +392,7 @@ export class LocalSettingsService {
         existingPage.time = page.time;
 
         // Add page as parent's children (recursive call)
-        this.addToPageHistory(page, opts, existingPage.children);
+        await this.addToPageHistory(page, opts, existingPage.children);
       }
     }
 
@@ -330,28 +406,43 @@ export class LocalSettingsService {
       }
 
       // Apply new value
-      this.applyProperty('pageHistory', pageHistory);
+      await this.applyProperty('pageHistory', pageHistory);
     }
   }
 
-  async removeHistory(path: string, opts?: {emitEvent?: boolean;}) {
-    const index = this.data.pageHistory.findIndex(p => p.path === path);
-    if (index === -1) return; // skip if not found
+  async removePageHistory(path: string,
+                          opts?: {emitEvent?: boolean; },
+                          pageHistory?: HistoryPageReference[] // used for recursive call to children)
+  ) {
+    pageHistory = pageHistory || this.data.pageHistory;
 
-    this.data.pageHistory.splice(index, 1);
-
-    // Save locally
-    this.persistLocally();
-
-    // Emit event
-    if (!opts || opts.emitEvent !== false) {
-      this.onChange.next(this.data);
+    const index = pageHistory.findIndex(p => p.path === path);
+    let found = index !== -1;
+    if (found) {
+      console.debug("[settings] Remove page history: ", path);
+      // Remove value
+      pageHistory.splice(index, 1);
     }
+    else {
+      // Search path on children (stop when found)
+      found = pageHistory
+        .map(p => p.children)
+        .filter(isNotEmptyArray)
+        .findIndex(children => this.removePageHistory(path, opts, children)) !== -1;
+    }
+
+    // Save locally (only if not a recursive execution)
+    if (found && pageHistory === this.data.pageHistory) {
+      // Apply changes
+      await this.applyProperty('pageHistory', this.data.pageHistory);
+    }
+
+    return found;
   }
 
   async clearPageHistory() {
     // Reset all page history
-    await this.applyProperty('pageHistory', []);
+    await this.applyProperty('pageHistory', [], {persistImmediate: true});
   }
 
   /* -- Protected methods -- */
@@ -364,7 +455,7 @@ export class LocalSettingsService {
     this.data.usageMode = undefined;
     this.data.pageHistory = [];
 
-    const defaultPeer = environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
+    const defaultPeer = this.environment.defaultPeer && Peer.fromObject(this.environment.defaultPeer);
     this.data.peerUrl = defaultPeer && defaultPeer.url || undefined;
 
     if (this._started) this.onChange.next(this.data);
@@ -406,12 +497,17 @@ export class LocalSettingsService {
       removePathQueryParams?: boolean;
     removeTitleSmallTag?: boolean;
   }): HistoryPageReference {
+    if (!page || !page.title || !page.path) throw Error("Missing required argument 'page', 'page.path' or 'page.title'");
+
     // Set time
     page.time = page.time || moment();
 
     // Clean the title (remove <small> tags)
     if (!opts || opts.removeTitleSmallTag !== false) {
-      page.title = page.title.replace(/<small[^<]+<\/small>/g, '');
+      const tagIndex = page.title.indexOf('</small>');
+      if (tagIndex !== -1) {
+        page.title = page.title.substring(tagIndex + '</small>'.length);
+      }
       page.title = page.title.replace(/[ ]*class='hidden-xs hidden-sm'/g, '');
     }
 

@@ -1,18 +1,20 @@
-import {fromDateISOString, toDateISOString} from "../../../core/core.module";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {Person} from "../../../core/services/model/person.model";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 
 import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
 import {DataEntity, DataEntityAsObjectOptions} from "./data-entity.model";
 import {IWithProgramEntity, IWithRecorderPersonEntity} from "./model.utils";
+import {EntityUtils} from "../../../core/services/model/entity.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {isNil} from "../../../shared/functions";
 
 export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
 export const SynchronizationStatusEnum = {
-  DIRTY: 'DIRTY',
-  READY_TO_SYNC: 'READY_TO_SYNC',
-  SYNC: 'SYNC',
-  DELETED: 'DELETED'
+  DIRTY: <SynchronizationStatus>'DIRTY',
+  READY_TO_SYNC: <SynchronizationStatus>'READY_TO_SYNC',
+  SYNC: <SynchronizationStatus>'SYNC',
+  DELETED: <SynchronizationStatus>'DELETED'
 };
 
 export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
@@ -68,12 +70,19 @@ export abstract class DataRootEntityUtils {
     if (!source) return;
 
     // Update (id and updateDate)
-    target.controlDate = source.controlDate;
+    target.controlDate = fromDateISOString(source.controlDate);
     target.validationDate = fromDateISOString(source.validationDate);
 
-    // Update creation Date, if exists
-    if (source['creationDate']) {
-      target['creationDate'] = fromDateISOString(source['creationDate']);
-    }
   }
+
+  static copyQualificationDateAndFlag = EntityUtils.copyQualificationDateAndFlag;
+
+  static isLocal(entity: RootDataEntity<any>): boolean {
+    return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);
+  }
+
+  static isRemote(entity: RootDataEntity<any>): boolean {
+    return entity && !DataRootEntityUtils.isLocal(entity);
+  }
+
 }

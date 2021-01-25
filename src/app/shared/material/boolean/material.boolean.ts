@@ -1,14 +1,16 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, ElementRef,
+  Component,
+  ElementRef,
   EventEmitter,
   forwardRef,
   Input,
   OnInit,
   Optional,
-  Output,
-  ViewChild
+  Output, QueryList,
+  ViewChild, ViewChildren
 } from '@angular/core';
 import {FloatLabelType} from '@angular/material/form-field';
 import {ControlValueAccessor, FormBuilder, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
@@ -34,12 +36,13 @@ const noop = () => {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatBooleanField implements OnInit, ControlValueAccessor, InputElement {
+export class MatBooleanField implements OnInit, AfterViewInit, ControlValueAccessor, InputElement {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
-  private _value: boolean;
   private _writing = false;
-  private _tabindex: number;
+
+  _value: boolean;
+  _tabindex: number;
 
   showRadio = false;
 
@@ -51,13 +54,21 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
 
   @Input() placeholder: string;
 
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
 
   @Input() readonly = false;
 
   @Input() required = false;
 
   @Input() compact = false;
+
+  @Input() style: 'radio' | 'checkbox' | 'button';
+
+  @Output('keyup.enter')
+  onPressEnter = new EventEmitter<any>();
+
+  @Output()
+  onBlur = new EventEmitter<FocusEvent>();
 
   @Input() set tabindex(value: number) {
     if (this._tabindex !== value) {
@@ -69,9 +80,6 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
   get tabindex(): number {
     return this._tabindex;
   }
-
-  @Output()
-  onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
   get value(): any {
     return this._value;
@@ -92,6 +100,10 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
 
   @ViewChild('fakeInput') fakeInput: ElementRef;
 
+  @ViewChild('suffix', {static: false}) suffixDiv: ElementRef;
+
+  @ViewChildren('injectMatSuffix') suffixInjections: QueryList<ElementRef>;
+
   constructor(
     private translate: TranslateService,
     private formBuilder: FormBuilder,
@@ -103,21 +115,44 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-boolean-field>.");
 
+    this.style = this.style || (this.compact ? 'checkbox' : 'radio');
+
+    // Force show radio if label always on top
+    this.showRadio = this.showRadio || this.floatLabel === 'always';
+
     this.updateTabIndex();
   }
 
-  writeValue(value: any): void {
+  ngAfterViewInit() {
+    // Inject suffix elements, into the first injection point found
+    if (this.suffixDiv) {
+      this.suffixInjections.find(item => {
+        item.nativeElement.append(this.suffixDiv.nativeElement);
+        this.suffixDiv.nativeElement.classList.remove('cdk-visually-hidden');
+        return true; // take only the first injection point
+      });
+    }
+  }
+
+  writeValue(value: any, event?: UIEvent): void {
     if (this._writing) return;
 
     this._writing = true;
     if (value !== this._value) {
       this._value = value;
-      this.showRadio = isNotNil(this._value);
+      this.showRadio = this.floatLabel === 'always' || isNotNil(this._value);
       if (isNotNil(this.tabindex)) {
         setTimeout(() => this.updateTabIndex());
       }
     }
     this._writing = false;
+
+    if (this.style === 'button' && event) {
+      if (value !== this.formControl.value) {
+        this.formControl.patchValue(value, {emitEvent: false});
+      }
+      if (event) this.onPressEnter.emit(event);
+    }
 
     this.markForCheck();
   }

@@ -37,14 +37,14 @@ import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
-import {
-  MatAutocompleteConfigHolder,
-  MatAutocompleteFieldAddOptions,
-  MatAutocompleteFieldConfig
-} from "../../shared/material/material.autocomplete";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
+import {Environment, ENVIRONMENT} from "../../../environments/environment.class";
+import {
+  MatAutocompleteConfigHolder,
+  MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig
+} from "../../shared/material/autocomplete/material.autocomplete";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
@@ -58,6 +58,18 @@ export class CellValueChangeListener {
   formPath?: string;
 }
 
+
+export interface IModalDetailOptions<T = any> {
+  // Data
+  isNew: boolean;
+  data: T;
+  disabled: boolean;
+
+  // Callback functions
+  onDelete: (event: UIEvent, data: T) => Promise<boolean>;
+}
+
+// @dynamic
 @Directive()
 export abstract class AppTable<T extends Entity<T>, F = any>
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {
@@ -78,11 +90,12 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
+  protected environment: Environment;
 
-  pageSize: number;
-  excludesColumns = new Array<String>();
+  excludesColumns: string[] = [];
   displayedColumns: string[];
   resultsLength: number;
+  visibleRowCount: number;
   loadingSubject = new BehaviorSubject<boolean>(true);
   error: string;
   isRateLimitReached = false;
@@ -104,8 +117,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   @Input() saveBeforeSort: boolean;
   @Input() saveBeforeFilter: boolean;
   @Input() debug = false;
-  @Input() sortBy: string;
-  @Input() sortDirection: SortDirection;
+
+  @Input() defaultSortBy: string;
+  @Input() defaultSortDirection: SortDirection;
+  @Input() defaultPageSize = 20;
 
   @Input() set dataSource(value: EntitiesTableDataSource<T, F>) {
     this.setDatasource(value);
@@ -176,7 +191,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   // FIXME: need to hidden buttons (in HTML), etc. when disabled
   @Input() set disabled(disabled: boolean) {
     if (disabled !== !this._enabled) {
-      if (disabled) this.disable({emitEvent: false})
+      if (disabled) this.disable({emitEvent: false});
       else this.enable({emitEvent: false});
     }
   }
@@ -215,7 +230,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     if (this.editedRow && this.editedRow.editing) {
-      AppFormUtils.markAsTouched(this.editedRow.validator, opts);
+      this.editedRow.validator.markAllAsTouched();
+      //AppFormUtils.markAsTouched(this.editedRow.validator, opts);
       if (!opts || opts.emitEvent !== false) {
         this.markForCheck();
       }
@@ -246,9 +262,31 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (this.sort) this.sort.disabled = true;
   }
 
-  @ViewChild(MatTable, {static: true}) table: MatTable<T>;
-  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
-  @ViewChild(MatSort, {static: true}) sort: MatSort;
+  set pageSize(value: number) {
+    this.defaultPageSize = value;
+    if (this.paginator) {
+      this.paginator.pageSize = value;
+    }
+  }
+
+  get pageSize(): number {
+    return this.paginator && this.paginator.pageSize || this.defaultPageSize || DEFAULT_PAGE_SIZE;
+  }
+
+  get pageOffset(): number {
+    return this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0;
+  }
+
+  get sortActive(): string {
+    return this.sort && this.sort.active;
+  }
+  get sortDirection(): 'asc' | 'desc' {
+    return this.sort && this.sort.direction && (this.sort.direction === 'desc' ? 'desc' : 'asc') || undefined;
+  }
+
+  @ViewChild(MatTable, {static: false}) table: MatTable<T>;
+  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
+  @ViewChild(MatSort, {static: false}) sort: MatSort;
 
   protected constructor(
     protected route: ActivatedRoute,
@@ -266,8 +304,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
     this.toastController = injector && injector.get(ToastController);
+    this.environment = injector && injector.get(ENVIRONMENT);
     this._autocompleteConfigHolder = new MatAutocompleteConfigHolder({
-      getUserAttributes: (a,b) => settings.getFieldDisplayAttributes(a, b)
+      getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
     });
     this.autocompleteFields = this._autocompleteConfigHolder.fields;
   }
@@ -292,11 +331,76 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.displayedColumns = this.getDisplayColumns();
 
     const sortedColumn = this.getSortedColumn();
-    this.sortBy = sortedColumn.id;
-    this.sortDirection = sortedColumn.start;
+    this.defaultSortBy = sortedColumn.id;
+    this.defaultSortDirection = sortedColumn.start;
 
-    // If the user changes the sort order, reset back to the first page.
-    this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+
+    this.registerSubscription(
+      this.onRefresh
+        .pipe(
+          startWith<any, any>(this.autoLoad ? {} : 'skip'),
+          switchMap(
+            (any: any) => {
+              this._dirty = false;
+              this.selection.clear();
+              this.editedRow = undefined;
+              if (any === 'skip' || !this._dataSource) {
+                return of(undefined);
+              }
+              if (!this._dataSource) {
+                if (this.debug) console.debug("[table] Skipping data load: no dataSource defined");
+                return of(undefined);
+              }
+              if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
+              this.selection.clear();
+              return this._dataSource.watchAll(
+                this.pageOffset,
+                this.pageSize,
+                this.sortActive,
+                this.sortDirection,
+                this._filter
+              );
+            }),
+          catchError(err => {
+            this.error = err && err.message || err;
+            if (this.debug) console.error(err);
+            return of(undefined);
+          })
+        )
+        .subscribe(res => {
+          if (res && res.data) {
+            this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
+            this.visibleRowCount = res.data.length;
+            this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + this.visibleRowCount);
+            if (this.debug) console.debug(`[table] ${res.data.length} rows loaded`);
+          } else {
+            //if (this.debug) console.debug('[table] NO rows loaded');
+            this.isRateLimitReached = true;
+            this.resultsLength = 0;
+            this.visibleRowCount = 0;
+          }
+          this.markAsUntouched();
+          this.markAsPristine();
+          this.markForCheck();
+        }));
+
+    // Listen dataSource events
+    if (this._dataSource) this.listenDatasource(this._dataSource);
+  }
+
+  ngAfterViewInit() {
+    if (!this.environment.production) {
+      // Warn if table not exists
+      if (!this.table) {
+        setTimeout(() => {
+          if (!this.table) {
+            console.warn(`[table] Missing <mat-table> in the HTML template (after waiting 500ms)! Component: ${this.constructor.name}`);
+          }
+        }, 500);
+      }
+
+      if (!this.displayedColumns) console.warn(`[table] Missing 'displayedColumns'. Did you call super.ngOnInit() in component ${this.constructor.name} ?`);
+    }
 
     merge(
       // Listen sort events
@@ -313,7 +417,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           filter(res => res === true),
           // Save sort in settings
           tap(() => {
-            const value = [this.sort.active,this.sort.direction||'asc'].join(':')
+            const value = [this.sort.active, this.sort.direction || 'asc'].join(':');
             this.settings.savePageSetting(this.settingsId, value, SETTINGS_SORTED_COLUMN);
           })
         )
@@ -321,74 +425,25 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
       // Listen paginator events
       this.paginator && this.paginator.page
-          .pipe(
-            mergeMap(async () => {
-              if (this._dirty && this.saveBeforeSort) {
-                const saved = await this.save();
-                this.markAsDirty(); // restore dirty flag
-                return saved;
-              }
-              return true;
-            }),
-            filter(res => res === true)
-          ) || EMPTY,
-
-        this.onRefresh
-          // DEBUG
-          //.pipe(tap(event => this._debug && console.debug("[table] Received onRefresh event " + this.constructor.name)))
-      )
-      .pipe(
-        startWith<any, any>(this.autoLoad ? {} : 'skip'),
-        switchMap(
-          (any: any) => {
-            this._dirty = false;
-            this.selection.clear();
-            this.editedRow = undefined;
-            if (any === 'skip' || !this._dataSource) {
-              return of(undefined);
+        .pipe(
+          mergeMap(async () => {
+            if (this._dirty && this.saveBeforeSort) {
+              const saved = await this.save();
+              this.markAsDirty(); // restore dirty flag
+              return saved;
             }
-            if (!this._dataSource) {
-              if (this.debug) console.debug("[table] Skipping data load: no dataSource defined");
-              return of(undefined);
-            }
-            if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
-            this.selection.clear();
-            return this._dataSource.watchAll(
-              this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0,
-              this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,
-              this.sort && this.sort.active,
-              this.sort && this.sort.direction && (this.sort.direction === 'desc' ? 'desc' : 'asc') || undefined,
-              this._filter
-            );
+            return true;
           }),
-        //takeUntil(this._destroy$),
-        catchError(err => {
-          this.error = err && err.message || err;
-          if (this.debug) console.error(err);
-          return of(undefined);
-        })
-      )
-      .subscribe(res => {
-        if (res && res.data) {
-          this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
-          this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + res.data.length);
-          if (this.debug) console.debug(`[table] ${res.data.length} rows loaded`);
-        } else {
-          //if (this.debug) console.debug('[table] NO rows loaded');
-          this.isRateLimitReached = true;
-          this.resultsLength = 0;
-        }
-        this.markAsUntouched();
-        this.markAsPristine();
-        this.markForCheck();
-      });
+          filter(res => res === true)
+        ) || EMPTY
+    ).subscribe(value => this.onRefresh.emit(value));
 
-    // Listen dataSource events
-    if (this._dataSource) this.listenDatasource(this._dataSource);
-  }
-
-  ngAfterViewInit() {
-    if (!this.table) console.warn(`[table] Missing <mat-table> in the HTML template! Component: ${this.constructor.name}`);
+    // If the user changes the sort order, reset back to the first page.
+    if (this.sort && this.paginator) {
+      this.registerSubscription(
+        this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0)
+      );
+    }
   }
 
   ngOnDestroy() {
@@ -403,7 +458,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this._destroy$.unsubscribe();
 
     if (this._dataSource) {
-      this._dataSource.ngOnDestroy()
+      this._dataSource.ngOnDestroy();
     }
   }
 
@@ -442,12 +497,19 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
+  /* -- internal method -- */
+
   private applyFilter(filter: F, opts: { emitEvent: boolean; }) {
+    console.debug('[table] applyFilter', filter);
     this._filter = filter;
     if (opts.emitEvent) {
+      if (this.paginator && this.paginator.pageIndex > 0) {
+        this.paginator.pageIndex = 0;
+      }
       this.onRefresh.emit();
     }
   }
+
 
   protected listenDatasource(dataSource: EntitiesTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
@@ -495,17 +557,22 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       if (event) event.stopPropagation();
       // confirmation edition or creation
       if (!row.confirmEditCreate()) {
-        // If pending, wait end of validation, then loop
-        if (row.validator && row.validator.pending) {
-          AppFormUtils.waitWhilePending(row.validator)
-            .then(() => this.confirmEditCreate(event, row));
-        }
-        else {
-          if (this.debug) {
-            console.warn("[table] Row not valid: unable to confirm", row);
-            AppFormUtils.logFormErrors(row.validator, '[table] ');
+        if (row.validator) {
+          // If pending, wait end of validation, then loop
+          if (row.validator.pending) {
+            AppFormUtils.waitWhilePending(row.validator)
+              .then(() => this.confirmEditCreate(event, row));
           }
+          else {
+            if (this.debug) {
+              console.warn("[table] Row not valid: unable to confirm", row);
+              AppFormUtils.logFormErrors(row.validator, '[table] ');
+            }
+          }
+          row.validator.markAllAsTouched();
         }
+        // fix: mark all controls as touched to show errors
+        row.validator.markAllAsTouched();
         return false;
       }
       // If edit finished, forget edited row
@@ -542,6 +609,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     // If delete (if new row): update counter
     if (row.id === -1) {
       this.resultsLength--;
+      this.visibleRowCount--;
     }
   }
 
@@ -597,7 +665,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     // DEBUG
     //console.debug('isAllSelected. lengths', this.selection.selected.length, this.resultsLength);
 
-    return this.selection.selected.length === this.resultsLength;
+    return this.selection.selected.length === this.resultsLength ||
+      this.selection.selected.length === this.visibleRowCount;
   }
 
   /** Selects all rows if they are not all selected; otherwise clear selection. */
@@ -642,10 +711,14 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     try {
       const deleteCount = rowsToDelete.length;
       await this._dataSource.deleteAll(rowsToDelete);
-      this.resultsLength -= deleteCount;
+
+      // Not need to update manually, because watchALl().subscribe() will update this count
+      //this.resultsLength -= deleteCount;
+      //this.visibleRowCount -= deleteCount;
       this.selection.clear();
       this.editedRow = undefined;
-      this.markAsDirty();
+      this.markAsDirty({emitEvent: false /*markForCheck() is called just after*/});
+      this.markForCheck();
       return deleteCount;
     } catch (err) {
       this.error = err && err.message || err;
@@ -653,9 +726,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
+  onEditRow(event: MouseEvent|undefined, row: TableElement<T>): boolean {
     if (!this._enabled) return false;
-    if (this.editedRow === row || event.defaultPrevented) return;
+    if (this.editedRow === row) return true; // Already the edited row
+    if (event && event.defaultPrevented) return false;
 
     if (!this.confirmEditCreate()) {
       return false;
@@ -671,8 +745,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<T>): boolean {
-    if (row.id === -1 || row.editing) return true;
-    if (event && event.defaultPrevented || this.loading) return false;
+    if (row.id === -1 || row.editing) return true; // Already in edition
+    if (event && event.defaultPrevented || this.loading) return false; // Cancelled by event
 
     // Open the detail page (if not inline editing)
     if (!this.inlineEdition) {
@@ -703,12 +777,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.onEditRow(event, row);
   }
 
-
-  async openSelectColumnsModal(event?: UIEvent): Promise<any> {
+  getCurrentColumns(): { visible: boolean; name: string; label: string }[] {
     const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
     const hiddenColumns = this.columns.slice(fixedColumns.length)
-      .filter(name => this.displayedColumns.indexOf(name) == -1);
-    const columns = this.displayedColumns.slice(fixedColumns.length)
+      .filter(name => this.displayedColumns.indexOf(name) === -1);
+    return this.displayedColumns.slice(fixedColumns.length)
       .concat(hiddenColumns)
       .filter(name => name !== "actions")
       .filter(name => !this.excludesColumns.includes(name))
@@ -719,6 +792,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           visible: this.displayedColumns.indexOf(name) !== -1
         };
       });
+  }
+
+  async openSelectColumnsModal(event?: UIEvent): Promise<any> {
+
+    const columns = this.getCurrentColumns();
 
     const modal = await this.modalCtrl.create({
       component: TableSelectColumnsComponent,
@@ -781,7 +859,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
 
     return await this.router.navigate([id], {
-      relativeTo: this.route
+      relativeTo: this.route,
+      queryParams: {}
     });
   }
 
@@ -808,8 +887,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (parts && parts.length === 2 && this.columns.includes(parts[0])) {
       return {id: parts[0], start: parts[1] === 'desc' ? 'desc' : 'asc', disableClear: false};
     }
-    if (this.sortBy) {
-       return {id: this.sortBy, start: this.sortDirection || 'asc', disableClear: false};
+    if (this.defaultSortBy) {
+       return {id: this.defaultSortBy, start: this.defaultSortDirection || 'asc', disableClear: false};
     }
     return {id: 'id', start: 'asc', disableClear: false};
   }
@@ -817,8 +896,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected getDisplayColumns(): string[] {
     let userColumns = this.getUserColumns();
 
-    // No user override: use defaults
-    if (!userColumns) return this.columns;
+    // No user override
+    if (!userColumns) {
+      // Return default, without columns to hide
+      return this.columns.filter(column => !this.excludesColumns.includes(column));
+    }
 
     // Get fixed start columns
     const fixedStartColumns = this.columns.filter(c => RESERVED_START_COLUMNS.includes(c));
@@ -831,7 +913,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
     return fixedStartColumns
       .concat(userColumns)
-      .concat(fixedEndColumns);
+      .concat(fixedEndColumns)
+      // Remove columns to hide
+      .filter(column => !this.excludesColumns.includes(column));
+  }
+
+  /**
+   * Recompute display columns
+   * @protected
+   */
+  protected updateColumns() {
+    this.displayedColumns = this.getDisplayColumns();
+    if (!this.loading) this.markForCheck();
   }
 
   protected registerSubscription(sub: Subscription) {
@@ -864,6 +957,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.onStartEditingRow.emit(this.editedRow);
     this._dirty = true;
     this.resultsLength++;
+    this.visibleRowCount++;
     this.markForCheck();
     return this.editedRow;
   }
@@ -922,13 +1016,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  setShowColumn(columnName: string, show: boolean) {
+  setShowColumn(columnName: string, show: boolean, opts?: { emitEvent?: boolean; }) {
     if (!this.excludesColumns.includes(columnName) !== show) {
       if (!show) {
         this.excludesColumns.push(columnName);
       } else {
         const index = this.excludesColumns.findIndex(value => value === columnName);
         if (index >= 0) this.excludesColumns.splice(index, 1);
+      }
+
+      // Recompute display columns
+      if (this.displayedColumns && (!opts || opts.emitEvent !== false)) {
+        this.updateColumns();
       }
     }
   }
@@ -957,11 +1056,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   protected async askDeleteConfirmation(event?: UIEvent): Promise<boolean> {
-    if (!this.alertCtrl) {
-      console.warn("[table] Missing alertCtrl in component's constructor. Cannot ask user confirmation before deletion!")
-      return true;
-    }
     return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
+  }
+
+  protected async askRestoreConfirmation(event?: UIEvent): Promise<boolean> {
+    return Alerts.askActionConfirmation(this.alertCtrl, this.translate, false, event);
   }
 
   protected async showToast(opts: ShowToastOptions) {

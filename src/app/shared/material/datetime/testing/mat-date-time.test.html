@@ -1,0 +1,217 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Date/Time field test page</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+
+    <ion-grid>
+
+      <!-- Mobile mode -->
+      <ion-row><ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col></ion-row>
+      <ion-row>
+        <ion-col>
+
+          <!-- Empty value -->
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Empty value
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(form.controls.empty.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-date-time-field formControlName="empty"
+                                   placeholder="Date/Time"
+                                   [required]="true"
+                                   [mobile]="true"
+                                   [clearable]="true">
+                <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              </mat-date-time-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- Enable  -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  With value
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(form.controls.enable.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-date-time-field formControlName="enable"
+                                   placeholder="Date/Time"
+                                   [required]="true"
+                                   [mobile]="true"
+                                   [clearable]="true">
+                <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              </mat-date-time-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- Disable -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Disable
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(form.controls.disable.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-date-time-field formControlName="disable"
+                                   placeholder="Date/Time"
+                                   [required]="true"
+                                   [mobile]="true">
+                <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              </mat-date-time-field>
+
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+      <!-- debug console -->
+      <ion-row>
+        <!-- buttons -->
+        <ion-col size="2">
+          <!-- submit form -->
+          <ion-button (click)="doSubmit($event)"
+                      fill="outline">
+            <ion-icon name="checkmark" slot="icon-only"></ion-icon>
+          </ion-button>
+
+          <!-- clear log  -->
+          <ion-button (click)="clearLogPanel()"
+                      fill="outline">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-col>
+        <ion-col size="10" *ngIf="showLogPanel">
+          <ion-text color="primary">Log:<br/></ion-text>
+          <div class="ion-padding-start">
+            <ion-text color="medium">
+              <small [innerHTML]="logContent"></small>
+            </ion-text>
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- Desktop mode -->
+      <ion-row><ion-col><ion-text><h4>Desktop mode</h4></ion-text></ion-col></ion-row>
+      <ion-row>
+        <ion-col>
+
+          <!-- Empty value -->
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Empty value
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(form.controls.empty.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-date-time-field formControlName="empty"
+                                   placeholder="Date/Time"
+                                   [required]="true"
+                                   [mobile]="false"
+                                   [clearable]="true">
+                <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              </mat-date-time-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- Enable  -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  With value
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(form.controls.enable.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-date-time-field formControlName="enable"
+                                   placeholder="Date/Time"
+                                   [required]="true"
+                                   [mobile]="false"
+                                   [clearable]="true">
+                <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              </mat-date-time-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- Disable -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Disable
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(form.controls.disable.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-date-time-field formControlName="disable"
+                                   placeholder="Date/Time"
+                                   [required]="true"
+                                   [mobile]="false">
+                <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              </mat-date-time-field>
+
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </form>
+
+</ion-content>

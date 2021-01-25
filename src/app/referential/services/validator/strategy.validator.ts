@@ -36,7 +36,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
       pmfmStrategies: this.getPmfmStrategiesFormArray(data),
       appliedStrategies: this.getAppliedStrategiesFormArray(data),
       appliedPeriods: this.getAppliedPeriodsFormArray(data && data.appliedStrategies[0]),
-      strategyDepartments: this.getStrategyDepartmentsFormArray(data),
+      departments: this.getStrategyDepartmentsFormArray(data),
 
       programId: [toNumber(data && data.programId, null)],
     });
@@ -89,7 +89,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
 
   getStrategyDepartmentsFormArray(data?: Strategy) {
     return this.formBuilder.array(
-      (data && data.strategyDepartments || []).map(sd => this.getStrategyDepartmentsControl(sd))
+      (data && data.departments || []).map(sd => this.getStrategyDepartmentsControl(sd))
     );
   }
 

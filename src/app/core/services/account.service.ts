@@ -1,24 +1,26 @@
-import {Injectable} from "@angular/core";
-import {base58, CryptoService, KeyPair} from "./crypto.service";
+import {Inject, Injectable} from "@angular/core";
+import {CryptoService, KeyPair} from "./crypto.service";
 import {Department} from "./model/department.model";
 import {Account} from "./model/account.model";
 import {Person, PersonUtils, UserProfileLabel, UserProfileLabels} from "./model/person.model";
 import {UsageMode, UserSettings} from "./model/settings.model";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
-import gql from "graphql-tag";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {Storage} from '@ionic/storage';
-import {FetchPolicy} from "apollo-client";
 
-import {sleep, toDateISOString} from "../../shared/functions";
+import {sleep} from "../../shared/functions";
 import {BaseEntityService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
-import {environment} from "../../../environments/environment";
-import {GraphqlService} from "./graphql.service";
+import {GraphqlService} from "../graphql/graphql.service";
 import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {NetworkService} from "./network.service";
 import {FileService} from "../../shared/file/file.service";
-import {Referential, ReferentialUtils, StatusIds} from "./model/referential.model";
+import {Referential, ReferentialUtils} from "./model/referential.model";
+import {StatusIds} from "./model/model.enum";
+import {Base58} from "./base58";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+import {toDateISOString} from "../../shared/dates";
 
 
 export declare interface AccountHolder {
@@ -51,7 +53,7 @@ const DEFAULT_AVATAR_IMAGE = "assets/img/person.png";
 /* ------------------------------------
  * GraphQL queries
  * ------------------------------------*/
-export const Fragments = {
+const Fragments = {
   account: gql`
     fragment AccountFragment on AccountVO {
       id
@@ -100,10 +102,10 @@ const IsEmailExistsQuery: any = gql`
     isEmailExists(email: $email, hash: $hash)
   }
 `;
-export declare type IsEmailExistsVariables = {
+export declare interface IsEmailExistsVariables {
   email: string;
   hash: string;
-};
+}
 
 // Save (create or update) account mutation
 const SaveMutation: any = gql`
@@ -184,9 +186,9 @@ export class AccountService extends BaseEntityService {
   private _started = false;
   private _$additionalFields = new BehaviorSubject<FormFieldDefinition[]>([]);
 
-  public onLogin = new Subject<Account>();
-  public onLogout = new Subject<any>();
-  public onAuthTokenChange = new Subject<string | undefined>();
+  onLogin = new Subject<Account>();
+  onLogout = new Subject<any>();
+  onAuthTokenChange = new Subject<string | undefined>();
 
   get account(): Account {
     return this.data.loaded ? this.data.account : undefined;
@@ -212,9 +214,10 @@ export class AccountService extends BaseEntityService {
     protected graphql: GraphqlService,
     protected settings: LocalSettingsService,
     protected storage: Storage,
-    protected file: FileService
+    protected file: FileService,
+    @Inject(ENVIRONMENT) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
     this._debug = !environment.production;
     if (this._debug) console.debug('[account-service] Creating service');
 
@@ -293,20 +296,20 @@ export class AccountService extends BaseEntityService {
     return this.start();
   }
 
-  public ready(): Promise<void> {
+  ready(): Promise<void> {
     if (this._started) return Promise.resolve();
     return this.start();
   }
 
-  public isLogin(): boolean {
+  isLogin(): boolean {
     return !!(this.data.pubkey && this.data.loaded);
   }
 
-  public isAuth(): boolean {
+  isAuth(): boolean {
     return !!(this.data.pubkey && this.data.keypair && this.data.keypair.secretKey);
   }
 
-  public hasMinProfile(label: string): boolean {
+  hasMinProfile(label: string): boolean {
     // should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
       (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY)) {
@@ -316,7 +319,7 @@ export class AccountService extends BaseEntityService {
     return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, userProfile);
   }
 
-  public hasExactProfile(label: UserProfileLabel): boolean {
+  hasExactProfile(label: UserProfileLabel): boolean {
     // should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
       (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
@@ -325,22 +328,22 @@ export class AccountService extends BaseEntityService {
     return !!this.data.account.profiles.find(profile => profile === enumValue);
   }
 
-  public hasProfileAndIsEnable(label: string): boolean {
+  hasProfileAndIsEnable(label: string): boolean {
     // should be login, and status ENABLE
     if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId != StatusIds.ENABLE) return false;
     const userProfile = Object.keys(UserProfileLabels).find(key => UserProfileLabels[key] == label) as UserProfileLabel;
     return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, userProfile);
   }
 
-  public isAdmin(): boolean {
+  isAdmin(): boolean {
     return this.hasProfileAndIsEnable(UserProfileLabels.ADMIN);
   }
 
-  public isSupervisor(): boolean {
+  isSupervisor(): boolean {
     return this.hasProfileAndIsEnable(UserProfileLabels.SUPERVISOR);
   }
 
-  public isUser(): boolean {
+  isUser(): boolean {
     return this.hasProfileAndIsEnable(UserProfileLabels.USER);
   }
 
@@ -348,11 +351,11 @@ export class AccountService extends BaseEntityService {
    * @deprecated
    * @param mode
    */
-  public isUsageMode(mode: UsageMode): boolean {
+  isUsageMode(mode: UsageMode): boolean {
     return this.settings.isUsageMode(mode);
   }
 
-  public isOnlyGuest(): boolean {
+  isOnlyGuest(): boolean {
     // Should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
       (this.data.account.statusId !== StatusIds.ENABLE && this.data.account.statusId !== StatusIds.TEMPORARY))
@@ -361,7 +364,7 @@ export class AccountService extends BaseEntityService {
     return !PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, 'USER');
   }
 
-  public canUserWriteDataForDepartment(recorderDepartment: Referential | any): boolean {
+  canUserWriteDataForDepartment(recorderDepartment: Referential | any): boolean {
     if (ReferentialUtils.isEmpty(recorderDepartment)) {
       if (!this.isAdmin())
         console.warn("Unable to check if user has right: invalid recorderDepartment", recorderDepartment);
@@ -383,7 +386,7 @@ export class AccountService extends BaseEntityService {
     return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, 'SUPERVISOR');
   }
 
-  public async register(data: RegisterData): Promise<Account> {
+  async register(data: RegisterData): Promise<Account> {
     if (this.isLogin()) {
       throw new Error("User already login. Please logout before register.");
     }
@@ -391,22 +394,22 @@ export class AccountService extends BaseEntityService {
 
     if (this._debug) console.debug('[account] Register new user account...', data.account);
     this.data.loaded = false;
-    let now = Date.now();
+    const now = Date.now();
 
     try {
       const keypair = await this.cryptoService.scryptKeypair(data.username, data.password);
-      data.account.pubkey = base58.encode(keypair.publicKey);
+      data.account.pubkey = Base58.encode(keypair.publicKey);
 
       // Default values
       data.account.settings.locale = this.settings.locale;
       data.account.settings.latLongFormat = this.settings.latLongFormat;
-      data.account.department.id = data.account.department.id || environment.defaultDepartmentId;
+      data.account.department.id = data.account.department.id || this.environment.defaultDepartmentId;
 
       this.data.keypair = keypair;
       const account = await this.saveAccount(data.account, keypair);
 
       // Default values
-      account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
+      account.avatar = account.avatar || (this.environment.baseUrl + DEFAULT_AVATAR_IMAGE);
       this.data.mainProfile = PersonUtils.getMainProfile(account.profiles);
 
       this.data.account = account;
@@ -445,7 +448,7 @@ export class AccountService extends BaseEntityService {
     }
 
     // Store pubkey+keypair
-    this.data.pubkey = base58.encode(keypair.publicKey);
+    this.data.pubkey = Base58.encode(keypair.publicKey);
     this.data.keypair = keypair;
 
     // Try to load previous token
@@ -458,7 +461,7 @@ export class AccountService extends BaseEntityService {
       this.data.authToken = previousToken;
 
       // Make sure network if set as offline
-      this.network.setForceOffline(true, {displayToast: false});
+      this.network.setForceOffline(true, {showToast: false});
       console.info(`[account] Login [OK] {pubkey: ${this.data.pubkey.substr(0, 8)}}, {offline: true}`);
     }
 
@@ -477,7 +480,7 @@ export class AccountService extends BaseEntityService {
 
     // Load account data
     try {
-      await this.loadData({offline});
+      await this.loadData({offline, fetchPolicy: 'network-only'});
     }
     catch (err) {
       // If account not found, check if email is valid
@@ -517,7 +520,7 @@ export class AccountService extends BaseEntityService {
     return this.data.account;
   }
 
-  public async refresh(): Promise<Account> {
+  async refresh(): Promise<Account> {
     if (!this.data.pubkey) throw new Error("User not logged");
     if (this.network.offline) throw new Error("Cannot check account in offline mode");
 
@@ -544,7 +547,7 @@ export class AccountService extends BaseEntityService {
       const account = (await this.loadAccount(this.data.pubkey, opts)) || new Account();
 
       // Set defaults
-      account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
+      account.avatar = account.avatar || (this.environment.baseUrl + DEFAULT_AVATAR_IMAGE);
       account.settings = account.settings || new UserSettings();
       account.settings.locale = account.settings.locale || this.settings.locale;
       account.settings.latLongFormat = account.settings.latLongFormat || this.settings.latLongFormat || 'DDMM';
@@ -596,8 +599,8 @@ export class AccountService extends BaseEntityService {
 
     this.data.pubkey = pubkey;
     this.data.keypair = seckey && {
-      publicKey: base58.decode(pubkey),
-      secretKey: base58.decode(seckey)
+      publicKey: Base58.decode(pubkey),
+      secretKey: Base58.decode(seckey)
     } || null;
 
     // Online mode: try to connect to pod
@@ -610,7 +613,7 @@ export class AccountService extends BaseEntityService {
         // Offline feature are enable: continue in offline mode
         if (this.settings.hasOfflineFeature()) {
           console.warn("[account] Unable to authenticate on pod: forcing offline mode");
-          this.network.setForceOffline(true, {displayToast: false});
+          this.network.setForceOffline(true, {showToast: false});
           // Continue
         }
         // No offline features enable (=offline mode not allowed)
@@ -660,7 +663,7 @@ export class AccountService extends BaseEntityService {
 
     // Convert account to json
     const jsonAccount = this.data.account.asObject({keepTypename: true});
-    const seckey = this.data.keypair && this.data.keypair.secretKey && base58.encode(this.data.keypair.secretKey) || null;
+    const seckey = this.data.keypair && this.data.keypair.secretKey && Base58.encode(this.data.keypair.secretKey) || null;
 
     // Convert avatar URL to dataUrl (e.g. 'data:image/png:<base64 content>')
     const hasAvatarUrl = jsonAccount.avatar && !jsonAccount.avatar.endsWith(DEFAULT_AVATAR_IMAGE) &&
@@ -671,13 +674,14 @@ export class AccountService extends BaseEntityService {
         responseType: 'dataUrl'
       })
         .then(dataUrl => {
-          console.debug("[account] Image fetched: " + dataUrl);
+          if (dataUrl && this._debug) console.debug("[account] Image fetched: ", dataUrl.substring(0, 50));
+
+          // TODO: make sure to display Base64 image in the menu top header
           //jsonAccount.avatar = dataUrl;
         })
         .catch(err => {
           console.error(`[account] Error while fetching image: ${jsonAccount.avatar}: ${err}`);
         });
-
     }
 
     await Promise.all([
@@ -704,7 +708,7 @@ export class AccountService extends BaseEntityService {
     account = await this.saveAccount(account, this.data.keypair);
 
     // Set defaults
-    account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
+    account.avatar = account.avatar || (this.environment.baseUrl + DEFAULT_AVATAR_IMAGE);
     this.data.mainProfile = PersonUtils.getMainProfile(account.profiles);
 
     this.data.account = account;
@@ -736,9 +740,6 @@ export class AccountService extends BaseEntityService {
         pubkey && this.storage.remove(ACCOUNT_STORAGE_KEY + '#' + pubkey) || Promise.resolve(),
         this.storage.remove(SECKEY_STORAGE_KEY)
       ]);
-
-      // Clean page history, in local settings
-      await this.settings.clearPageHistory();
     }
 
     // Offline features enable: need to keep some data
@@ -753,6 +754,9 @@ export class AccountService extends BaseEntityService {
         this.storage.remove(SECKEY_STORAGE_KEY)
       ]);
     }
+
+    // Clean page history, in local settings
+    await this.settings.clearPageHistory();
 
     // Notify observers
     this.onLogout.next();
@@ -789,7 +793,7 @@ export class AccountService extends BaseEntityService {
           pubkey: pubkey
         },
         error: { code: ErrorCodes.LOAD_ACCOUNT_ERROR, message: "ERROR.LOAD_ACCOUNT_ERROR" },
-        fetchPolicy: opts && opts.fetchPolicy || environment.apolloFetchPolicy || undefined
+        fetchPolicy: opts && opts.fetchPolicy || this.environment.apolloFetchPolicy || undefined
       });
       accountJson = res && res.account;
     }
@@ -811,7 +815,7 @@ export class AccountService extends BaseEntityService {
    * @param keyPair
    */
   public async saveAccount(account: Account, keyPair: KeyPair): Promise<Account> {
-    account.pubkey = account.pubkey || base58.encode(keyPair.publicKey);
+    account.pubkey = account.pubkey || Base58.encode(keyPair.publicKey);
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[account] Saving account {${account.pubkey.substring(0, 6)}} remotely...`);
@@ -936,7 +940,7 @@ export class AccountService extends BaseEntityService {
 
     const self = this;
 
-    console.debug('[account] [WS] Listening changes on {/subscriptions/websocket}...');
+    console.debug('[account] [WS] Listening account changes');
 
     const subscription = this.graphql.subscribe<{updateAccount: any}>({
       query: UpdateSubscription,
@@ -949,13 +953,12 @@ export class AccountService extends BaseEntityService {
         message: 'ERROR.ACCOUNT.SUBSCRIBE_ACCOUNT_ERROR'
       }
     }).subscribe({
-        async next(data) {
-          if (data && data.updateAccount) {
-            const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
-            if (existingUpdateDate !== data.updateAccount.updateDate) {
-              console.debug("[account] [WS] Detected update on {" + data.updateAccount.updateDate + "}");
-              await self.refresh();
-            }
+        async next({updateAccount}) {
+          if (!updateAccount) return;
+          const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
+          if (existingUpdateDate !== updateAccount.updateDate) {
+            console.debug("[account] [WS] Detected update on {" + updateAccount.updateDate + "}");
+            await self.refresh();
           }
         },
       async error(err) {
@@ -977,7 +980,7 @@ export class AccountService extends BaseEntityService {
     });
 
     // Add log when closing WS
-    subscription.add(() => console.debug('[account] [WS] Stop to listen changes'));
+    subscription.add(() => console.debug('[account] [WS] Stop listening account changes'));
 
     return subscription;
   }

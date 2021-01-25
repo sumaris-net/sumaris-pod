@@ -18,6 +18,10 @@ import { StrategyValidatorService } from '../services/validator/strategy.validat
 import { PmfmStrategiesTable } from "../strategy/pmfm-strategies.table";
 import {TaxonNameRef} from "../services/model/taxon.model";
 import {LocationLevelIds, ParameterLabelStrategies} from '../services/model/model.enum';
+import {AppForm} from "../../core/form/form.class";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {PmfmUtils} from "../services/model/pmfm.model";
 
 @Component({
   selector: 'form-simple-strategy',
@@ -42,7 +46,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   enableStrategyDepartmentFilter = false;
   canFilterStrategyDepartment = true;
-  strategyDepartmentHelper: FormArrayHelper<StrategyDepartment>;
+  departmentsHelper: FormArrayHelper<StrategyDepartment>;
   StrategyDepartmentFocusIndex = -1;
 
   enableAppliedStrategyFilter = false;
@@ -60,11 +64,11 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
   pmfmStrategiesFocusIndex = -1;
+  label = '';
 
   @Input() program: Program;
   @Input() showError = true;
   @Input() entityName;
-  label: string = '';
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
@@ -75,7 +79,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   get strategyDepartmentFormArray(): FormArray {
-    return this.form.controls.strategyDepartments as FormArray;
+    return this.form.controls.departments as FormArray;
   }
 
   get taxonNamesForm(): FormArray {
@@ -112,7 +116,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   }
   tabIndex?: number;
   hidden?: boolean;
-  appliedYear: string = '';
+  appliedYear = '';
 
   async setPmfmStrategies() {
     const pmfms = [];
@@ -147,9 +151,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
+    // TODO BLA: revoir les nommage des event ci-dessous
     this.weightPmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
     this.sizePmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
     this.maturityPmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
+    //this.weightPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    //this.sizePmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+    //this.maturityPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
+
     this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
     this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
     this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
@@ -235,10 +244,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   protected async suggest(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
 
     // Special case: AnalyticReference
-    if (entityName == "AnalyticReference") {
+    if (entityName === "AnalyticReference") {
       if (filtered) {
         //TODO a remplacer par recuperation des donnees deja saisies
-        return this.strategyService.LoadAllAnalyticReferences(0, 5, null, null, filter);
+        return this.strategyService.loadAllAnalyticReferences(0, 5, null, null, filter);
       } else {
         return this.strategyService.suggestAnalyticReferences(value, filter);
       }
@@ -265,23 +274,21 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   protected async suggestTaxonName(value: string, filter: any, entityName: string, filtered: boolean): Promise<TaxonNameRef[]> {
     if (filtered) {
       // if TaxonNme filtred : //TODO a remplacer par recuperation des donnees deja saisies
-      const res = await this.referentialRefService.loadAllTaxonNames(0, 5, null, null,
+      return await this.referentialRefService.loadAllTaxonNames(0, !value ? 30 : 10, null, null,
         {
           ...filter,
           entityName: entityName
         },
         { withTotal: false /* total not need */ }
       );
-      return res;
     }
     else {
-      const res = await this.referentialRefService.suggestTaxonNames(value,
+      return await this.referentialRefService.suggestTaxonNames(value,
         {
           ...filter,
           entityName: entityName
         },
       );
-      return res;
     }
   }
 
@@ -318,7 +325,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.programId = data.programId;
 
     // Resize strategy department array
-    this.strategyDepartmentHelper.resize(Math.max(1, data.strategyDepartments.length));
+    this.departmentsHelper.resize(Math.max(1, data.departments.length));
 
     // Resize strategy department array
     this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
@@ -371,9 +378,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     super.setValue(data, opts);
 
     // fixme get eotp from referential by label = data.analyticReference
-    const analyticReferenceToSet: IReferentialRef = new ReferentialRef();
-    analyticReferenceToSet.label = data.analyticReference;
-    this.form.get('analyticReference').setValue(analyticReferenceToSet);
+    this.form.patchValue({
+      analyticReference: {label: data.analyticReference}
+    });
 
     const pmfmStrategiesControl = this.pmfmStrategiesForm;
     let pmfmStrategies: any[];
@@ -382,14 +389,15 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     if (!data.id) {
       pmfmStrategies = [null, null];
     } else {
-      const age = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === ParameterLabelStrategies.AGE);
-      const sex = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === ParameterLabelStrategies.SEX);
-      pmfmStrategies = [sex.length > 0 ? true : false, age.length > 0 ? true : false];
+      const hasAge = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.AGE)) !== -1;
+      const hasSex = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.SEX)) !== -1;
+      pmfmStrategies = [hasSex, hasAge];
     }
 
     //Weights
+    // TODO BLA: revoir ces sélections: utliser PmfmUtils
     const weightPmfmStrategy = (data.pmfmStrategies || []).filter(
-      p => 
+      p =>
       (p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.WEIGHTS.includes(p.pmfm.parameter.label)) ||
       (p['parameter'] && ParameterLabelStrategies.WEIGHTS.includes(p['parameter'].label))
     );
@@ -398,7 +406,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
     //Sizes
     const sizePmfmStrategy = (data.pmfmStrategies || []).filter(
-      p => 
+      p =>
       (p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.LENGTHS.includes(p.pmfm.parameter.label)) ||
       (p['parameter'] && ParameterLabelStrategies.LENGTHS.includes(p['parameter'].label))
     );
@@ -407,7 +415,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
     //Maturities
     const maturityPmfmStrategy = (data.pmfmStrategies || []).filter(
-      p => 
+      p =>
       (p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.MATURITIES.includes(p.pmfm.parameter.label)) ||
       (p['parameter'] && ParameterLabelStrategies.MATURITIES.includes(p['parameter'].label))
     );
@@ -429,12 +437,12 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
         return {
           id: cal.fractionId,
           name: res.data.find(fraction => fraction.id === cal.fractionId).name,
-        }
+        };
       });
       calcifiedTypeControl.clear();
       this.PmfmStrategiesFractionHelper.resize(Math.max(1, PmfmStrategiesFraction.length));
       calcifiedTypeControl.patchValue(fractions);
-    })
+    });
   }
 
   protected async onDateChange(date: Moment) {
@@ -448,7 +456,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     }
     else if (date && (typeof date === 'string')) {
       const dateAsString = date as string;
-      year = moment(dateAsString).toDate().getFullYear().toString()
+      year = moment(dateAsString).toDate().getFullYear().toString();
     }
     this.sampleRowMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
 
@@ -557,14 +565,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     );
     // Create at least one fishing Area
     if (this.appliedStrategiesHelper.size() === 0) {
-      this.strategyDepartmentHelper.resize(1);
+      this.departmentsHelper.resize(1);
     }
   }
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
   protected initstrategyDepartmentHelper() {
-    this.strategyDepartmentHelper = new FormArrayHelper<StrategyDepartment>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'strategyDepartments'),
+    this.departmentsHelper = new FormArrayHelper<StrategyDepartment>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'departments'),
       (department) => this.validatorService.getStrategyDepartmentsControl(department),
       (d1, d2) => EntityUtils.equals(d1.department, d2.department, 'label'),
       value => isNil(value) && isNil(value.department),
@@ -573,14 +581,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     );
     // Create at least one laboratory
-    if (this.strategyDepartmentHelper.size() === 0) {
-      this.strategyDepartmentHelper.resize(1);
+    if (this.departmentsHelper.size() === 0) {
+      this.departmentsHelper.resize(1);
     }
   }
   addStrategyDepartment() {
-    this.strategyDepartmentHelper.add(new StrategyDepartment());
+    this.departmentsHelper.add(new StrategyDepartment());
     if (!this.mobile) {
-      this.StrategyDepartmentFocusIndex = this.strategyDepartmentHelper.size() - 1;
+      this.StrategyDepartmentFocusIndex = this.departmentsHelper.size() - 1;
     }
   }
 

@@ -4,15 +4,17 @@
     "BTN_CANCEL": "Cancel",
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abort the changes",
-    "BTN_RESET": "Reset",
-    "BTN_CLEAR": "Clear",
     "BTN_ADD": "Add",
     "BTN_APPLY": "Apply",
-    "BTN_EDIT": "Edit",
+    "BTN_BURST_INPUT": "Burst mode",
+    "BTN_BURST_INPUT_HELP": "Enable burst mode",
+    "BTN_CLEAR": "Clear",
     "BTN_CLOSE": "Close",
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
     "BTN_DELETE": "Delete",
+    "BTN_DELETE_FOREVER": "Delete forever",
+    "BTN_EDIT": "Edit",
     "BTN_FREEZE_VALUE": "Freeze",
     "BTN_FREEZE_VALUE_HELP": "Freeze the value",
     "BTN_YES_DELETE": "Oui, delete",
@@ -25,9 +27,11 @@
     "BTN_FILTER": "Filter",
     "BTN_RELOAD": "Reload",
     "BTN_REFRESH": "Refresh",
+    "BTN_RESET": "Reset",
     "BTN_SEARCH": "Search",
     "BTN_NEXT": "Next",
     "BTN_NEXT_SHORT": "Next",
+    "BTN_PREVIEW": "Preview",
     "BTN_BACK": "Back",
     "BTN_SEND": "Send",
     "BTN_OPTIONS": "Options",
@@ -35,9 +39,13 @@
     "BTN_TABLE_EDIT": "Edit in the table",
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",
+    "BTN_HIDE": "Hide",
     "BTN_HIDE_MENU": "Hide menu",
     "BTN_SHOW_MENU": "Show menu",
     "BTN_SHOW_MORE": "Show more",
+    "BTN_SHOW_TRASH_DOTS": "Open the trash...",
+    "BTN_CLEAN_TRASH": "Clean the trash",
+    "BTN_RESTORE": "Restore",
     "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on ",
     "COMMENTS": "Comments",
@@ -47,9 +55,11 @@
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "DATE_TIME_SECONDS_PATTERN": "DD/MM/YYYY HH:mm:ss",
     "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
+    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_YEAR_PATTERN": "YYYY",
     "DATE_YEAR_PLACEHOLDER": "yyyy",
     "DATE_PLACEHOLDER": "dd/mm/yyyy",
@@ -135,6 +145,8 @@
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "User profile (min) to access other people data",
+      "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "User profile (min) to access to other people extractions",
+      "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -163,11 +175,13 @@
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
         "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle",
+        "LOCATION_LEVEL_ICES_DIVISION_ID": "Referential > Location level > CIEM/ICES Division",
         "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
         "STRATEGY_PARAMETER_SEX_LABEL": "Strategy > Parameter > Sex label",
         "STRATEGY_PARAMETER_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
         "STRATEGY_PARAMETER_LENGTH_LABELS": "Strategy > Parameter > Length labels",
         "STRATEGY_PARAMETER_MATURITY_LABELS": "Strategy > Parameter > Maturity labels"
+
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?"
@@ -185,10 +199,12 @@
     "HOME": "Home",
     "TESTING": "Developer mode",
     "TRIPS": "Trips",
+    "DOWNLOADS": "Downloads",
     "DATA_ENTRY_DIVIDER": "Data entry",
-    "EXTRACTION_DIVIDER": "Extractions",
+    "DATA_ACCESS_DIVIDER": "Data access",
     "OBSERVED_LOCATIONS": "Observations",
-    "AUCTION_CONTROL": "Auction control",
+    "AUCTION_CONTROL": "Auction controls",
+    "OCCASION": "Occasions",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Referential",
     "USERS": "Users",
@@ -198,7 +214,7 @@
     "MAP": "Maps",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "LOCAL_SETTINGS": "Settings",
-    "SERVER": "Server management",
+    "SERVER": "Server settings",
     "LOGOUT": "Logout",
     "ABOUT": "About"
   },
@@ -222,8 +238,6 @@
     "BTN_DISCONNECT": "Disconnect this account",
     "BTN_MY_ACCOUNT": "My account",
     "BTN_REGISTER": "Register",
-    "DOWNLOAD_APP_TITLE": "{{appName}} for {{platform}}",
-    "DOWNLOAD_APP_HELP": "Free download.",
     "SHOW_AT": "Show at"
   },
   "AUTH": {
@@ -287,8 +301,8 @@
     "LOCALE": "Language",
     "LAT_LONG_FORMAT": "Latitude/longitude format",
     "NETWORK_DIVIDER": "Network settings",
-    "PEER_URL": "Network peer address",
-    "BTN_CHANGE_PEER": "See available peers",
+    "PEER_URL": "Network node address",
+    "BTN_CHANGE_PEER": "See available nodes",
     "BTN_SHOW_MORE_HELP": "Show more parameters",
     "BTN_CLEAR_CACHE": "Clear data cache",
     "OFFLINE_MODE": "Force offline mode? (experimental)",
@@ -330,7 +344,7 @@
       }
     },
     "ERROR": {
-      "PEER_NOT_REACHABLE": "Unreachable peer"
+      "PEER_NOT_REACHABLE": "Unreachable node"
     }
   },
   "USER": {
@@ -361,7 +375,6 @@
       }
     }
   },
-
   "TRIP": {
     "TITLE": "Fishing trip",
     "PROGRAM": "Data collection programme",
@@ -411,6 +424,7 @@
       "QUALITY": "Status",
       "OBSERVERS": "Observers",
       "COMMENTS": "Comments",
+      "NO_LOCAL_RESULT": "No result (in NOT synchronized trips)",
       "FILTER": {
         "PROGRAM": "Data collection program",
         "START_DATE": "Start period",
@@ -425,6 +439,15 @@
         "DIRTY_HELP": "Not-synchronized trips",
         "READY_TO_SYNC_HELP": "Ready to sync trips",
         "SYNC_HELP": "Online trips"
+      }
+    },
+    "TRASH": {
+      "TITLE": "Trash",
+      "DELETION_DATE": "Deletion date",
+      "INFO": {
+        "ONE_TRIP_RESTORED": "Trip successfully restored!",
+        "MANY_TRIPS_RESTORED": "Trips successfully restored!",
+        "LOCAL_TRASH_CLEANED": "Local trash has been cleaned"
       }
     },
     "ERROR": {
@@ -486,7 +509,8 @@
         "TITLE": "New operation"
       },
       "EDIT": {
-        "TITLE": "Ope {{startDateTime}}",
+        "TITLE": "Ope #{{rankOrder}} <small>at {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "Ope {{startDateTime}}",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
@@ -596,8 +620,6 @@
       "TABLE": {
         "BTN_AUTO_FILL": "Automatically fill species",
         "BTN_INDIVIDUAL_MEASURE": "Measures",
-        "BTN_BURST_INPUT": "Burst mode",
-        "BTN_BURST_INPUT_HELP": "Enable burst mode",
         "LABEL": "Label",
         "LABEL_PLACEHOLDER": "Label",
         "TAXON_GROUP": "Declarative species (FAO)",
@@ -628,10 +650,12 @@
     },
     "SAMPLE": {
       "NEW": {
-        "TITLE": "New batch"
+        "TITLE": "New batch",
+        "TITLE_PREFIX": "<small>{{prefix}}<br></small>"
       },
       "EDIT": {
         "TITLE": "Batch {{label}}",
+        "DATE_TIME": "Sample date",
         "TAXON_GROUP": "Commercial species (FAO)",
         "TAXON_NAME": "Scientific species (FAO)"
       },
@@ -697,7 +721,7 @@
     "END_DATE_TIME": "End date/time",
     "START": "Start:",
     "END": "End:",
-    "LOCATION": "Auction",
+    "LOCATION": "Observed location",
     "LOCATION_AND_DATE": "Location / Date:",
     "TAB_GENERAL": "Details",
     "TAB_VESSELS": "Observed vessels",
@@ -705,7 +729,7 @@
     "OBSERVER_PLACEHOLDER": "Observer #",
     "OBSERVERS": "Observers:",
     "NEW": {
-      "TITLE": "New control"
+      "TITLE": "New observation"
     },
     "EDIT": {
       "TITLE": "{{location}} - {{dateTime}}",
@@ -745,7 +769,7 @@
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - Landing {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
     "TAB_GENERAL": "Details",
     "PROGRAM": "Program",
     "SAMPLE_ROW_CODE": "Sample row code",
@@ -885,6 +909,7 @@
     "BTN_QUALIFY": "Qualify",
     "NOT_SYNCHRONIZED": "Data not synchronized",
     "MODIFIED": "Being edited",
+    "MODIFIED_OFFLINE": "Being edited (offline)",
     "CONTROLLED": "Completed",
     "CONTROLLED_ON": "Completed on ",
     "VALIDATED": "Validated",
@@ -894,6 +919,7 @@
     "QUALIFICATION_COMMENT": "Qualification comment",
     "QUALITY_FLAG": "Quality level",
     "QUALITY_FLAG_SHORT": "Quality:",
+    "READY_TO_SYNC": "Completed, waiting synchronization",
     "QUALITY_FLAGS": {
       "NOT_QUALIFIED": "Not qualified",
       "GOOD": "Good",
@@ -973,8 +999,11 @@
     "COMMENTS": "Comments",
     "STATUS": "Status",
     "RANK_ORDER": "#",
+    "UPDATE_DATE": "Update date",
+    "CREATION_DATE": "Creation date",
     "EXTERIOR_MARKING": "Exterior marking",
     "REGISTRATION_CODE": "Registration code",
+    "PAGE_HISTORY_SUBTITLE": "Referential",
     "BASE_PORT_LOCATION": {
       "LABEL": "Harbour code",
       "NAME": "Harbour name"
@@ -995,6 +1024,8 @@
       "TAB_GENERAL": "Details",
       "TAB_QUALITATIVE_VALUE": "Qualitative value",
       "TYPE": "Value type",
+      "CODE": "Parameter code",
+      "NAME": "Name",
       "NEW": {
         "TITLE": "New parameter"
       },
@@ -1020,13 +1051,9 @@
       "MAXIMUM_NUMBER_DECIMALS": "Maximal number of decimals",
       "SIGNIF_FIGURES_NUMBER": "Significant number of digits",
       "PARAMETER": "Parameter",
-      "PARAMETER_ID": "Parameter",
       "MATRIX": "Matrix",
-      "MATRIX_ID": "Matrix",
       "FRACTION": "Fraction",
-      "FRACTION_ID": "Fraction",
       "METHOD": "Data collecting method",
-      "METHOD_ID": "Data collecting method",
       "UNIT": "Unit",
       "BTN_ADD_PARAMETER": "Create a new parameter",
       "BTN_OPEN_PARAMETER": "Open the parameter",
@@ -1036,6 +1063,18 @@
       "EDIT": {
         "TITLE": "PMFM {{label}} - {{name}}"
       }
+    },
+    "MATRIX": {
+      "NAME": "Matrix",
+      "DESCRIPTION": "description"
+    },
+    "FRACTION": {
+      "NAME": "Fraction",
+      "DESCRIPTION": "description"
+    },
+    "METHOD": {
+      "NAME": "Data collection method",
+      "DESCRIPTION": "description"
     },
     "LIST": {
       "TITLE": "Referential",
@@ -1062,7 +1101,7 @@
       "VESSEL_TYPE": "Vessel types",
       "PMFM": "Collected parameters",
       "MATRIX": "Matrices",
-      "FRACTION": "Fractions",
+      "FRACTION": "Fractions of the matrix",
       "QUALITATIVE_VALUE": "Qualitative values",
       "TAXON_GROUP_TYPE": "Species group types",
       "TAXON_GROUP": "Species group",
@@ -1137,6 +1176,8 @@
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
+      "MEASUREMENTS_MOBILE_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons  (mobile)"
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
       "SIMPLE_STRATEGIES": "Simple strategies",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
@@ -1147,11 +1188,10 @@
       "ACQUISITION_LEVELS": "Acquisition levels",
       "LOCATIONS": "Locations",
       "GEARS": "Gears",
-      "TAXON_GROUPS": "Taxon groups",
-      "TAXON_NAMES": "Target specie",
-      "SCIENTIFIC_TAXON_NAMES": "Taxon names",
+      "TAXON_GROUPS": "Commercial species",
+      "TAXON_NAMES": "Scientific species",
       "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFMs",
-      "BTN_REMOVE_TO_SELECTED_PMFM": "Remove to selected PMFMs",
+      "BTN_REMOVE_TO_SELECTED_PMFM": "Remove from selected PMFMs",
       "NEW": {
         "TITLE": "New strategy",
         "SAMPLING_TITLE": "New Sample row"
@@ -1172,62 +1212,57 @@
         "METHOD": "Method",
         "UNIT": "Unit",
         "IS_MANDATORY": "Required ?",
-        "ACQUISITION_NUMBER": "Acquisition number",
+        "ACQUISITION_NUMBER": "Acquisition nb.",
         "MIN_VALUE": "Min",
         "MAX_VALUE": "Max",
-        "DEFAULT_VALUE": "default value",
+        "DEFAULT_VALUE": "Default value",
         "TABLE": {
           "TITLE": "Collected parameters"
         }
-      },
-      "ERROR": {
-        "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy label",
-        "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy analytic references",
-        "LOAD_STRATEGY_ERROR": "Error while loading stategy",
-        "LOAD_STRATEGIES_ERROR": "Error while loading strategies",
-        "SAVE_STRATEGY_ERROR": "Error while saving stategy",
-        "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
-        "PARAMETERS.WEIGHT_OR_SIZE": "Weight or size is mandatory",
-        "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}"
-      },
-      "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
-      "APPLIED_STRATEGIES" :"Fishing area(s)",
-      "LABEL":"Sample row code",
-      "SAMPLE_ROW_TITLE":"Sample row code",
-      "ANALYTIC_REFERENCE":"EOTP",
-      "STRATEGY_DEPARTMENTS": "Laboratory",
-      "LANDING_PORT": "Landing port",
-      "SEX": "Sexe",
-      "AGE": "Age",
-      "YEAR": "Year",
-      "WEIGHT": "Weights : ",
-      "SIZE": "Sizes : ",
-      "MATURITY": "Maturities : ",
-      "WEIGHT_TABLE": "Weights",
-      "SIZE_TABLE": "Sizes",
-      "MATURITY_TABLE": "Maturities",
-      "CALCIFIED_TYPE": "Types of calcified parts" ,
-      "SIZE_INCREMENT": "Size increment",
-      "EFFORT": "Effort : ",
-      "QUARTER_1": "Quarter 1" ,
-      "QUARTER_2": "Quarter 2",
-      "QUARTER_3": "Quarter 3",
-      "QUARTER_4": "Quarter 4",
-      "PARAMETERS_TITLE": "Mesured parameters :",
-      "COMMENT" :"Comment",
-      "PARAMETERS_TITLE": "Mesured parameters",
-      "QUARTER_1_TABLE": "Efforts T1" ,
-      "QUARTER_2_TABLE": "Efforts T2",
-      "QUARTER_3_TABLE": "Efforts T3",
-      "QUARTER_4_TABLE": "Efforts T4",
-      "ADD_LANDING": "Add landing"
+      }
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Error while loading program",
       "LOAD_PROGRAMS_ERROR": "Error while loading programs",
       "SAVE_PROGRAM_ERROR": "Error while saving program",
-      "SAVE_PROGRAMS_ERROR": "Error while saving programs"
-    }
+      "SAVE_PROGRAMS_ERROR": "Error while saving programs",
+      "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
+      "PARAMETERS.WEIGHT_OR_SIZE": "Weight or size is mandatory",
+      "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}"
+    },
+    "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
+    "APPLIED_STRATEGIES" :"Fishing area(s)",
+    "FISHING_AREA" : "Fishing area(s)",
+    "LABEL": "Sample row code",
+    "SAMPLE_ROW_TITLE": "Sample row code",
+    "ANALYTIC_REFERENCE": "EOTP",
+    "DEPARTMENTS": "Laboratory",
+    "TARGET_SPECIE": "Target specie",
+    "LANDING_PORT": "Landing port",
+    "SEX": "Sexe",
+    "AGE": "Age",
+    "YEAR": "Year",
+    "WEIGHT": "Weights: ",
+    "SIZE": "Sizes: ",
+    "MATURITY": "Maturities: ",
+    "WEIGHT_TABLE": "Weights",
+    "SIZE_TABLE": "Sizes",
+    "MATURITY_TABLE": "Maturities",
+    "CALCIFIED_TYPE": "Types of calcified parts: " ,
+    "SIZE_INCREMENT": "Size increment",
+    "EFFORT": "Effort : ",
+    "QUARTER_1": "Quarter 1" ,
+    "QUARTER_2": "Quarter 2",
+    "QUARTER_3": "Quarter 3",
+    "QUARTER_4": "Quarter 4",
+    "PARAMETERS_TITLE": "Mesured parameters:",
+    "COMMENT" :"Comment",
+    "PARAMETERS_TITLE": "Mesured parameters",
+    "QUARTER_1_TABLE": "Efforts T1" ,
+    "QUARTER_2_TABLE": "Efforts T2",
+    "QUARTER_3_TABLE": "Efforts T3",
+    "QUARTER_4_TABLE": "Efforts T4",
+    "ADD_LANDING": "Add landing"
   },
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Download as CSV",
@@ -1236,6 +1271,7 @@
     "SPATIAL_AGGREGATION": "Create a spatial aggregation",
     "BTN_PUBLISH": "Publish",
     "BTN_UNPUBLISH": "Make private",
+    "BTN_OPEN_MAP": "View data on a map",
     "TYPE": "Extraction type",
     "AGGREGATION": {
       "NEW_NAME": "New aggregation / {{name}}",
@@ -1245,7 +1281,15 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
+        "BTN_OPEN_MAP": "Show map",
+        "BTN_PREVIEW_DOC": "Preview doc",
+        "STRATUM_DOTS": "Stratum :",
+        "FORMAT_DOTS": "Documentation :",
+        "MARKDOWN_HELP": "Use <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a> format",
+        "FORMAT_PLACEHOLDER": "Décrivez le format de sortie...",
+        "FORMAT_PREVIEW": "Preview",
         "STRATA": {
+          "SHEET_NAME": "Sheet",
           "TIME_COLUMN": "Temporal",
           "SPACE_COLUMN": "Geometry",
           "AGG_COLUMN": "Agg column",
@@ -1263,14 +1307,6 @@
         }
       }
     },
-    "COMMON": {
-      "VESSEL_FLAG_COUNTRY": "Vessel country flag",
-      "HARBOUR": "Harbour",
-      "YEAR": "Year",
-      "PROJECT": "Project",
-      "AREA": "Area",
-      "STATISTICAL_RECTANGLE": "Statistical rectangle"
-    },
     "FILTER": {
       "TITLE": "Filter criteria:",
       "CRITERION_NAME": "Column",
@@ -1283,81 +1319,135 @@
       "NO_FILTER_PARENTHESIS": "(no filter)",
       "WITH_FILTER_PARENTHESIS": "(filtered)"
     },
+    "HELP": {
+      "MODAL": {
+        "TITLE": "Help > {{name}}",
+        "DESCRIPTION": "Description",
+        "FORMAT": "Format"
+      }
+    },
+    "TABLE": {
+      "BTN_SELECT_TYPE": "Data sources"
+    },
     "MAP": {
-      "BTN_SELECT_TYPE": "Map list",
+      "BTN_SELECT_TYPE": "List of maps",
+      "BTN_SELECT_TYPE_HELP": "Show all availables maps",
+      "BTN_SELECT_AGG": "Indicator ?",
+      "BTN_ADD_CHART": "Chart...",
+      "BTN_ADD_CHART_HELP": "Add a chart",
       "BTN_EDIT": "Edit",
       "BTN_ANIMATION_PLAY": "Play animation",
       "BTN_ANIMATION_PAUSE": "Stop animation",
+      "BTN_CHART_SERIES_HELP": "Click here to change chart series",
+      "BTN_EDIT_LEGEND_HELP": "Customize legend",
+      "LAYER": "Layer",
+      "LAYERS": "Data layers",
+      "BASE_LAYER": "Base layer",
+      "SHOW_GRATICULE": "Show graticule",
+      "SHOW_INVALID_GEOMETRIES": "Show all shapes",
       "FILTER": "Filter",
       "YEAR": "Year",
-      "SPACE": "Geomtery",
-      "AGG_VALUE": "Plotted value",
+      "SPACE": "Geometry",
+      "AGG_VALUE": "Indicator",
       "TECH_VALUE": "Technical",
+      "DISPLAY_OPTIONS": "Display options",
       "QUARTER": "Quarter",
       "DETAILS": "Details",
-      "STATS": "Statistics",
+      "TECH_CHART_TITLE": "{{aggColumnName}} by {{techColumnName}}",
+      "FREEZE_VALUES": "Freeze values",
       "LEGEND": "Legend",
+      "SCALE_LINEAR" : "Linear",
+      "SCALE_LOGARITHMIC":  "Logarithmic",
+      "CHART_AXIS_Y": "Y scale (left)",
+      "CHART_AXIS_X": "X scale (bottom)",
       "LEGEND_FORM": {
         "TITLE": "Parameter",
         "OPACITY_PLACEHOLDER": "Opacity (%)",
         "MIN": "Min:",
         "MAX": "Max:"
       },
+      "CHART_TYPE": {
+        "TITLE": "Kind of chart",
+        "PIE" : "Pie",
+        "BAR":  "Histogram",
+        "DOUGHNUT": "Doughnut"
+      },
+      "CHART_SORT_BY": {
+        "TITLE": "Sort by",
+        "LABEL" : "Label (asc)",
+        "VALUE":  "Value (desc)"
+      },
       "SELECT_MODAL": {
         "TITLE": "Map list",
         "HELP": "Here is the list of available maps:"
       }
     },
+    "CATEGORY": {
+      "PRODUCT": "Products",
+      "LIVE": "Real time"
+    },
+    "COLUMNS": {
+      "VESSEL_FLAG_COUNTRY": "Vessel country flag",
+      "LANDING_COUNTRY": "Landing country",
+      "RECORD_TYPE": "Type",
+      "HARBOUR": "Harbour",
+      "PROJECT": "Project",
+      "YEAR": "Year",
+      "QUARTER": "Quarter",
+      "MONTH": "Month",
+      "AREA": "Area",
+      "STATISTICAL_RECTANGLE": "Statistical rectangle",
+      "SQUARE": "Square 10'x10'",
+      "SUB_POLYGON": "Sub-polygon",
+      "SPECIES": "Species",
+      "OFFICIAL_LANDING_WEIGHT": "Officiel landing weight",
+      "COMMERCIAL_SIZE_CATEGORY": "Commercial size category",
+      "COMMERCIAL_SIZE_CATEGORY_SCALE": "Commercial size category scale",
+      "VESSEL_LENGTH_CATEGORY": "Vessel length category",
+      "VESSEL_LENGTH_CLASS": "Vessel length category",
+      "GEAR_TYPE": "Gear",
+      "LENGTH_CLASS": "Length class",
+      "CATCH_CATEGORY": "Catch category",
+      "LANDING_CATEGORY": "Landing category",
+      "NUMBER_AT_LENGTH": "Number at length",
+      "INDIVIDUAL_SEX": "Individual sex",
+      "SEX": "Sex",
+      "WEIGHT": "Weight (kg)",
+      "SUBSAMPLING_WEIGHT": "Subsampling Weight (kg)",
+      "SUBSAMPLING_CATEGORY": "Subsampling category",
+      "STATION_COUNT": "Number of station",
+      "TRIP_COUNT_BY_STATION": "Nb of trips, by station",
+      "TRIP_COUNT_BY_FISHING_TIME": "Nb of trips, by fishing time",
+      "VESSEL_COUNT": "Number of vessels",
+      "FISHING_TIME": "Fishing time (h dec.)",
+      "OFFICIAL_LANDINGS_VALUE": "Officiel landings value (€)",
+      "OFFICIAL_LANDINGS_WEIGHT": "Officiel landings weight (kg)"
+    },
     "SHEET": {
       "TR": "Trips",
-      "HH": "Stations",
-      "SL": "Catch"
-    },
-    "CATEGORY": {
-      "PRODUCT": "Fixed product",
-      "LIVE": "Raw data collected"
+      "HH": "Fishing stations",
+      "SL": "Species list",
+      "HL": "Individual length",
+      "CA": "Sex-Age",
+      "CL": "Commercial landings",
+      "CE": "Efforts",
+      "ST": "Survival tests",
+      "RL": "Releases"
     },
     "PRODUCT": {
       "P01_RDB": {
-        "TITLE": "ICES Data call (RDB v1.3)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)",
-          "CA": "Sex-Age (CA)",
-          "CL": "Landings (CL)",
-          "CE": "Efforts (CE)"
-        }
+        "TITLE": "ICES Data call (RDB v1.3)"
       }
     },
     "LIVE": {
       "RDB": {
-        "TITLE": "Raw data (RDB v1.3)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)"
-        }
+        "TITLE": "Raw data (RDB v1.3)"
       },
       "COST": {
-        "TITLE": "Raw data (COST v1.4)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)"
-        }
+        "TITLE": "Raw data (COST v1.4)"
       },
       "FREE1": {
-        "TITLE": "Raw data (FREE v{{version}})",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)"
-        }
+        "TITLE": "Raw data (FREE v{{version}})"
       },
       "FREE2": {
         "TITLE": "Raw data (FREE2 v{{version}})",
@@ -1372,15 +1462,7 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Raw data (SUMARiS v1.0)",
-        "SHEET": {
-          "TR": "Trips (TR)",
-          "HH": "Fishing stations (HH)",
-          "SL": "Species list (SL)",
-          "HL": "Species length (HL)",
-          "ST": "Survival tests (ST)",
-          "RL": "Releases (RL)"
-        }
+        "TITLE": "Raw data (SUMARiS v1.0)"
       }
     },
     "ERROR": {
@@ -1388,18 +1470,22 @@
       "LOAD_ROWS_ERROR": "Error while loading data rows.",
       "DOWNLOAD_FILE_ERROR": "Error while downloading extraction file.",
       "LOAD_GEO_TYPES_ERROR": "Error while load spatial types",
-      "LOAD_GEO_DATA_ERROR": "Error while loading spatial data"
+      "LOAD_GEO_JSON_ERROR": "Error while loading spatial data",
+      "LOAD_TECH_ERROR": "Error while loading chart's data",
+      "LOAD_MIN_MAX_ERROR": "Error while loading chart's min/max"
     }
   },
   "NETWORK": {
     "BTN_CHECK_ALIVE": "Retry",
+    "BTN_UPDATE": "Update",
     "BTN_INIT_OFFLINE_MODE": "Enable offline mode",
     "BTN_UPDATE_OFFLINE_MODE": "Update offline mode",
     "PEER": {
-      "OFFLINE": "Unreachable peer",
+      "OFFLINE": "Unreachable node",
       "SELECT_MODAL": {
-        "TITLE": "Network peer",
-        "HELP": "Please choose a network peer to connect to:"
+        "TITLE": "Network nodes",
+        "HELP": "Please choose a network node to connect to:",
+        "NOT_COMPATIBLE_HELP": "Required version: v{{version}} or +"
       }
     },
     "SYNCHRONIZATION_STATUS": {
@@ -1414,10 +1500,24 @@
       "OFFLINE_OR_UNAUTHORIZED": "No network connection, or unauthorized access.",
       "ONLINE": "Sucesfully connected to the network!",
       "OFFLINE_HELP": "The application works in <b>offline mode</b>.",
-      "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>"
+      "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>",
+      "UPDATE_OFFLINE_MODE": "<b>Offline mode</b> update available.",
+      "UPDATE_OFFLINE_MODE_HELP": "Before updating, <b>please synchronize any completed trips</b>."
+    },
+    "ERROR": {
+      "NOT_COMPATIBLE_PEER": "The application works in <b>offline mode</b>, because the node <b>use a too old version</b>.<br/><small>If the problem persists, please <b>contact your administrator</b>, or select a node v{{version}} or superior.</small>"
     }
   },
   "SOCIAL": {
+    "USER_EVENT": {
+      "EVENT_TYPE": "Type",
+      "CREATION_DATE": "Date/Time",
+      "MESSAGE": "Message",
+      "BTN_COPY_TO_LOCAL": "Copy locally",
+      "INFO": {
+        "COPIED_LOCALLY": "Successfully copied"
+      }
+    },
     "EVENT_TYPE_ENUM": {
       "DEBUG_DATA": "Debug data",
       "INBOX_MESSAGE": "Inbox message"
@@ -1429,15 +1529,12 @@
   },
   "ERROR": {
     "ALERT_HEADER": "Error",
-    "FIELD_REQUIRED": "This field is required.",
-    "FIELD_TOO_SHORT": "This field value is too short.",
-    "FIELD_TOO_SHORT_WITH_LENGTH": "Value is too short (min {{minLength]] characters).",
-    "FIELD_TOO_LONG": "Value is exceeding max length.",
-    "FIELD_TOO_LONG_WITH_LENGTH": "Value is too long (max {{maxLength}} characters).",
+    "FIELD_REQUIRED": "Value required",
+    "FIELD_MIN_LENGTH": "Too short value{{ minLength && (' (min ' + minLength + 'characters)') }}.",
+    "FIELD_MAX_LENGTH": "Too long value{{ maxLength && (' (max ' + maxLength + 'characters)') }}.",
     "FIELD_MIN": "Minimal value: {{min}}",
     "FIELD_MIN_COMPACT": "Min value={{min}}",
     "FIELD_MAX": "Maximum value: {{max}}",
-    "FIELD_MAX_LENGTH": "Maximum length: {{requiredLength}}",
     "FIELD_MAX_COMPACT": "Max value={{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Invalid number of decimals ({{max}} max)",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb decimals max={{max}}",
@@ -1465,6 +1562,7 @@
     "UNKNOWN_NETWORK_ERROR": "Error communicating with the server.<small><br/>If the problem persists, please contact your administrator.</small>",
     "BAD_UPDATE_DATE": "Unable to save.<small><br/>Concurrent change detected. Please reload this page and retry.</small>",
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
+    "DATA_NOT_FOUND": "Data not found",
     "LOAD_ACCOUNT_ERROR": "Error loading user account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_CONFIG_ERROR": "Error while loading configuration",
@@ -1484,7 +1582,12 @@
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
     "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode.",
     "COPY_STORAGE_ERROR": "Error during data copy",
-    "DATA_MIGRATION_FAILED": "Faile to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>"
+    "DATA_MIGRATION_FAILED": "Failed to migrate data.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "BAD_APP_VERSION": "Please update the app. Retrieving and sending data with the current version may not work.",
+    "LOAD_TRASH_ENTITY_ERROR": "Error while loading the trash file",
+    "DELETE_TRASH_ENTITY_ERROR": "Error while deleting the trash file",
+    "ENTITY_STORAGE_MIGRATION_FAILED": "Failed to migrate the local database",
+    "STARTUP_FAILED": "Startup failed"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1492,6 +1595,7 @@
     "SAVE_BEFORE_CLOSE": "Some changes have not been saved.<br/><br/>Do you want to <b>save your changes</b> before closing?",
     "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE": "<b>Are you sure</b> you want to delete?",
+    "ACTION": "<b>Are you sure</b> you want to continue?",
     "ACTION_IMMEDIATE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE_ROW": "<b>Are you sure</b> you want to delete this row?",
     "DELETE_ROWS": "<b>Are you sure</b> you want to delete this rows?",
@@ -1501,6 +1605,11 @@
     "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server.",
     "DEBUG_DATA_SEND": "Help request sent to administrator",
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
-    "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!"
+    "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!",
+    "DOWNLOAD_APP_TITLE": "{{name}} for {{platform}}",
+    "DOWNLOAD_APP_HELP": "Free download.",
+    "UPDATE_APP": "<b>Please upgrade {{name}}</b>",
+    "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
+    "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.."
   }
 }

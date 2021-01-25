@@ -1,4 +1,4 @@
-import {Injectable, Optional} from '@angular/core';
+import {Inject, Injectable, Optional} from '@angular/core';
 import {Platform, ToastController} from "@ionic/angular";
 import {NetworkService} from "./network.service";
 import {Platforms} from "@ionic/core";
@@ -10,19 +10,20 @@ import {CacheService} from "ionic-cache";
 import {AudioProvider} from "../../shared/audio/audio";
 
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
 import {Storage} from "@ionic/storage";
-import {EntitiesStorage} from "./entities-storage.service";
-import {concatPromises} from "../../shared/observables";
+import {EntitiesStorage} from "./storage/entities-storage.service";
 import {StorageUtils} from "../../shared/services/storage.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
-import {environment} from "../../../environments/environment";
-import * as moment from "moment/moment";
+import * as momentImported from "moment";
 import {DateAdapter} from "@angular/material/core";
 import {AccountService} from "./account.service";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+
+const moment = momentImported;
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -57,6 +58,7 @@ export class PlatformService {
     private cache: CacheService,
     private storage: Storage,
     private audioProvider: AudioProvider,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() private browser: InAppBrowser
   ) {
 
@@ -97,9 +99,9 @@ export class PlatformService {
     this._startPromise = this.platform.ready()
       .then(() => {
 
-        this.configureCordovaPlugins();
-
         this._mobile = this.platform.is('mobile');
+
+        this.configureCordovaPlugins(this._mobile);
         this.touchUi = this._mobile || this.platform.is('tablet') || this.platform.is('phablet');
 
         // Force mobile in settings
@@ -122,7 +124,7 @@ export class PlatformService {
     .then(() => {
       this._started = true;
       this._startPromise = undefined;
-      console.info(`[platform] Starting platform [OK] {mobile: ${this._mobile}, touchUi: ${this.touchUi}} in ${Date.now()-now}ms`);
+      console.info(`[platform] Starting platform [OK] {mobile: ${this._mobile}, touchUi: ${this.touchUi}} in ${Date.now() - now}ms`);
 
       // Update cache configuration when network changed
       this.networkService.onNetworkStatusChanges.subscribe((type) => this.configureCache(type !== 'none'));
@@ -134,7 +136,9 @@ export class PlatformService {
         // Play startup sound
         this.audioProvider.playStartupSound();
       }, 1000);
-    });
+    })
+      // Manage error
+      .catch(err => this.onStartupError(err));
     return this._startPromise;
   }
 
@@ -165,10 +169,14 @@ export class PlatformService {
       window.open(url, target, features, replace);
     }
   }
+  /*
+  chooseFile(): Promise<> {
+
+  }*/
 
   /* -- protected methods -- */
 
-  protected configureCordovaPlugins() {
+  protected configureCordovaPlugins(mobile: boolean) {
     console.info("[platform] Configuring Cordova plugins...");
 
     this.statusBar.styleDefault();
@@ -191,7 +199,7 @@ export class PlatformService {
     console.info("[platform] Configuring translate...");
 
     // this language will be used as a fallback when a translation isn't found in the current language
-    this.translate.setDefaultLang(environment.defaultLocale);
+    this.translate.setDefaultLang(this.environment.defaultLocale);
 
     // When locale changes, apply to date adapter
     this.translate.onLangChange.subscribe(event => {
@@ -227,8 +235,11 @@ export class PlatformService {
 
     this.accountService.onLogin.subscribe(account => {
       if (this.settings.settings.accountInheritance) {
-        if (account.settings && account.settings.locale && account.settings.locale !== this.translate.currentLang) {
-          this.translate.use(account.settings.locale);
+        const accountLocale = account.settings && account.settings.locale;
+        if (accountLocale && accountLocale !== this.settings.locale) {
+          this.settings.apply({
+            locale: accountLocale
+          });
         }
       }
     });
@@ -237,7 +248,7 @@ export class PlatformService {
   protected configureCache(online?: boolean) {
     online = isNotNil(online) ? online : this.cache.isOnline();
     const cacheTTL = online ? 3600 /* 1h */ : 3600 * 24 * 30; /* 1 month */
-    console.info(`[platform] Configuring cache [OK] {online: ${online}}, {timeToLive: ${cacheTTL / 3600}h}, {offlineInvalidate: false)`);
+    console.info(`[platform] Configuring cache [OK] {online: ${online}}, {timeToLive: ${cacheTTL / 3600}h}, {offlineInvalidate: false}`);
     this.cache.setDefaultTTL(cacheTTL);
     this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
   }
@@ -321,6 +332,42 @@ export class PlatformService {
         onWillPresent: (t) => resolve(t)
       });
     });
+  }
+
+  protected async onStartupError(err) {
+    console.error('[platform] Failed starting the platform! ', err);
+    let message = err && err.message || err;
+    const detailsMessage = err && (err.details && err.details.message || err.details);
+    if (this.translate) {
+      message = await this.translate.get(message).toPromise();
+      if (err && err.code) {
+        message += ` {code: ${err.code}}`;
+      }
+    }
+    else {
+      message = `Fatal error: Please contact your administrator.\n\n{code: ${err && err.code || 'null'}, message: "${message}"}`;
+    }
+    if (this.toastController) {
+      if (detailsMessage) {
+        message += `<br/><small>${detailsMessage}</small>`;
+      }
+      await this.showToast({
+        type: 'error',
+        duration: -1,
+        showCloseButton: true,
+        message
+      });
+    }
+    else if (window) {
+      if (detailsMessage) {
+        message += `\n\n{cause: "${detailsMessage}"}`;
+      }
+      window.alert(message);
+    }
+    else {
+      console.error(message);
+      if (err && err.details) console.error("cause", err.details);
+    }
   }
 }
 

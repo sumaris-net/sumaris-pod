@@ -10,10 +10,13 @@ import {
 } from '@angular/core';
 import {ProgressBarService, ProgressMode} from '../services/progress-bar.service';
 import {Router} from "@angular/router";
-import {IonBackButton, IonRouterOutlet, IonSearchbar} from "@ionic/angular";
+import {IonRouterOutlet, IonSearchbar} from "@ionic/angular";
 import {isNotNil, isNotNilOrBlank, toBoolean} from "../functions";
 import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
+import {HammerTapEvent} from "../gesture/hammer.utils";
+import {HAMMER_PRESS_TIME} from "../gesture/gesture-config";
+import {PredefinedColors} from "@ionic/core";
 
 @Component({
   selector: 'app-toolbar',
@@ -23,15 +26,14 @@ import {Observable} from "rxjs";
 })
 export class ToolbarComponent implements OnInit {
 
+  private _closeTapCount = 0;
   private _validateTapCount = 0;
   private _defaultBackHref: string;
   private _backHref: string;
 
-  @Input()
-  title = '';
+  @Input() title: String = '';
 
-  @Input()
-  color = 'primary';
+  @Input() color: PredefinedColors = 'primary';
 
   @Input()
   class = '';
@@ -81,7 +83,6 @@ export class ToolbarComponent implements OnInit {
   @Output()
   onValidateAndClose = new EventEmitter<Event>();
 
-
   @Output()
   onBackClick = new EventEmitter<Event>();
 
@@ -106,7 +107,7 @@ export class ToolbarComponent implements OnInit {
       .pipe(
         startWith<ProgressMode, ProgressMode>('none' as ProgressMode),
         debounceTime(100), // wait 100ms, to group changes
-        distinctUntilChanged((mode1, mode2) => mode1 == mode2)
+        distinctUntilChanged()
       );
   }
 
@@ -153,10 +154,35 @@ export class ToolbarComponent implements OnInit {
     }
   }
 
-  doValidateTap(event: Event & { tapCount?: number; }) {
-    //FIXME console.log("TODO doValidateTap", event);
+  tapClose(event: HammerTapEvent) {
+    // DEV only
+    // console.debug("[toolbar] tapClose", event.tapCount);
+    if (this._validateTapCount > 0) return;
+
+    // Distinguish simple and double tap
+    this._closeTapCount = event.tapCount;
+    setTimeout(() => {
+      // Event is obsolete (a new tap event occur)
+      if (event.tapCount < this._closeTapCount) {
+        // Ignore event
+      }
+
+      // If event still the last tap event: process it
+      else {
+        this.onClose.emit(event.srcEvent || event);
+
+        // Reset tab count
+        this._closeTapCount = 0;
+      }
+    }, 500);
+  }
+
+  tapValidate(event: HammerTapEvent) {
+    // DEV only
+    //console.debug("[toolbar] tapValidate", event.tapCount);
+
     if (!this.onValidateAndClose.observers.length) {
-      this.onValidate.emit(event);
+      this.onValidate.emit(event.srcEvent || event);
     }
 
     // Distinguish simple and double tap
@@ -171,16 +197,16 @@ export class ToolbarComponent implements OnInit {
         // If event still the last tap event: process it
         else {
           if (this._validateTapCount === 1) {
-            this.onValidate.emit(event);
+            this.onValidate.emit(event.srcEvent || event);
           }
           else if (this._validateTapCount >= 2) {
-            this.onValidateAndClose.emit(event);
+            this.onValidateAndClose.emit(event.srcEvent || event);
           }
 
           // Reset tab count
           this._validateTapCount = 0;
         }
-      }, 500);
+      }, HAMMER_PRESS_TIME+10);
     }
   }
 }

@@ -1,10 +1,10 @@
-import {Entity, EntityAsObjectOptions, fromDateISOString, isNotNil, ReferentialRef, toDateISOString} from "../../../core/core.module";
-import {Metier} from "../../../referential/services/model/taxon.model";
 import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Moment} from "moment";
 import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
-import {NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
-import {isEmptyArray} from "../../../shared/functions";
+import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
+import {isEmptyArray, isNotNil} from "../../../shared/functions";
+import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export class VesselActivity extends Entity<VesselActivity> {
 
@@ -51,7 +51,7 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.date = fromDateISOString(source.date);
     this.rankOrder = source.rankOrder;
     this.comments = source.comments;
-    this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
     this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
     this.observedLocationId = source.observedLocationId;
     this.landingId = source.landingId;

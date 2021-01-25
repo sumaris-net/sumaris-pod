@@ -1,6 +1,6 @@
 import {MeasurementsValidatorOptions, MeasurementsValidatorService} from "./measurement.validator";
 import {Injectable} from "@angular/core";
-import {FormGroup, ValidatorFn, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {Measurement} from "../model/measurement.model";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
@@ -23,13 +23,10 @@ export class TypedExpenseValidatorService extends MeasurementsValidatorService<M
     );
   }
 
-  getFormGroupOptions(data?: Measurement[], opts?: TypedExpenseValidatorOptions): { [p: string]: any } {
-    return Object.assign(
-      super.getFormGroupOptions(data, opts),
-      {
-        validators: this.getDefaultValidators()
-      }
-    );
+  getFormGroupOptions(data?: Measurement[], opts?: TypedExpenseValidatorOptions): AbstractControlOptions {
+    return {
+      validators: this.getDefaultValidators()
+    };
   }
 
   getDefaultValidators(): ValidatorFn[] {
@@ -51,7 +48,7 @@ export class TypedExpenseValidatorService extends MeasurementsValidatorService<M
       }
     }
     if (additionalValidators.length) {
-      form.setValidators(Validators.compose(this.getDefaultValidators().concat(additionalValidators)));
+      form.setValidators(this.getDefaultValidators().concat(...additionalValidators));
     }
   }
 

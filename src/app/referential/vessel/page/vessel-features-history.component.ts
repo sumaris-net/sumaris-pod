@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Inject, Injector, OnInit} from '@angular/core';
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {VesselValidatorService} from "../../services/validator/vessel.validator";
 import {AppTable} from "../../../core/table/table.class";
@@ -10,10 +10,10 @@ import {AccountService} from "../../../core/services/account.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {VesselFilter} from "../../services/vessel-service";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
-import {environment} from "../../../../environments/environment";
 import {VesselFeaturesService} from "../../services/vessel-features.service";
 import {VesselFeaturesValidatorService} from "../../services/validator/vessel-features.validator";
 import {referentialToString} from "../../../core/services/model/referential.model";
+import {environment} from "../../../../environments/environment";
 
 @Component({
   selector: 'app-vessel-features-history-table',
@@ -39,7 +39,8 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     protected settings: LocalSettingsService,
     protected vesselFeaturesValidator: VesselFeaturesValidatorService,
     protected vesselFeaturesService: VesselFeaturesService,
-    protected cd: ChangeDetectorRef) {
+    protected cd: ChangeDetectorRef
+  ) {
 
     super(route, router, platform, location, modalCtrl, settings,
       // columns
@@ -53,7 +54,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'grossTonnageGt',
         'basePortLocation',
         'comments'],
-      new EntitiesTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselFeaturesService, vesselFeaturesValidator, {
+      new EntitiesTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselFeaturesService, environment, vesselFeaturesValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

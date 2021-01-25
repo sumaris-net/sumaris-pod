@@ -7,12 +7,22 @@ import {MethodIds} from "./model.enum";
 import {DataEntity, DataEntityAsObjectOptions,} from "../../../data/services/model/data-entity.model";
 
 
+/**
+ * Compute a PMFM.NAME, with the last part of the name
+ * @param pmfm
+ * @param opts
+ */
 export function getPmfmName(pmfm: PmfmStrategy, opts?: {
-  withUnit: boolean
+  withUnit?: boolean;
+  html?: boolean;
 }): string {
-  const matches = PMFM_NAME_REGEXP.exec(pmfm.name);
+  if (!pmfm) return undefined;
+  const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
   const name = matches && matches[1] || pmfm.name;
-  if (opts && opts.withUnit && pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')) {
+  if ((!opts || opts.withUnit !== false) && pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')) {
+    if (opts && opts.html) {
+      return `${name}<small><br/>(${pmfm.unitLabel})</small>`;
+    }
     return `${name} (${pmfm.unitLabel})`;
   }
   return name;
@@ -48,6 +58,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
 
   label: string;
   name: string;
+  headerName: string;
   unitLabel: string;
   type: string | PmfmType;
   minValue: number;
@@ -118,9 +129,9 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     this.isMandatory = source.isMandatory;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
-    this.gearIds = source.gearIds;
-    this.taxonGroupIds = source.taxonGroupIds;
-    this.referenceTaxonIds = source.referenceTaxonIds;
+    this.gearIds = source.gearIds && [...source.gearIds] || undefined;
+    this.taxonGroupIds = source.taxonGroupIds && [...source.taxonGroupIds] || undefined;
+    this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject)
       || this.pmfm && (this.pmfm.qualitativeValues || this.pmfm.parameter && this.pmfm.parameter.qualitativeValues)
       || undefined;
@@ -138,31 +149,31 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
   }
 
   get isNumeric(): boolean {
-    return isNotNil(this.type) && (this.type === 'integer' || this.type === 'double');
+    return this.type === 'integer' || this.type === 'double';
   }
 
   get isAlphanumeric(): boolean {
-    return isNotNil(this.type) && (this.type === 'string');
+    return this.type === 'string';
   }
 
   get isDate(): boolean {
-    return isNotNil(this.type) && (this.type === 'date');
+    return this.type === 'date';
   }
 
   get isComputed(): boolean {
-    return isNotNil(this.type) && (this.methodId === MethodIds.CALCULATED);
+    return this.type && (this.methodId === MethodIds.CALCULATED);
   }
 
   get isQualitative(): boolean {
-    return isNotNil(this.type) && (this.type === 'qualitative_value');
+    return this.type === 'qualitative_value';
   }
 
   get hasUnit(): boolean {
-    return isNotNil(this.unitLabel) && this.isNumeric;
+    return this.unitLabel && this.isNumeric;
   }
 
   get isWeight(): boolean {
-    return isNotNil(this.label) && this.label.endsWith("WEIGHT");
+    return this.label && this.label.endsWith("WEIGHT");
   }
 
   equals(other: PmfmStrategy): boolean {

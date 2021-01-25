@@ -17,13 +17,15 @@
   </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <div class="toolbar-spacer"></div>
-  <button mat-icon-button *ngIf="showMap"
-          [title]="'TRIP.OPERATION.BTN_SHOW_MAP'|translate" (click)="openMapModal($event)">
+  <button mat-icon-button
+          *ngIf="showMap"
+          [title]="'TRIP.OPERATION.BTN_SHOW_MAP'|translate"
+          (click)="openMapModal($event)">
     <mat-icon><ion-icon name="earth"></ion-icon></mat-icon>
   </button>
   <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
@@ -33,13 +35,13 @@
 
 <!-- error -->
 <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-  <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
 <mat-table [dataSource]="dataSource" matSort
-           [matSortActive]="sortBy"
-           [matSortDirection]="sortDirection"
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -70,7 +72,10 @@
       <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.physicalGear?.gear || row.currentData.metier?.gear, displayAttributes.gear)}}</ion-label>
+      <ion-label *ngIf="row.currentData.physicalGear?.gear else metier">{{row.currentData.physicalGear.gear | referentialToString:displayAttributes.gear }}</ion-label>
+      <ng-template #metier>
+        <ion-label>{{row.currentData.metier?.gear | referentialToString:displayAttributes.gear }}</ion-label>
+      </ng-template>
     </mat-cell>
   </ng-container>
 
@@ -80,7 +85,7 @@
       <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.metier, displayAttributes.taxonGroup)}}</ion-label>
+      <ion-label>{{ row.currentData.metier | referentialToString:displayAttributes.taxonGroup }}</ion-label>
     </mat-cell>
   </ng-container>
 
@@ -135,7 +140,9 @@
     <mat-header-cell *matHeaderCellDef>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-icon color="medium" name="chatbox" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+      <mat-icon class="comment"
+                *ngIf="row.currentData.comments"
+                [title]="row.currentData.comments">chat_bubble</mat-icon>
     </mat-cell>
   </ng-container>
 
@@ -149,7 +156,7 @@
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled"
-           [class.mat-row-selected]="selectedRow === row"
+           [class.mat-row-selected]="highlightedRow === row"
            (click)="clickRow($event, row)"
   ></mat-row>
 </mat-table>

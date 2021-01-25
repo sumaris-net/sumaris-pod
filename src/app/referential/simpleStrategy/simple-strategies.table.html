@@ -57,7 +57,7 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
   </ng-container>
 
-  <!-- codeLine column -->
+  <!-- label column -->
   <ng-container matColumnDef="label">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <span translate>PROGRAM.STRATEGY.LABEL</span>
@@ -67,7 +67,7 @@
     </mat-cell>
   </ng-container>
 
-    <!-- eotp column -->
+    <!-- analyticReference column -->
     <ng-container matColumnDef="analyticReference">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>PROGRAM.STRATEGY.ANALYTIC_REFERENCE</span>
@@ -77,13 +77,13 @@
       </mat-cell>
     </ng-container>
 
-    <!-- LABORATORY column -->
-    <ng-container matColumnDef="strategyDepartments">
+    <!-- departments column -->
+    <ng-container matColumnDef="departments">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PROGRAM.STRATEGY.STRATEGY_DEPARTMENTS</span>
+        <span translate>PROGRAM.STRATEGY.DEPARTMENTS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{strategyDepartmentsToString(row.currentData)}}
+        {{row.currentData.departments | arrayPluck:{property: 'department'} | departmentToString}}
       </mat-cell>
     </ng-container>
 
@@ -93,7 +93,7 @@
         <span translate>PROGRAM.STRATEGY.APPLIED_STRATEGIES</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{appliedStategiesToString(row.currentData)}}
+        {{appliedStrategiesToString(row.currentData.appliedStrategies)}}
       </mat-cell>
     </ng-container>
 
@@ -103,7 +103,7 @@
         <span translate>PROGRAM.STRATEGY.TAXON_NAMES</span>
       </mat-header-cell>
        <mat-cell *matCellDef="let row">
-         {{taxonsNameStrategyToString(row.currentData)}}
+         {{taxonNamesStrategyToString(row.currentData.taxonNames)}}
        </mat-cell>
     </ng-container>
 
@@ -113,7 +113,9 @@
       <span translate>PROGRAM.STRATEGY.COMMENT</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-icon color="primary" *ngIf="row.currentData.description && row.currentData.description.trim()" [title]="row.currentData.description">description</mat-icon>
+      <mat-icon color="primary" class="comment"
+                *ngIf="row.currentData.description"
+                [title]="row.currentData.description">chat_bubble</mat-icon>
     </mat-cell>
   </ng-container>
 
@@ -199,29 +201,22 @@
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-<!--      <button mat-icon-button small color="light" *ngIf="row.editing && row.id != -1" [title]="'COMMON.BTN_UNDO'|translate"-->
-<!--              (click)="cancelOrDelete($event, row)">-->
-<!--        <mat-icon>undo</mat-icon>-->
-<!--      </button>-->
-<!--      <button mat-icon-button small color="light" *ngIf="row.editing && row.id == -1" [title]="'COMMON.BTN_ADD'|translate"-->
-<!--              (click)="confirmAndAddRow($event, row)">-->
-<!--        <mat-icon>add</mat-icon>-->
-<!--      </button>-->
 
       <!-- undo or delete  -->
-      <button mat-icon-button small color="light" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+      <button mat-icon-button color="light"
+              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
               (click)="cancelOrDelete($event, row)">
         <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
         <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
       </button>
       <!-- validate -->
-      <button mat-icon-button small color="light"
+      <button small mat-icon-button color="light"
               [title]="'COMMON.BTN_VALIDATE'|translate"
               (click)="confirmEditCreate($event, row)">
         <mat-icon>check</mat-icon>
       </button>
       <!-- add -->
-      <button mat-icon-button small color="light"
+      <button mat-icon-button color="light"
               [title]="'COMMON.BTN_ADD'|translate"
               (click)="confirmAndAddRow($event, row)">
         <mat-icon>add</mat-icon>

@@ -34,7 +34,7 @@
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
 
-        <ng-content matSuffix select="[matSuffix]"></ng-content>
+        <div matSuffix #injectMatSuffix></div>
 
         <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
@@ -47,7 +47,7 @@
         <ion-row class="mat-autocomplete-header ion-no-padding">
           <ion-col *ngFor="let attr of searchAttributes"
                    size="{{attr==='label'?3:undefined}}">
-            <ion-text>{{ ('REFERENTIAL.' + attr.toUpperCase()) | translate }}</ion-text>
+            <ion-text>{{ ('REFERENTIAL.' + attr) | uppercase | translate }}</ion-text>
           </ion-col>
         </ion-row>
 
@@ -70,8 +70,7 @@
                   (blur)="_onBlur($event)"
                   [tabindex]="_tabindex"
                   [compareWith]="compareWith"
-                  (keyup.enter)="this.onPressEnter.emit($event)"
-      >
+                  (keyup.enter)="this.onPressEnter.emit($event)">
         <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
         <!-- header -->
@@ -124,27 +123,40 @@
              [formControl]="formControl"
              [placeholder]="placeholder"
              [required]="required">
-      <ion-grid class="ion-no-padding" *ngIf="!formControl.disabled; else disabledLabel">
-        <ion-row class="ion-no-padding">
-          <ion-col *ngFor="let item of pmfm.qualitativeValues; index as i; trackBy: getQvId">
-            <ion-button style="width: 100%;"
-                        class="mat-form-field-button"
-                        [tabindex]="_tabindex !== undefined ? (_tabindex + i) : undefined"
-                        (click)="writeValue(item)"
-                        (keyup.enter)="writeValue(item)"
-                        [color]="selectedIndex === -1 ? 'danger': (selectedIndex === i ? 'accent' : 'light')">
-              {{item.name || item.label}}
-            </ion-button>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+      <div class="mat-form-field-buttons"
+           [style.--buttons-col-count]="buttonsColCount"
+           *ngIf="!formControl.disabled; else disabledLabel">
+          <ion-button #button
+                      *ngFor="let item of pmfm.qualitativeValues; index as i; trackBy: getQvId"
+                      [class.cdk-visually-hidden]="!showAllButtons && selectedIndex !== i && i+1 > maxVisibleButtons"
+                      class="mat-form-field-button"
+                      [tabindex]="_tabindex !== undefined ? (_tabindex + i) : undefined"
+                      (click)="writeValue(item, $event)"
+                      (keyup.enter)="writeValue(item, $event)"
+                      [color]="selectedIndex === -1 ? 'tertiary': (selectedIndex === i ? 'accent' : 'light')">
+            {{item.name || item.label}}
+          </ion-button>
+      </div>
       <ng-template #disabledLabel>
         <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
       </ng-template>
 
-      <ng-content matSuffix select="[matSuffix]"></ng-content>
+      <div matSuffix #injectMatSuffix></div>
+
+      <ion-fab-button matSuffix color="light" size="small"
+                      *ngIf="maxVisibleButtons !== 999"
+                      (click)="showAllButtons=!showAllButtons">
+        <ion-icon [name]="showAllButtons && 'chevron-up-outline' || 'chevron-down-outline'"></ion-icon>
+      </ion-fab-button>
 
       <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     </mat-form-field>
   </ng-container>
+
+  <!-- Suffix -->
+  <div class="cdk-visually-hidden">
+    <div #suffix>
+      <ng-content select="[matSuffix]"></ng-content>
+    </div>
+  </div>
 </ng-template>

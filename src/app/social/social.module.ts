@@ -1,7 +1,7 @@
-import {NgModule} from "@angular/core";
+import {ModuleWithProviders, NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {UserEventService} from "./services/user-event.service";
-import {UserEventsComponent} from "./list/user-events.component";
+import {UserEventsTable} from "./list/user-events.table";
 import {CoreModule} from "../core/core.module";
 
 @NgModule({
@@ -10,15 +10,22 @@ import {CoreModule} from "../core/core.module";
     CoreModule
   ],
   declarations: [
-    UserEventsComponent
+    UserEventsTable
   ],
   exports: [
-    UserEventsComponent
-  ],
-  providers: [
-    UserEventService
+    UserEventsTable
   ]
 })
 export class SocialModule {
 
+  static forRoot(): ModuleWithProviders<SocialModule> {
+    console.debug('[social] Creating module (root)');
+
+    return {
+      ngModule: SocialModule,
+      providers: [
+        UserEventService
+      ]
+    };
+  }
 }

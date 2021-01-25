@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnInit, Output, ViewChild} from "@angular/core";
+import {Component, EventEmitter, Inject, OnInit, Output, ViewChild} from "@angular/core";
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -15,11 +15,11 @@ import {referentialToString} from "../../services/model/referential.model";
 import {MatHorizontalStepper} from "@angular/material/stepper";
 import {Observable, Subscription, timer} from "rxjs";
 import {AccountValidatorService} from "../../services/validator/account.validator";
-import {environment} from "../../../../environments/environment";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {mergeMap} from "rxjs/operators";
 import {LocalSettingsService} from "../../services/local-settings.service";
-import {MatAutocompleteConfigHolder} from "../../../shared/material/material.autocomplete";
+import {MatAutocompleteConfigHolder} from "../../../shared/material/autocomplete/material.autocomplete";
+import {ENVIRONMENT} from "../../../../environments/environment.class";
 
 
 @Component({
@@ -45,15 +45,16 @@ export class RegisterForm implements OnInit {
   @ViewChild('stepper', { static: true }) private stepper: MatHorizontalStepper;
 
   @Output()
-  onCancel: EventEmitter<any> = new EventEmitter<any>();
+  onCancel = new EventEmitter<any>();
 
   @Output()
-  onSubmit: EventEmitter<RegisterData> = new EventEmitter<RegisterData>();
+  onSubmit = new EventEmitter<RegisterData>();
 
   constructor(
     private accountService: AccountService,
     private accountValidatorService: AccountValidatorService,
     public formBuilder: FormBuilder,
+    @Inject(ENVIRONMENT) protected environment,
     protected settings?: LocalSettingsService
   ) {
 
@@ -108,7 +109,7 @@ export class RegisterForm implements OnInit {
 
   ngOnInit() {
     // For DEV only ------------------------
-    if (!environment.production) {
+    if (!this.environment.production) {
       this.form.setValue({
         emailStep: {
           email: 'contact@e-is.pro',
@@ -155,7 +156,11 @@ export class RegisterForm implements OnInit {
     return this.stepper.previous();
   }
 
-  slideNext() {
+  slideNext(event?: UIEvent) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     return this.stepper.next();
   }
 

@@ -12,13 +12,10 @@
     <ion-card-content>
 
       <div>
-        <h4 *ngIf="loading">
-          <span translate>REGISTER.CONFIRMED.LOADING</span>
-        </h4>
-
-        <p *ngIf="loading">
-          <ion-spinner></ion-spinner>
-        </p>
+        <ng-container *ngIf="loading">
+          <h4 translate>REGISTER.CONFIRMED.LOADING</h4>
+          <p><ion-spinner></ion-spinner></p>
+        </ng-container>
 
         <!-- error -->
         <ion-item *ngIf="!loading && error">

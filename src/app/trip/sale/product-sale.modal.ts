@@ -12,7 +12,7 @@ import {referentialToString} from "../../core/services/model/referential.model";
   selector: 'app-product-sale-modal',
   templateUrl: './product-sale.modal.html'
 })
-export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
+export class ProductSaleModal implements OnInit, OnDestroy {
 
   loading = false;
   subscription = new Subscription();
@@ -44,17 +44,11 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.enable();
+    this.productSaleForm.setValue(Product.fromObject(this.product));
+    this.updateTitle();
   }
 
-  ngAfterViewInit(): void {
-
-    setTimeout(() => {
-      this.enable();
-      this.productSaleForm.setValue(Product.fromObject(this.product));
-      this.updateTitle();
-    });
-
-  }
 
   protected async updateTitle() {
     const title = await this.translate.get('TRIP.PRODUCT.SALE.TITLE', {taxonGroupLabel: referentialToString(this.product.taxonGroup)}).toPromise();

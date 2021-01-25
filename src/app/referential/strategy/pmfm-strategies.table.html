@@ -5,13 +5,13 @@
           hidden-xs hidden-sm hidden-mobile>
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
           (click)="deleteSelection($event)">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
@@ -62,23 +62,6 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
   </ng-container>
 
-  <!-- Acquisition level
-  <ng-container matColumnDef="acquisitionLevel">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PROGRAM.STRATEGY.PMFM_STRATEGY.ACQUISITION_LEVEL</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-
-      <mat-autocomplete-field floatLabel="never" class="min-width-large"
-                              [formControl]="row.validator.controls.acquisitionLevel"
-                              [placeholder]="'PROGRAM.STRATEGY.PMFM_STRATEGY.ACQUISITION_LEVEL'|translate"
-                              [required]="true"
-                              [config]="autocompleteFields.acquisitionLevel"
-                              [readonly]="!row.editing">
-      </mat-autocomplete-field>
-    </mat-cell>
-  </ng-container> -->
-
   <!-- Fields-->
   <ng-container *ngFor="let definition of fieldDefinitions" [matColumnDef]="definition.key">
     <mat-header-cell   [hidden]="!canDisplayColumnsHeaders" *matHeaderCellDef mat-sort-header>
@@ -99,14 +82,14 @@
       <ion-label>{{fieldDefinitionsMap.defaultValue.label | translate}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
-      <ng-container *ngIf="row.currentData.pmfm">
+      <ng-container *ngIf="row.validator.controls.pmfm.value; let pmfm">
         <app-pmfm-field floatLabel="never"
                         [formControl]="row.validator.controls.defaultValue"
-                        [pmfm]="row.currentData.pmfm"
+                        [pmfm]="pmfm"
                         [compact]="true">
         </app-pmfm-field>
         <ng-template #pmfmReadonly>
-          {{pmfmValueToString(row.currentData.defaultValue, row.currentData.pmfm)}}
+          <ion-text [innerHTML]="row.currentData.defaultValue | pmfmValueToString: {pmfm: pmfm}"></ion-text>
         </ng-template>
       </ng-container>
     </mat-cell>

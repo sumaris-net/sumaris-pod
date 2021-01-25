@@ -68,7 +68,8 @@ export class RegisterConfirmPage implements OnDestroy {
 
     try {
       if (this.accountService.isLogin()) {
-        const emailAccount = this.accountService.account && this.accountService.account.email;
+        const account = this.accountService.account;
+        const emailAccount = account && account.email;
         if (email != emailAccount) {
           // Not same email => logout, then retry
           await this.accountService.logout();

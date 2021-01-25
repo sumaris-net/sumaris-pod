@@ -135,7 +135,7 @@
             [readonly]="!row.editing" [appAutofocus]="row == -1 && row.editing">
           <mat-error *ngIf="row.validator.controls['lastName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="row.validator.controls['lastName'].hasError('minlength')">
-            <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+            <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
           </mat-error>
         </mat-form-field>
 
@@ -154,7 +154,7 @@
             [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['firstName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="row.validator.controls['firstName'].hasError('minlength')">
-            <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+            <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
           </mat-error>
         </mat-form-field>
       </mat-cell>
@@ -200,7 +200,7 @@
         <mat-form-field floatLabel="never">
           <mat-select [formControl]="row.validator.controls['mainProfile']" [placeholder]="'USER.PROFILE'|translate">
             <mat-option *ngFor="let item of profiles | keyvalue" [value]="item.value">
-              {{ ('USER.PROFILE_ENUM.' + item.key.toUpperCase()) |translate }}
+              {{ ('USER.PROFILE_ENUM.' + item.key) | uppercase |translate }}
             </mat-option>
           </mat-select>
           <mat-error *ngIf="row.validator.controls['mainProfile'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -286,7 +286,7 @@
   <ion-row class="ion-no-padding">
     <ion-col></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      <mat-paginator [length]="resultsLength" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>

@@ -16,7 +16,9 @@ ion-item {
   }
 
   &:hover {
+    height: 48px !important;
     .action-buttons {
+      margin-top: -1px;
       visibility: visible;
       display: block;
     }

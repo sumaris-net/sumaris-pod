@@ -1,5 +1,4 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {AppForm} from "../../core/core.module";
 import {Sale} from "../services/model/sale.model";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
@@ -8,6 +7,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ProductsTable} from "../product/products.table";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
 import {SaleValidatorService} from "../services/validator/sale.validator";
+import {AppForm} from "../../core/form/form.class";
 
 @Component({
   selector: 'app-landed-sale-form',

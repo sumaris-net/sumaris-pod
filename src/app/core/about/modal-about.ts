@@ -1,7 +1,6 @@
-import {Component} from "@angular/core";
+import {Component, Inject} from "@angular/core";
 import {ModalController} from "@ionic/angular";
-
-import {environment} from '../../../environments/environment';
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 
 @Component({
@@ -11,15 +10,13 @@ import {environment} from '../../../environments/environment';
 })
 export class AboutModal {
 
-    appVersion: String = environment.version;
+    appVersion: string;
 
     constructor(
-        protected modalController: ModalController
+        protected modalController: ModalController,
+        @Inject(ENVIRONMENT) protected environment
     ) {
-    }
-
-    async cancel() {
-        await this.modalController.dismiss();
+      this.appVersion = environment.version;
     }
 
     async close() {

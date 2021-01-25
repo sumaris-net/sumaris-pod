@@ -1,9 +1,8 @@
 import {ChangeDetectorRef, Directive, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject, isObservable, Observable} from 'rxjs';
-import {AppForm, isNil, isNotNil} from '../../core/core.module';
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramService} from "../../referential/services/program.service";
 import {FormBuilder, FormGroup} from '@angular/forms';
@@ -13,6 +12,8 @@ import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Pmfm} from "../../referential/services/model/pmfm.model";
+import {AppForm} from "../../core/form/form.class";
+import {isNil, isNotNil} from "../../shared/functions";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
@@ -45,7 +46,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   @Input() requiredGear = false;
 
   @Output()
-  valueChanges: EventEmitter<any> = new EventEmitter<any>();
+  valueChanges = new EventEmitter<any>();
 
   @Input()
   set program(value: string) {
@@ -231,8 +232,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    * @param opts
    */
   protected async safeSetValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
-    if (this.data === data) return; // skip if same
-
+    if (!data) {
+      console.warn("Trying to set undefined value to meas form. Skipping");
+      return;
+    }
     // Will avoid data to be set inside function updateControls()
     this.applyingValue = true;
 
@@ -244,6 +247,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (!this._ready) await this.ready();
 
     this.setValue(this.data, {...opts, emitEvent: true});
+
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
 
     this.applyingValue = false;
     this.loading = false;
@@ -287,6 +293,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         })) || [];
+      // TODO BLA: pourquoi cette lign ?  utiliser isNotNil !
       pmfms = pmfms.filter(pmfm => pmfm.pmfmId);
 
       if (!pmfms.length && this.debug) {

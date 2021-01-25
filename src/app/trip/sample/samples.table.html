@@ -19,7 +19,7 @@
   </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
@@ -32,16 +32,24 @@
 
 <!-- error -->
 <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-  <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" class="table-samples" matSort matSortActive="rankOrder" matSortDirection="asc"
-           matSortDisableClear [trackBy]="trackByFn">
+<!-- writable -->
+<mat-table *ngIf="inlineEdition; else readonly"
+           [dataSource]="dataSource"
+           class="table-samples"
+           matSort
+           matSortDisableClear
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
+           [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+      <mat-checkbox (change)="$event ? masterToggle() : null"
+                    [checked]="selection.hasValue() && isAllSelected()"
                     [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
     </mat-header-cell>
@@ -68,7 +76,7 @@
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput autocomplete="off"
-               [formControl]="row.validator.controls['label']"
+               [formControl]="row.validator.controls.label"
                [placeholder]="'TRIP.SAMPLE.TABLE.LABEL_PLACEHOLDER'|translate"
                (click)="$event.target.select()">
         <mat-error *ngIf="row.validator.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
@@ -126,15 +134,13 @@
 
   <!-- Pmfms columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-      <ion-label>{{getPmfmColumnHeader(pmfm)}}
-        <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
-      </ion-label>
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+      <ion-label [innerHTML]="pmfm|pmfmName: {html: true}"></ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"
-              [class.mat-cell-computed]="pmfm.isComputed">
+    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm"
+              [class.mat-cell-computed]="pmfm|isComputedPmfm">
       <app-pmfm-field
-        [readonly]="!row.editing"
+        [readonly]="!row.editing || mobile"
         [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
         [compact]="true" floatLabel="never"></app-pmfm-field>
     </mat-cell>
@@ -191,6 +197,117 @@
            (click)="clickRow($event, row)"></mat-row>
 </mat-table>
 
+
+
+<!-- readonly table (e.g. for mobile) -->
+<ng-template #readonly>
+  <mat-table [dataSource]="dataSource"
+             matSort
+             matSortDisableClear
+             [matSortActive]="defaultSortBy"
+             [matSortDirection]="defaultSortDirection"
+             [trackBy]="trackByFn">
+
+    <ng-container matColumnDef="select">
+      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                      [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-checkbox>
+      </mat-header-cell>
+      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
+                      [checked]="selection.isSelected(row)">
+        </mat-checkbox>
+      </mat-cell>
+    </ng-container>
+
+    <!-- rankOrder Column = id -->
+    <ng-container matColumnDef="id">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
+    </ng-container>
+
+    <!-- label Column -->
+    <ng-container matColumnDef="label">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.SAMPLE.TABLE.LABEL</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.label}}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Taxon group  -->
+    <ng-container matColumnDef="taxonGroup">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_GROUP</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.taxonGroup|referentialToString:autocompleteFields.taxonGroup.attributes }}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Taxon name -->
+    <ng-container matColumnDef="taxonName">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_NAME</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.taxonName|referentialToString:autocompleteFields.taxonName.attributes }}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Date -->
+    <ng-container matColumnDef="sampleDate">
+      <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <ion-label translate>TRIP.SAMPLE.TABLE.SAMPLE_DATE</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="mat-cell-date-time">
+        <ion-text>{{row.currentData.sampleDate | dateFormat: {time: true} }}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Pmfms columns -->
+    <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+        <ion-label [innerHTML]="pmfm|pmfmName: {html: true}"></ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row"
+                [class.mat-cell-date-time]="pmfm|isDatePmfm"
+                [class.mat-cell-computed]="pmfm|isComputedPmfm">
+        <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.pmfmId] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Comment column -->
+    <ng-container matColumnDef="comments">
+      <mat-header-cell *matHeaderCellDef >
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" >
+        <mat-icon class="comment"
+                  *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments">chat_bubble</mat-icon>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Actions buttons column -->
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"
+             class="mat-row-disabled"
+             [class.mat-row-dirty]="!row.currentData.id"
+             (click)="clickRow($event, row)"></mat-row>
+  </mat-table>
+</ng-template>
 
 <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="enabled && showFabButton"
          visible-xs visible-sm visible-mobile>

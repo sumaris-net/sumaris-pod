@@ -1,63 +1,78 @@
-import {Component, EventEmitter, OnInit, Output} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Inject,
+  OnInit,
+  Output
+} from "@angular/core";
+import {FormBuilder, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {RegisterModal} from '../../register/modal/modal-register';
 import {AuthData} from "../../services/account.service";
-import {environment} from "../../../../environments/environment";
 import {NetworkService} from "../../services/network.service";
 import {LocalSettingsService} from "../../services/local-settings.service";
 import {slideUpDownAnimation} from "../../../shared/material/material.animations";
+import {PlatformService} from "../../services/platform.service";
+import {DateAdapter} from "@angular/material/core";
+import {Moment} from "moment";
+import {debounceTime} from "rxjs/operators";
+import {AppForm} from "../../form/form.class";
+import {ENVIRONMENT} from "../../../../environments/environment.class";
 
 
 @Component({
   selector: 'app-form-auth',
   templateUrl: 'form-auth.html',
   styleUrls: ['./form-auth.scss'],
-  animations: [slideUpDownAnimation]
+  animations: [slideUpDownAnimation],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AuthForm implements OnInit {
+export class AuthForm extends AppForm<AuthData> implements OnInit {
 
   loading = false;
-  form: FormGroup;
-  error: string = null;
+  readonly mobile: boolean;
   canWorkOffline = false;
-
-  public get value(): AuthData {
-    return this.form.value;
-  }
-
-  public get valid(): boolean {
-    return this.form.valid;
-  }
-
-  public get invalid(): boolean {
-    return this.form.invalid;
-  }
+  showPwd = false;
 
   @Output()
-  onCancel: EventEmitter<any> = new EventEmitter<any>();
+  onCancel = new EventEmitter<any>();
 
   @Output()
-  onSubmit: EventEmitter<AuthData> = new EventEmitter<AuthData>();
+  onSubmit = new EventEmitter<AuthData>();
+
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+    this.showPwd = false; // Hide pwd when disable (e.g. when submitted)
+  }
 
   constructor(
-    public formBuilder: FormBuilder,
-    public modalCtrl: ModalController,
+    platform: PlatformService,
+    dateAdapter: DateAdapter<Moment>,
+    formBuilder: FormBuilder,
+    settings: LocalSettingsService,
+    private modalCtrl: ModalController,
     public network: NetworkService,
-    public settings: LocalSettingsService
+    private cd: ChangeDetectorRef,
+    @Inject(ENVIRONMENT) protected environment
   ) {
-    this.form = formBuilder.group({
+    super(dateAdapter,
+      formBuilder.group({
       username: [null, Validators.compose([Validators.required, Validators.email])],
       password: [null, Validators.required],
       offline: [network.offline]
-    });
+    }), settings);
 
+    this.mobile = platform.mobile;
     this.canWorkOffline = this.settings.hasOfflineFeature();
+    this._enable = true;
   }
 
   ngOnInit() {
+    super.ngOnInit();
     // For DEV only
-    if (environment.production === false) {
+    if (this.environment.production === false) {
       this.form.patchValue({
         username: 'admin@sumaris.net',
         password: 'admin'
@@ -69,18 +84,25 @@ export class AuthForm implements OnInit {
     this.onCancel.emit();
   }
 
-  doSubmit(event: any) {
+  doSubmit(event?: UIEvent) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     if (this.form.invalid || this.loading) return;
 
     this.loading = true;
     const data = this.form.value;
-    this.error = null;
-    this.onSubmit
-      .subscribe(res => {
-        setTimeout(() => {
+    this.showPwd = false; // Hide password
+    this.error = null; // Reset error
+
+    this.registerSubscription(
+      this.onSubmit
+        .pipe(debounceTime(500))
+        .subscribe(res => {
           this.loading = false;
-        }, 500);
-      });
+        }));
 
     setTimeout(() => this.onSubmit.emit({
       username: data.username,
@@ -93,9 +115,16 @@ export class AuthForm implements OnInit {
     this.onCancel.emit();
     setTimeout(async () => {
       const modal = await this.modalCtrl.create({
-        component: RegisterModal
+        component: RegisterModal,
+        backdropDismiss: false
       });
       return modal.present();
     }, 200);
+  }
+
+  /* -- protected functions -- */
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

@@ -1,14 +1,5 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {
-  AppTable,
-  EntitiesTableDataSource,
-  environment,
-  isNotNil,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from "../../core/core.module";
 import {OperationValidatorService} from "../services/validator/operation.validator";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -16,13 +7,14 @@ import {Location} from '@angular/common';
 import {OperationFilter, OperationService, OperationServiceWatchOptions} from "../services/operation.service";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {Operation, Trip} from "../services/model/trip.model";
+import {Operation} from "../services/model/trip.model";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {toBoolean} from "../../shared/functions";
+import {isNotNil, toBoolean} from "../../shared/functions";
 import {OperationsMap} from "./map/operations.map";
 import {AccountService} from "../../core/services/account.service";
-import {SortDirection} from "@angular/material/sort";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {environment} from "../../../environments/environment";
 
 
 @Component({
@@ -39,15 +31,37 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   displayAttributes: {
     [key: string]: string[]
   };
-  selectedRow: TableElement<Operation>;
+  highlightedRow: TableElement<Operation>;
 
   @Input() latLongPattern: LatLongPattern;
-
   @Input() tripId: number;
-
-  @Input() showMap: boolean; // false by default
-
+  @Input() showMap: boolean;
   @Input() program: string;
+
+
+  get sortActive(): string {
+    const sortActive = super.sortActive;
+    // Local sort
+    if (this.tripId < 0) {
+      switch (sortActive) {
+        case 'physicalGear':
+          return 'physicalGear.gear.' + this.displayAttributes.gear[0];
+        case 'targetSpecies':
+          return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
+        default:
+          return sortActive;
+      }
+    }
+    // Remote sort
+    else {
+      switch (sortActive) {
+        case 'targetSpecies':
+          return 'metier';
+        default:
+          return sortActive;
+      }
+    }
+  }
 
   constructor(
     protected route: ActivatedRoute,
@@ -58,11 +72,10 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
-    protected referentialRefService: ReferentialRefService,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected accountService: AccountService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
@@ -81,6 +94,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
             'comments'])
         .concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Operation, OperationFilter, OperationServiceWatchOptions>(Operation, dataService,
+        environment,
         null,
         // DataSource options
         {
@@ -103,9 +117,9 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.saveBeforeDelete = false;
     this.autoLoad = false; // waiting parent to be loaded
 
-    this.pageSize = 1000; // Do not use paginator
-    this.sortBy = this.mobile ? 'startDateTime' : 'endDateTime';
-    this.sortDirection = this.mobile ? 'desc' : 'asc';
+    this.defaultPageSize = -1; // Do not use paginator
+    this.defaultSortBy = this.mobile ? 'startDateTime' : 'endDateTime';
+    this.defaultSortDirection = this.mobile ? 'desc' : 'asc';
 
     settings.ready().then(() => {
       if (this.settings.settings.accountInheritance) {
@@ -151,7 +165,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     super.ngAfterViewInit();
   }
 
-  setTripId(id: number, opts?: {emitEvent?: boolean;}) {
+  setTripId(id: number, opts?: {emitEvent?: boolean; }) {
     if (this.tripId !== id) {
       this.tripId = id;
       const filter = this.filter || {};
@@ -167,7 +181,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
 
 
-  async openMapModal(event: UIEvent) {
+  async openMapModal(event?: UIEvent) {
+
     const operations = (await this.dataSource.getRows())
       .map(row => row.currentData);
 
@@ -175,6 +190,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       component: OperationsMap,
       componentProps: {
         operations,
+        latLongPattern: this.latLongPattern,
         program: this.program
       },
       keyboardClose: true,
@@ -197,7 +213,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Operation>): boolean {
-    this.selectedRow = row;
+    this.highlightedRow = row;
 
     return super.clickRow(event, row);
   }
@@ -209,8 +225,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       .map(gear => gear.id)
       .reduce( (res, id) => res.includes(id) ? res : res.concat(id), []);
   }
-
-  referentialToString = referentialToString;
 
   /* -- protected methods -- */
 

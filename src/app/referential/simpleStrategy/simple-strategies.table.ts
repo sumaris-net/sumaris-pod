@@ -1,39 +1,32 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {
-  AppFormUtils,
-  environment,
-  fromDateISOString,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from "../../core/core.module";
-import {StrategyValidatorService} from "../services/validator/strategy.validator";
-import {AppliedPeriod, AppliedStrategy, Strategy} from "../services/model/strategy.model";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input} from "@angular/core";
+import {Strategy} from "../services/model/strategy.model";
 import {DefaultStatusList} from "../../core/services/model/referential.model";
-import {AppInMemoryTable} from "../../core/table/memory-table.class";
-import {strategyDepartmentsToString, appliedStategiesToString, taxonsNameStrategyToString} from "../../referential/services/model/strategy.model";
-import {ParameterLabelStrategies} from "../../referential/services/model/model.enum";
-import {PredefinedColors} from "@ionic/core";
-
-export declare interface StrategyFilter {
-}
+import {appliedStrategiesToString, taxonNamesStrategyToString} from "../../referential/services/model/strategy.model";
+import {StrategyFilter, StrategyService} from "../services/strategy.service";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+import {fromDateISOString} from "../../shared/dates";
+import {Program} from "../services/model/program.model";
+import {firstArrayValue, isEmptyArray, isNotNil} from "../../shared/functions";
+import {ActivatedRoute, Router} from "@angular/router";
+import {ModalController, Platform} from "@ionic/angular";
+import {Location} from "@angular/common";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {ValidatorService} from "@e-is/ngx-material-table";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {PmfmUtils} from "../services/model/pmfm.model";
+import {ParameterLabel, ParameterLabelList} from "../services/model/model.enum";
 
 @Component({
   selector: 'app-simple-strategies-table',
   templateUrl: 'simple-strategies.table.html',
   styleUrls: ['simple-strategies.table.scss'],
-  providers: [
-    { provide: ValidatorService, useExisting: StrategyValidatorService },
-    {
-      provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<Strategy, StrategyFilter>(Strategy, {})
-    }
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFilter> implements OnInit, OnDestroy {
+export class SimpleStrategiesTable extends AppTable<Strategy, StrategyFilter> {
+
+  private _program: Program;
 
   statusList = DefaultStatusList;
   statusById: any;
@@ -41,19 +34,46 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   @Input() canEdit = false;
   @Input() canDelete = false;
 
+  @Input() set program(program: Program) {
+    if (program && isNotNil(program.id) && this._program !== program) {
+      this._program = program;
+      console.debug('[strategy-table] Setting program:', program);
+      this.setFilter( {
+        ...this.filter,
+        levelId: program.id
+      });
+    }
+  }
+
+  get program(): Program {
+    return this._program;
+  }
 
   constructor(
-    protected injector: Injector,
-    protected memoryDataService: InMemoryEntitiesService<Strategy, StrategyFilter>,
-    protected cd: ChangeDetectorRef
+    route: ActivatedRoute,
+    router: Router,
+    platform: Platform,
+    location: Location,
+    modalCtrl: ModalController,
+    localSettingsService: LocalSettingsService,
+    injector: Injector,
+    dataService: StrategyService,
+    validatorService: ValidatorService,
+    protected cd: ChangeDetectorRef,
+    @Inject(ENVIRONMENT) protected environment
   ) {
-    super(injector,
+    super(route,
+      router,
+      platform,
+      location,
+      modalCtrl,
+      localSettingsService,
       // columns
       RESERVED_START_COLUMNS
         .concat([
           'label',
           'analyticReference',
-          'strategyDepartments',
+          'departments',
           'appliedStrategies',
           'taxonNames',
           'comment',
@@ -63,14 +83,18 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
           'quarter_3_table',
           'quarter_4_table'])
         .concat(RESERVED_END_COLUMNS),
-      Strategy,
-      memoryDataService,
+      new EntitiesTableDataSource(Strategy, dataService, environment, validatorService, {
+        prependNewElements: false,
+        suppressErrors: false,
+        dataServiceOptions: {
+          saveOnlyDirtyRows: false
+        }
+      }),
       null,
-      null,
-      {});
+      injector);
 
     this.i18nColumnPrefix = 'PROGRAM.STRATEGY.';
-    this.autoLoad = false; // waiting parent to load
+    this.autoLoad = true; // waiting parent to load
 
     this.confirmBeforeDelete = true;
     this.inlineEdition = false;
@@ -111,11 +135,17 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
   }
 
   effortToString(data: Strategy, quarter) {
+    console.debug('TODO effortToString', data);
+
+    // TODO BLA: use this ?
+    //const appliedStrategy = firstArrayValue(data.appliedStrategies);
+    //const appliedPeriods = appliedStrategy.appliedPeriods || [];
+
     const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
     let quarterEffort = null;
     for (let fishingAreaAppliedPeriod of appliedPeriods) {
-      let startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
-      let endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
+      const startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
+      const endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
       if (startDateMonth >= 0 && endDateMonth < 3 && quarter === 1)
       {
         quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
@@ -136,54 +166,40 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
     return quarterEffort;
   }
 
-  parametersToString(data: Strategy) {
-    //console.log("pmfmStrategies", data.pmfmStrategies);
-    let pmfmStrategies: string[] = [];
+  parametersToString(pmfmStrategies: PmfmStrategy[]) {
+    if (isEmptyArray(pmfmStrategies)) return '';
+    const parts = [];
 
-    let agePmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === ParameterLabelStrategies.AGE);
-    if(agePmfmStrategy.length > 0) {
-      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.AGE'));
+    // has Age ?
+    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.AGE))) {
+      parts.push(this.translate.instant('PROGRAM.STRATEGY.AGE'));
     }
-
-    let sexPmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && p.pmfm.parameter.label === ParameterLabelStrategies.SEX);
-    if(sexPmfmStrategy.length > 0) {
-      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.SEX'));
+    // has Sex ?
+    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.SEX))) {
+      parts.push(this.translate.instant('PROGRAM.STRATEGY.SEX'));
     }
-
-    let weightPmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.WEIGHTS.includes(p.pmfm.parameter.label));
-    if(weightPmfmStrategy.length > 0) {
-      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.WEIGHT_TABLE'));
+    // Has weight ?
+    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.WEIGHT))) {
+      parts.push(this.translate.instant('PROGRAM.STRATEGY.WEIGHT_TABLE'));
     }
-
-    let sizePmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.LENGTHS.includes(p.pmfm.parameter.label));
-    if(sizePmfmStrategy.length > 0) {
-      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.SIZE_TABLE'));
+    // Has size
+    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm , ParameterLabelList.SIZE))) {
+      parts.push(this.translate.instant('PROGRAM.STRATEGY.SIZE_TABLE'));
     }
-
-    let maturityPmfmStrategy = data.pmfmStrategies.filter(p => p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.MATURITIES.includes(p.pmfm.parameter.label));
-    if(maturityPmfmStrategy.length > 0) {
-      pmfmStrategies.push(this.translate.instant('PROGRAM.STRATEGY.MATURITY_TABLE'));
+    // Has maturity
+    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm , ParameterLabelList.MATURITY))) {
+      parts.push(this.translate.instant('PROGRAM.STRATEGY.MATURITY_TABLE'));
     }
-
-    //console.log("pmfmStrategies result", pmfmStrategies);
-    return pmfmStrategies.join(', ');
+    return parts.join(', ');
   }
 
-  setValue(value: Strategy[]) {
-    super.setValue(value);
-  }
 
-  referentialToString = referentialToString;
-  strategyDepartmentsToString = strategyDepartmentsToString;
-  appliedStategiesToString = appliedStategiesToString;
-  taxonsNameStrategyToString = taxonsNameStrategyToString;
+  appliedStrategiesToString = appliedStrategiesToString;
+  taxonNamesStrategyToString = taxonNamesStrategyToString;
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
-
-
 
 }
 

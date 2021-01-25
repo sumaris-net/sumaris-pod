@@ -1,0 +1,20 @@
+
+
+ion-item {
+
+  h4 ion-icon,
+  h4 mat-icon {
+    height: 14px;
+    width: 14px;
+    font-size: 14px;
+    line-height: 14px;
+  }
+
+  h4 small ion-icon,
+  h4 small mat-icon {
+    height: 12px;
+    width: 12px;
+    font-size: 12px;
+    line-height: 12px;
+  }
+}

@@ -16,7 +16,7 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {AppForm} from "./form.class";
-import {FormArrayHelper, FormArrayHelperOptions} from "./form.utils";
+import {AppFormUtils, FormArrayHelper, FormArrayHelperOptions} from "./form.utils";
 import {SelectionModel} from "@angular/cdk/collections";
 import {Observable} from "rxjs";
 import {Color} from "@ionic/core";
@@ -71,6 +71,18 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     return this.helper ? this.helper.size() : 0;
   }
 
+  get empty(): boolean {
+    return this.length === 0;
+  }
+
+  get touched(): boolean {
+    return this.formArray && (this.formArray.touched || (this.formArray.controls || []).findIndex(c => c.touched) !== -1);
+  }
+
+  get untouched(): boolean {
+    return !this.formArray || this.formArray.untouched || (this.formArray.controls || []).findIndex(c => c.touched) === -1;
+  }
+
   get dirty(): boolean {
     return this.formArray && this.formArray.dirty;
   }
@@ -87,6 +99,10 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     return !this.formArray || this.formArray.pending;
   }
 
+  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    AppFormUtils.markAsTouched(this.formArray, opts);
+    this.markForCheck();
+  }
   constructor(
     protected injector: Injector,
     protected formBuilder: FormBuilder,
@@ -135,7 +151,7 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
   }
 
   setValue(data: T[] | any) {
-    if (!data) return; // Skip
+    data = data || [];
 
     if (this.helper) {
       this.helper.resize(data.length);

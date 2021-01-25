@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormArray, FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {toBoolean} from "../../../shared/functions";
 import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -52,9 +52,7 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
     };
   }
 
-  getFormGroupOptions(data?: T, opts?: O): {
-    [key: string]: any;
-  } {
+  getFormGroupOptions(data?: T, opts?: O): AbstractControlOptions {
     return {};
   }
 

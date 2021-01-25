@@ -1,5 +1,5 @@
 import {Pipe, Injectable, PipeTransform} from '@angular/core';
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DateAdapter} from "@angular/material/core";
 import {DATE_ISO_PATTERN} from '../constants';
 import {TranslateService} from "@ngx-translate/core";

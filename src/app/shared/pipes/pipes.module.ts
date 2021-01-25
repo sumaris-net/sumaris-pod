@@ -1,4 +1,4 @@
-import {ModuleWithProviders, NgModule} from "@angular/core";
+import {NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {TranslateModule} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
@@ -10,14 +10,16 @@ import {NumberFormatPipe} from "./number-format.pipe";
 import {HighlightPipe} from "./highlight.pipe";
 import {FileSizePipe} from "./file-size.pipe";
 import {DurationPipe} from "./duration.pipe";
-import {MathAbsPipe} from "./math-abs.pipe";
+import {EvenPipe, MathAbsPipe, OddPipe} from "./math.pipes";
+import {ArrayFirstPipe, ArrayLengthPipe, ArrayPluckPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
+import {MapGetPipe, MapKeysPipe} from "./maps.pipe";
 
 
 @NgModule({
   imports: [
     CommonModule,
     IonicModule,
-    TranslateModule.forChild()
+    TranslateModule
   ],
   declarations: [
     DateFormatPipe,
@@ -30,7 +32,16 @@ import {MathAbsPipe} from "./math-abs.pipe";
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
-    MathAbsPipe
+    MathAbsPipe,
+    OddPipe,
+    EvenPipe,
+    NotEmptyArrayPipe,
+    EmptyArrayPipe,
+    ArrayLengthPipe,
+    ArrayFirstPipe,
+    ArrayPluckPipe,
+    MapGetPipe,
+    MapKeysPipe
   ],
   exports: [
     DateFormatPipe,
@@ -43,7 +54,16 @@ import {MathAbsPipe} from "./math-abs.pipe";
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
-    MathAbsPipe
+    MathAbsPipe,
+    OddPipe,
+    EvenPipe,
+    NotEmptyArrayPipe,
+    EmptyArrayPipe,
+    ArrayLengthPipe,
+    ArrayFirstPipe,
+    ArrayPluckPipe,
+    MapGetPipe,
+    MapKeysPipe
   ]
 })
 export class SharedPipesModule {

@@ -1,3 +1,4 @@
+
 <mat-toolbar>
   <button mat-icon-button
           hidden-xs hidden-sm hidden-mobile
@@ -58,8 +59,8 @@
   <!-- Dynamic columns -->
   <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef" [matColumnDef]="col.key">
     <mat-header-cell *matHeaderCellDef class="qv"
-                     [class.even]="isQvEven(col)"
-                     [class.odd]="isQvOdd(col)"
+                     [class.even]="col.qvIndex | even"
+                     [class.odd]="col.qvIndex | odd"
                      [class.hidden-mobile]="col.rankOrder % 5 !== 0"
                      [class.show]="col.rankOrder % 5 === 0">
       <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="col.rankOrder % 5 === 0">
@@ -97,7 +98,7 @@
                   *matHeaderRowDef="displayedColumns"></mat-header-row>
 </mat-table>
 
-<!-- editable -->
+<!-- writable -->
 <mat-table *ngIf="inlineEdition; else readonly"
            [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
            [trackBy]="trackByFn">
@@ -236,15 +237,14 @@
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
   <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator?.invalid || row.validator?.controls['qualityFlagId'].value === 4"
-           [class.mat-row-dirty]="row.validator?.dirty"
+           [class.mat-row-error]="row.validator.invalid"
+           [class.mat-row-dirty]="row.validator.dirty"
            [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)">
   </mat-row>
 </mat-table>
 
-
-<!-- readonly table -->
+<!-- readonly table (e.g. for mobile) -->
 <ng-template #readonly>
   <mat-table [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
              [trackBy]="trackByFn">
@@ -279,7 +279,7 @@
 
       <mat-cell *matCellDef="let row">
         <ion-label>
-          {{ referentialToString(row.currentData.taxonGroup, autocompleteFields.taxonGroup.attributes) }}
+          {{ row.currentData.taxonGroup | referentialToString: autocompleteFields.taxonGroup.attributes }}
         </ion-label>
       </mat-cell>
     </ng-container>
@@ -291,7 +291,7 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" >
         <ion-label>
-          {{ referentialToString(row.currentData.taxonName, autocompleteFields.taxonName.attributes) }}
+          {{ row.currentData.taxonName | referentialToString: autocompleteFields.taxonName.attributes }}
         </ion-label>
       </mat-cell>
 
@@ -315,8 +315,8 @@
 
       <mat-cell *matCellDef="let row"
                 [class.total]="col.rankOrder % 5 < 2"
-                [class.odd]="isQvOdd(col)"
-                [class.even]="isQvEven(col)"
+                [class.odd]="col.qvIndex | odd"
+                [class.even]="col.qvIndex | even"
                 [class.hidden-xs]="col.rankOrder % 5 !== 0"
                 [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
                 [class.mat-cell-computed]="col.computed"
@@ -359,11 +359,10 @@
       <mat-header-cell *matHeaderCellDef >
         <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <ion-icon *ngIf="row.currentData.comments"
-                  color="medium" name="chatbox"  slot="icon-only"
-                  [title]="row.currentData.comments">
-        </ion-icon>
+      <mat-cell *matCellDef="let row" >
+        <mat-icon class="comment" [class.disabled]="!row.editing"
+                  *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments">chat_bubble</mat-icon>
       </mat-cell>
     </ng-container>
 
@@ -375,7 +374,7 @@
 
         <!-- open individual measures -->
         <button mat-icon-button
-                *ngIf="mobile && row.currentData.observedIndividualCount"
+                *ngIf="mobile && row.currentData.observedIndividualCount && !selection.isSelected(row)"
                 color="primary"
                 [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
                 (click)="onSubBatchesClick($event, row, {showParent: false})">
@@ -386,15 +385,22 @@
                     matBadgePosition="above after"
           >assessment</mat-icon>
         </button>
+
+        <!-- open individual measures -->
+        <button mat-icon-button
+                *ngIf="mobile && selection.isSelected(row)"
+                [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="cancelOrDelete($event, row)">
+          <mat-icon>delete</mat-icon>
+        </button>
+
       </mat-cell>
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-
     <mat-row *matRowDef="let row; columns: displayedColumns;"
              class="mat-row-disabled"
-             [class.mat-row-error]="row.validator?.invalid || row.validator?.controls['qualityFlagId'].value === 4"
-             [class.mat-row-dirty]="row.validator?.dirty"
+             [class.mat-row-dirty]="!row.currentData.id"
              (click)="clickRow($event, row)">
     </mat-row>
   </mat-table>

@@ -18,6 +18,8 @@ import {EntityUtils} from "../../../core/services/model/entity.model";
 import {ProgramService} from "../../../referential/services/program.service";
 import {ProgramProperties} from "../../../referential/services/config/program.config";
 import {LeafletControlLayersConfig} from "@asymmetrik/ngx-leaflet/src/leaflet/layers/control/leaflet-control-layers-config.model";
+import {LatLongPattern} from "../../../shared/material/latlong/latlong.utils";
+import {DateDiffDurationPipe} from "../../../shared/pipes/date-diff-duration.pipe";
 
 @Component({
   selector: 'app-operations-map',
@@ -29,7 +31,6 @@ import {LeafletControlLayersConfig} from "@asymmetrik/ngx-leaflet/src/leaflet/la
 export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
 
   private _program: string;
-  private _dateTimePattern: string;
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -81,6 +82,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
   }
 
   @Input() operations: Operation[];
+  @Input() latLongPattern: LatLongPattern;
 
   @Input()
   set program(value: string) {
@@ -102,6 +104,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
     protected platform: PlatformService,
     protected viewCtrl: ModalController,
     protected dateFormatPipe: DateFormatPipe,
+    protected dateDiffDurationPipe: DateDiffDurationPipe,
     protected settings: LocalSettingsService,
     protected zone: NgZone,
     protected cd: ChangeDetectorRef,
@@ -109,7 +112,6 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
   ) {
     super(route, router, alertCtrl, translate);
     this.loading = false;
-    this._dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
 
     setTimeout(async () => {
       this.ready = true;
@@ -204,7 +206,9 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
                 first: index === 0,
                 ...ope,
                 // Replace date with a formatted date
-                startDateTime: this.dateFormatPipe.format(ope.startDateTime, this._dateTimePattern),
+                startDateTime: this.dateFormatPipe.transform(ope.startDateTime, {time: true}),
+                endDateTime: this.dateFormatPipe.transform(ope.endDateTime, {time: true}),
+                duration: this.dateDiffDurationPipe.transform({startValue: ope.startDateTime, endValue: ope.endDateTime}),
                 // Add index
                 index
               }

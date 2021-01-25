@@ -273,8 +273,9 @@ export function parseLatitudeOrLongitude(input: string, pattern: string, maxDeci
   return roundFloat(degrees, maxDecimals);
 }
 
-function roundFloat(input: number, maxDecimals: number): number {
+function roundFloat(input: number, maxDecimals?: number): number {
   if (maxDecimals > 0) {
+
     const powDecimal = Math.pow(10, maxDecimals);
     return Math.trunc(input * powDecimal + 0.5) / powDecimal;
   }

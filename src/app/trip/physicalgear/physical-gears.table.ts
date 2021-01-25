@@ -10,16 +10,16 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, referentialToString, EntitiesService} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PhysicalGearModal} from "./physical-gear.modal";
 import {PhysicalGear} from "../services/model/trip.model";
 import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearFilter} from "../services/physicalgear.service";
 import {createPromiseEventEmitter} from "../../shared/events";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {IEntitiesService} from "../../shared/services/entity-service.class";
+import {environment} from "../../../environments/environment";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -53,13 +53,19 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
   @Input() canEdit = true;
   @Input() canDelete = true;
+  @Input() canSelect = true;
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
+
+
+  @Input() set showSelectColumn(show: boolean) {
+    this.setShowColumn('select', show);
+  }
 
   @Output() onSelectPreviousGear = createPromiseEventEmitter();
 
   constructor(
     injector: Injector,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: EntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
       PhysicalGear,
@@ -120,6 +126,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     if (updatedGear) {
       await this.updateEntityToTable(updatedGear, row);
     }
+    else {
+      this.editedRow = null;
+    }
     return true;
   }
 
@@ -145,7 +154,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
           inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));
         }
       },
-      keyboardClose: true
+      keyboardClose: true,
+      backdropDismiss: false
     });
 
     // Open the modal
@@ -157,9 +167,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     return (data instanceof PhysicalGear) ? data : undefined;
   }
-
-  referentialToString = referentialToString;
-  measurementValueToString = MeasurementValuesUtils.valueToString;
 
   /* -- protected methods -- */
 

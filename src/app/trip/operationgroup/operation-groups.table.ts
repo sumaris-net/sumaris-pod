@@ -1,5 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {environment, ReferentialRef, referentialToString} from "../../core/core.module";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {Platform} from "@ionic/angular";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {OperationFilter} from "../services/operation.service";
@@ -11,6 +19,8 @@ import {InMemoryEntitiesService} from "../../shared/services/memory-entity-servi
 import {MetierService} from "../../referential/services/metier.service";
 import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -55,7 +65,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationFilter>,
     protected metierService: MetierService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
   ) {
     super(injector,
       OperationGroup,
@@ -72,7 +82,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
-    this.pageSize = 1000; // Do not use paginator
+    this.defaultPageSize = -1; // Do not use paginator
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;

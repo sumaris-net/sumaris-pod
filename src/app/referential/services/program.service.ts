@@ -1,39 +1,35 @@
 import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
-import {AcquisitionLevelCodes} from "./model/model.enum";
-import {
-  BaseEntityService,
-  EntityUtils,
-  environment,
-  IReferentialRef, isNil,
-  isNotNil,
-  LoadResult,
-  ReferentialRef,
-  EntitiesService
-} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
-import {StrategyFragments} from "./strategy.service";
-import {GraphqlService} from "../../core/services/graphql.service";
+import {GraphqlService} from "../../core/graphql/graphql.service";
 import {
-  EntityService,
   EntityServiceLoadOptions,
-  fetchAllPagesWithProgress, FilterFn
+  FilterFn,
+  IEntitiesService,
+  IEntityService, LoadResult
 } from "../../shared/services/entity-service.class";
-import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
+import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
+import {
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  propertiesPathComparator,
+  suggestFromArray
+} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
-import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
-import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {
+  IReferentialRef,
   NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
+  ReferentialAsObjectOptions, ReferentialRef,
   ReferentialUtils,
   SAVE_AS_OBJECT_OPTIONS
 } from "../../core/services/model/referential.model";
@@ -43,6 +39,13 @@ import {Program} from "./model/program.model";
 import {PmfmStrategy} from "./model/pmfm-strategy.model";
 import {IWithProgramEntity} from "../../data/services/model/model.utils";
 import {SortDirection} from "@angular/material/sort";
+import {ReferentialQueries} from "./referential.service";
+import {StrategyFragments} from "./strategy.fragments";
+import {AcquisitionLevelCodes} from "./model/model.enum";
+import {JobUtils} from "../../shared/services/job.utils";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 
 export class ProgramFilter {
@@ -69,17 +72,7 @@ export class ProgramFilter {
   }
 }
 
-export interface ProgramServiceLoadOption extends EntityServiceLoadOptions {
-  withStrategy?: boolean;
-  toEntity?: boolean;
-}
-
-export interface ProgramServiceSaveOption {
-  withStrategy?: boolean;
-  enableOptimisticResponse?: boolean; // True by default
-}
-
-export const ProgramFragments = {
+const ProgramFragments = {
   lightProgram: gql`
     fragment LightProgramFragment on ProgramVO {
       id
@@ -104,6 +97,7 @@ export const ProgramFragments = {
       creationDate
       statusId
       properties
+      taxonGroupTypeId
       strategies {
         ...StrategyRefFragment
       }
@@ -131,18 +125,37 @@ export const ProgramFragments = {
       locations {
         ...ReferentialFragment
       }
-      strategies {
-        ...StrategyFragment
-      }
     }
     `,
-
-
+  strategyRef: gql`
+    fragment StrategyRefFragment on StrategyVO {
+      id
+      label
+      name
+      description
+      comments
+      updateDate
+      creationDate
+      statusId
+      gears {
+        ...ReferentialFragment
+      }
+      taxonGroups {
+        ...TaxonGroupStrategyFragment
+      }
+      taxonNames {
+        ...TaxonNameStrategyFragment
+      }
+      pmfmStrategies {
+        ...PmfmStrategyRefFragment
+      }
+    }
+  `,
   pmfmStrategyRef: gql`
     fragment PmfmStrategyRefFragment on PmfmStrategyVO {
       id
       pmfmId
-      parameterId
+      parameterId # TODO BLA check if need
       matrixId
       fractionId
       methodId
@@ -170,70 +183,19 @@ export const ProgramFragments = {
         __typename
       }
       __typename
-  }`,
-  pmfmStrategy: gql`
-    fragment PmfmStrategyFragment on PmfmStrategyVO {
-      id
-      acquisitionLevel
-      rankOrder
-      isMandatory
-      acquisitionNumber
-      defaultValue
-      pmfmId
-      pmfm {
-        ...FullPmfmFragment
-      }
-      parameterId
-      matrixId
-      fractionId
-      methodId
-      gearIds
-      taxonGroupIds
-      referenceTaxonIds
-      strategyId
-      __typename
-  }`,
-  taxonGroupStrategy: gql`
-    fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
-      strategyId
-      priorityLevel
-      taxonGroup {
-          id
-          label
-          name
-          entityName
-          taxonNames {
-              ...TaxonNameFragment
-          }
-      }
-      __typename
-    }
-  `,
-  taxonNameStrategy: gql`
-    fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
-      strategyId
-      priorityLevel
-      taxonName {
-          ...TaxonNameFragment
-      }
-      __typename
-    }
-  `
+  }`
 };
 const LoadRefQuery: any = gql`
   query ProgramRef($id: Int, $label: String){
-      program(id: $id, label: $label){
+      data: program(id: $id, label: $label){
         ...ProgramRefFragment
       }
   }
   ${ProgramFragments.programRef}
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
+  ${ProgramFragments.strategyRef}
   ${ProgramFragments.pmfmStrategyRef}
-  ${StrategyFragments.strategyDepartment}
-  ${ProgramFragments.taxonGroupStrategy}
-  ${ProgramFragments.taxonNameStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
 `;
@@ -245,23 +207,12 @@ const LoadQuery: any = gql`
       }
   }
   ${ProgramFragments.program}
-  ${StrategyFragments.strategy}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${ProgramFragments.pmfmStrategy}
-  ${StrategyFragments.strategyDepartment}
-  ${ProgramFragments.taxonGroupStrategy}
-  ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.fullPmfm}
-  ${ReferentialFragments.fullParameter}
-  ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.taxonName}
 `;
 
 const LoadAllQuery: any = gql`
-  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
-    programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+  query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightProgramFragment
     }
   }
@@ -269,54 +220,40 @@ const LoadAllQuery: any = gql`
 `;
 
 const LoadAllWithTotalQuery: any = gql`
-  query ProgramsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
-    programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+  query ProgramsWithTotal($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightProgramFragment
     }
-    referentialsCount(entityName: "Program")
+    total: programsCount(filter: $filter)
   }
   ${ProgramFragments.lightProgram}
 `;
 
 
 const LoadAllRefWithTotalQuery: any = gql`
-  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
-    programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+  query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ProgramRefFragment
     }
-    referentialsCount(entityName: "Program")
+    total: programsCount(filter: $filter)
   }
   ${ProgramFragments.programRef}
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
+  ${ProgramFragments.strategyRef}
   ${ProgramFragments.pmfmStrategyRef}
-  ${StrategyFragments.strategyDepartment}
-  ${ProgramFragments.taxonGroupStrategy}
-  ${ProgramFragments.taxonNameStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
 `;
 
 const SaveQuery: any = gql`
-  mutation SaveProgram($program:ProgramVOInput){
+  mutation SaveProgram($program:ProgramVOInput!){
     saveProgram(program: $program){
       ...ProgramFragment
     }
   }
   ${ProgramFragments.program}
-  ${StrategyFragments.strategy}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${ProgramFragments.pmfmStrategy}
-  ${StrategyFragments.strategyDepartment}
-  ${ProgramFragments.taxonGroupStrategy}
-  ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.fullPmfm}
-  ${ReferentialFragments.fullParameter}
-  ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.taxonName}
 `;
 
 const ProgramCacheKeys = {
@@ -333,8 +270,8 @@ const ProgramCacheKeys = {
 
 @Injectable({providedIn: 'root'})
 export class ProgramService extends BaseEntityService
-  implements EntitiesService<Program, ProgramFilter>,
-    EntityService<Program, ProgramServiceLoadOption> {
+  implements IEntitiesService<Program, ProgramFilter>,
+    IEntityService<Program> {
 
 
   constructor(
@@ -345,7 +282,7 @@ export class ProgramService extends BaseEntityService
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql);
+    super(graphql, environment);
     if (this._debug) console.debug('[program-service] Creating service');
   }
 
@@ -378,19 +315,22 @@ export class ProgramService extends BaseEntityService
     if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
 
     const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
-    return this.graphql.watchQuery<{ programs: any[], referentialsCount?: number }>({
+    return this.mutableWatchQuery<LoadResult<any>>({
+      queryName: (!opts || opts.withTotal !== false) ? 'LoadAllWithTotal' : 'LoadAll',
+      arrayFieldName: 'data',
+      totalFieldName: 'total',
       query,
       variables,
       error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     })
       .pipe(
-        map(res => {
-            const data = (res && res.programs || []).map(Program.fromObject);
-            if (this._debug) console.debug(`[program-service] Programs loaded in ${Date.now() - now}ms`, data);
+        map(({data, total}) => {
+            const entities = (data || []).map(Program.fromObject);
+            if (this._debug) console.debug(`[program-service] Programs loaded in ${Date.now() - now}ms`, entities);
             return {
-              data: data,
-              total: res.referentialsCount
+              data: entities,
+              total
             };
           }
         )
@@ -429,28 +369,25 @@ export class ProgramService extends BaseEntityService
     const now = debug && Date.now();
     if (debug) console.debug("[program-service] Loading programs... using options:", variables);
 
-    let loadResult: { programs: any[], referentialsCount?: number };
+    let res: LoadResult<any>;
 
     // Offline mode
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      loadResult = await this.entities.loadAll('ProgramVO',
+      res = await this.entities.loadAll('ProgramVO',
         {
           ...variables,
-          filter: EntityUtils.searchTextFilter('label', dataFilter.searchText)
+          filter: ProgramFilter.searchFilter(dataFilter)
         }
-      ).then(res => {
-        return {
-          programs: res && res.data,
-          referentialsCount: res && res.total
-        };
-      });
+      );
     }
 
     // Online mode
     else {
-      const query = opts && opts.query || opts && opts.withTotal && LoadAllWithTotalQuery || LoadAllQuery;
-      loadResult = await this.graphql.query<{ programs: any[], referentialsCount?: number }>({
+      const query = opts && opts.query
+        || opts && opts.withTotal && LoadAllWithTotalQuery
+        || LoadAllQuery;
+      res = await this.graphql.query<LoadResult<any>>({
         query,
         variables,
         error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
@@ -458,13 +395,13 @@ export class ProgramService extends BaseEntityService
       });
     }
 
-    const data = (!opts || opts.toEntity !== false) ?
-      (loadResult && loadResult.programs || []).map(Program.fromObject) :
-      (loadResult && loadResult.programs || []) as Program[];
-    if (debug) console.debug(`[program-service] Programs loaded in ${Date.now() - now}ms`);
+    const entities = (!opts || opts.toEntity !== false) ?
+      (res && res.data || []).map(Program.fromObject) :
+      (res && res.data || []) as Program[];
+    if (debug) console.debug(`[program-service] Programs loaded in ${Date.now() - now}ms`, entities);
     return {
-      data: data,
-      total: loadResult.referentialsCount
+      data: entities,
+      total: res && res.total
     };
 
   }
@@ -496,20 +433,22 @@ export class ProgramService extends BaseEntityService
         const debug = this._debug && (!opts || opts !== false);
         now = debug && Date.now();
         if (now) console.debug(`[program-service] Loading program {${label}}...`);
-        let $loadResult: Observable<{ program: any }>;
+        let res: Observable<{ data: any }>;
 
         if (this.network.offline) {
-          $loadResult = this.entities.watchAll<Program>('ProgramVO', {
+          res = this.entities.watchAll<Program>('ProgramVO', {
             filter: (p) => p.label ===  label
           })
           .pipe(
             map(res => {
-              return {program: res && res.data && res.data.length && res.data[0] || undefined};
-            }));
+              const uniqueValue = res && res.data && res.data.length && res.data[0] || undefined;
+              return {data: uniqueValue};
+            })
+          );
         }
         else {
           const query = opts && opts.query || LoadRefQuery;
-          $loadResult = this.graphql.watchQuery<{ program: any }>({
+          res = this.graphql.watchQuery<{ data: any }>({
             query: query,
             variables: {
               label
@@ -517,17 +456,18 @@ export class ProgramService extends BaseEntityService
             error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
           });
         }
-        return $loadResult.pipe(filter(isNotNil));
+        return res.pipe(filter(isNotNil));
       }),
       ProgramCacheKeys.CACHE_GROUP
     )
       .pipe(
-        map(({program}) => {
+        map(({data}) => {
+          const entity = (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data;
           if (now) {
             console.debug(`[program-service] Loading program {${label}} [OK] in ${Date.now() - now}ms`);
             now = undefined;
           }
-          return (!opts || opts.toEntity !== false) ? Program.fromObject(program) : program;
+          return entity;
         })
       );
   }
@@ -686,7 +626,7 @@ export class ProgramService extends BaseEntityService
           })
         ),
         ProgramCacheKeys.CACHE_GROUP
-    )
+    );
 
     // Convert into model, after cache (convert by default)
     if (!opts || opts.toEntity !== false) {
@@ -730,7 +670,7 @@ export class ProgramService extends BaseEntityService
     return await this.referentialRefService.suggest(value, {
       ...filter,
       entityName: 'TaxonGroup',
-      levelId: TaxonGroupIds.FAO
+      levelId: TaxonGroupTypeIds.FAO
     });
   }
 
@@ -807,7 +747,6 @@ export class ProgramService extends BaseEntityService
 
     if (this._debug) console.debug(`[program-service] Loading program {${id}}...`);
 
-    // LoadQuery return program with strategies
     const res = await this.graphql.query<{ program: any }>({
       query: LoadQuery,
       variables: {
@@ -824,33 +763,49 @@ export class ProgramService extends BaseEntityService
   }
 
 
-  async save(data: Program, options?: any): Promise<Program> {
-    if (!data) return data;
+  async save(entity: Program, options?: any): Promise<Program> {
+    if (!entity) return entity;
 
     // Clean cache
     this.clearCache();
 
     // Fill default properties
-    this.fillDefaultProperties(data);
-    const json = this.asObject(data, SAVE_AS_OBJECT_OPTIONS);
+    this.fillDefaultProperties(entity);
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    const isNew = isNil(json.id);
 
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Saving program...", json);
 
-    const res = await this.graphql.mutate<{ saveProgram: Program }>({
+    await this.graphql.mutate<{ saveProgram: Program }>({
       mutation: SaveQuery,
       variables: {
         program: json
       },
-      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"}
+      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"},
+      awaitRefetchQueries: true,
+      refetchQueries: [ // TODO BLA FIXME this has no effect !!
+        { query: ReferentialQueries.loadAll, variables: {entityName: 'Program'} },
+        { query: ReferentialQueries.loadAllWithTotal, variables: {entityName: 'Program'} }
+      ],
+      update: (cache, {data}) => {
+        // Update entity
+        const savedEntity = data && data.saveProgram;
+        this.copyIdAndUpdateDate(savedEntity, entity);
+
+        if (this._debug) console.debug(`[program-service] Program saved and updated in ${Date.now() - now}ms`, entity);
+
+        // Update the cache
+        if (isNew) {
+          this.insertIntoMutableCachedQuery(cache, {
+            query: LoadAllQuery,
+            data: savedEntity
+          });
+        }
+      }
     });
-    const savedProgram = res && res.saveProgram;
-    this.copyIdAndUpdateDate(savedProgram, data);
 
-    //if (this._debug)
-    console.debug(`[pogram-service] Program saved and updated in ${Date.now() - now}ms`, data);
-
-    return data;
+    return entity;
   }
 
   listenChanges(id: number, options?: any): Observable<Program | undefined> {
@@ -873,41 +828,16 @@ export class ProgramService extends BaseEntityService
     return this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
   }
 
-  executeImport(opts?: {
-    maxProgression?: number;
-  }): Observable<number>{
+  async executeImport(progression: BehaviorSubject<number>,
+                      opts?: {
+                        maxProgression?: number;
+                        acquisitionLevels?: string[];
+                      }) {
 
-    const maxProgression = opts && opts.maxProgression || 100;
-    const progression = new BehaviorSubject<number>(0);
-    this.doExecuteImport(progression, maxProgression)
-      .then(() => progression.complete())
-      .catch(err => progression.error(err));
-    return progression;
-  }
-
-  /* -- protected methods -- */
-
-  protected asObject(source: Program, opts?: ReferentialAsObjectOptions): any {
-    return source.asObject(
-      <ReferentialAsObjectOptions>{
-        ...opts,
-        ...NOT_MINIFY_OPTIONS, // Force NOT minify, because program is a referential that can be minify in just an ID
-      });
-  }
-
-  protected async doExecuteImport(progression: BehaviorSubject<number>,
-                                  maxProgression: number,
-                                  opts?: {
-                                    acquisitionLevels?: string[];
-                                  }) {
-
+    // TODO: BLA - idea => why not use acquisitionLevels to filter programs ?
     const acquisitionLevels: string[] = opts && opts.acquisitionLevels || Object.keys(AcquisitionLevelCodes).map(key => AcquisitionLevelCodes[key]);
+    const maxProgression = opts && opts.maxProgression || 100;
 
-    const stepCount = 2;
-    const progressionStep = maxProgression ? maxProgression / stepCount : undefined;
-    const progressionRest = progressionStep && (maxProgression - progressionStep * stepCount) || undefined;
-
-    const now = Date.now();
     console.info("[program-service] Importing programs...");
 
     try {
@@ -919,41 +849,42 @@ export class ProgramService extends BaseEntityService
       const loadFilter = {
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
-      const res = await fetchAllPagesWithProgress((offset, size) =>
+      const res = await JobUtils.fetchAllPages<any>((offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', loadFilter, {
             debug: false,
-            query: LoadAllRefWithTotalQuery, // Need fragment ProgramRefFragment
+            query: LoadAllRefWithTotalQuery,
+            withTotal: true,
             fetchPolicy: "network-only",
             toEntity: false
           }),
         progression,
-        progressionStep,
-        (page) => {
-          const labels = (page && page.data || []).map(p => p.label) as string[];
-          programLabels.push(...labels);
-        },
-        '[program-service]'
+        {
+          maxProgression: maxProgression * 0.9,
+          onPageLoaded: ({data}) => {
+            const labels = (data || []).map(p => p.label) as string[];
+            programLabels.push(...labels);
+          },
+          logPrefix: '[program-service]'
+        }
       );
-      progression.next(progression.getValue() + progressionStep);
 
       // Step 2. Saving locally
-      await this.entities.saveAll(res.data, {entityName: 'ProgramVO'});
-      progression.next(progression.getValue() + progressionStep);
-
-      // Make sure to fill the progression at least once
-      if (progressionRest) {
-        progression.next(progression.getValue() + progressionRest);
-      }
-      else if (isNil(progressionStep) && isNotNil(maxProgression)) {
-        progression.next(progression.getValue() + maxProgression);
-      }
-
-      console.info(`[program-service] Successfully import programs in ${Date.now() - now}ms`);
+      await this.entities.saveAll(res.data, {entityName: 'ProgramVO', reset: true});
     }
     catch (err) {
-      console.error(`[program-service] Error during programs importation (at step #${progressionStep && progression.getValue() / progressionStep || '?'})`, err);
+      console.error("[program-service] Error during programs importation", err);
       throw err;
     }
+  }
+
+  /* -- protected methods -- */
+
+  protected asObject(source: Program, opts?: ReferentialAsObjectOptions): any {
+    return source.asObject(
+      <ReferentialAsObjectOptions>{
+        ...opts,
+        ...NOT_MINIFY_OPTIONS, // Force NOT minify, because program is a referential that can be minify in just an ID
+      });
   }
 
   protected fillDefaultProperties(program: Program) {
@@ -980,22 +911,6 @@ export class ProgramService extends BaseEntityService
 
         // Make sure tp copy programId (need by equals)
         entity.programId = source.id;
-
-        const savedStrategy = source.strategies.find(json => entity.equals(json));
-        EntityUtils.copyIdAndUpdateDate(savedStrategy, entity);
-
-        // Update pmfm strategy (id)
-        if (savedStrategy.pmfmStrategies && savedStrategy.pmfmStrategies.length > 0) {
-
-          entity.pmfmStrategies.forEach(targetPmfmStrategy => {
-
-            // Make sure to copy strategyId (need by equals)
-            targetPmfmStrategy.strategyId = savedStrategy.id;
-
-            const savedPmfmStrategy = entity.pmfmStrategies.find(srcPmfmStrategy => targetPmfmStrategy.equals(srcPmfmStrategy));
-            targetPmfmStrategy.id = savedPmfmStrategy.id;
-          });
-        }
 
       });
     }

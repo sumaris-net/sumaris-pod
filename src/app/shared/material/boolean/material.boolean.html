@@ -8,42 +8,45 @@
 </mat-form-field>
 
 <ng-template #writable>
+  <ng-container [ngSwitch]="style">
 
-  <!-- not compact (use radio buttons) -->
-  <mat-form-field *ngIf="!compact; else withCheckbox"
-                  class="mat-boolean-field mat-boolean-field-radio"
-                  [floatLabel]="showRadio && (!floatLabel || floatLabel === 'auto') ? 'always': floatLabel">
-    <mat-label *ngIf="placeholder && floatLabel!=='never'">
-      {{placeholder}}
-      <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
-    </mat-label>
+    <!-- Radio -->
+    <mat-form-field *ngSwitchCase="'radio'"
+                    [floatLabel]="showRadio && (!floatLabel || floatLabel === 'auto') ? 'always': floatLabel"
+                    class="mat-boolean-field mat-boolean-field-radio">
+      <mat-label *ngIf="placeholder && floatLabel!=='never'">
+        {{placeholder}}
+        <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
+      </mat-label>
 
-    <input matInput #fakeInput type="text" readonly="true"
-           [formControl]="formControl"
-           (focus)="_onFocusFakeInput($event)"
-           [required]="required"
-           [class.cdk-visually-hidden]="showRadio"
-           [tabindex]="tabindex">
+      <input matInput #fakeInput type="text" readonly="true"
+             [formControl]="formControl"
+             (focus)="_onFocusFakeInput($event)"
+             [required]="required"
+             [class.cdk-visually-hidden]="showRadio"
+             [tabindex]="tabindex">
 
-    <!-- radio button -->
-    <mat-radio-group [hidden]="!showRadio"
-                     [formControl]="formControl"
-                     (change)="onRadioValueChanged($event)">
-      <mat-radio-button #yesButton [value]="true">
-        <span translate>COMMON.YES</span>
-      </mat-radio-button>&nbsp;
-      <mat-radio-button #noButton [value]="false">
-        <span translate>COMMON.NO</span>
-      </mat-radio-button>
-    </mat-radio-group>
+      <!-- radio button -->
+      <mat-radio-group [hidden]="!showRadio"
+                       [formControl]="formControl"
+                       (change)="onRadioValueChanged($event)">
+        <mat-radio-button #yesButton [value]="true">
+          <span translate>COMMON.YES</span>
+        </mat-radio-button>&nbsp;
+        <mat-radio-button #noButton [value]="false">
+          <span translate>COMMON.NO</span>
+        </mat-radio-button>
+      </mat-radio-group>
 
-    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-  </mat-form-field>
+      <div matSuffix #injectMatSuffix></div>
 
-  <!-- compact mode (use checkbox) -->
-  <ng-template #withCheckbox>
-    <mat-form-field class="mat-boolean-field mat-boolean-field-checkbox"
-                    [floatLabel]="floatLabel">
+      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    </mat-form-field>
+
+    <!-- Checkbox -->
+    <mat-form-field *ngSwitchCase="'checkbox'"
+                    [floatLabel]="floatLabel"
+                    class="mat-boolean-field mat-boolean-field-checkbox">
       <mat-label *ngIf="placeholder && !showRadio">
         {{placeholder}}
       </mat-label>
@@ -66,9 +69,60 @@
                     [tabindex]="tabindex">
       </mat-checkbox>
 
+      <div matSuffix #injectMatSuffix></div>
+
       <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     </mat-form-field>
-  </ng-template>
+
+    <!-- Buttons -->
+    <mat-form-field *ngSwitchCase="'button'"
+                    [floatLabel]="floatLabel === 'never' ? 'never' : 'always'"
+                    class="mat-boolean-field mat-boolean-field-button">
+      <input matInput type="text" hidden
+             [formControl]="formControl"
+             [placeholder]="placeholder"
+             [required]="required">
+      <ion-grid class="ion-no-padding" *ngIf="!formControl.disabled; else disabledLabel">
+        <ion-row class="ion-no-padding">
+          <!-- Yes button -->
+          <ion-col>
+            <ion-button style="width: 100%;"
+                        class="mat-form-field-button"
+                        [tabindex]="_tabindex"
+                        (click)="writeValue(true, $event)"
+                        (keyup.enter)="writeValue(true, $event)"
+                        [color]="_value == null ? 'danger' : (_value === true) ? 'accent' : 'light'">
+              <ion-icon slot="start" name="checkmark"></ion-icon>
+              {{'COMMON.YES'|translate}}
+            </ion-button>
+          </ion-col>
+          <!-- No button -->
+          <ion-col>
+            <ion-button style="width: 100%;"
+                        class="mat-form-field-button"
+                        [tabindex]="_tabindex !== undefined ? (_tabindex + 1) : undefined"
+                        (click)="writeValue(false, $event)"
+                        (keyup.enter)="writeValue(false, $event)"
+                        [color]="_value == null ? 'danger' : (_value === false) ? 'accent' : 'light'">
+              <ion-icon slot="start" name="close"></ion-icon>
+              {{'COMMON.NO'|translate}}
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+      <ng-template #disabledLabel>
+        <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
+      </ng-template>
+
+      <div matSuffix #injectMatSuffix></div>
+
+      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    </mat-form-field>
+  </ng-container>
+
+  <div class="cdk-visually-hidden">
+    <div #suffix><ng-content select="[matSuffix]"></ng-content></div>
+  </div>
 
 </ng-template>
 

@@ -1,7 +1,7 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
@@ -50,7 +50,7 @@
               <ion-label>{{'AGGREGATED_LANDING.ACTIVITY' | translate: {rankOrder: activityForm.value.rankOrder} }}</ion-label>
 
               <ion-item *ngIf="error && showError" hidden-xs hidden-sm hidden-mobile lines="none">
-                <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+                <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
                 <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
               </ion-item>
 

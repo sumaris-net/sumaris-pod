@@ -1,15 +1,19 @@
 import {Directive, Injector, Input} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {AppTable, EntitiesTableDataSource, Entity} from "../../core/core.module";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {isEmptyArray} from "../../shared/functions";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppTableDataSourceOptions} from "./entities-table-datasource.class";
+import {LocalSettingsService} from "../services/local-settings.service";
+import {AppTableDataSourceOptions, EntitiesTableDataSource} from "./entities-table-datasource.class";
+import {AppTable} from "./table.class";
+import {Entity} from "../services/model/entity.model";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
+// @dynamic
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends AppTable<T, F> {
 
   @Input() canEdit = false;
@@ -27,7 +31,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
     return this._dirty || this.memoryDataService.dirty;
   }*/
 
-  constructor(
+  protected constructor(
     protected injector: Injector,
     protected columns: string[],
     protected dataType: new () => T,
@@ -43,7 +47,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
       injector.get(ModalController),
       injector.get(LocalSettingsService),
       columns,
-      new EntitiesTableDataSource<T, F>(dataType, memoryDataService, validatorService, {
+      new EntitiesTableDataSource<T, F>(dataType, memoryDataService, injector.get(ENVIRONMENT), validatorService, {
         suppressErrors: true,
         prependNewElements: false,
         ...options
@@ -58,7 +62,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
     super.ngOnInit();
   }
 
-  setValue(value: T[]) {
+  setValue(value: T[], opts?: { emitEvent?: boolean; }) {
     // Reset previous error
     if (this.error) {
       this.error = null;
@@ -66,7 +70,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
     }
     const firstCall = isEmptyArray(this.memoryDataService.value);
     this.memoryDataService.value = value;
-    if (firstCall) {
+    if (firstCall || (opts && opts.emitEvent !== false)) {
       this.onRefresh.emit();
     }
   }

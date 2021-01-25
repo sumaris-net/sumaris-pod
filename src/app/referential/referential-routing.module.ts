@@ -1,6 +1,6 @@
 import {RouterModule, Routes} from "@angular/router";
 import {NgModule} from "@angular/core";
-import {ReferentialsPage} from "./list/referentials";
+import {ReferentialsPage} from "./list/referentials.page";
 import {VesselsPage} from "./vessel/list/vessels.page";
 import {VesselPage} from "./vessel/page/vessel.page";
 import {ProgramPage} from "./program/program.page";
@@ -10,10 +10,12 @@ import {ParameterPage} from "./pmfm/parameter.page";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {SharedRoutingModule} from "../shared/shared-routing.module";
 import {ReferentialModule} from "./referential.module";
+import {StrategyPage} from "./strategy/strategy.page";
+import {ProgramsPage} from "./program/programs.page";
 
 const routes: Routes = [
   {
-    path: '',
+    path: 'list',
     pathMatch: 'full',
     component: ReferentialsPage,
     data: {
@@ -40,29 +42,58 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'program/:id',
+    path: 'programs',
     children: [
       {
         path: '',
-        pathMatch: 'full',
-        component: ProgramPage,
+        component: ProgramsPage,
+        runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          profile: 'ADMIN'
+          profile: 'SUPERVISOR'
         }
       },
       {
-        path: 'strategy/:strategyId',
+        path: ':programId',
         runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'ADMIN',
-          pathIdParam: 'strategyId'
-        },
         children: [
           {
             path: '',
             pathMatch: 'full',
+            component: ProgramPage,
+            data: {
+              profile: 'SUPERVISOR',
+              pathIdParam: 'programId'
+            }
+          },
+          {
+            path: 'strategies/legacy/:strategyId',
+            data: {
+              profile: 'SUPERVISOR',
+              pathIdParam: 'strategyId'
+            },
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: StrategyPage
+              }
+            ]
+          },
+
+          {
+            path: 'strategies/sampling/:strategyId',
             component: SimpleStrategyPage,
-            runGuardsAndResolvers: 'pathParamsChange'
+            data: {
+              profile: 'SUPERVISOR',
+              pathIdParam: 'strategyId'
+            },
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: StrategyPage
+              }
+            ]
           }
         ]
       }

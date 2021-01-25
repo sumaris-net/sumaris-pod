@@ -1,30 +1,31 @@
-import {
-  AppFormUtils,
-  fromDateISOString,
-  isNil,
-  isNotNil,
-  ReferentialRef,
-  toDateISOString
-} from "../../../core/core.module";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {FormGroup} from "@angular/forms";
-import {arraySize, isEmptyArray} from "../../../shared/functions";
-import * as moment from "moment";
+import {
+  arraySize,
+  isEmptyArray,
+  isNil, isNotNil,
+  notNilOrDefault,
+} from "../../../shared/functions";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {isMoment} from "moment";
 import {IEntity} from "../../../core/services/model/entity.model";
 import {Pmfm} from "../../../referential/services/model/pmfm.model";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
+import {AppFormUtils} from "../../../core/form/form.utils";
+import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export declare interface MeasurementModelValues {
-  [key: string]: string;
+  [pmfmId: string]: string;
 }
 
 export declare type MeasurementFormValue = PmfmValue;
 
 export declare interface MeasurementFormValues {
-  [key: string]: PmfmValue;
+  [pmfmId: string]: PmfmValue;
 }
 
 export declare interface IEntityWithMeasurement<T extends IEntity<T>> extends IEntity<T> {
@@ -175,14 +176,6 @@ export class MeasurementUtils {
     return PmfmValueUtils.toModelValue(value, pmfm);
   }
 
-  static normalizeValuesToModel(source: { [key: number]: any }, pmfms: PmfmStrategy[]): { [key: string]: any } {
-    const target = {};
-    pmfms.forEach(pmfm => {
-      target[pmfm.pmfmId] = MeasurementUtils.toModelValue(source[pmfm.pmfmId], pmfm);
-    });
-    return target;
-  }
-
   static isEmpty(source: Measurement | any): boolean {
     if (!source) return true;
     return isNil(source.alphanumericalValue)
@@ -205,6 +198,13 @@ export class MeasurementUtils {
       map[m.pmfmId] = isNotNil(value) ? value : null;
       return map;
     }, {}) || undefined;
+  }
+
+  static fromMeasurementValues(measurements: MeasurementFormValues): Measurement[] {
+    return measurements && Object.getOwnPropertyNames(measurements).map(pmfmId => Measurement.fromObject({
+        pmfmId,
+        alphanumericalValue: measurements[pmfmId]
+      })) || undefined;
   }
 
   // Update measurements from source values map
@@ -245,10 +245,9 @@ export class MeasurementValuesUtils {
       || !pmfms.find(pmfm => !MeasurementValuesUtils.valueEquals(m1[pmfm.pmfmId], m2[pmfm.pmfmId]));
   }
 
-  static valueToString(value: any, pmfm: PmfmStrategy, propertyNames?: string[]): string | undefined {
-    return PmfmValueUtils.valueToString(value, pmfm, propertyNames);
+  static valueToString(value: any, opts: {pmfm: Pmfm|PmfmStrategy; propertyNames?: string[]; htmls?: boolean; }): string | undefined {
+    return PmfmValueUtils.valueToString(value, opts);
   }
-
 
   static normalizeValueToModel(value: PmfmValue, pmfm: PmfmStrategy): string {
     return PmfmValueUtils.toModelValue(value, pmfm);
@@ -258,7 +257,7 @@ export class MeasurementValuesUtils {
     keepSourceObject?: boolean
   }): MeasurementModelValues {
     const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
-    pmfms.forEach(pmfm => {
+    (pmfms||[]).forEach(pmfm => {
       target[pmfm.pmfmId] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.pmfmId], pmfm);
     });
     return target;
@@ -285,14 +284,14 @@ export class MeasurementValuesUtils {
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {
       pmfms = Object.getOwnPropertyNames(source).reduce((res, pmfmId) => {
-        const pmfm = pmfms.find(p => p.pmfmId === +pmfmId);
+        const pmfm = pmfms && pmfms.find(p => p.pmfmId === +pmfmId);
         return pmfm && res.concat(pmfm) || res;
       }, []);
     }
 
     const target: MeasurementFormValues =
       // Keep existing object (useful to keep extra pmfms)
-      opts.keepSourceObject ? (source as MeasurementFormValues)
+      opts.keepSourceObject ? {...source as MeasurementFormValues}
       : {};
 
     // Normalize all pmfms from the list
@@ -330,8 +329,7 @@ export class MeasurementValuesUtils {
     }
     // No validator: just normalize values
     else {
-      data.measurementValues = data.measurementValues || {} ;
-      MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues as MeasurementModelValues, pmfms, {
+      data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues || {}, pmfms, {
         // Keep extra pmfm values (not need to remove, when no validator used)
         keepSourceObject: true,
         onlyExistingPmfms: opts && opts.onlyExistingPmfms
@@ -340,11 +338,11 @@ export class MeasurementValuesUtils {
 
   }
 
-  static asObject(source: { [key: number]: any }, options: DataEntityAsObjectOptions): { [key: string]: any } {
+  static asObject(source:  { [key: string]: any }, options: DataEntityAsObjectOptions): { [key: string]: any } {
     if (!options || options.minify !== true || !source) return source;
-    return source && Object.keys(source)
+    return source && Object.getOwnPropertyNames(source)
       .reduce((map, pmfmId) => {
-        const value = source[pmfmId] && source[pmfmId].id || source[pmfmId];
+        const value = notNilOrDefault(source[pmfmId] && source[pmfmId].id, source[pmfmId]);
         if (isNotNil(value)) {
           // If moment object, then convert to ISO string- fix #157
           if (isMoment(value)) {
@@ -363,34 +361,34 @@ export class MeasurementValuesUtils {
       }, {}) || undefined;
   }
 
-  static getValue(measurements: MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, remove?: boolean): MeasurementFormValue {
-    if (!measurements || !pmfms || !pmfmLabel)
+  static getValue(measurements: MeasurementFormValues, pmfmStrategies: PmfmStrategy[], pmfmId: number, remove?: boolean): MeasurementFormValue {
+    if (!measurements || !pmfmStrategies || !pmfmId)
       return undefined;
 
-    const pmfm = pmfms.find(p => p.label && p.label === pmfmLabel);
-    if (pmfm && measurements[pmfm.pmfmId]) {
-      const value = MeasurementValuesUtils.normalizeValueToForm(measurements[pmfm.pmfmId], pmfm);
+    const pmfmStrategy = pmfmStrategies.find(p => p.pmfmId === pmfmId);
+    if (pmfmStrategy && measurements[pmfmStrategy.pmfmId]) {
+      const value = MeasurementValuesUtils.normalizeValueToForm(measurements[pmfmStrategy.pmfmId], pmfmStrategy);
       if (!!remove)
-        delete measurements[pmfm.pmfmId];
+        delete measurements[pmfmStrategy.pmfmId];
       return value;
     }
     return undefined;
   }
 
-  static setValue(measurements: MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, value: MeasurementFormValue) {
-    if (!measurements || !pmfms || !pmfmLabel)
+  static setValue(measurements: MeasurementFormValues, pmfmStrategies: PmfmStrategy[], pmfmId: number, value: MeasurementFormValue) {
+    if (!measurements || !pmfmStrategies || !pmfmId)
       return undefined;
 
-    const pmfm = pmfms.find(p => p.label && p.label === pmfmLabel);
-    if (pmfm) {
-      measurements[pmfm.pmfmId] = MeasurementValuesUtils.normalizeValueToForm(value, pmfm);
+    const pmfmStrategy = pmfmStrategies.find(p => p.pmfmId === pmfmId);
+    if (pmfmStrategy) {
+      measurements[pmfmStrategy.pmfmId] = MeasurementValuesUtils.normalizeValueToForm(value, pmfmStrategy);
     }
     return undefined;
   }
 
   static isEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
     return isNil(measurementValues)
-      || isEmptyArray(Object.keys(measurementValues).filter(pmfmId => !PmfmValueUtils.isEmpty(measurementValues[pmfmId])));
+      || isEmptyArray(Object.getOwnPropertyNames(measurementValues).filter(pmfmId => !PmfmValueUtils.isEmpty(measurementValues[pmfmId])));
   }
 }
 

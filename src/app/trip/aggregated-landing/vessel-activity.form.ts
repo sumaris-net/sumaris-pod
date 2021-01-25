@@ -1,5 +1,4 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
-import {FormArrayHelper, ReferentialRef} from "../../core/core.module";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormArray, FormBuilder} from "@angular/forms";
@@ -14,8 +13,9 @@ import {VesselActivityValidatorService} from "../services/validator/vessel-activ
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {ProgramService} from "../../referential/services/program.service";
 import {METIER_DEFAULT_FILTER, MetierFilter} from "../../referential/services/metier.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {FormArrayHelper} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-vessel-activity-form',

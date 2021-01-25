@@ -1,7 +1,6 @@
 import {Injectable, Pipe, PipeTransform} from '@angular/core';
 
 import {UsageMode} from "../model/settings.model";
-import {LocalSettingsService} from "../local-settings.service";
 
 @Pipe({
   name: 'isOnField'
@@ -9,13 +8,8 @@ import {LocalSettingsService} from "../local-settings.service";
 @Injectable({providedIn: 'root'})
 export class IsOnFieldModePipe implements PipeTransform {
 
-  constructor(
-    private settings: LocalSettingsService
-  ) {
-  }
-
   transform(value: UsageMode): boolean {
-    return this.settings.isOnFieldMode(value);
+    return value === 'FIELD';
   }
 }
 
@@ -26,12 +20,7 @@ export class IsOnFieldModePipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class IsNotOnFieldModePipe implements PipeTransform {
 
-  constructor(
-    private settings: LocalSettingsService
-  ) {
-  }
-
   transform(value: UsageMode): boolean {
-    return !this.settings.isOnFieldMode(value);
+    return value !== 'FIELD';
   }
 }

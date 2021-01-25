@@ -5,6 +5,7 @@ import {Vessel} from "../model/vessel.model";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {VesselFeaturesValidatorService} from "./vessel-features.validator";
 import {VesselRegistrationValidatorService} from "./vessel-registration.validator";
+import {toNumber} from "../../../shared/functions";
 
 @Injectable({providedIn: 'root'})
 export class VesselValidatorService implements ValidatorService {
@@ -19,14 +20,14 @@ export class VesselValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Vessel): FormGroup {
+  getFormGroup(data?: Vessel, opts?: any): FormGroup {
     return this.formBuilder.group({
       __typename: ['VesselVO'],
-      id: [null],
-      updateDate: [null],
-      creationDate: [null],
-      features: this.featuresValidator.getFormGroup(null),
-      registration: this.registrationValidator.getFormGroup(null, {required: true}), // TODO add config option ?
+      id: [toNumber(data && data.id, null)],
+      updateDate: [ data && data.updateDate || null],
+      creationDate: [ data && data.creationDate || null],
+      features: this.featuresValidator.getFormGroup(data && data.features),
+      registration: this.registrationValidator.getFormGroup(data && data.registration, {required: true}),
       statusId: [null, Validators.required],
       vesselType: ['', Validators.compose([Validators.required, SharedValidators.entity])],
     });

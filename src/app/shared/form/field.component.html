@@ -73,20 +73,19 @@
   </mat-boolean-field>
 
   <!-- date -->
-  <mat-date-time-field *ngSwitchCase="'date'" #matInput
+  <mat-date-field *ngSwitchCase="'date'" #matInput
                        [class]="classList"
                        [formControl]="formControl"
                        [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
                        [required]="required"
                        [readonly]="readonly"
-                       [displayTime]="false"
                        [compact]="compact"
                        [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
-  </mat-date-time-field>
+  </mat-date-field>
 
   <!-- date time -->
   <mat-date-time-field *ngSwitchCase="'dateTime'"
@@ -96,7 +95,6 @@
                        [floatLabel]="floatLabel"
                        [required]="required"
                        [readonly]="readonly"
-                       [displayTime]="true"
                        [compact]="compact"
                        [tabindex]="tabindex">
     <div matSuffix>
@@ -111,7 +109,7 @@
                 [required]="required"
                 [tabindex]="tabindex"
                 (keyup.enter)="onKeyupEnter.emit($event)">
-      <mat-option *ngFor="let item of definition.values" [value]="item.key">{{ item.value | translate }}</mat-option>
+      <mat-option *ngFor="let item of definition.values" [value]="item.key || item">{{ (item.value || item) | translate }}</mat-option>
     </mat-select>
 
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

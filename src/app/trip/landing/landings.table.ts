@@ -16,16 +16,18 @@ import {personsToString} from "../../core/services/model/person.model";
 import {referentialToString} from "../../core/services/model/referential.model";
 import {LandingFilter, LandingService} from "../services/landing.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Moment} from "moment";
 import {LandingValidatorService} from "../services/validator/landing.validator";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
-import {environment} from "../../../environments/environment";
 import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {environment} from "../../../environments/environment";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -43,10 +45,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   private _parentDateTime;
   private _detailEditor: LandingEditor;
-  private pageIndex;
 
   protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
+  protected referentialRefService: ReferentialRefService;
 
   @Output() onNewTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
 
@@ -97,6 +99,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this.getShowColumn('id');
   }
 
+  @Input()
+  set showVesselTypeColumn(value: boolean) {
+    this.setShowColumn('vesselType', value);
+  }
+
+  get showVesselTypeColumn(): boolean {
+    return this.getShowColumn('vesselType');
+  }
+
   constructor(
     injector: Injector
   ) {
@@ -117,8 +128,9 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     // TODO  ::: USE NAVIGATOR (check service)
-    this.pageSize = 200; // normal high value
+    this.defaultPageSize = 200; // normal high value
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
+    this.referentialRefService = injector.get(ReferentialRefService);
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
@@ -140,6 +152,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
     });
+
+    this.registerAutocompleteField('location', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.PORT
+      },
+      mobile: this.mobile
+    });
   }
 
   setParent(data: ObservedLocation | Trip) {
@@ -155,11 +176,11 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     }
   }
 
-  /**
-   * Publish the existing protected method (need by observed location page)
-   */
-  async getMaxRankOrder(): Promise<number> {
-    return super.getMaxRankOrder();
+  async getMaxRankOrderOnVessel(vessel: VesselSnapshot): Promise<number> {
+    const rows = await this.dataSource.getRows();
+    return rows
+      .filter(row => vessel.equals(row.currentData.vesselSnapshot))
+      .reduce((res, row) => Math.max(res, row.currentData.rankOrderOnVessel || 0), 0);
   }
 
   referentialToString = referentialToString;

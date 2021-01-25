@@ -1,5 +1,4 @@
 import {BehaviorSubject, isObservable, Observable} from "rxjs";
-import {isNil, isNotNil, LoadResult, EntitiesService} from "../../core/core.module";
 import {filter, first, map, switchMap} from "rxjs/operators";
 import {
   IEntityWithMeasurement,
@@ -12,15 +11,17 @@ import {ProgramService} from "../../referential/services/program.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 import {SortDirection} from "@angular/material/sort";
+import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
 
 @Directive()
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
-    implements EntitiesService<T, F> {
+    implements IEntitiesService<T, F> {
 
   private _program: string;
   private _acquisitionLevel: string;
   private _onRefreshPmfms = new EventEmitter<any>();
-  private _delegate: EntitiesService<T, F>;
+  private _delegate: IEntitiesService<T, F>;
 
   protected programService: ProgramService;
 
@@ -58,18 +59,18 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     this.setPmfms(pmfms);
   }
 
-  @Input() set delegate(value: EntitiesService<T, F>) {
+  @Input() set delegate(value: IEntitiesService<T, F>) {
     this._delegate = value;
   }
 
-  get delegate(): EntitiesService<T, F> {
+  get delegate(): IEntitiesService<T, F> {
     return this._delegate;
   }
 
   constructor(
     injector: Injector,
     protected dataType: new() => T,
-    delegate?: EntitiesService<T, F>,
+    delegate?: IEntitiesService<T, F>,
     protected options?: {
       mapPmfms: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
     }) {
@@ -117,7 +118,8 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
               map((res) => {
 
                 // Prepare measurement values for reactive form
-                (res && res.data || []).forEach(entity => MeasurementValuesUtils.normalizeEntityToForm(entity, pmfms));
+                res.data = (res.data || []).slice();
+                res.data.forEach(entity => MeasurementValuesUtils.normalizeEntityToForm(entity, pmfms));
 
                 // Apply sort on pmfm
                 if (sortPmfm) {

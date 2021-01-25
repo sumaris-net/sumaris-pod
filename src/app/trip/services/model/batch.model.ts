@@ -1,18 +1,16 @@
-import {EntityUtils, isNil, isNotNil, ReferentialRef, referentialToString} from "../../../core/core.module";
 import {AcquisitionLevelCodes, PmfmIds, QualityFlagIds} from "../../../referential/services/model/model.enum";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank, toNumber} from "../../../shared/functions";
+import {isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, toNumber} from "../../../shared/functions";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {ITreeItemEntity} from "../../../core/services/model/entity.model";
+import {EntityUtils, ITreeItemEntity} from "../../../core/services/model/entity.model";
 import {
   NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
+  ReferentialAsObjectOptions, ReferentialRef, referentialToString,
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {BatchGroup} from "./batch-group.model";
-import {SubBatch} from "./subbatch.model";
+import {PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -79,7 +77,7 @@ export class Batch<T extends Batch<any> = Batch<any>,
     if (!source) return null;
 
     // Convert entity into object, WITHOUT children (will be add later)
-    const target = source.asObject({...opts, withChildren: false});
+    const target = source.asObject ? source.asObject({...opts, withChildren: false}) : {...source, children: undefined};
 
     // Link target with the given parent
     const parent = opts && opts.parent;
@@ -198,7 +196,7 @@ export class Batch<T extends Batch<any> = Batch<any>,
     this.weight = source.weight || undefined;
 
     if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
+      this.measurementValues = {...source.measurementValues};
     }
     // Convert measurement lists to map
     else if (source.sortingMeasurements || source.quantificationMeasurements) {
@@ -229,6 +227,7 @@ export class Batch<T extends Batch<any> = Batch<any>,
   }
 }
 
+// @dynamic
 export class BatchUtils {
 
   static parentToString(parent: Batch, opts?: {
@@ -239,7 +238,7 @@ export class BatchUtils {
     if (!parent) return null;
     opts = opts || {taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name']};
     if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.pmfmId])) {
-      return MeasurementValuesUtils.valueToString(parent.measurementValues[opts.pmfm.pmfmId], opts.pmfm);
+      return PmfmValueUtils.valueToString(parent.measurementValues[opts.pmfm.pmfmId], {pmfm: opts.pmfm});
     }
     const hasTaxonGroup = ReferentialUtils.isNotEmpty(parent.taxonGroup);
     const hasTaxonName = ReferentialUtils.isNotEmpty(parent.taxonName);
@@ -512,6 +511,9 @@ export class BatchUtils {
         }
         if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
           message += ' lengthTotal:' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';
+        }
+        if (isNotNil(batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT])) {
+          message += ' weight:' + batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT] + 'kg';
         }
       }
     }

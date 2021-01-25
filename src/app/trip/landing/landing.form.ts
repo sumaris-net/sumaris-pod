@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {Moment} from 'moment/moment';
-import {FormArrayHelper, isNil, isNotNil, Person, referentialToString} from '../../core/core.module';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
@@ -10,18 +9,22 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {Person, personToString, UserProfileLabel} from "../../core/services/model/person.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {toBoolean} from "../../shared/functions";
+import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Landing} from "../services/model/landing.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {
+  MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig
+} from "../../shared/material/autocomplete/material.autocomplete";
 
 @Component({
   selector: 'app-landing-form',
@@ -216,12 +219,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
     return modal.present();
   }
-
-  public registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
-    return super.registerAutocompleteField(fieldName, options);
-  }
-
-  referentialToString = referentialToString;
 
   /* -- protected method -- */
 

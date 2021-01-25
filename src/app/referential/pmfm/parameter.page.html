@@ -5,7 +5,9 @@
 
 <ion-content>
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden"
+                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'REFERENTIAL.PMFM.TAB_GENERAL'|translate}}">
@@ -62,7 +64,7 @@
       </div>
     </mat-tab>
 
-    <!-- TAB: general -->
+    <!-- TAB: Qualitative value -->
     <mat-tab label="{{'REFERENTIAL.PARAMETER.TAB_QUALITATIVE_VALUE'|translate}}"
              [disabled]="!isQualitative">
       <ng-template mat-tab-label>
@@ -73,9 +75,12 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="qualitativeValuesTable.invalid"></ion-icon>
       </ng-template>
 
-      <app-referential-table #qualitativeValuesTable entityName="QualitiveValue"
-                             [canEdit]="canEdit" [canDelete]="canEdit">
-      </app-referential-table>
+      <app-simple-referential-table #qualitativeValuesTable entityName="QualitiveValue"
+                             [canEdit]="canEdit"
+                             [canDelete]="canEdit"
+                             [hasRankOrder]="false"
+                             [showUpdateDateColumn]="false">
+      </app-simple-referential-table>
 
       <!-- final space-->
       <p visible-xs visible-sm visible-mobile>&nbsp;</p>

@@ -3,12 +3,15 @@ import {VesselValidatorService} from "../../services/validator/vessel.validator"
 import {Vessel} from "../../services/model/vessel.model";
 import {LocationLevelIds} from "../../services/model/model.enum";
 import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {AppForm, AppFormUtils, StatusIds} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {AccountService} from "../../../core/services/account.service";
+import {FormGroup} from "@angular/forms";
+import {AppForm} from "../../../core/form/form.class";
+import {StatusIds} from "../../../core/services/model/model.enum";
+import {AppFormUtils} from "../../../core/form/form.utils";
 
 
 @Component({
@@ -24,18 +27,29 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   data: Vessel;
   statusList = DefaultStatusList;
   statusById: any;
+  canEditStatus: boolean;
 
   @Input() set defaultStatus(value: number) {
     if (this._defaultStatus !== value) {
       this._defaultStatus = value;
+      console.debug('[form-vessel] Changing default status to:' + value);
       if (this.form) {
-        this.form.get('statusId').setValue(this.defaultStatus);
+        this.form.patchValue({statusId : this.defaultStatus});
       }
+      this.canEditStatus = !this._defaultStatus || this.isAdmin();
     }
   }
 
   get defaultStatus(): number {
     return this._defaultStatus;
+  }
+
+  get registrationForm(): FormGroup {
+    return this.form.controls.registration as FormGroup;
+  }
+
+  get featuresForm(): FormGroup {
+    return this.form.controls.features as FormGroup;
   }
 
   constructor(
@@ -47,7 +61,11 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     private accountService: AccountService
   ) {
 
-    super(dateAdapter, vesselValidatorService.getFormGroup(), settings);
+    super(dateAdapter,
+      vesselValidatorService.getFormGroup(),
+      settings);
+
+    this.canEditStatus = this.accountService.isAdmin();
 
     // Fill statusById
     this.statusById = {};
@@ -56,6 +74,9 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Compute defaults
+    this.canEditStatus = !this._defaultStatus || this.isAdmin();
 
     // Combo location
     this.registerAutocompleteField('basePortLocation', {
@@ -82,13 +103,11 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
       }
     });
 
-    this.form.reset();
-
-    // set default values
-    if (this.defaultStatus) {
-      this.form.get('statusId').setValue(this.defaultStatus);
+    if (this._defaultStatus) {
+      this.form.patchValue({
+        statusId: this._defaultStatus
+      });
     }
-
   }
 
   isAdmin(): boolean {

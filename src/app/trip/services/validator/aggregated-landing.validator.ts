@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {toBoolean} from "../../../shared/functions";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -42,10 +42,8 @@ export class AggregatedLandingValidatorService<T extends AggregatedLanding = Agg
     };
   }
 
-  getFormGroupOptions(data?: T, opts?: O): {
-    [key: string]: any;
-  } {
-    return {};
+  getFormGroupOptions(data?: T, opts?: O): AbstractControlOptions | null {
+    return null;
   }
 
   protected fillDefaultOptions(opts?: O): O {

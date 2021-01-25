@@ -8,9 +8,9 @@ import {
 import {Entity} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
 import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/functions";
 import {TaxonGroupRef, TaxonNameRef} from "./taxon.model";
 import {PmfmStrategy} from "./pmfm-strategy.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export class Strategy extends Referential<Strategy> {
@@ -33,19 +33,17 @@ export class Strategy extends Referential<Strategy> {
   statusId: number;
   appliedStrategies: AppliedStrategy[];
   pmfmStrategies: PmfmStrategy[];
-  strategyDepartments: StrategyDepartment[];
+  departments: StrategyDepartment[];
 
   gears: any[];
   taxonGroups: TaxonGroupStrategy[];
   taxonNames: TaxonNameStrategy[];
-
   programId: number;
-
 
   constructor(data?: {
     id?: number,
     label?: string,
-    name?: string,
+    name?: string
   }) {
     super();
     this.id = data && data.id;
@@ -53,7 +51,7 @@ export class Strategy extends Referential<Strategy> {
     this.name = data && data.name;
     this.appliedStrategies = [];
     this.pmfmStrategies = [];
-    this.strategyDepartments = [];
+    this.departments = [];
     this.gears = [];
     this.taxonGroups = [];
     this.taxonNames = [];
@@ -71,7 +69,7 @@ export class Strategy extends Referential<Strategy> {
     target.creationDate = toDateISOString(this.creationDate);
     target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.pmfmStrategies = this.pmfmStrategies && this.pmfmStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.strategyDepartments = this.strategyDepartments && this.strategyDepartments.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.departments = this.departments && this.departments.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.gears = this.gears && this.gears.map(s => s.asObject(opts));
     target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
@@ -86,15 +84,15 @@ export class Strategy extends Referential<Strategy> {
     this.comments = source.comments;
     this.analyticReference = source.analyticReference;
     this.statusId = source.statusId;
+    this.programId = source.programId;
     this.creationDate = fromDateISOString(source.creationDate);
     this.appliedStrategies = source.appliedStrategies && source.appliedStrategies.map(AppliedStrategy.fromObject) || [];
     this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
-    this.strategyDepartments = source.strategyDepartments && source.strategyDepartments.map(StrategyDepartment.fromObject) || [];
+    this.departments = source.departments && source.departments.map(StrategyDepartment.fromObject) || [];
     this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
     // Taxon groups, sorted by priority level
     this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
-    this.programId=source.programId;
   }
 
   equals(other: Strategy): boolean {
@@ -185,6 +183,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     this.appliedPeriods = source.appliedPeriods && source.appliedPeriods.map(AppliedPeriod.fromObject) || [];
   }
 
+  // TODO BLA: à déplacer
   convertToString(): string {
     return this && this.strategyId && (this.location.name) || undefined;
   }
@@ -273,32 +272,21 @@ export class TaxonNameStrategy {
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName);
   }
 
+  // TODO BLA: à déplacer
   convertToString(): string {
+    // TODO BLA: Pourquoi test sur strategyId
     return this && this.strategyId && this.taxonName && (this.taxonName.name) || undefined;
   }
-
 }
 
-export function strategyDepartmentsToString(data: Strategy, separator?: string): string {
-  let strategyDepartments = data.strategyDepartments;
-  separator = separator || ", ";
-  return strategyDepartments.reduce((result: string, strategyDepartment: StrategyDepartment, index: number) => {
-    return index ? (result + separator + strategyDepartment.convertToString()) : strategyDepartment.convertToString();
-  }, '');
+export function strategyDepartmentsToString(departments: StrategyDepartment[], separator?: string) {
+  return (departments || []).map(d => d.department && d.department.name).join(separator || ", ");
 }
 
-export function appliedStategiesToString(data: Strategy, separator?: string) {
-  let appliedStrategies = data.appliedStrategies;
-  separator = separator || ", ";
-  return appliedStrategies.reduce((result: string, appliedStrategy: AppliedStrategy, index: number) => {
-    return index ? (result + separator + appliedStrategy.convertToString()) : appliedStrategy.convertToString();
-  }, '');
+export function appliedStrategiesToString(appliedStrategies: AppliedStrategy[], separator?: string) {
+  return (appliedStrategies || []).map(as => as.convertToString()).join(separator || ", ");
 }
 
-export function taxonsNameStrategyToString(data: Strategy, separator?: string) {
-  let taxonNames = data.taxonNames;
-  separator = separator || ", ";
-  return taxonNames.reduce((result: string, taxonNameStrategy: TaxonNameStrategy, index: number) => {
-    return index ? (result + separator + taxonNameStrategy.convertToString()) : taxonNameStrategy.convertToString();
-  }, '');
+export function taxonNamesStrategyToString(taxonNames: TaxonNameStrategy[], separator?: string) {
+  return (taxonNames || []).map(tn => tn.convertToString()).join(separator || ", ");
 }

@@ -5,23 +5,25 @@ import {InMemoryEntitiesService} from "../../shared/services/memory-entity-servi
 import {environment} from "../../../environments/environment";
 import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
-import {filterNumberInput} from "../../shared/inputs";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, isNotNil, KeysEnum, removeDuplicatesFromArray} from "../../shared/functions";
+import {
+  Beans,
+  changeCaseToUnderscore,
+  isEmptyArray,
+  isNotEmptyArray,
+  isNotNil,
+  KeysEnum,
+  removeDuplicatesFromArray
+} from "../../shared/functions";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmService} from "../services/pmfm.service";
 import {Pmfm} from "../services/model/pmfm.model";
-import {
-  IReferentialRef,
-  ReferentialRef,
-  referentialToString,
-  ReferentialUtils
-} from "../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
-import {debounceTime, map, startWith, switchMap, filter} from "rxjs/operators";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {debounceTime, filter, map, startWith, switchMap} from "rxjs/operators";
+import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {ProgramService} from "../services/program.service";
 import {ParameterLabelStrategies} from "../services/model/model.enum";
@@ -61,7 +63,7 @@ export class PmfmStrategyFilter {
       }
 
       return true;
-    }
+    };
   }
 
   static isEmpty(aFilter: PmfmStrategyFilter|any): boolean {
@@ -91,9 +93,6 @@ export const PmfmStrategyFilterKeys: KeysEnum<PmfmStrategyFilter> = {
   selector: 'app-pmfm-strategies-table',
   templateUrl: './pmfm-strategies.table.html',
   styleUrls: ['./pmfm-strategies.table.scss'],
-  providers: [
-    {provide: PmfmStrategyValidatorService}
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStrategyFilter> implements OnInit {
@@ -112,7 +111,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input() canDisplayToolbar = true;
   @Input() canDisplayColumnsHeaders = true;
   @Input() canDisplaySimpleStrategyValidators = true;
-  @Input() pmfmFilterApplied: string = 'all';
+  @Input() pmfmFilterApplied = 'all';
   @Input() initializeOneRow = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -193,7 +192,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       }),
       validatorService,
       <AppTableDataSourceOptions<PmfmStrategy>>{
-        prependNewElements: true,
+        prependNewElements: false,
         suppressErrors: true,
         onRowCreated: (row) => this.onRowCreated(row)
       },
@@ -269,7 +268,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     // Pmfm
     // INFO CLT Manage column header according to displayed strategy and application parameter.
     // Default pmfm column name according to displayed strategy when parameter isn't set in application settings.
-    const defaultPmfmColumnName: string = this.canDisplaySimpleStrategyValidators ? 'SHORT_COLUMN_TITLE' :'LONG_COLUMN_TITLE';
+    const defaultPmfmColumnName: string = this.canDisplaySimpleStrategyValidators ? 'SHORT_COLUMN_TITLE' : 'LONG_COLUMN_TITLE';
     const pmfmStrategyParameterColumnNameFormat = this.settings.getFieldDisplayAttributes('pmfmStrategyParameterColumnName', [defaultPmfmColumnName]);
     let basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
     if (pmfmStrategyParameterColumnNameFormat.includes('SHORT_COLUMN_TITLE')) {
@@ -287,7 +286,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         items: this.$pmfms,
         attributes: pmfmAttributes,
         columnSizes: pmfmAttributes.map(attr => {
-          switch(attr) {
+          switch (attr) {
             case 'label':
               return 2;
             case 'name':
@@ -300,6 +299,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           }
         }),
         columnNames: pmfmColumnNames,
+        displayWith: (pmfm) => getPmfmName(pmfm, {withUnit: true}),
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
@@ -321,7 +321,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         ),
         attributes: pmfmParameterAttributes,
         displayWith: this.displayParameter,
-        columnSizes: [4,8],
+        columnSizes: [4, 8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
@@ -374,15 +374,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('methodId', {
-        items: this.$pmfms
-        .pipe(
+        items: this.$pmfms.pipe(
           filter(isNotNil),
-          map((pmfms: Pmfm[]) => {
-            return removeDuplicatesFromArray(pmfms.map(p => p.method), 'name');
-          })
+          map(pmfms => removeDuplicatesFromArray(pmfms.map(p => p.method), 'name'))
         ),
         attributes: mfmAttributes,
-        displayWith: this.displayMethod,
+        displayWith: (v) => this.displayMethod(v),
         class: 'mat-autocomplete-panel-medium-size',
         showAllOnFocus: false
       })
@@ -427,7 +424,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             switchMap(row => {
               const control = row.validator && row.validator.get('pmfm');
               if (control) {
-                return control.valueChanges.pipe(startWith(control.value))
+                return control.valueChanges.pipe(startWith(control.value));
               } else {
                 return of(row.currentData.pmfm);
               }
@@ -441,8 +438,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false
     }, true);
 
-    if (this.initializeOneRow)
-    {
+    if (this.initializeOneRow) {
       this.addRow();
     }
 
@@ -459,18 +455,20 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const pmfms = this.$pmfms.getValue();
     //const gears = this.$gears.getValue();
     return data.map(source => {
-      const target:any = source instanceof PmfmStrategy ? source.asObject() : source;
+      const target: any = source instanceof PmfmStrategy ? source.asObject() : source;
       target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
 
       const pmfm = pmfms.find(i => i.id === target.pmfmId);
       target.pmfm = pmfm;
       delete target.pmfmId;
 
-      if (isNotNil(target.defaultValue)) console.log("TODO check reading default value", target.defaultValue);
+      if (isNotNil(target.defaultValue)) {
+        console.debug("[pmfm-strategy-table] TODO check default value is valid: ", target.defaultValue);
+      }
       target.defaultValue = PmfmValueUtils.fromModelValue(target.defaultValue, pmfm);
 
       return target;
-    })
+    });
   }
 
   protected async onSave(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
@@ -484,7 +482,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
     const target = new PmfmStrategyFilter();
-    Object.assign(target, source)
+    Object.assign(target, source);
     super.setFilter(target, opts);
   }
 
@@ -498,7 +496,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const taxonGroupIds = filter && filter.taxonGroupIds;
     const referenceTaxonIds = filter && filter.referenceTaxonIds;
 
-    let rankOrder:number = null;
+    let rankOrder: number = null;
     if (acquisitionLevel) {
       rankOrder = ((await this.getMaxRankOrder(acquisitionLevel)) || 0) + 1;
     }
@@ -508,7 +506,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       gearIds,
       taxonGroupIds,
       referenceTaxonIds
-    }
+    };
 
     // Applying defaults
     if (row.validator) {
@@ -532,7 +530,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       key: fieldName,
       label: this.i18nColumnPrefix + fieldTitle,
       ...def
-    }
+    };
     if (intoMap === true) {
       this.fieldDefinitionsMap[fieldName] = definition;
     }
@@ -547,7 +545,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       key: fieldName,
       label: this.i18nColumnPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
       ...def
-    }
+    };
     if (intoMap === true) {
       this.fieldDefinitionsMap[fieldName] = definition;
     }
@@ -578,7 +576,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       ]);
 
       console.debug("[pmfm-strategy-table] Loaded referential items");
-    } catch(err) {
+    } catch (err) {
       this.error = err && err.message || err;
       this.markForCheck();
     }
@@ -591,9 +589,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const res = await this.referentialRefService.loadAll(0, 100, null, null, {
       entityName: 'AcquisitionLevel'
     }, {withTotal: false});
-    this.$acquisitionLevels.next(res && res.data || undefined)
+    this.$acquisitionLevels.next(res && res.data || undefined);
   }
-
 
   protected async loadPmfms() {
       if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
@@ -608,7 +605,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             withTotal: false,
             withDetails: true
           });
-          this.$pmfms.next(res && res.data || [])
+          this.$pmfms.next(res && res.data || []);
       }
       else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'size')
       {
@@ -622,7 +619,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             withTotal: false,
             withDetails: true
           });
-          this.$pmfms.next(res && res.data || [])
+          this.$pmfms.next(res && res.data || []);
       }
       else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'maturity')
       {
@@ -636,7 +633,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             withTotal: false,
             withDetails: true
           });
-          this.$pmfms.next(res && res.data || [])
+          this.$pmfms.next(res && res.data || []);
       }
       else {
         const res = await this.pmfmService.loadAll(0, 1000, null, null, null,
@@ -644,19 +641,15 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           withTotal: false,
           withDetails: true
         });
-        this.$pmfms.next(res && res.data || [])
+        this.$pmfms.next(res && res.data || []);
       }
 
 
   }
 
   protected startEditingRow() {
-    console.log("TODO start edit")
+    console.debug("TODO start edit");
   }
-
-  filterNumberInput = filterNumberInput;
-  referentialToString = referentialToString;
-  pmfmValueToString = PmfmValueUtils.valueToString;
 
   protected markForCheck() {
     this.cd.markForCheck();
@@ -668,13 +661,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const program = await this.programService.loadByLabel(this._program);
     if (!program) return; //  Program not found
 
-
     // Emit event
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
   }
 
+  // TODO BLA à revoir: utiliser un Observable $matrixes plutot ?
   displayMatrix(id) {
     if (id) {
       id = id && id.id ? id.id : id;
@@ -684,6 +677,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return "";
   }
 
+  // TODO BLA à revoir:
   displayFraction(id) {
     if (id) {
       id = id && id.id ? id.id : id;
@@ -693,6 +687,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return "";
   }
 
+  // TODO BLA à revoir:
   displayParameter(id) {
     if (id) {
       id = id && id.id ? id.id : id;
@@ -702,13 +697,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return "";
   }
 
-  displayMethod(id) {
-    if (id) {
-      id = id && id.id ? id.id : id;
-      const t = this['items']['source']['source']['value'];
-      return t.find(pmfm => pmfm.method?.id === id) ? t.find(pmfm => pmfm.method?.id === id).method.name : "";
-    }
-    return "";
+  displayMethod(obj: number|ReferentialRef) {
+    const methodId = (obj instanceof ReferentialRef) ? obj.id : obj as number;
+    const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.method?.id === methodId);
+    return pmfm && pmfm.method && pmfm.method.name || "";
   }
 
 
