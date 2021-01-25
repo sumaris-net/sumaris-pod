@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="extractionCreateStrategyMonitoringTable">
+
+  <query type="create" temp="false" table="&amp;strategyMonitoringTableName" option="DISTINCT">
+
+    <!-- PK -->
+    <select alias="RECORD_TYPE" type="text">'PR'</select>
+    <select alias="PROJECT" type="text">P.LABEL</select>
+    <select alias="STRATEGY" type="text">S.LABEL</select>
+    <select alias="LANDING_CODE" type="number">L.ID</select>
+
+    <!-- other fields -->
+    <select alias="LANDING_LOCATION" type="text">LOC.LABEL</select>
+    <select alias="LANDING_DATE_TIME" type="text">TO_CHAR(L.LANDING_DATE_TIME, 'YYYY-MM-DD HH24:MI')</select>
+
+    <from alias="L">LANDING</from>
+    <from join="true">INNER JOIN PROGRAM P ON P.ID = L.PROGRAM_FK</from>
+    <!-- landing strategy link -->
+    <from join="true">INNER JOIN LANDING_MEASUREMENT LM ON LM.LANDING_FK = L.ID AND LM.PMFM_FK = &amp;strategyLabelPmfmId</from>
+    <!-- landing strategy -->
+    <from join="true">INNER JOIN STRATEGY S ON S.LABEL = LM.ALPHANUMERICAL_VALUE</from>
+    <from join="true">INNER JOIN APPLIED_STRATEGY APS ON APS.STRATEGY_FK = S.ID</from>
+    <from join="true">INNER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
+
+    <!-- landing location -->
+    <from join="true">INNER JOIN LOCATION LOC on LOC.ID = L.LANDING_LOCATION_FK</from>
+
+    <!-- recorder department -->
+    <from join="true">INNER JOIN DEPARTMENT D on D.ID = L.RECORDER_DEPARTMENT_FK</from>
+
+    <where>1=1</where>
+    <where operator="AND" group="programFilter">
+      <in field="P.LABEL"><![CDATA[&progLabels]]></in>
+    </where>
+    <where operator="AND" group="strategyFilter">
+      <in field="S.ID"><![CDATA[&strategyIds]]></in>
+    </where>
+    <where operator="AND" group="periodFilter"><![CDATA[L.LANDING_DATE_TIME BETWEEN &startDate AND &endDate]]></where>
+
+    <where operator="AND" group="departmentFilter">
+      <in field="L.RECORDER_DEPARTMENT_FK"><![CDATA[&recDepIds]]></in>
+    </where>
+
+    <orderby direction="ASC">L.ID</orderby>
+
+  </query>
+
+</queries>
