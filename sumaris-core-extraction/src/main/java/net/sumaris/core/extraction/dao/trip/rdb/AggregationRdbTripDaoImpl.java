@@ -333,7 +333,7 @@ public class AggregationRdbTripDaoImpl<
 
         // Date
         xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
-        xmlQuery.bind("startDate", net.sumaris.core.extraction.dao.technical.Daos.getSqlToDate(context.getStartDate()));
+        xmlQuery.bind("startDate", Daos.getSqlToDate(context.getStartDate()));
         xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
         xmlQuery.bind("endDate", Daos.getSqlToDate(context.getEndDate()));
 

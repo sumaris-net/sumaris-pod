@@ -36,6 +36,7 @@ import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramCo
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -206,8 +207,8 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
 
         // Date filters
         xmlQuery.setGroup("periodFilter", context.getStartDate() != null && context.getEndDate() != null);
-        xmlQuery.bind("startDate", Daos.getSqlToDate(context.getStartDate()));
-        xmlQuery.bind("endDate", Daos.getSqlToDate(context.getEndDate()));
+        xmlQuery.bind("startDate", Daos.getSqlToDate(Dates.resetTime(context.getStartDate())));
+        xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));
 
         // Recorder Department tripFilter
         xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
