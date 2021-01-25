@@ -22,13 +22,33 @@
 
 <queries name="extractionCreateProgramTable">
 
+
   <query type="create" temp="false" table="&amp;programTableName" option="DISTINCT">
+
+    <with alias="FILTERED_STRATEGY">
+      <subquery>
+        <subselect alias="ID" type="number">S.ID</subselect>
+
+        <from alias="S">STRATEGY</from>
+
+        <where operator="AND" group="strategyIdsFilter">
+          <in field="S.ID"><![CDATA[&strategyIds]]></in>
+        </where>
+      </subquery>
+    </with>
 
     <!-- PK -->
     <select alias="RECORD_TYPE" type="text">'PR'</select>
-    <select alias="PROJECT" type="text">SM.PROJECT</select>
+    <select alias="PROJECT" type="text">P.LABEL</select>
 
-    <from alias="SM">&amp;strategyMonitoringTableName</from>
+    <!-- hidden column - need for join -->
+    <select alias="PROGRAM_ID" type="hidden">P.ID</select>
+
+    <from alias="P">&amp;PROGRAM</from>
+
+    <where operator="AND">
+      EXISTS (SELECT ID FROM FILTERED_STRATEGY WHERE PROGRAM_FK=P.ID)
+    </where>
 
   </query>
 

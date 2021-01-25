@@ -118,6 +118,14 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
             if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
             if (sheetName != null && context.hasSheet(sheetName)) return context;
 
+            // Strategy
+            rowCount = createStrategyTable(context);
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+            // Strategy monitoring
+            rowCount = createStrategyMonitoringTable(context);
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
+
             return context;
         }
         catch (PersistenceException e) {
@@ -202,7 +210,7 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
 
         // Strategy Filter
-        xmlQuery.setGroup("strategyFilter", CollectionUtils.isNotEmpty(context.getStrategyIds()));
+        xmlQuery.setGroup("strategyIdsFilter", CollectionUtils.isNotEmpty(context.getStrategyIds()));
         xmlQuery.bind("strategyIds", Daos.getSqlInNumbers(context.getStrategyIds()));
 
         // Date filters
@@ -211,8 +219,99 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));
 
         // Recorder Department tripFilter
-        xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
-        xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
+        //xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
+        //xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
+
+        return xmlQuery;
+    }
+
+    protected long createStrategyTable(C context) {
+
+        String tableName = context.getStrategyTableName();
+        XMLQuery xmlQuery = createStrategyQuery(context);
+
+        // aggregate insertion
+        execute(xmlQuery);
+        long count = countFrom(tableName);
+
+        // Clean row using generic tripFilter
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), context.getProgramSheetName());
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(tableName,
+                    context.getProgramSheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug(String.format("Program table: %s rows inserted", count));
+        }
+        else {
+            context.addRawTableName(tableName);
+        }
+        return count;
+    }
+
+    protected XMLQuery createStrategyQuery(C context) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createStrategyTable");
+        xmlQuery.bind("programTableName", context.getProgramTableName());
+        xmlQuery.bind("strategyTableName", context.getStrategyTableName());
+
+        // Strategy Filter
+        xmlQuery.setGroup("idsFilter", CollectionUtils.isNotEmpty(context.getStrategyIds()));
+        xmlQuery.bind("ids", Daos.getSqlInNumbers(context.getStrategyIds()));
+
+        // Date filters
+        xmlQuery.setGroup("periodFilter", context.getStartDate() != null && context.getEndDate() != null);
+        xmlQuery.bind("startDate", Daos.getSqlToDate(Dates.resetTime(context.getStartDate())));
+        xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));
+
+        // Recorder Department tripFilter
+        //xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
+        //xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
+
+        return xmlQuery;
+    }
+
+
+    protected long createStrategyMonitoringTable(C context) {
+
+        String tableName = context.getStrategyMonitoringTableName();
+        XMLQuery xmlQuery = createStrategyMonitoringQuery(context);
+
+        // aggregate insertion
+        execute(xmlQuery);
+        long count = countFrom(tableName);
+
+        // Clean row using generic tripFilter
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), context.getProgramSheetName());
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(tableName,
+                    context.getProgramSheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug(String.format("Program table: %s rows inserted", count));
+        }
+        else {
+            context.addRawTableName(tableName);
+        }
+        return count;
+    }
+
+    protected XMLQuery createStrategyMonitoringQuery(C context) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createStrategyMonitoringTable");
+        xmlQuery.bind("programTableName", context.getProgramTableName());
+        xmlQuery.bind("strategyTableName", context.getStrategyTableName());
+        xmlQuery.bind("strategyMonitoringTableName", context.getStrategyMonitoringTableName());
+
+        // Recorder Department tripFilter
+        //xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
+        //xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
 
         return xmlQuery;
     }
