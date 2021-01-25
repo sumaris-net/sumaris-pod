@@ -30,6 +30,7 @@ import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -65,6 +66,11 @@ public class ExtractionProgramContextVO extends ExtractionContextVO {
         return landingFilter != null && StringUtils.isNotBlank(landingFilter.getProgramLabel()) ? ImmutableList.of(landingFilter.getProgramLabel()) : null;
     }
 
+    public List<String> getStrategyLabels() {
+        // TODO add strategy labels in filter
+        return new ArrayList<>();
+    }
+
     public List<Integer> getRecorderPersonIds() {
         return landingFilter != null && landingFilter.getRecorderPersonId() != null ? ImmutableList.of(landingFilter.getRecorderPersonId()) : null;
     }
@@ -79,6 +85,11 @@ public class ExtractionProgramContextVO extends ExtractionContextVO {
 
     public List<Integer> getLocationIds() {
         return landingFilter != null && landingFilter.getLocationId() != null ? ImmutableList.of(landingFilter.getLocationId()) : null;
+    }
+
+    public List<Integer> getProgramIds() {
+        // TODO add program ids in filter
+        return new ArrayList<>();
     }
 
     public List<Integer> getStrategyIds() {

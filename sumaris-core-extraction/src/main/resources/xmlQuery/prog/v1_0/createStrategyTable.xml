@@ -33,7 +33,7 @@
     <select alias="STRATEGY_NAME" type="text">S.NAME</select>
     <select alias="STRATEGY_DESCRIPTION" type="text">S.DESCRIPTION</select>
 
-    <from alias="P">&amp;programTable</from>
+    <from alias="P">&amp;programTableName</from>
     <from join="true">INNER JOIN STRATEGY S ON S.PROGRAM_FK = P.PROGRAM_ID</from>
     <from join="true">INNER JOIN APPLIED_STRATEGY APS ON APS.STRATEGY_FK = S.ID</from>
     <from join="true">INNER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
@@ -42,9 +42,10 @@
       <in field="S.ID"><![CDATA[&ids]]></in>
     </where>
     <where operator="AND" group="labelsFilter">
-      <in field="P.LABEL"><![CDATA[&labels]]></in>
+      <in field="S.LABEL"><![CDATA[&labels]]></in>
     </where>
 
+    <where>1=1</where>
     <where operator="AND" group="startDateFilter"><![CDATA[APP.END_DATE >= &startDate]]></where>
     <where operator="AND" group="endDateFilter"><![CDATA[APP.START_DATE <= &endDate]]></where>
 

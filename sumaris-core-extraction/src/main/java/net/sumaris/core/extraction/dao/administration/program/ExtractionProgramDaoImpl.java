@@ -202,10 +202,11 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
     protected XMLQuery createProgramQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createProgramTable");
         xmlQuery.bind("programTableName", context.getProgramTableName());
+        xmlQuery.bind("strategyTableName", context.getStrategyTableName());
 
         // Ids Filter
         xmlQuery.setGroup("idsFilter", CollectionUtils.isNotEmpty(context.getProgramIds()));
-        xmlQuery.bind("ids", Daos.getSqlInEscapedStrings(context.getProgramIds()));
+        xmlQuery.bind("ids", Daos.getSqlInNumbers(context.getProgramIds()));
 
         // Labels Filter
         xmlQuery.setGroup("labelsFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
@@ -243,11 +244,11 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
     protected XMLQuery createStrategyQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createStrategyTable");
         xmlQuery.bind("strategyTableName", context.getStrategyTableName());
-        //xmlQuery.bind("strategyMonitoringTableName", context.getStrategyMonitoringTableName());
+        xmlQuery.bind("programTableName", context.getProgramTableName());
 
         // Ids Filter
         xmlQuery.setGroup("idsFilter", CollectionUtils.isNotEmpty(context.getStrategyIds()));
-        xmlQuery.bind("ids", Daos.getSqlInEscapedStrings(context.getStrategyIds()));
+        xmlQuery.bind("ids", Daos.getSqlInNumbers(context.getStrategyIds()));
 
         // Labels Filter
         xmlQuery.setGroup("labelsFilter", CollectionUtils.isNotEmpty(context.getStrategyLabels()));
@@ -291,6 +292,7 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
     protected XMLQuery createStrategyMonitoringQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createStrategyMonitoringTable");
         xmlQuery.bind("strategyMonitoringTableName", context.getStrategyMonitoringTableName());
+        xmlQuery.bind("strategyTableName", context.getStrategyTableName());
 
         // Bind some referential ids
         xmlQuery.bind("strategyLabelPmfmId", String.valueOf(PmfmEnum.STRATEGY_LABEL.getId()));
