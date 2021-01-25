@@ -29,9 +29,9 @@ import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.specification.ProgSpecification;
+import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionLandingFilterVO;
+import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
 import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
@@ -82,11 +82,11 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
 
     @Override
     public <R extends C> R execute(F filter) {
-        ExtractionLandingFilterVO landingFilter = toTripFilterVO(filter);
+        ExtractionProgramFilterVO programFilter = toProgramFilterVO(filter);
 
         // Init context
         R context = createNewContext();
-        context.setLandingFilter(landingFilter);
+        context.setProgramFilter(programFilter);
         context.setFilter(filter);
         context.setId(System.currentTimeMillis());
         context.setFormat(LiveFormatEnum.PROG);
@@ -94,7 +94,7 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
-            String filterStr = filter != null ? landingFilter.toString("\n - ") : null;
+            String filterStr = filter != null ? programFilter.toString("\n - ") : null;
             if (StringUtils.isNotBlank(filterStr)) {
                 filterInfo.append("with filter:").append(filterStr);
             }
@@ -119,14 +119,14 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
             if (sheetName != null && context.hasSheet(sheetName)) return context;
 
             // Strategy
-            rowCount = createStrategyTable(context);
+            /*rowCount = createStrategyTable(context);
             if (rowCount == 0) return context;
             if (sheetName != null && context.hasSheet(sheetName)) return context;
 
             // StrategyMonitoring
             rowCount = createStrategyMonitoringTable(context);
             if (rowCount == 0) return context;
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
+            if (sheetName != null && context.hasSheet(sheetName)) return context;*/
 
             return context;
         }

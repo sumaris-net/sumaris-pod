@@ -24,11 +24,11 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.extraction.DatabaseResource;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
-import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.model.referential.StatusEnum;

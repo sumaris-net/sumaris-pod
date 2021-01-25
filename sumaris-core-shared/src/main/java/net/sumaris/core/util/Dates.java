@@ -495,4 +495,12 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
     public static String toISODateTimeString(Date date) {
         return formatDate(date, ISO_TIMESTAMP_SPEC);
     }
+
+    public static Date fromISODateTimeString(String dateStr) {
+        try {
+            return parseDate(dateStr, ISO_TIMESTAMP_SPEC);
+        } catch(ParseException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
 }

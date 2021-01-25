@@ -23,7 +23,8 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionLandingFilterVO;
+import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
+import net.sumaris.core.extraction.vo.data.ExtractionLandingFilterVO;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
@@ -79,7 +80,7 @@ public interface ExtractionService {
 
     File executeAndDumpTrips(LiveFormatEnum format, ExtractionTripFilterVO filter);
 
-    File executeAndDumpPrograms(LiveFormatEnum format, ExtractionLandingFilterVO filter);
+    File executeAndDumpPrograms(LiveFormatEnum format, ExtractionProgramFilterVO filter);
 
     File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 

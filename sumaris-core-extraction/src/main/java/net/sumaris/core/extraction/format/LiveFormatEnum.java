@@ -25,8 +25,8 @@ package net.sumaris.core.extraction.format;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.format.specification.*;
-import net.sumaris.core.extraction.specification.ProgSpecification;
+import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
+import net.sumaris.core.extraction.specification.data.trip.*;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 

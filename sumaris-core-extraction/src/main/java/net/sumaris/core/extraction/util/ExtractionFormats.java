@@ -28,7 +28,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
-import net.sumaris.core.extraction.format.specification.AggSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggSpecification;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
 import net.sumaris.core.util.StringUtils;

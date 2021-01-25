@@ -25,7 +25,7 @@ package net.sumaris.server.geojson;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
 import net.sumaris.core.dao.referential.location.Locations;
-import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;

@@ -23,9 +23,8 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.extraction.DatabaseResource;
-import net.sumaris.core.extraction.format.specification.Free2Specification;
-import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
-import net.sumaris.core.extraction.specification.ProgSpecification;
+import net.sumaris.core.extraction.specification.data.trip.Free2Specification;
+import net.sumaris.core.extraction.specification.data.trip.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
@@ -57,7 +56,7 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
         // Test the Program format
         File outputFile = service.executeAndDumpPrograms(LiveFormatEnum.PROG, null);
-        unpack(outputFile, ProgSpecification.FORMAT);
+        //unpack(outputFile, LiveFormatEnum.PROG.getLabel());
     }
 
     @Test

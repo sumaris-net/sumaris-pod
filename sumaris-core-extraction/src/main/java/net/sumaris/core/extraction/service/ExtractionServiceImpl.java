@@ -50,12 +50,12 @@ import net.sumaris.core.extraction.dao.trip.free2.ExtractionFree2TripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
-import net.sumaris.core.extraction.specification.ProgSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
+import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
 import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.extraction.vo.*;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionLandingFilterVO;
+import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
@@ -339,7 +339,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public File executeAndDumpPrograms(LiveFormatEnum format, ExtractionLandingFilterVO programFilter) {
+    public File executeAndDumpPrograms(LiveFormatEnum format, ExtractionProgramFilterVO programFilter) {
         String programSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : ProgSpecification.PR_SHEET_NAME;
         ExtractionFilterVO filter = extractionProgramDao.toExtractionFilterVO(programFilter, programSheetName);
         return extractRawDataAndDumpToFile(format, filter);

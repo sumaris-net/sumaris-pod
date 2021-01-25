@@ -24,16 +24,18 @@ package net.sumaris.core.extraction.dao.administration.program;
 
 import com.google.common.collect.Lists;
 import net.sumaris.core.extraction.dao.ExtractionDao;
-import net.sumaris.core.extraction.specification.ProgSpecification;
+import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionLandingFilterVO;
+import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
 import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramContextVO;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -46,8 +48,8 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
 
     void clean(C context);
 
-    default ExtractionLandingFilterVO toTripFilterVO(ExtractionFilterVO source){
-        ExtractionLandingFilterVO target = new ExtractionLandingFilterVO();
+    default ExtractionProgramFilterVO toProgramFilterVO(ExtractionFilterVO source){
+        ExtractionProgramFilterVO target = new ExtractionProgramFilterVO();
         if (source == null) return target;
 
         Beans.copyProperties(source, target);
@@ -64,13 +66,26 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
                             case ProgSpecification.COLUMN_PROJECT:
                                 target.setProgramLabel(criterion.getValue());
                                 break;
+                            case ProgSpecification.COLUMN_YEAR:
+                                int year = Integer.parseInt(criterion.getValue());
+                                target.setStartDate(Dates.getFirstDayOfYear(year));
+                                target.setEndDate(Dates.getLastSecondOfYear(year));
+                                break;
+                            case ProgSpecification.COLUMN_START_DATE:
+                                Date startDate = Dates.fromISODateTimeString(criterion.getValue());
+                                target.setStartDate(startDate);
+                                break;
+                            case ProgSpecification.COLUMN_END_DATE:
+                                Date endDate = Dates.fromISODateTimeString(criterion.getValue());
+                                target.setEndDate(endDate);
+                                break;
                         }
                     });
         }
         return target;
     }
 
-    default ExtractionFilterVO toExtractionFilterVO(ExtractionLandingFilterVO source,
+    default ExtractionFilterVO toExtractionFilterVO(ExtractionProgramFilterVO source,
                                                     String programSheetName){
         ExtractionFilterVO target = new ExtractionFilterVO();
         if (source == null) return target;

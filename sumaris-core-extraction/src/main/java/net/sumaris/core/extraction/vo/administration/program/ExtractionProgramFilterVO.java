@@ -25,16 +25,18 @@ package net.sumaris.core.extraction.vo.administration.program;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.vo.filter.IRootDataFilter;
+import net.sumaris.core.vo.filter.IVesselFilter;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 
+import java.util.Date;
 import java.util.List;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class ExtractionLandingFilterVO extends LandingFilterVO {
+public class ExtractionProgramFilterVO implements IRootDataFilter {
 
     private boolean preview;
 
@@ -42,20 +44,33 @@ public class ExtractionLandingFilterVO extends LandingFilterVO {
 
     private Page page;
 
+    private Date startDate;
+
+    private Date endDate;
+
+    private String programLabel;
+
     private List<Integer> strategyIds;
+
+    private List<String> strategyLabels;
+
+    private Integer recorderDepartmentId;
+
+    private Integer recorderPersonId;
+
+    private Integer locationId;
 
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;
         StringBuilder sb = new StringBuilder();
         if (this.getProgramLabel() != null) sb.append(separator).append("Program (label): ").append(this.getProgramLabel());
+        if (this.getStrategyIds() != null) sb.append(separator).append("Strategies (id): ").append(this.getStrategyIds());
+        if (this.getStrategyLabels() != null) sb.append(separator).append("Strategy (label): ").append(this.getStrategyLabels());
         if (this.getStartDate() != null) sb.append(separator).append("Start date: ").append(this.getStartDate());
         if (this.getEndDate() != null) sb.append(separator).append("End date: ").append(this.getEndDate());
         if (this.getLocationId() != null) sb.append(separator).append("Location (id): ").append(this.getLocationId());
-        if (this.getVesselId() != null) sb.append(separator).append("Vessel (id): ").append(this.getVesselId());
-        if (this.getObservedLocationId() != null) sb.append(separator).append("Observed location (id): ").append(this.getObservedLocationId());
         if (this.getRecorderPersonId() != null) sb.append(separator).append("Recorder person (id): ").append(this.getRecorderPersonId());
         if (this.getRecorderDepartmentId() != null) sb.append(separator).append("Recorder department (id): ").append(this.getRecorderDepartmentId());
-        if (this.getStrategyIds() != null) sb.append(separator).append("Strategies (id): ").append(this.getStrategyIds());
         return sb.toString();
     }
 }

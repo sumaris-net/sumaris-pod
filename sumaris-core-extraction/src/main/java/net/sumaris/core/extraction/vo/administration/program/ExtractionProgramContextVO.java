@@ -52,39 +52,34 @@ public class ExtractionProgramContextVO extends ExtractionContextVO {
     String strategySheetName; // ST
     String strategyMonitoringSheetName; // SM
 
-    ExtractionLandingFilterVO landingFilter;
+    ExtractionProgramFilterVO programFilter;
 
     public Date getStartDate() {
-        return landingFilter != null ? landingFilter.getStartDate() : null;
+        return programFilter != null ? programFilter.getStartDate() : null;
     }
 
     public Date getEndDate() {
-        return landingFilter != null ? landingFilter.getEndDate() : null;
+        return programFilter != null ? programFilter.getEndDate() : null;
     }
 
     public List<String> getProgramLabels() {
-        return landingFilter != null && StringUtils.isNotBlank(landingFilter.getProgramLabel()) ? ImmutableList.of(landingFilter.getProgramLabel()) : null;
+        return programFilter != null && StringUtils.isNotBlank(programFilter.getProgramLabel()) ? ImmutableList.of(programFilter.getProgramLabel()) : null;
     }
 
     public List<String> getStrategyLabels() {
-        // TODO add strategy labels in filter
-        return new ArrayList<>();
+        return programFilter != null ? programFilter.getStrategyLabels() : null;
     }
 
     public List<Integer> getRecorderPersonIds() {
-        return landingFilter != null && landingFilter.getRecorderPersonId() != null ? ImmutableList.of(landingFilter.getRecorderPersonId()) : null;
+        return programFilter != null && programFilter.getRecorderPersonId() != null ? ImmutableList.of(programFilter.getRecorderPersonId()) : null;
     }
 
     public List<Integer> getRecorderDepartmentIds() {
-        return landingFilter != null && landingFilter.getRecorderDepartmentId() != null ? ImmutableList.of(landingFilter.getRecorderDepartmentId()) : null;
-    }
-
-    public List<Integer> getVesselIds() {
-        return landingFilter != null && landingFilter.getVesselId() != null ? ImmutableList.of(landingFilter.getVesselId()) : null;
+        return programFilter != null && programFilter.getRecorderDepartmentId() != null ? ImmutableList.of(programFilter.getRecorderDepartmentId()) : null;
     }
 
     public List<Integer> getLocationIds() {
-        return landingFilter != null && landingFilter.getLocationId() != null ? ImmutableList.of(landingFilter.getLocationId()) : null;
+        return programFilter != null && programFilter.getLocationId() != null ? ImmutableList.of(programFilter.getLocationId()) : null;
     }
 
     public List<Integer> getProgramIds() {
@@ -93,6 +88,7 @@ public class ExtractionProgramContextVO extends ExtractionContextVO {
     }
 
     public List<Integer> getStrategyIds() {
-        return landingFilter != null && landingFilter.getStrategyIds() != null ? landingFilter.getStrategyIds() : null;
+        return programFilter != null && programFilter.getStrategyIds() != null ? programFilter.getStrategyIds() : null;
     }
+
 }

@@ -20,9 +20,23 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.administration.program;
 
-public interface AggSpecification {
+/**
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
+ */
+public interface ProgSpecification {
+    String FORMAT = "PROG";
+    String VERSION_1_0 = "1.0";
 
-    String FORMAT_PREFIX = "AGG_";
+    String PR_SHEET_NAME = "PR"; // Program
+    String ST_SHEET_NAME = "ST"; // Strategy
+    String SM_SHEET_NAME = "SM"; // Strategy Monitoring
+
+    String COLUMN_PROJECT = "project";
+    String COLUMN_YEAR = "year";
+    String COLUMN_START_DATE = "start_date";
+    String COLUMN_END_DATE = "end_date";
+
+    String[] SHEET_NAMES = {PR_SHEET_NAME, ST_SHEET_NAME, SM_SHEET_NAME};
 }

@@ -20,20 +20,11 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.specification;
+package net.sumaris.core.extraction.specification.data.trip;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- */
-public interface ProgSpecification {
-    String FORMAT = "PROG";
-    String VERSION_1_0 = "1.0";
+public interface AggCostSpecification extends AggRdbSpecification {
 
-    String PR_SHEET_NAME = "PR"; // Program
-    String ST_SHEET_NAME = "ST"; // Strategy
-    String SM_SHEET_NAME = "SM"; // Strategy Monitoring
+    String FORMAT = AggSpecification.FORMAT_PREFIX + CostSpecification.FORMAT;
+    String VERSION_1_4 = CostSpecification.VERSION_1_4;
 
-    String COLUMN_PROJECT = "project";
-
-    String[] SHEET_NAMES = {PR_SHEET_NAME, ST_SHEET_NAME, SM_SHEET_NAME};
 }
