@@ -126,9 +126,9 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
 
 
             // StrategyMonitoring
-            /*rowCount = createStrategyMonitoringTable(context);
+            rowCount = createStrategyMonitoringTable(context);
             if (rowCount == 0) return context;
-            if (sheetName != null && context.hasSheet(sheetName)) return context;*/
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
 
             return context;
         }
@@ -273,7 +273,6 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
 
-
         return xmlQuery;
     }
 
@@ -310,12 +309,6 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
 
         // Bind some referential ids
         xmlQuery.bind("strategyLabelPmfmId", String.valueOf(PmfmEnum.STRATEGY_LABEL.getId()));
-
-        // Date filters
-        xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
-        xmlQuery.bind("startDate", Daos.getSqlToDate(Dates.resetTime(context.getStartDate())));
-        xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
-        xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));
 
         return xmlQuery;
     }

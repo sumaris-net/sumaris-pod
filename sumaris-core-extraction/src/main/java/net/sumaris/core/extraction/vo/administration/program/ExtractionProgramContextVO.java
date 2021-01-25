@@ -30,7 +30,6 @@ import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -62,12 +61,20 @@ public class ExtractionProgramContextVO extends ExtractionContextVO {
         return programFilter != null ? programFilter.getEndDate() : null;
     }
 
+    public List<Integer> getProgramIds() {
+        return programFilter != null && programFilter.getProgramId() != null ? ImmutableList.of(programFilter.getProgramId()) : null;
+    }
+
     public List<String> getProgramLabels() {
         return programFilter != null && StringUtils.isNotBlank(programFilter.getProgramLabel()) ? ImmutableList.of(programFilter.getProgramLabel()) : null;
     }
 
+    public List<Integer> getStrategyIds() {
+        return programFilter != null && programFilter.getStrategyIds() != null ? programFilter.getStrategyIds() : null;
+    }
+
     public List<String> getStrategyLabels() {
-        return programFilter != null ? programFilter.getStrategyLabels() : null;
+        return programFilter != null && programFilter.getStrategyLabels() != null ? programFilter.getStrategyLabels() : null;
     }
 
     public List<Integer> getRecorderPersonIds() {
@@ -80,15 +87,6 @@ public class ExtractionProgramContextVO extends ExtractionContextVO {
 
     public List<Integer> getLocationIds() {
         return programFilter != null && programFilter.getLocationId() != null ? ImmutableList.of(programFilter.getLocationId()) : null;
-    }
-
-    public List<Integer> getProgramIds() {
-        // TODO add program ids in filter
-        return new ArrayList<>();
-    }
-
-    public List<Integer> getStrategyIds() {
-        return programFilter != null && programFilter.getStrategyIds() != null ? programFilter.getStrategyIds() : null;
     }
 
 }

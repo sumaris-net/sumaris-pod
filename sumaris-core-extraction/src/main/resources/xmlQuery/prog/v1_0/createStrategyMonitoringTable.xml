@@ -26,32 +26,38 @@
 
     <!-- PK -->
     <select alias="RECORD_TYPE" type="text">'SM'</select>
-    <select alias="PROJECT" type="text">S.PROJECT</select>
-    <select alias="PROGRAM_ID" type="number">S.PROGRAM_ID</select>
-    <select alias="STRATEGY" type="text">S.LABEL</select>
-    <select alias="STRATEGY_ID" type="text">S.ID</select>
-    <select alias="LANDING_ID" type="number">L.ID</select>
+    <select alias="PROJECT" type="text">ST.PROJECT</select>
+    <select alias="STRATEGY" type="text">ST.STRATEGY</select>
 
     <!-- other fields -->
-    <select alias="LANDING_LOCATION" type="text">LOC.LABEL</select>
-    <select alias="LANDING_DATE_TIME" type="text">TO_CHAR(L.LANDING_DATE_TIME, 'YYYY-MM-DD HH24:MI')</select>
+    <select alias="START_DATE" type="date">APP.START_DATE</select>
+    <select alias="END_DATE" type="date">APP.END_DATE</select>
+    <select alias="EXPECTED_EFFORT" type="number">APP.ACQUISITION_NUMBER</select>
+    <select alias="REALIZED_EFFORT" type="number">count(L.ID)</select>
 
-    <from alias="S">&amp;strategyTableName</from>
-    <from join="true">INNER JOIN LANDING L ON L.PROGRAM_FK = S.PROGRAM_ID</from>
+    <!-- hidden columns -->
+    <select alias="PROGRAM_ID" type="hidden">ST.PROGRAM_ID</select>
+    <select alias="STRATEGY_ID" type="hidden">ST.STRATEGY_ID</select>
+
+    <from alias="ST">&amp;strategyTableName</from>
+    <from join="true">LEFT OUTER JOIN APPLIED_STRATEGY APS ON APS.STRATEGY_FK = ST.STRATEGY_ID</from>
+    <from join="true">LEFT OUTER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
+
     <!-- landing strategy link -->
-    <from join="true">INNER JOIN LANDING_MEASUREMENT LM ON LM.LANDING_FK = L.ID AND LM.PMFM_FK = &amp;strategyLabelPmfmId and LM.ALPHANUMERICAL_VALUE = S.STRATEGY</from>
-    <!-- landing strategy -->
-    <from join="true">INNER JOIN APPLIED_STRATEGY APS ON APS.STRATEGY_FK = S.ID</from>
-    <from join="true">INNER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
+    <from join="true">LEFT OUTER JOIN LANDING L ON L.PROGRAM_FK = ST.PROGRAM_ID
+      AND L.LANDING_DATE_TIME &gt;= APP.START_DATE and L.LANDING_DATE_TIME &lt;= APP.END_DATE
+    </from>
+    <from join="true">LEFT OUTER JOIN LANDING_MEASUREMENT LM ON LM.LANDING_FK = L.ID
+      AND LM.PMFM_FK = &amp;strategyLabelPmfmId and LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
+    </from>
 
-    <!-- landing location -->
-    <from join="true">INNER JOIN LOCATION LOC on LOC.ID = L.LANDING_LOCATION_FK</from>
+    <groupby>
+      RECORD_TYPE, PROJECT, STRATEGY,
+      APP.START_DATE, APP.END_DATE, APP.ACQUISITION_NUMBER,
+      PROGRAM_ID, STRATEGY_ID
+    </groupby>
 
-    <where>1=1</where>
-    <where operator="AND" group="startDateFilter"><![CDATA[L.LANDING_DATE_TIME >= &startDate]]></where>
-    <where operator="AND" group="endDateFilter"><![CDATA[L.LANDING_DATE_TIME <= &endDate]]></where>
-
-    <orderby direction="ASC">L.ID</orderby>
+    <orderby direction="ASC">ST.PROGRAM_ID, ST.STRATEGY_ID, APP.START_DATE</orderby>
 
   </query>
 

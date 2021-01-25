@@ -23,11 +23,8 @@ package net.sumaris.core.extraction.vo.administration.program;
  */
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.filter.IRootDataFilter;
-import net.sumaris.core.vo.filter.IVesselFilter;
-import net.sumaris.core.vo.filter.LandingFilterVO;
 
 import java.util.Date;
 import java.util.List;
@@ -48,6 +45,8 @@ public class ExtractionProgramFilterVO implements IRootDataFilter {
 
     private Date endDate;
 
+    private Integer programId;
+
     private String programLabel;
 
     private List<Integer> strategyIds;
@@ -63,9 +62,10 @@ public class ExtractionProgramFilterVO implements IRootDataFilter {
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;
         StringBuilder sb = new StringBuilder();
+        if (this.getProgramId() != null) sb.append(separator).append("Program (id): ").append(this.getProgramId());
         if (this.getProgramLabel() != null) sb.append(separator).append("Program (label): ").append(this.getProgramLabel());
         if (this.getStrategyIds() != null) sb.append(separator).append("Strategies (id): ").append(this.getStrategyIds());
-        if (this.getStrategyLabels() != null) sb.append(separator).append("Strategy (label): ").append(this.getStrategyLabels());
+        if (this.getStrategyLabels() != null) sb.append(separator).append("Strategies (label): ").append(this.getStrategyLabels());
         if (this.getStartDate() != null) sb.append(separator).append("Start date: ").append(this.getStartDate());
         if (this.getEndDate() != null) sb.append(separator).append("End date: ").append(this.getEndDate());
         if (this.getLocationId() != null) sb.append(separator).append("Location (id): ").append(this.getLocationId());

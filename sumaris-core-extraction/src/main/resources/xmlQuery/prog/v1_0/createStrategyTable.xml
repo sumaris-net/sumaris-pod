@@ -31,6 +31,7 @@
     <select alias="STRATEGY_NAME" type="text">S.NAME</select>
     <select alias="STRATEGY_DESCRIPTION" type="text">S.DESCRIPTION</select>
     <select alias="STRATEGY_COMMENT" type="text">S.COMMENTS</select>
+    <select alias="STRATEGY_ANALYTIC_REFERENCE" type="text">S.ANALYTIC_REFERENCE</select>
 
     <select alias="START_DATE" type="date">min(APP.START_DATE)</select>
     <select alias="END_DATE" type="date">max(APP.END_DATE)</select>
@@ -64,7 +65,7 @@
     </where>
 
     <groupby>
-      RECORD_TYPE, PROJECT, STRATEGY, STRATEGY_NAME, STRATEGY_DESCRIPTION, STRATEGY_COMMENT,
+      RECORD_TYPE, PROJECT, STRATEGY, STRATEGY_NAME, STRATEGY_DESCRIPTION, STRATEGY_COMMENT, ANALYTIC_REFERENCE,
       PROGRAM_ID, STRATEGY_ID
     </groupby>
 
