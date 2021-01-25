@@ -48,6 +48,7 @@
     <!-- landing location -->
     <from join="true">INNER JOIN LOCATION LOC on LOC.ID = L.LANDING_LOCATION_FK</from>
 
+    <where>1=1</where>
     <where operator="AND" group="startDateFilter"><![CDATA[L.LANDING_DATE_TIME >= &startDate]]></where>
     <where operator="AND" group="endDateFilter"><![CDATA[L.LANDING_DATE_TIME <= &endDate]]></where>
 
