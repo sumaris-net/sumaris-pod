@@ -26,9 +26,25 @@
 
     <!-- PK -->
     <select alias="RECORD_TYPE" type="text">'PR'</select>
-    <select alias="PROJECT" type="text">SM.PROJECT</select>
+    <select alias="PROJECT" type="text">P.LABEL</select>
+    <select alias="PROGRAM_ID" type="number">P.ID</select>
+    <select alias="STRATEGY_NAME" type="text">P.NAME</select>
+    <select alias="STRATEGY_DESCRIPTION" type="text">P.DESCRIPTION</select>
 
-    <from alias="SM">&amp;strategyMonitoringTableName</from>
+    <from alias="P">PROGRAM</from>
+
+    <where operator="AND">
+      EXISTS (SELECT ID FROM &amp;strategyTableName WHERE PROGRAM_ID=P.ID)
+    </where>
+
+    <where operator="AND" group="idsFilter">
+      <in field="S.ID"><![CDATA[&ids]]></in>
+    </where>
+    <where operator="AND" group="labelsmFilter">
+      <in field="P.LABEL"><![CDATA[&labels]]></in>
+    </where>
+
+    <orderby direction="ASC">P.ID</orderby>
 
   </query>
 

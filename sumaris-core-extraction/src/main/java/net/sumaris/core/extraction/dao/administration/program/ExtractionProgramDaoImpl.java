@@ -118,6 +118,16 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
             if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
             if (sheetName != null && context.hasSheet(sheetName)) return context;
 
+            // Strategy
+            rowCount = createStrategyTable(context);
+            if (rowCount == 0) return context;
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+            // StrategyMonitoring
+            rowCount = createStrategyMonitoringTable(context);
+            if (rowCount == 0) return context;
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
+
             return context;
         }
         catch (PersistenceException e) {
@@ -192,14 +202,14 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
     protected XMLQuery createProgramQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createProgramTable");
         xmlQuery.bind("programTableName", context.getProgramTableName());
-        xmlQuery.bind("strategyMonitoringTableName", context.getStrategyMonitoringTableName());
-
-        // Bind some referential ids
-        xmlQuery.bind("strategyLabelPmfmId", String.valueOf(PmfmEnum.STRATEGY_LABEL.getId()));
+        //xmlQuery.bind("strategyMonitoringTableName", context.getStrategyMonitoringTableName());
 
         // Program Filter
         xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
         xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+
+        /*// Bind some referential ids
+        xmlQuery.bind("strategyLabelPmfmId", String.valueOf(PmfmEnum.STRATEGY_LABEL.getId()));
 
         // Strategy Filter
         xmlQuery.setGroup("strategyFilter", CollectionUtils.isNotEmpty(context.getStrategyIds()));
@@ -208,11 +218,7 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         // Date filters
         xmlQuery.setGroup("periodFilter", context.getStartDate() != null && context.getEndDate() != null);
         xmlQuery.bind("startDate", Daos.getSqlToDate(Dates.resetTime(context.getStartDate())));
-        xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));
-
-        // Recorder Department tripFilter
-        xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
-        xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
+        xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));*/
 
         return xmlQuery;
     }
