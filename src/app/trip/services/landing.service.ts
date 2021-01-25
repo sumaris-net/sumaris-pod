@@ -581,7 +581,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         data: json
       },
       offlineResponse,
-      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"},
+      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "ERROR.SAVE_ERROR"},
       update: async (proxy, {data}) => {
         const savedEntity = data && data.saveLanding && data.saveLanding;
 

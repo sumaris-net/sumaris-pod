@@ -742,7 +742,6 @@
       "TAB_NEW_VESSEL": "Create new vessel"
     },
     "TABLE": {
-      "TITLE": "Observations",
       "PROGRAM": "Program",
       "START_DATE_TIME": "Date/time",
       "QUALITY": "Status",
@@ -759,13 +758,6 @@
     "OPTIONS": {
       "ENABLE": "Observations > Enable ?",
       "NAME": "Observations > Title (menu)"
-    },
-    "ERROR": {
-      "LOAD_ERROR": "Error while loading the observation.",
-      "LOAD_ALL_ERROR": "Error while loading observations.",
-      "SAVE_ERROR": "Error while saving the observation.",
-      "SAVE_ALL_ERROR": "Error while saving observations.",
-      "SUBSCRIBE_ERROR": "Error while subscribe to observation changes"
     }
   },
   "LANDING": {
@@ -780,12 +772,13 @@
     "VESSEL": "Vessel",
     "LANDING": "Landing:",
     "DATE_TIME": "Date/Time",
-    "LOCATION": "Landing site",
+    "LOCATION": "Sampling site /!\ TODO BLA Landing site",
     "OBSERVERS": "Observers:",
     "OBSERVER_PLACEHOLDER": "Observer #",
     "TAB_SAMPLES": "Samples",
     "NEW": {
-      "TITLE": "New landing"
+      "TITLE": "New landing",
+      "SAMPLE_TITLE": "New sample"
     },
     "EDIT": {
       "TITLE": "Landing {{vessel}}",
@@ -1232,12 +1225,10 @@
     },
     "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
     "APPLIED_STRATEGIES" :"Fishing area(s)",
-    "FISHING_AREA" : "Fishing area(s)",
     "LABEL": "Sample row code",
     "SAMPLE_ROW_TITLE": "Sample row code",
     "ANALYTIC_REFERENCE": "EOTP",
     "DEPARTMENTS": "Laboratory",
-    "TARGET_SPECIE": "Target specie",
     "LANDING_PORT": "Landing port",
     "SEX": "Sexe",
     "AGE": "Age",
@@ -1248,6 +1239,7 @@
     "WEIGHT_TABLE": "Weights",
     "SIZE_TABLE": "Sizes",
     "MATURITY_TABLE": "Maturities",
+    "OTHER_TABLE": "Other",
     "CALCIFIED_TYPE": "Types of calcified parts: " ,
     "SIZE_INCREMENT": "Size increment",
     "EFFORT": "Effort : ",
@@ -1587,7 +1579,10 @@
     "LOAD_TRASH_ENTITY_ERROR": "Error while loading the trash file",
     "DELETE_TRASH_ENTITY_ERROR": "Error while deleting the trash file",
     "ENTITY_STORAGE_MIGRATION_FAILED": "Failed to migrate the local database",
-    "STARTUP_FAILED": "Startup failed"
+    "STARTUP_FAILED": "Startup failed",
+    "LOAD_ERROR": "Error while loading",
+    "SAVE_ERROR": "Error while saving",
+    "SUBSCRIBE_ERROR": "Error while subscribe to changes"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

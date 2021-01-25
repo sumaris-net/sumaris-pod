@@ -44,6 +44,9 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
 
   highlightedRow: TableElement<ObservedLocation>;
 
+  // TODO BLA: review
+  observedLocationName: string;
+
   constructor(
     protected injector: Injector,
     protected route: ActivatedRoute,
@@ -56,6 +59,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
+    private configService: ConfigService
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, settings,
@@ -166,6 +170,18 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
         )
         .subscribe());
 
+
+    // TODO BLA:
+    this.registerSubscription(
+      this.configService.config.subscribe(config => {
+        if (config && config.properties) {
+          const observedLocationName = config.properties[TripConfigOptions.OBSERVED_LOCATION_NAME.key];
+          if (observedLocationName) {
+            this.observedLocationName = observedLocationName;
+          }
+        }
+      })
+    );
 
     // Restore filter from settings, or load all
     this.restoreFilterOrLoad();

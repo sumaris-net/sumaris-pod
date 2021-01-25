@@ -120,9 +120,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   set showPMFMDetailsColumns(value: boolean) {
     // Display PMFM details or other columns
     this.setShowColumn('parameterId', value);
-    this.setShowColumn('matrixId', value);
-    this.setShowColumn('fractionId', value);
-    this.setShowColumn('methodId', value);
 
     this.setShowColumn('acquisitionLevel', !value);
     this.setShowColumn('rankOrder', !value);
@@ -174,9 +171,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           'rankOrder',
           'pmfm',
           'parameterId',
-          'matrixId',
-          'fractionId',
-          'methodId',
           'isMandatory',
           'acquisitionNumber',
           'minValue',
@@ -320,68 +314,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           })
         ),
         attributes: pmfmParameterAttributes,
-        displayWith: this.displayParameter,
-        columnSizes: [4, 8],
+        displayWith: (obj) => this.displayParameter(obj),
+        columnSizes: [4,8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size'
-      })
-    });
-
-    // PMFM.MATRIX
-    const mfmAttributes = ['name'];
-    this.registerFormField('matrixId', {
-      type: 'entity',
-      required: false,
-      autocomplete: this.registerAutocompleteField('matrixId', {
-        items: this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          map((pmfms: Pmfm[]) => {
-            return removeDuplicatesFromArray(pmfms.map(p => p.matrix), 'name');
-          })
-        ),
-        attributes: ['name'],
-        displayWith: this.displayMatrix,
-        showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-medium-size'
-      })
-    });
-
-    // PMFM.FRACTION
-    this.registerFormField('fractionId', {
-      type: 'entity',
-      required: false,
-      autocomplete: this.registerAutocompleteField('fractionId', {
-        items: this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          map((pmfms: Pmfm[]) => {
-            return removeDuplicatesFromArray(pmfms.map(p => p.fraction), 'name');
-          })
-        ),
-        attributes: mfmAttributes,
-        displayWith: this.displayFraction,
-        class: 'mat-autocomplete-panel-medium-size',
-        showAllOnFocus: false
-      })
-    });
-
-
-
-    // PMFM.METHOD
-    this.registerFormField('methodId', {
-      type: 'entity',
-      required: false,
-      autocomplete: this.registerAutocompleteField('methodId', {
-        items: this.$pmfms.pipe(
-          filter(isNotNil),
-          map(pmfms => removeDuplicatesFromArray(pmfms.map(p => p.method), 'name'))
-        ),
-        attributes: mfmAttributes,
-        displayWith: (v) => this.displayMethod(v),
-        class: 'mat-autocomplete-panel-medium-size',
-        showAllOnFocus: false
+        class: 'mat-autocomplete-panel-large-size'
       })
     });
 
@@ -667,34 +604,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     }
   }
 
-  // TODO BLA à revoir: utiliser un Observable $matrixes plutot ?
-  displayMatrix(id) {
-    if (id) {
-      id = id && id.id ? id.id : id;
-      const t = this['items']['source']['source']['value'];
-      return t.find(pmfm => pmfm.matrix?.id === id) ? t.find(pmfm => pmfm.matrix?.id === id).matrix.name : "";
-    }
-    return "";
-  }
-
-  // TODO BLA à revoir:
-  displayFraction(id) {
-    if (id) {
-      id = id && id.id ? id.id : id;
-      const t = this['items']['source']['source']['value'];
-      return t.find(pmfm => pmfm.fraction?.id === id) ? t.find(pmfm => pmfm.fraction?.id === id).fraction.name : "";
-    }
-    return "";
-  }
-
-  // TODO BLA à revoir:
-  displayParameter(id) {
-    if (id) {
-      id = id && id.id ? id.id : id;
-      const t = this['items']['source']['source']['value'];
-      return t.find(pmfm => pmfm.parameter?.id === id) ? t.find(pmfm => pmfm.parameter?.id === id).parameter.name : "";
-    }
-    return "";
+  displayParameter(obj: number|Referential) {
+    const parameterId = (obj instanceof Referential) ? obj.id : obj as number;
+    const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.parameter?.id === parameterId);
+    return pmfm && pmfm.parameter && pmfm.parameter.name || '';
   }
 
   displayMethod(obj: number|ReferentialRef) {

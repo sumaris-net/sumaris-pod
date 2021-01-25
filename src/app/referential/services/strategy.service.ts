@@ -50,8 +50,8 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${StrategyFragments.strategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.pmfmStrategy}
   ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.pmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -93,6 +93,14 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   `
 };
 
+// TODO BLA: Rename en ExistsByLabel
+const LoadQueryWithoutFragment: any = gql`
+  query Strategy($label: String!) {
+    strategy(label: $label) {
+      id
+    }
+  }
+`;
 
 const LoadQueryWithExpandedPmfmStrategy: any = gql`
   query Strategy($label: String!, $expandedPmfmStrategy : Boolean!) {
@@ -163,6 +171,40 @@ export class StrategyService extends BaseReferentialService<Strategy, Referentia
       StrategyMutations,
       strategySubscriptions,
       ReferentialFilter.asPodObject, StrategyFilter.searchFilter);
+  }
+
+  // TODO BLA: rename
+  async ExistLabel(label: string): Promise<Strategy | null> {
+    if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[strategy-service] Loading strategy #${label}...`);
+    this.loading = true;
+
+    try {
+      let json: any;
+
+      // Load from pod
+      const res = await this.graphql.query<{ strategy: Strategy }>({
+        query: LoadQueryWithoutFragment,
+        variables: {
+          label: label
+        },
+
+        error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "STRATEGY.ERROR.LOAD_STRATEGY_ERROR"},
+        fetchPolicy: undefined,
+
+      });
+      json = res && res.strategy;
+
+
+      // Transform to entity
+      const data = Strategy.fromObject(json);
+      if (data && this._debug) console.debug(`[strategy-service] Strategy #${label} loaded in ${Date.now() - now}ms`, data);
+      return data;
+    } finally {
+      this.loading = false;
+    }
   }
 
   /**

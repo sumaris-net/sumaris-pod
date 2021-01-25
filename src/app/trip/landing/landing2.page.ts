@@ -18,7 +18,7 @@ import { Strategy } from "../../referential/services/model/strategy.model";
 import { ReferentialRefService } from "../../referential/services/referential-ref.service";
 import { StrategyService } from "../../referential/services/strategy.service";
 import { VesselSnapshotService } from "../../referential/services/vessel-snapshot.service";
-import { isNil, isNotEmptyArray, isNotNil } from '../../shared/functions';
+import {isNil, isNotEmptyArray, isNotNil, removeDuplicatesFromArray} from '../../shared/functions';
 import { EntityServiceLoadOptions } from "../../shared/services/entity-service.class";
 import { Samples2Table } from "../sample/samples2.table";
 import { LandingService } from "../services/landing.service";
@@ -110,7 +110,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
             }));
       })
     });
-    
+
     // this.landing2Form.program = this.program.label;
     // Watch program, to configure tables from program properties
 
@@ -142,7 +142,13 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
         this.landing2Form.sampleRowCodeControl.patchValue(sampleRowCode);
         let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
-        let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
+        let pmfmStrategies = pmfmStrategy.pmfmStrategies;
+
+        // IMAGINE-201 : Existing bug in PMFM_STRATEGY storage => some duplicates exists
+        pmfmStrategies =removeDuplicatesFromArray(pmfmStrategies, 'id');
+
+        pmfmStrategies = pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
+
 
         // Refresh fishing areas from landing2Form according to selected sampleRowCode
         this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
@@ -378,7 +384,13 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         strategyLabel=this.landing2Form.sampleRowCode;
       }
       let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
-      let pmfmStrategies = pmfmStrategy.pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
+      let pmfmStrategies = pmfmStrategy.pmfmStrategies;
+
+      // IMAGINE-201 : Existing bug in PMFM_STRATEGY storage => some duplicates exists
+      pmfmStrategies =removeDuplicatesFromArray(pmfmStrategies, 'id');
+
+      pmfmStrategies = pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
+
 
       this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
       //propagation of taxonNames by strategy
@@ -442,7 +454,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + (await this.translate.get('LANDING.NEW.TITLE').toPromise());
+      return titlePrefix + (await this.translate.get('LANDING.NEW.SAMPLE_TITLE').toPromise());
     }
 
     // Existing data
