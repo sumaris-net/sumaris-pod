@@ -180,7 +180,7 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         execute(xmlQuery);
         long count = countFrom(context.getProgramTableName());
 
-        // Clean row using generic tripFilter
+        // Clean row using generic filter
         if (count > 0) {
             count -= cleanRow(context.getProgramTableName(), context.getFilter(), context.getProgramSheetName());
         }
@@ -202,23 +202,104 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
     protected XMLQuery createProgramQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createProgramTable");
         xmlQuery.bind("programTableName", context.getProgramTableName());
+
+        // Ids Filter
+        xmlQuery.setGroup("idsFilter", CollectionUtils.isNotEmpty(context.getProgramIds()));
+        xmlQuery.bind("ids", Daos.getSqlInEscapedStrings(context.getProgramIds()));
+
+        // Labels Filter
+        xmlQuery.setGroup("labelsFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
+        xmlQuery.bind("labels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+
+        return xmlQuery;
+    }
+
+    protected long createStrategyTable(C context) {
+        XMLQuery xmlQuery = createStrategyQuery(context);
+
+        // aggregate insertion
+        execute(xmlQuery);
+        long count = countFrom(context.getStrategyTableName());
+
+        // Clean row using generic filter
+        if (count > 0) {
+            count -= cleanRow(context.getStrategyTableName(), context.getFilter(), context.getStrategySheetName());
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(context.getStrategyTableName(),
+                    context.getStrategySheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug(String.format("Strategy table: %s rows inserted", count));
+        }
+        else {
+            context.addRawTableName(context.getStrategyTableName());
+        }
+        return count;
+    }
+
+    protected XMLQuery createStrategyQuery(C context) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createStrategyTable");
+        xmlQuery.bind("strategyTableName", context.getStrategyTableName());
         //xmlQuery.bind("strategyMonitoringTableName", context.getStrategyMonitoringTableName());
 
-        // Program Filter
-        xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
-        xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+        // Ids Filter
+        xmlQuery.setGroup("idsFilter", CollectionUtils.isNotEmpty(context.getStrategyIds()));
+        xmlQuery.bind("ids", Daos.getSqlInEscapedStrings(context.getStrategyIds()));
 
-        /*// Bind some referential ids
-        xmlQuery.bind("strategyLabelPmfmId", String.valueOf(PmfmEnum.STRATEGY_LABEL.getId()));
-
-        // Strategy Filter
-        xmlQuery.setGroup("strategyFilter", CollectionUtils.isNotEmpty(context.getStrategyIds()));
-        xmlQuery.bind("strategyIds", Daos.getSqlInNumbers(context.getStrategyIds()));
+        // Labels Filter
+        xmlQuery.setGroup("labelsFilter", CollectionUtils.isNotEmpty(context.getStrategyLabels()));
+        xmlQuery.bind("labels", Daos.getSqlInEscapedStrings(context.getStrategyLabels()));
 
         // Date filters
-        xmlQuery.setGroup("periodFilter", context.getStartDate() != null && context.getEndDate() != null);
+        xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
         xmlQuery.bind("startDate", Daos.getSqlToDate(Dates.resetTime(context.getStartDate())));
-        xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));*/
+        xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
+        xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));
+
+        return xmlQuery;
+    }
+
+    protected long createStrategyMonitoringTable(C context) {
+        XMLQuery xmlQuery = createStrategyMonitoringQuery(context);
+
+        // aggregate insertion
+        execute(xmlQuery);
+        long count = countFrom(context.getStrategyMonitoringTableName());
+
+        // Clean row using generic filter
+        if (count > 0) {
+            count -= cleanRow(context.getStrategyMonitoringTableName(), context.getFilter(), context.getStrategyMonitoringSheetName());
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(context.getStrategyMonitoringTableName(),
+                    context.getStrategyMonitoringSheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug(String.format("StrategyMonitoring table: %s rows inserted", count));
+        }
+        else {
+            context.addRawTableName(context.getStrategyMonitoringTableName());
+        }
+        return count;
+    }
+
+    protected XMLQuery createStrategyMonitoringQuery(C context) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createStrategyMonitoringTable");
+        xmlQuery.bind("strategyMonitoringTableName", context.getStrategyMonitoringTableName());
+
+        // Bind some referential ids
+        xmlQuery.bind("strategyLabelPmfmId", String.valueOf(PmfmEnum.STRATEGY_LABEL.getId()));
+
+        // Date filters
+        xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
+        xmlQuery.bind("startDate", Daos.getSqlToDate(Dates.resetTime(context.getStartDate())));
+        xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
+        xmlQuery.bind("endDate", Daos.getSqlToDate(Dates.lastSecondOfTheDay(context.getEndDate())));
 
         return xmlQuery;
     }

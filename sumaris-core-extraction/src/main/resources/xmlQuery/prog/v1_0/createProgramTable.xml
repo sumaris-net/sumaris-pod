@@ -40,7 +40,7 @@
     <where operator="AND" group="idsFilter">
       <in field="S.ID"><![CDATA[&ids]]></in>
     </where>
-    <where operator="AND" group="labelsmFilter">
+    <where operator="AND" group="labelsFilter">
       <in field="P.LABEL"><![CDATA[&labels]]></in>
     </where>
 
