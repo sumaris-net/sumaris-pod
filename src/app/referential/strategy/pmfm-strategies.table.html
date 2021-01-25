@@ -88,9 +88,6 @@
                         [pmfm]="pmfm"
                         [compact]="true">
         </app-pmfm-field>
-        <ng-template #pmfmReadonly>
-          <ion-text [innerHTML]="row.currentData.defaultValue | pmfmValueToString: {pmfm: pmfm}"></ion-text>
-        </ng-template>
       </ng-container>
     </mat-cell>
   </ng-container>
@@ -98,7 +95,8 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell  [hidden]="!canDisplayColumnsHeaders" *matHeaderCellDef [hidden]="!inlineEdition">
+    <mat-header-cell  [hidden]="!canDisplayColumnsHeaders || !inlineEdition"
+                      *matHeaderCellDef >
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
 

@@ -143,6 +143,7 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
                 filter?: F,
                 opts?: {
                   [key: string]: any;
+                  query?: any;
                   fetchPolicy?: FetchPolicy;
                   debug?: boolean;
                   withTotal?: boolean;
@@ -167,7 +168,7 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     const {data, total} = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "ERROR.LOAD_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
     const entities = (!opts || opts.toEntity !== false) ?

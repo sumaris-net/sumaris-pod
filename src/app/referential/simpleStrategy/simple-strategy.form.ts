@@ -5,10 +5,9 @@ import * as moment from "moment";
 import { Moment } from 'moment/moment';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { SharedValidators } from 'src/app/shared/validator/validators';
-import { AppForm, EntityUtils, FormArrayHelper, IReferentialRef, ReferentialRef } from '../../core/core.module';
 import { LocalSettingsService } from "../../core/services/local-settings.service";
-import { ReferentialUtils } from "../../core/services/model/referential.model";
-import { fromDateISOString, isNil } from "../../shared/functions";
+import {IReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import { fromDateISOString } from "../../shared/dates";
 import { PmfmStrategy } from "../services/model/pmfm-strategy.model";
 import { Program } from '../services/model/program.model';
 import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy } from "../services/model/strategy.model";
@@ -17,11 +16,12 @@ import { StrategyService } from "../services/strategy.service";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { PmfmStrategiesTable } from "../strategy/pmfm-strategies.table";
 import {TaxonNameRef} from "../services/model/taxon.model";
-import {LocationLevelIds, ParameterLabelStrategies} from '../services/model/model.enum';
+import {LocationLevelIds, ParameterLabelList} from '../services/model/model.enum';
 import {AppForm} from "../../core/form/form.class";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
+import {isNil} from "../../shared/functions";
 
 @Component({
   selector: 'form-simple-strategy',
@@ -66,6 +66,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   pmfmStrategiesFocusIndex = -1;
   label = '';
 
+  tabIndex?: number;
+  hidden?: boolean;
+  appliedYear = '';
+
   @Input() program: Program;
   @Input() showError = true;
   @Input() entityName;
@@ -109,14 +113,12 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: FormBuilder
   ) {
     super(dateAdapter, validatorService.getRowValidator(), settings);
     this.mobile = this.settings.mobile;
   }
-  tabIndex?: number;
-  hidden?: boolean;
-  appliedYear = '';
+
 
   async setPmfmStrategies() {
     const pmfms = [];
@@ -326,9 +328,12 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.form.get('label').setAsyncValidators([
       async (control) => {
         if (data && control.value !== data.label) {
-          return await this.strategyService.ExistLabel(control.value)
-          .then(() => {return <ValidationErrors>{unique: false};})
-          .catch(() => {SharedValidators.clearError(control, 'unique'); return null;});
+          const exists = await this.strategyService.existLabel(control.value);
+          if (exists) {
+            return <ValidationErrors>{unique: false};
+          }
+
+          SharedValidators.clearError(control, 'unique');
         }
         return null;
       }
@@ -402,8 +407,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     if (!data.id) {
       pmfmStrategies = [null, null];
     } else {
-      const hasAge = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.AGE)) !== -1;
-      const hasSex = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.SEX)) !== -1;
+      const hasAge = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelList.AGE)) !== -1;
+      const hasSex = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelList.SEX)) !== -1;
       pmfmStrategies = [hasSex, hasAge];
     }
 
@@ -411,8 +416,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // TODO BLA: revoir ces sélections: utliser PmfmUtils
     const weightPmfmStrategy = (data.pmfmStrategies || []).filter(
       p =>
-      (p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.WEIGHTS.includes(p.pmfm.parameter.label)) ||
-      (p['parameter'] && ParameterLabelStrategies.WEIGHTS.includes(p['parameter'].label))
+      (p.pmfm && p.pmfm.parameter && ParameterLabelList.WEIGHTS.includes(p.pmfm.parameter.label)) ||
+      (p['parameter'] && ParameterLabelList.WEIGHTS.includes(p['parameter'].label))
     );
     pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
     this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
@@ -420,8 +425,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     //Sizes
     const sizePmfmStrategy = (data.pmfmStrategies || []).filter(
       p =>
-      (p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.LENGTHS.includes(p.pmfm.parameter.label)) ||
-      (p['parameter'] && ParameterLabelStrategies.LENGTHS.includes(p['parameter'].label))
+      (p.pmfm && p.pmfm.parameter && ParameterLabelList.LENGTH.includes(p.pmfm.parameter.label)) ||
+      (p['parameter'] && ParameterLabelList.LENGTH.includes(p['parameter'].label))
     );
     pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : []);
     this.sizePmfmStrategiesTable.value = sizePmfmStrategy.length > 0 ? sizePmfmStrategy : [new PmfmStrategy()];
@@ -429,8 +434,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     //Maturities
     const maturityPmfmStrategy = (data.pmfmStrategies || []).filter(
       p =>
-      (p.pmfm && p.pmfm.parameter && ParameterLabelStrategies.MATURITIES.includes(p.pmfm.parameter.label)) ||
-      (p['parameter'] && ParameterLabelStrategies.MATURITIES.includes(p['parameter'].label))
+      (p.pmfm && p.pmfm.parameter && ParameterLabelList.MATURITY.includes(p.pmfm.parameter.label)) ||
+      (p['parameter'] && ParameterLabelList.MATURITY.includes(p['parameter'].label))
     );
     pmfmStrategies.push(maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : []);
     this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : [new PmfmStrategy()];
@@ -474,7 +479,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.sampleRowMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
 
     // get new label sample row code
-    const updatedLabel = await this.strategyService.findStrategyNextLabel(this.programId, `${year}-BIO-`, 4);
+    const updatedLabel = await this.strategyService.computeNextLabel(this.programId, `${year}-BIO-`, 4);
 
     const label = labelControl.value;
     if (isNil(label)) {
@@ -678,12 +683,12 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     };
   }
 
-  ifSex() : boolean {
+  ifSex(): boolean {
     const sex = this.pmfmStrategiesForm.value[0];
     return sex;
   }
 
-  ifAge() : boolean {
+  ifAge(): boolean {
     const sex = this.pmfmStrategiesForm.value[1];
     return sex;
   }

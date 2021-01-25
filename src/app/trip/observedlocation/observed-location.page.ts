@@ -52,7 +52,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   @ViewChild('landingsTable') landingsTable: LandingsTable;
 
-  @ViewChild('landings2Table') landings2Table:Landings2Table;
+  @ViewChild('landings2Table') landings2Table: Landings2Table;
 
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
@@ -395,7 +395,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.addChildForms([
       this.observedLocationForm,
       () => this.landingsTable,
-      () => this.landingsTable2,
+      () => this.landings2Table,
       () => this.aggregatedLandingsTable
     ]);
   }

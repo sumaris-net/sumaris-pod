@@ -26,7 +26,8 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
   OBSERVED_LOCATION_NAME: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.name',
     label: 'OBSERVED_LOCATION.OPTIONS.NAME',
-    type: 'string'
+    type: 'string',
+    defaultValue: 'MENU.OBSERVED_LOCATION'
   }
 });
 

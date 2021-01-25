@@ -96,7 +96,7 @@ export const MethodIds = {
 };
 
 // TODO BLA: renommer en ParameterLabelList
-export const ParameterLabelStrategies = {
+export const ParameterLabelList = {
   AGE: ['AGE'],
   SEX: ['SEX'],
   WEIGHTS: ['WEIGHT'],

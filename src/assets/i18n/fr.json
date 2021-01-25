@@ -790,7 +790,7 @@
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
-      "LOCATION": "Port /!\ TODO BLA Lieu de débarquement",
+      "LOCATION": "Port !!! TODO BLA Lieu de débarquement",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaire",
       "SAMPLES": "Ligne de plan",
@@ -1181,7 +1181,7 @@
       "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Paramètres biologiques",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
-      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)"
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Nouveau navire > Saisir le type de navire ?"
     },

@@ -17,12 +17,13 @@ import {ObservedLocation} from "../services/model/observed-location.model";
 import {PersonService} from "../../admin/services/person.service";
 import {SharedValidators} from "../../shared/validator/validators";
 import {StatusIds} from "../../core/services/model/model.enum";
-import {Trip} from "../services/model/trip.model";
 import {AppRootTable} from "../../data/table/root-table.class";
-import {OBSERVED_LOCATION_FEATURE_NAME} from "../services/config/trip.config";
+import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {isNil} from "../../shared/functions";
+import {isNil, isNotNilOrBlank} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
+import {ConfigService} from "../../core/services/config.service";
+import {BehaviorSubject} from "rxjs";
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -43,9 +44,7 @@ export const ObservedLocationsPageSettingsEnum = {
 export class ObservedLocationsPage extends AppRootTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
   highlightedRow: TableElement<ObservedLocation>;
-
-  // TODO BLA: review
-  observedLocationName: string;
+  $title = new BehaviorSubject<string>('');
 
   constructor(
     protected injector: Injector,
@@ -59,7 +58,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
-    private configService: ConfigService
+    protected configService: ConfigService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, settings,
@@ -170,16 +169,10 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
         )
         .subscribe());
 
-
-    // TODO BLA:
     this.registerSubscription(
       this.configService.config.subscribe(config => {
-        if (config && config.properties) {
-          const observedLocationName = config.properties[TripConfigOptions.OBSERVED_LOCATION_NAME.key];
-          if (observedLocationName) {
-            this.observedLocationName = observedLocationName;
-          }
-        }
+        const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
+        this.$title.next(title);
       })
     );
 

@@ -126,64 +126,7 @@ const ProgramFragments = {
         ...ReferentialFragment
       }
     }
-    `,
-  strategyRef: gql`
-    fragment StrategyRefFragment on StrategyVO {
-      id
-      label
-      name
-      description
-      comments
-      updateDate
-      creationDate
-      statusId
-      gears {
-        ...ReferentialFragment
-      }
-      taxonGroups {
-        ...TaxonGroupStrategyFragment
-      }
-      taxonNames {
-        ...TaxonNameStrategyFragment
-      }
-      pmfmStrategies {
-        ...PmfmStrategyRefFragment
-      }
-    }
-  `,
-  pmfmStrategyRef: gql`
-    fragment PmfmStrategyRefFragment on PmfmStrategyVO {
-      id
-      pmfmId
-      parameterId # TODO BLA check if need
-      matrixId
-      fractionId
-      methodId
-      label
-      name
-      unitLabel
-      type
-      minValue
-      maxValue
-      maximumNumberDecimals
-      defaultValue
-      acquisitionNumber
-      isMandatory
-      rankOrder
-      acquisitionLevel
-      gearIds
-      taxonGroupIds
-      referenceTaxonIds
-      qualitativeValues {
-        id
-        label
-        name
-        statusId
-        entityName
-        __typename
-      }
-      __typename
-  }`
+    `
 };
 const LoadRefQuery: any = gql`
   query ProgramRef($id: Int, $label: String){
@@ -192,8 +135,8 @@ const LoadRefQuery: any = gql`
       }
   }
   ${ProgramFragments.programRef}
-  ${ProgramFragments.strategyRef}
-  ${ProgramFragments.pmfmStrategyRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.pmfmStrategyRef}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -238,8 +181,8 @@ const LoadAllRefWithTotalQuery: any = gql`
     total: programsCount(filter: $filter)
   }
   ${ProgramFragments.programRef}
-  ${ProgramFragments.strategyRef}
-  ${ProgramFragments.pmfmStrategyRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.pmfmStrategyRef}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}

@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {CacheService} from "ionic-cache";
@@ -11,8 +11,10 @@ import {ReferentialFilter} from "./referential.service";
 import {Strategy} from "./model/strategy.model";
 import {
   BaseReferentialEntitiesQueries,
-  BaseReferentialEntityMutations, BaseReferentialEntityQueries,
-  BaseReferentialService, BaseReferentialSubscriptions
+  BaseReferentialEntityMutations,
+  BaseReferentialEntityQueries,
+  BaseReferentialService,
+  BaseReferentialSubscriptions
 } from "./base-referential.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
@@ -20,6 +22,8 @@ import {SortDirection} from "@angular/material/sort";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
+import {firstArrayValue, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
+import {EntityServiceLoadOptions, LoadResult} from "../../shared/services/entity-service.class";
 
 
 export class StrategyFilter extends ReferentialFilter {
@@ -41,7 +45,7 @@ const LoadAllAnalyticReferencesQuery: any = gql`
   ${ReferentialFragments.referential}
 `;
 
-const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQueries = {
+const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQueries & { count: any; loadAllRef: any; } = {
   load: gql`query Strategy($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyFragment
@@ -90,37 +94,37 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${ReferentialFragments.referential}
   ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}
-  `
+  `,
+  count: gql`query StrategyCount($filter: StrategyFilterVOInput!) {
+      total: strategiesCount(filter: $filter)
+    }
+  `,
+  loadAllRef: gql`query StrategiesRef($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: strategies(filter: $filter) {
+        ...StrategyRefFragment
+        appliedStrategies {
+          ...AppliedStrategyFragment
+        }
+        pmfmStrategies {
+          ...PmfmStrategyFragment
+        }
+        departments {
+          ...StrategyDepartmentFragment
+        }
+      }
+    }
+    ${StrategyFragments.strategyRef}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.strategyRef}
+    ${StrategyFragments.pmfmStrategyRef}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.referential}
+    ${ReferentialFragments.taxonName}
+    `
 };
-
-// TODO BLA: Rename en ExistsByLabel
-const LoadQueryWithoutFragment: any = gql`
-  query Strategy($label: String!) {
-    strategy(label: $label) {
-      id
-    }
-  }
-`;
-
-const LoadQueryWithExpandedPmfmStrategy: any = gql`
-  query Strategy($label: String!, $expandedPmfmStrategy : Boolean!) {
-    strategy(label: $label, expandedPmfmStrategy : $expandedPmfmStrategy) {
-      ...StrategyFragment
-    }
-  }
-  ${StrategyFragments.strategy}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.pmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.fullPmfm}
-  ${ReferentialFragments.fullParameter}
-  ${ReferentialFragments.taxonName}
-  ${ReferentialFragments.fullReferential}
-`;
 
 const StrategyMutations: BaseReferentialEntityMutations = {
   save: gql`mutation SaveStrategy($data:StrategyVOInput!){
@@ -173,81 +177,68 @@ export class StrategyService extends BaseReferentialService<Strategy, Referentia
       ReferentialFilter.asPodObject, StrategyFilter.searchFilter);
   }
 
-  // TODO BLA: rename
-  async ExistLabel(label: string): Promise<Strategy | null> {
+  async existLabel(label: string, programId?: number): Promise<boolean> {
     if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
 
-    const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[strategy-service] Loading strategy #${label}...`);
-    this.loading = true;
+    const filter: ReferentialFilter = {
+      label,
+      levelId: isNotNil(programId) ? programId : undefined
+    };
+    // Load from pod
+    const {total} = await this.graphql.query<{ total: number }>({
+      query: StrategyQueries.count,
+      variables: { filter },
+      error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"},
+      fetchPolicy: undefined,
 
-    try {
-      let json: any;
-
-      // Load from pod
-      const res = await this.graphql.query<{ strategy: Strategy }>({
-        query: LoadQueryWithoutFragment,
-        variables: {
-          label: label
-        },
-
-        error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "STRATEGY.ERROR.LOAD_STRATEGY_ERROR"},
-        fetchPolicy: undefined,
-
-      });
-      json = res && res.strategy;
-
-
-      // Transform to entity
-      const data = Strategy.fromObject(json);
-      if (data && this._debug) console.debug(`[strategy-service] Strategy #${label} loaded in ${Date.now() - now}ms`, data);
-      return data;
-    } finally {
-      this.loading = false;
-    }
+    });
+    return toNumber(total, 0) > 0;
   }
 
   /**
    *
    * @param label
-   * @param options : expandedPmfmStrategy
+   * @param options
    */
+  async loadAllRef(offset: number,
+                   size: number,
+                   sortBy?: string,
+                   sortDirection?: SortDirection,
+                   filter?: ReferentialFilter,
+                   opts?: {
+                     [key: string]: any;
+                     fetchPolicy?: FetchPolicy;
+                     debug?: boolean;
+                     withTotal?: boolean;
+                     toEntity?: boolean;
+                   }): Promise<LoadResult<Strategy>> {
 
-  async loadByLabel(label: string, options?: EntityServiceLoadOptions): Promise<Strategy | null> {
-    if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
-
-    const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[strategy-service] Loading strategy #${label}...`);
-    this.loading = true;
-
-    try {
-      let json: any;
-
-      // Load from pod
-      const res = await this.graphql.query<{ strategy: Strategy }>({
-        query: LoadQueryWithExpandedPmfmStrategy,
-        variables: {
-          label: label,
-          expandedPmfmStrategy: true
-        },
-
-        error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "STRATEGY.ERROR.LOAD_STRATEGY_ERROR"},
-        fetchPolicy: options && options.fetchPolicy || undefined,
-
-      });
-      json = res && res.strategy;
-
-
-      // Transform to entity
-      const data = Strategy.fromObject(json);
-      if (data && this._debug) console.debug(`[strategy-service] Strategy #${label} loaded in ${Date.now() - now}ms`, data);
-      return data;
-    } finally {
-      this.loading = false;
-    }
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, {
+      ...opts,
+      query: StrategyQueries.loadAllRef
+    });
   }
 
-  async findStrategyNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
+  /**
+   *
+   * @param label
+   * @param options
+   */
+  async loadRefByLabel(label: string, opts?: {
+    programId?: number;
+    fetchPolicy?: FetchPolicy;
+  }): Promise<Strategy> {
+
+    const res = await this.loadAllRef(0, 1, null,null, {
+      label,
+      levelId: toNumber(opts && opts.programId, undefined)
+    }, {
+      ...opts
+    });
+    return res && firstArrayValue(res.data);
+  }
+
+  async computeNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next label...`);
 
     const res = await this.graphql.query<{ strategyNextLabel: string }>({

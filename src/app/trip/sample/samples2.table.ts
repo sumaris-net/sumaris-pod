@@ -2,24 +2,16 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
+  EventEmitter, InjectionToken,
   Injector,
   Input,
   OnDestroy,
   OnInit,
-  Output, ViewChild
+  Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {
-  environment,
-  IReferentialRef,
-  isNil,
-  ReferentialRef,
-  referentialToString, RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from "../../core/core.module";
 import {SampleValidatorService} from "../services/validator/sample.validator";
-import {isNilOrBlank, isNotNil} from "../../shared/functions";
+import {isNotNil} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
 import * as moment from "moment";
 import {Moment} from "moment";
@@ -30,17 +22,20 @@ import {FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {AcquisitionLevelCodes, ParameterLabelStrategies} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, ParameterLabelList} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 import {BehaviorSubject} from "rxjs";
-import {FormFieldDefinition, FormFieldType} from "../../shared/form/field.model";
+import {FormFieldDefinition} from "../../shared/form/field.model";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 export interface SampleFilter {
   operationId?: number;
   landingId?: number;
 }
-export const SAMPLE2_RESERVED_START_COLUMNS: string[] = ['sampleCode','morseCode','comment'/*,'weight','totalLenghtCm','totalLenghtMm','indexGreaseRate'*/];
+export const SAMPLE2_RESERVED_START_COLUMNS: string[] = ['sampleCode', 'morseCode', 'comment' /*,'weight','totalLenghtCm','totalLenghtMm','indexGreaseRate'*/];
 export const SAMPLE2_RESERVED_END_COLUMNS: string[] = [];
 
 declare interface ColumnDefinition extends FormFieldDefinition {
@@ -67,7 +62,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
-  public appliedPmfmStrategies : PmfmStrategy []=[];
+  public appliedPmfmStrategies: PmfmStrategy [] = [];
 
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
@@ -128,12 +123,8 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     return this.getShowColumn('taxonName');
   }*/
 
-
-
-
+  // tslint:disable-next-line:no-output-on-prefix
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
-
-
 
   constructor(
     injector: Injector
@@ -167,9 +158,9 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     if (this.onInitForm) {
       this.registerSubscription(
         this.onStartEditingRow.subscribe(row => this.onInitForm.emit({
-          form: row.validator,
-          pmfms: this.$pmfms.getValue()
-        })));
+              form: row.validator,
+              pmfms: this.$pmfms.getValue()
+            })));
     }
   }
 
@@ -209,20 +200,18 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     return (column.qvIndex % 2 !== 0);
   }
 
-  getFlexSize(columns :ColumnDefinition[], column: ColumnDefinition) {
+  getFlexSize(columns: ColumnDefinition[], column: ColumnDefinition) {
     let columnSize = 0;
     let columnDisplayLabel = false;
-    columns.forEach(colIter =>
-    {
-      if (colIter.defaultValue ===column.defaultValue)
+    columns.forEach(colIter => {
+      if (colIter.defaultValue === column.defaultValue)
       {
         columnSize = columnSize + 1;
-        if ((columnSize == 1) && colIter === column)
-        {
+        if ((columnSize === 1) && colIter === column) {
           columnDisplayLabel = true;
         }
       }
-    })
+    });
     if (columnDisplayLabel)
     {
       return columnSize;
@@ -237,45 +226,37 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
     const userColumns = this.getUserColumns();
 
-    let dynamicColumnNames = [];
-    let dynamicWeightColumnNames = [];
-    let dynamicSizeColumnNames = [];
-    let dynamicMaturityColumnNames = [];
-    let dynamicSexColumnNames = [];
-    let dynamicAgeColumnNames = [];
-    let dynamicOthersColumnNames = [];
+    const dynamicColumnNames = [];
+    const dynamicWeightColumnNames = [];
+    const dynamicSizeColumnNames = [];
+    const dynamicMaturityColumnNames = [];
+    const dynamicSexColumnNames = [];
+    const dynamicAgeColumnNames = [];
+    const dynamicOthersColumnNames = [];
 
     // FIXME CLT WIP
     // filtrer sur les pmfms pour les mettres dans les différents tableaux
     (pmfms || []).map(pmfmStrategy => {
-      let pmfm = pmfmStrategy.pmfm;
-      if (pmfm)
-      {
-        if (pmfm.parameter && pmfm.parameter.label)
-        {
-          let label = pmfm.parameter.label;
-          if (label === ParameterLabelStrategies.AGE)
-          {
+      const pmfm = pmfmStrategy.pmfm;
+      if (pmfm) {
+        if (pmfm.parameter && pmfm.parameter.label) {
+          const label = pmfm.parameter.label;
+          if (ParameterLabelList.AGE.includes(label)) {
             dynamicAgeColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
-          else if (label === ParameterLabelStrategies.SEX)
-          {
+          else if (ParameterLabelList.SEX.includes(label)) {
             dynamicSexColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
-          else if (ParameterLabelStrategies.WEIGHTS.includes(label))
-          {
+          else if (ParameterLabelList.WEIGHTS.includes(label)) {
             dynamicWeightColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
-          else if (ParameterLabelStrategies.LENGTHS.includes(label))
-          {
+          else if (ParameterLabelList.LENGTH.includes(label)) {
             dynamicSizeColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
-          else if (ParameterLabelStrategies.MATURITIES.includes(label))
-          {
+          else if (ParameterLabelList.MATURITY.includes(label)) {
             dynamicMaturityColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
-          else
-          {
+          else {
             // Filter on type. Fractions pmfm doesn't provide type.
             if (pmfmStrategy.type)
             {
@@ -301,7 +282,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     let idx = 1;
     let rankOrderIdx = 1;
     dynamicWeightColumnNames.forEach(pmfmColumnName => {
-      let col = <ColumnDefinition>{
+      const col = <ColumnDefinition>{
       key: pmfmColumnName,
       label: 'PROGRAM.STRATEGY.WEIGHT_TABLE',
       defaultValue: "WEIGHT",
@@ -316,10 +297,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     });
     if (dynamicWeightColumnNames && dynamicWeightColumnNames.length)
     {
-      idx = idx +1;
+      idx = idx + 1;
     }
     dynamicSizeColumnNames.forEach(pmfmColumnName => {
-      let col = <ColumnDefinition>{
+      const col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: 'PROGRAM.STRATEGY.SIZE_TABLE',
         defaultValue: "SIZE",
@@ -329,16 +310,16 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      rankOrderIdx = rankOrderIdx +1;
+      rankOrderIdx = rankOrderIdx + 1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
     if (dynamicSizeColumnNames && dynamicSizeColumnNames.length)
     {
-      idx = idx +1;
+      idx = idx + 1;
     }
     dynamicMaturityColumnNames.forEach(pmfmColumnName => {
-      let col = <ColumnDefinition>{
+      const col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: 'PROGRAM.STRATEGY.MATURITY_TABLE',
         defaultValue: "MATURITY",
@@ -348,16 +329,15 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      rankOrderIdx = rankOrderIdx +1;
+      rankOrderIdx = rankOrderIdx + 1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
-    if (dynamicMaturityColumnNames && dynamicMaturityColumnNames.length)
-    {
-      idx = idx +1;
+    if (dynamicMaturityColumnNames && dynamicMaturityColumnNames.length) {
+      idx = idx + 1;
     }
     dynamicSexColumnNames.forEach(pmfmColumnName => {
-      let col = <ColumnDefinition>{
+      const col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: 'PROGRAM.STRATEGY.SEX',
         defaultValue: "SEX",
@@ -367,16 +347,16 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      rankOrderIdx = rankOrderIdx +1;
+      rankOrderIdx = rankOrderIdx + 1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
     if (dynamicSexColumnNames && dynamicSexColumnNames.length)
     {
-      idx = idx +1;
+      idx = idx + 1;
     }
     dynamicAgeColumnNames.forEach(pmfmColumnName => {
-      let col = <ColumnDefinition>{
+      const col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: 'PROGRAM.STRATEGY.AGE',
         defaultValue: "AGE",
@@ -386,16 +366,16 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      rankOrderIdx = rankOrderIdx +1;
+      rankOrderIdx = rankOrderIdx + 1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
     if (dynamicAgeColumnNames && dynamicAgeColumnNames.length)
     {
-      idx = idx +1;
+      idx = idx + 1;
     }
     dynamicOthersColumnNames.forEach(pmfmColumnName => {
-      let col = <ColumnDefinition>{
+      const col = <ColumnDefinition>{
         key: pmfmColumnName,
         label: 'PROGRAM.STRATEGY.OTHER_TABLE',
         defaultValue: "OTHER",
@@ -405,7 +385,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         rankOrder : rankOrderIdx,
         disabled : false
       };
-      rankOrderIdx = rankOrderIdx +1;
+      rankOrderIdx = rankOrderIdx + 1;
       dynamicColumnNames.push(pmfmColumnName);
       this.dynamicColumns.push(col);
     });
@@ -464,7 +444,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     if (isNotNil(this._defaultTaxonNameFromStrategy.taxonName)) {
       data.taxonName = TaxonNameRef.fromObject(this._defaultTaxonNameFromStrategy.taxonName);
 
-      let taxonGroup = await  this.getTaxoGroupByTaxonNameId(this._defaultTaxonNameFromStrategy.taxonName.id,  "TaxonGroup");
+      const taxonGroup = await this.getTaxoGroupByTaxonNameId(this._defaultTaxonNameFromStrategy.taxonName.id,  "TaxonGroup");
       data.taxonGroup = TaxonNameRef.fromObject(taxonGroup[0]);
     }
 
@@ -551,9 +531,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     // Override by subclasses
   }
 
-  referentialToString = referentialToString;
-  getPmfmColumnHeader = getPmfmName;
-
   public markForCheck() {
     this.cd.markForCheck();
   }
@@ -565,15 +542,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
    * @param entityName
    * @protected
    */
-  protected async getTaxoGroupByTaxonNameId(id : any, entityName : string){
-    const res = await this.referentialRefService.loadAll(0, 100, null,null,
-      {
-        entityName: entityName,
-        id : id
-      },
-      {
-        withTotal: false
-      });
+  protected async getTaxoGroupByTaxonNameId(id: any, entityName: string){
+    const res = await this.referentialRefService.loadAll(0, 100, null, null,
+      { entityName, id },
+      { withTotal: false });
     return res.data;
 
   }

@@ -1,15 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
-import {
-  EntityUtils,
-  FormArrayHelper,
-  IReferentialRef,
-  isNil,
-  isNotNil,
-  Person,
-  ReferentialRef,
-  referentialToString
-} from '../../core/core.module';
+
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
@@ -19,27 +10,30 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormControl, ValidationErrors, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
+import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {Person, personToString, UserProfileLabel} from "../../core/services/model/person.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {toBoolean} from "../../shared/functions";
+import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Landing} from "../services/model/landing.model";
 import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
-import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {AppliedStrategy, Strategy, TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 import {StrategyService} from "../../referential/services/strategy.service";
-import {StrategyFilter} from "../../referential/strategy/strategies.table";
 import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {Pmfm} from "../../referential/services/model/pmfm.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {TranslateService} from "@ngx-translate/core";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {
+  MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig
+} from "../../shared/material/autocomplete/material.autocomplete";
 
 @Component({
   selector: 'app-landing2-form',
@@ -60,8 +54,8 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   @Input() required = true;
 
-  referenceTaxon : ReferentialRef;
-  fishingAreas : ReferentialRef[];
+  referenceTaxon: ReferentialRef;
+  fishingAreas: ReferentialRef[];
   fishingAreaHelper: FormArrayHelper<AppliedStrategy>;
   _sampleRowCode: string;
   _defaultTaxonNameFromStrategy: TaxonNameStrategy;
@@ -289,7 +283,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
         this.enableTaxonNameFilter),
       attributes: ['name'],
       columnNames: [ 'REFERENTIAL.NAME'],
-      columnSizes: [2,10],
+      columnSizes: [2, 10],
       mobile: this.settings.mobile
     });
 
@@ -334,8 +328,8 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       if (!taxonNames) {
         taxonNames = [];
       }
-      if (taxonNames.length == 0) {
-        let emptySampleWithTaxon = new Sample();
+      if (taxonNames.length === 0) {
+        const emptySampleWithTaxon = new Sample();
         emptySampleWithTaxon.taxonName = this._defaultTaxonNameFromStrategy.taxonName;
         taxonNames.push(emptySampleWithTaxon);
       }
@@ -366,8 +360,8 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
 
 
-    let sampleRowCode=[];
-    let sample = new Strategy();
+    const sampleRowCode = [];
+    const sample = new Strategy();
     sample.label = this.sampleRowCode;
     sample.name = this.sampleRowCode;
     sampleRowCode.push(sample);
@@ -426,7 +420,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     return super.registerAutocompleteField(fieldName, options);
   }
 
-  referentialToString = referentialToString;
 
   /* -- protected method -- */
 
@@ -472,14 +465,14 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       if (!this.appliedStrategies.length) return null;
 
       const landingDateTime = this.value.dateTime;
-      let appliedPeriods = this.appliedStrategies.length && this.appliedStrategies[0].appliedPeriods || [];
-      let appliedPeriod = appliedPeriods.find(period => landingDateTime.isBetween(period.startDate, period.endDate, 'day'))
+      const appliedPeriods = this.appliedStrategies.length && this.appliedStrategies[0].appliedPeriods || [];
+      const appliedPeriod = appliedPeriods.find(period => landingDateTime.isBetween(period.startDate, period.endDate, 'day'));
 
       console.debug("[landing-form] Validating effort: ", landingDateTime, appliedPeriod);
 
       if (!appliedPeriod || isNil(appliedPeriod.acquisitionNumber)) {
         return <ValidationErrors>{noEffort: this.translate.instant('LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR')};
-      } else if (appliedPeriod.acquisitionNumber == 0) {
+      } else if (appliedPeriod.acquisitionNumber === 0) {
         // TODO must be a warning, not error
         //return <ValidationErrors>{noEffort: this.translate.instant('LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR')};
       } else {
@@ -495,7 +488,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
 
   toggleFilteredItems(fieldName: string){
-    let value : boolean;
+    let value: boolean;
     switch (fieldName) {
       case 'taxonName':
         this.enableTaxonNameFilter = value = !this.enableTaxonNameFilter;
@@ -514,9 +507,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
    * @param entityName - referential to request
    * @param filtered - boolean telling if we load prefilled data
    */
-  protected async suggest(value: string, filter: any, entityName: string, filtered: boolean) : Promise<IReferentialRef[]> {
+  protected async suggest(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
 
-    if(filtered) {
+    if (filtered) {
       //TODO a remplacer par recuperation des donnees deja saisies
       const res = await this.referentialRefService.loadAll(0, 5, null, null,
         { ...filter,
@@ -559,14 +552,14 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
         })) || [];
       pmfms = pmfms.filter(pmfm => (pmfm.pmfmId && pmfm.type));
 
-      let sampleRowPmfmStrategy = new PmfmStrategy();
-      let sampleRowPmfm = new Pmfm();
+      const sampleRowPmfmStrategy = new PmfmStrategy();
+      const sampleRowPmfm = new Pmfm();
       sampleRowPmfm.id = PmfmIds.SAMPLE_ROW_CODE;
       sampleRowPmfm.type = 'string';
       sampleRowPmfmStrategy.pmfm = sampleRowPmfm;
       sampleRowPmfmStrategy.pmfmId = PmfmIds.SAMPLE_ROW_CODE;
       sampleRowPmfmStrategy.type = 'string';
-      pmfms.push(sampleRowPmfmStrategy)
+      pmfms.push(sampleRowPmfmStrategy);
 
       if (!pmfms.length && this.debug) {
         console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);

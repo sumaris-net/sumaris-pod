@@ -20,13 +20,18 @@ import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmService} from "../services/pmfm.service";
 import {Pmfm} from "../services/model/pmfm.model";
-import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {
+  IReferentialRef,
+  Referential,
+  ReferentialRef,
+  ReferentialUtils
+} from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, filter, map, startWith, switchMap} from "rxjs/operators";
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {ProgramService} from "../services/program.service";
-import {ParameterLabelStrategies} from "../services/model/model.enum";
+import {ParameterLabelList} from "../services/model/model.enum";
 
 export class PmfmStrategyFilter {
 
@@ -315,7 +320,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         ),
         attributes: pmfmParameterAttributes,
         displayWith: (obj) => this.displayParameter(obj),
-        columnSizes: [4,8],
+        columnSizes: [4, 8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-large-size'
@@ -535,7 +540,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // We add a filter on pmfm with parameter in ('WEIGHT')
         const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
-          levelLabels: ParameterLabelStrategies.WEIGHTS
+          levelLabels: ParameterLabelList.WEIGHTS
           // searchJoin: "Parameter" is implied in pod filter
         },
           {
@@ -549,7 +554,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // We add a filter on pmfm with parameter in specific size list
         const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
-          levelLabels: ParameterLabelStrategies.LENGTHS
+          levelLabels: ParameterLabelList.LENGTH
           // searchJoin: "Parameter" is implied in pod filter
         },
           {
@@ -563,7 +568,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // We add a filter on pmfm with parameter in specific maturity list
         const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
-          levelLabels: ParameterLabelStrategies.MATURITIES
+          levelLabels: ParameterLabelList.MATURITY
           // searchJoin: "Parameter" is implied in pod filter
         },
           {

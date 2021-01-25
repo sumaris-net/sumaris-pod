@@ -117,5 +117,62 @@ export const StrategyFragments = {
       }
       __typename
     }
-  `
+  `,
+  strategyRef: gql`
+    fragment StrategyRefFragment on StrategyVO {
+      id
+      label
+      name
+      description
+      comments
+      updateDate
+      creationDate
+      statusId
+      gears {
+        ...ReferentialFragment
+      }
+      taxonGroups {
+        ...TaxonGroupStrategyFragment
+      }
+      taxonNames {
+        ...TaxonNameStrategyFragment
+      }
+      pmfmStrategies {
+        ...PmfmStrategyRefFragment
+      }
+    }
+  `,
+  pmfmStrategyRef: gql`
+    fragment PmfmStrategyRefFragment on PmfmStrategyVO {
+      id
+      pmfmId
+      parameterId # TODO BLA check if need
+      matrixId
+      fractionId
+      methodId
+      label
+      name
+      unitLabel
+      type
+      minValue
+      maxValue
+      maximumNumberDecimals
+      defaultValue
+      acquisitionNumber
+      isMandatory
+      rankOrder
+      acquisitionLevel
+      gearIds
+      taxonGroupIds
+      referenceTaxonIds
+      qualitativeValues {
+        id
+        label
+        name
+        statusId
+        entityName
+        __typename
+      }
+      __typename
+    }`
 };

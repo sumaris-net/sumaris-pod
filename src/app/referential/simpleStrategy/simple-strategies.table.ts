@@ -17,6 +17,7 @@ import {EntitiesTableDataSource} from "../../core/table/entities-table-datasourc
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
 import {ParameterLabel, ParameterLabelList} from "../services/model/model.enum";
+import {PredefinedColors} from "@ionic/core";
 
 @Component({
   selector: 'app-simple-strategies-table',
@@ -112,7 +113,7 @@ export class SimpleStrategiesTable extends AppTable<Strategy, StrategyFilter> {
     super.ngOnInit();
   }
 
-  getRealizedEffortColor(data: Strategy, quarter) : PredefinedColors {
+  getRealizedEffortColor(data: Strategy, quarter): PredefinedColors {
     let color : PredefinedColors = 'dark';
     //TODO return 'success' if planified effort = realised effort
     if (this.effortToString(data, quarter) === 0) {
@@ -121,7 +122,7 @@ export class SimpleStrategiesTable extends AppTable<Strategy, StrategyFilter> {
     return color;
   }
 
-  getToDoEffortColor(data: Strategy, quarter) : PredefinedColors {
+  getToDoEffortColor(data: Strategy, quarter): PredefinedColors {
     let color : PredefinedColors = 'danger';
     // return dark if planified effort = 0
     if (this.effortToString(data, quarter) === 0) {
@@ -138,10 +139,10 @@ export class SimpleStrategiesTable extends AppTable<Strategy, StrategyFilter> {
     console.debug('TODO effortToString', data);
 
     // TODO BLA: use this ?
-    //const appliedStrategy = firstArrayValue(data.appliedStrategies);
-    //const appliedPeriods = appliedStrategy.appliedPeriods || [];
+    const appliedStrategy = firstArrayValue(data.appliedStrategies);
+    const appliedPeriods = appliedStrategy && appliedStrategy.appliedPeriods || [];
+    //const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
 
-    const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
     let quarterEffort = null;
     for (let fishingAreaAppliedPeriod of appliedPeriods) {
       const startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
@@ -183,7 +184,7 @@ export class SimpleStrategiesTable extends AppTable<Strategy, StrategyFilter> {
       parts.push(this.translate.instant('PROGRAM.STRATEGY.WEIGHT_TABLE'));
     }
     // Has size
-    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm , ParameterLabelList.SIZE))) {
+    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm , ParameterLabelList.LENGTH))) {
       parts.push(this.translate.instant('PROGRAM.STRATEGY.SIZE_TABLE'));
     }
     // Has maturity

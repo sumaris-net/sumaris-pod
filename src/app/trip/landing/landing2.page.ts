@@ -18,7 +18,7 @@ import { Strategy } from "../../referential/services/model/strategy.model";
 import { ReferentialRefService } from "../../referential/services/referential-ref.service";
 import { StrategyService } from "../../referential/services/strategy.service";
 import { VesselSnapshotService } from "../../referential/services/vessel-snapshot.service";
-import {isNil, isNotEmptyArray, isNotNil, removeDuplicatesFromArray} from '../../shared/functions';
+import {firstArrayValue, isNil, isNotEmptyArray, isNotNil, removeDuplicatesFromArray} from '../../shared/functions';
 import { EntityServiceLoadOptions } from "../../shared/services/entity-service.class";
 import { Samples2Table } from "../sample/samples2.table";
 import { LandingService } from "../services/landing.service";
@@ -136,27 +136,24 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     if (sampleRowCode && sampleRowCode.label) {
       let strategyLabel = sampleRowCode.label;
 
-      if (strategyLabel != this.landing2Form.sampleRowCode) {
+      if (strategyLabel !== this.landing2Form.sampleRowCode) {
         this.landing2Form.sampleRowCode = strategyLabel;
 
-
         this.landing2Form.sampleRowCodeControl.patchValue(sampleRowCode);
-        let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
-        let pmfmStrategies = pmfmStrategy.pmfmStrategies;
 
+        // TODO BLA: add opts  { programId }
+        const strategy = await this.strategyService.loadRefByLabel(strategyLabel);
         // IMAGINE-201 : Existing bug in PMFM_STRATEGY storage => some duplicates exists
-        pmfmStrategies =removeDuplicatesFromArray(pmfmStrategies, 'id');
-
-        pmfmStrategies = pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
-
+        const pmfmStrategies = strategy && removeDuplicatesFromArray(strategy.pmfmStrategies || [], 'id')
+          .filter(pmfmStrategies => isNotNil(pmfmStrategies.pmfmId));
 
         // Refresh fishing areas from landing2Form according to selected sampleRowCode
-        this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
+        this.landing2Form.appliedStrategies = strategy.appliedStrategies;
         // FIXME CLT : Obsolete - we use PmfmIds.SAMPLE_ROW_CODE to store specific sampleRowCode PMFM
         // this.landing2Form.pmfms = pmfmStrategies;
 
         let sampleRowCodeFound = false;
-        let measurementValues = this.landing2Form.value.measurementValues;
+        const measurementValues = this.landing2Form.value.measurementValues;
         if (measurementValues) {
           // update mode
           let measurementValuesAsKeyValues = Object.entries(measurementValues).map(([key, value]) => {
@@ -210,8 +207,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
 
         let taxonNames = [];
-        if (pmfmStrategy.taxonNames && pmfmStrategy.taxonNames[0]) {
-          let defaultTaxonName = pmfmStrategy.taxonNames[0];
+        if (strategy.taxonNames && strategy.taxonNames[0]) {
+          let defaultTaxonName = strategy.taxonNames[0];
           //propagation of taxonNames by strategy on sampleRowCode change
           this.landing2Form.defaultTaxonNameFromStrategy = defaultTaxonName;
           this.samples2Table.defaultTaxonNameFromStrategy = defaultTaxonName;
@@ -380,26 +377,21 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     //this.samples2Table.value = data.samples || [];
 
     if (!isNew) {
-      if(isNil(strategyLabel)){
-        strategyLabel=this.landing2Form.sampleRowCode;
+      if (isNil(strategyLabel)) {
+        strategyLabel = this.landing2Form.sampleRowCode;
       }
-      let pmfmStrategy = await this.strategyService.loadByLabel(strategyLabel, {expandedPmfmStrategy: true});
-      let pmfmStrategies = pmfmStrategy.pmfmStrategies;
-
+      const strategy = await this.strategyService.loadRefByLabel(strategyLabel);
       // IMAGINE-201 : Existing bug in PMFM_STRATEGY storage => some duplicates exists
-      pmfmStrategies =removeDuplicatesFromArray(pmfmStrategies, 'id');
+      const pmfmStrategies = strategy && removeDuplicatesFromArray(strategy.pmfmStrategies || [], 'id')
+        .filter(pmfmStrategies => isNotNil(pmfmStrategies.pmfmId));
 
-      pmfmStrategies = pmfmStrategies.filter(pmfmStrategies => pmfmStrategies.pmfmId);
-
-
-      this.landing2Form.appliedStrategies = pmfmStrategy.appliedStrategies;
+      this.landing2Form.appliedStrategies = strategy.appliedStrategies;
       //propagation of taxonNames by strategy
-      if (pmfmStrategy.taxonNames && pmfmStrategy.taxonNames[0])
-      {
-        let defaultTaxonName = pmfmStrategy.taxonNames[0];
-        this.landing2Form.defaultTaxonNameFromStrategy = defaultTaxonName;
-        this.samples2Table.defaultTaxonNameFromStrategy = defaultTaxonName;
-      }
+      const defaultTaxonName = strategy && firstArrayValue(strategy.taxonNames);
+
+      // TODO BLA: pourquoi 'FromStrategy' ?
+      this.landing2Form.defaultTaxonNameFromStrategy = defaultTaxonName;
+      this.samples2Table.defaultTaxonNameFromStrategy = defaultTaxonName;
 
       this.landing2Form.pmfms = pmfmStrategies;
       this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
