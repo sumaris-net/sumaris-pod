@@ -324,7 +324,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       async (control) => {
         if (data && control.value !== data.label) {
           return await this.strategyService.ExistLabel(control.value)
-          .then(() => {return <ValidationErrors>{unique: false};})
+          .then(() => {return <ValidationErrors>{unique: {unique : false}};})
           .catch(() => {SharedValidators.clearError(control, 'unique'); return null;});
         }
         return null;

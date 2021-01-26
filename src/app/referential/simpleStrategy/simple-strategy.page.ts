@@ -174,7 +174,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     });
 
 
-    const year = data.year ? data.year.year() : moment();
+    const year = data.year ? moment(data.year).year() : moment().year();
 
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
     const appliedStrategies = data.appliedStrategies;
