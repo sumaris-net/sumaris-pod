@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.data.trip;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>

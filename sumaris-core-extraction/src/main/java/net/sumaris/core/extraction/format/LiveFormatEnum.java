@@ -25,7 +25,8 @@ package net.sumaris.core.extraction.format;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.format.specification.*;
+import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
+import net.sumaris.core.extraction.specification.data.trip.*;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 
@@ -42,7 +43,8 @@ public enum LiveFormatEnum implements IExtractionFormat {
     COST (CostSpecification.FORMAT, CostSpecification.SHEET_NAMES, CostSpecification.VERSION_1_4),
     FREE1 (Free1Specification.FORMAT, Free1Specification.SHEET_NAMES, Free1Specification.VERSION_1),
     FREE2 (Free2Specification.FORMAT, Free2Specification.SHEET_NAMES, Free2Specification.VERSION_1_9),
-    SURVIVAL_TEST (SurvivalTestSpecification.FORMAT, SurvivalTestSpecification.SHEET_NAMES, SurvivalTestSpecification.VERSION_1_0)
+    SURVIVAL_TEST (SurvivalTestSpecification.FORMAT, SurvivalTestSpecification.SHEET_NAMES, SurvivalTestSpecification.VERSION_1_0),
+    PROG (ProgSpecification.FORMAT, ProgSpecification.SHEET_NAMES, ProgSpecification.VERSION_1_0)
     ;
 
     private String label;

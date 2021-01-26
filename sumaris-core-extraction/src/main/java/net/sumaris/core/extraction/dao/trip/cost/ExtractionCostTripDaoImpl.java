@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.format.specification.CostSpecification;
+import net.sumaris.core.extraction.specification.data.trip.CostSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import org.slf4j.Logger;

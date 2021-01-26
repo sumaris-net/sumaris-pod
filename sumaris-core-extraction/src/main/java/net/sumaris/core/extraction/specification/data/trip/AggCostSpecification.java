@@ -20,9 +20,11 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.data.trip;
 
-public interface AggSpecification {
+public interface AggCostSpecification extends AggRdbSpecification {
 
-    String FORMAT_PREFIX = "AGG_";
+    String FORMAT = AggSpecification.FORMAT_PREFIX + CostSpecification.FORMAT;
+    String VERSION_1_4 = CostSpecification.VERSION_1_4;
+
 }

@@ -38,8 +38,8 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.administration.program.ExtractionProgramDao;
 import net.sumaris.core.extraction.dao.technical.Daos;
-import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
@@ -49,12 +49,13 @@ import net.sumaris.core.extraction.dao.trip.free.ExtractionFree1TripDao;
 import net.sumaris.core.extraction.dao.trip.free2.ExtractionFree2TripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
-import net.sumaris.core.extraction.util.ExtractionFormats;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
+import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
+import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
@@ -62,13 +63,14 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -82,7 +84,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
@@ -125,6 +126,9 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Autowired
     protected ExtractionSurvivalTestDao extractionSurvivalTestDao;
+
+    @Autowired
+    protected ExtractionProgramDao extractionProgramDao;
 
     @Autowired
     protected ExtractionProductRepository extractionProductRepository;
@@ -216,10 +220,10 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Make sure type has category AND label filled
         type = getByFormat(type);
 
+        filter = filter != null ? filter : new ExtractionFilterVO();
+
         // Force preview
         filter.setPreview(true);
-
-        filter = filter != null ? filter : new ExtractionFilterVO();
 
         switch (type.getCategory()) {
             case PRODUCT:
@@ -328,11 +332,16 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public File executeAndDumpTrips(LiveFormatEnum format,
-                                    ExtractionTripFilterVO tripFilter) {
-
+    public File executeAndDumpTrips(LiveFormatEnum format, ExtractionTripFilterVO tripFilter) {
         String tripSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : RdbSpecification.TR_SHEET_NAME;
         ExtractionFilterVO filter = extractionRdbTripDao.toExtractionFilterVO(tripFilter, tripSheetName);
+        return extractRawDataAndDumpToFile(format, filter);
+    }
+
+    @Override
+    public File executeAndDumpPrograms(LiveFormatEnum format, ExtractionProgramFilterVO programFilter) {
+        String programSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : ProgSpecification.PR_SHEET_NAME;
+        ExtractionFilterVO filter = extractionProgramDao.toExtractionFilterVO(programFilter, programSheetName);
         return extractRawDataAndDumpToFile(format, filter);
     }
 
@@ -594,6 +603,9 @@ public class ExtractionServiceImpl implements ExtractionService {
                 break;
             case SURVIVAL_TEST:
                 context = extractionSurvivalTestDao.execute(filter);
+                break;
+            case PROG:
+                context = extractionProgramDao.execute(filter);
                 break;
             default:
                 throw new SumarisTechnicalException("Unknown extraction type: " + format);

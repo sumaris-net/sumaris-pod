@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="extractionCreateStrategyMonitoringTable">
+
+  <query type="create" temp="false" table="&amp;strategyMonitoringTableName" option="DISTINCT">
+
+    <!-- PK -->
+    <select alias="RECORD_TYPE" type="text">'SM'</select>
+    <select alias="PROJECT" type="text">ST.PROJECT</select>
+    <select alias="STRATEGY" type="text">ST.STRATEGY</select>
+
+    <!-- other fields -->
+    <select alias="START_DATE" type="date">APP.START_DATE</select>
+    <select alias="END_DATE" type="date">APP.END_DATE</select>
+    <select alias="EXPECTED_EFFORT" type="number">APP.ACQUISITION_NUMBER</select>
+    <select alias="REALIZED_EFFORT" type="number">count(L.ID)</select>
+
+    <!-- hidden columns -->
+    <select alias="PROGRAM_ID" type="hidden">ST.PROGRAM_ID</select>
+    <select alias="STRATEGY_ID" type="hidden">ST.STRATEGY_ID</select>
+
+    <from alias="ST">&amp;strategyTableName</from>
+    <from join="true">LEFT OUTER JOIN APPLIED_STRATEGY APS ON APS.STRATEGY_FK = ST.STRATEGY_ID</from>
+    <from join="true">LEFT OUTER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
+
+    <!-- landing strategy link -->
+    <from join="true">LEFT OUTER JOIN LANDING L ON L.PROGRAM_FK = ST.PROGRAM_ID
+      AND L.LANDING_DATE_TIME &gt;= APP.START_DATE and L.LANDING_DATE_TIME &lt;= APP.END_DATE
+    </from>
+    <from join="true">LEFT OUTER JOIN LANDING_MEASUREMENT LM ON LM.LANDING_FK = L.ID
+      AND LM.PMFM_FK = &amp;strategyLabelPmfmId and LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
+    </from>
+
+    <groupby>
+      RECORD_TYPE, PROJECT, STRATEGY,
+      APP.START_DATE, APP.END_DATE, APP.ACQUISITION_NUMBER,
+      PROGRAM_ID, STRATEGY_ID
+    </groupby>
+
+    <orderby direction="ASC">ST.PROGRAM_ID, ST.STRATEGY_ID, APP.START_DATE</orderby>
+
+  </query>
+
+</queries>

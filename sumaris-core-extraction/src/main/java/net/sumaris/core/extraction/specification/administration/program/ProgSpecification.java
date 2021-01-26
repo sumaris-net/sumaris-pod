@@ -20,12 +20,23 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.administration.program;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface CostSpecification extends RdbSpecification {
-    String FORMAT = "COST";
-    String VERSION_1_4 = "1.4";
+public interface ProgSpecification {
+    String FORMAT = "PROG";
+    String VERSION_1_0 = "1.0";
+
+    String PR_SHEET_NAME = "PR"; // Program
+    String ST_SHEET_NAME = "ST"; // Strategy
+    String SM_SHEET_NAME = "SM"; // Strategy Monitoring
+
+    String COLUMN_PROJECT = "project";
+    String COLUMN_STRATEGY = "strategy";
+    String COLUMN_START_DATE = "start_date";
+    String COLUMN_END_DATE = "end_date";
+
+    String[] SHEET_NAMES = {PR_SHEET_NAME, ST_SHEET_NAME, SM_SHEET_NAME};
 }

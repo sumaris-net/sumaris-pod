@@ -24,7 +24,7 @@ package net.sumaris.core.extraction.dao.technical.table;
 
 import com.google.common.collect.ImmutableMap;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.model.technical.extraction.rdb.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.apache.commons.lang3.ArrayUtils;

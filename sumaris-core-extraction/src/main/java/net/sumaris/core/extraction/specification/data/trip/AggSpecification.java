@@ -20,16 +20,9 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.data.trip;
 
-public interface SurvivalTestSpecification extends RdbSpecification {
+public interface AggSpecification {
 
-    String FORMAT = "SURVIVAL_TEST";
-    String VERSION_1_0 = "1.0";
-
-
-    String ST_SHEET_NAME = "ST"; // Survival test
-    String RL_SHEET_NAME = "RL"; // Release
-
-    String[] SHEET_NAMES = {TR_SHEET_NAME, HH_SHEET_NAME, SL_SHEET_NAME, HL_SHEET_NAME, ST_SHEET_NAME, RL_SHEET_NAME};
+    String FORMAT_PREFIX = "AGG_";
 }

@@ -20,13 +20,16 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.data.trip;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- */
-public interface Free1Specification extends RdbSpecification {
-    String FORMAT = "FREE";
-    String VERSION_1 = "1";
-    String[] SHEET_NAMES = {RdbSpecification.TR_SHEET_NAME, RdbSpecification.HH_SHEET_NAME, RdbSpecification.SL_SHEET_NAME, RdbSpecification.HL_SHEET_NAME};
+public interface SurvivalTestSpecification extends RdbSpecification {
+
+    String FORMAT = "SURVIVAL_TEST";
+    String VERSION_1_0 = "1.0";
+
+
+    String ST_SHEET_NAME = "ST"; // Survival test
+    String RL_SHEET_NAME = "RL"; // Release
+
+    String[] SHEET_NAMES = {TR_SHEET_NAME, HH_SHEET_NAME, SL_SHEET_NAME, HL_SHEET_NAME, ST_SHEET_NAME, RL_SHEET_NAME};
 }

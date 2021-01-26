@@ -24,7 +24,7 @@ package net.sumaris.server.http;
 
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;

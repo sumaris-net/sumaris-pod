@@ -23,9 +23,8 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.event.entity.EntityInsertEvent;
-import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
+import net.sumaris.core.extraction.vo.data.ExtractionLandingFilterVO;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
@@ -36,8 +35,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -82,6 +79,8 @@ public interface ExtractionService {
                         ExtractionFilterVO filter) throws IOException;
 
     File executeAndDumpTrips(LiveFormatEnum format, ExtractionTripFilterVO filter);
+
+    File executeAndDumpPrograms(LiveFormatEnum format, ExtractionProgramFilterVO filter);
 
     File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 
