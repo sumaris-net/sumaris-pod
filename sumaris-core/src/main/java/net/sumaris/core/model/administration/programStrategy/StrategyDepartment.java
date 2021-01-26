@@ -36,6 +36,17 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "strategy2department")
+@NamedQueries({
+    @NamedQuery(name = "StrategyDepartment.count", query = "SELECT\n" +
+            "   count(distinct t.id)\n" +
+            "      FROM\n" +
+            "        StrategyDepartment t\n" +
+            "      WHERE\n" +
+            "        (:strategyId is null OR t.strategy.id = :strategyId)\n" +
+            "        AND (:departmentId is null OR t.department.id = :departmentId)\n" +
+            "        AND (:privilegeId is null OR  t.privilege.id = :privilegeId)"
+    )
+})
 public class StrategyDepartment implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id

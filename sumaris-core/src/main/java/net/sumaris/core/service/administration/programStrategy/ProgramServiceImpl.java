@@ -95,16 +95,12 @@ public class ProgramServiceImpl implements ProgramService {
 
 	@Override
 	public boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege) {
-		//programRepository.existsByIdAndDepartmentId(programId, personId, privilege);
-		log.warn("TODO: implement ProgramService.hasUserPrivilege()");
-		return true;
+		return programRepository.hasUserPrivilege(programId, personId, privilege);
 	}
 
 	@Override
 	public boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege) {
-		//programRepository.existsByIdAndDepartmentId(programId, personId, privilege);
-		log.warn("TODO: implement ProgramService.hasDepartmentPrivilege()");
-		return true;
+		return programRepository.hasDepartmentPrivilege(programId, departmentId, privilege);
 	}
 }
 
