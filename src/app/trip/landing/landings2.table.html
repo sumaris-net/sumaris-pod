@@ -114,7 +114,7 @@
   </ng-container>
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+  <!--ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
       <ion-label>{{getPmfmColumnHeader(pmfm)}}
         <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
@@ -129,7 +129,7 @@
         [formControl]="row.measurementValues.controls[pmfm.pmfmId.toString()]"
         floatLabel="never"></app-pmfm-field>
     </mat-cell>
-  </ng-container>
+  </ng-container-->
 
   <!-- comment column -->
   <ng-container matColumnDef="comments">
