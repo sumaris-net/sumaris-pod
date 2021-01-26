@@ -97,9 +97,9 @@ public class ExtractionGraphQLService {
         return extractionService.executeAndRead(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
-    @GraphQLQuery(name = "extractionMappedRows", description = "Preview some extraction rows")
+    @GraphQLQuery(name = "extraction", description = "Preview some extraction")
     @Transactional
-    public List<Map<String, String>> getExtractionMappedRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
+    public List<Map<String, String>> getExtraction(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                                             @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,

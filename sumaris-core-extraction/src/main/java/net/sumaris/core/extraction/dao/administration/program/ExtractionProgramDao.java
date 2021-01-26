@@ -29,13 +29,15 @@ import net.sumaris.core.extraction.specification.administration.program.ProgSpec
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
 import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramContextVO;
+import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -59,27 +61,41 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
         if (CollectionUtils.isNotEmpty(source.getCriteria())) {
 
             source.getCriteria().stream()
-                    .filter(criterion ->
-                            org.apache.commons.lang3.StringUtils.isNotBlank(criterion.getValue())
-                                    && ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator()))
+                    .filter(criterion -> StringUtils.isNotBlank(criterion.getValue()))
                     .forEach(criterion -> {
                         switch (criterion.getName().toLowerCase()) {
                             case ProgSpecification.COLUMN_PROJECT:
-                                target.setProgramLabel(criterion.getValue());
+                                if (ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator())) {
+                                    target.setProgramLabel(criterion.getValue());
+                                }
                                 break;
                             case ProgSpecification.COLUMN_STRATEGY:
-                                target.setStrategyLabels(ImmutableList.of(criterion.getValue()));
+                                if (ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator())) {
+                                    target.setStrategyLabels(ImmutableList.of(criterion.getValue()));
+                                }
                                 break;
                             case ProgSpecification.COLUMN_START_DATE:
-                                if (ExtractionFilterOperatorEnum.GREATER_THAN_OR_EQUALS.name().equals(criterion.getOperator())) {
+                                if (ExtractionFilterOperatorEnum.GREATER_THAN_OR_EQUALS.getSymbol().equals(criterion.getOperator())) {
                                     Date startDate = Dates.fromISODateTimeString(criterion.getValue());
                                     target.setStartDate(startDate);
                                 }
                                 break;
                             case ProgSpecification.COLUMN_END_DATE:
-                                if (ExtractionFilterOperatorEnum.LESS_THAN_OR_EQUALS.name().equals(criterion.getOperator())) {
+                                if (ExtractionFilterOperatorEnum.LESS_THAN_OR_EQUALS.getSymbol().equals(criterion.getOperator())) {
                                     Date endDate = Dates.fromISODateTimeString(criterion.getValue());
                                     target.setEndDate(endDate);
+                                }
+                                break;
+                        }
+                    });
+
+            source.getCriteria().stream()
+                    .filter(criterion -> ArrayUtils.isNotEmpty(criterion.getValues()))
+                    .forEach(criterion -> {
+                        switch (criterion.getName().toLowerCase()) {
+                            case ProgSpecification.COLUMN_STRATEGY:
+                                if (ExtractionFilterOperatorEnum.IN.getSymbol().equals(criterion.getOperator())) {
+                                    target.setStrategyLabels(Arrays.asList(criterion.getValues()));
                                 }
                                 break;
                         }
