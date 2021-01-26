@@ -27,8 +27,9 @@ import {Landing} from "../services/model/landing.model";
 import {environment} from "../../../environments/environment";
 import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
+import { PmfmIds } from "../../referential/services/model/model.enum";
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['samples','vessel', 'location', 'creationDate', 'recorderPerson'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['samples', 'vessel', 'location', 'creationDate', 'recorderPerson'];
 //export const LANDING_RESERVED_START_COLUMNS: string[] = ['samples','vessel', 'vesselPortLocation', 'creationDate', 'recorder'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
@@ -36,9 +37,6 @@ export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
   selector: 'app-landings2-table',
   templateUrl: 'landings2.table.html',
   styleUrls: ['landings2.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: LandingValidatorService}
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter> implements OnInit, AfterViewInit, OnDestroy {
@@ -107,7 +105,7 @@ export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter>
     super(injector,
       Landing,
       injector.get(LandingService),
-      injector.get(ValidatorService),
+      null,
       {
         prependNewElements: false,
         suppressErrors: environment.production,
@@ -170,6 +168,16 @@ export class Landings2Table extends AppMeasurementsTable<Landing, LandingFilter>
   personsToString = personsToString;
   personToString = personToString;
 
+  getSampleRowCode(landing?: Landing) {
+    const measurementValues = Object.entries(landing.measurementValues).map(([key, value]) => { return {key, value};});
+    let strategyLabel: string;
+    measurementValues.forEach((measurementValue) => {
+      if (measurementValue.key === PmfmIds.SAMPLE_ROW_CODE.toString()) {
+        strategyLabel = measurementValue.value
+      }
+    });
+    return strategyLabel;
+  }
 
   getLandingDate(landing?: Landing): Moment {
     if (!landing || !landing.dateTime) return undefined;
