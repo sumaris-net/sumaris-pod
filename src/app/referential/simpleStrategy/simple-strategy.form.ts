@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, ValidationErrors, ValidatorFn } from "@angular/forms";
+import { FormArray, FormBuilder, FormControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 import { DateAdapter } from "@angular/material/core";
 import * as moment from "moment";
 import { Moment } from 'moment/moment';
@@ -9,15 +9,15 @@ import { AppForm, EntityUtils, FormArrayHelper, IReferentialRef, ReferentialRef 
 import { LocalSettingsService } from "../../core/services/local-settings.service";
 import { ReferentialUtils } from "../../core/services/model/referential.model";
 import { fromDateISOString, isNil } from "../../shared/functions";
+import { LocationLevelIds, ParameterLabelStrategies } from '../services/model/model.enum';
 import { PmfmStrategy } from "../services/model/pmfm-strategy.model";
 import { Program } from '../services/model/program.model';
 import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy } from "../services/model/strategy.model";
+import { TaxonNameRef } from "../services/model/taxon.model";
 import { ReferentialRefService } from "../services/referential-ref.service";
 import { StrategyService } from "../services/strategy.service";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { PmfmStrategiesTable } from "../strategy/pmfm-strategies.table";
-import {TaxonNameRef} from "../services/model/taxon.model";
-import {LocationLevelIds, ParameterLabelStrategies} from '../services/model/model.enum';
 
 @Component({
   selector: 'form-simple-strategy',
@@ -154,10 +154,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
     this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
 
+
+    this.form.addControl('year', new FormControl);
+
     // register year field changes
     this.registerSubscription(
-      this.form.get('creationDate').valueChanges
-        .subscribe(async (date: Moment) => this.onDateChange(date))
+      this.form.get('year').valueChanges.subscribe(
+        async (date: Moment) => {this.onDateChange(date); this.form.markAsTouched();}
+      )
     );
 
 
@@ -351,29 +355,31 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
     const appliedStrategyId = data.appliedStrategies.length && data.appliedStrategies[0].strategyId || undefined;
 
+    const now = moment();
+
     // format periods for applied conrol period in view and init default period by quarter if no set
     const quarter1 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 1) || {
       appliedStrategyId: appliedStrategyId,
-      startDate: moment("2020-01-01"),
-      endDate: moment("2020-03-31"),
+      startDate: moment("2020-01-01").set('year', now.year()),
+      endDate: moment("2020-03-31").set('year', now.year()),
       acquisitionNumber: undefined
     };
     const quarter2 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 4) || {
       appliedStrategyId: appliedStrategyId,
-      startDate: moment("2020-04-01"),
-      endDate: moment("2020-06-30"),
+      startDate: moment("2020-04-01").set('year', now.year()),
+      endDate: moment("2020-06-30").set('year', now.year()),
       acquisitionNumber: undefined
     };
     const quarter3 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 7) || {
       appliedStrategyId: appliedStrategyId,
-      startDate: moment("2020-07-01"),
-      endDate: moment("2020-09-30"),
+      startDate: moment("2020-07-01").set('year', now.year()),
+      endDate: moment("2020-09-30").set('year', now.year()),
       acquisitionNumber: undefined
     };
     const quarter4 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 10) || {
       appliedStrategyId: appliedStrategyId,
-      startDate: moment("2020-10-01"),
-      endDate: moment("2020-12-31"),
+      startDate: moment("2020-10-01").set('year', now.year()),
+      endDate: moment("2020-12-31").set('year', now.year()),
       acquisitionNumber: undefined
     };
     const formattedAppliedPeriods = [quarter1, quarter2, quarter3, quarter4];
@@ -382,6 +388,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     appliedPeriodControl.patchValue(formattedAppliedPeriods);
 
     super.setValue(data, opts);
+
+    // Get fisrt period 
+    const period = appliedPeriods[0];
+    this.form.get('year').patchValue(period ? period.startDate : moment());
 
     // fixme get eotp from referential by label = data.analyticReference
     const analyticReferenceToSet: IReferentialRef = new ReferentialRef();
