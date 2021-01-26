@@ -3,7 +3,7 @@ import { FormGroup } from "@angular/forms";
 import { MatTabGroup } from "@angular/material/tabs";
 import * as moment from "moment";
 import { Moment } from "moment";
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { filter, throttleTime } from "rxjs/operators";
 import { environment } from "../../../environments/environment";
 import { AppEditorOptions } from "../../core/form/editor.class";
@@ -30,6 +30,7 @@ import { Trip } from "../services/model/trip.model";
 import { ObservedLocationService } from "../services/observed-location.service";
 import { TripService } from "../services/trip.service";
 import { Landing2Form } from "./landing2.form";
+import {SampleValidatorService} from "../services/validator/trip.validators";
 
 
 @Component({
@@ -55,6 +56,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
   protected strategyService: StrategyService;
+  private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
 
@@ -129,6 +131,16 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         .pipe(throttleTime(200), filter(isNotNil))
         .subscribe((sampleRowCode: Strategy) => this.onSampleRowCodeChange(sampleRowCode))
     );
+  }
+
+  onStartSampleEditingForm({form, pmfms}) {
+    // Remove previous subscription
+    if (this._rowValidatorSubscription) {
+      this._rowValidatorSubscription.unsubscribe();
+    }
+
+    // Add computation and validation
+    this._rowValidatorSubscription = SampleValidatorService.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 
   protected async onSampleRowCodeChange(sampleRowCode: Strategy) {
