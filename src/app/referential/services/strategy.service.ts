@@ -59,9 +59,9 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.fullReferential}
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.parameter}
+  ${ReferentialFragments.fullReferential}
   ${ReferentialFragments.taxonName}
   `,
   loadAll: gql`query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -77,7 +77,9 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.lightPmfm}
+  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.parameter}
+  ${ReferentialFragments.fullReferential}
   ${ReferentialFragments.taxonName}
   `,
   loadAllWithTotal: gql`query StrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -94,7 +96,9 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.lightPmfm}
+  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.parameter}
+  ${ReferentialFragments.fullReferential}
   ${ReferentialFragments.taxonName}
   `,
   count: gql`query StrategyCount($filter: StrategyFilterVOInput!) {
