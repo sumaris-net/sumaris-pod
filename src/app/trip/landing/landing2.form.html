@@ -21,7 +21,7 @@
           [formControl]="effortControl"
           [placeholder]="('LANDING.SAMPLE_ROW_CODE_TITLE'|translate)"
           [config]="autocompleteFields.sampleRowCode"
-          [readonly]="false"
+          [readonly]="hasSamples"
           [required]="true">
         </mat-autocomplete-field>
       </ion-col>

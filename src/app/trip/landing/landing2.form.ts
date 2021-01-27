@@ -57,6 +57,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   enableTaxonNameFilter = false;
   canFilterTaxonName = true;
+  hasSamples = false;
 
   @Input() required = true;
 

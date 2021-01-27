@@ -18,7 +18,7 @@ import { Strategy } from "../../referential/services/model/strategy.model";
 import { ReferentialRefService } from "../../referential/services/referential-ref.service";
 import { StrategyService } from "../../referential/services/strategy.service";
 import { VesselSnapshotService } from "../../referential/services/vessel-snapshot.service";
-import {isNil, isNotEmptyArray, isNotNil, removeDuplicatesFromArray} from '../../shared/functions';
+import { isNil, isNotEmptyArray, isNotNil, removeDuplicatesFromArray } from '../../shared/functions';
 import { EntityServiceLoadOptions } from "../../shared/services/entity-service.class";
 import { Samples2Table } from "../sample/samples2.table";
 import { LandingService } from "../services/landing.service";
@@ -29,8 +29,8 @@ import { Sample } from "../services/model/sample.model";
 import { Trip } from "../services/model/trip.model";
 import { ObservedLocationService } from "../services/observed-location.service";
 import { TripService } from "../services/trip.service";
+import { SampleValidatorService } from "../services/validator/trip.validators";
 import { Landing2Form } from "./landing2.form";
-import {SampleValidatorService} from "../services/validator/trip.validators";
 
 
 @Component({
@@ -131,6 +131,11 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         .pipe(throttleTime(200), filter(isNotNil))
         .subscribe((sampleRowCode: Strategy) => this.onSampleRowCodeChange(sampleRowCode))
     );
+
+
+    this.samples2Table.onConfirmEditCreateRow.subscribe(() => {
+      this.landing2Form.hasSamples = true;
+    });
   }
 
   onStartSampleEditingForm({form, pmfms}) {
@@ -370,6 +375,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     }
 
     this.samples2Table.value = data.samples || [];
+
+
+    this.landing2Form.hasSamples = data.samples && data.samples.length > 0;
 
     const measurementValues = Object.entries(data.measurementValues).map(([key, value]) => {
       return {
