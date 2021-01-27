@@ -147,6 +147,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       dpt.privilege = observer;
     });
 
+
+    const year = data.year ? moment(data.year).year() : moment().year();
+
     //Fishig Area + Efforts --------------------------------------------------------------------------------------------
     const appliedStrategies = data.appliedStrategies;
     // append efforts (trick is that effots are added to the first appliedStrategy of the array)
@@ -155,8 +158,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       appliedStrategies[0].appliedPeriods = appliedPeriods.filter(period => isNotNil(period.acquisitionNumber));
       // Set selected year
       appliedStrategies[0].appliedPeriods.forEach(p => {
-        p.startDate = moment(p.startDate).set('year', moment(data.creationDate).year());
-        p.endDate = moment(p.endDate).set('year', moment(data.creationDate).year());
+        p.startDate = moment(p.startDate).set('year', year);
+        p.endDate = moment(p.endDate).set('year', year);
       });
     }
     data.appliedStrategies = appliedStrategies;

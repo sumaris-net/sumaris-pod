@@ -3,7 +3,7 @@ import { FormGroup } from "@angular/forms";
 import { MatTabGroup } from "@angular/material/tabs";
 import * as moment from "moment";
 import { Moment } from "moment";
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { filter, throttleTime } from "rxjs/operators";
 import { environment } from "../../../environments/environment";
 import { AppEditorOptions } from "../../core/form/editor.class";
@@ -29,6 +29,7 @@ import { Sample } from "../services/model/sample.model";
 import { Trip } from "../services/model/trip.model";
 import { ObservedLocationService } from "../services/observed-location.service";
 import { TripService } from "../services/trip.service";
+import { SampleValidatorService } from "../services/validator/trip.validators";
 import { Landing2Form } from "./landing2.form";
 
 
@@ -55,6 +56,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
   protected strategyService: StrategyService;
+  private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
 
@@ -129,6 +131,21 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         .pipe(throttleTime(200), filter(isNotNil))
         .subscribe((sampleRowCode: Strategy) => this.onSampleRowCodeChange(sampleRowCode))
     );
+
+
+    this.samples2Table.onConfirmEditCreateRow.subscribe(() => {
+      this.landing2Form.hasSamples = true;
+    });
+  }
+
+  onStartSampleEditingForm({form, pmfms}) {
+    // Remove previous subscription
+    if (this._rowValidatorSubscription) {
+      this._rowValidatorSubscription.unsubscribe();
+    }
+
+    // Add computation and validation
+    this._rowValidatorSubscription = SampleValidatorService.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 
   protected async onSampleRowCodeChange(sampleRowCode: Strategy) {
@@ -287,6 +304,12 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
   }
 
+  protected async onEntitySaved(data: Landing) {
+    // TODO BLA: pourquoi cette ligne ?
+    // Logiquement, l'éditor recharge la page après sauvegarde
+    this.setValue(data);
+  }
+
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     this.parent = await this.loadParent(data);
@@ -347,6 +370,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   }
 
   protected async setValue(data: Landing): Promise<void> {
+    if (!data) return; // Skip
 
     const isNew = isNil(data.id);
     if (!isNew) {
@@ -355,6 +379,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     }
 
     this.samples2Table.value = data.samples || [];
+
+
+    this.landing2Form.hasSamples = data.samples && data.samples.length > 0;
 
     const measurementValues = Object.entries(data.measurementValues).map(([key, value]) => {
       return {

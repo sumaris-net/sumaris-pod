@@ -1215,13 +1215,16 @@
       }
     },
     "ERROR": {
+      "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy label",
+      "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy analytic references",
       "LOAD_PROGRAM_ERROR": "Error while loading program",
       "LOAD_PROGRAMS_ERROR": "Error while loading programs",
       "SAVE_PROGRAM_ERROR": "Error while saving program",
       "SAVE_PROGRAMS_ERROR": "Error while saving programs",
       "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
       "PARAMETERS.WEIGHT_OR_SIZE": "Weight or size is mandatory",
-      "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}"
+      "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}",
+      "LABEL.UNIQUE": "The code of the sampling plan line already exists"
     },
     "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
     "APPLIED_STRATEGIES" :"Fishing area(s)",
@@ -1247,7 +1250,6 @@
     "QUARTER_2": "Quarter 2",
     "QUARTER_3": "Quarter 3",
     "QUARTER_4": "Quarter 4",
-    "PARAMETERS_TITLE": "Mesured parameters:",
     "COMMENT" :"Comment",
     "PARAMETERS_TITLE": "Mesured parameters",
     "QUARTER_1_TABLE": "Efforts T1" ,
