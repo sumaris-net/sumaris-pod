@@ -357,7 +357,7 @@
         <ion-label translate>OBSERVED_LOCATION.TABLE.OBSERVERS</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-text>{{ row.currentData?.observers | personToString }}</ion-text>
+        <ion-text>{{ row.currentData.observers | personToString }}</ion-text>
       </mat-cell>
     </ng-container>
 

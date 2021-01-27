@@ -1,8 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input} from "@angular/core";
 import {Strategy} from "../services/model/strategy.model";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
-import {appliedStrategiesToString, taxonNamesStrategyToString} from "../../referential/services/model/strategy.model";
-import {StrategyFilter, StrategyService} from "../services/strategy.service";
+import {DefaultStatusList, Referential} from "../../core/services/model/referential.model";
+import {StrategyService} from "../services/strategy.service";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {ENVIRONMENT} from "../../../environments/environment.class";
 import {fromDateISOString} from "../../shared/dates";
@@ -12,14 +11,18 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ValidatorService} from "@e-is/ngx-material-table";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
-import {ParameterLabel, ParameterLabelList} from "../services/model/model.enum";
+import {LocationLevelIds, ParameterLabel, ParameterLabelGroups, TaxonomicLevelIds} from "../services/model/model.enum";
 import {PredefinedColors} from "@ionic/core";
 import {ReferentialFilter} from "../services/referential.service";
-import {environment} from "../../../environments/environment";
+import {DenormalizedStrategy, DenormalizedStrategyService, StrategyEffort} from "./denormalized-strategy.service";
+import {ReferentialRefService} from "../services/referential-ref.service";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {ProgramProperties} from "../services/config/program.config";
+
+
 
 @Component({
   selector: 'app-simple-strategies-table',
@@ -27,25 +30,19 @@ import {environment} from "../../../environments/environment";
   styleUrls: ['simple-strategies.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SimpleStrategiesTable extends AppTable<Strategy, ReferentialFilter> {
+export class SimpleStrategiesTable extends AppTable<DenormalizedStrategy, ReferentialFilter> {
 
   private _program: Program;
 
   statusList = DefaultStatusList;
   statusById: any;
+  quarters = [1, 2, 3, 4];
 
   @Input() canEdit = false;
   @Input() canDelete = false;
 
   @Input() set program(program: Program) {
-    if (program && isNotNil(program.id) && this._program !== program) {
-      this._program = program;
-      console.debug('[strategy-table] Setting program:', program);
-      this.setFilter( {
-        ...this.filter,
-        levelId: program.id
-      });
-    }
+   this.setProgram(program);
   }
 
   get program(): Program {
@@ -60,7 +57,8 @@ export class SimpleStrategiesTable extends AppTable<Strategy, ReferentialFilter>
     modalCtrl: ModalController,
     localSettingsService: LocalSettingsService,
     injector: Injector,
-    dataService: StrategyService,
+    dataService: DenormalizedStrategyService,
+    protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
     @Inject(ENVIRONMENT) protected environment
   ) {
@@ -76,16 +74,16 @@ export class SimpleStrategiesTable extends AppTable<Strategy, ReferentialFilter>
           'label',
           'analyticReference',
           'recorderDepartments',
-          'appliedStrategies',
+          'locations',
           'taxonNames',
-          'comment',
+          'comments',
           'parameters',
           'effortQ1',
           'effortQ2',
           'effortQ3',
           'effortQ4'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource(Strategy, dataService, environment, null, {
+      new EntitiesTableDataSource(DenormalizedStrategy, dataService, environment, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -95,104 +93,66 @@ export class SimpleStrategiesTable extends AppTable<Strategy, ReferentialFilter>
       null,
       injector);
 
-    this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.SAMPLING.';
+    this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.'; // Override by program
     this.autoLoad = true; // waiting parent to load
 
     this.confirmBeforeDelete = true;
     this.inlineEdition = false;
 
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
-
     this.debug = !environment.production;
   }
 
+  ngOnInit() {
+    super.ngOnInit();
 
-  getRealizedEffortColor(data: Strategy, quarter): PredefinedColors {
-    let color : PredefinedColors = 'dark';
-    //TODO return 'success' if planified effort = realised effort
-    if (this.effortToString(data, quarter) === 0) {
-      return 'success';
-    }
-    return color;
+    this.registerAutocompleteField('department', {
+      service: this.referentialRefService,
+      filter: <ReferentialFilter>{
+        entityName: 'Department',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
+    });
+
+    this.registerAutocompleteField('location', {
+      service: this.referentialRefService,
+      filter: <ReferentialFilter>{
+        entityName: 'Location',
+        // TODO BLA: rendre ceci paramètrable par program properties
+        levelIds: [LocationLevelIds.ICES_DIVISION],
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
+    });
+
+    this.registerAutocompleteField('taxonName', {
+      service: this.referentialRefService,
+      filter: <ReferentialFilter>{
+        entityName: 'TaxonName',
+        levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
+    });
   }
 
-  getToDoEffortColor(data: Strategy, quarter): PredefinedColors {
-    let color : PredefinedColors = 'danger';
-    // return dark if planified effort = 0
-    if (this.effortToString(data, quarter) === 0) {
-      return 'dark';
+  protected setProgram(program: Program) {
+    if (program && isNotNil(program.id) && this._program !== program) {
+      console.debug('[strategy-table] Setting program:', program);
+
+      this._program = program;
+
+      this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
+      const strategyEditor = program.getProperty(ProgramProperties.PROGRAM_STRATEGY_EDITOR);
+      if (strategyEditor && strategyEditor !== 'legacy') {
+        // Add the editor name, as suffix of the i18n prefix
+        // (e.g. in Biological sampling program)
+        this.i18nColumnPrefix += strategyEditor.toUpperCase() + '.';
+      }
+
+      this.setFilter( {
+        ...this.filter,
+        levelId: program.id
+      });
     }
-    //TODO return 'dark' if planified effort = realised effort
-    /*if (this.effortToString(data, quarter) === 0) {
-      return 'dark';
-    }*/
-    return color;
   }
-
-  effortToString(data: Strategy, quarter) {
-    console.debug('TODO effortToString', data);
-
-    // TODO BLA: use this ?
-    const appliedStrategy = firstArrayValue(data.appliedStrategies);
-    const appliedPeriods = appliedStrategy && appliedStrategy.appliedPeriods || [];
-    //const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
-
-    let quarterEffort = null;
-    for (let fishingAreaAppliedPeriod of appliedPeriods) {
-      const startDateMonth = fromDateISOString(fishingAreaAppliedPeriod.startDate).month();
-      const endDateMonth = fromDateISOString(fishingAreaAppliedPeriod.endDate).month();
-      if (startDateMonth >= 0 && endDateMonth < 3 && quarter === 1)
-      {
-        quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-      }
-      else if (startDateMonth >= 3 && endDateMonth < 6 && quarter === 2)
-      {
-        quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-      }
-      else if (startDateMonth >= 6 && endDateMonth < 9 && quarter === 3)
-      {
-        quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-      }
-      else if (startDateMonth >= 9 && endDateMonth < 12 && quarter === 4)
-      {
-        quarterEffort = fishingAreaAppliedPeriod.acquisitionNumber;
-      }
-    }
-    return quarterEffort;
-  }
-
-  parametersToString(pmfmStrategies: PmfmStrategy[]) {
-    if (isEmptyArray(pmfmStrategies)) return '';
-    const parts = [];
-
-    // has Age ?
-    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.AGE))) {
-      parts.push(this.translate.instant('PROGRAM.STRATEGY.AGE'));
-    }
-    // has Sex ?
-    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.SEX))) {
-      parts.push(this.translate.instant('PROGRAM.STRATEGY.SEX'));
-    }
-    // Has weight ?
-    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabel(p.pmfm, ParameterLabel.WEIGHT))) {
-      parts.push(this.translate.instant('PROGRAM.STRATEGY.WEIGHT_TABLE'));
-    }
-    // Has size
-    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm , ParameterLabelList.LENGTH))) {
-      parts.push(this.translate.instant('PROGRAM.STRATEGY.SIZE_TABLE'));
-    }
-    // Has maturity
-    if (pmfmStrategies.find(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm , ParameterLabelList.MATURITY))) {
-      parts.push(this.translate.instant('PROGRAM.STRATEGY.MATURITY_TABLE'));
-    }
-    return parts.join(', ');
-  }
-
-
-  appliedStrategiesToString = appliedStrategiesToString;
-  taxonNamesStrategyToString = taxonNamesStrategyToString;
 
   protected markForCheck() {
     this.cd.markForCheck();

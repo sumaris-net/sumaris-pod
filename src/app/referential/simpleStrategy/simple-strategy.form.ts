@@ -16,12 +16,13 @@ import { StrategyService } from "../services/strategy.service";
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { PmfmStrategiesTable } from "../strategy/pmfm-strategies.table";
 import {TaxonNameRef} from "../services/model/taxon.model";
-import {LocationLevelIds, ParameterLabelList} from '../services/model/model.enum';
+import {LocationLevelIds, ParameterLabelGroups} from '../services/model/model.enum';
 import {AppForm} from "../../core/form/form.class";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
 import {isNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 @Component({
   selector: 'form-simple-strategy',
@@ -198,7 +199,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // appliedStrategy autocomplete
     this.registerAutocompleteField('appliedStrategy', {
       suggestFn: (value, filter) => this.suggest(value, {
-        ...filter, statusIds: [0, 1], levelIds: [LocationLevelIds.ICES_DIVISION]
+        ...filter,
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+          levelIds: [LocationLevelIds.ICES_DIVISION]
       },
       'Location',
       this.enableAppliedStrategyFilter),
@@ -407,8 +410,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     if (!data.id) {
       pmfmStrategies = [null, null];
     } else {
-      const hasAge = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelList.AGE)) !== -1;
-      const hasSex = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelList.SEX)) !== -1;
+      const hasAge = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.AGE)) !== -1;
+      const hasSex = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.SEX)) !== -1;
       pmfmStrategies = [hasSex, hasAge];
     }
 
@@ -416,8 +419,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // TODO BLA: revoir ces sélections: utliser PmfmUtils
     const weightPmfmStrategy = (data.pmfmStrategies || []).filter(
       p =>
-      (p.pmfm && p.pmfm.parameter && ParameterLabelList.WEIGHTS.includes(p.pmfm.parameter.label)) ||
-      (p['parameter'] && ParameterLabelList.WEIGHTS.includes(p['parameter'].label))
+      (p.pmfm && p.pmfm.parameter && ParameterLabelGroups.WEIGHT.includes(p.pmfm.parameter.label)) ||
+      (p['parameter'] && ParameterLabelGroups.WEIGHT.includes(p['parameter'].label))
     );
     pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
     this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
@@ -425,8 +428,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     //Sizes
     const sizePmfmStrategy = (data.pmfmStrategies || []).filter(
       p =>
-      (p.pmfm && p.pmfm.parameter && ParameterLabelList.LENGTH.includes(p.pmfm.parameter.label)) ||
-      (p['parameter'] && ParameterLabelList.LENGTH.includes(p['parameter'].label))
+      (p.pmfm && p.pmfm.parameter && ParameterLabelGroups.LENGTH.includes(p.pmfm.parameter.label)) ||
+      (p['parameter'] && ParameterLabelGroups.LENGTH.includes(p['parameter'].label))
     );
     pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : []);
     this.sizePmfmStrategiesTable.value = sizePmfmStrategy.length > 0 ? sizePmfmStrategy : [new PmfmStrategy()];
@@ -434,8 +437,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     //Maturities
     const maturityPmfmStrategy = (data.pmfmStrategies || []).filter(
       p =>
-      (p.pmfm && p.pmfm.parameter && ParameterLabelList.MATURITY.includes(p.pmfm.parameter.label)) ||
-      (p['parameter'] && ParameterLabelList.MATURITY.includes(p['parameter'].label))
+      (p.pmfm && p.pmfm.parameter && ParameterLabelGroups.MATURITY.includes(p.pmfm.parameter.label)) ||
+      (p['parameter'] && ParameterLabelGroups.MATURITY.includes(p['parameter'].label))
     );
     pmfmStrategies.push(maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : []);
     this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : [new PmfmStrategy()];

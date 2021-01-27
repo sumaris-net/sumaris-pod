@@ -63,54 +63,61 @@
       <span>{{i18nColumnPrefix + 'LABEL'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{row.currentData.label }}
+      <ion-label class="ion-text-wrap">{{row.currentData.label }}</ion-label>
     </mat-cell>
   </ng-container>
 
-    <!-- analyticReference column -->
-    <ng-container matColumnDef="analyticReference">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span>{{i18nColumnPrefix + 'ANALYTIC_REFERENCE'|translate}}</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        {{ row.currentData.analyticReference }}
-      </mat-cell>
-    </ng-container>
+  <!-- analyticReference column -->
+  <ng-container matColumnDef="analyticReference">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span>{{i18nColumnPrefix + 'ANALYTIC_REFERENCE'|translate}}</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{ row.currentData.analyticReference }}</ion-label>
+    </mat-cell>
+  </ng-container>
 
-    <!-- Departments column -->
-    <ng-container matColumnDef="recorderDepartments">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span>{{i18nColumnPrefix + 'RECORDER_DEPARTMENTS'|translate}}</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.departments | arrayPluck:{property: 'department'} | departmentToString}}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- Departments column -->
+  <ng-container matColumnDef="recorderDepartments">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span>{{i18nColumnPrefix + 'RECORDER_DEPARTMENTS'|translate}}</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text class="ion-text-nowrap"
+                [title]="row.currentData.departments | arrayPluck:{property: 'department'} | departmentToString">
+        {{row.currentData.departments | arrayPluck:{property: 'department'} | departmentToString }}
+      </ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- Applied strategies column -->
-    <ng-container matColumnDef="appliedStrategies">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span>{{i18nColumnPrefix + 'APPLIED_STRATEGIES'|translate}}</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        {{row.currentData.appliedStrategies | arrayPluck: {property: 'location'} | referentialToString: ['name'] }}
-      </mat-cell>
-    </ng-container>
+  <!-- Applied strategies (location) column -->
+  <ng-container matColumnDef="locations">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span>{{i18nColumnPrefix + 'LOCATIONS'|translate}}</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text class="ion-text-nowrap" [title]="locationsSpan.innerText">
+        <span #locationsSpan>{{row.currentData.appliedStrategies | arrayPluck: {property: 'location'} | referentialToString: autocompleteFields.location.attributes }}</span>
+      </ion-text>
+    </mat-cell>
+  </ng-container>
 
-     <!-- TARGET_SPECIE column -->
-     <ng-container matColumnDef="taxonNames">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span>{{i18nColumnPrefix + 'TAXON_NAMES'|translate}}</span>
-      </mat-header-cell>
-       <mat-cell *matCellDef="let row">
-         {{row.currentData.taxonNames | arrayPluck: {property: 'taxonName'} | referentialToString: ['name'] }}
-       </mat-cell>
-    </ng-container>
+   <!-- Taxon names column -->
+   <ng-container matColumnDef="taxonNames">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span>{{i18nColumnPrefix + 'TAXON_NAMES'|translate}}</span>
+    </mat-header-cell>
+     <mat-cell *matCellDef="let row">
+       <ion-text class="ion-text-nowrap" [title]="taxonNameSpan.innerText">
+         <span #taxonNameSpan>{{ row.currentData.taxonNames | arrayPluck: {property: 'taxonName'} | referentialToString: autocompleteFields.taxonName.attributes }}</span>
+       </ion-text>
+     </mat-cell>
+  </ng-container>
 
   <!-- comment column -->
-  <ng-container matColumnDef="comment">
+  <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef>
-      <span>{{i18nColumnPrefix + 'COMMENT'|translate}}</span>
+      <span>{{i18nColumnPrefix + 'COMMENTS'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-icon color="primary" class="comment"
@@ -125,78 +132,37 @@
       <span>{{i18nColumnPrefix + 'PARAMETERS'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{parametersToString(row.currentData.pmfmStrategies)}}
-    </mat-cell>
-  </ng-container>
-
-  <!-- Effort / Q1 column -->
-  <ng-container matColumnDef="effortQ1">
-    <mat-header-cell *matHeaderCellDef>
-      <span>{{i18nColumnPrefix + 'EFFORT_Q1'|translate}}</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-text
-        [color]="getRealizedEffortColor(row.currentData, 1)"
-        *ngIf="effortToString(row.currentData, 1) !== null">
-        0 &#47; {{effortToString(row.currentData, 1)}}<br/>
-        <ion-text [color]="getToDoEffortColor(row.currentData, 1)" >
-          {{effortToString(row.currentData, 1)}}
-        </ion-text>
+      <ion-text>
+        <ng-container *ngFor="let groupName of row.currentData.parameterGroups; index as i; last as last">
+          <span>{{ i18nColumnPrefix + groupName | uppercase | translate }}</span>
+          <span *ngIf="!last">, </span>
+        </ng-container>
       </ion-text>
     </mat-cell>
   </ng-container>
 
-  <!-- Effort / Q2 column -->
-  <ng-container matColumnDef="effortQ2">
-    <mat-header-cell *matHeaderCellDef>
-      <span>{{i18nColumnPrefix + 'EFFORT_Q2'|translate}}</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-text
-        [color]="getRealizedEffortColor(row.currentData, 2)"
-        *ngIf="effortToString(row.currentData, 2) !== null">
-        0 &#47; {{effortToString(row.currentData, 2)}}<br/>
-        <ion-text [color]="getToDoEffortColor(row.currentData, 2)" >
-          {{effortToString(row.currentData, 2)}}
+  <!-- Efforts / Q1 column -->
+  <ng-container *ngFor="let quarter of quarters">
+    <ng-container [matColumnDef]="'effortQ' + quarter">
+      <mat-header-cell *matHeaderCellDef>
+        <span>{{i18nColumnPrefix + 'EFFORT_Q' + quarter |translate }}</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text *ngIf="row.currentData.effortByQuarter && row.currentData.effortByQuarter[quarter]; let effort">
+          <ion-text [color]="effort.realized ? 'success' : 'dark'">
+            <span>{{effort.realizedEffort}}</span>
+            <span>&#47;</span>
+            <span>{{effort.expectedEffort}}</span>
+          </ion-text>
+          <ion-text [color]="effort.realized ? 'dark' : 'danger'" >
+            <br/>{{effort.missingEffort}}
+          </ion-text>
         </ion-text>
-      </ion-text>
-    </mat-cell>
+      </mat-cell>
+    </ng-container>
   </ng-container>
 
-  <!-- Effort / Q3  column -->
-  <ng-container matColumnDef="effortQ3">
-    <mat-header-cell *matHeaderCellDef>
-      <span>{{i18nColumnPrefix + 'EFFORT_Q3'|translate}}</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-text
-        [color]="getRealizedEffortColor(row.currentData, 3)"
-        *ngIf="effortToString(row.currentData, 3) !== null">
-        0 &#47; {{effortToString(row.currentData, 3)}}<br/>
-        <ion-text [color]="getToDoEffortColor(row.currentData, 3)" >
-          {{effortToString(row.currentData, 3)}}
-        </ion-text>
-      </ion-text>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Effort / Q4 column -->
-  <ng-container matColumnDef="effortQ4">
-    <mat-header-cell *matHeaderCellDef>
-      <span>{{i18nColumnPrefix + 'EFFORT_Q4'|translate}}</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-text [color]="getRealizedEffortColor(row.currentData, 4)"
-        *ngIf="effortToString(row.currentData, 4) !== null">
-        0 &#47; {{effortToString(row.currentData, 4)}}<br/>
-        <ion-text [color]="getToDoEffortColor(row.currentData, 4)" >
-          {{effortToString(row.currentData, 4)}}
-        </ion-text>
-      </ion-text>
-    </mat-cell>
-  </ng-container>
-
-	 <!-- Actions buttons column -->
+	<!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
@@ -226,7 +192,7 @@
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-disabled]="true"
+           class="mat-row-disabled"
            (click)="clickRow($event, row)"></mat-row>
 
 </mat-table>

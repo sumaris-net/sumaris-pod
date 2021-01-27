@@ -1,0 +1,1 @@
+- répertoire à déplacer/renommer dans strategy/denormalized 

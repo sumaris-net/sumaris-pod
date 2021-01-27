@@ -1,6 +1,8 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
+import {ObjectMap} from "../../../shared/types";
+
 export const LocationLevelIds = {
   // Lands
   COUNTRY: 1,
@@ -95,11 +97,10 @@ export const MethodIds = {
   CALCULATED: 4
 };
 
-// TODO BLA: renommer en ParameterLabelList
-export const ParameterLabelList = {
+export const ParameterLabelGroups: ObjectMap = {
   AGE: ['AGE'],
   SEX: ['SEX'],
-  WEIGHTS: ['WEIGHT'],
+  WEIGHT: ['WEIGHT'],
   LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
   MATURITY: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL']
 };

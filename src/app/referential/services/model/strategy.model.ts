@@ -13,7 +13,7 @@ import {PmfmStrategy} from "./pmfm-strategy.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
-export class Strategy extends Referential<Strategy> {
+export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referential<Strategy> {
 
   static TYPENAME = 'StrategyVO';
 
@@ -57,10 +57,10 @@ export class Strategy extends Referential<Strategy> {
     this.taxonNames = [];
   }
 
-  clone(): Strategy {
+  clone(): T {
     const target = new Strategy();
     target.fromObject(this);
-    return target;
+    return target as T;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -95,7 +95,7 @@ export class Strategy extends Referential<Strategy> {
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
   }
 
-  equals(other: Strategy): boolean {
+  equals(other: T): boolean {
     return super.equals(other)
       // Or by functional attributes
       || (
@@ -190,11 +190,6 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     this.appliedPeriods = source.appliedPeriods && source.appliedPeriods.map(AppliedPeriod.fromObject) || [];
   }
 
-  // TODO BLA: à déplacer
-  convertToString(): string {
-    return this && this.strategyId && (this.location.name) || undefined;
-  }
-
 }
 
 export class AppliedPeriod {
@@ -279,21 +274,4 @@ export class TaxonNameStrategy {
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName);
   }
 
-  // TODO BLA: à déplacer
-  convertToString(): string {
-    // TODO BLA: Pourquoi test sur strategyId
-    return this && this.strategyId && this.taxonName && (this.taxonName.name) || undefined;
-  }
-}
-
-export function strategyDepartmentsToString(departments: StrategyDepartment[], separator?: string) {
-  return (departments || []).map(d => d.department && d.department.name).join(separator || ", ");
-}
-
-export function appliedStrategiesToString(appliedStrategies: AppliedStrategy[], separator?: string) {
-  return (appliedStrategies || []).map(as => as.convertToString()).join(separator || ", ");
-}
-
-export function taxonNamesStrategyToString(taxonNames: TaxonNameStrategy[], separator?: string) {
-  return (taxonNames || []).map(tn => tn.convertToString()).join(separator || ", ");
 }

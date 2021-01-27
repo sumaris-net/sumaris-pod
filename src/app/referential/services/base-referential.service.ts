@@ -15,6 +15,7 @@ import {environment} from "../../../environments/environment";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {chainPromises} from "../../shared/observables";
 import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
+import {Optional} from "@angular/core";
 
 export interface BaseReferentialEntityQueries {
   load: any;
@@ -50,11 +51,11 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     protected platform: PlatformService,
     //protected environment: Environment, // TODO q3
     protected dataType: new() => E,
-    protected queries: Partial<BaseReferentialEntitiesQueries & BaseReferentialEntityQueries>,
-    protected mutations: Partial<BaseReferentialEntityMutations & BaseReferentialEntitiesMutations> = {},
-    protected subscriptions: Partial<BaseReferentialSubscriptions> = {},
-    protected filterAsObjectFn: (filter: F) => any = ReferentialFilter.asPodObject,
-    protected createFilterFn: (filter: F) => ((data: E) => boolean) = ReferentialFilter.searchFilter
+    @Optional() protected queries: Partial<BaseReferentialEntitiesQueries & BaseReferentialEntityQueries>,
+    @Optional() protected mutations: Partial<BaseReferentialEntityMutations & BaseReferentialEntitiesMutations> = {},
+    @Optional() protected subscriptions: Partial<BaseReferentialSubscriptions> = {},
+    @Optional() protected filterAsObjectFn: (filter: F) => any = ReferentialFilter.asPodObject,
+    @Optional() protected createFilterFn: (filter: F) => ((data: E) => boolean) = ReferentialFilter.searchFilter
   ) {
     super(graphql, environment);
 
@@ -397,36 +398,39 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
    */
   protected initQueriesAndMutationsFallback() {
 
-    // load()
-    if (!this.queries.load && this.queries.loadAll) {
-      this.load = async (id, opts) => {
-        const data = await this.loadAll(0, 1, null, null, { id: id } as F, opts);
-        return data && data[0];
-      };
+    if (this.queries) {
+      // load()
+      if (!this.queries.load && this.queries.loadAll) {
+        this.load = async (id, opts) => {
+          const data = await this.loadAll(0, 1, null, null, { id: id } as F, opts);
+          return data && data[0];
+        };
+      }
     }
 
+    if (this.mutations) {
       // save() and saveAll()
-    if (!this.mutations.save && this.mutations.saveAll) {
-      this.save = async (entity, opts) => {
-        const data = await this.saveAll([entity], opts);
-        return data && data[0];
-      };
-    }
-    else if (!this.mutations.deleteAll && this.mutations.delete) {
-      // Save one by one
-      this.saveAll = (entities, opts) => chainPromises((entities || [])
-        .map(entity => (() => this.save(entity, opts))));
-    }
+      if (!this.mutations.save && this.mutations.saveAll) {
+        this.save = async (entity, opts) => {
+          const data = await this.saveAll([entity], opts);
+          return data && data[0];
+        };
+      }
+      else if (!this.mutations.deleteAll && this.mutations.delete) {
+        // Save one by one
+        this.saveAll = (entities, opts) => chainPromises((entities || [])
+          .map(entity => (() => this.save(entity, opts))));
+      }
 
-    // delete and deleteAll()
-    if (!this.mutations.delete && this.mutations.deleteAll) {
-      this.delete = (entity, opts) => this.deleteAll([entity], opts);
+      // delete and deleteAll()
+      if (!this.mutations.delete && this.mutations.deleteAll) {
+        this.delete = (entity, opts) => this.deleteAll([entity], opts);
+      }
+      else if (!this.mutations.deleteAll && this.mutations.delete) {
+        // Delete one by one
+        this.deleteAll = (entities, opts) => chainPromises((entities || [])
+          .map(entity => (() => this.delete(entity, opts))));
+      }
     }
-    else if (!this.mutations.deleteAll && this.mutations.delete) {
-      // Delete one by one
-      this.deleteAll = (entities, opts) => chainPromises((entities || [])
-        .map(entity => (() => this.delete(entity, opts))));
-    }
-
   }
 }

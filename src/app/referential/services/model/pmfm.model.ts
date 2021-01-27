@@ -145,11 +145,11 @@ export abstract class PmfmUtils {
   }
 
   static hasParameterLabel(pmfm: Pmfm, label: string): boolean {
-    return isNotNil(pmfm.parameter) && pmfm.parameter.label === label;
+    return pmfm && isNotNil(pmfm.parameter) && pmfm.parameter.label === label;
   }
 
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
-    return isNotNil(pmfm.parameter) && labels.includes(pmfm.parameter.label);
+    return pmfm && isNotNil(pmfm.parameter) && labels.includes(pmfm.parameter.label);
   }
 }
 

@@ -22,7 +22,7 @@ import {FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {AcquisitionLevelCodes, ParameterLabelList} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, ParameterLabelGroups} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 import {BehaviorSubject} from "rxjs";
@@ -241,19 +241,19 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       if (pmfm) {
         if (pmfm.parameter && pmfm.parameter.label) {
           const label = pmfm.parameter.label;
-          if (ParameterLabelList.AGE.includes(label)) {
+          if (ParameterLabelGroups.AGE.includes(label)) {
             dynamicAgeColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
-          else if (ParameterLabelList.SEX.includes(label)) {
+          else if (ParameterLabelGroups.SEX.includes(label)) {
             dynamicSexColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
-          else if (ParameterLabelList.WEIGHTS.includes(label)) {
+          else if (ParameterLabelGroups.WEIGHT.includes(label)) {
             dynamicWeightColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
-          else if (ParameterLabelList.LENGTH.includes(label)) {
+          else if (ParameterLabelGroups.LENGTH.includes(label)) {
             dynamicSizeColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
-          else if (ParameterLabelList.MATURITY.includes(label)) {
+          else if (ParameterLabelGroups.MATURITY.includes(label)) {
             dynamicMaturityColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
           else {

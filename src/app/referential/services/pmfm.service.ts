@@ -19,9 +19,14 @@ import {
   IEntityService, LoadResult,
   SuggestService
 } from "../../shared/services/entity-service.class";
-import {isNil, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {ParameterLabelGroups} from "./model/model.enum";
+import {DenormalizedStrategy} from "../simpleStrategy/denormalized-strategy.service";
+import {ReferentialRefService} from "./referential-ref.service";
+import {firstNotNilPromise} from "../../shared/observables";
+import {ObjectMap} from "../../shared/types";
 
 const LoadAllQuery: any = gql`
   query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -33,10 +38,10 @@ const LoadAllQuery: any = gql`
 `;
 const LoadAllWithDetailsQuery: any = gql`
   query PmfmsWithDetails($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+    data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...PmfmFragment
     }
-    referentialsCount(entityName: "Pmfm", filter: $filter)
+    total: referentialsCount(entityName: "Pmfm", filter: $filter)
   }
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.referential}
@@ -45,14 +50,20 @@ const LoadAllWithDetailsQuery: any = gql`
 `;
 const LoadAllWithTotalQuery: any = gql`
   query PmfmsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+    data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightPmfmFragment
     }
-    referentialsCount(entityName: "Pmfm", filter: $filter)
+    total: referentialsCount(entityName: "Pmfm", filter: $filter)
   }
   ${ReferentialFragments.lightPmfm}
 `;
-
+const LoadAllIdsQuery: any = gql`
+  query PmfmIds($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    data: referentials(entityName: "Pmfm", filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      id
+    }
+  }
+`;
 const LoadQuery: any = gql`
   query Pmfm($label: String, $id: Int){
     pmfm(label: $label, id: $id){
@@ -81,6 +92,7 @@ export class PmfmFilter extends ReferentialFilter {
   entityName: 'Pmfm';
 }
 
+// TODO BLA: étendre la class BaseReferentialService
 @Injectable({providedIn: 'root'})
 export class PmfmService extends BaseEntityService implements IEntityService<Pmfm>,
   IEntitiesService<Pmfm, PmfmFilter>,
@@ -90,7 +102,8 @@ export class PmfmService extends BaseEntityService implements IEntityService<Pmf
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
-    protected referentialService: ReferentialService
+    protected referentialService: ReferentialService,
+    protected referentialRefService: ReferentialRefService
   ) {
     super(graphql, environment);
   }
@@ -189,19 +202,19 @@ export class PmfmService extends BaseEntityService implements IEntityService<Pmf
     if (this._debug) console.debug("[pmfm-service] Watching pmfms using options:", variables);
 
     const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
-    return this.graphql.watchQuery<{ pmfms: any[], referentialsCount?: number }>({
+    return this.graphql.watchQuery<LoadResult<any>>({
       query,
       variables,
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     })
       .pipe(
-        map(res => {
-            const data = (res && res.pmfms || []).map(Pmfm.fromObject);
-            if (this._debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`, data);
+        map(({data, total}) => {
+            const entities = (data || []).map(Pmfm.fromObject);
+            if (this._debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`, entities);
             return {
-              data: data,
-              total: res.referentialsCount
+              data: entities,
+              total
             };
           }
         )
@@ -246,20 +259,20 @@ export class PmfmService extends BaseEntityService implements IEntityService<Pmf
         opts.withTotal ? LoadAllWithTotalQuery : LoadAllQuery
       )
     );
-    const res = await this.graphql.query<{ pmfms: any[], referentialsCount?: number }>({
+    const {data, total} = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     });
 
-    const data = (!opts || opts.toEntity !== false) ?
-      (res && res.pmfms || []).map(Pmfm.fromObject) :
-      (res && res.pmfms || []) as Pmfm[];
+    const entities = (!opts || opts.toEntity !== false) ?
+      (data || []).map(Pmfm.fromObject) :
+      (data || []) as Pmfm[];
     if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
     return {
-      data: data,
-      total: res.referentialsCount
+      data: entities,
+      total
     };
 
   }
@@ -281,6 +294,26 @@ export class PmfmService extends BaseEntityService implements IEntityService<Pmf
       { withTotal: false /* total not need */ }
     );
     return res.data;
+  }
+
+  /**
+   * Get referential references, group by level labels
+   * @param data
+   */
+  async loadIdsGroupByParameterLabels(parameterLabelsMap: ObjectMap<string[]>): Promise<ObjectMap<number[]>> {
+
+      const pmfmMap = await this.referentialRefService.loadAllGroupByLevels({
+          entityName: 'Pmfm',
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        },
+        { levelLabels: parameterLabelsMap },
+        { toEntity: false });
+
+    // Keep only Pmfm.id
+    return Object.keys(parameterLabelsMap).reduce((res, key) => {
+      res[key] = pmfmMap[key].map(e => e.id);
+      return res;
+    }, {});
   }
 
   /* -- protected methods -- */

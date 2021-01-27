@@ -271,7 +271,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "legacy"
   },
 
-  // PROGRAM STRATEGY EDITOR
+  // PROGRAM STRATEGY EDITOR column name
   PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
     key: 'sumaris.program.strategy.editor.pmfm.table.column.name',
     label: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME',

@@ -1205,29 +1205,41 @@
       },
       "TABLE": {
         "LABEL": "Code",
-        "APPLIED_STRATEGIES": "Lieu(x)",
+        "LOCATIONS": "Lieu(x) applicable(s)",
         "ANALYTIC_REFERENCE": "Code analytique",
         "RECORDER_DEPARTMENTS": "Service(s) saisisseur(s)",
         "TAXON_NAMES": "Espèce(s) scientifique(s)",
-        "EFFORT_Q1": "Efforts T1" ,
-        "EFFORT_Q2": "Efforts T2",
-        "EFFORT_Q3": "Efforts T3",
-        "EFFORT_Q4": "Efforts T4",
-        "PARAMETERS": "Paramètres à mesurer",
-        "COMMENT": "",
+        "EFFORT_Q1": "Effort T1" ,
+        "EFFORT_Q2": "Effort T2" ,
+        "EFFORT_Q3": "Effort T3" ,
+        "EFFORT_Q4": "Effort T4" ,
+        "PARAMETERS": "Paramètres collectés",
+        "COMMENTS": "Commentaires",
+        "AGE": "Age",
+        "SEX": "Sexe",
+        "WEIGHT": "Poids",
+        "LENGTH": "Taille",
+        "MATURITY": "Maturité",
+        "OTHER": "Autre",
 
         "SAMPLING": {
           "LABEL": "Code de la ligne",
-          "APPLIED_STRATEGIES": "Zone(s) de pêche",
+          "LOCATIONS": "Zone(s) de pêche",
           "ANALYTIC_REFERENCE": "EOTP",
           "RECORDER_DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
           "TAXON_NAMES": "Espèce(s) cible(s)",
           "EFFORT_Q1": "Efforts T1" ,
-          "EFFORT_Q2": "Efforts T2",
-          "EFFORT_Q3": "Efforts T3",
-          "EFFORT_Q4": "Efforts T4",
+          "EFFORT_Q2": "Efforts T2" ,
+          "EFFORT_Q3": "Efforts T3" ,
+          "EFFORT_Q4": "Efforts T4" ,
           "PARAMETERS": "Paramètres à mesurer",
-          "COMMENT": "Commentaires"
+          "COMMENTS": "Commentaires",
+          "AGE": "Age",
+          "SEX": "Sexe",
+          "WEIGHT": "Poids",
+          "LENGTH": "Taille",
+          "MATURITY": "Maturité",
+          "OTHER": "Autre"
         }
       },
 
@@ -1269,16 +1281,11 @@
       "ANALYTIC_REFERENCE": "EOTP",
       "DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
       "LANDING_PORT": "Port de débarquement",
-      "SEX": "Sexe",
-      "AGE": "Age",
       "YEAR": "Année",
       "WEIGHT": "Poids : ",
       "SIZE": "Tailles : ",
       "MATURITY": "Maturités : ",
-      "WEIGHT_TABLE": "Poids",
-      "SIZE_TABLE": "Tailles",
-      "MATURITY_TABLE": "Maturités",
-      "OTHER_TABLE": "Autre",
+
       "CALCIFIED_TYPE": "Types de pièces calcifiées",
       "SIZE_INCREMENT": "incrément de taille",
       "EFFORT": "Effort : ",
@@ -1501,6 +1508,14 @@
       },
       "SURVIVAL_TEST": {
         "TITLE": "Données brutes (SUMARiS v1.0)"
+      },
+      "PROG": {
+        "TITLE": "Programmes & strategies",
+        "SHEET": {
+          "PR": "Programmes",
+          "ST": "Strategies",
+          "SM": "Suivi de strategie"
+        }
       }
     },
     "ERROR": {

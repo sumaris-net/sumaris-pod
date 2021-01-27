@@ -1,7 +1,7 @@
 import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
 import {changeCaseToUnderscore} from "../../../shared/functions";
-import {LocationLevelIds, ParameterLabelList} from "../model/model.enum";
+import {LocationLevelIds, ParameterLabelGroups} from "../model/model.enum";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -102,31 +102,31 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     key: 'sumaris.enumeration.parameter.age.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_AGE_LABEL',
     type: 'string',
-    defaultValue: ParameterLabelList.AGE.join(',')
+    defaultValue: ParameterLabelGroups.AGE.join(',')
   },
   STRATEGY_PARAMETER_SEX_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.sex.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_SEX_LABEL',
     type: 'string',
-    defaultValue: ParameterLabelList.SEX.join(',')
+    defaultValue: ParameterLabelGroups.SEX.join(',')
   },
   STRATEGY_PARAMETER_WEIGHT_LABELS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.weight.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_WEIGHT_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelList.WEIGHTS.join(',')
+    defaultValue: ParameterLabelGroups.WEIGHT.join(',')
   },
   STRATEGY_PARAMETER_LENGTH_LABELS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.length.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_LENGTH_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelList.LENGTH.join(',')
+    defaultValue: ParameterLabelGroups.LENGTH.join(',')
   },
   STRATEGY_PARAMETER_MATURITY_LABELS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.maturity.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_MATURITY_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelList.MATURITY.join(',')
+    defaultValue: ParameterLabelGroups.MATURITY.join(',')
   },
 };
 

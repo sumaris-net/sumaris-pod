@@ -464,7 +464,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   setDatasource(datasource: EntitiesTableDataSource<T, F>) {
     if (this._dataSource) throw new Error("[table] dataSource already set !");
-    if (datasource && this._dataSource != datasource) {
+    if (datasource && this._dataSource !== datasource) {
       this._dataSource = datasource;
       if (this._initialized) this.listenDatasource(datasource);
     }

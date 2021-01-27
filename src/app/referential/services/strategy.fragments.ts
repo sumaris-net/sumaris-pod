@@ -80,12 +80,24 @@ export const StrategyFragments = {
       defaultValue
       pmfmId
       pmfm {
-        ...LightPmfmFragment
+        ...PmfmFragment
       }
       parameterId
+      parameter {
+        ...ReferentialFragment
+      }
       matrixId
+      matrix {
+        ...ReferentialFragment
+      }
       fractionId
+      fraction {
+        ...ReferentialFragment
+      }
       methodId
+      method {
+        ...ReferentialFragment
+      }
       gearIds
       taxonGroupIds
       referenceTaxonIds

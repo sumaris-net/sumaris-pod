@@ -31,7 +31,7 @@ import {debounceTime, filter, map, startWith, switchMap} from "rxjs/operators";
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {ProgramService} from "../services/program.service";
-import {ParameterLabelList} from "../services/model/model.enum";
+import {ParameterLabelGroups} from "../services/model/model.enum";
 
 export class PmfmStrategyFilter {
 
@@ -540,7 +540,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // We add a filter on pmfm with parameter in ('WEIGHT')
         const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
-          levelLabels: ParameterLabelList.WEIGHTS
+          levelLabels: ParameterLabelGroups.WEIGHT
           // searchJoin: "Parameter" is implied in pod filter
         },
           {
@@ -554,7 +554,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // We add a filter on pmfm with parameter in specific size list
         const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
-          levelLabels: ParameterLabelList.LENGTH
+          levelLabels: ParameterLabelGroups.LENGTH
           // searchJoin: "Parameter" is implied in pod filter
         },
           {
@@ -568,7 +568,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // We add a filter on pmfm with parameter in specific maturity list
         const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
-          levelLabels: ParameterLabelList.MATURITY
+          levelLabels: ParameterLabelGroups.MATURITY
           // searchJoin: "Parameter" is implied in pod filter
         },
           {
