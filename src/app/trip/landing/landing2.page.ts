@@ -307,6 +307,10 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
   }
 
+  protected async onEntitySaved(data: Landing) {
+    this.setValue(data);
+  }
+
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     this.parent = await this.loadParent(data);
@@ -367,7 +371,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   }
 
   protected async setValue(data: Landing): Promise<void> {
-
+    if (!data) return; // Skip
+    //this.simpleStrategyForm.value = data;
+    
     const isNew = isNil(data.id);
     if (!isNew) {
       // FIXME CLT Program subscriber throw invalid pmfms => /!\ program not set
