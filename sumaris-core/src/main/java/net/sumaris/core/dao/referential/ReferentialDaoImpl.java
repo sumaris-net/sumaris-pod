@@ -24,27 +24,13 @@ package net.sumaris.core.dao.referential;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.*;
-import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.grouping.Grouping;
-import net.sumaris.core.model.referential.grouping.GroupingLevel;
-import net.sumaris.core.model.referential.location.LocationLevel;
-import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.pmfm.Fraction;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
-import net.sumaris.core.model.referential.pmfm.QualitativeValue;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -517,13 +503,15 @@ public class ReferentialDaoImpl
     ) {
         Integer levelId = filter.getLevelId();
         Integer[] levelIds = filter.getLevelIds();
+        String levelLabel = filter.getLevelLabel();
+        String[] levelLabels = filter.getLevelLabels();
         String searchText = StringUtils.trimToNull(filter.getSearchText());
         String searchAttribute = StringUtils.trimToNull(filter.getSearchAttribute());
         Integer[] statusIds = filter.getStatusIds();
         Integer[] excludedIds = filter.getExcludedIds();
 
         // Level Ids
-        Predicate levelClause = null;
+        Predicate levelIdClause = null;
         ParameterExpression<Collection> levelIdsParam = null;
         if (ArrayUtils.isNotEmpty(levelIds)) {
             if (levelIds.length == 1) {
@@ -534,19 +522,47 @@ public class ReferentialDaoImpl
                 levelIdsParam = builder.parameter(Collection.class);
                 String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
                 if (levelPropertyName != null) {
-                    levelClause = builder.in(entityRoot.get(levelPropertyName).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
+                    levelIdClause = builder.in(entityRoot.get(levelPropertyName).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
                 } else {
                     log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
                 }
             }
         }
-        // Level Id
         ParameterExpression<Integer> levelIdParam = null;
         if (levelId != null) {
             levelIdParam = builder.parameter(Integer.class);
             String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
             if (levelPropertyName != null) {
-                levelClause = builder.equal(entityRoot.get(levelPropertyName).get(IReferentialEntity.Fields.ID), levelIdParam);
+                levelIdClause = builder.equal(entityRoot.get(levelPropertyName).get(IReferentialEntity.Fields.ID), levelIdParam);
+            } else {
+                log.warn(String.format("Trying to request on level, but no level found for entity {%s}", entityClass.getSimpleName()));
+            }
+        }
+
+        // Level Labels
+        Predicate levelLabelClause = null;
+        ParameterExpression<Collection> levelLabelsParam = null;
+        if (ArrayUtils.isNotEmpty(levelLabels)) {
+            if (levelLabels.length == 1) {
+                levelLabel = levelLabels[0];
+                levelLabels = null;
+            } else {
+                levelLabel = null;
+                levelLabelsParam = builder.parameter(Collection.class);
+                String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
+                if (levelPropertyName != null) {
+                    levelLabelClause = builder.in(entityRoot.get(levelPropertyName).get(IItemReferentialEntity.Fields.LABEL)).value(levelLabelsParam);
+                } else {
+                    log.warn(String.format("Trying to request on level, but no level found for entity {%s}", entityClass.getSimpleName()));
+                }
+            }
+        }
+        ParameterExpression<String> levelLabelParam = null;
+        if (StringUtils.isNotBlank(levelLabel)) {
+            levelLabelParam = builder.parameter(String.class);
+            String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
+            if (levelPropertyName != null) {
+                levelLabelClause = builder.equal(entityRoot.get(levelPropertyName).get(IItemReferentialEntity.Fields.LABEL), levelLabelParam);
             } else {
                 log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
             }
@@ -620,8 +636,11 @@ public class ReferentialDaoImpl
 
         // Compute where clause
         Expression<Boolean> whereClause = null;
-        if (levelClause != null) {
-            whereClause = levelClause;
+        if (levelIdClause != null) {
+            whereClause = levelIdClause;
+        }
+        if (levelLabelClause != null) {
+            whereClause = (whereClause == null) ? levelLabelClause : builder.and(whereClause, levelLabelClause);
         }
         if (idClause != null) {
             whereClause = (whereClause == null) ? idClause : builder.and(whereClause, idClause);
@@ -665,11 +684,18 @@ public class ReferentialDaoImpl
             typedQuery.setParameter(searchAsPrefixParam, searchTextAsPrefix);
             typedQuery.setParameter(searchAnyMatchParam, searchTextAnyMatch);
         }
-        if (levelClause != null) {
+        if (levelIdClause != null) {
             if (levelIds != null) {
                 typedQuery.setParameter(levelIdsParam, ImmutableList.copyOf(levelIds));
             } else {
                 typedQuery.setParameter(levelIdParam, levelId);
+            }
+        }
+        if (levelLabelClause != null) {
+            if (levelLabels != null) {
+                typedQuery.setParameter(levelLabelsParam, ImmutableList.copyOf(levelLabels));
+            } else {
+                typedQuery.setParameter(levelLabelParam, levelLabel);
             }
         }
         if (statusIdsClause != null) {

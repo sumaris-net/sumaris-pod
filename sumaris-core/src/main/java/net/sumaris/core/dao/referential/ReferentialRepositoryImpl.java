@@ -37,9 +37,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -257,6 +255,8 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
         return BindableSpecification
             .where(inStatusIds(filter))
             .and(hasLabel(filter.getLabel()))
+            .and(inLevelIds(getDomainClass(), filter.getLevelIds()))
+            .and(inLevelLabels(getDomainClass(), filter.getLevelLabels()))
             .and(searchOrJoinSearchText(filter))
             .and(excludedIds(filter.getExcludedIds()));
     }
