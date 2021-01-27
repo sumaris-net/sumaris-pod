@@ -59,7 +59,9 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.lightPmfm}
+  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.parameter}
   ${ReferentialFragments.taxonName}
   `,
   loadAll: gql`query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -140,7 +142,9 @@ const StrategyMutations: BaseReferentialEntityMutations = {
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.lightPmfm}
+  ${ReferentialFragments.pmfm}
+  ${ReferentialFragments.parameter}
+  ${ReferentialFragments.fullReferential}
   ${ReferentialFragments.taxonName}
   `,
   delete: gql`mutation DeleteAllStrategies($id:Int!){

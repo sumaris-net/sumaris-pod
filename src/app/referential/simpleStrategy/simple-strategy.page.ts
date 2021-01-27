@@ -1,33 +1,27 @@
-import { animate, state, style, transition, trigger } from "@angular/animations";
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from "@angular/core";
-import { FormBuilder, FormGroup } from "@angular/forms";
-import { ActivatedRoute } from "@angular/router";
-import { ValidatorService } from "@e-is/ngx-material-table";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {ActivatedRoute} from "@angular/router";
 import * as moment from "moment";
-import { HistoryPageReference } from "src/app/core/services/model/settings.model";
-import { PlatformService } from "src/app/core/services/platform.service";
-import { AccountService } from "../../core/services/account.service";
+import {HistoryPageReference} from "src/app/core/services/model/settings.model";
+import {PlatformService} from "src/app/core/services/platform.service";
+import {AccountService} from "../../core/services/account.service";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import { FormFieldDefinitionMap } from "../../shared/form/field.model";
-import { ProgramProperties } from "../services/config/program.config";
-import { PmfmStrategy } from "../services/model/pmfm-strategy.model";
-import {
-  Strategy,
-  StrategyDepartment
-} from "../services/model/strategy.model";
-import { PmfmService } from "../services/pmfm.service";
-import { StrategyService } from "../services/strategy.service";
-import { ProgramValidatorService } from "../services/validator/program.validator";
-import { StrategyValidatorService } from "../services/validator/strategy.validator";
-import { SimpleStrategyForm } from "./simple-strategy.form";
+import {FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {ProgramProperties} from "../services/config/program.config";
+import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {Strategy, StrategyDepartment} from "../services/model/strategy.model";
+import {PmfmService} from "../services/pmfm.service";
+import {StrategyService} from "../services/strategy.service";
+import {StrategyValidatorService} from "../services/validator/strategy.validator";
+import {SimpleStrategyForm} from "./simple-strategy.form";
 import {AppEntityEditor} from "../../core/form/editor.class";
-import {isNil, isNotNil} from "../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {firstNotNilPromise} from "../../shared/observables";
+import {BehaviorSubject} from "rxjs";
+import {Program} from "../services/model/program.model";
+import {ProgramService} from "../services/program.service";
 
-export enum AnimationState {
-  ENTER = 'enter',
-  LEAVE = 'leave'
-}
 
 @Component({
   selector: 'app-simple-strategy',
@@ -37,11 +31,8 @@ export enum AnimationState {
 export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyService> implements OnInit {
 
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
-  fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
-  i18nFieldPrefix = 'STRATEGY.';
-  strategyFormState: AnimationState;
-  programId: number;
+  programSubject = new BehaviorSubject<Program>(null);
 
   @ViewChild('simpleStrategyForm', { static: true }) simpleStrategyForm: SimpleStrategyForm;
 
@@ -51,6 +42,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     protected accountService: AccountService,
     protected validatorService: StrategyValidatorService,
     dataService: StrategyService,
+    protected programService: ProgramService,
     protected activatedRoute: ActivatedRoute,
     protected pmfmService: PmfmService,
     protected platform: PlatformService
@@ -58,21 +50,32 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     super(injector, Strategy, dataService,
       {
         pathIdAttribute: 'strategyId',
-        tabCount: 3,
+        tabCount: 1,
         autoUpdateRoute: !platform.mobile,
-        autoOpenNextTab: !platform.mobile
+        autoOpenNextTab: false
       });
     this.form = validatorService.getFormGroup();
     // default values
-    this.defaultBackHref = "/referential?entity=Program";
+    this.defaultBackHref = "/referential/programs";
     this._enabled = this.accountService.isAdmin();
-    this.tabCount = 4;
   }
 
   ngOnInit() {
-    //  Call editor routing
     super.ngOnInit();
-    this.simpleStrategyForm.entityName = 'simpleStrategyForm';
+
+    // Update back href, when program changed
+    this.registerSubscription(
+      this.programSubject.subscribe(program => {
+        if (program && isNotNil(program.id)) {
+          this.defaultBackHref = `/referential/programs/${program.id}?tab=1`;
+          this.markForCheck();
+        }
+      }));
+  }
+
+  async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
+    // Force the load from network
+    return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
 
   protected canUserWrite(data: Strategy): boolean {
@@ -89,34 +92,31 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     withPrefix?: boolean;
   }): Promise<string> {
 
+    const program = await firstNotNilPromise(this.programSubject);
+    let i18nSuffix = program.getProperty(ProgramProperties.PROGRAM_STRATEGY_I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
+
     // new strategy
     if (!data || isNil(data.id)) {
-      return await this.translate.get('PROGRAM.STRATEGY.NEW.SAMPLING_TITLE').toPromise();
+      return await this.translate.get(`PROGRAM.STRATEGY.NEXT.${i18nSuffix}TITLE`).toPromise();
     }
 
     // Existing strategy
-    return await this.translate.get('PROGRAM.STRATEGY.EDIT.SAMPLING_TITLE', {
+    return await this.translate.get(`PROGRAM.STRATEGY.EDIT.${i18nSuffix}TITLE`, {
+      program: program.label,
       label: data && data.label
     }).toPromise() as string;
   }
 
   protected getFirstInvalidTabIndex(): number {
     if (this.simpleStrategyForm.invalid) return 0;
-    // TODO
     return 0;
   }
 
   protected registerForms() {
-    this.addChildForms([
-      this.simpleStrategyForm
-    ]);
+    this.addChildForm(this.simpleStrategyForm);
   }
 
-  updateView(data: Strategy | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
-    super.updateView(data, opts);
-  }
-
-  //protected setValue(data: Strategy) {
   protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (!data) return; // Skip
     this.simpleStrategyForm.value = data;
@@ -127,9 +127,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     const data = this.simpleStrategyForm.value;
 
     data.name = data.label || data.name;
-
-    // TODO BLA: usage non recommandé de isOwnProperty
-    data.analyticReference = data.analyticReference && data.analyticReference.hasOwnProperty('label') ? data.analyticReference.label : data.analyticReference;
+    data.analyticReference = data.analyticReference && data.analyticReference.label || data.analyticReference;
 
     // FIXME : description is not nullable in database so we init it with an empty string if nothing provided in the
     data.description = data.description || ' ';
@@ -137,7 +135,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     // get taxonName and delete useless attribute
     data.taxonNames[0].strategyId = data.taxonNames[0].strategyId || 30;
     delete data.taxonNames[0].taxonName.taxonGroupIds;
-
 
     // FIXME : how to get privilege previously ??
     data.departments.map((dpt: StrategyDepartment) => {
@@ -232,9 +229,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
    */
   protected async getPmfms(label: string) {
     const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-      entityName: 'Pmfm',
       levelLabels: [label]
-      // searchJoin: "Parameter" is implied in pod filter
     },
       {
         withTotal: false,
@@ -243,37 +238,27 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     return res.data;
   }
 
-  protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
-    // Update back href
-    this.defaultBackHref = isNotNil(data.programId) ? `/referential/program/${data.programId}?tab=2` : this.defaultBackHref;
-    this.markForCheck();
-  }
-
 
   protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
-    // Read options and query params
-    console.info(options);
-    if (options && options.id) {
-      console.debug("[landedTrip-page] New entity: settings defaults...");
+    await super.onNewEntity(data, options);
 
-      // init new entity attributs
-      data.programId = data.programId || this.activatedRoute.snapshot.params['id'];
-      data.statusId = data.statusId || 1;
-      data.creationDate = moment();
+    const program = await this.programService.load(options.programId);
+    this.programSubject.next(program);
 
-      this.defaultBackHref = `/referential/program/${data.programId}?tab=2`;
+    data.programId = program.id;
 
-    } else {
-      throw new Error("[landedTrip-page] the observedLocationId must be present");
-    }
-    const queryParams = this.route.snapshot.queryParams;
-    // Load the vessel, if any
-    if (isNotNil(queryParams['program'])) {
-      const programId = +queryParams['program'];
-      console.debug(`[landedTrip-page] Loading vessel {${programId}}...`);
-      data.programId = programId;
-    }
+    data.programId = data.programId || this.activatedRoute.snapshot.params['id'];
+    data.statusId = data.statusId || 1;
+    data.creationDate = moment();
   }
+
+  protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+    await super.onEntityLoaded(data, options);
+
+    const program = await this.programService.load(data.programId);
+    this.programSubject.next(program);
+  }
+
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {

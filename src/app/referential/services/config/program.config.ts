@@ -271,6 +271,23 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "legacy"
   },
 
+  PROGRAM_STRATEGY_I18N_SUFFIX: <FormFieldDefinition>{
+    key: "sumaris.program.strategy.i18nSuffix",
+    label: "PROGRAM.OPTIONS.PROGRAM_STRATEGY_I18N_SUFFIX",
+    type: 'enum',
+    values: [
+      {
+        key: 'legacy',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_I18N_SUFFIX_LEGACY'
+      },
+      {
+        key: 'SAMPLING.',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_I18N_SUFFIX_SAMPLING'
+      }
+    ],
+    defaultValue: 'legacy'
+  },
+
   // PROGRAM STRATEGY EDITOR column name
   PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
     key: 'sumaris.program.strategy.editor.pmfm.table.column.name',

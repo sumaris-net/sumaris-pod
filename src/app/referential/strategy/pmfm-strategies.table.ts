@@ -114,43 +114,49 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   fieldDefinitions: FormFieldDefinition[] = [];
 
   @Input() canDisplayToolbar = true;
-  @Input() canDisplayColumnsHeaders = true;
+  @Input() showHeaderRow = true;
   @Input() canDisplaySimpleStrategyValidators = true;
   @Input() pmfmFilterApplied = 'all';
-  @Input() initializeOneRow = false;
+  @Input() allowNoRow = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
   @Input()
-  set showPMFMDetailsColumns(value: boolean) {
-    // Display PMFM details or other columns
-    this.setShowColumn('parameterId', value);
+  set showDetailsColumns(value: boolean) {
+    // Set details columns visibility
+    this.setShowColumn('acquisitionLevel', value);
+    this.setShowColumn('rankOrder', value);
+    this.setShowColumn('isMandatory', value);
+    this.setShowColumn('acquisitionNumber', value);
+    this.setShowColumn('minValue', value);
+    this.setShowColumn('maxValue', value);
+    this.setShowColumn('defaultValue', value);
 
-    this.setShowColumn('acquisitionLevel', !value);
-    this.setShowColumn('rankOrder', !value);
-    this.setShowColumn('isMandatory', !value);
-    this.setShowColumn('acquisitionNumber', !value);
-    this.setShowColumn('minValue', !value);
-    this.setShowColumn('maxValue', !value);
-    this.setShowColumn('defaultValue', !value);
+    // Inverse visibility of the parameter columns
+    this.setShowColumn('parameterId', !value);
+
+  }
+
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
   }
 
 
-  @Input() title: string;
-
-  private _program: string;
-
   @Input()
-    set program(value: string) {
-      if (this._program !== value && isNotNil(value)) {
-        this._program = value;
-        if (!this.loading) this.loadDefaultsFromProgram();
-      }
-    }
+  set showSelectColumn(value: boolean) {
+    this.setShowColumn('select', value);
+  }
 
-    get program(): string {
-      return this._program;
-    }
+  get showSelectColumn(): boolean {
+    return this.getShowColumn('select');
+  }
+
+  @Input() title: string;
 
   @Output() get selectionChanges(): Observable<TableElement<PmfmStrategy>[]> {
     return this.selection.changed.pipe(
@@ -158,15 +164,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     );
   }
 
-  @Output() simpleStrategyDeleteRow = new EventEmitter<TableElement<PmfmStrategy>[]>();
-
   constructor(
     protected injector: Injector,
     protected validatorService: PmfmStrategyValidatorService,
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef,
-    protected programService: ProgramService
+    protected cd: ChangeDetectorRef
   ) {
     super(injector,
       // columns
@@ -199,14 +202,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     this.i18nColumnPrefix = 'PROGRAM.STRATEGY.PMFM_STRATEGY.';
     this.inlineEdition = true;
-    //this.confirmBeforeDelete = true;
 
     this.debug = !environment.production;
 
     // Loading referential items
     this.loadReferential();
-
-    this.loadDefaultsFromProgram({emitEvent: false});
   }
 
 
@@ -242,7 +242,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
     this.loadPmfms();
 
-    this.validatorService.isSimpleStrategy = !this.canDisplayColumnsHeaders;
+    this.validatorService.isSimpleStrategy = !this.showHeaderRow;
 
     // Acquisition level
     this.registerFormField('acquisitionLevel', {
@@ -380,7 +380,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false
     }, true);
 
-    if (this.initializeOneRow) {
+    if (!this.allowNoRow) {
       this.addRow();
     }
 
@@ -597,18 +597,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.cd.markForCheck();
   }
 
-  protected async loadDefaultsFromProgram(opts?: {emitEvent?: boolean; }) {
-    if (!this._program) return; // Skip
-
-    const program = await this.programService.loadByLabel(this._program);
-    if (!program) return; //  Program not found
-
-    // Emit event
-    if (!opts || opts.emitEvent !== false) {
-      this.markForCheck();
-    }
-  }
-
   displayParameter(obj: number|Referential) {
     const parameterId = (obj instanceof Referential) ? obj.id : obj as number;
     const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.parameter?.id === parameterId);
@@ -621,11 +609,17 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return pmfm && pmfm.method && pmfm.method.name || "";
   }
 
-
-  async simpleStrategyDeleteSelection(event: UIEvent) {
-    await super.deleteSelection(event);
-    await this.save();
-    this.simpleStrategyDeleteRow.next();
+  async deleteRow(event: UIEvent, row: TableElement<PmfmStrategy>) {
+    let deleteCount: number;
+    if (row.editing) {
+      this.cancelOrDelete(event, row);
+    }
+    else if (row.id !== -1) {
+      this.selection.clear();
+      this.selection.select(row);
+      await super.deleteSelection(event);
+      this.onCancelOrDeleteRow.next(row);
+    }
 
   }
 }

@@ -1179,6 +1179,9 @@
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
       "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Paramètres biologiques",
+      "PROGRAM_STRATEGY_I18N_SUFFIX" : "Stratégie > Dictionnaire thématique",
+      "PROGRAM_STRATEGY_I18N_SUFFIX_LEGACY" : "Par défaut",
+      "PROGRAM_STRATEGY_I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)",
@@ -1197,11 +1200,58 @@
       "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "NEW": {
         "TITLE": "Nouvelle stratégie",
-        "SAMPLING_TITLE": "Nouvelle ligne de plan"
+        "SAMPLING": {
+          "TITLE": "Nouvelle ligne de plan"
+        }
       },
       "EDIT": {
         "TITLE": "<small>{{program}}<br></small>Stratégie {{label}}",
-        "SAMPLING_TITLE": "Ligne de plan {{label}}"
+        "LABEL": "Code",
+        "ANALYTIC_REFERENCE_PLACEHOLDER": "Code analytique",
+        "DEPARTMENTS": "Service(s) saisisseur(s) :",
+        "DEPARTMENT_PLACEHOLDER": "Service saisisseur #",
+        "LOCATIONS": "Lieux(s) applicables :",
+        "LOCATION_PLACEHOLDER": "Lieu applicable #",
+        "TAXON_NAMES": "Espèce(s) scientifique(s) :",
+        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique #",
+        "QUARTER_PLACEHOLDER": "Trimestre ",
+        "EFFORT": "Effort :",
+        "PARAMETERS_DIVIDER": "Paramètres à mesurer :",
+        "AGE": "Age :",
+        "AGE_PLACEHOLDER": "Age",
+        "SEX": "Sexe :",
+        "SEX_PLACEHOLDER": "Sexe",
+        "WEIGHTS": "Poids : ",
+        "LENGTHS": "Tailles : ",
+        "MATURITIES": "Maturités : ",
+        "CALCIFIED_TYPE": "Pièces calcifiées :",
+        "CALCIFIED_TYPE_PLACEHOLDER": "Types de pièces calcifiées #",
+        "YEAR_PLACEHOLDER": "Année",
+
+        "SAMPLING": {
+          "TITLE": "Ligne de plan {{label}}",
+          "LABEL": "Code ligne de plan - incrément",
+          "ANALYTIC_REFERENCE_PLACEHOLDER": "EOTP",
+          "DEPARTMENTS": "Labo(s) saisisseur(s) :",
+          "DEPARTMENT_PLACEHOLDER": "Laboratoire saisisseur #",
+          "LOCATIONS": "Zone(s) de pêche :",
+          "LOCATION_PLACEHOLDER": "Zone de pêche #",
+          "TAXON_NAMES": "Espèce(s) cible(s) :",
+          "TAXON_NAME_PLACEHOLDER": "Espèce cible #",
+          "QUARTER_PLACEHOLDER": "Trimestre ",
+          "EFFORT": "Effort :",
+          "PARAMETERS_DIVIDER": "Paramètres à mesurer :",
+          "AGE": "Age :",
+          "AGE_PLACEHOLDER": "Age",
+          "SEX": "Sexe :",
+          "SEX_PLACEHOLDER": "Sexe",
+          "WEIGHTS": "Poids : ",
+          "LENGTHS": "Tailles : ",
+          "MATURITIES": "Maturités : ",
+          "CALCIFIED_TYPE": "Pièces calcifiées :",
+          "CALCIFIED_TYPE_PLACEHOLDER": "Types de pièces calcifiées #",
+          "YEAR_PLACEHOLDER": "Année"
+        }
       },
       "TABLE": {
         "LABEL": "Code",

@@ -89,7 +89,7 @@ const SaveQuery: any = gql`
 `;
 
 export class PmfmFilter extends ReferentialFilter {
-  entityName: 'Pmfm';
+  entityName?: 'Pmfm';
 }
 
 // TODO BLA: étendre la class BaseReferentialService

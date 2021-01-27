@@ -35,16 +35,19 @@
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
               <form-simple-strategy #simpleStrategyForm
-                                       [showError]="false"
-                                       (onSubmit)="save($event)">
+                                    [program]="programSubject|async"
+                                    [showError]="false"
+                                    (onSubmit)="save($event)">
               </form-simple-strategy>
 
             </ion-col>
 
-            <!-- entity metadata
+            <!-- entity metadata -->
             <ion-col class="ion-no-padding" size="12" size-xl="3">
-              <app-entity-metadata [value]="data"></app-entity-metadata>
-            </ion-col> -->
+              <app-entity-metadata [value]="data"
+                                   [showRecorder]="false">
+              </app-entity-metadata>
+            </ion-col>
           </ion-row>
         </ion-grid>
 

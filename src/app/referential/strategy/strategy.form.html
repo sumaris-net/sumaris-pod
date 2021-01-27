@@ -140,11 +140,11 @@
         <ion-card class="ion-no-margin">
             <app-pmfm-strategies-table #pmfmStrategiesTable
                                        [title]="'PROGRAM.STRATEGY.PMFM_STRATEGY.TABLE.TITLE'|translate"
-                                       [program]="program"
+                                       [programLabel]="program"
                                        [canEdit]="enabled"
                                        [canDelete]="enabled"
                                        [sticky]="true"
-                                       [showPMFMDetailsColumns]="false">
+                                       [showDetailsColumns]="true">
             </app-pmfm-strategies-table>
         </ion-card>
 

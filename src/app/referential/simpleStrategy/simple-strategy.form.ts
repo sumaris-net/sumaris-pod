@@ -21,8 +21,11 @@ import {AppForm} from "../../core/form/form.class";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
-import {isNil} from "../../shared/functions";
+import {isNil, isNotNilOrBlank} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {ProgramProperties} from "../services/config/program.config";
+import {startWith} from "rxjs/operators";
+import {BehaviorSubject, merge} from "rxjs";
 
 @Component({
   selector: 'form-simple-strategy',
@@ -36,7 +39,7 @@ import {StatusIds} from "../../core/services/model/model.enum";
 export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   mobile: boolean;
-  programId = -1;
+  programSubject = new BehaviorSubject<Program>(null);
 
   enableTaxonNameFilter = false;
   canFilterTaxonName = true;
@@ -45,10 +48,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   enableEotpFilter = false;
   canFilterEotp = true;
 
-  enableStrategyDepartmentFilter = false;
-  canFilterStrategyDepartment = true;
+  enableDepartmentFilter = false;
+  canFilterDepartment = true;
   departmentsHelper: FormArrayHelper<StrategyDepartment>;
-  StrategyDepartmentFocusIndex = -1;
+  departmentFocusIndex = -1;
 
   enableAppliedStrategyFilter = false;
   canFilterAppliedStrategy = true;
@@ -60,8 +63,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   enablePmfmStrategiesFractionFilter = false;
   canFilterPmfmStrategiesFraction = true;
-  PmfmStrategiesFractionHelper: FormArrayHelper<PmfmStrategy>;
-  PmfmStrategiesFractionFocusIndex = -1;
+  pmfmStrategiesFractionHelper: FormArrayHelper<PmfmStrategy>;
+  pmfmStrategiesFractionFocusIndex = -1;
 
   pmfmStrategiesHelper: FormArrayHelper<PmfmStrategy>;
   pmfmStrategiesFocusIndex = -1;
@@ -71,19 +74,26 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   hidden?: boolean;
   appliedYear = '';
 
-  @Input() program: Program;
+  @Input() set program(value: Program) {
+    this.setProgram(value);
+  }
+
+  get program(): Program {
+    return this.programSubject.getValue();
+  }
+
   @Input() showError = true;
-  @Input() entityName;
+  @Input() i18nFieldPrefix = 'PROGRAM.STRATEGY.EDIT.';
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
-  public sampleRowMask = ['2', '0', '2', '1', '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
+  labelMask: (string|RegExp)[];
 
   get appliedStrategiesForm(): FormArray {
     return this.form.controls.appliedStrategies as FormArray;
   }
 
-  get strategyDepartmentFormArray(): FormArray {
+  get departmentsFormArray(): FormArray {
     return this.form.controls.departments as FormArray;
   }
 
@@ -120,6 +130,19 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.mobile = this.settings.mobile;
   }
 
+  protected setProgram(program: Program, opts?: { emitEvent?: boolean; }) {
+    if (program && this.program !== program) {
+      this.i18nFieldPrefix = 'PROGRAM.STRATEGY.EDIT.';
+      const i18nSuffix = program.getProperty(ProgramProperties.PROGRAM_STRATEGY_I18N_SUFFIX) || '';
+      this.i18nFieldPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
+
+        this.programSubject.next(program);
+
+      if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
+    }
+  }
 
   async setPmfmStrategies() {
     const pmfms = [];
@@ -127,10 +150,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     await this.weightPmfmStrategiesTable.save();
     await this.sizePmfmStrategiesTable.save();
     await this.maturityPmfmStrategiesTable.save();
-
-    this.weightPmfmStrategiesTable.selection.clear();
-    this.sizePmfmStrategiesTable.selection.clear();
-    this.maturityPmfmStrategiesTable.selection.clear();
 
     const weights = this.weightPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
     const sizes = this.sizePmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
@@ -154,24 +173,23 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-    // TODO BLA: revoir les nommage des event ci-dessous
-    this.weightPmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
-    this.sizePmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
-    this.maturityPmfmStrategiesTable.simpleStrategyDeleteRow.subscribe(() => this.setPmfmStrategies());
-    //this.weightPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
-    //this.sizePmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
-    //this.maturityPmfmStrategiesTable.onCancelOrDeleteRow.subscribe(() => this.setPmfmStrategies());
-
-    this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
-    this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
-    this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
+    this.registerSubscription(
+      merge(
+        this.weightPmfmStrategiesTable.onCancelOrDeleteRow,
+        this.sizePmfmStrategiesTable.onCancelOrDeleteRow,
+        this.maturityPmfmStrategiesTable.onCancelOrDeleteRow,
+        this.weightPmfmStrategiesTable.onConfirmEditCreateRow,
+        this.sizePmfmStrategiesTable.onConfirmEditCreateRow,
+        this.maturityPmfmStrategiesTable.onConfirmEditCreateRow
+      )
+      .subscribe(() => this.setPmfmStrategies())
+    );
 
     // register year field changes
     this.registerSubscription(
       this.form.get('creationDate').valueChanges
         .subscribe(async (date: Moment) => this.onDateChange(date))
     );
-
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
@@ -185,19 +203,19 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       mobile: this.settings.mobile
     });
 
-    // laboratory autocomplete
-    this.registerAutocompleteField('strategyDepartment', {
+    // Department autocomplete
+    this.registerAutocompleteField('department', {
       suggestFn: (value, filter) => this.suggest(value, {
-        ...filter, statusId: 1
+        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
       'Department',
-      this.enableStrategyDepartmentFilter),
+      this.enableDepartmentFilter),
       columnSizes: [4, 8],
       mobile: this.settings.mobile
     });
 
     // appliedStrategy autocomplete
-    this.registerAutocompleteField('appliedStrategy', {
+    this.registerAutocompleteField('location', {
       suggestFn: (value, filter) => this.suggest(value, {
         ...filter,
           statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
@@ -231,13 +249,27 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       mobile: this.settings.mobile
     });
 
-    //init helpers
-    this.initstrategyDepartmentHelper();
+    // Init array helpers
+    this.initdepartmentHelper();
     this.initTaxonNameHelper();
     this.initPmfmStrategiesHelper();
     this.initAppliedStrategiesHelper();
     this.initAppliedPeriodHelper();
     this.initPmfmStrategiesFractionHelper();
+  }
+
+  /**
+   * Select text that can be changed, using the text mask
+   * @param input
+   */
+  selectMask(input: HTMLInputElement) {
+    if (!this.labelMask) input.select();
+    const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
+    let endIndex = this.labelMask.slice(startIndex).findIndex(c => !(c instanceof RegExp), startIndex);
+    endIndex = (endIndex === -1)
+      ? this.labelMask.length
+      : startIndex + endIndex;
+    input.setSelectionRange(startIndex, endIndex, "backward");
   }
 
   /**
@@ -304,8 +336,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       case 'eotp':
         this.enableEotpFilter = value = !this.enableEotpFilter;
         break;
-      case 'strategyDepartment':
-        this.enableStrategyDepartmentFilter = value = !this.enableStrategyDepartmentFilter;
+      case 'department':
+        this.enableDepartmentFilter = value = !this.enableDepartmentFilter;
         break;
       case 'appliedStrategy':
         this.enableAppliedStrategyFilter = value = !this.enableAppliedStrategyFilter;
@@ -342,8 +374,6 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     ]);
 
-    // TODO : look if it's possible to init programId in another way
-    this.programId = data.programId;
 
     // Resize strategy department array
     this.departmentsHelper.resize(Math.max(1, data.departments.length));
@@ -461,7 +491,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
         };
       });
       calcifiedTypeControl.clear();
-      this.PmfmStrategiesFractionHelper.resize(Math.max(1, PmfmStrategiesFraction.length));
+      this.pmfmStrategiesFractionHelper.resize(Math.max(1, PmfmStrategiesFraction.length));
       calcifiedTypeControl.patchValue(fractions);
     });
   }
@@ -479,10 +509,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       const dateAsString = date as string;
       year = moment(dateAsString).toDate().getFullYear().toString();
     }
-    this.sampleRowMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
+    this.labelMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
 
     // get new label sample row code
-    const updatedLabel = await this.strategyService.computeNextLabel(this.programId, `${year}-BIO-`, 4);
+    const updatedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 4));
 
     const label = labelControl.value;
     if (isNil(label)) {
@@ -591,7 +621,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
-  protected initstrategyDepartmentHelper() {
+  protected initdepartmentHelper() {
     this.departmentsHelper = new FormArrayHelper<StrategyDepartment>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'departments'),
       (department) => this.validatorService.getStrategyDepartmentsControl(department),
@@ -606,16 +636,17 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       this.departmentsHelper.resize(1);
     }
   }
-  addStrategyDepartment() {
+
+  addDepartment() {
     this.departmentsHelper.add(new StrategyDepartment());
     if (!this.mobile) {
-      this.StrategyDepartmentFocusIndex = this.departmentsHelper.size() - 1;
+      this.departmentFocusIndex = this.departmentsHelper.size() - 1;
     }
   }
 
   // PmfmStrategiesFractionHelper - Pièces calcifiées ------------------------------------------------------------------------------------------
   protected initPmfmStrategiesFractionHelper() {
-    this.PmfmStrategiesFractionHelper = new FormArrayHelper<PmfmStrategy>(
+    this.pmfmStrategiesFractionHelper = new FormArrayHelper<PmfmStrategy>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmStrategiesFraction'),
       (pmfmStrategiesFraction) => this.formBuilder.control(pmfmStrategiesFraction || null, [SharedValidators.entity]),
       ReferentialUtils.equals,
@@ -625,14 +656,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     );
     // Create at least one PmfmStrategiesFraction
-    if (this.PmfmStrategiesFractionHelper.size() === 0) {
-      this.PmfmStrategiesFractionHelper.resize(1);
+    if (this.pmfmStrategiesFractionHelper.size() === 0) {
+      this.pmfmStrategiesFractionHelper.resize(1);
     }
   }
   addPmfmStrategiesFraction() {
-    this.PmfmStrategiesFractionHelper.add();
+    this.pmfmStrategiesFractionHelper.add();
     if (!this.mobile) {
-      this.PmfmStrategiesFractionFocusIndex = this.PmfmStrategiesFractionHelper.size() - 1;
+      this.pmfmStrategiesFractionFocusIndex = this.pmfmStrategiesFractionHelper.size() - 1;
     }
   }
 

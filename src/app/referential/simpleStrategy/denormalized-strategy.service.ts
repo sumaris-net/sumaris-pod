@@ -6,23 +6,20 @@ import {CacheService} from "ionic-cache";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {AppliedPeriod, Strategy} from "../services/model/strategy.model";
-import {BaseReferentialEntitiesQueries, BaseReferentialService} from "../services/base-referential.service";
+import {Strategy} from "../services/model/strategy.model";
+import {BaseReferentialService} from "../services/base-referential.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SortDirection} from "@angular/material/sort";
 import {StrategyFragments} from "../services/strategy.fragments";
 import {LoadResult} from "../../shared/services/entity-service.class";
 import {StrategyFilter} from "../services/strategy.service";
-import {forkJoin, Observable, of} from "rxjs";
-import {concatAll, map} from "rxjs/operators";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {Observable} from "rxjs";
+import {map} from "rxjs/operators";
 import {isEmptyArray, isNotNil} from "../../shared/functions";
-import {PmfmUtils} from "../services/model/pmfm.model";
-import {ParameterLabel, ParameterLabelGroups} from "../services/model/model.enum";
+import {ParameterLabelGroups} from "../services/model/model.enum";
 import {ConfigService} from "../../core/services/config.service";
 import {PmfmService} from "../services/pmfm.service";
 import {ReferentialRefService} from "../services/referential-ref.service";
-import {firstNotNilPromise} from "../../shared/observables";
 import {mergeMap} from "rxjs/internal/operators";
 import {Moment} from "moment";
 import {DateUtils, fromDateISOString} from "../../shared/dates";
@@ -40,6 +37,7 @@ export class DenormalizedStrategy extends Strategy<DenormalizedStrategy> {
 
   constructor() {
     super();
+    this.effortByQuarter = {}; // Init, for easier use in UI
   }
 
   clone(): DenormalizedStrategy {

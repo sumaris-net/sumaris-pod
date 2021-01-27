@@ -40,10 +40,11 @@
 
 
 <mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
+           [class.no-header-row]="!showHeaderRow"
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
-    <mat-header-cell [hidden]="!canDisplayColumnsHeaders" class="hidden-xs hidden-sm" *matHeaderCellDef>
+    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                     [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
@@ -56,7 +57,7 @@
 
   <!-- Id column -->
   <ng-container matColumnDef="id">
-    <mat-header-cell [hidden]="!canDisplayColumnsHeaders" *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
@@ -64,7 +65,7 @@
 
   <!-- Fields-->
   <ng-container *ngFor="let definition of fieldDefinitions" [matColumnDef]="definition.key">
-    <mat-header-cell   [hidden]="!canDisplayColumnsHeaders" *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{definition.label | translate}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
@@ -78,7 +79,7 @@
 
   <!-- Default value -->
   <ng-container matColumnDef="defaultValue">
-    <mat-header-cell  [hidden]="!canDisplayColumnsHeaders" *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{fieldDefinitionsMap.defaultValue.label | translate}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
@@ -95,36 +96,64 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell  [hidden]="!canDisplayColumnsHeaders || !inlineEdition"
+    <mat-header-cell  [hidden]="!inlineEdition"
                       *matHeaderCellDef >
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition && showHeaderRow">
 
-      <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid || (!canDisplayColumnsHeaders && selection.hasValue())"
-               [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-               (click)="(!canDisplayColumnsHeaders && selection.isSelected(row)) ? simpleStrategyDeleteSelection($event) : cancelOrDelete($event, row)">
-         <mat-icon *ngIf="row.id !== -1 && (row.validator.invalid)">undo</mat-icon>
-         <mat-icon *ngIf="row.id === -1 || (!canDisplayColumnsHeaders && selection.isSelected(row))">delete_outline</mat-icon>
-      </button>
+      <ng-container *ngIf="showHeaderRow; else noHeaderRowActions">
+        <!-- undo or delete  -->
+        <button mat-icon-button color="light" *ngIf="row.validator.invalid"
+                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+                (click)="cancelOrDelete($event, row)">
+          <mat-icon *ngIf="row.id !== -1 && (row.validator.invalid)">undo</mat-icon>
+          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+        </button>
 
+        <!-- validate -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+                [title]="'COMMON.BTN_VALIDATE'|translate"
+                (click)="confirmEditCreate($event, row)">
+          <mat-icon>check</mat-icon>
+        </button>
+        <!-- add -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="!showHeaderRow ? addRow() : confirmAndAddRow($event, row)">
+          <mat-icon>add</mat-icon>
+        </button>
+      </ng-container>
+      <ng-template #noHeaderRowActions>
 
-      <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="(row.validator.valid && row.id !== -1) || (!canDisplayColumnsHeaders && row.validator.valid)"
-              [title]="'COMMON.BTN_VALIDATE'|translate"
-              (click)="confirmEditCreate($event, row)">
-        <mat-icon>check</mat-icon>
-      </button>
-      <!-- add -->
-      <button mat-icon-button color="light" *ngIf="(row.validator.valid && row.id === -1 && canDisplayColumnsHeaders) || (!canDisplayColumnsHeaders && !row.validator.valid)"
-              [title]="'COMMON.BTN_ADD'|translate"
-              (click)="!canDisplayColumnsHeaders ? addRow() : confirmAndAddRow($event, row)">
-        <mat-icon>add</mat-icon>
-      </button>
+        <!-- validate -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+                [title]="'COMMON.BTN_VALIDATE'|translate"
+                (click)="confirmEditCreate($event, row)">
+          <mat-icon>check</mat-icon>
+        </button>
+
+        <!-- add -->
+        <button mat-icon-button color="light" *ngIf="!row.editing || row.validator.valid"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="addRow()">
+          <mat-icon>add</mat-icon>
+        </button>
+
+        <!-- delete -->
+        <button mat-icon-button color="light"
+                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+                (click)="deleteRow($event, row)">
+          <mat-icon>close</mat-icon>
+        </button>
+
+      </ng-template>
+
     </mat-cell>
   </ng-container>
 
-  <mat-header-row  [hidden]="!canDisplayColumnsHeaders" *matHeaderRowDef="displayedColumns; sticky: sticky"></mat-header-row>
+  <ng-container *ngIf="showHeaderRow">
+    <mat-header-row *matHeaderRowDef="displayedColumns; sticky: sticky"></mat-header-row>
+  </ng-container>
   <mat-row *matRowDef="let row; columns: displayedColumns;"
            [class.mat-row-error]="row.validator.invalid"
            [class.mat-row-dirty]="row.validator.dirty"

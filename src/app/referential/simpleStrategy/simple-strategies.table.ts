@@ -140,12 +140,10 @@ export class SimpleStrategiesTable extends AppTable<DenormalizedStrategy, Refere
       this._program = program;
 
       this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
-      const strategyEditor = program.getProperty(ProgramProperties.PROGRAM_STRATEGY_EDITOR);
-      if (strategyEditor && strategyEditor !== 'legacy') {
-        // Add the editor name, as suffix of the i18n prefix
-        // (e.g. in Biological sampling program)
-        this.i18nColumnPrefix += strategyEditor.toUpperCase() + '.';
-      }
+
+      // Add a i18n suffix (e.g. in Biological sampling program)
+      const i18nSuffix = program.getProperty(ProgramProperties.PROGRAM_STRATEGY_I18N_SUFFIX);
+      this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
 
       this.setFilter( {
         ...this.filter,

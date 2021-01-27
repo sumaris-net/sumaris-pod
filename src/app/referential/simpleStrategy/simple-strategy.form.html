@@ -1,24 +1,38 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
   <ion-grid>
-    <!--Sample row code -->
+
+    <!-- year + label -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
-      <ion-col>
-        <mat-form-field>
+
+      <!-- label -->
+      <ion-col size="6" size-md="5" size-lg="5">
+        <mat-form-field *ngIf="labelMask; else noLabelMask">
           <input matInput #matInput
                  formControlName="label"
                  autocomplete="off"
                  type="text"
-                 [textMask]="{mask: sampleRowMask, keepCharPositions: true, showMask: true, guide: true}"
-                 placeholder="{{ 'PROGRAM.STRATEGY.SAMPLE_ROW_TITLE' | translate }}" >
+                 [textMask]="{mask: labelMask, keepCharPositions: true, showMask: true, guide: true}"
+                 (click)="selectMask($event.target)"
+                 placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}" >
         </mat-form-field>
+
+        <ng-template #noLabelMask>
+          <mat-form-field>
+            <input matInput #matInput
+                   formControlName="label"
+                   autocomplete="off"
+                   type="text"
+                   placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}" >
+          </mat-form-field>
+        </ng-template>
       </ion-col>
+
     </ion-row>
 
-
-    <!--EOTP -->
+    <!-- analytic reference  -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
@@ -26,7 +40,7 @@
       <ion-col>
         <mat-autocomplete-field
           formControlName="analyticReference"
-          [placeholder]="'PROGRAM.STRATEGY.ANALYTIC_REFERENCE'|translate"
+          [placeholder]="i18nFieldPrefix + 'ANALYTIC_REFERENCE_PLACEHOLDER'|translate"
           [config]="autocompleteFields.analyticReference"
           [tabindex]="tabindex+1">
 
@@ -43,38 +57,38 @@
       </ion-col>
     </ion-row>
 
-    <!-- LABORATORIES -->
-    <ion-row *ngFor="let strategyDepartmentForm of strategyDepartmentFormArray?.controls; index as i; first as first">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
+    <!-- Departments -->
+    <ion-row *ngFor="let departmentForm of departmentsFormArray?.controls; index as i; first as first">
+      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'DEPARTMENTS'|translate}}</ion-label>
       </ion-col>
       <ion-col [formGroup]="departmentsHelper.at(i)">
         <mat-autocomplete-field
           formControlName="department"
-          [placeholder]="('PROGRAM.STRATEGY.STRATEGY_DEPARTMENTS'|translate) + (i+1)"
-          [config]="autocompleteFields.strategyDepartment"
+          [placeholder]="(i18nFieldPrefix + 'DEPARTMENT_PLACEHOLDER'|translate) + (i+1)"
+          [config]="autocompleteFields.department"
           [tabindex]="tabindex+10+i*3"
           [required]="true">
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
-                  [disabled]="!canFilterStrategyDepartment"
+                  [disabled]="!canFilterDepartment"
                   [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('strategyDepartment')"
-                  [color]="enableStrategyDepartmentFilter ? 'primary' : undefined">
+                  (click)="toggleFilteredItems('department')"
+                  [color]="enableDepartmentFilter ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
           </button>
         </mat-autocomplete-field>
       </ion-col>
 
       <ion-col size="auto" class="ion-align-self-center">
-        <button matAfter type="button" mat-icon-button
+        <button type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addStrategyDepartment()">
+                (click)="addDepartment()">
           <mat-icon>add</mat-icon>
         </button>
 
-        <button matAfter type="button" mat-icon-button
+        <button type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="departmentsHelper.removeAt(i)">
@@ -84,16 +98,16 @@
 
     </ion-row>
 
-    <!--FISHING AREA -->
-    <ion-row *ngFor="let fishingAreaForm of appliedStrategiesForm?.controls; index as i; first as first">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
+    <!-- applied strategies (location) -->
+    <ion-row *ngFor="let appliedStrategyForm of appliedStrategiesForm?.controls; index as i; first as first">
+      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'LOCATIONS'|translate}}</ion-label>
       </ion-col>
       <ion-col [formGroup]="appliedStrategiesHelper.at(i)">
         <mat-autocomplete-field
           formControlName="location"
-          [placeholder]="('PROGRAM.STRATEGY.APPLIED_STRATEGIES'|translate) + (i+1)"
-          [config]="autocompleteFields.appliedStrategy"
+          [placeholder]="(i18nFieldPrefix + 'LOCATION_PLACEHOLDER'|translate) + (i+1)"
+          [config]="autocompleteFields.location"
           [tabindex]="tabindex+10+i*3"
           [required]="true">
           <button matAfter type="button" mat-icon-button
@@ -108,14 +122,14 @@
       </ion-col>
 
       <ion-col size="auto" class="ion-align-self-center">
-        <button matAfter type="button" mat-icon-button
+        <button type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="addAppliedStrategy()">
           <mat-icon>add</mat-icon>
         </button>
 
-        <button matAfter type="button" mat-icon-button
+        <button type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="appliedStrategiesHelper.removeAt(i)">
@@ -125,15 +139,15 @@
 
     </ion-row>
 
-    <!-- Target species (using metier) -->
+    <!-- Taxon names -->
     <ion-row *ngFor="let taxonNameForm of taxonNamesForm?.controls; index as i; first as first">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
+      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'TAXON_NAMES'|translate}}</ion-label>
       </ion-col>
       <ion-col [formGroup]="taxonNameHelper.at(i)">
         <mat-autocomplete-field
           formControlName="taxonName"
-          [placeholder]="('PROGRAM.STRATEGY.TAXON_NAMES'|translate)"
+          [placeholder]="(i18nFieldPrefix + 'TAXON_NAME_PLACEHOLDER'|translate)"
           [config]="autocompleteFields.taxonName"
           [tabindex]="tabindex+10+i*3"
           [required]="true">
@@ -150,46 +164,24 @@
 
     </ion-row>
 
-    <!-- <ion-row *ngFor="let taxonNameForm of taxonNamesForm?.controls; index as i; first as first">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
-      </ion-col>
-        <ion-col [formGroup]="taxonNameHelper.at(i)">
-        <mat-autocomplete-field formControlName="name"
-                                [placeholder]="'PROGRAM.STRATEGY.TAXON_NAMES'|translate"
-                                [config]="autocompleteFields.taxonName"
-                                [tabindex]="tabindex+1"
-                                [required]="true"
-                                [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'">
-          <button matAfter type="button" mat-icon-button
-                  tabindex="-1"
-                  [disabled]="!canFilterTaxonName"
-                  [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('taxonName')"
-                  [color]="enableTaxonNameFilter ? 'primary' : undefined">
-            <mat-icon>filter_list</mat-icon>
-          </button>
-        </mat-autocomplete-field>
-      </ion-col>
-    </ion-row> -->
 
-
-    <!--year -->
+    <!-- year -->
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
-      <ion-col size="12" size-sm="auto">
-        <mat-date-short-field [placeholder]="'PROGRAM.STRATEGY.YEAR'|translate"
+      <ion-col size="12" size-md="3" size-lg="2">
+        <mat-date-short-field [placeholder]="i18nFieldPrefix + 'YEAR_PLACEHOLDER'|translate"
                               formControlName="creationDate"
                               [required]="true" >
         </mat-date-short-field>
       </ion-col>
     </ion-row>
 
-    <!--quarters-->
+    <!-- Effort / quarters -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+        <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
         <mat-error *ngIf="form.touched && form.get('appliedPeriods').hasError('minLength')">
@@ -199,10 +191,12 @@
     </ion-row>
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>PROGRAM.STRATEGY.EFFORT</ion-label>
+        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'EFFORT'|translate}}</ion-label>
       </ion-col>
 
-      <ion-col size="1" class="ion-margin" *ngFor="let appliedPeriodForm of appliedPeriodsForm?.controls; index as i; first as first">
+      <ion-col size="3" size-md="2"
+               *ngFor="let appliedPeriodForm of appliedPeriodsForm?.controls; index as i; first as first"
+               [class.ion-padding-start]="!first">
         <mat-form-field [formGroup]="appliedPeriodHelper.at(i)">
           <input matInput
           formControlName="acquisitionNumber"
@@ -210,17 +204,17 @@
           step="1"
           min="0"
           autocomplete="off"
-          [placeholder]="'PROGRAM.STRATEGY.QUARTER_' + (i+1) |translate">
+          [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' |translate) + (i+1) ">
         </mat-form-field>
       </ion-col>
     </ion-row>
 
 
     <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <h2>
-          <ion-label class="ion-float-end" translate>PROGRAM.STRATEGY.PARAMETERS_TITLE</ion-label>
-        </h2>
+      <ion-col size="12">
+        <ion-text color="primary">
+          <h2>{{i18nFieldPrefix + 'PARAMETERS_DIVIDER'|translate}}</h2>
+        </ion-text>
       </ion-col>
     </ion-row>
 
@@ -236,6 +230,7 @@
     </ion-item> -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+        <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
         <mat-error *ngIf="form.touched && form.get('pmfmStrategies').hasError('minLength')">
@@ -247,112 +242,113 @@
       </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label class="ion-float-end" translate>PROGRAM.STRATEGY.WEIGHT</ion-label>
+      <ion-col size="0" size-md="2" size-lg="3">
+        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'WEIGHTS'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <ion-card class="ion-no-margin">
-          <app-pmfm-strategies-table
-                                     #weightPmfmStrategiesTable
-                                     [title]=""
-                                     [program]="program"
-                                     [canEdit]="enabled"
-                                     [canDelete]="enabled"
-                                     [canDisplayToolbar]="false"
-                                     [canDisplayColumnsHeaders]="false"
-                                     [canDisplaySimpleStrategyValidators]="true"
-                                     pmfmFilterApplied="weight"
-                                     [initializeOneRow]="true"
-                                     [sticky]="true"
-                                     [showPMFMDetailsColumns]="true">
-          </app-pmfm-strategies-table>
-        </ion-card>
+        <app-pmfm-strategies-table #weightPmfmStrategiesTable
+                                   [title]=""
+                                   [programLabel]="(programSubject|async)?.label"
+                                   [canEdit]="enabled"
+                                   [canDelete]="enabled"
+                                   [canDisplayToolbar]="false"
+                                   [showHeaderRow]="false"
+                                   [showSelectColumn]="false"
+                                   [showIdColumn]="false"
+                                   [showDetailsColumns]="false"
+                                   [canDisplaySimpleStrategyValidators]="true"
+                                   pmfmFilterApplied="weight"
+                                   [allowNoRow]="false"
+                                   [sticky]="true">
+        </app-pmfm-strategies-table>
       </ion-col>
     </ion-row>
     <ion-row style="height: 15px"></ion-row>
 
-    <!-- Size Pmfms -->
+    <!-- Length Pmfms -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label class="ion-float-end" translate>PROGRAM.STRATEGY.SIZE</ion-label>
+        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'LENGTHS'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <ion-card class="ion-no-margin">
-          <app-pmfm-strategies-table #sizePmfmStrategiesTable
-                                     [title]=""
-                                     [program]="program"
-                                     [canEdit]="enabled"
-                                     [canDelete]="enabled"
-                                     [canDisplayToolbar]="false"
-                                     [canDisplayColumnsHeaders]="false"
-                                     [canDisplaySimpleStrategyValidators]="true"
-                                     pmfmFilterApplied="size"
-                                     [initializeOneRow]="true"
-                                     [sticky]="true"
-                                     [showPMFMDetailsColumns]="true">
-          </app-pmfm-strategies-table>
-        </ion-card>
+        <app-pmfm-strategies-table #sizePmfmStrategiesTable
+                                   [title]=""
+                                   [programLabel]="program"
+                                   [canEdit]="enabled"
+                                   [canDelete]="enabled"
+                                   [canDisplayToolbar]="false"
+                                   [showHeaderRow]="false"
+                                   [showSelectColumn]="false"
+                                   [showIdColumn]="false"
+                                   [showDetailsColumns]="false"
+                                   [canDisplaySimpleStrategyValidators]="true"
+                                   pmfmFilterApplied="size"
+                                   [allowNoRow]="false"
+                                   [sticky]="true">
+        </app-pmfm-strategies-table>
       </ion-col>
     </ion-row>
     <ion-row style="height: 15px"></ion-row>
 
     <!--SEX -->
-        <ion-row>
-          <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-            <ion-label>&nbsp;</ion-label>
-          </ion-col>
-          <ion-col size="12" size-sm="auto">
-           <mat-boolean-field [placeholder]="'PROGRAM.STRATEGY.SEX'|translate" [formControl]="pmfmStrategiesHelper.at(0)" [required]="true">-->
-            </mat-boolean-field>
-          </ion-col>
-        </ion-row>
+    <ion-row>
+      <ion-col size="0" size-md="2" size-lg="3">
+        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'SEX'|translate}}</ion-label>
+      </ion-col>
+      <ion-col size="12" size-sm="auto">
+       <mat-boolean-field [placeholder]="i18nFieldPrefix + 'SEX_PLACEHOLDER'|translate"
+                          [formControl]="pmfmStrategiesHelper.at(0)"
+                          [required]="true">
+        </mat-boolean-field>
+      </ion-col>
+    </ion-row>
 
     <!-- Maturity Pmfms -->
     <ion-row [hidden]="!ifSex()">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label class="ion-float-end" translate>PROGRAM.STRATEGY.MATURITY</ion-label>
+        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'MATURITIES'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <ion-card class="ion-no-margin">
-          <app-pmfm-strategies-table #maturityPmfmStrategiesTable
-                                     [title]=""
-                                     [program]="program"
-                                     [canEdit]="enabled"
-                                     [canDelete]="enabled"
-                                     [canDisplayToolbar]="false"
-                                     [canDisplayColumnsHeaders]="false"
-                                     [canDisplaySimpleStrategyValidators]="true"
-                                     pmfmFilterApplied="maturity"
-                                     [initializeOneRow]="true"
-                                     [sticky]="true"
-                                     [showPMFMDetailsColumns]="true">
-          </app-pmfm-strategies-table>
-        </ion-card>
+        <app-pmfm-strategies-table #maturityPmfmStrategiesTable
+                                   [title]=""
+                                   [programLabel]="program"
+                                   [canEdit]="enabled"
+                                   [canDelete]="enabled"
+                                   [canDisplayToolbar]="false"
+                                   [showHeaderRow]="false"
+                                   [showSelectColumn]="false"
+                                   [showIdColumn]="false"
+                                   [showDetailsColumns]="false"
+                                   [canDisplaySimpleStrategyValidators]="true"
+                                   pmfmFilterApplied="maturity"
+                                   [allowNoRow]="false"
+                                   [sticky]="true">
+        </app-pmfm-strategies-table>
       </ion-col>
     </ion-row>
     <ion-row style="height: 15px"></ion-row>
 
     <!-- AGE -->
-        <ion-row>
-          <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-            <ion-label>&nbsp;</ion-label>
-          </ion-col>
-          <ion-col size="12" size-sm="auto">
-            <mat-boolean-field [placeholder]="'PROGRAM.STRATEGY.AGE'|translate" [formControl]="pmfmStrategiesHelper.at(1)" [required]="true" >
-            </mat-boolean-field>
-          </ion-col>
-        </ion-row>
+    <ion-row>
+      <ion-col size="0" size-md="2" size-lg="3">
+        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'AGE'|translate}}</ion-label>
+      </ion-col>
+      <ion-col size="12" size-sm="auto">
+        <mat-boolean-field [placeholder]="i18nFieldPrefix + 'AGE_PLACEHOLDER'|translate" [formControl]="pmfmStrategiesHelper.at(1)" [required]="true" >
+        </mat-boolean-field>
+      </ion-col>
+    </ion-row>
 
     <!-- Calcified Pmfms -->
     <ion-row [hidden]="!ifAge()" *ngFor="let pmfmStrategiesFraction of pmfmStrategiesFractionForm?.controls; index as i; first as first">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
+      <ion-col size="0" size-md="2" size-lg="3">
+        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          [formControl]="PmfmStrategiesFractionHelper.at(i)"
-          [placeholder]="('PROGRAM.STRATEGY.CALCIFIED_TYPE'|translate) + (i+1)"
-          [appAutofocus]="PmfmStrategiesFractionFocusIndex === i"
+          [formControl]="pmfmStrategiesFractionHelper.at(i)"
+          [placeholder]="(i18nFieldPrefix + 'CALCIFIED_TYPE_PLACEHOLDER'|translate) + (i+1)"
+          [appAutofocus]="pmfmStrategiesFractionFocusIndex === i"
           [config]="autocompleteFields.pmfmStrategiesFraction"
           [tabindex]="tabindex+10+i*3"
           [required]="false">
@@ -370,7 +366,7 @@
 
       <ion-col size="auto" class="ion-align-self-center">
 
-        <button matAfter type="button" mat-icon-button
+        <button type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="addPmfmStrategiesFraction()">
@@ -380,7 +376,7 @@
         <button type="button" mat-icon-button
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="PmfmStrategiesFractionHelper.removeAt(i)">
+                (click)="pmfmStrategiesFractionHelper.removeAt(i)">
           <mat-icon>close</mat-icon>
         </button>
 
@@ -388,16 +384,14 @@
 
     </ion-row>
 
-
-
-    <!--comment-->
+    <!-- Description -->
     <ion-row>
       <ion-col>
         <mat-form-field appearance="outline">
-        <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="255"
+        <textarea matInput #description matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="255"
                   [placeholder]="'COMMON.COMMENTS'|translate"
                   formControlName="description" ></textarea>
-          <mat-hint align="end">{{comments.value.length}} / 255</mat-hint>
+          <mat-hint align="end">{{description.value.length}} / 255</mat-hint>
         </mat-form-field>
       </ion-col>
     </ion-row>
