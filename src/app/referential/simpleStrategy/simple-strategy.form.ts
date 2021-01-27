@@ -1,31 +1,35 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, ValidationErrors, ValidatorFn } from "@angular/forms";
-import { DateAdapter } from "@angular/material/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {FormArray, FormBuilder, FormControl, ValidationErrors, ValidatorFn} from "@angular/forms";
+import {DateAdapter} from "@angular/material/core";
 import * as moment from "moment";
-import { Moment } from 'moment/moment';
-import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
-import { SharedValidators } from 'src/app/shared/validator/validators';
-import { LocalSettingsService } from "../../core/services/local-settings.service";
+import {Moment} from 'moment/moment';
+import {DEFAULT_PLACEHOLDER_CHAR} from 'src/app/shared/constants';
+import {SharedValidators} from 'src/app/shared/validator/validators';
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {IReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import { fromDateISOString } from "../../shared/dates";
-import { PmfmStrategy } from "../services/model/pmfm-strategy.model";
-import { Program } from '../services/model/program.model';
-import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy } from "../services/model/strategy.model";
-import { TaxonNameRef } from "../services/model/taxon.model";
-import { ReferentialRefService } from "../services/referential-ref.service";
-import { StrategyService } from "../services/strategy.service";
-import { StrategyValidatorService } from '../services/validator/strategy.validator';
-import { PmfmStrategiesTable } from "../strategy/pmfm-strategies.table";
+import {fromDateISOString} from "../../shared/dates";
+import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {Program} from '../services/model/program.model';
+import {
+  AppliedPeriod,
+  AppliedStrategy,
+  Strategy,
+  StrategyDepartment,
+  TaxonNameStrategy
+} from "../services/model/strategy.model";
 import {TaxonNameRef} from "../services/model/taxon.model";
+import {ReferentialRefService} from "../services/referential-ref.service";
+import {StrategyService} from "../services/strategy.service";
+import {StrategyValidatorService} from '../services/validator/strategy.validator';
+import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
 import {LocationLevelIds, ParameterLabelGroups} from '../services/model/model.enum';
 import {AppForm} from "../../core/form/form.class";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {PmfmUtils} from "../services/model/pmfm.model";
-import {isNil, isNotNilOrBlank} from "../../shared/functions";
+import {isNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {ProgramProperties} from "../services/config/program.config";
-import {startWith} from "rxjs/operators";
 import {BehaviorSubject, merge} from "rxjs";
 
 @Component({

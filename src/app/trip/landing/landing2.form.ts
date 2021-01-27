@@ -197,13 +197,15 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     });
 
     // Combo: sampleRowCode
-    this.registerAutocompleteField('sampleRowCode', {
-      service: this.strategyService,
-      attributes: this.settings.getFieldDisplayAttributes('sampleRowCode', ['name'])//,
-      // filter: {
-      //   // FIXME CLT : id program to retrieve
-      //   programId: '40'
-      // }
+    this.registerAutocompleteField('strategy', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Strategy'
+        //   // FIXME CLT : id program to retrieve
+        //   programId: '40'
+      },
+      attributes: ['label', 'description'],
+      columnSizes: [6, 6]
     });
 
     // Combo: vessels

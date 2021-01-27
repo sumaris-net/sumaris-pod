@@ -7,7 +7,7 @@ import {isNotNil, toNumber} from "../../../shared/functions";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {Subscription} from "rxjs";
 import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
-import {ParameterLabelStrategies} from "../../../referential/services/model/model.enum";
+import {ParameterLabelGroups} from "../../../referential/services/model/model.enum";
 
 @Injectable({providedIn: 'root'})
 export class SampleValidatorService implements ValidatorService {
@@ -54,13 +54,13 @@ export class SampleValidatorService implements ValidatorService {
       return null;
     }
 
-    // TODO : to uncomment after updating model.enum : merege develop-ifremer => develop-ifremer-sprint5
+    // TODO : to uncomment after updating model.enum : merge develop-ifremer => develop-ifremer-sprint5
     /*const weightPmfms = pmfms.filter(p => PmfmUtils.hasParameterLabel(ParameterLabel.WEIGHT));
     const sizePmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(ParameterLabelList.SIZE));*/
 
-    // TODO : to remove after updating model.enum : merege develop-ifremer => develop-ifremer-sprint5
-    const weightPmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm,ParameterLabelStrategies.WEIGHTS));
-    const sizePmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm,ParameterLabelStrategies.LENGTHS));
+    // TODO : to remove after updating model.enum : merge develop-ifremer => develop-ifremer-sprint5
+    const weightPmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.WEIGHTS));
+    const sizePmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.LENGTHS));
 
     form.setAsyncValidators(async (control) => {
       const formGroup = control as FormGroup;
@@ -70,7 +70,7 @@ export class SampleValidatorService implements ValidatorService {
 
       const error = { missingWeightOrSize: true };
 
-      if(!missingSize && !missingWeight){
+      if (!missingSize && !missingWeight){
         return error;
       }
     });

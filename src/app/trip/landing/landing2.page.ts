@@ -29,8 +29,8 @@ import { Sample } from "../services/model/sample.model";
 import { Trip } from "../services/model/trip.model";
 import { ObservedLocationService } from "../services/observed-location.service";
 import { TripService } from "../services/trip.service";
-import { SampleValidatorService } from "../services/validator/trip.validators";
 import { Landing2Form } from "./landing2.form";
+import {SampleValidatorService} from "../services/validator/sample.validator";
 
 
 @Component({
@@ -106,11 +106,13 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         this.registerSubscription(
           this.onProgramChanged
             .subscribe(program => {
-              if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-              this.landing2Form.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
-              //this.markForCheck();
+              if (program) {
+                if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
+                this.landing2Form.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+                //this.markForCheck();
+              }
             }));
-      })
+      });
     });
 
     // this.landing2Form.program = this.program.label;
@@ -148,15 +150,15 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this._rowValidatorSubscription = SampleValidatorService.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 
-  protected async onSampleRowCodeChange(sampleRowCode: Strategy) {
+  protected async onSampleRowCodeChange(value: Strategy) {
 
-    if (sampleRowCode && sampleRowCode.label) {
-      let strategyLabel = sampleRowCode.label;
+    if (value && value.label) {
+      const strategyLabel = value.label;
 
       if (strategyLabel !== this.landing2Form.sampleRowCode) {
         this.landing2Form.sampleRowCode = strategyLabel;
 
-        this.landing2Form.sampleRowCodeControl.patchValue(sampleRowCode);
+        this.landing2Form.sampleRowCodeControl.patchValue(value);
 
         // TODO BLA: add opts  { programId }
         const strategy = await this.strategyService.loadRefByLabel(strategyLabel);
@@ -182,21 +184,21 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
           let newMeasurementValues: MeasurementModelValues = {};
           measurementValuesAsKeyValues.forEach((measurementValue) => {
             if (measurementValue.key === PmfmIds.SAMPLE_ROW_CODE.toString()) {
-              newMeasurementValues[measurementValue.key] = sampleRowCode.label;
+              newMeasurementValues[measurementValue.key] = strategy.label;
               sampleRowCodeFound = true;
             } else {
               newMeasurementValues[measurementValue.key] = measurementValue.value;
             }
           });
           // If there is no previous SAMPLE_ROW_CODE PMFM
-          if (!sampleRowCodeFound && sampleRowCode)
+          if (!sampleRowCodeFound && strategy)
           {
-            newMeasurementValues[PmfmIds.SAMPLE_ROW_CODE.toString()] = sampleRowCode.label;
+            newMeasurementValues[PmfmIds.SAMPLE_ROW_CODE.toString()] = strategy.label;
             sampleRowCodeFound = true;
           }
           Object.assign(measurementValues, newMeasurementValues);
         }
-        if (sampleRowCode) {
+        if (strategy) {
           // Create mode
           // let target = {}
           // target[PmfmIds.SAMPLE_ROW_CODE.toString()] = sampleRowCode.label;
