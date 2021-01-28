@@ -713,28 +713,29 @@
     }
   },
   "OBSERVED_LOCATION": {
-    "DATE_TIME": "Date/heure",
-    "START_DATE": "Date début",
-    "START_DATE_TIME": "Date/heure de début",
-    "END_DATE": "Date fin",
-    "END_DATE_TIME": "Date/heure de fin",
-    "START": "Début :",
-    "END": "Fin :",
-    "START_END": "Début / Fin :",
-    "LOCATION": "Lieu d'observation",
-    "LOCATION_AND_DATE": "Lieu / Date :",
-    "TAB_GENERAL": "Détails",
-    "TAB_VESSELS": "Navires observés",
-    "TAB_LANDING": "Débarquement",
-    "TAB_SAMPLING": "Échantillonnage",
-    "OBSERVER_PLACEHOLDER": "Observateur #",
-    "OBSERVERS": "Observateurs :",
     "NEW": {
       "TITLE": "Nouvelle observation"
     },
     "EDIT": {
       "TITLE": "{{location}} - {{dateTime}}",
-      "OTHER_FEATURES": "Caractéristiques :"
+      "OTHER_FEATURES": "Caractéristiques :",
+      "TAB_LANDINGS": "Navires observés",
+      "DATE_TIME": "Date/heure",
+      "START_DATE": "Date début",
+      "START_DATE_TIME": "Date/heure de début",
+      "END_DATE": "Date fin",
+      "END_DATE_TIME": "Date/heure de fin",
+      "START": "Début :",
+      "END": "Fin :",
+      "START_END": "Début / Fin :",
+      "LOCATION": "Lieu d'observation",
+      "LOCATION_AND_DATE": "Lieu / Date :",
+      "TAB_GENERAL": "Détails",
+      "OBSERVER_PLACEHOLDER": "Observateur #",
+      "OBSERVERS": "Observateurs :",
+      "SAMPLING": {
+        "TAB_LANDINGS": "Echantillonages"
+      }
     },
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Ajout d'un navire",
@@ -790,12 +791,16 @@
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
-      "LOCATION": "Port !!! TODO BLA Lieu de débarquement",
+      "LOCATION": "Lieu de débarquement",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaire",
-      "SAMPLES": "Ligne de plan",
+      "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
-      "RECORDER_PERSON" : "Saisisseur"
+      "RECORDER_PERSON" : "Saisisseur",
+      "SAMPLING": {
+        "STRATEGY": "Ligne de plan",
+        "LOCATION": "Port"
+      }
     },
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
@@ -1173,8 +1178,12 @@
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
+      "LANDING_EDITOR_SAMPLING": "Echantillonnage biologique",
+      "LANDING_CREATION_DATE_ENABLE": "Observation sur site > Débarquements : Date de création ?",
+      "LANDING_RECORDER_PERSON_ENABLE": "Observation sur site > Débarquements : Saisisseur ?",
+      "LANDING_STRATEGY_ENABLE": "Observation sur site > Débarquement : Stratégie ?",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
-      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
+      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Observateurs ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",

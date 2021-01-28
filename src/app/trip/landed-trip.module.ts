@@ -6,7 +6,7 @@ import {LandingsTable} from "./landing/landings.table";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {SelectLandingsModal} from "./landing/select-landings.modal";
-import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
+import {AuctionControlPage} from "./landing/auctioncontrol/auction-control.page";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {OperationGroupTable} from "./operationgroup/operation-groups.table";
 import {ProductsTable} from "./product/products.table";
@@ -31,7 +31,6 @@ import {ReferentialModule} from "../referential/referential.module";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {DataModule} from "../data/data.module";
 import {TranslateModule} from "@ngx-translate/core";
-import {Landings2Table} from "./landing/landings2.table";
 import {Landing2Page} from "./landing/landing2.page";
 import {Landing2Form} from "./landing/landing2.form";
 
@@ -49,7 +48,6 @@ import {Landing2Form} from "./landing/landing2.form";
     ObservedLocationPage,
     ObservedLocationsPage,
     LandingsTable,
-    Landings2Table,
     LandingPage,
     Landing2Page,
     LandingForm,
@@ -83,7 +81,6 @@ import {Landing2Form} from "./landing/landing2.form";
 
     // Components
     LandingsTable,
-    Landings2Table,
     LandingForm,
     Landing2Form,
     LandingPage,

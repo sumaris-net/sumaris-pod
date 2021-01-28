@@ -28,8 +28,9 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {environment} from "../../../environments/environment";
+import {isNotNil} from "../../shared/functions";
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
@@ -45,6 +46,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   private _parentDateTime;
   private _detailEditor: LandingEditor;
+  private _strategyPmfmId: number;
 
   protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
@@ -56,6 +58,17 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   @Input() canDelete = true;
   @Input() showFabButton = false;
   @Input() showError = true;
+
+  @Input() set strategyPmfmId(value: number) {
+    if (this._strategyPmfmId !== value) {
+      this._strategyPmfmId = value;
+      this.setShowColumn('strategy', isNotNil(this._strategyPmfmId));
+    }
+  }
+
+  get strategyPmfmId(): number {
+    return this._strategyPmfmId;
+  }
 
   @Input() set detailEditor(value: LandingEditor) {
     if (value !== this._detailEditor) {
@@ -106,6 +119,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   get showVesselTypeColumn(): boolean {
     return this.getShowColumn('vesselType');
+  }
+
+  @Input()
+  set showCreationDateColumn(value: boolean) {
+    this.setShowColumn('creationDate', value);
+  }
+
+  get showCreationDateColumn(): boolean {
+    return this.getShowColumn('creationDate');
   }
 
   constructor(

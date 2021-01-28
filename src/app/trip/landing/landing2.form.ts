@@ -11,7 +11,7 @@ import {MeasurementsValidatorService} from "../services/validator/measurement.va
 import {FormArray, FormBuilder, FormControl, ValidationErrors, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {Person, personToString, UserProfileLabel} from "../../core/services/model/person.model";
+import {Person, personToString, UserProfileLabel, UserProfileLabels} from "../../core/services/model/person.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
@@ -174,7 +174,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     this.mobile = this.settings.mobile;
 
     // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
+    this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     this.strategyService = strategyService;
   }
 
@@ -240,12 +240,11 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     });
 
     // Combo: observers
-    const profileLabels: UserProfileLabel[] = ['SUPERVISOR', 'USER', 'GUEST'];
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: profileLabels
+        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: personToString
