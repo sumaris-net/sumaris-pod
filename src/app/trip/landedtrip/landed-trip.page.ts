@@ -107,7 +107,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged.subscribe(program => this.setProgram(program))
+      this.$program.subscribe(program => this.setProgram(program))
     );
 
     this.catchFilterForm = this.formBuilder.group({

@@ -63,7 +63,7 @@ export const PmfmIds = {
 
   /* PARAMBIO pmfms */
   MORSE_CODE: 358,
-  SAMPLE_ROW_CODE: 359,
+  STRATEGY_LABEL: 359,
 
   /* OBSDEB pmfms */
   PACKAGING: 177,

@@ -64,8 +64,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
-  public appliedPmfmStrategies: PmfmStrategy [] = [];
-
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() i18nFieldPrefix = 'TRIP.SAMPLE.TABLE.SAMPLING.';
@@ -85,13 +83,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     {
      // this.defaultTaxonName = data[0].taxonName;
     }*/
-  }
-
-  @Input()
-  // TODO BLA: est-ce que appliedPmfmStrategies est utilisé dans ce table ?
-  // Si non, le supprimer, ainsi que l'affectation dans landing2.page
-  set appliedPmfmStrategy(data: PmfmStrategy[]) {
-    this.appliedPmfmStrategies = data;
   }
 
   get value(): Sample[] {
@@ -275,9 +266,9 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       }
     });
 
-    const pmfmColumnNames = pmfms
-      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
-      .map(p => p.pmfmId.toString());
+    //const pmfmColumnNames = pmfms
+    // .filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
+    // .map(p => p.pmfmId.toString());
 
     const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
     const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));

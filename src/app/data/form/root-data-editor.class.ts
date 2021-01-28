@@ -2,7 +2,7 @@ import {Directive, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {BehaviorSubject, Subject} from 'rxjs';
 import {changeCaseToUnderscore, isNil, isNotNil, isNotNilOrBlank, toNumber} from '../../shared/functions';
-import {distinctUntilChanged, filter, switchMap, tap} from "rxjs/operators";
+import {distinctUntilChanged, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
 import {ProgramService} from "../../referential/services/program.service";
 import {IEntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
@@ -16,6 +16,8 @@ import {
 } from "../../shared/material/autocomplete/material.autocomplete";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 import {IonContent} from "@ionic/angular";
+import {Strategy} from "../../referential/services/model/strategy.model";
+import {StrategyService} from "../../referential/services/strategy.service";
 
 
 @Directive()
@@ -28,12 +30,23 @@ export abstract class AppRootDataEditor<
   implements OnInit {
 
   protected programService: ProgramService;
+  protected strategyService: StrategyService;
   protected autocompleteHelper: MatAutocompleteConfigHolder;
 
   autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
   programSubject = new BehaviorSubject<string>(null);
-  onProgramChanged = new BehaviorSubject<Program>(null);
+  $program = new BehaviorSubject<Program>(null);
+  strategySubject = new BehaviorSubject<string>(null);
+  $strategy = new BehaviorSubject<Strategy>(null);
+
+  get program(): Program {
+    return this.$program.getValue();
+  }
+
+  get strategy(): Strategy {
+    return this.$strategy.getValue();
+  }
 
   protected constructor(
     injector: Injector,
@@ -47,6 +60,7 @@ export abstract class AppRootDataEditor<
       options);
 
     this.programService = injector.get(ProgramService);
+    this.strategyService = injector.get(StrategyService);
 
     // Create autocomplete fields registry
     this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
@@ -68,7 +82,18 @@ export abstract class AppRootDataEditor<
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
           switchMap(programLabel => this.programService.watchByLabel(programLabel)),
-          tap(program => this.onProgramChanged.next(program))
+          tap(program => this.$program.next(program))
+        )
+        .subscribe());
+
+    // Watch strategy
+    this.registerSubscription(
+      this.strategySubject
+        .pipe(
+          filter(isNotNilOrBlank),
+          distinctUntilChanged(),
+          switchMap(strategyLabel => this.strategyService.loadRefByLabel(strategyLabel)),
+          tap(strategy => this.$strategy.next(strategy))
         )
         .subscribe());
   }
@@ -183,12 +208,15 @@ export abstract class AppRootDataEditor<
 
   protected async getValue(): Promise<T> {
 
-    const res = await super.getValue();
+    const data = await super.getValue();
 
     // Re add program, because program control can be disabled
-    res.program = ReferentialRef.fromObject(this.form.controls['program'].value);
+    data.program = ReferentialRef.fromObject(this.form.controls['program'].value);
 
-    return res;
+    return data;
   }
 
+  protected computeStrategy(program: Program, data: T): Strategy {
+    return null; // TODO BLA
+  }
 }

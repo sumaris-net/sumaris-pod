@@ -1,30 +1,34 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  OnInit,
+  QueryList,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import {FormGroup} from "@angular/forms";
-import {MatTabGroup} from "@angular/material/tabs";
 import * as moment from "moment";
-import {Observable, Subscription} from "rxjs";
-import {filter, throttleTime} from "rxjs/operators";
+import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
+import {distinctUntilChanged, filter, map, throttleTime} from "rxjs/operators";
 import {environment} from "../../../environments/environment";
 import {AppEditorOptions} from "../../core/form/editor.class";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {ProgramProperties} from "../../referential/services/config/program.config";
-import {PmfmIds} from "../../referential/services/model/model.enum";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {Strategy} from "../../referential/services/model/strategy.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StrategyService} from "../../referential/services/strategy.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {firstArrayValue, isNil, isNotEmptyArray, isNotNil, removeDuplicatesFromArray} from '../../shared/functions';
+import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {Samples2Table} from "../sample/samples2.table";
 import {LandingService} from "../services/landing.service";
 import {Landing} from "../services/model/landing.model";
-import {MeasurementModelValues} from "../services/model/measurement.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {Sample} from "../services/model/sample.model";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
@@ -32,7 +36,12 @@ import {Landing2Form} from "./landing2.form";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {fromDateISOString} from "../../shared/dates";
 import {Program} from "../../referential/services/model/program.model";
+import {firstNotNilPromise} from "../../shared/observables";
+import {Strategy} from "../../referential/services/model/strategy.model";
+import {StrategySummaryCardComponent} from "../../data/strategy/strategy-summary-card.component";
 
+
+const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
 @Component({
   selector: 'app-landing2-page',
@@ -60,9 +69,18 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
+  showQualityForm = false;
+  i18nPrefix = DEFAULT_I18N_PREFIX;
+  forceOneTab = false;
 
   @ViewChild('landingForm', { static: true }) landingForm: Landing2Form;
   @ViewChild('samplesTable', { static: true }) samplesTable: Samples2Table;
+
+  @ViewChild('firstTabInjection', {static: false}) firstTabInjection: ElementRef;
+  @ViewChildren('tabContent') tabContents: QueryList<ElementRef>;
+
+  @ViewChild('strategyCard', {static: true}) strategyCard: StrategySummaryCardComponent;
+
 
   get pmfms(): Observable<PmfmStrategy[]> {
     return this.landingForm.$pmfms.pipe(filter(isNotNil));
@@ -94,9 +112,11 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     super.ngOnInit();
 
     this.registerSubscription(
-      this.onProgramChanged.subscribe(program => this.setProgram(program))
+      this.$program.subscribe(program => this.setProgram(program))
     );
-
+    this.registerSubscription(
+      this.$strategy.subscribe(strategy => this.setStrategy(strategy))
+    );
     // this.landing2Form.program = this.program.label;
     // Watch program, to configure tables from program properties
 
@@ -111,16 +131,23 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     );
 
     this.registerSubscription(
-      this.landingForm.form.get('sampleRowCode').valueChanges
-        .pipe(throttleTime(200), filter(isNotNil))
-        .subscribe((sampleRowCode: Strategy) => this.onSampleRowCodeChange(sampleRowCode))
+      this.landingForm.form.get('strategy').valueChanges
+        .pipe(
+          map(value => value && value.label ? value.label : value)
+        )
+        .subscribe((strategy: string) => this.strategySubject.next(strategy))
     );
 
-    this.samplesTable.onConfirmEditCreateRow.subscribe(() => {
-      this.landingForm.hasSamples = true;
-    });
+    this.registerSubscription(
+      merge(
+        this.samplesTable.onConfirmEditCreateRow,
+        this.samplesTable.onCancelOrDeleteRow
+      )
+      .subscribe(() => {
+        this.landingForm.canEditStrategy = this.samplesTable.resultsLength === 0;
+      })
+    );
   }
-
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
@@ -232,13 +259,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       if (this.parent instanceof ObservedLocation) {
 
         this.landingForm.showProgram = false;
-        this.landingForm.showSampleRowCode = true;
         this.landingForm.showVessel = true;
         this.landingForm.showLocation = true;
         this.landingForm.showDateTime = false;
-        this.landingForm.showFishingArea = true;
-        this.landingForm.showTargetSpecies = true;
-        this.landingForm.showComment = true;
         this.landingForm.showObservers = true;
 
       } else if (this.parent instanceof Trip) {
@@ -256,116 +279,13 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.landingForm.showLocation = true;
       this.landingForm.showDateTime = true;
       this.landingForm.showObservers = true;
+
+      this.showQualityForm = true;
     }
   }
 
   /* -- protected methods -- */
 
-
-
-  protected async onSampleRowCodeChange(value: Strategy) {
-
-    if (value && value.label) {
-      const strategyLabel = value.label;
-
-      if (strategyLabel !== this.landingForm.strategy) {
-        this.landingForm.strategy = strategyLabel;
-
-        this.landingForm.sampleRowCodeControl.patchValue(value);
-
-        // TODO BLA: add opts  { programId }
-        const strategy = await this.strategyService.loadRefByLabel(strategyLabel);
-        // IMAGINE-201 : Existing bug in PMFM_STRATEGY storage => some duplicates exists
-        const pmfmStrategies = strategy && removeDuplicatesFromArray(strategy.pmfmStrategies || [], 'id')
-          .filter(pmfmStrategies => isNotNil(pmfmStrategies.pmfmId));
-
-        // Refresh fishing areas from landing2Form according to selected sampleRowCode
-        this.landingForm.appliedStrategies = strategy.appliedStrategies;
-        // FIXME CLT : Obsolete - we use PmfmIds.SAMPLE_ROW_CODE to store specific sampleRowCode PMFM
-        // this.landing2Form.pmfms = pmfmStrategies;
-
-        let sampleRowCodeFound = false;
-        const measurementValues = this.landingForm.value.measurementValues;
-        if (measurementValues) {
-          // update mode
-          const measurementValuesAsKeyValues = Object.entries(measurementValues).map(([key, value]) => {
-            return {
-              key,
-              value
-            };
-          });
-          const newMeasurementValues: MeasurementModelValues = {};
-          measurementValuesAsKeyValues.forEach((measurementValue) => {
-            if (measurementValue.key === PmfmIds.SAMPLE_ROW_CODE.toString()) {
-              newMeasurementValues[measurementValue.key] = strategy.label;
-              sampleRowCodeFound = true;
-            } else {
-              newMeasurementValues[measurementValue.key] = measurementValue.value;
-            }
-          });
-          // If there is no previous SAMPLE_ROW_CODE PMFM
-          if (!sampleRowCodeFound && strategy)
-          {
-            newMeasurementValues[PmfmIds.SAMPLE_ROW_CODE.toString()] = strategy.label;
-            sampleRowCodeFound = true;
-          }
-          Object.assign(measurementValues, newMeasurementValues);
-        }
-        if (strategy) {
-          // Create mode
-          // let target = {}
-          // target[PmfmIds.SAMPLE_ROW_CODE.toString()] = sampleRowCode.label;
-          // this.landing2Form.value.measurementValues = target;
-          // sampleRowCodeFound = true;
-          // this.landing2Form.value.measurementValues = this.landing2Form.value.measurementValues || target;
-          // let sampleRowPmfmStrategy = new PmfmStrategy();
-          // let sampleRowPmfm = new Pmfm();
-          // sampleRowPmfm.id = PmfmIds.SAMPLE_ROW_CODE;
-          // sampleRowPmfmStrategy.pmfm = sampleRowPmfm;
-          // pmfmStrategies.push(sampleRowPmfmStrategy)
-        }
-        if (!sampleRowCodeFound) {
-          this.landingForm.appliedStrategies = [];
-          this.landingForm._defaultTaxonNameFromStrategy = null;
-          Object.assign(this.landingForm.appliedStrategies, []);
-        }
-        this.landingForm.value.samples = [];
-        this.landingForm.value.samples.length = 0;
-
-        const landing2FormValueClone = this.landingForm.value.clone();
-        landing2FormValueClone.samples = [];
-
-        this.landingForm.setValue(landing2FormValueClone);
-
-
-        const taxonNames = [];
-        if (strategy.taxonNames && strategy.taxonNames[0]) {
-          const defaultTaxonName = strategy.taxonNames[0];
-          //propagation of taxonNames by strategy on sampleRowCode change
-          this.landingForm.defaultTaxonNameFromStrategy = defaultTaxonName;
-          this.samplesTable.defaultTaxonName = defaultTaxonName;
-
-          if (this.landingForm._defaultTaxonNameFromStrategy) {
-            const emptySampleWithTaxon = new Sample();
-            emptySampleWithTaxon.taxonName = this.landingForm._defaultTaxonNameFromStrategy.taxonName;
-            taxonNames.push(emptySampleWithTaxon);
-          }
-        } else {
-          this.landingForm._defaultTaxonNameFromStrategy = null;
-        }
-        this.landingForm.value.samples = [];
-        this.landingForm.taxonNamesForm.patchValue(taxonNames);
-
-        // Refresh samples
-        this.samplesTable.appliedPmfmStrategy = pmfmStrategies;
-        this.samplesTable.pmfms = pmfmStrategies;
-      }
-    }
-  }
-
-  protected registerForms() {
-    this.addChildForms([this.landingForm, this.samplesTable]);
-  }
 
   protected setProgram(program: Program) {
     if (!program) return; // Skip
@@ -374,6 +294,36 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     // Customize the UI, using program options
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
 
+    // TODO: use program properties ?
+    this.landingForm.showStrategy = true;
+    const forceOneTab = true; // Get it from properties ?
+    if (this.forceOneTab !== forceOneTab) {
+      this.forceOneTab = forceOneTab;
+      this.moveTabContent();
+    }
+
+    this.i18nPrefix = DEFAULT_I18N_PREFIX;
+    const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    this.i18nPrefix += (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
+    this.landingForm.i18nPrefix = this.i18nPrefix;
+
+    this.samplesTable.program = program.label;
+
+  }
+
+  protected async setStrategy(strategy: Strategy) {
+
+    this.landingForm.strategy = strategy;
+
+    //this.strategyCard.value = strategy;
+
+    // Set table defaults
+    this.samplesTable.defaultTaxonName = firstArrayValue(strategy.taxonNames);
+    this.samplesTable.pmfms = strategy.pmfmStrategies;
+  }
+
+  protected registerForms() {
+    this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
 
@@ -394,7 +344,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       throw new Error('No parent found in path. Landing without parent not implemented yet !');
     }
 
-    // Load program
+    // Emit program
     if (parent.program && parent.program.label) {
       this.programSubject.next(parent.program.label);
     }
@@ -405,59 +355,34 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
-    const isNew = isNil(data.id);
-
-    // Restrieve strategy
-    const strategyLabel = Object.entries(data.measurementValues)
-      .filter(([pmfmId, value]) => pmfmId === PmfmIds.SAMPLE_ROW_CODE.toString())
-      .map(([pmfmId, value]) => value).find(isNotNil);
-
-
-    this.landingForm.hasSamples = isNotEmptyArray(data.samples);
-    this.landingForm.strategy = strategyLabel;
+    this.landingForm.canEditStrategy = isEmptyArray(data.samples);
     this.landingForm.value = data;
 
-    // Set table rows
-    this.samplesTable.value = data.samples || [];
-
-    // Use strategy defaults
-    if (!isNew && isNotNil(strategyLabel)) {
-      // Load strategy by label
-      const strategy = await this.strategyService.loadRefByLabel(strategyLabel);
-
-      // IMAGINE-201 : Existing bug in PMFM_STRATEGY storage => some duplicates exists
-      const pmfmStrategies = strategy && removeDuplicatesFromArray(strategy.pmfmStrategies || [], 'id')
-        .filter(pmfmStrategies => isNotNil(pmfmStrategies.pmfmId));
-
-      this.landingForm.appliedStrategies = strategy.appliedStrategies;
-
-      //propagation of taxonNames by strategy
-      const defaultTaxonName = strategy && firstArrayValue(strategy.taxonNames);
-
-      // TODO BLA: pourquoi 'FromStrategy' ?
-      this.landingForm.defaultTaxonNameFromStrategy = defaultTaxonName;
-      this.samplesTable.defaultTaxonName = defaultTaxonName;
-
-      this.landingForm.pmfms = pmfmStrategies;
-      this.samplesTable.appliedPmfmStrategy = pmfmStrategies;
-      this.samplesTable.pmfms = pmfmStrategies;
+    // Set samples to table
+    if (this.samplesTable) {
+      this.samplesTable.value = data.samples || [];
     }
   }
 
   protected async computeTitle(data: Landing): Promise<string> {
+
+    const program = await firstNotNilPromise(this.$program);
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
+
     const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
-      await this.translate.get('LANDING.TITLE_PREFIX', {
+      await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
       }).toPromise() || '';
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + (await this.translate.get('LANDING.NEW.SAMPLE_TITLE').toPromise());
+      return titlePrefix + (await this.translate.get(`LANDING.NEW.${i18nSuffix}TITLE`).toPromise());
     }
 
     // Existing data
-    return titlePrefix + (await this.translate.get('LANDING.EDIT.TITLE', {
+    return titlePrefix + (await this.translate.get(`LANDING.EDIT.${i18nSuffix}TITLE`, {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
     }).toPromise());
   }
@@ -496,5 +421,15 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     return data;
   }
 
+  protected moveTabContent() {
+    // Inject content of tabs, into the first tab
+    const injectionPoint = this.forceOneTab && this.firstTabInjection && this.firstTabInjection.nativeElement;
+    if (injectionPoint) {
+      this.tabContents.forEach(content => {
+        if (!content.nativeElement) return; // Skip
+        injectionPoint.append(content.nativeElement);
+      });
+    }
+  }
 
 }

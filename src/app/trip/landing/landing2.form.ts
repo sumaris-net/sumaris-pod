@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {Moment} from 'moment/moment';
 
 import {DateAdapter} from "@angular/material/core";
-import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, map, pluck, tap} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
 import {Landing2ValidatorService} from "../services/validator/landing2.validator";
 import {PersonService} from "../../admin/services/person.service";
@@ -34,6 +34,9 @@ import {
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/autocomplete/material.autocomplete";
+import {mergeMap} from "rxjs/internal/operators";
+
+const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
 @Component({
   selector: 'app-landing2-form',
@@ -45,37 +48,29 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   private _showObservers: boolean;
   private _vessel: any;
+  private _strategy: Strategy;
+
+  mobile: boolean;
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
-  mobile: boolean;
-
   enableTaxonNameFilter = false;
   canFilterTaxonName = true;
-  hasSamples = false;
 
+  @Input() i18nPrefix = DEFAULT_I18N_PREFIX;
+
+  @Input() canEditStrategy = true;
   @Input() required = true;
 
-  referenceTaxon: ReferentialRef;
-  fishingAreas: ReferentialRef[];
-  fishingAreaHelper: FormArrayHelper<AppliedStrategy>;
-  _strategy: string;
-  _defaultTaxonNameFromStrategy: TaxonNameStrategy;
-
-  appliedStrategies: AppliedStrategy[];
-
   @Input() showProgram = true;
-  @Input() showSampleRowCode = true;
   @Input() showVessel = true;
   @Input() showDateTime = true;
   @Input() showLocation = true;
-  @Input() showFishingArea = true;
-  @Input() showTargetSpecies = true;
   @Input() showComment = true;
   @Input() showMeasurements = true;
   @Input() showError = true;
   @Input() showButtons = true;
+  @Input() showStrategy = false;
   @Input() locationLevelIds: number[];
-
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
@@ -90,25 +85,21 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   }
 
   @Input()
-  set strategy(value: string) {
+  set strategy(value: Strategy) {
     if (this._strategy !== value && isNotNil(value)) {
       this._strategy = value;
+      if (this.strategyControl.value !== value) {
+        this.strategyControl.setValue(value);
+      }
     }
   }
 
-  get strategy(): string {
+  get strategy(): Strategy {
     return this._strategy;
   }
 
-  @Input()
-  set defaultTaxonNameFromStrategy(value: TaxonNameStrategy) {
-    if (this._defaultTaxonNameFromStrategy !== value && isNotNil(value)) {
-      this._defaultTaxonNameFromStrategy = value;
-    }
-  }
-
-  get defaultTaxonNameFromStrategy(): TaxonNameStrategy {
-    return this._defaultTaxonNameFromStrategy;
+  get strategyControl(): FormControl {
+    return this.form.controls.strategy as FormControl;
   }
 
   @Input()
@@ -137,23 +128,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     return this.form.controls.observers as FormArray;
   }
 
-  getReferenceTaxonControl(): FormControl {
-    return null; //this.form.controls.observers;
-  }
-
-  get fishingAreasFormArray(): FormArray {
-    return this.form.controls.appliedStrategies as FormArray;
-  }
-
-  get sampleRowCodeControl(): FormControl {
-    return this.form.controls.sampleRowCode as FormControl;
-  }
-
-  taxonNameHelper: FormArrayHelper<TaxonNameStrategy>;
-  get taxonNamesForm(): FormArray {
-    return this.form.controls.samples as FormArray;
-  }
-
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -176,6 +150,22 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     this.strategyService = strategyService;
+
+    // Add a strategy field (not in validator)
+    this.form.addControl('strategy', formBuilder.control(null, [Validators.required, SharedValidators.entity]));
+
+    this.registerSubscription(
+      this.strategyControl.valueChanges
+        .pipe(
+          map((value) => (typeof value === 'string') ? value : (value && value.label || null)),
+          filter(isNotNil),
+          tap(strategyLabel => console.info('[landing-form] Strategy changed to: ' + strategyLabel)),
+          distinctUntilChanged(),
+          mergeMap(strategyLabel => strategyService.loadRefByLabel(strategyLabel, {
+            programId: this.data && this.data.program && this.data.program.id
+          }))
+        )
+        .subscribe(strategy => this.strategy = strategy));
   }
 
   ngOnInit() {
@@ -250,33 +240,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       displayWith: personToString
     });
 
-
-    // Combo: fishingArea
-    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingArea');
-    this.registerAutocompleteField('fishingArea', {
-      service: this.referentialRefService,
-      attributes: fishingAreaAttributes,
-      // Increase default column size, for 'label'
-      columnSizes: fishingAreaAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-      filter: <ReferentialRefFilter>{
-        entityName: 'Location'
-      },
-      mobile: this.mobile
-    });
-
-    // Combo: taxon / targetSpecies
-    // const taxonNameAttributes = this.settings.getFieldDisplayAttributes('taxonName');
-    // const taxonNameField = this.registerAutocompleteField('taxonName', {
-    //   service: this.referentialRefService,
-    //   attributes: taxonNameAttributes,
-    //   // Increase default column size, for 'label'
-    //   columnSizes: taxonNameAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-    //   filter: <ReferentialRefFilter>{
-    //     entityName: 'TaxonName'
-    //   },
-    //   mobile: this.mobile
-    // });
-
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggest(value, {
           ...filter, statusId : 1
@@ -288,28 +251,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       columnSizes: [2, 10],
       mobile: this.settings.mobile
     });
-
-    this.initTaxonNameHelper();
-    this.initAppliedStrategiesHelper();
-    this.initAppliedStrategiesValidator();
-  }
-
-  // TaxonName Helper -----------------------------------------------------------------------------------------------
-  protected initTaxonNameHelper() {
-    // appliedStrategies => appliedStrategies.location ?
-    this.taxonNameHelper = new FormArrayHelper<TaxonNameStrategy>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'samples'),
-      (ts) => this.validatorService.getTaxonNameStrategyControl(ts),
-      (t1, t2) => EntityUtils.equals(t1.taxonName, t2.taxonName, 'name'),
-      value => isNil(value) && isNil(value.taxonName),
-      {
-        allowEmptyArray: false
-      }
-    );
-    // Create at least one fishing Area
-    if (this.taxonNameHelper.size() === 0) {
-      this.taxonNameHelper.resize(1);
-    }
   }
 
   // get value(): any {
@@ -323,21 +264,6 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
   setValue(value: Landing) {
     if (!value) return;
-    let taxonNames = value.samples.filter(sample => sample.taxonName);
-
-    if (this._defaultTaxonNameFromStrategy) {
-
-      if (!taxonNames) {
-        taxonNames = [];
-      }
-      if (taxonNames.length === 0) {
-        const emptySampleWithTaxon = new Sample();
-        emptySampleWithTaxon.taxonName = this._defaultTaxonNameFromStrategy.taxonName;
-        taxonNames.push(emptySampleWithTaxon);
-      }
-    }
-
-    value.samples = value.samples.filter(sample => !sample.taxonName);
 
     // Make sure to have (at least) one observer
     value.observers = value.observers && value.observers.length ? value.observers : [null];
@@ -353,33 +279,16 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     if (value.program && value.program.label) {
       this.program = value.program.label;
     }
-    if (this.appliedStrategies)
-    {
-      this.fishingAreaHelper.resize(Math.max(1, this.appliedStrategies.length));
-    }
-    else {
-      this.fishingAreaHelper.resize(1);
-    }
-
-
-    const sampleRowCode = [];
-    const sample = new Strategy();
-    sample.label = this.strategy;
-    sample.name = this.strategy;
-    sampleRowCode.push(sample);
 
     // Send value for form
     super.setValue(value);
 
-    const taxonNameControl = this.taxonNamesForm;
-    taxonNameControl.patchValue(taxonNames);
-    if (!this.appliedStrategies)
-    {
-      this.appliedStrategies = [];
-    }
-    this.fishingAreasFormArray.patchValue(this.appliedStrategies);
-
-    this.sampleRowCodeControl.patchValue(sample);
+    // Set strategy field
+    const strategyLabel = Object.entries(value.measurementValues || {})
+      .filter(([pmfmId, _]) => +pmfmId === PmfmIds.STRATEGY_LABEL)
+      .map(([_, value]) => value)
+      .find(isNotNil);
+    this.form.patchValue({strategy: strategyLabel});
   }
 
   addObserver() {
@@ -455,48 +364,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     }
   }
 
-  // appliedStrategies Helper
-  protected initAppliedStrategiesHelper() {
-    // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
-    this.fishingAreaHelper = new FormArrayHelper<AppliedStrategy>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
-      (appliedStrategy) => this.formBuilder.group({location: [appliedStrategy && appliedStrategy.location, Validators.compose([Validators.required])]}),
-      (s1, s2) => EntityUtils.equals(s1.location, s2.location, 'label'),
-      value => isNil(value) && isNil(value.location),
-    );
-    // Create at least one fishing Area
-    if (this.fishingAreaHelper.size() === 0) {
-      this.fishingAreaHelper.resize(1);
-    }
-  }
-
-  // Add validator on expected effort for this sampleRow (issue #175)
-  protected initAppliedStrategiesValidator() {
-    this.form.get('sampleRowCode').setAsyncValidators(async (control) => {
-      if (!this.appliedStrategies.length) return null;
-
-      const landingDateTime = this.value.dateTime;
-      const appliedPeriods = this.appliedStrategies.length && this.appliedStrategies[0].appliedPeriods || [];
-      const appliedPeriod = appliedPeriods.find(period => landingDateTime.isBetween(period.startDate, period.endDate, 'day'));
-
-      console.debug("[landing-form] Validating effort: ", landingDateTime, appliedPeriod);
-
-      if (!appliedPeriod || isNil(appliedPeriod.acquisitionNumber)) {
-        return <ValidationErrors>{noEffort: this.translate.instant('LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR')};
-      } else if (appliedPeriod.acquisitionNumber === 0) {
-        // TODO must be a warning, not error
-        //return <ValidationErrors>{noEffort: this.translate.instant('LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR')};
-      } else {
-        SharedValidators.clearError(control, 'noEffort');
-      }
-      return null;
-    });
-  }
-
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 
   toggleFilteredItems(fieldName: string){
     let value: boolean;
@@ -565,10 +435,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
       const sampleRowPmfmStrategy = new PmfmStrategy();
       const sampleRowPmfm = new Pmfm();
-      sampleRowPmfm.id = PmfmIds.SAMPLE_ROW_CODE;
+      sampleRowPmfm.id = PmfmIds.STRATEGY_LABEL;
       sampleRowPmfm.type = 'string';
       sampleRowPmfmStrategy.pmfm = sampleRowPmfm;
-      sampleRowPmfmStrategy.pmfmId = PmfmIds.SAMPLE_ROW_CODE;
+      sampleRowPmfmStrategy.pmfmId = PmfmIds.STRATEGY_LABEL;
       sampleRowPmfmStrategy.type = 'string';
       pmfms.push(sampleRowPmfmStrategy);
 

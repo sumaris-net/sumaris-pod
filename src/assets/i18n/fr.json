@@ -792,28 +792,41 @@
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
-    "TAB_GENERAL": "Détails",
-    "PROGRAM": "Programme",
-    "SAMPLE_ROW_CODE": "Code ligne de plan",
-    "SAMPLE_ROW_CODE_TITLE": "Ligne de plan :",
-    "FISHING_AREA" :"Zone de pêche",
-    "TARGET_SPECIES" :"Espèce cible",
-    "TARGET_SPECIES_TITLE" :"Espèce :",
-    "VESSEL": "Navire",
-    "LANDING": "Débarquement :",
-    "DATE_TIME": "Date/Heure",
-    "LOCATION": "Lieu d'échantillonnage",
-    "OBSERVERS": "Observateurs :",
-    "OBSERVER_PLACEHOLDER": "Observateur #",
-    "TAB_SAMPLES": "Echantillons",
     "NEW": {
       "TITLE": "Nouveau débarquement",
-      "SAMPLE_TITLE": "Nouvel échantillonnage"
+      "SAMPLING": {
+        "TITLE": "Nouvel échantillonnage"
+      }
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
-      "OTHER_FEATURES": "Autres caractéristiques :"
+      "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
+      "TAB_GENERAL": "Détails",
+      "PROGRAM": "Programme",
+      "STRATEGY": "Stratégie :",
+      "STRATEGY_PLACEHOLDER": "Stratégie",
+      "STRATEGY_LOCATIONS" :"Lieux applicables :",
+      "STRATEGY_LOCATION_PLACEHOLDER" :"Lieu d'application",
+      "STRATEGY_TAXON_NAME_PLACEHOLDER" :"Espèce scientifique",
+      "STRATEGY_TAXON_NAMES" :"Espèces :",
+      "VESSEL": "Navire",
+      "LANDING": "Débarquement :",
+      "DATE_TIME": "Date/Heure",
+      "LOCATION": "Lieu d'échantillonnage",
+      "OBSERVERS": "Observateurs :",
+      "OBSERVER_PLACEHOLDER": "Observateur #",
+      "OTHER_FEATURES": "Autres caractéristiques :",
+      "TAB_SAMPLES": "Echantillons",
+      "SAMPLING": {
+        "TITLE": "Navire {{vessel}}",
+        "STRATEGY": "Ligne de plan :",
+        "STRATEGY_PLACEHOLDER": "Code ligne de plan",
+        "STRATEGY_LOCATIONS" :"Zone(s) de pêche :",
+        "STRATEGY_LOCATION_PLACEHOLDER" :"Zone de pêche",
+        "STRATEGY_TAXON_NAMES" :"Espèce cible :",
+        "STRATEGY_TAXON_NAME_PLACEHOLDER" :"Espèce cible",
+        "TAB_SAMPLES": "Mesures individuelles"
+      }
     },
     "TABLE": {
       "VESSEL": "Navire",
@@ -1217,7 +1230,7 @@
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
       "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Paramètres biologiques",
-      "PROGRAM_STRATEGY_I18N_SUFFIX" : "Stratégie > Dictionnaire thématique",
+      "PROGRAM_STRATEGY_I18N_SUFFIX" : "Dictionnaire thématique",
       "PROGRAM_STRATEGY_I18N_SUFFIX_LEGACY" : "Par défaut",
       "PROGRAM_STRATEGY_I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",

@@ -5,13 +5,15 @@
 
 <ion-content>
 
-  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+                 class="mat-tab-disabled-hidden"
+                 dynamicHeight>
 
     <!-- TAB: general -->
-    <mat-tab label="{{'LANDING.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{'LANDING.EDIT.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
-        <ion-label translate>LANDING.TAB_GENERAL</ion-label>
+        <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
       </ng-template>
 
@@ -30,51 +32,73 @@
                                [program]="programSubject|async"
                                [showError]="false"
                                [showLocation]="true"
+                               [showComment]="false"
                                [debug]="debug"
                                (onSubmit)="save($event)">
             </app-landing2-form>
           </ion-col>
 
           <ion-col class="ion-no-padding" size="12" size-xl="3">
-            <app-entity-metadata [value]="data">
-              <app-entity-quality-form #qualityForm [editor]="this">
+            <app-entity-metadata [value]="data" >
+              <app-entity-quality-form #qualityForm [editor]="this" *ngIf="showQualityForm">
               </app-entity-quality-form>
             </app-entity-metadata>
+
+            <!-- TODO BLA : check if useful
+            <app-strategy-summary-card #strategyCard [editor]="this"
+                                       [title]="i18nPrefix+'STRATEGY'|translate">
+            </app-strategy-summary-card> -->
           </ion-col>
 
         </ion-row>
-
-        <ion-row class="ion-no-padding">
-          <ion-col class="ion-no-padding ion-padding-top">
-
-            <mat-tab-group [selectedIndex]=0
-                           animationDuration="0s">
-
-              <!-- TAB: Mesures individuelles -->
-              <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}">
-                <ng-template mat-tab-label>
-                  <mat-icon>assessment</mat-icon>
-                  <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
-                  <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
-                </ng-template>
-                <app-samples2-table #samplesTable [debug]="debug"
-                                    [program]="programSubject|async"
-                                    [usageMode]="usageMode"
-                                    [showLabelColumn]="true"
-                                    [defaultSampleDate]="data?.dateTime"
-                                    (onInitForm)="onStartSampleEditingForm($event)">
-                </app-samples2-table>
-
-                <!-- final space-->
-                <p visible-xs visible-sm visible-mobile>&nbsp;</p>
-              </mat-tab>
-
-            </mat-tab-group>
-
-          </ion-col>
-        </ion-row>
-
       </ion-grid>
+
+      <div #firstTabInjection></div>
+
+    </mat-tab>
+
+    <!-- TAB: samples -->
+    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate"
+             [disabled]="isNewData || forceOneTab">
+      <ng-template mat-tab-label>
+        <mat-icon>center_focus_strong</mat-icon>
+        <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
+      </ng-template>
+
+      <div #tabContent>
+        <app-samples2-table #samplesTable [debug]="debug"
+                            [usageMode]="usageMode"
+                            [showLabelColumn]="true"
+                            [defaultSampleDate]="data?.dateTime"
+                            (onInitForm)="onStartSampleEditingForm($event)">
+        </app-samples2-table>
+
+        <!-- final space-->
+        <p visible-xs visible-sm visible-mobile>&nbsp;</p>
+      </div>
+    </mat-tab>
+
+    <!-- TAB: comments -->
+    <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
+             [disabled]="!forceOneTab">
+      <ng-template mat-tab-label>
+        <mat-icon>chat_bubble</mat-icon>
+        <ion-label translate>COMMON.COMMENTS</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="form.controls.invalid"></ion-icon>
+      </ng-template>
+
+      <div class="ion-padding form-container">
+        <mat-form-field appearance="outline">
+          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
+                    maxlength="2000"
+                    tabindex="100"
+                    [placeholder]="'COMMON.COMMENTS'|translate"
+                    [formControl]="form.controls.comments"></textarea>
+          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </div>
     </mat-tab>
 
   </mat-tab-group>

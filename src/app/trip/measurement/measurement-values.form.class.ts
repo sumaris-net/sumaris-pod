@@ -21,6 +21,7 @@ export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T
 }
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> implements OnInit {
 
   protected _onValueChanged = new EventEmitter<T>();
@@ -111,7 +112,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   get measurementValuesForm(): FormGroup {
     // TODO: use this._measurementValuesForm instead
     return this.form.controls.measurementValues as FormGroup; // this._measurementValuesForm || (this.form.controls.measurementValues as FormGroup);
-  };
+  }
 
   protected constructor(protected dateAdapter: DateAdapter<Moment>,
                         protected measurementValidatorService: MeasurementsValidatorService,

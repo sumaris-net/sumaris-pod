@@ -1,6 +1,6 @@
 import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {Moment} from "moment";
-import {MeasurementValuesUtils} from "./measurement.model";
+import {MeasurementModelValues, MeasurementValuesUtils} from "./measurement.model";
 import {Sample} from "./sample.model";
 import {
   NOT_MINIFY_OPTIONS,
@@ -31,7 +31,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   location: ReferentialRef;
   rankOrder?: number;
   rankOrderOnVessel?: number;
-  measurementValues: { [key: string]: any };
+  measurementValues: MeasurementModelValues;
 
   tripId: number;
   observedLocationId: number;
