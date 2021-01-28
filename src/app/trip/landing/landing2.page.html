@@ -58,13 +58,11 @@
                   <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
                 </ng-template>
                 <app-samples2-table #samplesTable [debug]="debug"
-                                    acquisitionLevel="SURVIVAL_TEST"
                                     [program]="programSubject|async"
                                     [usageMode]="usageMode"
                                     [showLabelColumn]="true"
                                     [defaultSampleDate]="data?.dateTime"
-                                    (onInitForm)="onStartSampleEditingForm($event)"
-                >
+                                    (onInitForm)="onStartSampleEditingForm($event)">
                 </app-samples2-table>
 
                 <!-- final space-->

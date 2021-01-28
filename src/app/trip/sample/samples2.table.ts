@@ -68,6 +68,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() i18nFieldPrefix = 'TRIP.SAMPLE.TABLE.SAMPLING.';
 
   @Input()
   set defaultTaxonName(value: TaxonNameStrategy) {
@@ -287,7 +288,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicWeightColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
       key: pmfmColumnName,
-      label: 'PROGRAM.STRATEGY.WEIGHT_TABLE',
+      label: this.i18nFieldPrefix + 'WEIGHT',
       defaultValue: "WEIGHT",
       type: 'string',
       computed : false,
@@ -305,7 +306,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicSizeColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.SIZE_TABLE',
+        label: this.i18nFieldPrefix + 'SIZE',
         defaultValue: "SIZE",
         type: 'string',
         computed : false,
@@ -324,7 +325,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicMaturityColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.MATURITY_TABLE',
+        label: this.i18nFieldPrefix + 'MATURITY',
         defaultValue: "MATURITY",
         type: 'string',
         computed : false,
@@ -342,7 +343,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicSexColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.SEX',
+        label: this.i18nFieldPrefix + 'SEX',
         defaultValue: "SEX",
         type: 'string',
         computed : false,
@@ -361,7 +362,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicAgeColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.AGE',
+        label: this.i18nFieldPrefix + 'AGE',
         defaultValue: "AGE",
         type: 'string',
         computed : false,
@@ -380,7 +381,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicOthersColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.OTHER_TABLE',
+        label: this.i18nFieldPrefix + 'OTHER',
         defaultValue: "OTHER",
         type: 'string',
         computed : false,
