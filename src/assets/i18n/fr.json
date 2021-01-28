@@ -1353,30 +1353,7 @@
         "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà"
-      },
-      "CREATE_SAMPLING_PLAN": "Création d'une ligne de plan d'échantillonnage",
-      "APPLIED_STRATEGIES": "Zone(s) de pêche",
-      "LABEL": "Code de la ligne",
-      "SAMPLE_ROW_TITLE": "Code ligne de plan - incrément",
-      "ANALYTIC_REFERENCE": "EOTP",
-      "DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
-      "LANDING_PORT": "Port de débarquement",
-      "YEAR": "Année",
-      "WEIGHT": "Poids : ",
-      "SIZE": "Tailles : ",
-      "MATURITY": "Maturités : ",
-
-      "CALCIFIED_TYPE": "Types de pièces calcifiées",
-      "SIZE_INCREMENT": "incrément de taille",
-      "EFFORT": "Effort : ",
-      "QUARTER_1": "Trimestre 1" ,
-      "QUARTER_2": "Trimestre 2",
-      "QUARTER_3": "Trimestre 3",
-      "QUARTER_4": "Trimestre 4",
-      "PARAMETERS_TITLE": "Paramètres à mesurer :",
-      "COMMENT" :"Commentaire",
-
-      "ADD_LANDING": "Ajouter un débarquement"
+      }
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",
