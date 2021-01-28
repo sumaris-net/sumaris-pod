@@ -58,6 +58,8 @@ declare interface ColumnDefinition extends FormFieldDefinition {
 export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   implements OnInit, OnDestroy {
 
+  private _defaultTaxonName: TaxonNameStrategy;
+
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
@@ -66,12 +68,11 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
-  @Input() _defaultTaxonNameFromStrategy: TaxonNameStrategy;
 
   @Input()
-  set defaultTaxonNameFromStrategy(value: TaxonNameStrategy) {
-    if (this._defaultTaxonNameFromStrategy !== value && isNotNil(value)) {
-      this._defaultTaxonNameFromStrategy = value;
+  set defaultTaxonName(value: TaxonNameStrategy) {
+    if (this._defaultTaxonName !== value && isNotNil(value)) {
+      this._defaultTaxonName = value;
     }
   }
 
@@ -86,6 +87,8 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   @Input()
+  // TODO BLA: est-ce que appliedPmfmStrategies est utilisé dans ce table ?
+  // Si non, le supprimer, ainsi que l'affectation dans landing2.page
   set appliedPmfmStrategy(data: PmfmStrategy[]) {
     this.appliedPmfmStrategies = data;
   }
@@ -441,10 +444,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     }
 
     // set  taxonName, taxonGroup
-    if (isNotNil(this._defaultTaxonNameFromStrategy.taxonName)) {
-      data.taxonName = TaxonNameRef.fromObject(this._defaultTaxonNameFromStrategy.taxonName);
+    if (isNotNil(this._defaultTaxonName.taxonName)) {
+      data.taxonName = TaxonNameRef.fromObject(this._defaultTaxonName.taxonName);
 
-      const taxonGroup = await this.getTaxoGroupByTaxonNameId(this._defaultTaxonNameFromStrategy.taxonName.id,  "TaxonGroup");
+      const taxonGroup = await this.getTaxoGroupByTaxonNameId(this._defaultTaxonName.taxonName.id,  "TaxonGroup");
       data.taxonGroup = TaxonNameRef.fromObject(taxonGroup[0]);
     }
 

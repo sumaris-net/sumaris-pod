@@ -24,6 +24,7 @@ import {ProgramProperties} from "../../referential/services/config/program.confi
 import {AppEditorOptions} from "../../core/form/editor.class";
 import {ENVIRONMENT} from "../../../environments/environment.class";
 import {Program} from "../../referential/services/model/program.model";
+import {fromDateISOString} from "../../shared/dates";
 
 const moment = momentImported;
 
@@ -93,7 +94,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.landingForm.form.get('dateTime').valueChanges
         .pipe(throttleTime(200), filter(isNotNil))
         .subscribe((dateTime) => {
-          this.samplesTable.defaultSampleDate = dateTime as Moment;
+          this.samplesTable.defaultSampleDate = fromDateISOString(dateTime);
         })
     );
   }

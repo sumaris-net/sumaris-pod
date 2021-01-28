@@ -15,7 +15,7 @@
                  autocomplete="off"
                  type="text"
                  [textMask]="{mask: labelMask, keepCharPositions: true, showMask: true, guide: true}"
-                 (click)="selectMask($event.target)"
+                 (click)="selectMask(matInput)"
                  placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}" >
           <mat-error *ngIf="form.controls.label.hasError('unique')"
                      translate>PROGRAM.STRATEGY.ERROR.LABEL.UNIQUE</mat-error>
@@ -252,7 +252,6 @@
       <ion-col>
         <app-pmfm-strategies-table #weightPmfmStrategiesTable
                                    [title]=""
-                                   [programLabel]="(programSubject|async)?.label"
                                    [canEdit]="enabled"
                                    [canDelete]="enabled"
                                    [canDisplayToolbar]="false"
@@ -277,7 +276,6 @@
       <ion-col>
         <app-pmfm-strategies-table #sizePmfmStrategiesTable
                                    [title]=""
-                                   [programLabel]="program"
                                    [canEdit]="enabled"
                                    [canDelete]="enabled"
                                    [canDisplayToolbar]="false"
@@ -294,7 +292,7 @@
     </ion-row>
     <ion-row style="height: 15px"></ion-row>
 
-    <!--SEX -->
+    <!-- SEX -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3">
         <ion-label class="ion-float-end">{{i18nFieldPrefix + 'SEX'|translate}}</ion-label>
@@ -315,7 +313,6 @@
       <ion-col>
         <app-pmfm-strategies-table #maturityPmfmStrategiesTable
                                    [title]=""
-                                   [programLabel]="program"
                                    [canEdit]="enabled"
                                    [canDelete]="enabled"
                                    [canDisplayToolbar]="false"

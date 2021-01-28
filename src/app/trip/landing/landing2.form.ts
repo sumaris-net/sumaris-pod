@@ -58,7 +58,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   referenceTaxon: ReferentialRef;
   fishingAreas: ReferentialRef[];
   fishingAreaHelper: FormArrayHelper<AppliedStrategy>;
-  _sampleRowCode: string;
+  _strategy: string;
   _defaultTaxonNameFromStrategy: TaxonNameStrategy;
 
   appliedStrategies: AppliedStrategy[];
@@ -90,14 +90,14 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   }
 
   @Input()
-  set sampleRowCode(value: string) {
-    if (this._sampleRowCode !== value && isNotNil(value)) {
-      this._sampleRowCode = value;
+  set strategy(value: string) {
+    if (this._strategy !== value && isNotNil(value)) {
+      this._strategy = value;
     }
   }
 
-  get sampleRowCode(): string {
-    return this._sampleRowCode;
+  get strategy(): string {
+    return this._strategy;
   }
 
   @Input()
@@ -200,11 +200,10 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     this.registerAutocompleteField('strategy', {
       service: this.referentialRefService,
       filter: {
-        entityName: 'Strategy'
-        //   // FIXME CLT : id program to retrieve
-        //   programId: '40'
+        entityName: 'Strategy',
+        levelId: undefined // = programId, will be set on setProgram()
       },
-      attributes: ['label', 'description'],
+      attributes: ['label', 'name'],
       columnSizes: [6, 6]
     });
 
@@ -365,8 +364,8 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
 
     const sampleRowCode = [];
     const sample = new Strategy();
-    sample.label = this.sampleRowCode;
-    sample.name = this.sampleRowCode;
+    sample.label = this.strategy;
+    sample.name = this.strategy;
     sampleRowCode.push(sample);
 
     // Send value for form
