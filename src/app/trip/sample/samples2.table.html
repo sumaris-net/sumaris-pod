@@ -117,12 +117,12 @@
   <!-- sample code  column -->
 <ng-container matColumnDef="sampleCode" [sticky]="true">
   <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-    <span translate>TRIP.SAMPLE2.TABLE.SAMPLE_CODE</span>
+    <span translate>{{i18nFieldPrefix + 'SAMPLE_CODE'}}</span>
   </mat-header-cell>
   <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
     <mat-form-field floatLabel="never">
       <input matInput [formControl]="row.validator.controls.label"
-             [placeholder]="'TRIP.SAMPLE2.TABLE.SAMPLE_CODE'|translate"
+             [placeholder]="i18nFieldPrefix + 'SAMPLE_CODE_PLACEHOLDER'|translate"
              [readonly]="!row.editing">
     </mat-form-field>
   </mat-cell>
@@ -131,12 +131,12 @@
   <!-- Morse code column => Already in pmfm columns -->
   <ng-container matColumnDef="morseCode" [sticky]="true">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>TRIP.SAMPLE2.TABLE.MORSE_CODE</span>
+      <span translate>{{i18nFieldPrefix + 'MORSE_CODE'}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="'TRIP.SAMPLE2.TABLE.MORSE_CODE'|translate"
+               [placeholder]="i18nFieldPrefix + 'MORSE_CODE_PLACEHOLDER'|translate"
                [readonly]="!row.editing">
       </mat-form-field>
     </mat-cell>
@@ -146,12 +146,12 @@
   <!-- Comment column -->
  <ng-container matColumnDef="comment">
    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-     <span translate>TRIP.SAMPLE2.TABLE.COMMENT</span>
+     <span translate>{{i18nFieldPrefix + 'COMMENTS'}}</span>
    </mat-header-cell>
    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
      <mat-form-field floatLabel="never">
        <input matInput [formControl]="row.validator.controls.comments"
-              [placeholder]="'TRIP.SAMPLE2.TABLE.COMMENT'|translate"
+              [placeholder]="i18nFieldPrefix + 'COMMENTS_PLACEHOLDER'|translate"
               [readonly]="!row.editing">
      </mat-form-field>
    </mat-cell>
