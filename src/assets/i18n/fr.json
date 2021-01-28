@@ -1193,6 +1193,9 @@
       "TITLE": "Programmes de collecte"
     },
     "OPTIONS": {
+      "I18N_SUFFIX" : "Dictionnaire thématique",
+      "I18N_SUFFIX_LEGACY" : "Par défaut",
+      "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
@@ -1230,9 +1233,6 @@
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
       "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Paramètres biologiques",
-      "PROGRAM_STRATEGY_I18N_SUFFIX" : "Dictionnaire thématique",
-      "PROGRAM_STRATEGY_I18N_SUFFIX_LEGACY" : "Par défaut",
-      "PROGRAM_STRATEGY_I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)",

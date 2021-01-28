@@ -296,7 +296,7 @@ export const ProgramProperties = Object.freeze({
 
   I18N_SUFFIX: <FormFieldDefinition>{
     key: "sumaris.i18nSuffix",
-    label: "PROGRAM.OPTIONS.PROGRAM_I18N_SUFFIX",
+    label: "PROGRAM.OPTIONS.I18N_SUFFIX",
     type: 'enum',
     values: [
       {

@@ -130,6 +130,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this.getShowColumn('creationDate');
   }
 
+  @Input()
+  set showRecorderPersonColumn(value: boolean) {
+    this.setShowColumn('recorderPerson', value);
+  }
+
+  get showRecorderPersonColumn(): boolean {
+    return this.getShowColumn('recorderPerson');
+  }
+
   constructor(
     injector: Injector
   ) {
