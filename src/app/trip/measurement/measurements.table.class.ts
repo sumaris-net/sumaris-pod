@@ -145,13 +145,18 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
     // Default options
-    this.options = this.options || {prependNewElements: false, suppressErrors: this.environment.production};
+    this.options = {
+      prependNewElements: false,
+      suppressErrors: true,
+      debug: false,
+      ...options
+    };
     if (!this.options.onRowCreated) {
       this.options.onRowCreated = (row) => this.onRowCreated(row);
     }
 
     const encapsulatedValidator = this.validatorService ? this : null;
-    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, this.environment, encapsulatedValidator, options));
+    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, options));
 
     // For DEV only
     //this.debug = !environment.production;

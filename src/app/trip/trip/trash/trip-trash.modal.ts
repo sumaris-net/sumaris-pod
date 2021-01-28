@@ -86,7 +86,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, environment, null, {
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

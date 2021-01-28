@@ -94,7 +94,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
             'comments'])
         .concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Operation, OperationFilter, OperationServiceWatchOptions>(Operation, dataService,
-        environment,
         null,
         // DataSource options
         {

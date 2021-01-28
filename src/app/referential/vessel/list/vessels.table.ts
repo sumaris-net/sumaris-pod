@@ -92,7 +92,7 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
           'features.basePortLocation',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, environment, null, {
+      new EntitiesTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -115,6 +115,8 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     // Fill statusById
     this.statusById = {};
     this.statusList.forEach((status) => this.statusById[status.id] = status);
+
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

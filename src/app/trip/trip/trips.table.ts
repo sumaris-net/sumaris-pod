@@ -2,17 +2,14 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestr
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {TripValidatorService} from "../services/validator/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
-import {AlertController, ModalController} from "@ionic/angular";
+import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder} from "@angular/forms";
 import {debounceTime, filter, tap} from "rxjs/operators";
-import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AccountService} from "../../core/services/account.service";
-import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {personToString} from "../../core/services/model/person.model";
 import {Trip} from "../services/model/trip.model";
@@ -78,7 +75,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           'comments'])
         .concat(RESERVED_END_COLUMNS),
         dataService,
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService, environment, null, {
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

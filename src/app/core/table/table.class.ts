@@ -70,6 +70,7 @@ export interface IModalDetailOptions<T = any> {
 }
 
 // @dynamic
+// tslint:disable-next-line:directive-class-suffix
 @Directive()
 export abstract class AppTable<T extends Entity<T>, F = any>
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {
@@ -116,7 +117,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   @Input() saveBeforeDelete: boolean;
   @Input() saveBeforeSort: boolean;
   @Input() saveBeforeFilter: boolean;
-  @Input() debug = false;
+  @Input() debug: boolean;
 
   @Input() defaultSortBy: string;
   @Input() defaultSortDirection: SortDirection;
@@ -304,7 +305,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
     this.toastController = injector && injector.get(ToastController);
-    this.environment = injector && injector.get(ENVIRONMENT);
     this._autocompleteConfigHolder = new MatAutocompleteConfigHolder({
       getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
     });
@@ -389,7 +389,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   ngAfterViewInit() {
-    if (!this.environment.production) {
+    if (this.debug) {
       // Warn if table not exists
       if (!this.table) {
         setTimeout(() => {
@@ -500,7 +500,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   /* -- internal method -- */
 
   private applyFilter(filter: F, opts: { emitEvent: boolean; }) {
-    console.debug('[table] applyFilter', filter);
+    if (this.debug) console.debug('[table] Applying filter', filter);
     this._filter = filter;
     if (opts.emitEvent) {
       if (this.paginator && this.paginator.pageIndex > 0) {

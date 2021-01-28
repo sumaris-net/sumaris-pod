@@ -94,7 +94,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
           'weight'
         ])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, environment, validatorService, {
+      new EntitiesTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         onRowCreated: (row) => this.onRowCreated(row)

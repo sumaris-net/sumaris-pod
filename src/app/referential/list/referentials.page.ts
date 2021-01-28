@@ -86,7 +86,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           'updateDate',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, environment, validatorService, {
+      new EntitiesTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

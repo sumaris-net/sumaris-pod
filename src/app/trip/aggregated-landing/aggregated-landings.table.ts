@@ -3,7 +3,6 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
-  Inject,
   Injector,
   Input,
   OnDestroy,
@@ -121,9 +120,10 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
     super(route, router, platform, location, modalCtrl, settings,
       ['vessel'],
-      new EntitiesTableDataSource<AggregatedLanding, AggregatedLandingFilter>(AggregatedLanding, service, environment, null, {
+      new EntitiesTableDataSource<AggregatedLanding, AggregatedLandingFilter>(AggregatedLanding, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
+        debug: !environment.production,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
