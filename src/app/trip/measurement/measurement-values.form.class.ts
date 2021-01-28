@@ -37,6 +37,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   loadingPmfms = true; // Important, must be true
   $loadingControls = new BehaviorSubject<boolean>(true);
   applyingValue = false;
+  programSubject = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
   @Input() compact = false;
@@ -50,10 +51,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set program(value: string) {
-    if (this._program !== value && isNotNil(value)) {
-      this._program = value;
-      if (!this.loading) this._onRefreshPmfms.emit();
-    }
+    this.setProgram(value);
   }
 
   get program(): string {
@@ -225,6 +223,17 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   /* -- protected methods -- */
+
+  protected setProgram(value: string) {
+    if (isNotNil(value) && this._program !== value) {
+      this._program = value;
+
+      this.programSubject.next(value);
+
+      // Reload pmfms
+      if (!this.loading) this._onRefreshPmfms.emit();
+    }
+  }
 
   /**
    * Wait form is ready, before setting the value to form

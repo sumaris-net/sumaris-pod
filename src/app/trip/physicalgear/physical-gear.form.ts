@@ -17,6 +17,7 @@ import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {environment} from "../../../environments/environment";
+import {mergeMap} from "rxjs/internal/operators";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -27,7 +28,6 @@ import {environment} from "../../../environments/environment";
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit {
 
   gearsSubject = new BehaviorSubject<ReferentialRef[]>(undefined);
-  programSubject = new Subject<string>();
   mobile: boolean;
 
   @Input() showComment = true;
@@ -35,11 +35,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   @Input() tabindex: number;
 
   @Input() canEditRankOrder = false;
-
-  @Input()
-  set program(value: string) {
-    this.programSubject.next(value);
-  }
 
   @Input()
   set gears(value: ReferentialRef[]) {
@@ -67,19 +62,15 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     // Set default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
 
+    // Load gears from program
     this.registerSubscription(
       this.programSubject
         .pipe(
           filter(isNotNil),
-          distinctUntilChanged()
+          distinctUntilChanged(),
+          mergeMap(program => this.programService.loadGears(program))
         )
-        .subscribe(async (programLabel) => {
-          if (this._program !== programLabel) {
-            this.gearsSubject.next(await this.programService.loadGears(programLabel));
-            this._program = programLabel as string;
-            if (!this.loading) this._onRefreshPmfms.emit();
-          }
-        })
+        .subscribe(gears => this.gearsSubject.next(gears))
     );
 
     this.debug = !environment.production;

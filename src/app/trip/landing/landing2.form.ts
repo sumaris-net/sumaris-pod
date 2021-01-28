@@ -201,7 +201,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       service: this.referentialRefService,
       filter: {
         entityName: 'Strategy',
-        levelId: undefined // = programId, will be set on setProgram()
+        levelLabel: this.programSubject.getValue() // is empty, will be set in setProgram()
       },
       attributes: ['label', 'name'],
       columnSizes: [6, 6]
@@ -224,10 +224,11 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
         .pipe(
           debounceTime(250),
           filter(ReferentialUtils.isNotEmpty),
-          pluck('label'),
+          pluck<ReferentialRef, string>('label'),
           distinctUntilChanged()
         )
-        .subscribe(programLabel => this.program = programLabel as string));
+        .subscribe(programLabel => this.program = programLabel)
+        );
 
     // Combo location
     this.registerAutocompleteField('location', {
@@ -321,7 +322,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   //   return json;
   // }
 
-  public setValue(value: Landing) {
+  setValue(value: Landing) {
     if (!value) return;
     let taxonNames = value.samples.filter(sample => sample.taxonName);
 
@@ -418,12 +419,21 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
     return modal.present();
   }
 
-  public registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
+  registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
     return super.registerAutocompleteField(fieldName, options);
   }
 
 
   /* -- protected method -- */
+
+  protected setProgram(program: string) {
+    super.setProgram(program);
+
+    // Update the strategy filter (if autocomplete field exists. If not, program will set later in ngOnInit())
+    if (this.autocompleteFields.strategy) {
+      this.autocompleteFields.strategy.filter.levelLabel = program;
+    }
+  }
 
   protected initObserversHelper() {
     if (isNil(this._showObservers)) return; // skip if not loading yet
