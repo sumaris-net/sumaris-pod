@@ -43,8 +43,8 @@ build_oracle:
         PROFIL: "oracle"
     script:
         - echo "Test oracle build  in progress"
-        - mvn -s ./settings.xml clean install -DskipTests -P $PROFIL
-        - mvn -s ./settings.xml -pl sumaris-server deploy:deploy-file@deploy-nexus-snapshot -P $PROFIL
+        - mvn -q -s ./settings.xml clean install -DskipTests -P $PROFIL
+        - mvn -q -s ./settings.xml -pl sumaris-server deploy:deploy-file@deploy-nexus-snapshot -P $PROFIL
     environment:
         name: test
     artifacts:
