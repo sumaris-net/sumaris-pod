@@ -7,7 +7,7 @@ import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
 
-export const UserProfileLabels : {[key: string]: UserProfileLabel} = {
+export const UserProfileLabels: {[key: string]: UserProfileLabel} = {
   ADMIN: 'ADMIN',
   SUPERVISOR: 'SUPERVISOR',
   USER: 'USER',

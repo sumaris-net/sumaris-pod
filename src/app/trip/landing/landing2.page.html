@@ -12,11 +12,11 @@
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && landing2Form.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="landing2Form.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="landingForm.error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
       </ion-item>
@@ -25,8 +25,8 @@
         <ion-row class="ion-no-padding">
           <ion-col class="ion-no-padding ion-padding-top">
 
-            <!-- landing2 form-->
-            <app-landing2-form #landing2Form
+            <!-- landing form-->
+            <app-landing2-form #landingForm
                                [program]="programSubject|async"
                                [showError]="false"
                                [showLocation]="true"
@@ -55,16 +55,14 @@
                 <ng-template mat-tab-label>
                   <mat-icon>assessment</mat-icon>
                   <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
-                  <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && samples2Table.invalid"></ion-icon>
+                  <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
                 </ng-template>
-                <app-samples2-table #samples2Table [debug]="debug"
-                                    acquisitionLevel="SURVIVAL_TEST"
+                <app-samples2-table #samplesTable [debug]="debug"
                                     [program]="programSubject|async"
                                     [usageMode]="usageMode"
                                     [showLabelColumn]="true"
                                     [defaultSampleDate]="data?.dateTime"
-                                    (onInitForm)="onStartSampleEditingForm($event)"
-                >
+                                    (onInitForm)="onStartSampleEditingForm($event)">
                 </app-samples2-table>
 
                 <!-- final space-->

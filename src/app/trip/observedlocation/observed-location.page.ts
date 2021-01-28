@@ -27,7 +27,6 @@ import {ObservedLocationsPageSettingsEnum} from "./observed-locations.page";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
-import {Landings2Table} from "../landing/landings2.table";
 
 
 const ObservedLocationPageTabs = {
@@ -47,12 +46,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   aggregatedLandings: boolean;
   allowAddNewVessel: boolean;
   $ready = new BehaviorSubject<boolean>(false);
+  i18nPrefix = 'OBSERVED_LOCATION.EDIT.';
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
 
   @ViewChild('landingsTable') landingsTable: LandingsTable;
-
-  @ViewChild('landings2Table') landings2Table: Landings2Table;
 
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
@@ -108,6 +106,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     if (this.landingsTable) {
       this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
       this.landingsTable.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
+      this.landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
+      this.landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
+      this.landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
       this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
 
     } else if (this.aggregatedLandingsTable) {
@@ -115,6 +116,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
     }
+
+    this.i18nPrefix = 'OBSERVED_LOCATION.EDIT.';
+    const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    this.i18nPrefix += i18nSuffix !== 'legacy' ? i18nSuffix : '';
 
     this.$ready.next(true);
   }
@@ -200,10 +205,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       if (this.landingsTable) {
         if (this.debug) console.debug("[observed-location] Propagate observed location to landings table");
         this.landingsTable.setParent(data);
-      }
-      if (this.landings2Table) {
-        if (this.debug) console.debug("[observed-location] Propagate observed location to landings2 table");
-        this.landings2Table.setParent(data);
       }
       if (this.aggregatedLandingsTable) {
         if (this.debug) console.debug("[observed-location] Propagate observed location to aggregated landings form");
@@ -395,7 +396,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.addChildForms([
       this.observedLocationForm,
       () => this.landingsTable,
-      () => this.landings2Table,
       () => this.aggregatedLandingsTable
     ]);
   }
@@ -426,11 +426,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     if (this.landingsTable && this.landingsTable.dirty) {
       await this.landingsTable.save();
     }
-
-    if (this.landings2Table && this.landings2Table.dirty) {
-      await this.landings2Table.save();
-    }
-
     if (this.aggregatedLandingsTable && this.aggregatedLandingsTable.dirty) {
       await this.aggregatedLandingsTable.save();
     }

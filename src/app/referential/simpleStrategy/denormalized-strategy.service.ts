@@ -221,17 +221,25 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
-           opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean }
+           opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; }
            ): Observable<LoadResult<DenormalizedStrategy>> {
     return super.watchAll(offset, size, sortBy, sortDirection, filter, opts)
       .pipe(
-        mergeMap(async (res) => Promise.all([
-            // Fill parameters groups
-            this.fillParameterGroups(res.data),
-            // Fill strategy efforts
-            this.fillEfforts(res.data)
-          ]).then(() => res)
+        // Fill entities (parameter groups, effort, etc)
+        mergeMap(res => this.fillEntities(res.data, opts)
+          .then(() => res)
       ));
+  }
+
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
+           opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; }
+  ): Promise<LoadResult<DenormalizedStrategy>> {
+    const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+
+    // Fill entities (parameter groups, effort, etc)
+    await this.fillEntities(res.data, opts);
+
+    return res;
   }
 
   /* -- protected -- */
@@ -258,9 +266,22 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
     return (data || []).map(p => p.id);
   }
 
-  //const parameterLabels = Object.values(ParameterLabelList)
-  //  .reduce((res, labels) => res.concat(...labels), []);
+  async fillEntities(entities: DenormalizedStrategy[], opts?: {
+    withEffort?: boolean; withParameterGroups?: boolean;
+  }): Promise<DenormalizedStrategy[]> {
+    const jobs: Promise<void>[] = [];
+    // Fill parameters groups
+    if (!opts || opts.withParameterGroups !== false) {
+      jobs.push(this.fillParameterGroups(entities));
+    }
+    // Fill strategy efforts
+    if (!opts || opts.withEffort !== false) {
+      jobs.push(this.fillEfforts(entities));
+    }
+    await Promise.all(jobs);
 
+    return entities;
+  }
 
   /**
    * Fill parameterGroups attribute, on each denormalized strategy

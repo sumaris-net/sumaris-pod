@@ -42,7 +42,7 @@ import {Program} from "../../referential/services/model/program.model";
     {
       provide: AppEditorOptions,
       useValue: {
-        pathIdAttribute: 'landing2Id'
+        pathIdAttribute: 'landingId'
       }
     }
   ]
@@ -61,8 +61,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
   mobile: boolean;
 
-  @ViewChild('landing2Form', { static: true }) landingForm: Landing2Form;
-  @ViewChild('samples2Table', { static: true }) samples2Table: Samples2Table;
+  @ViewChild('landingForm', { static: true }) landingForm: Landing2Form;
+  @ViewChild('samplesTable', { static: true }) samplesTable: Samples2Table;
 
   get pmfms(): Observable<PmfmStrategy[]> {
     return this.landingForm.$pmfms.pipe(filter(isNotNil));
@@ -106,7 +106,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.landingForm.form.get('dateTime').valueChanges
         .pipe(throttleTime(200), filter(isNotNil))
         .subscribe((dateTime) => {
-          this.samples2Table.defaultSampleDate = fromDateISOString(dateTime);
+          this.samplesTable.defaultSampleDate = fromDateISOString(dateTime);
         })
     );
 
@@ -116,7 +116,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         .subscribe((sampleRowCode: Strategy) => this.onSampleRowCodeChange(sampleRowCode))
     );
 
-    this.samples2Table.onConfirmEditCreateRow.subscribe(() => {
+    this.samplesTable.onConfirmEditCreateRow.subscribe(() => {
       this.landingForm.hasSamples = true;
     });
   }
@@ -343,7 +343,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
           const defaultTaxonName = strategy.taxonNames[0];
           //propagation of taxonNames by strategy on sampleRowCode change
           this.landingForm.defaultTaxonNameFromStrategy = defaultTaxonName;
-          this.samples2Table.defaultTaxonName = defaultTaxonName;
+          this.samplesTable.defaultTaxonName = defaultTaxonName;
 
           if (this.landingForm._defaultTaxonNameFromStrategy) {
             const emptySampleWithTaxon = new Sample();
@@ -357,14 +357,14 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         this.landingForm.taxonNamesForm.patchValue(taxonNames);
 
         // Refresh samples
-        this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
-        this.samples2Table.pmfms = pmfmStrategies;
+        this.samplesTable.appliedPmfmStrategy = pmfmStrategies;
+        this.samplesTable.pmfms = pmfmStrategies;
       }
     }
   }
 
   protected registerForms() {
-    this.addChildForms([this.landingForm, this.samples2Table]);
+    this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
   protected setProgram(program: Program) {
@@ -418,7 +418,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.landingForm.value = data;
 
     // Set table rows
-    this.samples2Table.value = data.samples || [];
+    this.samplesTable.value = data.samples || [];
 
     // Use strategy defaults
     if (!isNew && isNotNil(strategyLabel)) {
@@ -436,11 +436,11 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
       // TODO BLA: pourquoi 'FromStrategy' ?
       this.landingForm.defaultTaxonNameFromStrategy = defaultTaxonName;
-      this.samples2Table.defaultTaxonName = defaultTaxonName;
+      this.samplesTable.defaultTaxonName = defaultTaxonName;
 
       this.landingForm.pmfms = pmfmStrategies;
-      this.samples2Table.appliedPmfmStrategy = pmfmStrategies;
-      this.samples2Table.pmfms = pmfmStrategies;
+      this.samplesTable.appliedPmfmStrategy = pmfmStrategies;
+      this.samplesTable.pmfms = pmfmStrategies;
     }
   }
 
@@ -484,10 +484,10 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     const data = await super.getValue();
 
     // Save samples table
-    if (this.samples2Table.dirty) {
-      await this.samples2Table.save();
+    if (this.samplesTable.dirty) {
+      await this.samplesTable.save();
     }
-    data.samples = this.samples2Table.value;
+    data.samples = this.samplesTable.value;
 
     // Apply rank Order
     // TODO BLA: pourquoi fixer la rankOrder à 1 ? Cela empêche de retrouver l'ordre de saisie
