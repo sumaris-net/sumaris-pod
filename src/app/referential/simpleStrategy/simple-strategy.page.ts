@@ -98,7 +98,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     // new strategy
     if (!data || isNil(data.id)) {
-      return await this.translate.get(`PROGRAM.STRATEGY.NEXT.${i18nSuffix}TITLE`).toPromise();
+      return await this.translate.get(`PROGRAM.STRATEGY.NEW.${i18nSuffix}TITLE`).toPromise();
     }
 
     // Existing strategy
