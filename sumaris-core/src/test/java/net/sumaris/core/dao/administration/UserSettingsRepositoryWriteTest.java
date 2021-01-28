@@ -49,7 +49,7 @@ public class UserSettingsRepositoryWriteTest extends AbstractDaoTest {
 
     @Test
     public void getByIssuer() {
-        UserSettingsVO settings = repository.getByIssuer(OBSERVER_PUBKEY);
+        UserSettingsVO settings = repository.findByIssuer(OBSERVER_PUBKEY).orElse(null);
         Assert.assertNotNull(settings);
         Assert.assertEquals("en", settings.getLocale());
         Assert.assertEquals("DDMM", settings.getLatLongFormat());
@@ -71,7 +71,7 @@ public class UserSettingsRepositoryWriteTest extends AbstractDaoTest {
         Assert.assertEquals("DDMM", settings.getLatLongFormat());
         Assert.assertNull(settings.getContent());
         // reload
-        settings = repository.getByIssuer(FAKE_PUBKEY);
+        settings = repository.findByIssuer(FAKE_PUBKEY).orElse(null);
         Assert.assertNotNull(settings);
         Assert.assertEquals(settingId, settings.getId().intValue());
         Assert.assertEquals(settingUd, settings.getUpdateDate());

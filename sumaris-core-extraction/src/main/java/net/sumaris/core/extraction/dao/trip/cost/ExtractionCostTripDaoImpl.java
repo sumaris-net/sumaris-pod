@@ -25,7 +25,8 @@ package net.sumaris.core.extraction.dao.trip.cost;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.core.extraction.specification.CostSpecification;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.specification.data.trip.CostSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import org.slf4j.Logger;
@@ -38,20 +39,19 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionCostTripDao")
 @Lazy
-public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO> extends ExtractionRdbTripDaoImpl<C>
-        implements ExtractionCostTripDao, CostSpecification {
+public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
+        extends ExtractionRdbTripDaoImpl<C, F>
+        implements ExtractionCostTripDao<C, F>, CostSpecification {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionCostTripDaoImpl.class);
 
     private static final String XML_QUERY_COST_PATH = "cost/v%s/%s";
 
     @Override
-    public C execute(ExtractionFilterVO filter) {
-        C context = super.execute(filter);
+    public <R extends C> R execute(F filter) {
+        R context = super.execute(filter);
 
-        // Override some context properties
-        context.setFormatName(CostSpecification.FORMAT);
-        context.setFormatVersion(VERSION_1_4);
+        context.setFormat(LiveFormatEnum.COST);
 
         return context;
     }
@@ -87,7 +87,7 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO> ext
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getVersion());
 
         String versionStr = VERSION_1_4.replaceAll("[.]", "_");
         switch (queryName) {

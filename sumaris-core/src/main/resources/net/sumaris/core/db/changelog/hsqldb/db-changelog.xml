@@ -83,6 +83,15 @@
 
   <include relativeToChangelogFile="true" file="db-changelog-1.4.3.xml"/>
 
+  <include relativeToChangelogFile="true" file="db-changelog-1.4.6.xml"/>
+  <include relativeToChangelogFile="true" file="sumaris/db-changelog-1.4.6.xml"/>
+  <include relativeToChangelogFile="true" file="adap/db-changelog-1.4.6.xml"/>
+
+  <include relativeToChangelogFile="true" file="db-changelog-1.6.2.xml"/>
+
+  <include relativeToChangelogFile="true" file="db-changelog-1.7.0.xml"/>
+  <include relativeToChangelogFile="true" file="adap/db-changelog-1.7.0.xml"/>
+
   <!-- Refresh schema objects (functions, procedures, triggers, ...) -->
   <include relativeToChangelogFile="true" file="db-changelog-refresh.xml"/>
 

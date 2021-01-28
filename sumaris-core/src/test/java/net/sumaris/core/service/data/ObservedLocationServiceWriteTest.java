@@ -29,6 +29,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ObservedLocationSaveOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.junit.Assert;
@@ -51,7 +52,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
     @Test
     public void save() {
         ObservedLocationVO vo = createObservedLocation();
-        ObservedLocationVO savedVO = service.save(vo, false);
+        ObservedLocationVO savedVO = service.save(vo, ObservedLocationSaveOptions.builder().build());
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
@@ -67,14 +68,14 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void delete() {
-        service.delete(dbResource.getFixtures().getObservedLocationId(0));
+        service.delete(fixtures.getObservedLocationId(0));
     }
 
     @Test
     public void deleteAfterCreate() {
         ObservedLocationVO savedVO = null;
         try {
-            savedVO = service.save(createObservedLocation(), false);
+            savedVO = service.save(createObservedLocation(), ObservedLocationSaveOptions.builder().build());
             Assume.assumeNotNull(savedVO);
             Assume.assumeNotNull(savedVO.getId());
         }
@@ -89,24 +90,24 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
 
     protected ObservedLocationVO createObservedLocation() {
         ObservedLocationVO vo = new ObservedLocationVO();
-        vo.setProgram(dbResource.getFixtures().getDefaultProgram());
+        vo.setProgram(fixtures.getDefaultProgram());
         vo.setStartDateTime(new Date());
 
         LocationVO departureLocation = new LocationVO();
-        departureLocation.setId(dbResource.getFixtures().getLocationPortId(0));
+        departureLocation.setId(fixtures.getLocationPortId(0));
         vo.setLocation(departureLocation);
 
         vo.setCreationDate(new Date());
 
         DepartmentVO recorderDepartment = new DepartmentVO();
-        recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
         vo.setRecorderDepartment(recorderDepartment);
 
         // Observers
         PersonVO observer1 = new PersonVO();
-        observer1.setId(dbResource.getFixtures().getPersonId(0));
+        observer1.setId(fixtures.getPersonId(0));
         PersonVO observer2 = new PersonVO();
-        observer2.setId(dbResource.getFixtures().getPersonId(1));
+        observer2.setId(fixtures.getPersonId(1));
         vo.setObservers(ImmutableSet.of(observer1, observer2));
 
         // Measurement

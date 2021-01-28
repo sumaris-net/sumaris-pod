@@ -86,7 +86,7 @@ public class Strategy implements IItemReferentialEntity {
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyDepartment.class, mappedBy = StrategyDepartment.Fields.STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<StrategyDepartment> strategyDepartments = new ArrayList<>();
+    private List<StrategyDepartment> departments = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "strategy2gear", joinColumns = {

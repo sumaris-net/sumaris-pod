@@ -72,7 +72,7 @@ public interface PmfmSpecifications {
         return specification;
     }
 
-    List<PmfmVO> findAll(Parameter parameter, Matrix matrix, Fraction fraction, Method method);
+    List<Pmfm> findAll(Parameter parameter, Matrix matrix, Fraction fraction, Method method);
 
     boolean hasLabelPrefix(int pmfmId, String... labelPrefixes);
 

@@ -30,6 +30,8 @@ import java.util.List;
 
 public interface VesselPositionDao {
 
+    List<VesselPositionVO> getAllByOperationId(int operationId);
+
     List<VesselPositionVO> getAllByOperationId(int operationId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
     VesselPositionVO get(int id);

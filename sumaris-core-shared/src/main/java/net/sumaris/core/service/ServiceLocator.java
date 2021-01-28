@@ -27,7 +27,6 @@ package net.sumaris.core.service;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 /*import org.springframework.beans.factory.access.BeanFactoryLocator;
 import org.springframework.beans.factory.access.BeanFactoryReference;
@@ -42,16 +41,13 @@ import java.io.Closeable;
  */
 public class ServiceLocator implements Closeable {
 
-    //@Autowired
-    //private ApplicationContext appContext;
-
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(ServiceLocator.class);
 
     /**
      * The core instance of this ServiceLocator.
      */
-    private static ServiceLocator instance = new ServiceLocator();
+    private static ServiceLocator INSTANCE = new ServiceLocator();
 
     /**
      * Indicates if the spring context is open or not.
@@ -70,7 +66,7 @@ public class ServiceLocator implements Closeable {
      * @param newInstance the new core service locator instance.
      */
     public static void setInstance(ServiceLocator newInstance) {
-        instance = newInstance;
+        INSTANCE = newInstance;
     }
 
     /**
@@ -79,7 +75,7 @@ public class ServiceLocator implements Closeable {
      * @return the core service locator instance.
      */
     public static ServiceLocator instance() {
-        return instance;
+        return INSTANCE;
     }
 
     /**
@@ -91,8 +87,8 @@ public class ServiceLocator implements Closeable {
      * <p>initDefault.</p>
      */
     public static void init(ApplicationContext applicationContext) {
-        instance.setApplicationContext(applicationContext);
-        ServiceLocator.setInstance(instance);
+        INSTANCE.setApplicationContext(applicationContext);
+        ServiceLocator.setInstance(INSTANCE);
     }
 
     /**

@@ -25,6 +25,7 @@ package net.sumaris.core.model.referential;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Person;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -61,10 +62,23 @@ public class UserProfile implements IItemReferentialEntity {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @ManyToMany(mappedBy = "userProfiles", targetEntity = Person.class)
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "userProfiles", targetEntity = Person.class)
     private Set<Person> users = new HashSet<>();
 
     public int hashCode() {
         return Objects.hash(label);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        UserProfile that = (UserProfile) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .isEquals();
     }
 }

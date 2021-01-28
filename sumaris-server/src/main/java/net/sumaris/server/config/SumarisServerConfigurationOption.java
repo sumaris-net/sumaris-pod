@@ -22,7 +22,9 @@ package net.sumaris.server.config;
  * #L%
  */
 
+import net.sumaris.core.util.Beans;
 import org.nuiton.config.ConfigOptionDef;
+import org.nuiton.version.Version;
 
 import java.io.File;
 
@@ -63,6 +65,12 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.server.account.register.confirm.url.description"),
             "${server.url}/api/confirmEmail/?email={email}&code={code}",
             String.class,
+            false),
+
+    EMAIL_ENABLED( "spring.mail.enabled",
+            n("sumaris.config.option.spring.mail.enabled.description"),
+            "true",
+            Boolean.class,
             false),
 
     ADMIN_MAIL(
@@ -121,11 +129,20 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             Integer.class,
             false),
 
-    AUTH_NOT_SELF_DATA_ROLE(
+    AUTH_ROLE_NOT_SELF_DATA_ACCESS(
             "sumaris.auth.notSelfDataAccess.role",
             n("sumaris.config.option.auth.notSelfDataAccess.role.description"),
-            null, // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
+            "ROLE_ADMIN", // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
             String.class,
+            false),
+
+    AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS(ExtractionWebConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS),
+
+    APP_MIN_VERSION(
+            "sumaris.app.version.min",
+            n("sumaris.config.option.sumaris.app.version.min.description"),
+            "1.5.0",
+            Version.class,
             false),
 
     DOWNLOAD_DIRECTORY(
@@ -140,7 +157,7 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "${sumaris.data.directory}/uploads",
             File.class),
 
-    ACTIVEMQ_ENABLE(
+    ACTIVEMQ_ENABLED(
             "spring.activemq.pool.enabled",
             n("sumaris.config.option.spring.activemq.pool.enabled.description"),
             "false",
@@ -150,6 +167,16 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "spring.activemq.broker-url",
             n("sumaris.config.option.spring.activemq.broker-url.description"),
             "vm://embedded?broker.persistent=true",
+            String.class),
+    ACTIVEMQ_BROKER_USERNAME(
+            "spring.activemq.broker-username",
+            n("sumaris.config.option.spring.activemq.broker-username.description"),
+            "",
+            String.class),
+    ACTIVEMQ_BROKER_PASSWORD(
+            "spring.activemq.broker-password",
+            n("sumaris.config.option.spring.activemq.broker-username.description"),
+            "",
             String.class),
 
     SITE_FAVICON(
@@ -231,6 +258,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
                                String defaultValue,
                                Class<?> type) {
         this(key, description, defaultValue, type, true);
+    }
+
+    SumarisServerConfigurationOption(ConfigOptionDef bean) {
+        Beans.copyProperties(bean, this);
+        this.key = bean.getKey();
+        this.description = bean.getDescription();
+        this.type = bean.getType();
     }
 
     /** {@inheritDoc} */

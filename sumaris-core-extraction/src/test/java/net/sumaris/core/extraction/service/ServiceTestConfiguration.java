@@ -23,7 +23,7 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.test.TestConfiguration;
+import net.sumaris.core.extraction.TestConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
@@ -50,8 +50,4 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories("net.sumaris.core.dao")
 public class ServiceTestConfiguration extends TestConfiguration {
 
-    @Bean
-    public static SumarisConfiguration sumarisConfiguration() {
-        return initConfiguration("sumaris-core-extraction-test.properties");
-    }
 }

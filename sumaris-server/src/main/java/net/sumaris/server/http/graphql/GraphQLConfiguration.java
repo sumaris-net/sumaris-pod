@@ -23,24 +23,23 @@ package net.sumaris.server.http.graphql;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.server.graphql.AggregationGraphQLService;
+import net.sumaris.server.graphql.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
-import net.sumaris.server.http.graphql.extraction.AggregationGraphQLService;
-import net.sumaris.server.http.graphql.extraction.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.referential.PmfmGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialExternalGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialSuggestGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
-import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.social.SocialGraphQLService;
+import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
 import net.sumaris.server.http.graphql.technical.TrashGraphQLService;
 import org.slf4j.Logger;
@@ -92,10 +91,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     @Autowired
     private ReferentialSuggestGraphQLService referentialSuggestService;
 
-    @Autowired
+    @Autowired(required = false)
     private ExtractionGraphQLService extractionGraphQLService;
 
-    @Autowired
+    @Autowired(required = false)
     private AggregationGraphQLService aggregationGraphQLService;
 
     @Autowired
@@ -109,7 +108,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         log.info("Generating GraphQL schema (using SPQR)...");
 
-        return new GraphQLSchemaGenerator()
+        GraphQLSchemaGenerator generator = new GraphQLSchemaGenerator()
                 .withResolverBuilders(new AnnotatedResolverBuilder())
 
                 // Auth and technical
@@ -128,10 +127,6 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 // Data
                 .withOperationsFromSingleton(dataService, DataGraphQLService.class)
 
-                // Extraction
-                .withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class)
-                .withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class)
-
                 // Social
                 .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
 
@@ -141,15 +136,14 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
                 .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
                         .withPrototype(objectMapper)
-                        .build())
-                .generate();
-    }
+                        .build());
 
-    @Bean
-    public GraphQL graphQL() {
-        return GraphQL.newGraphQL(graphQLSchema()).build();
-    }
+        // Add optional services
+        if (extractionGraphQLService != null) generator.withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class);
+        if (aggregationGraphQLService != null) generator.withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class);
 
+        return generator.generate();
+    }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
@@ -158,7 +152,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         webSocketHandlerRegistry
                 .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
-                .setAllowedOrigins("*")
+                .setAllowedOrigins("*") // TODO Spring update will need to change this to allowedOriginPatterns()
                 .withSockJS();
     }
 

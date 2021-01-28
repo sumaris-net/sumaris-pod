@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data.operation;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -24,19 +24,26 @@ package net.sumaris.core.dao.data.operation;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
+import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
+import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.service.data.PacketService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.filter.OperationGroupFilterVO;
+import net.sumaris.core.vo.filter.ProductFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,6 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -67,15 +75,47 @@ public class OperationGroupRepositoryImpl
     @Autowired
     private PhysicalGearRepository physicalGearRepository;
 
+    @Autowired
+    private ProductRepository productRepository;
+
+    //@Autowired
+    //private PacketService packetService;
+
+    @Autowired
+    private FishingAreaRepository fishingAreaRepository;
+
+    @Autowired
+    private MeasurementDao measurementDao;
+
     protected OperationGroupRepositoryImpl(EntityManager entityManager) {
         super(Operation.class, OperationGroupVO.class, entityManager);
         setLockForUpdate(true);
     }
 
     @Override
-    protected Specification<Operation> toSpecification(OperationGroupFilterVO filter) {
-        return super.toSpecification(filter)
-            .and(filter(filter));
+    protected Specification<Operation> toSpecification(OperationGroupFilterVO filter, DataFetchOptions fetchOptions) {
+        Preconditions.checkNotNull(filter);
+        Preconditions.checkNotNull(filter.getTripId());
+        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.orderBy(criteriaBuilder.asc(root.get(Operation.Fields.RANK_ORDER_ON_PERIOD))); // Default sort
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, OperationGroupVO.Fields.TRIP_ID);
+            if (filter.isOnlyUndefined()) {
+                return criteriaBuilder.and(
+                        criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
+                        criteriaBuilder.equal(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME)),
+                        criteriaBuilder.equal(root.get(Operation.Fields.END_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME))
+                );
+            } else if (filter.isOnlyDefined()) {
+                return criteriaBuilder.and(
+                        criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
+                        criteriaBuilder.notEqual(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME))
+                );
+            } else {
+                return criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param);
+            }
+        });
+        specification.addBind(OperationGroupVO.Fields.TRIP_ID, filter.getTripId());
+        return specification;
     }
 
     @Override
@@ -96,6 +136,25 @@ public class OperationGroupRepositoryImpl
         // Metier
         if (source.getMetier() != null) {
             target.setMetier(metierRepository.toVO(source.getMetier()));
+        }
+
+        // Children entities (not loaded by default)
+        Integer operationId = source.getId();
+        if (fetchOptions != null && fetchOptions.isWithChildrenEntities() && operationId != null) {
+
+            // Products
+            target.setProducts(productRepository.findAll(ProductFilterVO.builder().operationId(operationId).build()));
+
+            // Fishing Areas
+            target.setFishingAreas(fishingAreaRepository.getAllVOByOperationId(operationId));
+
+            // Packets
+            // TODO
+            //target.setPackets(packetService.getAllByOperationId(operationId));
+
+            // Measurements
+            target.setMeasurements(measurementDao.getOperationVesselUseMeasurements(operationId));
+            target.setGearMeasurements(measurementDao.getOperationGearUseMeasurements(operationId));
         }
 
     }
@@ -147,7 +206,7 @@ public class OperationGroupRepositoryImpl
             }
         }
 
-        // Métier
+        // Metier
         if (copyIfNull || source.getMetier() != null) {
             if (source.getMetier() == null || source.getMetier().getId() == null) {
                 target.setMetier(null);
@@ -231,10 +290,10 @@ public class OperationGroupRepositoryImpl
                 if (operationGroup == null) {
                     // create new undefined operation group
                     operationGroup = new OperationGroupVO();
-                    operationGroup.setTripId(tripId);
-                    operationGroup.setUndefined(true);
-                    operationGroup.setMetier(source);
                 }
+                operationGroup.setUndefined(true);
+                operationGroup.setTripId(tripId);
+                operationGroup.setMetier(source);
                 // save it
                 save(operationGroup);
             });

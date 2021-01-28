@@ -32,6 +32,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
+import java.util.Date;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
@@ -49,7 +51,7 @@ public abstract class RootDataRepositoryImpl<
     E extends IRootDataEntity<Integer>,
     V extends IRootDataVO<Integer>,
     F extends IRootDataFilter,
-    O extends DataFetchOptions
+    O extends IDataFetchOptions
     >
     extends DataRepositoryImpl<E, V, F, O>
     implements RootDataRepository<E, V, F, O> {
@@ -118,17 +120,7 @@ public abstract class RootDataRepositoryImpl<
 
     }
 
-    @Override
     public V validate(V vo) {
-        return validate(vo, true);
-    }
-
-    @Override
-    public V validateNoSave(V vo) {
-        return validate(vo, false);
-    }
-
-    private V validate(V vo, boolean save) {
         Preconditions.checkNotNull(vo);
         E entity = getOne(vo.getId());
 
@@ -136,7 +128,7 @@ public abstract class RootDataRepositoryImpl<
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
 
         // Lock entityName
-        if (save && isLockForUpdate()) lockForUpdate(entity);
+        if (isLockForUpdate()) lockForUpdate(entity);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -146,8 +138,7 @@ public abstract class RootDataRepositoryImpl<
         entity.setValidationDate(newUpdateDate);
 
         // Save entityName
-        if (save)
-            getEntityManager().merge(entity);
+        getEntityManager().merge(entity);
 
         // Update source
         vo.setValidationDate(newUpdateDate);
@@ -157,14 +148,10 @@ public abstract class RootDataRepositoryImpl<
     }
 
     @Override
-    public V unvalidate(V vo) {
+    public V unValidate(V vo) {
         return unvalidate(vo, true);
     }
 
-    @Override
-    public V unvalidateNoSave(V vo) {
-        return unvalidate(vo, false);
-    }
 
     private V unvalidate(V vo, boolean save) {
         Preconditions.checkNotNull(vo);
@@ -201,8 +188,8 @@ public abstract class RootDataRepositoryImpl<
     /* -- protected method -- */
 
     @Override
-    protected Specification<E> toSpecification(F filter) {
-        return super.toSpecification(filter)
+    protected Specification<E> toSpecification(F filter, O fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
             .and(hasRecorderPersonId(filter.getRecorderPersonId()))
             .and(hasProgramLabel(filter.getProgramLabel()));
     }

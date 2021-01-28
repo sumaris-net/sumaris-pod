@@ -72,7 +72,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         // Add a property
         program.getProperties().put("PROPERTY_TEST", "PROPERTY_VALUE");
 
-        service.save(program);
+        service.save(program, null);
 
         // reload by id
         program = service.get(11);
@@ -126,7 +126,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         }
         program.setStrategies(strategies);
 
-        service.save(program);
+        service.save(program, null);
 
         // reload by id
         ProgramVO actualProgram = service.get(40);
@@ -153,7 +153,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         taxonGroupType.setId(2);
         program.setTaxonGroupType(taxonGroupType);
 
-        service.save(program);
+        service.save(program, null);
     }
 
     @Test

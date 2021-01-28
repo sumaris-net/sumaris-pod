@@ -24,7 +24,7 @@ package net.sumaris.core.extraction.dao.trip;
 
 import com.google.common.collect.Lists;
 import net.sumaris.core.extraction.dao.ExtractionDao;
-import net.sumaris.core.extraction.specification.RdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
@@ -34,6 +34,7 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -54,16 +55,33 @@ public interface ExtractionTripDao extends ExtractionDao {
             source.getCriteria().stream()
                     .filter(criterion ->
                             org.apache.commons.lang3.StringUtils.isNotBlank(criterion.getValue())
-                                    && "=".equals(criterion.getOperator()))
+                                    && ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator()))
                     .forEach(criterion -> {
                         switch (criterion.getName().toLowerCase()) {
-                            case "project":
+                            case RdbSpecification.COLUMN_PROJECT:
                                 target.setProgramLabel(criterion.getValue());
                                 break;
-                            case "year":
+                            case RdbSpecification.COLUMN_YEAR:
                                 int year = Integer.parseInt(criterion.getValue());
                                 target.setStartDate(Dates.getFirstDayOfYear(year));
                                 target.setEndDate(Dates.getLastSecondOfYear(year));
+                                break;
+                            case RdbSpecification.COLUMN_VESSEL_IDENTIFIER:
+                                try {
+                                    int vesselId = Integer.parseInt(criterion.getValue());
+                                    target.setVesselId(vesselId);
+                                } catch(NumberFormatException e) {
+                                    // Skip
+                                }
+                                break;
+
+                            case RdbSpecification.COLUMN_TRIP_CODE:
+                                try {
+                                    int tripId = Integer.parseInt(criterion.getValue());
+                                    target.setTripId(tripId);
+                                } catch(NumberFormatException e) {
+                                    // Skip
+                                }
                                 break;
                         }
                     });
@@ -81,19 +99,62 @@ public interface ExtractionTripDao extends ExtractionDao {
         List<ExtractionFilterCriterionVO> criteria = Lists.newArrayList();
         target.setCriteria(criteria);
 
+        // Program
         if (StringUtils.isNotBlank(source.getProgramLabel())) {
-            ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO();
-            criterion.setName(RdbSpecification.COLUMN_PROJECT);
-            criterion.setOperator(ExtractionFilterOperatorEnum.EQUALS.getSymbol());
-            criterion.setValue(source.getProgramLabel());
-
-            criterion.setSheetName(tripSheetName);
-
-            criteria.add(criterion);
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .sheetName(tripSheetName)
+                    .name(RdbSpecification.COLUMN_PROJECT)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value(source.getProgramLabel())
+                    .build());
         }
 
+        // Convert date period into a criterion 'year'
         if (source.getStartDate() != null && source.getEndDate() != null) {
-            // TODO convert into a criterion 'year', if first/last day of a year
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(source.getStartDate());
+            int startYear = calendar.get(Calendar.YEAR);
+            calendar.setTime(source.getEndDate());
+            int endYear = calendar.get(Calendar.YEAR);
+            // One year
+            if (startYear == endYear) {
+                criteria.add(ExtractionFilterCriterionVO.builder()
+                        .name(RdbSpecification.COLUMN_YEAR)
+                        .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                        .value(String.valueOf(startYear))
+                        .build());
+            }
+            // Many years
+            else  {
+                StringBuilder value = new StringBuilder();
+                int delta = startYear < endYear ? 1 : -1;
+                for (int year = startYear; year != endYear + delta; year += delta) {
+                    value.append(",").append(year);
+                }
+                criteria.add(ExtractionFilterCriterionVO.builder()
+                        .name(RdbSpecification.COLUMN_YEAR)
+                        .operator(ExtractionFilterOperatorEnum.IN.getSymbol())
+                        .value(value.substring(1))
+                        .build());
+            }
+        }
+
+        // Vessel identifier
+        if (source.getVesselId() != null) {
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .name(RdbSpecification.COLUMN_VESSEL_IDENTIFIER)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value(source.getVesselId().toString())
+                    .build());
+        }
+
+        // Trip id
+        if (source.getTripId() != null) {
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .name(RdbSpecification.COLUMN_TRIP_CODE)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value(source.getTripId().toString())
+                    .build());
         }
 
         return target;

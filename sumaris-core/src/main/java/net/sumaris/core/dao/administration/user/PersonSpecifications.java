@@ -40,17 +40,13 @@ import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 20/08/2020.
  */
 public interface PersonSpecifications extends ReferentialSpecifications<Person> {
-
-    interface Listener {
-        void onSave(PersonVO personVO);
-        void onDelete(int id);
-    }
 
     String USER_PROFILES_PARAMETER = "userProfiles";
     String USER_PROFILES_SET_PARAMETER = "userProfilesSet";
@@ -139,16 +135,14 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         return specification;
     }
 
-    PersonVO findById(int id);
+    Optional<PersonVO> findById(int id);
 
-    PersonVO findByPubkey(String pubkey);
+    Optional<PersonVO> findByPubkey(String pubkey);
 
     List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
     long countByFilter(PersonFilterVO filter);
 
     List<String> getEmailsByProfiles(List<Integer> userProfileIds, List<Integer> statusIds);
-
-    void addListener(Listener listener);
 
 }

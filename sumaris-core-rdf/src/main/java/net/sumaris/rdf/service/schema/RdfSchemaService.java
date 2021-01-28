@@ -40,7 +40,7 @@ public interface RdfSchemaService {
      * Register a schema visitor
      * @param visitor
      */
-    void register(IModelVisitor<Model, RdfSchemaOptions> visitor);
+    void register(IModelVisitor<Model, RdfSchemaFetchOptions> visitor);
 
     /**
      * Get schema, as an ontology (classes with properties)
@@ -48,7 +48,7 @@ public interface RdfSchemaService {
      * @return a schema representation as an ontology
      */
     @Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
-    Model getOntology(RdfSchemaOptions options);
+    Model getOntology(RdfSchemaFetchOptions options);
 
     Model getOntology(ModelVocabulary voc);
 }

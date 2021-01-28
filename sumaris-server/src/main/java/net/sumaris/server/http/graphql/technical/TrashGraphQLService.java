@@ -24,11 +24,16 @@ package net.sumaris.server.http.graphql.technical;
 
 import com.google.common.collect.ImmutableList;
 import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLEnvironment;
+import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.vo.data.TripSaveOptions;
+import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.server.http.security.IsAdmin;
+import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,30 +44,46 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
 public class TrashGraphQLService {
-
-    public static final String JSON_START_SUFFIX = "{";
 
     private static final Log log = LogFactory.getLog(TrashGraphQLService.class);
 
     @Autowired
     private TrashService service;
 
-    @GraphQLQuery(name = "trash", description = "Get trash content")
+    @GraphQLQuery(name = "trashEntities", description = "Get trash content")
     @IsAdmin
-    public List<String> getTrashContent(
+    public List<String> findAll(
         @GraphQLArgument(name = "entityName") String entityName,
         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
         @GraphQLArgument(name = "sortBy", defaultValue = IUpdateDateEntityBean.Fields.UPDATE_DATE) String sort,
         @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction
         ) {
-        Pageable pageable = Pageables.create(offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        Pageable pageable = Pageables.create(offset, size, sort, direction != null ? SortDirection.fromString(direction) : null);
 
         Page<String> page = service.findAll(entityName, pageable, String.class);
         return page.hasContent() ? page.getContent() : ImmutableList.of();
+    }
+
+    @GraphQLQuery(name = "trashEntity", description = "Get trash file content")
+    @IsAdmin
+    public String get(
+            @GraphQLArgument(name = "entityName") String entityName,
+            @GraphQLArgument(name = "id") String id
+    ) {
+
+        return service.getById(entityName, id, String.class);
+    }
+
+    @GraphQLMutation(name = "deleteTrashEntity", description = "Delete an entity from the trash")
+    @IsAdmin
+    public void delete(@GraphQLArgument(name = "entityName") String entityName,
+                       @GraphQLArgument(name = "id") String id) {
+        service.delete(entityName, id);
     }
 }

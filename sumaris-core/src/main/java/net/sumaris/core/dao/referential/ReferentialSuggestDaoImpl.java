@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
@@ -62,16 +63,16 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                                                 int size,
                                                 String sortAttribute,
                                                 SortDirection sortDirection) {
-        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+        Preconditions.checkNotNull(entityName, "Missing 'entityName' argument");
 
         // Special case: AnalyticReference
-        if (entityName.equals("AnalyticReference")) {
+        if (entityName.equalsIgnoreCase(Strategy.Fields.ANALYTIC_REFERENCE)) {
             List<String> labels = findAnalyticReferencesFromStrategy(programId);
             return findAnalyticReferencesByLabels(labels, offset, size, sortAttribute, sortDirection);
         }
 
         // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = ((ReferentialDaoImpl)referentialDao).getEntityClass(entityName);
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
         // switch entityName
         List<Integer> entityIds;
@@ -140,7 +141,7 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
 
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
 
-        Join<Strategy, StrategyDepartment> strategyDepartmentInnerJoin = root.joinList(Strategy.Fields.STRATEGY_DEPARTMENTS, JoinType.INNER);
+        Join<Strategy, StrategyDepartment> strategyDepartmentInnerJoin = root.joinList(Strategy.Fields.DEPARTMENTS, JoinType.INNER);
 
         query.select(strategyDepartmentInnerJoin.get(StrategyDepartment.Fields.DEPARTMENT))
                 .where(
@@ -158,7 +159,7 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .setParameter(programIdParam, programId)
                 .getResultStream()
                 .distinct()
-                .map(source -> source.getId())
+                .map(Department::getId)
                 .collect(Collectors.toList());
     }
 
@@ -196,7 +197,7 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .setParameter(programIdParam, programId)
                 .getResultStream()
                 .distinct()
-                .map(source -> source.getId())
+                .map(Location::getId)
                 .collect(Collectors.toList());
     }
 
@@ -230,19 +231,20 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .setParameter(programIdParam, programId)
                 .getResultStream()
                 .distinct()
-                .map(source -> source.getId())
+                .map(TaxonName::getId)
                 .collect(Collectors.toList());
     }
 
+    private static final ImmutableList<String> PMFM_STRATEGY_SEARCH_VALID_FIELDS = ImmutableList.of(PmfmStrategy.Fields.PMFM,
+            PmfmStrategy.Fields.PARAMETER, PmfmStrategy.Fields.MATRIX, PmfmStrategy.Fields.FRACTION, PmfmStrategy.Fields.METHOD);
+
     @Override
     public List<Integer> findPmfmsFromStrategy(int programId, Integer referenceTaxonId, String field) {
-        ImmutableList<String> validFields = ImmutableList.of(PmfmStrategy.Fields.PMFM,
-                PmfmStrategy.Fields.PARAMETER, PmfmStrategy.Fields.MATRIX, PmfmStrategy.Fields.FRACTION, PmfmStrategy.Fields.METHOD);
         Preconditions.checkNotNull(field, "Missing field argument");
-        Preconditions.checkArgument(validFields.contains(field), "Invalid field. Must be in " + validFields);
+        Preconditions.checkArgument(PMFM_STRATEGY_SEARCH_VALID_FIELDS.contains(field), "Invalid field. Must be in " + PMFM_STRATEGY_SEARCH_VALID_FIELDS);
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<IItemReferentialEntity> query = builder.createQuery(IItemReferentialEntity.class);
+        CriteriaQuery<Integer> query = builder.createQuery(Integer.class);
         Root<Strategy> root = query.from(Strategy.class);
 
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
@@ -255,7 +257,7 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
                 // Status (temporary or valid)
                 builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId())),
-                // Referential status
+                // Status (on field)
                 builder.in(pmfmStrategyInnerJoin.get(field).get(IItemReferentialEntity.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
         );
 
@@ -268,9 +270,11 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
             );
         }
 
-        query.select(pmfmStrategyInnerJoin.get(field)).where(predicate);
+        query.distinct(true)
+             .select(pmfmStrategyInnerJoin.get(field).get(IEntity.Fields.ID))
+             .where(predicate);
 
-        TypedQuery<IItemReferentialEntity> typedQuery = getEntityManager().createQuery(query);
+        TypedQuery<Integer> typedQuery = getEntityManager().createQuery(query);
 
         if (referenceTaxonId != null) {
             typedQuery.setParameter(referenceTaxonIdParam, referenceTaxonId);
@@ -280,7 +284,6 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .setParameter(programIdParam, programId)
                 .getResultStream()
                 .distinct()
-                .map(source -> source.getId())
                 .collect(Collectors.toList());
     }
 
@@ -338,18 +341,5 @@ public class ReferentialSuggestDaoImpl extends HibernateDaoSupport implements Re
                 .collect(Collectors.toList());
     }
 
-    /*protected ReferentialVO toTypedVO(IReferentialEntity source) {
-        Preconditions.checkNotNull(source);
-
-        // Get VO class from entityName
-        String targetClazzName = ReferentialVO.class.getPackage().getName() + "." + source.getClass().getSimpleName() + "VO";
-        try {
-            Class<? extends ReferentialVO> targetClazz = Class.forName(targetClazzName).asSubclass(ReferentialVO.class);
-            ReferentialVO target = conversionService.convert(source, targetClazz); //cf ConversionServiceImpl
-            return target;
-        } catch (ClassNotFoundException | ClassCastException e) {
-            throw new IllegalArgumentException(String.format("Referential value object [%s] not exists", targetClazzName));
-        }
-    }*/
 
 }

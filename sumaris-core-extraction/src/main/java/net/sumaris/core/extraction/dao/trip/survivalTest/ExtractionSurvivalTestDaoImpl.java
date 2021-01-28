@@ -25,7 +25,8 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
-import net.sumaris.core.extraction.specification.SurvivalTestSpecification;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.specification.data.trip.SurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
@@ -35,13 +36,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.PersistenceException;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Repository("extractionSurvivalTestDao")
 @Lazy
-public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestContextVO> extends ExtractionRdbTripDaoImpl<C>
-        implements ExtractionSurvivalTestDao, SurvivalTestSpecification {
+public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestContextVO, F extends ExtractionFilterVO>
+        extends ExtractionRdbTripDaoImpl<C, F>
+        implements ExtractionSurvivalTestDao<C, F>, SurvivalTestSpecification {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionSurvivalTestDaoImpl.class);
 
@@ -53,30 +57,33 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
 
     @Override
-    public C execute(ExtractionFilterVO filter) {
-        String sheetName = filter != null ? filter.getSheetName() : null;
-
-        // Execute RDB extraction
-        C context = super.execute(filter);
+    public <R extends C> R execute(F filter) {
+        // Execute inherited extraction
+        R context = super.execute(filter);
 
         // Override some context properties
-        context.setFormatName(FORMAT);
-        context.setFormatVersion(VERSION_1_0);
+        context.setFormat(LiveFormatEnum.SURVIVAL_TEST);
         context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
         context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
 
         // Stop here, if sheet already filled
+        String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-        // Survival test table
-        long rowCount = createSurvivalTestTable(context);
-        if (rowCount == 0) return context;
-        if (sheetName != null && context.hasSheet(sheetName)) return context;
+        try {
+            // Survival test table
+            long rowCount = createSurvivalTestTable(context);
+            if (rowCount == 0) return context;
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-        // Release table
-        rowCount = createReleaseTable(context);
-        if (rowCount == 0) return context;
-        if (sheetName != null && context.hasSheet(sheetName)) return context;
+            // Release table
+            createReleaseTable(context);
+        }
+        catch (PersistenceException e) {
+            // If error,clean created tables first, then rethrow the exception
+            clean(context);
+            throw e;
+        }
 
         return context;
     }
@@ -149,7 +156,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getVersion());
 
         String versionStr = VERSION_1_0.replaceAll("[.]", "_");
         switch (queryName) {

@@ -37,9 +37,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -91,7 +89,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
 
     @Override
     public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
-        return findAll(PageRequest.of(offset / size, size, Sort.Direction.fromString(sortDirection.toString()), sortAttribute))
+        return findAll(Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
@@ -244,12 +242,23 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
         }
     }
 
-    protected Specification<E> toSpecification(F filter) {
+    protected final Specification<E> toSpecification(F filter) {
+        return toSpecification(filter, null);
+    }
+
+    protected Specification<E> toSpecification(F filter, O fetchOptions) {
+        // Special case when filtering by ID:
+        if (filter.getId() != null) {
+            return BindableSpecification.where(hasId(filter.getId()));
+        }
         // default specification
         return BindableSpecification
             .where(inStatusIds(filter))
             .and(hasLabel(filter.getLabel()))
-            .and(searchOrJoinSearchText(filter));
+            .and(inLevelIds(getDomainClass(), filter.getLevelIds()))
+            .and(inLevelLabels(getDomainClass(), filter.getLevelLabels()))
+            .and(searchOrJoinSearchText(filter))
+            .and(excludedIds(filter.getExcludedIds()));
     }
 
 }

@@ -22,7 +22,15 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
+import liquibase.util.csv.opencsv.CSVReader;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.extraction.DatabaseFixtures;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.vo.ExtractionTypeVO;
+import net.sumaris.core.util.Files;
+import net.sumaris.core.util.ZipUtils;
+import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.junit.runner.RunWith;
@@ -31,6 +39,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -49,10 +62,50 @@ public abstract class AbstractServiceTest {
     @Autowired
     protected SumarisConfiguration config;
 
-    /* -- Internal method -- */
+    @Autowired
+    protected DatabaseFixtures fixtures;
 
-    protected SumarisConfiguration getConfig() {
-        return config;
+    /* -- Protected functions -- */
+
+    protected File unpack(File zipFile, LiveFormatEnum format) {
+        return unpack(zipFile, format.getLabel() + '_' + format.getVersion());
     }
 
+    protected File unpack(File zipFile, ExtractionTypeVO type) {
+        return unpack(zipFile,  type.getCategory().name() + '_' + type.getLabel());
+    }
+
+    protected File unpack(File zipFile, String dirName) {
+        Assert.assertNotNull("No result file", zipFile);
+        Assert.assertTrue("No result file", zipFile.exists());
+
+        File outputDirectory = new File("target/result/" + dirName);
+        try {
+            Files.deleteQuietly(outputDirectory);
+            FileUtils.forceMkdir(outputDirectory);
+
+            ZipUtils.uncompressFileToPath(zipFile, outputDirectory.getPath(), false);
+
+        } catch (IOException e) {
+            Assert.fail(e.getMessage());
+        }
+        return outputDirectory;
+    }
+
+    protected int countLineInCsvFile(File file) throws IOException {
+        Files.checkExists(file);
+
+        FileReader fr = new FileReader(file);
+        try {
+            CSVReader read = new CSVReader(fr);
+            List<String[]> lines = read.readAll();
+
+            read.close();
+
+            return lines.size();
+        }
+        finally {
+            fr.close();
+        }
+    }
 }

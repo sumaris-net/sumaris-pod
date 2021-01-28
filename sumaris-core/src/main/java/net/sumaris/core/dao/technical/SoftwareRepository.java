@@ -27,10 +27,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository("softwareRepository")
 public interface SoftwareRepository extends JpaRepository<Software, Integer> {
 
     @Query //(value="FROM Software WHERE label = ?1")
     Software getOneByLabel(String label) ;
+
+    Optional<Software> findOneByLabel(String label) ;
 
 }

@@ -26,7 +26,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.util.Files;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
-import net.sumaris.rdf.loader.NamedRdfLoader;
+import net.sumaris.rdf.loader.INamedRdfLoader;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import org.apache.commons.io.FileUtils;
@@ -47,7 +47,7 @@ public class SandreLoaderTest extends AbstractTest {
     private static final Logger log = LoggerFactory.getLogger(SandreLoaderTest.class);
 
     @Resource(name = "sandreTaxonLoader")
-    protected NamedRdfLoader loader;
+    protected INamedRdfLoader loader;
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

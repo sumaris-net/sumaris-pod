@@ -34,6 +34,10 @@ public enum SortDirection {
         return direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null;
     }
 
+    public static SortDirection fromString(String direction, SortDirection defaultValue) {
+        return direction != null ? SortDirection.valueOf(direction.toUpperCase()) : defaultValue;
+    }
+
     public static Optional<SortDirection> fromSort(Sort sort) {
         return sort == null ? Optional.empty() : sort.stream().findFirst()
                 .map(o -> o.isAscending() ? ASC : DESC);

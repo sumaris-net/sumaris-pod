@@ -30,13 +30,34 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 @Builder
 public class ExtractionProductFetchOptions implements IFetchOptions {
 
-    public static ExtractionProductFetchOptions MINIMAL = builder()
+    public static ExtractionProductFetchOptions TABLES = builder()
             .withRecorderDepartment(false)
             .withRecorderPerson(false)
             .withTables(true)
             .withStratum(true)
             .withColumns(false)
             .withColumnValues(false)
+            .withDocumentation(false)
+            .build();
+    public static ExtractionProductFetchOptions TABLES_AND_RECORDER = builder()
+            .build();
+    public static ExtractionProductFetchOptions TABLES_AND_STRATUM = builder()
+            .withRecorderDepartment(false)
+            .withRecorderPerson(false)
+            .withTables(true)
+            .withStratum(true)
+            .withColumns(false)
+            .withColumnValues(false)
+            .withDocumentation(false)
+            .build();
+    public static ExtractionProductFetchOptions TABLES_AND_COLUMNS = builder()
+            .withRecorderDepartment(false)
+            .withRecorderPerson(false)
+            .withTables(true)
+            .withStratum(false)
+            .withColumns(true)
+            .withColumnValues(false)
+            .withDocumentation(false)
             .build();
     public static ExtractionProductFetchOptions FOR_UPDATE = builder()
             .withRecorderDepartment(true)
@@ -45,18 +66,13 @@ public class ExtractionProductFetchOptions implements IFetchOptions {
             .withStratum(true)
             .withColumns(false)
             .withColumnValues(false)
+            .withDocumentation(false)
             .build();
-    public static ExtractionProductFetchOptions MINIMAL_WITH_TABLES = builder()
+    public static ExtractionProductFetchOptions DOCUMENTATION = builder()
             .withRecorderDepartment(false)
             .withRecorderPerson(false)
-            .withTables(true)
-            .withStratum(true)
-            .withColumns(false)
-            .withColumnValues(false)
-            .build();
-    public static ExtractionProductFetchOptions NO_COLUMNS = builder()
-            .withColumns(false)
-            .withColumnValues(false)
+            .withTables(false)
+            .withDocumentation(true)
             .build();
 
     @Builder.Default()
@@ -71,5 +87,6 @@ public class ExtractionProductFetchOptions implements IFetchOptions {
     private boolean withColumnValues = false;
     @Builder.Default()
     private boolean withStratum = false;
-
+    @Builder.Default()
+    private boolean withDocumentation = false;
 }

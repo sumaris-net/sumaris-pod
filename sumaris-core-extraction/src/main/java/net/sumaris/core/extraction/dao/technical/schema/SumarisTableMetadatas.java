@@ -28,9 +28,11 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.util.Dates;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,7 +66,13 @@ public class SumarisTableMetadatas {
         return getSqlWhereClauseContent(table, filter, sheetName, table != null ? table.getAlias() : null);
     }
 
-    public static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter, String sheetName, String tableAlias) {
+    public static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter,
+                                                  String sheetName, String tableAlias) {
+        return getSqlWhereClauseContent(table, filter, sheetName, tableAlias, false);
+    }
+
+    public static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter,
+                                                  String appliedSheetName, String tableAlias, boolean skipInvalidCriteria) {
 
         if (filter == null || CollectionUtils.isEmpty(filter.getCriteria())) return "";
 
@@ -76,15 +84,15 @@ public class SumarisTableMetadatas {
         String aliasWithPoint = tableAlias != null ? (tableAlias + ".") : "";
 
         filter.getCriteria().stream()
-                .filter(criterion -> sheetName == null || sheetName.equals(criterion.getSheetName()))
+                .filter(criterion -> appliedSheetName == null || appliedSheetName.equals(criterion.getSheetName()))
                 .forEach(criterion -> {
 
                     // Get the column to tripFilter
                     Preconditions.checkNotNull(criterion.getName());
                     SumarisColumnMetadata column = table != null ? table.getColumnMetadata(criterion.getName().toLowerCase()) : null;
                     if (column == null) {
-                        if (sheetName != null) {
-                            throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found", criterion.getName()));
+                        if (appliedSheetName != null && !skipInvalidCriteria) {
+                            throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found in table '%s'", criterion.getName(), table.getName()));
                         } else {
                             // Continue (=skip)
                         }
@@ -157,7 +165,10 @@ public class SumarisTableMetadatas {
     }
 
     public static String getSingleValue(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion) {
-        return isNumericColumn(column) ? criterion.getValue() : ("'" + criterion.getValue() + "'");
+        if (isDateColumn(column)) return Daos.getSqlToDate(Dates.fromISODateTimeString(criterion.getValue()));
+        if (isNumericColumn(column)) return criterion.getValue();
+        // else alphanumeric column
+        return "'" + criterion.getValue() + "'";
     }
 
     public static String getInValues(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion) {
@@ -168,8 +179,8 @@ public class SumarisTableMetadatas {
             Preconditions.checkArgument(false, "Invalid criterion: 'values' is required for operator 'IN' or 'NOT IN'");
         }
         return isNumericColumn(column) ?
-                Joiner.on(',').join(criterion.getValues()) :
-                "'" + Joiner.on("','").skipNulls().join(criterion.getValues()) + "'";
+                Daos.getSqlInNumbers(criterion.getValues()) :
+                Daos.getSqlInEscapedStrings(criterion.getValues());
     }
 
     public static String getBetweenValueByIndex(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion, int index) {
@@ -188,6 +199,11 @@ public class SumarisTableMetadatas {
                 || column.getTypeCode() == Types.BIGINT
                 || column.getTypeCode() == Types.DECIMAL
                 || column.getTypeCode() == Types.FLOAT;
+    }
+
+    public static boolean isDateColumn(SumarisColumnMetadata column) {
+        return column.getTypeCode() == Types.DATE
+                || column.getTypeCode() == Types.TIMESTAMP;
     }
 
     public static boolean isNotNumericColumn(SumarisColumnMetadata column) {

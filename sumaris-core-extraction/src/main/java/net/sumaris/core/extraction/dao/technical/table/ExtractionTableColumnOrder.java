@@ -10,12 +10,12 @@ package net.sumaris.core.extraction.dao.technical.table;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,8 +23,14 @@ package net.sumaris.core.extraction.dao.technical.table;
  */
 
 import com.google.common.collect.ImmutableMap;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.model.technical.extraction.rdb.*;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,9 +39,13 @@ import java.util.Map;
  */
 public final class ExtractionTableColumnOrder {
 
+    public final static String key(String format, String sheetName) {
+        return (format + "-" + sheetName).toUpperCase();
+    }
 
-    public static Map<String, String[]> COLUMNS_BY_TABLE = ImmutableMap.<String, String[]>builder()
-            .put(ProductRdbTrip.TABLE.name(), new String[]{
+    public static Map<String, String[]> COLUMNS_BY_SHEET = ImmutableMap.<String, String[]>builder()
+            .put(key(RdbSpecification.FORMAT, RdbSpecification.TR_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbTrip.COLUMN_SAMPLING_TYPE,
                     ProductRdbTrip.COLUMN_VESSEL_FLAG_COUNTRY,
                     ProductRdbTrip.COLUMN_LANDING_COUNTRY,
@@ -53,7 +63,8 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbTrip.COLUMN_SAMPLING_COUNTRY,
                     ProductRdbTrip.COLUMN_SAMPLING_METHOD
             })
-            .put(ProductRdbStation.TABLE.name(), new String[]{
+            .put(key(RdbSpecification.FORMAT, RdbSpecification.HH_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbStation.COLUMN_SAMPLING_TYPE,
                     ProductRdbStation.COLUMN_VESSEL_FLAG_COUNTRY,
                     ProductRdbStation.COLUMN_LANDING_COUNTRY,
@@ -85,7 +96,8 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbStation.COLUMN_SELECTION_DEVICE,
                     ProductRdbStation.COLUMN_MESH_SIZE_SELECTION_DEVICE
             })
-            .put(ProductRdbSpeciesList.TABLE.name(), new String[]{
+            .put(key(RdbSpecification.FORMAT, RdbSpecification.SL_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbSpeciesList.COLUMN_SAMPLING_TYPE,
                     ProductRdbSpeciesList.COLUMN_VESSEL_FLAG_COUNTRY,
                     ProductRdbSpeciesList.COLUMN_LANDING_COUNTRY,
@@ -94,17 +106,18 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbSpeciesList.COLUMN_TRIP_CODE,
                     ProductRdbSpeciesList.COLUMN_STATION_NUMBER,
                     ProductRdbSpeciesList.COLUMN_SPECIES,
-                    ProductRdbSpeciesList.COLUMN_SEX,
                     ProductRdbSpeciesList.COLUMN_CATCH_CATEGORY,
                     ProductRdbSpeciesList.COLUMN_LANDING_CATEGORY,
                     ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
                     ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY,
                     ProductRdbSpeciesList.COLUMN_SUBSAMPLING_CATEGORY,
+                    ProductRdbSpeciesList.COLUMN_SEX,
                     ProductRdbSpeciesList.COLUMN_WEIGHT,
                     ProductRdbSpeciesList.COLUMN_SUBSAMPLING_WEIGHT,
                     ProductRdbSpeciesList.COLUMN_LENGTH_CODE
             })
-            .put(ProductRdbSpeciesLength.TABLE.name(), new String[]{
+            .put(key(RdbSpecification.FORMAT, RdbSpecification.HL_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbSpeciesLength.COLUMN_SAMPLING_TYPE,
                     ProductRdbSpeciesLength.COLUMN_VESSEL_FLAG_COUNTRY,
                     ProductRdbSpeciesLength.COLUMN_LANDING_COUNTRY,
@@ -123,31 +136,115 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbSpeciesLength.COLUMN_LENGTH_CLASS,
                     ProductRdbSpeciesLength.COLUMN_NUMBER_AT_LENGTH
             })
-            // TODO CA
-            .put(ProductRdbLandingStatistics.TABLE.name(), new String[]{
-                    ProductRdbLandingStatistics.COLUMN_VESSEL_FLAG_COUNTRY,
-                    ProductRdbLandingStatistics.COLUMN_LANDING_COUNTRY,
-                    ProductRdbLandingStatistics.COLUMN_YEAR,
-                    ProductRdbLandingStatistics.COLUMN_QUARTER,
-                    ProductRdbLandingStatistics.COLUMN_MONTH,
-                    ProductRdbLandingStatistics.COLUMN_AREA,
-                    ProductRdbLandingStatistics.COLUMN_STATISTICAL_RECTANGLE,
-                    ProductRdbLandingStatistics.COLUMN_SUB_POLYGON,
-                    ProductRdbLandingStatistics.COLUMN_SPECIES,
-                    ProductRdbLandingStatistics.COLUMN_LANDING_CATEGORY,
-                    ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
-                    ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY,
-                    ProductRdbLandingStatistics.COLUMN_NATIONAL_METIER,
-                    ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL5,
-                    ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL6,
-                    ProductRdbLandingStatistics.COLUMN_HARBOUR,
-                    ProductRdbLandingStatistics.COLUMN_VESSEL_LENGTH_CATEGORY,
-                    ProductRdbLandingStatistics.COLUMN_UNALLOCATED_CATCH_WEIGHT,
-                    ProductRdbLandingStatistics.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT,
-                    ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_WEIGHT,
-                    ProductRdbLandingStatistics.COLUMN_LANDINGS_MULTIPLIER,
-                    ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_VALUE
+            .put(key(RdbSpecification.FORMAT, RdbSpecification.CA_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE
+                    // TODO
             })
-            // TODO CE
+            .put(key(RdbSpecification.FORMAT, RdbSpecification.CL_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE,
+                    ProductRdbLanding.COLUMN_VESSEL_FLAG_COUNTRY,
+                    ProductRdbLanding.COLUMN_LANDING_COUNTRY,
+                    ProductRdbLanding.COLUMN_YEAR,
+                    ProductRdbLanding.COLUMN_QUARTER,
+                    ProductRdbLanding.COLUMN_MONTH,
+                    ProductRdbLanding.COLUMN_AREA,
+                    ProductRdbLanding.COLUMN_STATISTICAL_RECTANGLE,
+                    ProductRdbLanding.COLUMN_SUB_POLYGON,
+                    ProductRdbLanding.COLUMN_SPECIES,
+                    ProductRdbLanding.COLUMN_LANDING_CATEGORY,
+                    ProductRdbLanding.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
+                    ProductRdbLanding.COLUMN_COMMERCIAL_SIZE_CATEGORY,
+                    ProductRdbLanding.COLUMN_NATIONAL_METIER,
+                    ProductRdbLanding.COLUMN_EU_METIER_LEVEL5,
+                    ProductRdbLanding.COLUMN_EU_METIER_LEVEL6,
+                    ProductRdbLanding.COLUMN_HARBOUR,
+                    ProductRdbLanding.COLUMN_VESSEL_LENGTH_CATEGORY,
+                    ProductRdbLanding.COLUMN_UNALLOCATED_CATCH_WEIGHT,
+                    ProductRdbLanding.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT,
+                    ProductRdbLanding.COLUMN_OFFICIAL_LANDINGS_WEIGHT,
+                    ProductRdbLanding.COLUMN_LANDINGS_MULTIPLIER,
+                    ProductRdbLanding.COLUMN_OFFICIAL_LANDINGS_VALUE
+            })
+            .put(key(RdbSpecification.FORMAT, RdbSpecification.CE_SHEET_NAME), new String[]{
+                    RdbSpecification.COLUMN_RECORD_TYPE
+                    // TODO
+            })
             .build();
+
+    public static Map<String, String[]> COLUMNS_BY_TABLE = ImmutableMap.<String, String[]>builder()
+            .put(ProductRdbTrip.TABLE.name(), COLUMNS_BY_SHEET.get(key(RdbSpecification.FORMAT, RdbSpecification.TR_SHEET_NAME)))
+            .put(ProductRdbStation.TABLE.name(), COLUMNS_BY_SHEET.get(key(RdbSpecification.FORMAT, RdbSpecification.HH_SHEET_NAME)))
+            .put(ProductRdbSpeciesList.TABLE.name(), COLUMNS_BY_SHEET.get(key(RdbSpecification.FORMAT, RdbSpecification.SL_SHEET_NAME)))
+            .put(ProductRdbSpeciesLength.TABLE.name(), COLUMNS_BY_SHEET.get(key(RdbSpecification.FORMAT, RdbSpecification.HL_SHEET_NAME)))
+            .put(ProductRdbLanding.TABLE.name(), COLUMNS_BY_SHEET.get(key(RdbSpecification.FORMAT, RdbSpecification.CL_SHEET_NAME)))
+            .build();
+
+    /**
+     * Compute rankOrder, starting at 0
+     * @param tableName
+     * @param columns
+     */
+    public static void fillRankOrderByTableName(String tableName, List<ExtractionTableColumnVO> columns) {
+
+        String fixTableName = tableName.toUpperCase();
+        
+        // Workaround need on SUMARiS DB
+        if (fixTableName.startsWith("P01_ICES")) {
+            fixTableName.replaceAll("P01_ICES_", "P01_RDB_");
+        }
+
+        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(fixTableName);
+
+        // Important: skip if not known: MUST NOT fill any rankOrder if table not known!
+        // This is required to let service apply another rankOrder later (e.g. from format and label)
+        if (ArrayUtils.isEmpty(orderedColumnNames)) return;
+
+        fillRankOrderByTableName(orderedColumnNames, columns);
+    }
+
+    /**
+     * Compute rankOrder, starting at 0
+     * @param tableName
+     * @param columns
+     */
+    public static void fillRankOrderByFormatAndSheet(IExtractionFormat format, String sheetName, List<ExtractionTableColumnVO> columns) {
+        fillRankOrderByFormatAndSheet(format.getLabel(), sheetName, columns);
+    }
+
+    /**
+     * Compute rankOrder, starting at 0
+     * @param tableName
+     * @param columns
+     */
+    public static void fillRankOrderByFormatAndSheet(String formatLabel, String sheetName, List<ExtractionTableColumnVO> columns) {
+        fillRankOrderByTableName(ExtractionTableColumnOrder.COLUMNS_BY_SHEET.get(key(formatLabel, sheetName)), columns);
+    }
+
+    /* -- internal methods -- */
+
+    protected static void fillRankOrderByTableName(String[] orderedColumnNames, List<ExtractionTableColumnVO> columns) {
+        int maxRankOrder = 0;
+        if (ArrayUtils.isNotEmpty(orderedColumnNames)) {
+
+            // Set rank Order of well known columns
+            maxRankOrder = columns.stream().mapToInt(column -> {
+                int rankOrder = ArrayUtils.indexOf(orderedColumnNames, column.getName().toLowerCase());
+                if (rankOrder != -1) {
+                    column.setRankOrder(rankOrder + 1);
+                }
+                return rankOrder + 1;
+            })
+                    .max()
+                    .orElse(0);
+        }
+
+        // Set rankOrder of all other columns (e.g. new columns)
+        MutableInt rankOrder = new MutableInt(maxRankOrder);
+        columns.stream()
+                .filter(c -> c.getRankOrder() == null)
+                .forEach(c -> {
+                    rankOrder.increment();
+                    c.setRankOrder(rankOrder.getValue());
+                });
+    }
 }

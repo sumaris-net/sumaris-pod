@@ -46,8 +46,9 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @Entity
+// FIXME: rename with quote ? BUT query on this table will failed ! (e.g. lastUpdateDate)
 @Table(name = "grouping",
-        uniqueConstraints = @UniqueConstraint(name="grouping_unique_c", columnNames = {"label", "grouping_level_fk"}))
+       uniqueConstraints = @UniqueConstraint(name="grouping_unique_c", columnNames = {"label", "grouping_level_fk"}))
 public class Grouping implements IItemReferentialEntity,
         IWithValidityStatusEntity<Integer, ValidityStatus> {
 

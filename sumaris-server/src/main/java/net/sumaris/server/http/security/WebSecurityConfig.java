@@ -22,6 +22,8 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
+import net.sumaris.core.service.technical.ConfigurationService;
+import net.sumaris.server.http.filter.HeaderVersionFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,17 +62,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             new AntPathRequestMatcher("/favicon.ico"),
             new AntPathRequestMatcher("/core/**"),
             new AntPathRequestMatcher("/api/**"),
-            new AntPathRequestMatcher("/graphiql/**"),
             new AntPathRequestMatcher("/graphql/websocket/**"),
+            new AntPathRequestMatcher("/graphiql/**"),
+            new AntPathRequestMatcher("/vendor/**"),
             new AntPathRequestMatcher("/error")
     );
     private static final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
 
     private final TokenAuthenticationProvider provider;
 
-    public WebSecurityConfig(TokenAuthenticationProvider provider) {
+    private final ConfigurationService configurationService;
+
+    public WebSecurityConfig(TokenAuthenticationProvider provider, ConfigurationService configurationService) {
         super();
         this.provider = Objects.requireNonNull(provider);
+        this.configurationService = Objects.requireNonNull(configurationService);
     }
 
     @Override
@@ -96,6 +102,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authenticationProvider(provider)
                 .addFilterBefore(restAuthenticationFilter(), AnonymousAuthenticationFilter.class)
+
+                // TODO BLA enable the version checked when App will manage the error (code: 553)
+                //.addFilterBefore(headerVersionFilter(), TokenAuthenticationFilter.class)
+
                 .authorizeRequests()
                 .requestMatchers(PROTECTED_URLS)
                 .authenticated()
@@ -111,6 +121,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         final TokenAuthenticationFilter filter = new TokenAuthenticationFilter(PROTECTED_URLS);
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationSuccessHandler(successHandler());
+        return filter;
+    }
+
+    @Bean
+    HeaderVersionFilter headerVersionFilter() {
+        final HeaderVersionFilter filter = new HeaderVersionFilter();
+        //filter.setConfigurationService(configurationService);
         return filter;
     }
 

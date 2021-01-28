@@ -22,13 +22,19 @@
 
 package net.sumaris.core.extraction.vo.filter;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldNameConstants
 @EqualsAndHashCode(callSuper = true)
 public class ExtractionTypeFilterVO extends ExtractionProductFilterVO {
 
     private String category;
+
+    private Integer recorderPersonId;
+
 }

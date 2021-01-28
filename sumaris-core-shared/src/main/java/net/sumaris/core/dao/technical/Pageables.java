@@ -43,15 +43,16 @@ public class Pageables  {
 
     public static Pageable create(int offset, int size, String sortAttribute, SortDirection sortDirection) {
         // Make sure offset is valid, for the page size
-        Preconditions.checkArgument(offset % size == 0, "Invalid offset. Must be a multiple of the given 'size'");
+        //Preconditions.checkArgument(offset % size == 0, "Invalid offset. Must be a multiple of the given 'size'");
 
+        int page = (offset - offset % size) / size;
         if (sortAttribute != null) {
-            return PageRequest.of(offset / size, size,
+            return PageRequest.of(page, size,
                     (sortDirection == null) ? Sort.Direction.ASC :
                             Sort.Direction.fromString(sortDirection.toString()),
                     sortAttribute);
         }
-        return PageRequest.of(offset / size, size);
+        return PageRequest.of(page, size);
     }
 
 }

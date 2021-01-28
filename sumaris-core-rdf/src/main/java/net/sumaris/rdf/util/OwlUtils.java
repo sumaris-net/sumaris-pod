@@ -79,7 +79,7 @@ public abstract class OwlUtils {
 
     }
 
-    public static Optional<Method> setterOfField(Resource schema, Class t, String field, RdfImportContext context) {
+    public static Optional<Method> setterOfField(Resource schema, Class t, String field, RdfOwlConversionContext context) {
         try {
             Optional<Field> f = fieldOf(schema, t, field, context);
             if (f.isPresent()) {
@@ -120,7 +120,7 @@ public abstract class OwlUtils {
     public static List<Class> ACCEPTED_LIST_CLASS = Arrays.asList(List.class, ArrayList.class, Set.class);
 
 
-    public static Optional<Field> fieldOf(Resource schema, Class t, String name, RdfImportContext context) {
+    public static Optional<Field> fieldOf(Resource schema, Class t, String name, RdfOwlConversionContext context) {
         try {
 
             Class ret = context.URI_2_CLASS.get(t.getSimpleName());

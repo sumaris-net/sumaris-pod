@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.SaleVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,10 +39,13 @@ import java.util.List;
 public interface SaleService {
 
 	@Transactional(readOnly = true)
-	List<SaleVO> getAllByTripId(int tripId);
+	List<SaleVO> getAllByTripId(int tripId, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	SaleVO get(int id);
+
+	@Transactional(readOnly = true)
+	SaleVO get(int id, DataFetchOptions fetchOptions);
 
 	List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources);
 

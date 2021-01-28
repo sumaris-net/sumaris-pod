@@ -25,8 +25,17 @@ package net.sumaris.server.http;
 /**
  * Application specific HTTP headers
  */
-public interface HttpHeaders {
+public final class HttpHeaders {
 
-    String ACCESS_CONTROL_DENY_DELETION_ENTITIES = "Access-Control-Deny-Deletion-Entities";
-    String AUTHORIZATION = "Authorization";
+    public static String AUTHORIZATION = org.apache.http.HttpHeaders.AUTHORIZATION;
+    public static String USER_AGENT = org.apache.http.HttpHeaders.USER_AGENT;
+
+    public static String ACCESS_CONTROL_DENY_DELETION_ENTITIES = "Access-Control-Deny-Deletion-Entities";
+
+    public static String HEADER_USER_AGENT = "User-Agent";
+    public static String X_APP_NAME = "X-App-Name";
+    public static String X_APP_VERSION = "X-App-Version";
+
+
+
 }

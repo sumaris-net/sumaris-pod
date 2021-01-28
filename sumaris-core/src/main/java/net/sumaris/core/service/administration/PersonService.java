@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author BLA
@@ -46,6 +47,7 @@ public interface PersonService {
 
 	@Transactional(readOnly = true)
 	List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
 
 	@Transactional(readOnly = true)
 	Long countByFilter(PersonFilterVO filter);

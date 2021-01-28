@@ -26,6 +26,7 @@ package net.sumaris.core.util.crypto;
 import com.lambdaworks.codec.Base64;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Files;
+import net.sumaris.core.util.StringUtils;
 import org.abstractj.kalium.crypto.Util;
 
 import java.nio.charset.Charset;
@@ -89,5 +90,11 @@ public class CryptoUtils extends Util {
 	
 	public static String encodeBase58(byte[] data) {
 		return Base58.encode(data);
+	}
+
+	public static boolean isValidPubkey(String pubkey) {
+
+		// TODO: check if 43 or 44 characters ?
+		return StringUtils.length(pubkey) >= 10;
 	}
 }

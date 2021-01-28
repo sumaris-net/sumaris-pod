@@ -22,6 +22,7 @@ package net.sumaris.server.http.filter;
  * #L%
  */
 
+import net.sumaris.server.http.HttpHeaders;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,14 @@ import java.io.IOException;
 @Order(0)
 public class CORSFilter implements Filter {
 
+    public static String ALLOWED_HEADERS = "Accept, Accept-Language, Content-Language, Access-Control-Allow-Origin, Content-Type, "
+            + HttpHeaders.AUTHORIZATION + ", "
+            + HttpHeaders.X_APP_NAME + ", "
+            + HttpHeaders.X_APP_VERSION;
+    public static String ALLOWED_METHODS = "GET, PUT, POST, DELETE, OPTIONS";
+    public static String ALLOWED_CREDENTIALS = "true";
+    public static String MAX_AGE = "3600";
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
@@ -44,11 +53,8 @@ public class CORSFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
 
-        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUT, OPTIONS");
-        response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "accept, access-control-allow-origin, authorization, content-type");
+        // Add excepted headers
+        setCorsHeaders(request, response);
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
@@ -60,5 +66,13 @@ public class CORSFilter implements Filter {
     @Override
     public void destroy() {
 
+    }
+
+    static void setCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        response.setHeader("Access-Control-Allow-Credentials", ALLOWED_CREDENTIALS);
+        response.setHeader("Access-Control-Allow-Methods", ALLOWED_METHODS);
+        response.setHeader("Access-Control-Max-Age", MAX_AGE);
+        response.setHeader("Access-Control-Allow-Headers", ALLOWED_HEADERS);
     }
 }

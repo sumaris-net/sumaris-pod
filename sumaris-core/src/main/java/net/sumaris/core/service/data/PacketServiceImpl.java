@@ -24,11 +24,11 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.batch.BatchRepository;
+import net.sumaris.core.dao.data.batch.BatchSpecifications;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -40,12 +40,13 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.PacketCompositionVO;
+import net.sumaris.core.vo.data.PacketVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -58,24 +59,23 @@ import java.util.stream.Collectors;
 @Service("packetService")
 public class PacketServiceImpl implements PacketService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PacketServiceImpl.class);
     private Integer calculatedWeightPmfmId;
     private Integer measuredWeightPmfmId;
     private Integer estimatedRatioPmfmId;
     private Integer sortingPmfmId;
-    private static final String RATIO_SEPARATOR = " ";
 
-    @Autowired
-    private BatchDao batchDao;
+    private final BatchRepository batchRepository;
+    private final MeasurementDao measurementDao;
+    private final ReferentialDao referentialDao;
 
-    @Autowired
-    private MeasurementDao measurementDao;
-
-    @Autowired
-    private ReferentialDao referentialDao;
+    public PacketServiceImpl(BatchRepository batchRepository, MeasurementDao measurementDao, ReferentialDao referentialDao) {
+        this.batchRepository = batchRepository;
+        this.measurementDao = measurementDao;
+        this.referentialDao = referentialDao;
+    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         // Init pmfm ids
         this.calculatedWeightPmfmId = PmfmEnum.BATCH_CALCULATED_WEIGHT.getId();
         this.measuredWeightPmfmId = PmfmEnum.BATCH_MEASURED_WEIGHT.getId();
@@ -86,9 +86,9 @@ public class PacketServiceImpl implements PacketService {
     @Override
     public List<PacketVO> getAllByOperationId(int operationId) {
 
-        BatchVO catchBatch = batchDao.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
-                .withChildren(true)
-                .build());
+        BatchVO catchBatch = batchRepository.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
+            .withChildrenEntities(true)
+            .build());
         if (catchBatch == null)
             return null;
 
@@ -104,10 +104,10 @@ public class PacketServiceImpl implements PacketService {
         List<BatchVO> batches = new ArrayList<>();
 
         // Get catch batch
-        BatchVO catchBatch = batchDao.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
-                .withChildren(false)
-                .withMeasurementValues(false)
-                .build());
+        BatchVO catchBatch = batchRepository.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
+            .withChildrenEntities(false)
+            .withMeasurementValues(false)
+            .build());
 
         if (catchBatch == null) {
 
@@ -121,7 +121,7 @@ public class PacketServiceImpl implements PacketService {
                 // Create new root batch
                 catchBatch = new BatchVO();
                 catchBatch.setRankOrder(0);
-                catchBatch.setLabel(BatchDao.DEFAULT_ROOT_BATCH_LABEL);
+                catchBatch.setLabel(BatchSpecifications.DEFAULT_ROOT_BATCH_LABEL);
                 catchBatch.setOperationId(operationId);
             }
 
@@ -130,7 +130,7 @@ public class PacketServiceImpl implements PacketService {
             if (sources.isEmpty()) {
 
                 // Root batch exists but no packet to save = delete this batch
-                batchDao.saveByOperationId(operationId, batches);
+                batchRepository.saveByOperationId(operationId, batches);
                 return sources;
 
             }
@@ -141,8 +141,11 @@ public class PacketServiceImpl implements PacketService {
         // Convert Packets to Batches
         batches.addAll(toBatchVOs(sources, catchBatch));
 
+        // Copy some properties from first source
+        batches.forEach(batch -> fillDefaultProperties(sources.get(0), batch));
+
         // Save Batches
-        List<BatchVO> savedBatches = batchDao.saveByOperationId(operationId, batches);
+        List<BatchVO> savedBatches = batchRepository.saveByOperationId(operationId, batches);
 
         // Save measurements
         savedBatches.forEach(savedBatch -> {
@@ -166,7 +169,7 @@ public class PacketServiceImpl implements PacketService {
         });
 
         // Return optimistic version of saved beans
-        return toPackets(batchDao.toTree(savedBatches));
+        return toPackets(batchRepository.toTree(savedBatches));
         // Or load completely
 //        return getAllByOperationId(operationId);
     }
@@ -205,14 +208,6 @@ public class PacketServiceImpl implements PacketService {
 
         // Affect parent
         target.setParent(rootBatch);
-
-        // assert some copy todo remove when ok
-        if (source.getRecorderDepartment() != null) {
-            Preconditions.checkNotNull(target.getRecorderDepartment());
-        }
-        if (source.getRecorderPerson() != null) {
-            Preconditions.checkNotNull(target.getRecorderPerson());
-        }
 
         // Label fixme this is SIH labels
         target.setLabel(source.getRankOrder().toString());
@@ -274,9 +269,7 @@ public class PacketServiceImpl implements PacketService {
             if (sortingMeasurement == null) {
                 sortingMeasurement = createMeasurement(BatchSortingMeasurement.class, sortingPmfmId);
             }
-            ReferentialVO qv = referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
-                .orElseThrow(() -> new DataNotFoundException(String.format("The qualitative value with label %s was not found", QualitativeValueEnum.SORTING_BULK.getLabel())));
-            sortingMeasurement.setQualitativeValue(qv);
+            sortingMeasurement.setQualitativeValue(referentialDao.get(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getId()));
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));
         }
 
@@ -384,9 +377,7 @@ public class PacketServiceImpl implements PacketService {
             if (sortingMeasurement == null) {
                 sortingMeasurement = createMeasurement(BatchSortingMeasurement.class, sortingPmfmId);
             }
-            ReferentialVO qv = referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
-                .orElseThrow(() -> new DataNotFoundException(String.format("The qualitative value with label %s was not found", QualitativeValueEnum.SORTING_BULK.getLabel())));
-            sortingMeasurement.setQualitativeValue(qv);
+            sortingMeasurement.setQualitativeValue(referentialDao.get(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getId()));
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));
         }
 
@@ -412,7 +403,7 @@ public class PacketServiceImpl implements PacketService {
                     ratioMeasurement = createQuantificationMeasurement(BatchQuantificationMeasurement.class, estimatedRatioPmfmId);
                 }
                 ratioMeasurement.setAlphanumericalValue(
-                        source.getRatios().stream().filter(Objects::nonNull).map(Object::toString).collect(Collectors.joining(RATIO_SEPARATOR))
+                    source.getRatios().stream().filter(Objects::nonNull).map(Object::toString).collect(Collectors.joining(RATIO_SEPARATOR))
                 );
                 ratioMeasurement.setIsReferenceQuantification(false);
                 quantificationMeasurements.add(ratioMeasurement);
@@ -474,7 +465,7 @@ public class PacketServiceImpl implements PacketService {
         // sampled weights
         target.setSampledWeights(
             qms.stream()
-                .filter(m -> !m.getIsReferenceQuantification() && m.getPmfm().getId().equals(measuredWeightPmfmId) && m.getSubgroupNumber() != null)
+                .filter(m -> !m.getIsReferenceQuantification() && Objects.equals(m.getPmfm().getId(), measuredWeightPmfmId) && m.getSubgroupNumber() != null)
                 .map(BatchQuantificationMeasurement::getNumericalValue)
                 .map(Daos::roundValue)
                 .collect(Collectors.toList())
@@ -549,4 +540,10 @@ public class PacketServiceImpl implements PacketService {
         measurement.setEntityName(entityClass.getSimpleName());
     }
 
+    protected void fillDefaultProperties(PacketVO packet, BatchVO batch) {
+        // Copy recorder department from the parent
+        if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+            batch.setRecorderDepartment(packet.getRecorderDepartment());
+        }
+    }
 }

@@ -31,9 +31,12 @@ import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.util.Beans;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
+import java.sql.Clob;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -45,8 +48,11 @@ import java.util.List;
 @Table(name = "extraction_product")
 @EqualsAndHashCode
 public class ExtractionProduct implements IItemReferentialEntity,
+        IExtractionFormat,
         IWithRecorderPersonEntity<Integer, Person>,
         IWithRecorderDepartmentEntity<Integer, Department> {
+
+    public final static int LENGTH_VERSION = 10;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_SEQ")
@@ -77,6 +83,18 @@ public class ExtractionProduct implements IItemReferentialEntity,
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
+    @Column(length = LENGTH_LABEL)
+    private String format;
+
+    @Column(length = 10)
+    private String version;
+
+    @Lob
+    private String documentation;
+
+    @Lob
+    private String filter;
+
     @Column(name = "is_spatial")
     private Boolean isSpatial;
 
@@ -98,6 +116,18 @@ public class ExtractionProduct implements IItemReferentialEntity,
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductTable.class, mappedBy = ExtractionProductTable.Fields.PRODUCT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OrderBy(ExtractionProductTable.Fields.RANK_ORDER + " ASC")
+    @SortNatural
     private List<ExtractionProductTable> tables = new ArrayList<>();
 
+    @Override
+    public ExtractionCategoryEnum getCategory() {
+        return ExtractionCategoryEnum.PRODUCT;
+    }
+
+    @Override
+    public String[] getSheetNames() {
+        if (tables == null) return null;
+        return tables.stream().map(ExtractionProductTable::getLabel).toArray(String[]::new);
+    }
 }

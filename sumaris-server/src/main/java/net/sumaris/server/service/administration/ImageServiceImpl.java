@@ -28,7 +28,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.http.rest.RestPaths;
+import net.sumaris.server.http.ontology.RestPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

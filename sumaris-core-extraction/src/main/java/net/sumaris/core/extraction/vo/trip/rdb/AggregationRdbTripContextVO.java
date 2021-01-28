@@ -28,6 +28,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
 
+import java.util.List;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
@@ -35,10 +37,13 @@ import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AggregationRdbTripContextVO extends AggregationTripContextVO {
-    String tripTableName; // TR table
     String stationTableName; // HH table
     String speciesListTableName; // SL table
     String speciesLengthTableName; // HL table
     String sampleTableName; // CA table
+
+    String speciesLengthMapTableName; // Map to get SL.ID from HL.ID
+
+    String landingTableName; // CL table
 
 }

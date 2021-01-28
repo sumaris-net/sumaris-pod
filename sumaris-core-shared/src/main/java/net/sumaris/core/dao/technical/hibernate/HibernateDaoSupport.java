@@ -76,7 +76,7 @@ public abstract class HibernateDaoSupport {
     private boolean debugEntityLoad;
 
     @Autowired
-    private SumarisConfiguration config;
+    private SumarisConfiguration configuration;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -90,8 +90,8 @@ public abstract class HibernateDaoSupport {
     public HibernateDaoSupport() {
     }
 
-    public HibernateDaoSupport(SumarisConfiguration config) {
-        this.config = config;
+    public HibernateDaoSupport(SumarisConfiguration configuration) {
+        this.configuration = configuration;
     }
 
     @PostConstruct
@@ -126,7 +126,7 @@ public abstract class HibernateDaoSupport {
     }
 
     public SumarisConfiguration getConfig() {
-        return config;
+        return configuration;
     }
 
     public DataSource getDataSource() {

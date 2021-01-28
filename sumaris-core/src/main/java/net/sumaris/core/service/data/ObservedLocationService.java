@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.ObservedLocationSaveOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
@@ -58,9 +59,9 @@ public interface ObservedLocationService {
 	@Transactional(readOnly = true)
 	ObservedLocationVO get(int id);
 
-	ObservedLocationVO save(ObservedLocationVO data, boolean withObservedVessel);
+	ObservedLocationVO save(ObservedLocationVO data, ObservedLocationSaveOptions saveOptions);
 
-	List<ObservedLocationVO> save(List<ObservedLocationVO> data, boolean withObservedVessel);
+	List<ObservedLocationVO> save(List<ObservedLocationVO> data, ObservedLocationSaveOptions saveOptions);
 
 	void delete(int id);
 
@@ -71,4 +72,6 @@ public interface ObservedLocationService {
 	ObservedLocationVO validate(ObservedLocationVO data);
 
 	ObservedLocationVO unvalidate(ObservedLocationVO data);
+
+	ObservedLocationVO qualify(ObservedLocationVO data);
 }

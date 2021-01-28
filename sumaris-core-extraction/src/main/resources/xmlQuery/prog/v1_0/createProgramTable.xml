@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="extractionCreateProgramTable">
+
+  <query type="create" temp="false" table="&amp;programTableName" option="DISTINCT">
+
+    <!-- PK -->
+    <select alias="RECORD_TYPE" type="text">'PR'</select>
+    <select alias="PROJECT" type="text">P.LABEL</select>
+    <select alias="PROGRAM_NAME" type="text">P.NAME</select>
+    <select alias="PROGRAM_DESCRIPTION" type="text">P.DESCRIPTION</select>
+
+    <select alias="GEAR_CLASSIFICATION" type="text">GC.LABEL</select>
+    <select alias="TAXON_GROUP_TYPE" type="text">TGT.LABEL</select>
+
+    <select alias="LOCATION_CLASSIFICATIONS" group="hsqldb" type="text">GROUP_CONCAT(LC.LABEL SEPARATOR ', ')</select>
+    <select alias="LOCATION_CLASSIFICATIONS" group="oracle" type="text">LISTAGG(LC.LABEL, ', ')</select>
+
+    <!-- hidden columns -->
+    <select alias="PROGRAM_ID" type="hidden">P.ID</select>
+
+    <from alias="P">PROGRAM</from>
+    <from join="true">LEFT OUTER JOIN TAXON_GROUP_TYPE TGT ON TGT.ID = P.TAXON_GROUP_TYPE_FK</from>
+    <from join="true">LEFT OUTER JOIN GEAR_CLASSIFICATION GC ON GC.ID = P.GEAR_CLASSIFICATION_FK</from>
+    <from join="true">LEFT OUTER JOIN PROGRAM2LOCATION_CLASSIF P2LC ON P2LC.PROGRAM_FK = P.ID</from>
+    <from join="true">LEFT OUTER JOIN LOCATION_CLASSIFICATION LC ON LC.ID = P2LC.LOCATION_CLASSIFICATION_FK</from>
+
+    <where>1=1</where>
+    <where operator="AND">
+      EXISTS (SELECT 1 FROM &amp;strategyTableName S WHERE S.PROGRAM_ID=P.ID)
+    </where>
+
+    <where operator="AND" group="labelsFilter">
+      <in field="P.LABEL"><![CDATA[&labels]]></in>
+    </where>
+
+    <groupby>
+      RECORD_TYPE, PROJECT, PROGRAM_NAME, PROGRAM_DESCRIPTION, GEAR_CLASSIFICATION,
+      TAXON_GROUP_TYPE, PROGRAM_ID
+    </groupby>
+
+    <orderby direction="ASC">P.ID</orderby>
+
+  </query>
+
+</queries>

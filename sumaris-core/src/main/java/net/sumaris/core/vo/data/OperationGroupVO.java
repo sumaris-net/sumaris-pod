@@ -22,16 +22,14 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+import io.leangen.graphql.annotations.GraphQLIgnore;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import javax.persistence.Transient;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +50,8 @@ public class OperationGroupVO implements IDataVO<Integer> {
     private Boolean hasCatch;
     private String comments;
 
-    @Transient
-    private boolean undefined;
+    @GraphQLIgnore
+    private transient boolean undefined;
 
     private MetierVO metier;
 

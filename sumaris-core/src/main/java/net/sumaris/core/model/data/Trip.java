@@ -30,10 +30,12 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.FetchProfile;
 import org.hibernate.annotations.FetchProfiles;
+import org.nuiton.i18n.I18n;
 
 import javax.persistence.*;
 import java.util.*;
@@ -61,6 +63,10 @@ import java.util.*;
 public class Trip implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
         IWithVesselEntity<Integer, Vessel> {
+
+    static {
+        I18n.n("sumaris.persistence.table.trip");
+    }
 
     public static final String FETCH_PROFILE_LOCATION  = "trip-location";
     public static final String FETCH_PROFILE_RECORDER  = "trip-recorder";
@@ -144,6 +150,10 @@ public class Trip implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Landing.class, mappedBy = Landing.Fields.TRIP)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Landing> landings;
+
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselUseMeasurement> measurements = new ArrayList<>();
@@ -167,4 +177,16 @@ public class Trip implements IRootDataEntity<Integer>,
         return Objects.hash(id, vessel, program, departureDateTime);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Trip that = (Trip) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .isEquals();
+    }
 }

@@ -40,5 +40,5 @@ public interface TaxonNameService {
     List<TaxonNameVO> getAll(boolean withSynonyms);
 
     @Transactional(readOnly = true)
-    List<TaxonNameVO> getAllByTaxonGroup(Integer taxonGroupId);
+    List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId);
 }

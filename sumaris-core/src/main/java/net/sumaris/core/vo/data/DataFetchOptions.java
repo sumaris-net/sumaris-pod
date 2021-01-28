@@ -28,7 +28,14 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 @Data
 @Builder
-public class DataFetchOptions implements IFetchOptions {
+public class DataFetchOptions implements IDataFetchOptions {
+
+    public static final DataFetchOptions DEFAULT = DataFetchOptions.builder().build();
+
+    public static final DataFetchOptions FULL_GRAPH = DataFetchOptions.builder()
+            .withChildrenEntities(true)
+            .withMeasurementValues(true)
+            .build();
 
     @Builder.Default
     private boolean withRecorderDepartment = true;
@@ -41,5 +48,9 @@ public class DataFetchOptions implements IFetchOptions {
 
     @Builder.Default
     private boolean withChildrenEntities = false;
+
+    @Builder.Default
+    private boolean withMeasurementValues = false;
+
 
 }

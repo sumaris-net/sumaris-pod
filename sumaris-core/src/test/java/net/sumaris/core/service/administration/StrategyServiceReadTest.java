@@ -45,7 +45,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void getGears() {
 
-        ProgramVO defaultProg = dbResource.getFixtures().getDefaultProgram();
+        ProgramVO defaultProg =  fixtures.getDefaultProgram();
 
         List<ReferentialVO> results = service.getGears(defaultProg.getId());
         Assert.assertNotNull(results);
@@ -56,7 +56,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void getTaxonGroupStrategies() {
 
-        ProgramVO program = dbResource.getFixtures().getAuctionProgram();
+        ProgramVO program =  fixtures.getAuctionProgram();
 
         List<TaxonGroupStrategyVO> results = service.getTaxonGroupStrategies(program.getId());
         Assert.assertNotNull(results);
@@ -106,18 +106,18 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void findPmfmStrategiesByProgramAndAcquisitionLevel() {
 
-        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByProgramAndAcquisitionLevel(dbResource.getFixtures().getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());
+        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByProgramAndAcquisitionLevel(fixtures.getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());
         Assert.assertNotNull(pmfmStrategies);
         Assert.assertEquals(24, pmfmStrategies.size());
 
     }
 
     @Test
-    public void findNextLabelByProgramId() {
-        String label = service.findNextLabelByProgramId(40, "BIO", 0);
+    public void computeNextLabelByProgramId() {
+        String label = service.computeNextLabelByProgramId(40, "BIO", 0);
         Assert.assertEquals("BIO1", label);
 
-        label = service.findNextLabelByProgramId(40, "2020-BIO-", 4);
+        label = service.computeNextLabelByProgramId(40, "2020-BIO-", 4);
         Assert.assertEquals("2020-BIO-0003", label);
     }
 

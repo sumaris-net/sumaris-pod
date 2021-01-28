@@ -116,19 +116,45 @@ function AppMenu(menuId, opts) {
         }
 
         // Fill documentation
-        $(menuId + ' .menu-documentation').html(''); // remove loading text
-        $('#ul-documentation a').clone().each((index, ele) => {
+        const docMenu = $(menuId + ' .menu-documentation');
+        docMenu.html(''); // remove loading text
+        $('#ul-documentation a, #ul-documentation .divider').clone().each((index, ele) => {
             const element = $(ele);
-            element.addClass('dropdown-item');
-            element.appendTo(menuId + ' .menu-documentation');
+            if (element.hasClass('divider')) {
+                // Add divider
+                if (index !== 0) {
+                    docMenu.append('<div class="dropdown-divider"></div>');
+                }
+                // Add header
+                element.addClass('dropdown-header');
+                element.appendTo(docMenu);
+            }
+            else {
+                element.addClass('dropdown-item');
+                element.appendTo(docMenu);
+            }
         });
 
         // Fill tools
-        $(menuId + ' .menu-tools').html(''); // remove loading text
-        $('#ul-tools a').clone().each((index, ele) => {
+        const toolsMenu = $(menuId + ' .menu-tools');
+        toolsMenu.html(''); // remove loading text
+        $('#ul-tools a, #ul-tools .divider').clone().each((index, ele) => {
             const element = $(ele);
-            element.addClass('dropdown-item');
-            element.appendTo(menuId + ' .menu-tools');
+
+            if (element.hasClass('divider')) {
+                // Add divider
+                if (index !== 0) {
+                    toolsMenu.append('<div class="dropdown-divider"></div>');
+                }
+                // Add header
+                element.addClass('dropdown-header');
+                element.appendTo(toolsMenu);
+            }
+            else {
+                element.addClass('dropdown-item');
+                element.appendTo(toolsMenu);
+            }
+
         });
 
         console.debug("[menu] Loading items [OK]");

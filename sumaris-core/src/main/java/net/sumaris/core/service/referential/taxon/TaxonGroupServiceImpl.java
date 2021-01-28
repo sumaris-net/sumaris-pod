@@ -29,6 +29,7 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.VersionNotFoundException;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.nuiton.version.Version;
@@ -87,11 +88,11 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
     }
 
     @Override
-    public List<TaxonGroupVO> findTargetSpeciesByFilter(ReferentialFilterVO filter,
-                                           int offset,
-                                           int size,
-                                           String sortAttribute,
-                                           SortDirection sortDirection) {
+    public List<TaxonGroupVO> findTargetSpeciesByFilter(IReferentialFilter filter,
+                                                        int offset,
+                                                        int size,
+                                                        String sortAttribute,
+                                                        SortDirection sortDirection) {
         return taxonGroupRepository.findTargetSpeciesByFilter(filter, offset, size, sortAttribute, sortDirection);
     }
 

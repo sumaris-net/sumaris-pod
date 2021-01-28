@@ -22,13 +22,21 @@ package net.sumaris.core.extraction.vo;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldNameConstants
 public class ExtractionFilterVO {
 
 
@@ -53,4 +61,5 @@ public class ExtractionFilterVO {
     public boolean isPreview() {
         return preview != null ? preview.booleanValue() : false;
     }
+
 }

@@ -30,6 +30,7 @@
     <title>Pod Api - Home</title>
     <link rel="icon" href="/api/favicon" type="image/x-icon" />
     <link rel="stylesheet" href="/core/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/core/css/app.css" />
 </head>
 <body>
 
@@ -86,22 +87,28 @@
                 <li><a href="https://github.com/sumaris-net/sumaris-doc/blob/master/user-manual/index.md">User manual</a></li>
                 <li><a href="https://github.com/sumaris-net/sumaris-doc/">Functional specification</a> (Use cases, Class diagrams)</li>
                 <li><a href="http://doc.e-is.pro/sumaris/">Project technical web site</a> (installation manual, configuration)</li>
-                <li> <a href="https://github.com/sumaris-net/">Source code</a> (GitHub)</li>
+                <li><a href="https://github.com/sumaris-net/">Source code</a> (GitHub)</li>
             </ul>
         </p>
 
         <h2>Tools</h2>
         <p>
             <ul id="ul-tools">
+                <li class="divider">GraphQL Tools</li>
                 <li><a href="/api/graphiql">Graph<i>i</i>QL</a>: data access query editor, that use the GraphQL API (HTTP Rest);</li>
                 <li><a href="/graphql/websocket/test">GraphQL subscription</a>: a subscription query editor, that use the GraphQL subscription API (WebSocket);</li>
-                <li> -- </li>
+
+                <li class="divider">Web Semantic Tools</li>
                 <li><a href="/sparql/ui">SparQL editor</a>: build and run your SparQL query, using YasGUI;</li>
-                <li><a href="/ontology/webvowl">Ontology graph viewer</a>: visualize an ontology, using WebOVOWL;</li>
+                <li><a href="/ontology/webvowl">Ontology graph viewer</a>: visualize an ontology, using WebVOWL;</li>
                 <li><a href="/ontology">Ontology export</a>: export to ontologies database content (schema, entities), using several output format (RDF, JSON-LD, ...);</li>
-                <li> - Web Semantic (PoC) - </li>
+
+                <li class="divider">Web Semantic PoC</li>
                 <li><a href="/api/search/taxon">Taxon Search</a>: search taxon using ontologies;</li>
                 <li><a href="/api/search/department">Organization Search</a>: search organization using ontologies;</li>
+
+                <li class="divider">Other Tools</li>
+                <li><a href="/api/extraction/doc">Extraction doc generator</a></li>
             </ul>
         </p>
 

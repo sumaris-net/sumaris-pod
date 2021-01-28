@@ -74,6 +74,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private static final Log log = LogFactory.getLog(ConfigurationServiceImpl.class);
 
+    private final SumarisConfiguration configuration;
+    private final String currentSoftwareLabel;
+
     @Autowired
     private EntityManager entityManager;
 
@@ -86,12 +89,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Autowired
     private ApplicationEventPublisher publisher;
 
-    private SumarisConfiguration config;
     private Version dbVersion;
-    private String currentSoftwareLabel;
 
+    @Autowired
     public ConfigurationServiceImpl(SumarisConfiguration configuration) {
-        this.config = configuration;
+        this.configuration = configuration;
         this.currentSoftwareLabel = configuration.getAppName();
         Preconditions.checkNotNull(currentSoftwareLabel);
     }
@@ -115,11 +117,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
             // Publish ready event
             if (event instanceof SchemaReadyEvent) {
-                publisher.publishEvent(new ConfigurationReadyEvent(config));
+                publisher.publishEvent(new ConfigurationReadyEvent(configuration));
             }
             // Publish update event
             else {
-                publisher.publishEvent(new ConfigurationUpdatedEvent(config));
+                publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
             }
 
         }
@@ -142,7 +144,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             applySoftwareConfig();
 
             // Publish update event
-            publisher.publishEvent(new ConfigurationUpdatedEvent(config));
+            publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
 
         }
     }
@@ -180,7 +182,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         // else skip (because software tables not exists)
         Version minVersion = VersionBuilder.create("0.9.5").build();
         if (newDatabase || minVersion.beforeOrequals(dbVersion)) {
-            applySoftwareProperties(config.getApplicationConfig(), getCurrentSoftware());
+            applySoftwareProperties(configuration.getApplicationConfig(), getCurrentSoftware());
         }
         else {
             log.warn(String.format("Skip using software properties as config options, because schema version < %s. Waiting schema update...", minVersion.toString()));
@@ -239,7 +241,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     protected void updateModelEnumerations() {
 
-        ApplicationConfig appConfig = config.getApplicationConfig();
+        ApplicationConfig appConfig = configuration.getApplicationConfig();
 
         boolean debug = log.isDebugEnabled();
         log.info("Updating model enumerations...");
@@ -248,7 +250,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         AtomicInteger errorCounter = new AtomicInteger(0);
 
         // For each enum classes
-        EntityEnums.getEntityEnumClasses(config).forEach(enumClass -> {
+        EntityEnums.getEntityEnumClasses(configuration).forEach(enumClass -> {
             if (debug) log.debug(String.format("- Processing %s ...", enumClass.getSimpleName()));
 
             // Get annotation detail

@@ -23,11 +23,13 @@ package net.sumaris.core.dao.data;
  */
 
 
+import net.sumaris.core.model.data.BatchSortingMeasurement;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -47,11 +49,21 @@ public interface MeasurementDao {
                                                                      int parentId,
                                                                      String sortByPropertyName);
 
+    <T extends IMeasurementEntity> Map<Integer, Collection<T>> getMeasurementEntitiesByParentIds(Class<T> entityClass,
+                                                                                                 String parentPropertyName,
+                                                                                                 Collection<Integer> parentIds,
+                                                                                                 String sortByPropertyName);
+
+    <T extends IMeasurementEntity> Map<Integer, Map<Integer, String>> getMeasurementsMapByParentIds(Class<T> entityClass,
+                                                                                                    String parentPropertyName,
+                                                                                                    Collection<Integer> parentIds,
+                                                                                                    String sortByPropertyName);
     // Trip
     List<MeasurementVO> getTripVesselUseMeasurements(int tripId);
     Map<Integer, String> getTripVesselUseMeasurementsMap(int tripId);
     List<MeasurementVO> saveTripVesselUseMeasurements(int tripId, List<MeasurementVO> sources);
     Map<Integer, String> saveTripMeasurementsMap(int tripId, Map<Integer, String> sources);
+    Map<Integer, Map<Integer, String>> getTripsVesselUseMeasurementsMap(Collection<Integer> tripIds);
 
     // Physical gear
     List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId);
@@ -64,6 +76,9 @@ public interface MeasurementDao {
     List<MeasurementVO> getOperationGearUseMeasurements(int operationId);
     Map<Integer, String> getOperationVesselUseMeasurementsMap(int operationId);
     Map<Integer, String> getOperationGearUseMeasurementsMap(int operationId);
+    Map<Integer, Map<Integer, String>> getOperationsVesselUseMeasurementsMap(Collection<Integer> operationIds);
+    Map<Integer, Map<Integer, String>> getOperationsGearUseMeasurementsMap(Collection<Integer> operationIds);
+
     List<MeasurementVO> saveOperationVesselUseMeasurements(int operationId, List<MeasurementVO> sources);
     List<MeasurementVO> saveOperationGearUseMeasurements(int operationId, List<MeasurementVO> sources);
     Map<Integer, String> saveOperationVesselUseMeasurementsMap(int operationId, Map<Integer, String> sources);
@@ -98,6 +113,8 @@ public interface MeasurementDao {
     List<QuantificationMeasurementVO> getBatchQuantificationMeasurements(int batchId);
     Map<Integer, String> getBatchSortingMeasurementsMap(int batchId);
     Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId);
+    Map<Integer, Map<Integer, String>> getBatchesSortingMeasurementsMap(Collection<Integer> ids);
+    Map<Integer, Map<Integer, String>> getBatchesQuantificationMeasurementsMap(Collection<Integer> ids);
     List<MeasurementVO> saveBatchSortingMeasurements(int batchId, List<MeasurementVO> sources);
     List<QuantificationMeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<QuantificationMeasurementVO> sources);
     Map<Integer, String> saveBatchSortingMeasurementsMap(final int batchId, Map<Integer, String> sources);
@@ -117,4 +134,6 @@ public interface MeasurementDao {
     List<MeasurementVO> saveVesselPhysicalMeasurements(int vesselFeaturesId, List<MeasurementVO> sources);
     Map<Integer, String> saveVesselPhysicalMeasurementsMap(final int vesselFeaturesId, Map<Integer, String> sources);
 
+    // Utils
+    <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Collection<T> sources);
 }

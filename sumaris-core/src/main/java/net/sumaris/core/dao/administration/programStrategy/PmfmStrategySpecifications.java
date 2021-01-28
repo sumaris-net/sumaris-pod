@@ -27,6 +27,7 @@ import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import org.springframework.data.jpa.domain.Specification;
@@ -81,8 +82,10 @@ public interface PmfmStrategySpecifications {
 
     List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
 
-    List<PmfmStrategyVO> saveByStrategyId(int strategyId, @Nonnull List<PmfmStrategyVO> sources);
+    List<PmfmStrategyVO> saveByStrategyId(int strategyId, List<PmfmStrategyVO> sources);
 
     PmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions);
+
+    PmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, StrategyFetchOptions fetchOptions);
 
 }

@@ -39,7 +39,7 @@ import java.util.Date;
 
 @Data
 @FieldNameConstants
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class QuantificationMeasurementVO extends MeasurementVO {
 
     private Short subgroupNumber;

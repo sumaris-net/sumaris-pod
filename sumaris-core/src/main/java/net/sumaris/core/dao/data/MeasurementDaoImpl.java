@@ -25,7 +25,6 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
@@ -35,9 +34,6 @@ import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.Batch;
-import net.sumaris.core.model.data.BatchQuantificationMeasurement;
-import net.sumaris.core.model.data.BatchSortingMeasurement;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -154,6 +150,15 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public Map<Integer, Map<Integer, String>> getTripsVesselUseMeasurementsMap(Collection<Integer> tripIds) {
+        return getMeasurementsMapByParentIds(VesselUseMeasurement.class,
+                VesselUseMeasurement.Fields.TRIP,
+                tripIds,
+                null
+        );
+    }
+
+    @Override
     public List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId) {
         return getMeasurementsByParentId(PhysicalGearMeasurement.class,
                 MeasurementVO.class,
@@ -211,14 +216,23 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> getSampleMeasurements(int sampleId) {
-        return getMeasurementsByParentId(SampleMeasurement.class,
-                MeasurementVO.class,
-                SampleMeasurement.Fields.SAMPLE,
-                sampleId,
-                SampleMeasurement.Fields.RANK_ORDER
+    public Map<Integer, Map<Integer, String>> getOperationsVesselUseMeasurementsMap(Collection<Integer> operationIds) {
+        return getMeasurementsMapByParentIds(VesselUseMeasurement.class,
+                VesselUseMeasurement.Fields.OPERATION,
+                operationIds,
+                null
         );
     }
+
+    @Override
+    public Map<Integer, Map<Integer, String>> getOperationsGearUseMeasurementsMap(Collection<Integer> operationIds) {
+        return getMeasurementsMapByParentIds(GearUseMeasurement.class,
+                GearUseMeasurement.Fields.OPERATION,
+                operationIds,
+                null
+        );
+    }
+
 
     @Override
     public List<MeasurementVO> getObservedLocationMeasurements(int observedLocationId) {
@@ -231,10 +245,48 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public Map<Integer, String> getObservedLocationMeasurementsMap(int observedLocationId) {
+        return getMeasurementsMapByParentId(ObservedLocationMeasurement.class,
+                ObservedLocationMeasurement.Fields.OBSERVED_LOCATION,
+                observedLocationId,
+                null
+        );
+    }
+
+    @Override
+    public List<MeasurementVO> getSampleMeasurements(int sampleId) {
+        return getMeasurementsByParentId(SampleMeasurement.class,
+                MeasurementVO.class,
+                SampleMeasurement.Fields.SAMPLE,
+                sampleId,
+                SampleMeasurement.Fields.RANK_ORDER
+        );
+    }
+
+    @Override
     public Map<Integer, String> getSampleMeasurementsMap(int sampleId) {
         return getMeasurementsMapByParentId(SampleMeasurement.class,
                 SampleMeasurement.Fields.SAMPLE,
                 sampleId,
+                null
+        );
+    }
+
+
+    @Override
+    public Map<Integer, Map<Integer, String>> getBatchesSortingMeasurementsMap(Collection<Integer> ids) {
+        return getMeasurementsMapByParentIds(BatchSortingMeasurement.class,
+                BatchSortingMeasurement.Fields.BATCH,
+                ids,
+                null
+        );
+    }
+
+    @Override
+    public Map<Integer, Map<Integer, String>> getBatchesQuantificationMeasurementsMap(Collection<Integer> ids) {
+        return getMeasurementsMapByParentIds(BatchQuantificationMeasurement.class,
+                BatchQuantificationMeasurement.Fields.BATCH,
+                ids,
                 null
         );
     }
@@ -256,16 +308,6 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 null
         );
     }
-
-    @Override
-    public Map<Integer, String> getObservedLocationMeasurementsMap(int observedLocationId) {
-        return getMeasurementsMapByParentId(ObservedLocationMeasurement.class,
-                ObservedLocationMeasurement.Fields.OBSERVED_LOCATION,
-                observedLocationId,
-                null
-        );
-    }
-
 
     @Override
     public Map<Integer, String> getLandingMeasurementsMap(int landingId) {
@@ -640,7 +682,30 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     @Override
     public <T extends IMeasurementEntity> List<T> getMeasurementEntitiesByParentId(Class<T> entityClass, String parentPropertyName, int parentId, String sortByPropertyName) {
-        return getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName).getResultList();
+        return getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName)
+                .getResultList();
+    }
+
+    @Override
+    public <T extends IMeasurementEntity> Map<Integer, Collection<T>> getMeasurementEntitiesByParentIds(
+            Class<T> entityClass, String parentPropertyName, Collection<Integer> parentIds, String sortByPropertyName) {
+        return Beans.<Integer, T>splitByNotUniqueProperty(
+                getMeasurementsByParentIdsQuery(entityClass, parentPropertyName, parentIds, sortByPropertyName).getResultList(),
+                parentPropertyName + "." + IEntity.Fields.ID)
+                .asMap();
+
+    }
+
+    @Override
+    public <T extends IMeasurementEntity> Map<Integer, Map<Integer, String>> getMeasurementsMapByParentIds(
+            Class<T> entityClass, String parentPropertyName, Collection<Integer> parentIds, String sortByPropertyName) {
+        return getMeasurementEntitiesByParentIds(entityClass, parentPropertyName, parentIds, sortByPropertyName)
+                .entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> toMeasurementsMap(e.getValue()))
+                );
+
     }
 
     /* -- protected methods -- */
@@ -761,14 +826,13 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     protected <T extends IMeasurementEntity> Map<Integer, String> getMeasurementsMapByParentId(Class<T> entityClass,
-                                                                                           String parentPropertyName,
-                                                                                           int parentId,
-                                                                                           String sortByPropertyName) {
-        TypedQuery<T> query = getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName);
+                                                                                               String parentPropertyName,
+                                                                                               int parentId,
+                                                                                               String sortByPropertyName) {
+        TypedQuery<T> query = getMeasurementsByParentIdQuery(entityClass, parentPropertyName,
+                parentId, sortByPropertyName);
         return toMeasurementsMap(query.getResultList());
     }
-
-
 
     protected <T extends IMeasurementEntity> TypedQuery<T> getMeasurementsByParentIdQuery(Class<T> entityClass,
                                                                                           String parentPropertyName,
@@ -792,6 +856,25 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 .setParameter(idParam, parentId);
     }
 
+    protected <T extends IMeasurementEntity> TypedQuery<T> getMeasurementsByParentIdsQuery(Class<T> entityClass,
+                                                                                          String parentPropertyName,
+                                                                                          Collection<Integer> parentIds,
+                                                                                          @Nullable String sortByPropertyName) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<T> query = builder.createQuery(entityClass);
+        Root<T> root = query.from(entityClass);
+
+
+        query.select(root).where(root.get(parentPropertyName).get(IEntity.Fields.ID).in(parentIds));
+
+        // Order by
+        if (sortByPropertyName != null) {
+            query.orderBy(builder.asc(root.get(sortByPropertyName)));
+        }
+
+        return getEntityManager().createQuery(query);
+    }
+
     protected <T extends IMeasurementEntity, V extends MeasurementVO> List<V> toMeasurementVOs(List<T> sources, Class<? extends V> voClass) {
         return sources.stream()
                 .map(source -> toMeasurementVO(source, voClass))
@@ -799,21 +882,16 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 .collect(Collectors.toList());
     }
 
-    protected <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(List<T> source) {
-        final Map<Integer, String> result = Maps.newHashMap();
-        source.stream()
+    @Override
+    public <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Collection<T> sources) {
+        if (sources == null) return null;
+        return sources.stream()
                 .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null)
-                .forEach(m -> {
-
-                    if (m.getPmfm() != null && m.getPmfm().getId() != null) {
-                        Object value = this.entityToValue(m);
-                        if (value != null) {
-                            result.put(m.getPmfm().getId(), value.toString());
-                        }
-                    }
-                });
-                //.collect(Collectors.toMap(m -> m.getPmfm().getId(), this::entityToValue))
-        return result;
+                .collect(Collectors.<T, Integer, String>toMap(
+                        m -> m.getPmfm().getId(),
+                        this::entityToValueAsStringOrNull,
+                        (s1, s2) -> s1
+                ));
     }
 
 
@@ -898,12 +976,19 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
     }
 
+    protected String entityToValueAsStringOrNull(IMeasurementEntity source) {
+        Object value = entityToValue(source);
+        return value != null ? value.toString() : null;
+    }
+
     protected Object entityToValue(IMeasurementEntity source) {
 
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getPmfm());
         Preconditions.checkNotNull(source.getPmfm().getId());
 
+        // Get PMFM
+        // /!\ IMPORTANT: should use a cached method !
         PmfmVO pmfm = pmfmRepository.get(source.getPmfm().getId());
 
         Preconditions.checkNotNull(pmfm, "Unable to find Pmfm with id=" + source.getPmfm().getId());

@@ -29,7 +29,6 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -60,7 +59,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,9 +85,6 @@ public class PmfmStrategyRepositoryImpl
     private ReferentialDao referentialDao;
 
     @Autowired
-    private SumarisConfiguration config;
-
-    @Autowired
     PmfmStrategyRepositoryImpl(EntityManager entityManager) {
         super(PmfmStrategy.class, PmfmStrategyVO.class, entityManager);
     }
@@ -101,7 +99,7 @@ public class PmfmStrategyRepositoryImpl
     public List<PmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions) {
 
         return findAll(
-            toSpecification(StrategyRelatedFilterVO.builder().strategyId(strategyId).build()),
+            toSpecification(StrategyRelatedFilterVO.builder().strategyId(strategyId).build(), fetchOptions),
             Sort.by(PmfmStrategy.Fields.RANK_ORDER)
         )
             .stream()
@@ -114,7 +112,8 @@ public class PmfmStrategyRepositoryImpl
     public List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions) {
 
         return findAll(
-            toSpecification(StrategyRelatedFilterVO.builder().programId(programId).acquisitionLevelId(acquisitionLevelId).build()),
+            hasProgramId(programId)
+                    .and(hasAcquisitionLevelId(acquisitionLevelId)),
             Sort.by(PmfmStrategy.Fields.RANK_ORDER)
         )
             .stream()
@@ -123,7 +122,7 @@ public class PmfmStrategyRepositoryImpl
 
     }
 
-    protected Specification<PmfmStrategy> toSpecification(StrategyRelatedFilterVO filter) {
+    protected Specification<PmfmStrategy> toSpecification(StrategyRelatedFilterVO filter, StrategyFetchOptions fetchOptions) {
         return BindableSpecification.where(hasProgramId(filter.getProgramId()))
             .and(hasStrategyId(filter.getStrategyId()))
             .and(hasAcquisitionLevelId(filter.getAcquisitionLevelId()));
@@ -131,14 +130,17 @@ public class PmfmStrategyRepositoryImpl
 
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source) {
-        return toVO(source, StrategyFetchOptions.builder().withPmfmStrategyInheritance(false).build());
+        return toVO(source, StrategyFetchOptions.DEFAULT);
     }
 
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions) {
-        if (source == null) return null;
+        return toVO(source, source.getPmfm(), fetchOptions);
+    }
 
-        Pmfm pmfm = source.getPmfm();
+    @Override
+    public PmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, StrategyFetchOptions fetchOptions) {
+        if (source == null) return null;
 
         PmfmStrategyVO target = new PmfmStrategyVO();
 
@@ -179,13 +181,19 @@ public class PmfmStrategyRepositoryImpl
                 target.setUnitLabel(pmfm.getUnit().getLabel());
             }
 
-            // Qualitative values
-            if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
-                List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
-                        .stream()
-                        .map(referentialDao::toVO)
-                        .collect(Collectors.toList());
-                target.setQualitativeValues(qualitativeValues);
+            // Qualitative values (from Pmfm if any, or from Parameter)
+            if (type == PmfmValueType.QUALITATIVE_VALUE) {
+                Collection<QualitativeValue> qualitativeValues = CollectionUtils.isNotEmpty(pmfm.getQualitativeValues()) ?
+                        pmfm.getQualitativeValues() : parameter.getQualitativeValues();
+                if (CollectionUtils.isNotEmpty(qualitativeValues)) {
+                    target.setQualitativeValues(qualitativeValues
+                            .stream()
+                            .map(referentialDao::toVO)
+                            .collect(Collectors.toList()));
+                }
+                else {
+                    log.warn("Missing qualitative values, in PMFM #{}", pmfm.getId());
+                }
             }
         }
 
@@ -243,7 +251,7 @@ public class PmfmStrategyRepositoryImpl
             @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, allEntries = true) // FIXME fix error 'null' when using key='#strategyId'
         }
     )
-    public List<PmfmStrategyVO> saveByStrategyId(int strategyId, List<PmfmStrategyVO> sources) {
+    public List<PmfmStrategyVO> saveByStrategyId(int strategyId, @Nonnull List<PmfmStrategyVO> sources) {
         Preconditions.checkNotNull(sources);
 
         Strategy parent = getOne(Strategy.class, strategyId);
@@ -317,7 +325,7 @@ public class PmfmStrategyRepositoryImpl
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getGearIds())) {
             target.getGears().clear();
             if (CollectionUtils.isNotEmpty(source.getGearIds())) {
-                target.getGears().addAll(loadAllAsSet(Gear.class, IEntity.Fields.ID, source.getGearIds(), true));
+                target.getGears().addAll(loadAllAsSet(Gear.class, source.getGearIds(), true));
             }
         }
 
@@ -325,7 +333,7 @@ public class PmfmStrategyRepositoryImpl
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
             target.getTaxonGroups().clear();
             if (CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
-                target.getTaxonGroups().addAll(loadAllAsSet(TaxonGroup.class, IEntity.Fields.ID, source.getTaxonGroupIds(), true));
+                target.getTaxonGroups().addAll(loadAllAsSet(TaxonGroup.class, source.getTaxonGroupIds(), true));
             }
         }
 
@@ -333,7 +341,7 @@ public class PmfmStrategyRepositoryImpl
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
             target.getReferenceTaxons().clear();
             if (CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
-                target.getReferenceTaxons().addAll(loadAllAsSet(ReferenceTaxon.class, IEntity.Fields.ID, source.getReferenceTaxonIds(), true));
+                target.getReferenceTaxons().addAll(loadAllAsSet(ReferenceTaxon.class, source.getReferenceTaxonIds(), true));
             }
         }
     }

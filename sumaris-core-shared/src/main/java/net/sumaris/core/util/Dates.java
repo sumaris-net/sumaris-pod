@@ -101,6 +101,9 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
      * @return a {@link Date} object.
      */
     public static Date lastSecondOfTheDay(Date date) {
+        if (date == null) {
+            return null;
+        }
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         calendar.set(Calendar.HOUR_OF_DAY, 23);
@@ -118,6 +121,9 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
      * @return a {@link Date} object.
      */
     public static Date resetTime(Date date, TimeZone timezone) {
+        if (date == null) {
+            return null;
+        }
         Calendar localCalendar = Calendar.getInstance();
         localCalendar.setTime(date);
 
@@ -488,5 +494,13 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
 
     public static String toISODateTimeString(Date date) {
         return formatDate(date, ISO_TIMESTAMP_SPEC);
+    }
+
+    public static Date fromISODateTimeString(String dateStr) {
+        try {
+            return parseDate(dateStr, ISO_TIMESTAMP_SPEC);
+        } catch(ParseException e) {
+            throw new SumarisTechnicalException(e);
+        }
     }
 }

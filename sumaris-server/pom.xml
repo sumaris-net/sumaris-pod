@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.4.6-SNAPSHOT</version>
+    <version>1.7.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-server</artifactId>
@@ -14,7 +14,7 @@
 
   <properties>
     <!-- i18n configuration -->
-    <i18n.bundleOutputName>sumaris-core-server-i18n</i18n.bundleOutputName>
+    <i18n.bundleOutputName>sumaris-server-i18n</i18n.bundleOutputName>
     <i18n.generateCsvFile>true</i18n.generateCsvFile>
     <i18n.bundleCsvFile>
       ${project.build.directory}/generated-sources/resources/META-INF/${i18n.bundleOutputName}.csv
@@ -34,7 +34,7 @@
     <quadrige3.log.file>${project.build.directory}/${bundlePrefix}.log</quadrige3.log.file>
 
     <!-- Default implementation -->
-    <env>hsqldb</env>
+    <spring.datasource.platform>hsqldb</spring.datasource.platform>
     <jdbc.url>jdbc:hsqldb:file:data/db/sumaris</jdbc.url>
     <server.address>localhost</server.address>
     <server.port>8080</server.port>
@@ -75,10 +75,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-    <!--<dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-json</artifactId>
-    </dependency>-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -125,7 +121,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency> -->
+    </dependency>-->
 
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
@@ -204,6 +200,10 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuiton.i18n</groupId>
+      <artifactId>nuiton-i18n</artifactId>
     </dependency>
 
     <!-- Unit test -->
@@ -338,7 +338,7 @@
       <activation>
         <activeByDefault>true</activeByDefault>
         <property>
-          <name>env</name>
+          <name>spring.datasource.platform</name>
           <value>hsqldb</value>
         </property>
       </activation>
@@ -431,6 +431,49 @@
       </build>
     </profile>
 
+    <!-- use this profile to run the main class -->
+    <profile>
+      <id>run</id>
+      <build>
+        <defaultGoal>compile</defaultGoal>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${execPluginVersion}</version>
+            <configuration>
+              <!-- Disable exec plugin (will use spring-boot:rnu)  -->
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>${spring-boot-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>run</id>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <phase>compile</phase>
+                <configuration>
+                  <jvmArguments>${exec.jvmArgs}</jvmArguments>
+                  <arguments>${exec.args}</arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+
+      <properties>
+        <exec.mainClass>${maven.jar.main.class}</exec.mainClass>
+        <exec.args></exec.args>
+        <exec.jvmArgs>-Duser.timezone=UTC -Dspring.main.banner-mode=off</exec.jvmArgs>
+      </properties>
+    </profile>
   </profiles>
 
 </project>

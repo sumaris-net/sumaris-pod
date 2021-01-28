@@ -78,17 +78,15 @@ public class PersonServiceImpl implements PersonService {
 	@Override
 	public PersonVO get(final int personId) {
 		// This find method was a find in PersonDaoImpl
-		return personRepository.findById(personId);
+		return personRepository.findById(personId)
+				.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.person.notFound")));
 	}
 
 	@Override
 	public PersonVO getByPubkey(final String pubkey) {
 		Preconditions.checkNotNull(pubkey);
-		PersonVO person = personRepository.findByPubkey(pubkey);
-		if (person == null) {
-			throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
-		}
-		return person;
+		return personRepository.findByPubkey(pubkey)
+				.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.person.notFound")));
 	}
 
     @Override
@@ -100,7 +98,7 @@ public class PersonServiceImpl implements PersonService {
     @Override
 	public ImageAttachmentVO getAvatarByPubkey(final String pubkey) {
 		Preconditions.checkNotNull(pubkey);
-		Optional<Person> person = Optional.ofNullable(personRepository.findByPubkey(pubkey))
+		Optional<Person> person = personRepository.findByPubkey(pubkey)
 			.flatMap(vo -> personRepository.findById(vo.getId()));
 
 		int avatarId = person

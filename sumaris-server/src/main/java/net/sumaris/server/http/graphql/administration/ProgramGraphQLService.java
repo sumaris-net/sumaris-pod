@@ -24,9 +24,15 @@ package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import lombok.NonNull;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.model.referential.gear.GearClassification;
+import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
@@ -35,22 +41,27 @@ import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
+import net.sumaris.server.http.security.IsUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -72,6 +83,9 @@ public class ProgramGraphQLService {
 
     @Autowired
     private TaxonNameService taxonNameService;
+
+    @Autowired
+    private AuthService authService;
 
     @Autowired
     public ProgramGraphQLService() {
@@ -105,35 +119,42 @@ public class ProgramGraphQLService {
         if (filter == null) {
             return programService.getAll();
         }
-        return programService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+        return programService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
+    }
+
+    @GraphQLQuery(name = "programsCount", description = "Get programs count")
+    @Transactional(readOnly = true)
+    public Long getProgramCount(@GraphQLArgument(name = "filter") ProgramFilterVO filter) {
+        return referentialService.countByFilter(Program.class.getSimpleName(), filter);
     }
 
     @GraphQLQuery(name = "strategy", description = "Get a strategy")
     @Transactional(readOnly = true)
-    public StrategyVO getStrategy(
-            @GraphQLArgument(name = "label") String label,
-            @GraphQLArgument(name = "id") Integer id,
-            @GraphQLArgument(name = "expandedPmfmStrategy", defaultValue = "false") Boolean expandedPmfmStrategy
-    ) {
-        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
-        if (id != null) {
-            return strategyService.get(id, getFetchOptions(expandedPmfmStrategy));
-        }
-        return strategyService.getByLabel(label, getFetchOptions(expandedPmfmStrategy));
+    public StrategyVO getStrategy(@GraphQLNonNull @GraphQLArgument(name = "id") @NonNull Integer id,
+                                  @GraphQLEnvironment() Set<String> fields) {
+
+        return strategyService.get(id, getStrategyFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "strategies", description = "Search in strategies")
     @Transactional(readOnly = true)
     public List<StrategyVO> findStrategiesByFilter(
-            @GraphQLArgument(name = "filter") StrategyFilterVO filter,
+            @GraphQLNonNull @GraphQLArgument(name = "filter") @NonNull StrategyFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = StrategyVO.Fields.LABEL) String sort,
-            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        if (filter == null) {
-            return strategyService.getAll();
-        }
-        return strategyService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+            @GraphQLEnvironment() Set<String> fields) {
+
+        return strategyService.findByFilter(filter,
+                Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
+                getStrategyFetchOptions(fields));
+    }
+
+    @GraphQLQuery(name = "strategiesCount", description = "Get strategies count")
+    @Transactional(readOnly = true)
+    public Long getStrategyCount(@GraphQLArgument(name = "filter") StrategyFilterVO filter) {
+        return referentialService.countByFilter(Strategy.class.getSimpleName(), filter);
     }
 
     @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")
@@ -152,13 +173,23 @@ public class ProgramGraphQLService {
         return program.getGearClassification();
     }
 
+    @GraphQLQuery(name = "locationClassifications", description = "Get program's location classifications")
+    public List<ReferentialVO> getProgramLocationClassifications(@GraphQLContext ProgramVO program) {
+        if (program.getLocationClassificationIds() != null && program.getLocationClassifications() == null) {
+            return program.getLocationClassificationIds().stream()
+                    .map(id -> referentialService.get(LocationClassification.class, id))
+                    .collect(Collectors.toList());
+        }
+        return program.getLocationClassifications();
+    }
+
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")
     public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program,
                                                    @GraphQLEnvironment() Set<String> fields) {
         if (program.getStrategies() != null) {
             return program.getStrategies();
         }
-        return strategyService.findByProgram(program.getId(), getFetchOptions(fields));
+        return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "pmfmStrategies", description = "Get strategy's pmfms")
@@ -167,7 +198,7 @@ public class ProgramGraphQLService {
         if (strategy.getPmfmStrategies() != null) {
             return strategy.getPmfmStrategies();
         }
-        return strategyService.findPmfmStrategiesByStrategy(strategy.getId(), getFetchOptions(fields));
+        return strategyService.findPmfmStrategiesByStrategy(strategy.getId(), getStrategyFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get strategy pmfm")
@@ -184,17 +215,20 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
     public List<TaxonNameVO> getTaxonGroupTaxonNames(@GraphQLContext TaxonGroupVO taxonGroup) {
         if (taxonGroup.getId() != null) {
-            return taxonNameService.getAllByTaxonGroup(taxonGroup.getId());
+            return taxonNameService.getAllByTaxonGroupId(taxonGroup.getId());
         }
         return null;
     }
 
     @GraphQLQuery(name = "strategyNextLabel", description = "Get next label for strategy")
+    @IsUser
     public String findNextLabelByProgramId(
             @GraphQLArgument(name = "programId") int programId,
             @GraphQLArgument(name = "labelPrefix", defaultValue = "") String labelPrefix,
             @GraphQLArgument(name = "nbDigit", defaultValue = "0") Integer nbDigit) {
-        return strategyService.findNextLabelByProgramId(programId,
+        checkCanEditProgram(programId);
+
+        return strategyService.computeNextLabelByProgramId(programId,
                 labelPrefix == null ? "" : labelPrefix,
                 nbDigit == null ? 0 : nbDigit);
     }
@@ -204,28 +238,32 @@ public class ProgramGraphQLService {
     @GraphQLMutation(name = "saveProgram", description = "Save a program (with strategies)")
     @IsSupervisor
     public ProgramVO saveProgram(
-            @GraphQLArgument(name = "program") ProgramVO program) {
-        ProgramVO result = programService.save(program);
-        return result;
+            @GraphQLNonNull @GraphQLArgument(name = "program") @NonNull ProgramVO program,
+            @GraphQLArgument(name = "options") ProgramSaveOptions options) {
+        checkCanEditProgram(program.getId());
+        return programService.save(program, options);
     }
 
     @GraphQLMutation(name = "deleteProgram", description = "Delete a program")
     @IsAdmin
-    public void deleteProgram(@GraphQLArgument(name = "id") int id) {
+    public void deleteProgram(@GraphQLNonNull @GraphQLArgument(name = "id") int id) {
         programService.delete(id);
     }
 
     @GraphQLMutation(name = "saveStrategy", description = "Save a strategy")
     @IsSupervisor
     public StrategyVO saveStrategy(
-            @GraphQLArgument(name = "strategy") StrategyVO strategy) {
-        StrategyVO result = strategyService.save(strategy);
-        return result;
+            @GraphQLNonNull @GraphQLArgument(name = "strategy") StrategyVO strategy) {
+        Preconditions.checkNotNull(strategy.getProgramId(), "Missing 'strategy.programId'");
+        checkCanEditStrategy(strategy.getProgramId(), strategy.getId());
+        return strategyService.save(strategy);
     }
 
     @GraphQLMutation(name = "deleteStrategy", description = "Delete a strategy")
-    @IsAdmin
-    public void deleteStrategy(@GraphQLArgument(name = "id") int id) {
+    @IsSupervisor
+    public void deleteStrategy(@GraphQLNonNull @GraphQLArgument(name = "id") int id) {
+        StrategyVO strategy = strategyService.get(id, null);
+        checkCanDeleteStrategy(strategy.getProgramId(), id);
         strategyService.delete(id);
     }
 
@@ -244,18 +282,65 @@ public class ProgramGraphQLService {
                 .build();
     }
 
-    protected StrategyFetchOptions getFetchOptions(Set<String> fields) {
+    protected StrategyFetchOptions getStrategyFetchOptions(Set<String> fields) {
         return StrategyFetchOptions.builder()
                 .withPmfmStrategyInheritance(
                         fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.LABEL))
-                                && !fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.PMFM))
+                        && !fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.PMFM))
                 )
                 .build();
     }
 
-    protected StrategyFetchOptions getFetchOptions(Boolean expandedPmfmStrategy) {
-        return StrategyFetchOptions.builder()
-                .withPmfmStrategyExpanded(expandedPmfmStrategy)
-                .build();
+
+    protected void checkCanEditProgram(Integer programId) {
+
+        if (programId == null) {
+            checkIsAdmin("Cannot create a program. Not an admin.");
+            return;
+        }
+
+        // Admin can create a program
+        if (authService.isAdmin()) return; // OK
+
+        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+        boolean isManager = programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
+                || programService.hasDepartmentPrivilege(programId, user.getDepartment().getId(), ProgramPrivilegeEnum.MANAGER);
+        if (!isManager) {
+            throw new AccessDeniedException("Forbidden");
+        }
+    }
+
+    protected void checkCanEditStrategy(int programId, Integer strategyId) {
+        // Is new strategy: must have right on program
+        if (strategyId == null) {
+            checkCanEditProgram(programId);
+            return;
+        }
+
+        // Admin can edit strategy
+        if (authService.isAdmin()) return; // OK
+
+        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+        boolean isManager =
+                // Program manager
+                programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
+                || programService.hasDepartmentPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
+                // Strategy manager
+                || strategyService.hasUserPrivilege(strategyId, user.getId(), ProgramPrivilegeEnum.MANAGER)
+                || strategyService.hasDepartmentPrivilege(strategyId, user.getDepartment().getId(), ProgramPrivilegeEnum.MANAGER);
+        if (!isManager) {
+            throw new AccessDeniedException("Forbidden");
+        }
+    }
+
+    protected void checkCanDeleteStrategy(int programId, Integer strategyId) {
+        checkCanEditStrategy(programId, strategyId);
+    }
+
+    /**
+     * Check user is admin
+     */
+    protected void checkIsAdmin(String message) {
+        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Forbidden");
     }
 }

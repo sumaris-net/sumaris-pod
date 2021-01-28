@@ -31,7 +31,8 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SampleMeasurement;
 import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.data.sample.SampleFetchOptions;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.SampleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -61,6 +62,12 @@ public class SampleServiceImpl implements SampleService {
 	@Override
 	public List<SampleVO> getAllByOperationId(int operationId) {
 		return sampleRepository.findAll(SampleFilterVO.builder().operationId(operationId).build());
+	}
+
+	@Override
+	public List<SampleVO> getAllByOperationId(int operationId, SampleFetchOptions fetchOptions) {
+		return sampleRepository.findAll(SampleFilterVO.builder().operationId(operationId).build(),
+				fetchOptions);
 	}
 
 	@Override

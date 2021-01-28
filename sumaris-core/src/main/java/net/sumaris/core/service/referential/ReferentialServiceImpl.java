@@ -25,10 +25,12 @@ package net.sumaris.core.service.referential;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -36,8 +38,10 @@ import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,6 +53,9 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Autowired
 	protected ReferentialDao referentialDao;
+
+	@Autowired
+	protected GenericConversionService conversionService;
 
 	@Override
 	public Date getLastUpdateDate() {
@@ -81,20 +88,20 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
-	public List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
 		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
 				sortDirection);
 	}
 
 	@Override
-	public List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size) {
+	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size) {
 		return findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
 				IItemReferentialEntity.Fields.LABEL,
 				SortDirection.ASC);
 	}
 
 	@Override
-	public Long countByFilter(String entityName, ReferentialFilterVO filter) {
+	public Long countByFilter(String entityName, IReferentialFilter filter) {
 		Preconditions.checkNotNull(entityName);
 		if (filter == null) {
 			return count(entityName);
@@ -151,5 +158,14 @@ public class ReferentialServiceImpl implements ReferentialService {
 		return beans.stream()
 				.map(this::save)
 				.collect(Collectors.toList());
+	}
+
+	@PostConstruct
+	private void initConverters() {
+
+		// Entity->ReferentialVO converters
+		ReferentialEntities.REFERENTIAL_CLASSES.forEach(entityClass -> {
+			conversionService.addConverter(entityClass, ReferentialVO.class, referentialDao::toVO);
+		});
 	}
 }

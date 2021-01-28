@@ -60,7 +60,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
     @Test
     public void getAll() {
         ExtractionProductFilterVO filter = new ExtractionProductFilterVO();
-        filter.setStatusIds(new Integer[]{getConfig().getStatusIdTemporary(), getConfig().getStatusIdValid()});
+        filter.setStatusIds(new Integer[]{config.getStatusIdTemporary(), config.getStatusIdValid()});
         List<ExtractionProductVO> products = repository.findAll(filter);
         Assert.assertNotNull(products);
         Assert.assertEquals(1, products.size());
@@ -68,7 +68,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
 
     @Test
     public void delete() {
-        Integer id = dbResource.getFixtures().getProductId(0);
+        Integer id = fixtures.getProductId(0);
         repository.deleteById(id);
 
     }
@@ -81,22 +81,22 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
         source.setStatusId(StatusEnum.ENABLE.getId());
 
         DepartmentVO dep = new DepartmentVO();
-        dep.setId(dbResource.getFixtures().getDepartmentId(0));
+        dep.setId(fixtures.getDepartmentId(0));
         source.setRecorderDepartment(dep);
 
-        List<ExtractionProductTableVO> tables = Lists.newArrayList();
+        List<ExtractionTableVO> tables = Lists.newArrayList();
         // TR
         {
-            ExtractionProductTableVO table = new ExtractionProductTableVO();
+            ExtractionTableVO table = new ExtractionTableVO();
             table.setLabel("TR");
             table.setName("Trip");
             table.setTableName("P01_RDB_TRIP");
 
-            List<ExtractionProductColumnVO> columns = Lists.newArrayList();
+            List<ExtractionTableColumnVO> columns = Lists.newArrayList();
 
             // TR.YEAR
             {
-                ExtractionProductColumnVO column = new ExtractionProductColumnVO();
+                ExtractionTableColumnVO column = new ExtractionTableColumnVO();
                 column.setLabel("year");
                 column.setName("year");
                 column.setColumnName("year");
@@ -107,7 +107,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
 
             // TR.PROJECT
             {
-                ExtractionProductColumnVO column = new ExtractionProductColumnVO();
+                ExtractionTableColumnVO column = new ExtractionTableColumnVO();
                 column.setLabel("project");
                 column.setName("project");
                 column.setColumnName("project");
@@ -121,7 +121,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
 
         // HH
         {
-            ExtractionProductTableVO table = new ExtractionProductTableVO();
+            ExtractionTableVO table = new ExtractionTableVO();
             table.setLabel("HH");
             table.setName("Station");
             table.setTableName("P01_RDB_STATION");
@@ -130,9 +130,9 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
         source.setTables(tables);
 
         // Stratum
-        List<ExtractionProductStrataVO> stratum = Lists.newArrayList();
+        List<AggregationStrataVO> stratum = Lists.newArrayList();
         {
-            ExtractionProductStrataVO strata = new ExtractionProductStrataVO();
+            AggregationStrataVO strata = new AggregationStrataVO();
             strata.setLabel("default");
             strata.setSheetName("TR");
             stratum.add(strata);

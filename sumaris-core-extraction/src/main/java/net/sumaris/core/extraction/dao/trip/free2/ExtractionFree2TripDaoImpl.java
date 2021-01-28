@@ -28,7 +28,8 @@ import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.core.extraction.specification.Free2Specification;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.specification.data.trip.Free2Specification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.free2.ExtractionFree2ContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -49,8 +50,9 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionFree2TripDao")
 @Lazy
-public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> extends ExtractionRdbTripDaoImpl<C>
-        implements ExtractionFree2TripDao, Free2Specification {
+public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F extends ExtractionFilterVO>
+        extends ExtractionRdbTripDaoImpl<C, F>
+        implements ExtractionFree2TripDao<C, F>, Free2Specification {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionFree2TripDaoImpl.class);
 
@@ -72,14 +74,13 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
     protected ExtractionTableDao extractionTableDao;
 
     @Override
-    public C execute(ExtractionFilterVO filter) {
+    public <R extends C> R execute(F filter) {
         String sheetName = filter != null ? filter.getSheetName() : null;
 
-        C context = super.execute(filter);
+        R context = super.execute(filter);
 
         // Override some context properties
-        context.setFormatName(FORMAT);
-        context.setFormatVersion(VERSION_1_9);
+        context.setFormat(LiveFormatEnum.FREE2);
 
         // Stop here, if sheet already filled
         if (sheetName != null && context.hasSheet(sheetName)) return context;
@@ -151,19 +152,19 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
 
         // Program tripFilter
         xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
-        xmlQuery.bind("progLabels", Daos.getSqlInValueFromStringCollection(context.getProgramLabels()));
+        xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
 
         // Location Filter
         xmlQuery.setGroup("locationFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
-        xmlQuery.bind("locationIds", Daos.getSqlInValueFromIntegerCollection(context.getLocationIds()));
+        xmlQuery.bind("locationIds", Daos.getSqlInNumbers(context.getLocationIds()));
 
         // Recorder Department tripFilter
         xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
-        xmlQuery.bind("recDepIds", Daos.getSqlInValueFromIntegerCollection(context.getRecorderDepartmentIds()));
+        xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
 
         // Vessel tripFilter
         xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
-        xmlQuery.bind("vesselIds", Daos.getSqlInValueFromIntegerCollection(context.getVesselIds()));
+        xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
 
         return xmlQuery;
     }
@@ -364,7 +365,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO> exte
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormatVersion());
+        Preconditions.checkNotNull(context.getVersion());
 
         String versionStr = VERSION_1_9.replaceAll("[.]", "_");
         switch (queryName) {

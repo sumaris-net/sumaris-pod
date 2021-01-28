@@ -26,12 +26,14 @@ package net.sumaris.core.test;
 
 
 import net.sf.ehcache.CacheManager;
+import net.sumaris.core.config.SumarisConfiguration;
 import org.hibernate.Session;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
@@ -40,7 +42,6 @@ import javax.persistence.EntityManager;
 /**
  * <p>Abstract AbstractDaoTest class.</p>
  */
-
 public abstract class AbstractDaoTest {
 
 	/** Logger. */
@@ -51,13 +52,17 @@ public abstract class AbstractDaoTest {
 	private boolean commitOnTearDown = true;
 
 	@Autowired
-	private PlatformTransactionManager transactionManager;
+	protected SumarisConfiguration config;
 
 	@Autowired
-	private EntityManager entityManager;
+	protected PlatformTransactionManager transactionManager;
+
+	@Autowired
+	protected EntityManager entityManager;
 
 	@Autowired(required = false)
 	protected CacheManager cacheManager;
+
 	/**
 	 * <p>setUp.</p>
 	 *
@@ -112,12 +117,4 @@ public abstract class AbstractDaoTest {
 		status = transactionManager.getTransaction(null);
 	}
 
-	/**
-	 * <p>getEntityManager.</p>
-	 *
-	 * @return a {@link Session} object.
-	 */
-	protected EntityManager getEntityManager() {
-		return entityManager;
-	}
 }

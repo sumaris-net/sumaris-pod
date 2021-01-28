@@ -24,8 +24,9 @@ package net.sumaris.core.dao.technical.extraction;
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
@@ -37,8 +38,9 @@ import java.util.List;
 public interface ExtractionProductSpecifications {
 
     String DEPARTMENT_ID_PARAM = "departmentId";
+    String PERSON_ID_ID_PARAM = "personId";
 
-    default Specification<ExtractionProduct> withDepartmentId(Integer departmentId) {
+    default Specification<ExtractionProduct> withRecorderDepartmentId(Integer departmentId) {
         BindableSpecification<ExtractionProduct> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> parameter = criteriaBuilder.parameter(Integer.class, DEPARTMENT_ID_PARAM);
             return criteriaBuilder.or(
@@ -51,6 +53,24 @@ public interface ExtractionProductSpecifications {
     }
 
 
-    List<ExtractionProductColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel);
+    default Specification<ExtractionProduct> withRecorderPersonIdOrPublic(Integer personId) {
+        BindableSpecification<ExtractionProduct> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> parameter = criteriaBuilder.parameter(Integer.class, PERSON_ID_ID_PARAM);
+            return criteriaBuilder.or(
+                    criteriaBuilder.isNull(parameter),
+                    // ENABLE = public extraction type
+                    criteriaBuilder.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.ENABLE.getId()),
+                    // TEMPORARY = private extraction
+                    criteriaBuilder.and(
+                        criteriaBuilder.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.TEMPORARY.getId()),
+                        criteriaBuilder.equal(root.get(ExtractionProduct.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), parameter)
+                    )
+            );
+        });
+        specification.addBind(PERSON_ID_ID_PARAM, personId);
+        return specification;
+    }
+
+    List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel);
 
 }
