@@ -50,9 +50,6 @@
       EXISTS (SELECT 1 FROM &amp;strategyTableName S WHERE S.PROGRAM_ID=P.ID)
     </where>
 
-    <where operator="AND" group="idsFilter">
-      <in field="P.ID"><![CDATA[&ids]]></in>
-    </where>
     <where operator="AND" group="labelsFilter">
       <in field="P.LABEL"><![CDATA[&labels]]></in>
     </where>

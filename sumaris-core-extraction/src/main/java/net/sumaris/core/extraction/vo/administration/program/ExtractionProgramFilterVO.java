@@ -45,8 +45,6 @@ public class ExtractionProgramFilterVO implements IRootDataFilter {
 
     private Date endDate;
 
-    private Integer programId;
-
     private String programLabel;
 
     private List<Integer> strategyIds;
@@ -62,7 +60,6 @@ public class ExtractionProgramFilterVO implements IRootDataFilter {
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;
         StringBuilder sb = new StringBuilder();
-        if (this.getProgramId() != null) sb.append(separator).append("Program (id): ").append(this.getProgramId());
         if (this.getProgramLabel() != null) sb.append(separator).append("Program (label): ").append(this.getProgramLabel());
         if (this.getStrategyIds() != null) sb.append(separator).append("Strategies (id): ").append(this.getStrategyIds());
         if (this.getStrategyLabels() != null) sb.append(separator).append("Strategies (label): ").append(this.getStrategyLabels());

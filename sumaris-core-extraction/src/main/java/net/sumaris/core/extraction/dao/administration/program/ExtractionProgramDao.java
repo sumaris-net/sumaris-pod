@@ -40,6 +40,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -58,49 +59,61 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
         Beans.copyProperties(source, target);
         target.setPreview(source.isPreview());
 
-        if (CollectionUtils.isNotEmpty(source.getCriteria())) {
-
-            source.getCriteria().stream()
-                    .filter(criterion -> StringUtils.isNotBlank(criterion.getValue()))
-                    .forEach(criterion -> {
-                        switch (criterion.getName().toLowerCase()) {
-                            case ProgSpecification.COLUMN_PROJECT:
-                                if (ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator())) {
-                                    target.setProgramLabel(criterion.getValue());
-                                }
-                                break;
-                            case ProgSpecification.COLUMN_STRATEGY:
-                                if (ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator())) {
-                                    target.setStrategyLabels(ImmutableList.of(criterion.getValue()));
-                                }
-                                break;
-                            case ProgSpecification.COLUMN_START_DATE:
-                                if (ExtractionFilterOperatorEnum.GREATER_THAN_OR_EQUALS.getSymbol().equals(criterion.getOperator())) {
-                                    Date startDate = Dates.fromISODateTimeString(criterion.getValue());
-                                    target.setStartDate(startDate);
-                                }
-                                break;
-                            case ProgSpecification.COLUMN_END_DATE:
-                                if (ExtractionFilterOperatorEnum.LESS_THAN_OR_EQUALS.getSymbol().equals(criterion.getOperator())) {
-                                    Date endDate = Dates.fromISODateTimeString(criterion.getValue());
-                                    target.setEndDate(endDate);
-                                }
-                                break;
+        Beans.getStream(source.getCriteria()).forEach(criterion -> {
+            ExtractionFilterOperatorEnum operator = ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
+            if (StringUtils.isNotBlank(criterion.getValue())) {
+                switch (criterion.getName().toLowerCase()) {
+                    case ProgSpecification.COLUMN_PROJECT:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setProgramLabel(criterion.getValue());
                         }
-                    });
-
-            source.getCriteria().stream()
-                    .filter(criterion -> ArrayUtils.isNotEmpty(criterion.getValues()))
-                    .forEach(criterion -> {
-                        switch (criterion.getName().toLowerCase()) {
-                            case ProgSpecification.COLUMN_STRATEGY:
-                                if (ExtractionFilterOperatorEnum.IN.getSymbol().equals(criterion.getOperator())) {
-                                    target.setStrategyLabels(Arrays.asList(criterion.getValues()));
-                                }
-                                break;
+                        break;
+                    case ProgSpecification.COLUMN_STRATEGY:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setStrategyLabels(ImmutableList.of(criterion.getValue()));
                         }
-                    });
-        }
+                        break;
+                    case ProgSpecification.COLUMN_START_DATE:
+                        if (operator == ExtractionFilterOperatorEnum.GREATER_THAN_OR_EQUALS) {
+                            Date startDate = Dates.fromISODateTimeString(criterion.getValue());
+                            target.setStartDate(startDate);
+                        }
+                        else if (operator == ExtractionFilterOperatorEnum.GREATER_THAN) {
+                            Date startDate = Dates.fromISODateTimeString(criterion.getValue());
+                            // All 1 millisecond, because target.endDate will always applied a >=
+                            target.setStartDate(Dates.addMilliseconds(startDate, 1));
+                        }
+                        break;
+                    case ProgSpecification.COLUMN_END_DATE:
+                        if (operator == ExtractionFilterOperatorEnum.LESS_THAN_OR_EQUALS) {
+                            Date endDate = Dates.fromISODateTimeString(criterion.getValue());
+                            target.setEndDate(endDate);
+                        }
+                        else if (operator == ExtractionFilterOperatorEnum.LESS_THAN) {
+                            Date endDate = Dates.fromISODateTimeString(criterion.getValue());
+                            // Remove 1 millisecond, because target.endDate will always applied a <=
+                            target.setEndDate(Dates.addMilliseconds(endDate, -1));
+                        }
+                        break;
+                }
+            }
+            else if (operator == ExtractionFilterOperatorEnum.IN && ArrayUtils.isNotEmpty(criterion.getValues())) {
+                switch (criterion.getName().toLowerCase()) {
+                    case ProgSpecification.COLUMN_PROJECT:
+                        target.setProgramLabel(criterion.getValue());
+                        break;
+                    case ProgSpecification.COLUMN_STRATEGY:
+                        target.setStrategyLabels(Arrays.asList(criterion.getValues()));
+                        break;
+                    case ProgSpecification.COLUMN_STRATEGY_ID:
+                        List<Integer> strategyIds = Arrays.stream(criterion.getValues())
+                                .map(Integer::parseInt)
+                                .collect(Collectors.toList());
+                        target.setStrategyIds(strategyIds);
+                        break;
+                }
+            }
+        });
         return target;
     }
 

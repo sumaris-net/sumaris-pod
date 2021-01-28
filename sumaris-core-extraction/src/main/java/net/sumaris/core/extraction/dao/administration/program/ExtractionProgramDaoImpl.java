@@ -206,10 +206,6 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         xmlQuery.bind("programTableName", context.getProgramTableName());
         xmlQuery.bind("strategyTableName", context.getStrategyTableName());
 
-        // Ids Filter
-        xmlQuery.setGroup("idsFilter", CollectionUtils.isNotEmpty(context.getProgramIds()));
-        xmlQuery.bind("ids", Daos.getSqlInNumbers(context.getProgramIds()));
-
         // Labels Filter
         xmlQuery.setGroup("labelsFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
         xmlQuery.bind("labels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
@@ -249,6 +245,10 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
     protected XMLQuery createStrategyQuery(C context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createStrategyTable");
         xmlQuery.bind("strategyTableName", context.getStrategyTableName());
+
+        // Program labels Filter
+        xmlQuery.setGroup("programLabelsFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
+        xmlQuery.bind("programLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
 
         // Ids Filter
         xmlQuery.setGroup("idsFilter", CollectionUtils.isNotEmpty(context.getStrategyIds()));

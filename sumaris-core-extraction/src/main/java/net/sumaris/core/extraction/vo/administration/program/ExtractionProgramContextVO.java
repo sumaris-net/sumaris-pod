@@ -61,10 +61,6 @@ public class ExtractionProgramContextVO extends ExtractionContextVO {
         return programFilter != null ? programFilter.getEndDate() : null;
     }
 
-    public List<Integer> getProgramIds() {
-        return programFilter != null && programFilter.getProgramId() != null ? ImmutableList.of(programFilter.getProgramId()) : null;
-    }
-
     public List<String> getProgramLabels() {
         return programFilter != null && StringUtils.isNotBlank(programFilter.getProgramLabel()) ? ImmutableList.of(programFilter.getProgramLabel()) : null;
     }

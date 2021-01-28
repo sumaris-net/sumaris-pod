@@ -35,6 +35,7 @@ public interface ProgSpecification {
 
     String COLUMN_PROJECT = "project";
     String COLUMN_STRATEGY = "strategy";
+    String COLUMN_STRATEGY_ID = "strategy_id";
     String COLUMN_START_DATE = "start_date";
     String COLUMN_END_DATE = "end_date";
 

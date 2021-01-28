@@ -50,6 +50,10 @@
     <from join="true">LEFT OUTER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
 
     <where>1=1</where>
+    <where operator="AND" group="programLabelsFilter">
+      <in field="P.LABEL"><![CDATA[&programLabels]]></in>
+    </where>
+
     <where operator="AND" group="idsFilter">
       <in field="S.ID"><![CDATA[&ids]]></in>
     </where>
