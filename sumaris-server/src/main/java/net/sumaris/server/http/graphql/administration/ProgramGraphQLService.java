@@ -285,8 +285,12 @@ public class ProgramGraphQLService {
     protected StrategyFetchOptions getStrategyFetchOptions(Set<String> fields) {
         return StrategyFetchOptions.builder()
                 .withPmfmStrategyInheritance(
-                        fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.LABEL))
-                        && !fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.PMFM))
+                        // Teas each field from PMFM inheritance
+                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.LABEL)) ||
+                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.TYPE)) ||
+                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.UNIT_LABEL)) ||
+                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS)) ||
+                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER))
                 )
                 .build();
     }

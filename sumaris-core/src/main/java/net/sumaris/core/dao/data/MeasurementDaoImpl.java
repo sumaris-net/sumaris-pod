@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -32,6 +33,7 @@ import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -745,17 +747,16 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         // Remember existing measurements, to be able to remove unused measurements
         // note: Need Beans.getList() to avoid NullPointerException if target=null
-        final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target),
+        final ListMultimap<Integer, T> existingSources = Beans.splitByNotUniqueProperty(Beans.getList(target),
             StringUtils.doting(IMeasurementEntity.Fields.PMFM, IMeasurementEntity.Fields.ID));
-
+        List<T> sourcesToRemove = Beans.getList(existingSources.values());
         short rankOrder = 1;
-        for (Map.Entry<Integer, String> source: sources.entrySet()) {
-            Integer pmfmId = source.getKey();
-            String value = source.getValue();
+        for (Integer pmfmId: sources.keySet()) {
+            String value = sources.get(pmfmId);
 
             if (StringUtils.isNotBlank(value)) {
                 // Get existing meas and remove it from list to remove
-                IMeasurementEntity entity = sourceToRemove.remove(pmfmId);
+                IMeasurementEntity entity = existingSources.containsKey(pmfmId) ? existingSources.get(pmfmId).get(0) : null;
 
                 // Exists ?
                 boolean isNew = (entity == null);
@@ -765,6 +766,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                     } catch (IllegalAccessException | InstantiationException e) {
                         throw new SumarisTechnicalException(e);
                     }
+                }
+                else {
+                    sourcesToRemove.remove(entity);
                 }
 
                 // Make sure to set pmfm
@@ -806,8 +810,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
 
         // Remove unused measurements
-        if (MapUtils.isNotEmpty(sourceToRemove)) {
-            sourceToRemove.values().stream()
+        if (CollectionUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.stream()
                 // if the measurement is part of the sources
                 .filter(entity -> sources.containsKey(entity.getPmfm().getId()))
                 .forEach(entity -> getEntityManager().remove(entity));
