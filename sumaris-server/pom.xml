@@ -340,7 +340,7 @@
             </goals>
             <configuration>
               <file>${project.build.directory}/${project.artifactId}-${project.version}.${project.packaging}</file>
-              <groupId>fr.ifremer</groupId>
+              <groupId>fr.ifremer.sumaris</groupId>
               <artifactId>${project.artifactId}</artifactId>
               <version>${project.version}</version>
               <url>https://nexus-test.ifremer.fr/repository/hosted-maven-private-snapshot/</url>
