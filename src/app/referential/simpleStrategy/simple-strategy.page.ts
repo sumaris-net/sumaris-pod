@@ -21,6 +21,7 @@ import {firstNotNilPromise} from "../../shared/observables";
 import {BehaviorSubject} from "rxjs";
 import {Program} from "../services/model/program.model";
 import {ProgramService} from "../services/program.service";
+import { AcquisitionLevelCodes, PmfmIds } from "../services/model/model.enum";
 
 
 @Component({
@@ -205,23 +206,25 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       //
     }
 
+    //TODO
+    let i = 1;
     // Add all mandatory fields
     data.pmfmStrategies = pmfmStrategies.map(pmfm => {
-      pmfm.acquisitionLevel = 'SAMPLE';
+      pmfm.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
       pmfm.parameter = null;
       pmfm.acquisitionNumber = 1;
       pmfm.isMandatory = false;
-      pmfm.rankOrder = 1;
+      pmfm.rankOrder = i++;
       return pmfm;
     });
   
     //TODO
     const pmfm = this.createNewPmfmStrategy(data);
-    pmfm.pmfmId = 0;
-    pmfm.acquisitionLevel = 'LANDING';
+    pmfm.pmfmId = PmfmIds.STRATEGY_LABEL;
+    pmfm.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     pmfm.isMandatory = true;
     pmfm.acquisitionNumber = 1;
-    pmfm.rankOrder = 1;
+    pmfm.rankOrder = i++;
     data.pmfmStrategies.push(pmfm);
 
     //--------------------------------------------------------------------------------------------------------------------

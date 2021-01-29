@@ -27,7 +27,7 @@ import { AppForm } from "../../core/form/form.class";
 import { FormArrayHelper } from "../../core/form/form.utils";
 import { EntityUtils } from "../../core/services/model/entity.model";
 import { PmfmUtils } from "../services/model/pmfm.model";
-import { isNil, suggestFromArray } from "../../shared/functions";
+import { isNil, removeDuplicatesFromArray, suggestFromArray } from "../../shared/functions";
 import { StatusIds } from "../../core/services/model/model.enum";
 import { ProgramProperties } from "../services/config/program.config";
 import { BehaviorSubject, merge } from "rxjs";
@@ -123,7 +123,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   analyticsReferenceItems: BehaviorSubject<string[]> = new BehaviorSubject<string[]>(null);
   locationItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
-  departementItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
+  departmentItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
   fractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
   taxonItems: BehaviorSubject<TaxonNameRef[]> = new BehaviorSubject<TaxonNameRef[]>(null);
 
@@ -156,45 +156,74 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   async loadFilteredItems(program: Program): Promise<void> {
-    
+
     const items = await this.denormalizeStrategyService.loadAll(0, 20, "label", 'asc', {
       levelId: program.id
     });
 
     const data = (items.data || []);
 
-    // TODO : Voir graphQL /analyticsRefence => erreur
-    const analyticReferences =  [];
-    // const promises = await Promise.all(
-    //   data.map((i) => this.strategyService.loadAllAnalyticReferences(0, 1, 'name', 'asc', {name: i.analyticReference}))
-    // );
-    // promises.map(r => analyticReferences.push(r));
-    this.analyticsReferenceItems.next(analyticReferences);
+    //DEPARTMENTS
+    const departments: ReferentialRef[] = removeDuplicatesFromArray(
+    data.reduce((res, strategy): StrategyDepartment[] => {
+      return res.concat(...strategy.departments)
+    }, [])
+    .reduce((res, department: StrategyDepartment): ReferentialRef[] => {
+      return res.concat([department.department])
+    }, [])
+    , 'id');
+    this.departmentItems.next(departments);
 
-    //TODO : Supprimer les doublons sur chaque listes
-    // TODO : Revoir le code
-    let fractions = [];
-    data.map(i => i.pmfmStrategies.filter(p => !p.pmfm).forEach(fraction => fractions.push(fraction)));
-    const promises = await Promise.all(
-      fractions.map((i) => this.referentialRefService.loadAll(0, 1, null, null, {id: i.fractionId, entityName: 'Fraction'}))
-    );
-    fractions = [];
-    promises.map(r => r.data.forEach(f => fractions.push(f)));
-    this.fractionItems.next(fractions);
-
-    const appliedStrategies = data.map(i => i.appliedStrategies);
-    const locations = [];
-    const departements = [];
-
-    appliedStrategies.forEach(a => a.forEach(b => locations.push(b.location)));
-    data.map(i => i.departments.forEach(departement => departements.push(departement.department)));
-    
-    const taxons = data.map(i => i.taxonNames[0]?.taxonName).filter(t => t !== undefined);
-
+    //LOCATIONS
+    const locations: ReferentialRef[] = removeDuplicatesFromArray(
+    data.reduce((res, strategy): AppliedStrategy[] => {
+      return res.concat(...strategy.appliedStrategies)
+    }, [])
+    .reduce((res, appliedStrategy: AppliedStrategy): ReferentialRef[] => {
+      return res.concat([appliedStrategy.location])
+    }, []), 'id');
     this.locationItems.next(locations);
-    this.departementItems.next(departements);
-    // this.fractionItems.next(fractions);
+
+    //TAXONS
+    const taxons: TaxonNameRef[] = removeDuplicatesFromArray(
+    data.reduce((res, strategy): TaxonNameStrategy[] => {
+      return res.concat(...strategy.taxonNames)
+    }, [])
+    .reduce((res, taxonName: TaxonNameStrategy): TaxonNameRef[] => {
+      return res.concat([taxonName.taxonName])
+    }, []), 'id');
     this.taxonItems.next(taxons);
+
+    //FRACTIONS
+    const fractions: number[] = removeDuplicatesFromArray(
+    data.reduce((res, strategy): PmfmStrategy[] => {
+      return res.concat(...strategy.pmfmStrategies)
+    }, [])
+    .reduce((res, pmfmStrategie: PmfmStrategy): number[] => {
+      return res.concat([pmfmStrategie.fractionId])
+    }, []));
+    
+    const promises = await Promise.all(
+      fractions.map((fractionId) => this.referentialRefService.loadAll(0, 1, null, null, { id: fractionId, entityName: 'Fraction' }))
+    );
+    this.fractionItems.next(
+      promises.reduce((res, fraction) => {
+        return res.concat(...fraction.data)
+      }, [])
+    );
+
+    // ANALYTICREFERENCES
+    // TODO : Voir graphQL /analyticsRefence => erreur
+    const analyticReferences = [];
+    try {
+      const promises = await Promise.all(
+        data.map((i) => this.strategyService.loadAllAnalyticReferences(0, 1, 'name', 'asc', {name: i.analyticReference}))
+      );
+      promises.map(r => analyticReferences.push(r));
+    } catch(err) {
+      console.debug('Error on load AnalyticReference');
+    }
+    this.analyticsReferenceItems.next(analyticReferences);
   }
 
   async setPmfmStrategies() {
@@ -400,7 +429,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   protected async suggestDepartements(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
     if (this.filterEnabled && this.enableDepartmentFilter) {
-      const res = await suggestFromArray(this.departementItems.getValue(), null,
+      const res = await suggestFromArray(this.departmentItems.getValue(), null,
         {
           ...filter,
           entityName: entityName
