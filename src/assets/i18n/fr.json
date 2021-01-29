@@ -821,6 +821,7 @@
         "TITLE": "Navire {{vessel}}",
         "STRATEGY": "Ligne de plan :",
         "STRATEGY_PLACEHOLDER": "Code ligne de plan",
+        "LOCATION": "Port de débarquement",
         "STRATEGY_LOCATIONS" :"Zone(s) de pêche :",
         "STRATEGY_LOCATION_PLACEHOLDER" :"Zone de pêche",
         "STRATEGY_TAXON_NAMES" :"Espèce cible :",
