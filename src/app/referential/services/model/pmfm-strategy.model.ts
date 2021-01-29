@@ -5,6 +5,7 @@ import {isNotNil, toNumber} from "../../../shared/functions";
 import { PmfmValue, PmfmValueUtils} from "./pmfm-value.model";
 import {MethodIds} from "./model.enum";
 import {DataEntity, DataEntityAsObjectOptions,} from "../../../data/services/model/data-entity.model";
+import { PmfmFilter } from "../pmfm.service";
 
 
 /**
@@ -15,6 +16,7 @@ import {DataEntity, DataEntityAsObjectOptions,} from "../../../data/services/mod
 export function getPmfmName(pmfm: PmfmStrategy, opts?: {
   withUnit?: boolean;
   html?: boolean;
+  withDetails?: boolean
 }): string {
   if (!pmfm) return undefined;
   const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
@@ -24,6 +26,14 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
       return `${name}<small><br/>(${pmfm.unitLabel})</small>`;
     }
     return `${name} (${pmfm.unitLabel})`;
+  }
+  if (opts && opts.withDetails) {
+    let label = name;
+    if(pmfm.pmfm && pmfm.pmfm.unit && pmfm.pmfm.unit.label && opts.withUnit){label += ` - ${pmfm.pmfm.unit.label}`}
+    if(pmfm.matrix && pmfm.matrix.name){label += ` - ${pmfm.matrix.name}`}
+    if(pmfm.fraction && pmfm.fraction.name){label += ` - ${pmfm.fraction.name}`}
+    if(pmfm.method && pmfm.method.name){label += ` - ${pmfm.method.name}`}
+    return label;
   }
   return name;
 }
@@ -55,6 +65,9 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
   methodId: number;
 
   parameter: ReferentialRef;
+  matrix: ReferentialRef;
+  fraction: ReferentialRef;
+  method: ReferentialRef;
 
   label: string;
   name: string;
