@@ -83,13 +83,13 @@
     <!-- ****** IMAGINE properties ****** -->
     <SOFTWARE_PROPERTY ID="100" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
     <SOFTWARE_PROPERTY ID="101" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="https://image.ifremer.fr/html/tmp/logo4.jpg"/>
-    <SOFTWARE_PROPERTY ID="102" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.OCCASION"/>
-    <SOFTWARE_PROPERTY ID="103" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="104" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00665/77740/md/31271.jpg"/>
-    <SOFTWARE_PROPERTY ID="105" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
-    <SOFTWARE_PROPERTY ID="106" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="107" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="108" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="109" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="102" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="103" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.OCCASION"/>
+    <SOFTWARE_PROPERTY ID="105" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00665/77740/md/31271.jpg"/>
+    <SOFTWARE_PROPERTY ID="106" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
+    <SOFTWARE_PROPERTY ID="107" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="108" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="109" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="110" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="true"/>
 
 </dataset>
