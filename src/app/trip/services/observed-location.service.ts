@@ -216,7 +216,7 @@ export const ObservedLocationFragments = {
 
 // Search query
 const LoadAllQuery: any = gql`
-  query ObservedLocations($filter: ObservedLocationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean){
+  query ObservedLocations($filter: ObservedLocationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean){
     observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash){
       ...LightObservedLocationFragment
     }
