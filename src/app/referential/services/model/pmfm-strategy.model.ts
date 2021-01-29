@@ -20,7 +20,13 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
 }): string {
   if (!pmfm) return undefined;
   const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
-  const name = matches && matches[1] || pmfm.name;
+  let name = matches && matches[1] || pmfm.name;
+  // Wen name is defined in pmfmStrategy.pmfm but not in pmfmStrategy
+  if (!name)
+  {
+    const matchesInPmfm = PMFM_NAME_REGEXP.exec(pmfm.pmfm.name || '');
+    name = matchesInPmfm && matchesInPmfm[1] || pmfm.pmfm.name;
+  }
   if ((!opts || opts.withUnit !== false) && pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')) {
     if (opts && opts.html) {
       return `${name}<small><br/>(${pmfm.unitLabel})</small>`;
