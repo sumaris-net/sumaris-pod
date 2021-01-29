@@ -214,6 +214,15 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       pmfm.rankOrder = 1;
       return pmfm;
     });
+  
+    //TODO
+    const pmfm = this.createNewPmfmStrategy(data);
+    pmfm.pmfmId = 0;
+    pmfm.acquisitionLevel = 'LANDING';
+    pmfm.isMandatory = true;
+    pmfm.acquisitionNumber = 1;
+    pmfm.rankOrder = 1;
+    data.pmfmStrategies.push(pmfm);
 
     //--------------------------------------------------------------------------------------------------------------------
     return data;

@@ -298,7 +298,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           }
         }),
         columnNames: pmfmColumnNames,
-        displayWith: (pmfm) => getPmfmName(pmfm, {withUnit: true}),
+        displayWith: (pmfm) => getPmfmName(pmfm, {withUnit: true, withDetails: !this.showHeaderRow}),
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })

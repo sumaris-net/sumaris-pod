@@ -50,10 +50,10 @@
 
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
-                  [disabled]="!canFilterEotp"
+                  [disabled]="!filterEnabled"
                   [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('eotp')"
-                  [color]="enableEotpFilter ? 'primary' : undefined">
+                  (click)="enableAnalyticReferenceFilter = !enableAnalyticReferenceFilter"
+                  [color]="enableAnalyticReferenceFilter && filterEnabled? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
           </button>
         </mat-autocomplete-field>
@@ -75,10 +75,10 @@
           [required]="true">
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
-                  [disabled]="!canFilterDepartment"
+                  [disabled]="!filterEnabled"
                   [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('department')"
-                  [color]="enableDepartmentFilter ? 'primary' : undefined">
+                  (click)="enableDepartmentFilter = !enableDepartmentFilter"
+                  [color]="enableDepartmentFilter && filterEnabled ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
           </button>
         </mat-autocomplete-field>
@@ -116,10 +116,10 @@
           [required]="true">
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
-                  [disabled]="!canFilterAppliedStrategy"
+                  [disabled]="!filterEnabled"
                   [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('appliedStrategy')"
-                  [color]="enableAppliedStrategyFilter ? 'primary' : undefined">
+                  (click)="enableAppliedStrategyFilter = !enableAppliedStrategyFilter"
+                  [color]="enableAppliedStrategyFilter && filterEnabled ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
           </button>
         </mat-autocomplete-field>
@@ -157,10 +157,10 @@
           [required]="true">
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
-                  [disabled]="!canFilterTaxonName"
+                  [disabled]="!filterEnabled"
                   [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('taxonName')"
-                  [color]="enableTaxonNameFilter ? 'primary' : undefined">
+                  (click)="enableTaxonNameFilter = !enableTaxonNameFilter"
+                  [color]="enableTaxonNameFilter && filterEnabled ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
           </button>
         </mat-autocomplete-field>
@@ -177,6 +177,7 @@
       <ion-col size="12" size-md="3" size-lg="2">
         <mat-date-short-field [placeholder]="i18nFieldPrefix + 'YEAR_PLACEHOLDER'|translate"
                               formControlName="year"
+                              (click)="$event.target.select()"
                               [required]="true" >
         </mat-date-short-field>
       </ion-col>
@@ -355,10 +356,10 @@
           [required]="false">
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
-                  [disabled]="!canFilterPmfmStrategiesFraction"
+                  [disabled]="!filterEnabled"
                   [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('pmfmStrategiesFraction')"
-                  [color]="enablePmfmStrategiesFractionFilter ? 'primary' : undefined">
+                  (click)="enablePmfmStrategiesFractionFilter = !enablePmfmStrategiesFractionFilter"
+                  [color]="enablePmfmStrategiesFractionFilter && filterEnabled ? 'primary' : undefined">
             <mat-icon>filter_list</mat-icon>
           </button>
 
