@@ -7,6 +7,9 @@ import {AppRootDataEditor} from "../form/root-data-editor.class";
 import {isNil} from "../../shared/functions";
 import {fadeInAnimation} from "../../shared/material/material.animations";
 import {Strategy} from "../../referential/services/model/strategy.model";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+
+export const STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX = 'PROGRAM.STRATEGY.SUMMARY.';
 
 @Component({
   selector: 'app-strategy-summary-card',
@@ -20,15 +23,20 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   private _debug = false;
   private _subscription = new Subscription();
 
-  data: T;
+  data: T = null;
   loading = true;
+  displayAttributes: { [key: string]: string[]; } = {
+    location: undefined,
+    taxonName: undefined,
+    taxonGroup: undefined,
+  };
 
   @Input() title: string;
+  @Input() i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX;
 
   @Input("value")
   set value(value: T) {
-    this.data = value;
-    this.updateView();
+    this.updateView(value);
   }
   get value(): T {
     return this.data;
@@ -38,9 +46,13 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
   constructor (
     protected router: Router,
+    protected localSettings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
 
+    Object.keys(this.displayAttributes).forEach(fieldName => {
+      this.displayAttributes[fieldName] = localSettings.getFieldDisplayAttributes(fieldName, ['label', 'name']);
+    });
     this._debug = !environment.production;
   }
 
@@ -55,7 +67,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
             merge(
                 this.editor.onUpdateView
             )
-            .subscribe(() => this.updateView(this.editor.data))
+            .subscribe(() => this.updateView())
         );
   }
 
@@ -66,11 +78,19 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   /* -- protected method -- */
 
   protected updateView(data?: T) {
+    data = data || this.data || (this.editor && this.editor.strategy as T)
 
-    this.data = data || this.data || (this.editor && this.editor.strategy as T);
-
-    this.loading = isNil(data) || isNil(data.id);
-    this.markForCheck();
+    if (isNil(data) || isNil(data.id)) {
+      this.loading = true;
+      this.data = null;
+      this.markForCheck();
+    }
+    else if (this.data !== data){
+      console.debug('[strategy-summary-card] updating view using strategy:', data);
+      this.data = data;
+      this.loading = false;
+      this.markForCheck();
+    }
   }
 
   protected markForCheck() {

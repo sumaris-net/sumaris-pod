@@ -38,7 +38,7 @@
           <ion-icon matPrefix name="boat"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="auto" class="ion-align-self-center">
+      <ion-col size="auto" class="ion-align-self-center" *ngIf="allowAddNewVessel">
         <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate" (click)="addVesselModal()"
                 type="button">
           <mat-icon>add</mat-icon>

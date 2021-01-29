@@ -25,6 +25,7 @@ import {
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/autocomplete/material.autocomplete";
+import {ProgramProperties} from "../../referential/services/config/program.config";
 
 @Component({
   selector: 'app-landing-form',
@@ -50,6 +51,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showError = true;
   @Input() showButtons = true;
   @Input() locationLevelIds: number[];
+  @Input() allowAddNewVessel: boolean;
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {

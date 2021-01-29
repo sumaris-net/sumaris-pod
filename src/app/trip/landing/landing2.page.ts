@@ -10,11 +10,11 @@ import {
 } from '@angular/core';
 import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
-import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
-import {distinctUntilChanged, filter, map, throttleTime} from "rxjs/operators";
+import {merge, Observable, Subscription} from "rxjs";
+import {filter, map, throttleTime} from "rxjs/operators";
 import {environment} from "../../../environments/environment";
 import {AppEditorOptions} from "../../core/form/editor.class";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
@@ -38,7 +38,10 @@ import {fromDateISOString} from "../../shared/dates";
 import {Program} from "../../referential/services/model/program.model";
 import {firstNotNilPromise} from "../../shared/observables";
 import {Strategy} from "../../referential/services/model/strategy.model";
-import {StrategySummaryCardComponent} from "../../data/strategy/strategy-summary-card.component";
+import {
+  STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX,
+  StrategySummaryCardComponent
+} from "../../data/strategy/strategy-summary-card.component";
 
 
 const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
@@ -101,7 +104,6 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
     this.strategyService = injector.get(StrategyService);
-
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
@@ -293,6 +295,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     // Customize the UI, using program options
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+    this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
 
     // TODO: use program properties ?
     this.landingForm.showStrategy = true;
@@ -302,23 +305,26 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       this.moveTabContent();
     }
 
-    this.i18nPrefix = DEFAULT_I18N_PREFIX;
-    const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    this.i18nPrefix += (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
+    this.i18nPrefix = DEFAULT_I18N_PREFIX + i18nSuffix;
     this.landingForm.i18nPrefix = this.i18nPrefix;
+    this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
 
     this.samplesTable.program = program.label;
 
   }
 
   protected async setStrategy(strategy: Strategy) {
+    if (!strategy) return; // Skip if empty
 
     this.landingForm.strategy = strategy;
 
-    //this.strategyCard.value = strategy;
+    this.strategyCard.value = strategy;
 
     // Set table defaults
-    this.samplesTable.defaultTaxonName = firstArrayValue(strategy.taxonNames);
+    const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
+    this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
     this.samplesTable.pmfms = strategy.pmfmStrategies;
   }
 

@@ -13,6 +13,7 @@ build_dev:
   only:
     - develop
     - develop-ifremer
+    - develop-imagine
   except:
     - schedules
 
@@ -26,6 +27,7 @@ build_dev_and_zip:
   only:
     - develop
     - develop-ifremer
+    - develop-imagine
   when: manual
 
 .build_and_zip:

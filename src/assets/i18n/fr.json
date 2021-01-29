@@ -570,7 +570,7 @@
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "WEIGHT": "Poids (kg)",
         "INDIVIDUAL_COUNT": "Nombre individus",
-        "INDIVIDUAL_SAMPLING": "Echantillonage",
+        "INDIVIDUAL_SAMPLING": "Echantillonnage",
         "PRODUCT_SALE": "Ventes"
       },
       "SALE": {
@@ -681,7 +681,7 @@
           "TAXON_NAME_PLACEHOLDER": "Code espèce",
           "SAMPLE_DATE": "Date/Heure de la mesure",
           "PARENT": "Echantillon parent",
-          "SAMPLE_CODE": "Ligne de plan",
+          "SAMPLE_CODE": "Code prélèvement",
           "SAMPLE_CODE_PLACEHOLDER": "Ligne de plan",
           "MORSE_CODE": "Code Morse",
           "MORSE_CODE_PLACEHOLDER": "Code Morse",
@@ -698,13 +698,6 @@
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
-      }
-    },
-    "SAMPLE2": {
-      "TABLE": {
-        "SAMPLE_CODE": "Code prélèvement",
-        "MORSE_CODE": "Code Morse",
-        "COMMENT" : "Commentaire"
       }
     }
   },
@@ -763,7 +756,7 @@
       "OBSERVER_PLACEHOLDER": "Observateur #",
       "OBSERVERS": "Observateurs :",
       "SAMPLING": {
-        "TAB_LANDINGS": "Echantillonages"
+        "TAB_LANDINGS": "Échantillonnages"
       }
     },
     "SELECT_VESSEL_MODAL": {
@@ -805,14 +798,11 @@
       "PROGRAM": "Programme",
       "STRATEGY": "Stratégie :",
       "STRATEGY_PLACEHOLDER": "Stratégie",
-      "STRATEGY_LOCATIONS" :"Lieux applicables :",
-      "STRATEGY_LOCATION_PLACEHOLDER" :"Lieu d'application",
-      "STRATEGY_TAXON_NAME_PLACEHOLDER" :"Espèce scientifique",
-      "STRATEGY_TAXON_NAMES" :"Espèces :",
+      "STRATEGY_SUMMARY_TITLE": "Stratégie appliquée",
       "VESSEL": "Navire",
       "LANDING": "Débarquement :",
       "DATE_TIME": "Date/Heure",
-      "LOCATION": "Lieu d'échantillonnage",
+      "LOCATION": "Lieu de débarquement",
       "OBSERVERS": "Observateurs :",
       "OBSERVER_PLACEHOLDER": "Observateur #",
       "OTHER_FEATURES": "Autres caractéristiques :",
@@ -821,12 +811,9 @@
         "TITLE": "Navire {{vessel}}",
         "STRATEGY": "Ligne de plan :",
         "STRATEGY_PLACEHOLDER": "Code ligne de plan",
-        "LOCATION": "Port de débarquement",
-        "STRATEGY_LOCATIONS" :"Zone(s) de pêche :",
-        "STRATEGY_LOCATION_PLACEHOLDER" :"Zone de pêche",
-        "STRATEGY_TAXON_NAMES" :"Espèce cible :",
-        "STRATEGY_TAXON_NAME_PLACEHOLDER" :"Espèce cible",
-        "TAB_SAMPLES": "Mesures individuelles"
+        "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",
+        "TAB_SAMPLES": "Mesures individuelles",
+        "LOCATION": "Port de débarquement"
       }
     },
     "TABLE": {
@@ -1219,6 +1206,7 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation sur site > Date de fin ?",
+      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation sur site > Ajout de navire ?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation sur site > Niveau(x) de lieu",
       "LANDING_EDITOR": "Observation sur site > Débarquement: éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
@@ -1344,7 +1332,15 @@
           "OTHER": "Autre"
         }
       },
-
+      "SUMMARY": {
+        "LOCATIONS" :"Lieux applicables :",
+        "TAXON_NAMES" :"Espèces scientifiques :",
+        "TAXON_GROUPS" :"Espèces commerciales :",
+        "SAMPLING" : {
+          "LOCATIONS" :"Zone(s) de pêche :",
+          "TAXON_NAMES" :"Espèce cible :"
+        }
+      },
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",

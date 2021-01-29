@@ -366,7 +366,7 @@ export class ProgramService extends BaseEntityService
   watchByLabel(label: string, opts?: {
     toEntity?: boolean;
     debug?: boolean;
-    query?: any
+    query?: any;
   }): Observable<Program> {
 
     let now;

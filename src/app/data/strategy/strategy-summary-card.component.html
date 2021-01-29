@@ -1,16 +1,35 @@
 
 <ion-card @fadeInAnimation *ngIf="!loading">
   <ion-card-header color="light" *ngIf="title">
-    <ion-card-subtitle>
+    <ion-card-title>
       <ion-text color="primary">{{title}}</ion-text>
-    </ion-card-subtitle>
+    </ion-card-title>
   </ion-card-header>
-  <ion-card-content>
-    <ion-label class="ion-text-wrap status">
-      TODO BLA:
-       - display locations, taxonNames, etc.
-       - And link to summary modal ? with documentation
-       - And link to strategy page ?
-    </ion-label>
-  </ion-card-content>
+
+  <!-- locations -->
+  <ion-item color="light" *ngIf="data.appliedStrategies | isNotEmptyArray">
+    <ion-text>
+      <ion-label color="primary">{{i18nPrefix + 'LOCATIONS'|translate}}</ion-label>
+      <ng-container *ngFor="let location of data.appliedStrategies | arrayPluck: {property: 'location'}; last as last">
+        <ion-text color="dark" class="ion-padding-start ion-text-nowrap" >
+          <small>{{location | referentialToString: displayAttributes.location }}</small>
+          <br *ngIf="!last"/>
+        </ion-text>
+      </ng-container>
+    </ion-text>
+  </ion-item>
+
+  <!-- taxon names -->
+  <ion-item color="light" *ngIf="data.taxonNames | isNotEmptyArray">
+    <ion-text>
+      <ion-label color="primary">{{i18nPrefix + 'TAXON_NAMES'|translate}}</ion-label>
+      <ng-container *ngFor="let taxonName of data.taxonNames | arrayPluck: {property: 'taxonName'}; last as last">
+        <ion-text color="dark" class="ion-padding-start ion-text-nowrap" >
+          <small>{{taxonName | referentialToString: displayAttributes.taxonName }}</small>
+          <br *ngIf="!last"/>
+        </ion-text>
+      </ng-container>
+    </ion-text>
+  </ion-item>
+
 </ion-card>
