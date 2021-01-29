@@ -116,6 +116,16 @@
     </mat-cell>
   </ng-container>
 
+  <!-- Landing location Column -->
+  <ng-container matColumnDef="location">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>LANDING.TABLE.LOCATION</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{referentialToString(row.currentData?.location)}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
   <!-- date time  -->
   <ng-container matColumnDef="dateTime">
     <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">

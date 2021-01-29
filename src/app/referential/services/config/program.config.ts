@@ -248,6 +248,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
+  LANDING_LOCATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.location.enable',
+    label: "PROGRAM.OPTIONS.LANDING_LOCATION_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   LANDING_OBSERVERS_ENABLE: <FormFieldDefinition>{
     key: "sumaris.landing.observers.enable",
     label: "PROGRAM.OPTIONS.LANDING_OBSERVERS_ENABLE",

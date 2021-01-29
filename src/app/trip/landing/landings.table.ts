@@ -30,7 +30,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {environment} from "../../../environments/environment";
 import {isNotNil} from "../../shared/functions";
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
@@ -119,6 +119,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   get showVesselTypeColumn(): boolean {
     return this.getShowColumn('vesselType');
+  }
+
+  @Input()
+  set showLocationColumn(value: boolean) {
+    this.setShowColumn('location', value);
+  }
+
+  get showLocationColumn(): boolean {
+    return this.getShowColumn('location');
   }
 
   @Input()
