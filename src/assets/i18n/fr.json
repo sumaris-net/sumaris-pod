@@ -821,15 +821,14 @@
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
-      "LOCATION": "Lieu de débarquement",
+      "LOCATION": "Port",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaire",
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
       "SAMPLING": {
-        "STRATEGY": "Ligne de plan",
-        "LOCATION": "Port"
+        "STRATEGY": "Ligne de plan"
       }
     },
     "SELECT_MODAL": {
@@ -1218,6 +1217,7 @@
       "LANDING_STRATEGY_ENABLE": "Observation sur site > Débarquement : Stratégie ?",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Observateurs ?",
+      "LANDING_LOCATION_ENABLE": "Observation sur site > Débarquement : Port ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",

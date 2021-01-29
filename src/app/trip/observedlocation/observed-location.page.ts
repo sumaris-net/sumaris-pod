@@ -17,7 +17,7 @@ import {LandingFilter} from "../services/landing.service";
 import {LandingEditor, ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {BehaviorSubject} from "rxjs";
-import {firstTruePromise} from "../../shared/observables";
+import {firstNotNilPromise, firstTruePromise} from "../../shared/observables";
 import {filter, first} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
@@ -47,6 +47,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   allowAddNewVessel: boolean;
   $ready = new BehaviorSubject<boolean>(false);
   i18nPrefix = 'OBSERVED_LOCATION.EDIT.';
+  i18nSuffix = '';
+
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
 
@@ -109,6 +111,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
       this.landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
       this.landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
+      this.landingsTable.showLocationColumn =  program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
 
     } else if (this.aggregatedLandingsTable) {
@@ -118,8 +121,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
 
     this.i18nPrefix = 'OBSERVED_LOCATION.EDIT.';
-    const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    this.i18nPrefix += i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    this.i18nPrefix += this.i18nSuffix !== 'legacy' ? this.i18nSuffix : '';
 
     this.$ready.next(true);
   }
@@ -400,14 +403,17 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     ]);
   }
 
-  protected computeTitle(data: ObservedLocation): Promise<string> {
+  protected async computeTitle(data: ObservedLocation): Promise<string> {
+
+    await firstNotNilPromise(this.$ready);
+
     // new data
     if (this.isNewData) {
-      return this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
+      return this.translate.get(`OBSERVED_LOCATION.NEW.${this.i18nSuffix}TITLE`).toPromise();
     }
 
     // Existing data
-    return this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
+    return this.translate.get(`OBSERVED_LOCATION.EDIT.${this.i18nSuffix}TITLE`, {
       location: data.location && (data.location.name || data.location.label),
       dateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime) as string
     }).toPromise();
