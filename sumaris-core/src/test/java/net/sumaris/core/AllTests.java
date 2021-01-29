@@ -79,7 +79,6 @@ import org.junit.runners.Suite;
     ReferentialServiceReadTest.class,
     ReferentialServiceWriteTest.class,
     ReferentialExternalServiceReadTest.class,
-    ReferentialSuggestServiceReadTest.class,
     TaxonGroupServiceWriteTest.class,
     // Service: administration
     DepartmentServiceTest.class,
