@@ -272,6 +272,8 @@ public class ProgramRepositoryImpl
             }
         }
         else {
+            // WARN: database can stored many values for the same keys.
+            // Only the first existing instance will be reused. Duplicate properties will be removed
             ListMultimap<String, ProgramProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
                 Beans.getList(parent.getProperties()),
                 ProgramProperty.Fields.LABEL);
