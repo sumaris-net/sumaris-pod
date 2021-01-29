@@ -105,7 +105,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
-    this.i18nColumnPrefix = 'TRIP.SAMPLE2.TABLE.';
     this.inlineEdition = !this.mobile;
 
     // Set default value

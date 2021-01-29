@@ -570,7 +570,7 @@
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "WEIGHT": "Poids (kg)",
         "INDIVIDUAL_COUNT": "Nombre individus",
-        "INDIVIDUAL_SAMPLING": "Echantillonage",
+        "INDIVIDUAL_SAMPLING": "Echantillonnage",
         "PRODUCT_SALE": "Ventes"
       },
       "SALE": {
@@ -681,7 +681,7 @@
           "TAXON_NAME_PLACEHOLDER": "Code espèce",
           "SAMPLE_DATE": "Date/Heure de la mesure",
           "PARENT": "Echantillon parent",
-          "SAMPLE_CODE": "Ligne de plan",
+          "SAMPLE_CODE": "Code prélèvement",
           "SAMPLE_CODE_PLACEHOLDER": "Ligne de plan",
           "MORSE_CODE": "Code Morse",
           "MORSE_CODE_PLACEHOLDER": "Code Morse",
@@ -698,13 +698,6 @@
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
-      }
-    },
-    "SAMPLE2": {
-      "TABLE": {
-        "SAMPLE_CODE": "Code prélèvement",
-        "MORSE_CODE": "Code Morse",
-        "COMMENT" : "Commentaire"
       }
     }
   },
@@ -763,7 +756,7 @@
       "OBSERVER_PLACEHOLDER": "Observateur #",
       "OBSERVERS": "Observateurs :",
       "SAMPLING": {
-        "TAB_LANDINGS": "Echantillonages"
+        "TAB_LANDINGS": "Échantillonnages"
       }
     },
     "SELECT_VESSEL_MODAL": {
