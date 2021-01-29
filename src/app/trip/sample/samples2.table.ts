@@ -30,6 +30,9 @@ import {FormFieldDefinition} from "../../shared/form/field.model";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
 import {environment} from "../../../environments/environment";
+import {TableAddPmfmsComponent} from "./table-add-pmfms.component";
+import {ProgramService} from "../../referential/services/program.service";
+import {StrategyService} from "../../referential/services/strategy.service";
 
 export interface SampleFilter {
   operationId?: number;
@@ -87,7 +90,9 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
 
   constructor(
-    injector: Injector
+    protected injector: Injector,
+    protected programService: ProgramService,
+    protected strategyService: StrategyService
   ) {
     super(injector,
       Sample,
@@ -105,6 +110,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
+    this.i18nColumnPrefix = 'TRIP.SAMPLE2.TABLE.';
     this.inlineEdition = !this.mobile;
 
     // Set default value
@@ -215,7 +221,17 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
           else if (ParameterLabelGroups.MATURITY.includes(label)) {
             dynamicMaturityColumnNames.push(pmfmStrategy.pmfmId.toString());
           }
+          else
+          {
+            // Filter on type. Fractions pmfm doesn't provide type.
+            if (pmfmStrategy.type)
+            {
+              dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
+            }
+          }
+        }
           else {
+          // Display pmfm without parameter label like fractions ?
             // Filter on type. Fractions pmfm doesn't provide type.
             if (pmfmStrategy.type)
             {
@@ -225,6 +241,10 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         }
         else {
           // Display pmfm without parameter label like fractions ?
+        // Filter on type. Fractions pmfm doesn't provide type.
+        if (pmfmStrategy.type)
+        {
+          dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
         }
 
       }
@@ -504,5 +524,66 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       { withTotal: false });
     return res.data;
 
+  }
+
+
+
+  protected async addRowToTable(): Promise<TableElement<Sample>> {
+    this.focusFirstColumn = true;
+    await this._dataSource.asyncCreateNew();
+    this.editedRow = this._dataSource.getRow(-1);
+    const sample = this.editedRow.currentData;
+    // Initialize default parameters
+    await this.onNewEntity(sample);
+    // Update row
+    await this.updateEntityToTable(sample, this.editedRow);
+
+    // Emit start editing event
+    this.onStartEditingRow.emit(this.editedRow);
+    this._dirty = true;
+    this.resultsLength++;
+    this.visibleRowCount++;
+    this.markForCheck();
+    return this.editedRow;
+  }
+
+
+  async openAddPmfmsModal(event?: UIEvent): Promise<any> {
+    //const columns = this.displayedColumns;
+    const pmfms = this.$pmfms.getValue();
+
+    const modal = await this.modalCtrl.create({
+      component: TableAddPmfmsComponent,
+      componentProps: {pmfms: pmfms, programService: this.programService, strategyService: this.strategyService}
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED
+
+    // Apply new pmfm
+    this.displayedColumns = this.getDisplayColumns();
+    this.markForCheck();
+
+  }
+
+  async openChangePmfmsModal(event?: UIEvent): Promise<any> {
+    const modal = await this.modalCtrl.create({
+      component: TableAddPmfmsComponent,
+      componentProps: {}
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED
+
+    // Apply new pmfm
+    this.markForCheck();
   }
 }

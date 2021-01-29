@@ -195,8 +195,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       }
 
       // Set rankOrder
-      if (isNotNil(options.rankOrder)) {
-        data.rankOrder = +options.rankOrder;
+      if (isNotNil(queryParams['rankOrder'])) {
+        data.rankOrder = +queryParams['rankOrder'];
       }
       else {
         data.rankOrder = 1;
