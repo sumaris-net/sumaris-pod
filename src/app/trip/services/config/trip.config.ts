@@ -18,6 +18,12 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     label: 'TRIP.OPTIONS.ENABLE',
     type: 'boolean'
   },
+  OBSERVED_LOCATION_NEW_NAME: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.new.name',
+    label: 'OBSERVED_LOCATION.OPTIONS.NEW_NAME',
+    type: 'string',
+    defaultValue: 'OBSERVED_LOCATION.NEW.TITLE'
+  },
   OBSERVED_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.enable',
     label: 'OBSERVED_LOCATION.OPTIONS.ENABLE',
