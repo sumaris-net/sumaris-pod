@@ -736,7 +736,10 @@
   },
   "OBSERVED_LOCATION": {
     "NEW": {
-      "TITLE": "Nouvelle observation"
+      "TITLE": "Nouvelle observation",
+      "SAMPLING": {
+        "TITLE": "Nouvelle sortie"
+      }
     },
     "EDIT": {
       "TITLE": "{{location}} - {{dateTime}}",
@@ -781,7 +784,8 @@
     },
     "OPTIONS": {
       "ENABLE": "Observations > Activer ?",
-      "NAME": "Observations > Titre (menu, etc.)"
+      "NAME": "Observations > Titre (menu, etc.)",
+      "NEW_NAME": "Observations > Titre (nouvelle observation)"
     }
   },
   "LANDING": {
