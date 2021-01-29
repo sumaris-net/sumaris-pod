@@ -682,7 +682,7 @@
           "SAMPLE_DATE": "Date/Heure de la mesure",
           "PARENT": "Echantillon parent",
           "SAMPLE_CODE": "Code prélèvement",
-          "SAMPLE_CODE_PLACEHOLDER": "Ligne de plan",
+          "SAMPLE_CODE_PLACEHOLDER": "Code prélèvement",
           "MORSE_CODE": "Code Morse",
           "MORSE_CODE_PLACEHOLDER": "Code Morse",
           "COMMENTS": "Commentaires",
