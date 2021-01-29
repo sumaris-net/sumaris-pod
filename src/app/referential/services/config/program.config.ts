@@ -1,5 +1,6 @@
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
 import {LocationLevelIds} from "../model/model.enum";
+import {StatusIds} from "../../../core/services/model/model.enum";
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -269,7 +270,7 @@ export const ProgramProperties = Object.freeze({
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
-        statusIds: [0,1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()

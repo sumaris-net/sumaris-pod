@@ -39,15 +39,16 @@
           </ion-col>
 
           <ion-col class="ion-no-padding" size="12" size-xl="3">
+
+            <!-- TODO BLA : check if useful -->
+            <app-strategy-summary-card #strategyCard [editor]="this"
+                                       [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
+            </app-strategy-summary-card>
+
             <app-entity-metadata [value]="data" >
               <app-entity-quality-form #qualityForm [editor]="this" *ngIf="showQualityForm">
               </app-entity-quality-form>
             </app-entity-metadata>
-
-            <!-- TODO BLA : check if useful
-            <app-strategy-summary-card #strategyCard [editor]="this"
-                                       [title]="i18nPrefix+'STRATEGY'|translate">
-            </app-strategy-summary-card> -->
           </ion-col>
 
         </ion-row>

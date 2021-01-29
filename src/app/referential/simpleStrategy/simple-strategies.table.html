@@ -197,13 +197,16 @@
 
 </mat-table>
 
+<ion-item *ngIf="!(loadingSubject| async) && !resultsLength">
+  <ion-text color="danger" class="text-italic">
+    {{ 'COMMON.NO_RESULT' | translate }}
+  </ion-text>
+</ion-item>
 
-<!-- Add Button
-<ion-fab vertical="bottom" horizontal="end"
-         *ngIf="enabled"
-         visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>  -->
-
+<ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!resultsLength">
+  <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
+  <ion-col class="ion-no-padding" size="auto">
+    <mat-paginator [length]="resultsLength" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+    </mat-paginator>
+  </ion-col>
+</ion-row>

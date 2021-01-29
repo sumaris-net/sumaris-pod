@@ -58,65 +58,30 @@ declare interface ColumnDefinition extends FormFieldDefinition {
 export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   implements OnInit, OnDestroy {
 
-  private _defaultTaxonName: TaxonNameStrategy;
-
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
-  @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: ReferentialRef;
   @Input() i18nFieldPrefix = 'TRIP.SAMPLE.TABLE.SAMPLING.';
-
-  @Input()
-  set defaultTaxonName(value: TaxonNameStrategy) {
-    if (this._defaultTaxonName !== value && isNotNil(value)) {
-      this._defaultTaxonName = value;
-    }
-  }
 
   @Input()
   set value(data: Sample[]) {
     this.memoryDataService.value = data;
-    /*let samplesWithDefinedTaxonOnly = data.filter(sample => sample.taxonName);
-    if (samplesWithDefinedTaxonOnly && samplesWithDefinedTaxonOnly[0])
-    {
-     // this.defaultTaxonName = data[0].taxonName;
-    }*/
   }
 
   get value(): Sample[] {
     return this.memoryDataService.value;
   }
 
-  get $dynamicPmfms(): BehaviorSubject<PmfmStrategy[]> {
-    return this.measurementsDataService.$pmfms;
-  }
   dynamicColumns: ColumnDefinition[];
 
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
-  // @Input() showCommentsColumn = true;
-  // @Input() showDateTimeColumn = true;
+  @Input() showDateTimeColumn = true;
   @Input() showFabButton = false;
-  /*
-    @Input()
-    set showTaxonGroupColumn(value: boolean) {
-      this.setShowColumn('taxonGroup', value);
-    }
 
-    get showTaxonGroupColumn(): boolean {
-      return this.getShowColumn('taxonGroup');
-    }
-
-    @Input()
-    set showTaxonNameColumn(value: boolean) {
-      this.setShowColumn('taxonName', value);
-    }*/
-
-  /*get showTaxonNameColumn(): boolean {
-    return this.getShowColumn('taxonName');
-  }*/
+  @Input() defaultSampleDate: Moment;
+  @Input() defaultTaxonName: ReferentialRef;
 
   // tslint:disable-next-line:no-output-on-prefix
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
@@ -164,7 +129,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
     this.setShowColumn('label', this.showLabelColumn);
     // this.setShowColumn('sampleDate', this.showDateTimeColumn);
-    //  this.setShowColumn('comments', this.showCommentsColumn);
+    // this.setShowColumn('comments', this.showCommentsColumn);
 
     // Taxon group combo
     /* this.registerAutocompleteField('taxonGroup', {
@@ -436,11 +401,8 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     }
 
     // set  taxonName, taxonGroup
-    if (isNotNil(this._defaultTaxonName.taxonName)) {
-      data.taxonName = TaxonNameRef.fromObject(this._defaultTaxonName.taxonName);
-
-      const taxonGroup = await this.getTaxoGroupByTaxonNameId(this._defaultTaxonName.taxonName.id,  "TaxonGroup");
-      data.taxonGroup = TaxonNameRef.fromObject(taxonGroup[0]);
+    if (isNotNil(this.defaultTaxonName)) {
+      data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
     }
 
   }

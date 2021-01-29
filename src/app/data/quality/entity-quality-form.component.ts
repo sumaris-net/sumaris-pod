@@ -268,9 +268,11 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
   protected updateView(data?: T) {
     if (this._controlling) return; // Skip
 
-    this.data = data || this.data || this.editor && this.editor.data;
+    data = data || this.data || this.editor && this.editor.data;
+    this.data = data;
 
     this.loading = isNil(data) || isNil(data.id);
+
     if (this.loading) {
       this.canSynchronize = false;
       this.canControl = false;

@@ -8,33 +8,32 @@ import {Landing2ValidatorService} from "../services/validator/landing2.validator
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormControl, ValidationErrors, Validators} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {Person, personToString, UserProfileLabel, UserProfileLabels} from "../../core/services/model/person.model";
+import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Landing} from "../services/model/landing.model";
-import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
-import {AppliedStrategy, Strategy, TaxonNameStrategy} from "../../referential/services/model/strategy.model";
+import {Strategy} from "../../referential/services/model/strategy.model";
 import {StrategyService} from "../../referential/services/strategy.service";
-import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {Pmfm} from "../../referential/services/model/pmfm.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {TranslateService} from "@ngx-translate/core";
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {EntityUtils} from "../../core/services/model/entity.model";
 import {
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/autocomplete/material.autocomplete";
 import {mergeMap} from "rxjs/internal/operators";
+import {ProgramProperties} from "../../referential/services/config/program.config";
 
 const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -71,6 +70,7 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   @Input() showButtons = true;
   @Input() showStrategy = false;
   @Input() locationLevelIds: number[];
+  @Input() allowAddNewVessel: boolean;
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {

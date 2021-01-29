@@ -44,7 +44,7 @@
           <ion-icon matPrefix name="boat"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="auto" class="ion-align-self-center">
+      <ion-col size="auto" class="ion-align-self-center" *ngIf="allowAddNewVessel">
         <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate" (click)="addVesselModal()"
                 type="button">
           <mat-icon>add</mat-icon>
@@ -70,39 +70,6 @@
       </ion-col>
     </ion-row>
 
-    <!-- Strategy > locations -->
-    <ion-row *ngIf="strategy && strategy.appliedStrategies | isNotEmptyArray">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label class="ion-float-end">{{i18nPrefix + 'STRATEGY_LOCATIONS'|translate}}</ion-label>
-      </ion-col>
-      <ion-col>
-        <mat-form-field *ngFor="let location of strategy.appliedStrategies | arrayPluck: {property: 'location'}"
-                        floatLabel="always">
-          <input matInput hidden type="text"
-                 [placeholder]="i18nPrefix + 'STRATEGY_LOCATION_PLACEHOLDER'|translate"
-                 [disabled]="true"
-                 readonly>
-          {{location | referentialToString: autocompleteFields.location.attributes }}
-        </mat-form-field>
-      </ion-col>
-    </ion-row>
-
-    <!-- Strategy > taxon names -->
-    <ion-row *ngIf="strategy && strategy.taxonNames | isNotEmptyArray">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label class="ion-float-end">{{i18nPrefix + 'STRATEGY_TAXON_NAMES'|translate}}</ion-label>
-      </ion-col>
-      <ion-col>
-        <mat-form-field *ngFor="let taxonName of strategy.taxonNames | arrayPluck: {property: 'taxonName'}"
-                        floatLabel="always">
-          <input matInput hidden type="text"
-                 [placeholder]="i18nPrefix + 'STRATEGY_TAXON_NAME_PLACEHOLDER'|translate"
-                 [disabled]="true"
-                 readonly>
-          {{ taxonName | referentialToString: autocompleteFields.taxonName.attributes }}
-        </mat-form-field>
-      </ion-col>
-    </ion-row>
 
     <ng-content></ng-content>
 
