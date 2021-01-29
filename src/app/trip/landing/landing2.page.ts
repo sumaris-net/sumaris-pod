@@ -166,6 +166,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     // Copy from parent into the new object
     if (this.parent) {
+      const queryParams = this.route.snapshot.queryParams;
       data.program = this.parent.program;
       data.observers = this.parent.observers;
       if (this.parent instanceof ObservedLocation) {
@@ -174,8 +175,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         data.tripId = undefined;
 
         // Load the vessel, if any
-        if (isNotNil(options.vessel)) {
-          const vesselId = +options.vessel;
+        if (isNotNil(queryParams['vessel'])) {
+          const vesselId = +queryParams['vessel'];
           console.debug(`[landing-page] Loading vessel {${vesselId}}...`);
           data.vesselSnapshot = await this.vesselService.load(vesselId, {fetchPolicy: 'cache-first'});
         }
@@ -194,8 +195,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       }
 
       // Set rankOrder
-      if (isNotNil(options.rankOrder)) {
-        data.rankOrder = +options.rankOrder;
+      if (isNotNil(queryParams['rankOrder'])) {
+        data.rankOrder = +queryParams['rankOrder'];
       }
       else {
         data.rankOrder = 1;

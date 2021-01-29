@@ -27,6 +27,8 @@ import {ObservedLocationsPageSettingsEnum} from "./observed-locations.page";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
+import {TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
+import {ConfigService} from "../../core/services/config.service";
 
 
 const ObservedLocationPageTabs = {
@@ -48,6 +50,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   $ready = new BehaviorSubject<boolean>(false);
   i18nPrefix = 'OBSERVED_LOCATION.EDIT.';
   i18nSuffix = '';
+  observedLocationNewName = '';
 
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
@@ -68,7 +71,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     injector: Injector,
     dataService: ObservedLocationService,
     protected modalCtrl: ModalController,
-    protected platform: PlatformService
+    protected platform: PlatformService,
+    protected configService: ConfigService
   ) {
     super(injector,
       ObservedLocation,
@@ -82,6 +86,17 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+
+    this.registerSubscription(
+      this.configService.config.subscribe(config => {
+        this.observedLocationNewName = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NEW_NAME);
+      })
+    );
+
   }
 
   ngAfterViewInit() {
@@ -409,7 +424,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // new data
     if (this.isNewData) {
-      return this.translate.get(`OBSERVED_LOCATION.NEW.${this.i18nSuffix}TITLE`).toPromise();
+      return this.translate.get(`${this.observedLocationNewName}`).toPromise();
     }
 
     // Existing data
