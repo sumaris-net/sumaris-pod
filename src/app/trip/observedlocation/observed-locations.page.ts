@@ -72,7 +72,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
           'comments'])
         .concat(RESERVED_END_COLUMNS),
       dataService,
-      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, environment, null, {
+      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService,  null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

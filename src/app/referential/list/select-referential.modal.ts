@@ -43,11 +43,10 @@ export class SelectReferentialModal implements OnInit {
     }
     this.table.setDatasource(new EntitiesTableDataSource<ReferentialRef, ReferentialRefFilter>(ReferentialRef,
       this.referentialRefService,
-      environment,
       null,
       {
         prependNewElements: false,
-        suppressErrors: true
+        suppressErrors: environment.production
       }));
     this.table.filter = this.filter;
 

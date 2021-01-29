@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {Strategy} from "../services/model/strategy.model";
@@ -12,7 +21,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Program} from "../services/model/program.model";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {environment} from "../../../environments/environment";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 
 @Component({
@@ -60,6 +69,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     dataService: StrategyService,
     validatorService: ValidatorService,
     protected cd: ChangeDetectorRef,
+    @Inject(ENVIRONMENT) environment
   ) {
     super(route,
       router,
@@ -76,9 +86,9 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
           'status',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource(Strategy, dataService, environment, validatorService, {
+      new EntitiesTableDataSource(Strategy, dataService, validatorService, {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         dataServiceOptions: {
           saveOnlyDirtyRows: false
         }

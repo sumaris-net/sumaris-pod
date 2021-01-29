@@ -51,7 +51,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     protected cd: ChangeDetectorRef,
     formBuilder: FormBuilder,
     injector: Injector,
-    @Inject(ENVIRONMENT) protected environment
+    @Inject(ENVIRONMENT) environment
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
@@ -66,9 +66,9 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
         ])
         .concat(accountService.additionalFields.map(field => field.key))
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Person, PersonFilter>(Person, dataService, environment, validatorService, {
+      new EntitiesTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
         prependNewElements: false,
-        suppressErrors: true,
+        suppressErrors: environment.production,
         dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
@@ -102,7 +102,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
       });
 
     // For DEV only --
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

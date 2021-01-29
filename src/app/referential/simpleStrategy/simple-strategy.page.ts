@@ -93,12 +93,12 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   }): Promise<string> {
 
     const program = await firstNotNilPromise(this.programSubject);
-    let i18nSuffix = program.getProperty(ProgramProperties.PROGRAM_STRATEGY_I18N_SUFFIX);
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
     // new strategy
     if (!data || isNil(data.id)) {
-      return await this.translate.get(`PROGRAM.STRATEGY.NEXT.${i18nSuffix}TITLE`).toPromise();
+      return await this.translate.get(`PROGRAM.STRATEGY.NEW.${i18nSuffix}TITLE`).toPromise();
     }
 
     // Existing strategy

@@ -665,7 +665,36 @@
         "SAMPLE_DATE": "Date/Heure de la mesure",
         "PARENT": "Echantillon parent",
         "COMMENTS": "Commentaires",
-        "BTN_AUTO_FILL": "Remplir automatiquement"
+        "BTN_AUTO_FILL": "Remplir automatiquement",
+        "WEIGHT": "Poids",
+        "SIZE": "Taille",
+        "MATURITY": "Maturité",
+        "SEX": "Sexe",
+        "AGE": "Age",
+        "OTHER": "Autre",
+        "SAMPLING": {
+          "LABEL": "Lot",
+          "LABEL_PLACEHOLDER": "Lot",
+          "TAXON_GROUP": "Espèce commerciale (FAO)",
+          "TAXON_GROUP_PLACEHOLDER": "Code espèce",
+          "TAXON_NAME": "Espèce scientifique (FAO)",
+          "TAXON_NAME_PLACEHOLDER": "Code espèce",
+          "SAMPLE_DATE": "Date/Heure de la mesure",
+          "PARENT": "Echantillon parent",
+          "SAMPLE_CODE": "Ligne de plan",
+          "SAMPLE_CODE_PLACEHOLDER": "Ligne de plan",
+          "MORSE_CODE": "Code Morse",
+          "MORSE_CODE_PLACEHOLDER": "Code Morse",
+          "COMMENTS": "Commentaires",
+          "COMMENTS_PLACEHOLDER": "Commentaires",
+          "BTN_AUTO_FILL": "Remplir automatiquement",
+          "WEIGHT": "Poids",
+          "SIZE": "Taille",
+          "MATURITY": "Maturité",
+          "SEX": "Sexe",
+          "AGE": "Age",
+          "OTHER": "Autre"
+        }
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
@@ -713,28 +742,29 @@
     }
   },
   "OBSERVED_LOCATION": {
-    "DATE_TIME": "Date/heure",
-    "START_DATE": "Date début",
-    "START_DATE_TIME": "Date/heure de début",
-    "END_DATE": "Date fin",
-    "END_DATE_TIME": "Date/heure de fin",
-    "START": "Début :",
-    "END": "Fin :",
-    "START_END": "Début / Fin :",
-    "LOCATION": "Lieu d'observation",
-    "LOCATION_AND_DATE": "Lieu / Date :",
-    "TAB_GENERAL": "Détails",
-    "TAB_VESSELS": "Navires observés",
-    "TAB_LANDING": "Débarquement",
-    "TAB_SAMPLING": "Échantillonnage",
-    "OBSERVER_PLACEHOLDER": "Observateur #",
-    "OBSERVERS": "Observateurs :",
     "NEW": {
       "TITLE": "Nouvelle observation"
     },
     "EDIT": {
       "TITLE": "{{location}} - {{dateTime}}",
-      "OTHER_FEATURES": "Caractéristiques :"
+      "OTHER_FEATURES": "Caractéristiques :",
+      "TAB_LANDINGS": "Navires observés",
+      "DATE_TIME": "Date/heure",
+      "START_DATE": "Date début",
+      "START_DATE_TIME": "Date/heure de début",
+      "END_DATE": "Date fin",
+      "END_DATE_TIME": "Date/heure de fin",
+      "START": "Début :",
+      "END": "Fin :",
+      "START_END": "Début / Fin :",
+      "LOCATION": "Lieu d'observation",
+      "LOCATION_AND_DATE": "Lieu / Date :",
+      "TAB_GENERAL": "Détails",
+      "OBSERVER_PLACEHOLDER": "Observateur #",
+      "OBSERVERS": "Observateurs :",
+      "SAMPLING": {
+        "TAB_LANDINGS": "Echantillonages"
+      }
     },
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Ajout d'un navire",
@@ -762,40 +792,57 @@
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
-    "TAB_GENERAL": "Détails",
-    "PROGRAM": "Programme",
-    "SAMPLE_ROW_CODE": "Code ligne de plan",
-    "SAMPLE_ROW_CODE_TITLE": "Ligne de plan :",
-    "FISHING_AREA" :"Zone de pêche",
-    "TARGET_SPECIES" :"Espèce cible",
-    "TARGET_SPECIES_TITLE" :"Espèce :",
-    "VESSEL": "Navire",
-    "LANDING": "Débarquement :",
-    "DATE_TIME": "Date/Heure",
-    "LOCATION": "Lieu d'échantillonnage",
-    "OBSERVERS": "Observateurs :",
-    "OBSERVER_PLACEHOLDER": "Observateur #",
-    "TAB_SAMPLES": "Echantillons",
     "NEW": {
       "TITLE": "Nouveau débarquement",
-      "SAMPLE_TITLE": "Nouvel échantillonnage"
+      "SAMPLING": {
+        "TITLE": "Nouvel échantillonnage"
+      }
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
-      "OTHER_FEATURES": "Autres caractéristiques :"
+      "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
+      "TAB_GENERAL": "Détails",
+      "PROGRAM": "Programme",
+      "STRATEGY": "Stratégie :",
+      "STRATEGY_PLACEHOLDER": "Stratégie",
+      "STRATEGY_LOCATIONS" :"Lieux applicables :",
+      "STRATEGY_LOCATION_PLACEHOLDER" :"Lieu d'application",
+      "STRATEGY_TAXON_NAME_PLACEHOLDER" :"Espèce scientifique",
+      "STRATEGY_TAXON_NAMES" :"Espèces :",
+      "VESSEL": "Navire",
+      "LANDING": "Débarquement :",
+      "DATE_TIME": "Date/Heure",
+      "LOCATION": "Lieu d'échantillonnage",
+      "OBSERVERS": "Observateurs :",
+      "OBSERVER_PLACEHOLDER": "Observateur #",
+      "OTHER_FEATURES": "Autres caractéristiques :",
+      "TAB_SAMPLES": "Echantillons",
+      "SAMPLING": {
+        "TITLE": "Navire {{vessel}}",
+        "STRATEGY": "Ligne de plan :",
+        "STRATEGY_PLACEHOLDER": "Code ligne de plan",
+        "STRATEGY_LOCATIONS" :"Zone(s) de pêche :",
+        "STRATEGY_LOCATION_PLACEHOLDER" :"Zone de pêche",
+        "STRATEGY_TAXON_NAMES" :"Espèce cible :",
+        "STRATEGY_TAXON_NAME_PLACEHOLDER" :"Espèce cible",
+        "TAB_SAMPLES": "Mesures individuelles"
+      }
     },
     "TABLE": {
       "VESSEL": "Navire",
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
-      "LOCATION": "Port !!! TODO BLA Lieu de débarquement",
+      "LOCATION": "Lieu de débarquement",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaire",
-      "SAMPLES": "Ligne de plan",
+      "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
-      "RECORDER_PERSON" : "Saisisseur"
+      "RECORDER_PERSON" : "Saisisseur",
+      "SAMPLING": {
+        "STRATEGY": "Ligne de plan",
+        "LOCATION": "Port"
+      }
     },
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
@@ -1146,6 +1193,9 @@
       "TITLE": "Programmes de collecte"
     },
     "OPTIONS": {
+      "I18N_SUFFIX" : "Dictionnaire thématique",
+      "I18N_SUFFIX_LEGACY" : "Par défaut",
+      "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
@@ -1173,15 +1223,16 @@
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
+      "LANDING_EDITOR_SAMPLING": "Echantillonnage biologique",
+      "LANDING_CREATION_DATE_ENABLE": "Observation sur site > Débarquements : Date de création ?",
+      "LANDING_RECORDER_PERSON_ENABLE": "Observation sur site > Débarquements : Saisisseur ?",
+      "LANDING_STRATEGY_ENABLE": "Observation sur site > Débarquement : Stratégie ?",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
-      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
+      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Observateurs ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
       "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Paramètres biologiques",
-      "PROGRAM_STRATEGY_I18N_SUFFIX" : "Stratégie > Dictionnaire thématique",
-      "PROGRAM_STRATEGY_I18N_SUFFIX_LEGACY" : "Par défaut",
-      "PROGRAM_STRATEGY_I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)",
@@ -1324,30 +1375,7 @@
         "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà"
-      },
-      "CREATE_SAMPLING_PLAN": "Création d'une ligne de plan d'échantillonnage",
-      "APPLIED_STRATEGIES": "Zone(s) de pêche",
-      "LABEL": "Code de la ligne",
-      "SAMPLE_ROW_TITLE": "Code ligne de plan - incrément",
-      "ANALYTIC_REFERENCE": "EOTP",
-      "DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
-      "LANDING_PORT": "Port de débarquement",
-      "YEAR": "Année",
-      "WEIGHT": "Poids : ",
-      "SIZE": "Tailles : ",
-      "MATURITY": "Maturités : ",
-
-      "CALCIFIED_TYPE": "Types de pièces calcifiées",
-      "SIZE_INCREMENT": "incrément de taille",
-      "EFFORT": "Effort : ",
-      "QUARTER_1": "Trimestre 1" ,
-      "QUARTER_2": "Trimestre 2",
-      "QUARTER_3": "Trimestre 3",
-      "QUARTER_4": "Trimestre 4",
-      "PARAMETERS_TITLE": "Paramètres à mesurer :",
-      "COMMENT" :"Commentaire",
-
-      "ADD_LANDING": "Ajouter un débarquement"
+      }
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",

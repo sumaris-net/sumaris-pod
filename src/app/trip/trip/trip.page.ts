@@ -93,7 +93,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged.subscribe(program => this.setProgram(program))
+      this.$program.subscribe(program => this.setProgram(program))
     );
 
     // Cascade refresh to operation tables

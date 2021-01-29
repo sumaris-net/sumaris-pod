@@ -123,8 +123,8 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
   fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
     super.fromObject(source, opts);
 
-    this.pmfmId = source.pmfmId;
     this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
+    this.pmfmId = toNumber(source.pmfmId, source.pmfm && source.pmfm.id);
     this.parameterId =  source.parameterId ? (source.parameterId.id ? source.parameterId.id : source.parameterId) : undefined;
     this.parameter = source.parameter;
     this.matrixId = source.matrixId;
@@ -133,7 +133,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     this.label = source.label;
     this.name = source.name;
     this.unitLabel = source.unitLabel;
-    this.type = source.type;
+    this.type = source.type || source.pmfm && source.pmfm.type;
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
     this.maximumNumberDecimals = source.maximumNumberDecimals;

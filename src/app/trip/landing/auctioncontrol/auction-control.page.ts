@@ -1,28 +1,28 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
-import {LandingPage} from "../landing/landing.page";
-import {LandingValidatorService} from "../services/validator/landing.validator";
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../../referential/services/model/model.enum";
+import {LandingPage} from "../landing.page";
+import {LandingValidatorService} from "../../services/validator/landing.validator";
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
 import {BehaviorSubject, Observable, Subscription} from "rxjs";
-import {Landing} from "../services/model/landing.model";
-import {AuctionControlValidators} from "../services/validator/auction-control.validators";
+import {Landing} from "../../services/model/landing.model";
+import {AuctionControlValidators} from "../../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {IReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {HistoryPageReference} from "../../core/services/model/settings.model";
-import {ObservedLocation} from "../services/model/observed-location.model";
+import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
+import {HistoryPageReference} from "../../../core/services/model/settings.model";
+import {ObservedLocation} from "../../services/model/observed-location.model";
 import {FormBuilder, FormControl} from "@angular/forms";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {TaxonGroupLabels, TaxonGroupRef} from "../../referential/services/model/taxon.model";
-import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
-import {AppHelpModal} from "../../shared/help/help.modal";
-import {SharedValidators} from "../../shared/validator/validators";
-import {Program} from "../../referential/services/model/program.model";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {ProgramService} from "../../referential/services/program.service";
+import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {TaxonGroupLabels, TaxonGroupRef} from "../../../referential/services/model/taxon.model";
+import {filterNotNil, firstNotNilPromise} from "../../../shared/observables";
+import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
+import {AppHelpModal} from "../../../shared/help/help.modal";
+import {SharedValidators} from "../../../shared/validator/validators";
+import {Program} from "../../../referential/services/model/program.model";
+import {fadeInOutAnimation} from "../../../shared/material/material.animations";
+import {ProgramService} from "../../../referential/services/program.service";
 
 @Component({
   selector: 'app-auction-control',

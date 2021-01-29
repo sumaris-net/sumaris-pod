@@ -144,7 +144,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   protected setProgram(program: Program, opts?: { emitEvent?: boolean; }) {
     if (program && this.program !== program) {
       this.i18nFieldPrefix = 'PROGRAM.STRATEGY.EDIT.';
-      const i18nSuffix = program.getProperty(ProgramProperties.PROGRAM_STRATEGY_I18N_SUFFIX) || '';
+      const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX) || '';
       this.i18nFieldPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
       this.loadFilteredItems(program)
       this.programSubject.next(program);

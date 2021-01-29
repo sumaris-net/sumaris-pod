@@ -4,7 +4,7 @@ import {LandingPage} from "./landing/landing.page";
 import {SharedRoutingModule} from "../shared/shared-routing.module";
 import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
 import {ObservedLocationPage} from "./observedlocation/observed-location.page";
-import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
+import {AuctionControlPage} from "./landing/auctioncontrol/auction-control.page";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {LandedTripModule} from "./landed-trip.module";
 import {Landing2Page} from "./landing/landing2.page";
@@ -79,10 +79,10 @@ const routes: Routes = [
         ]
       },
       {
-        path: 'landing2/:landing2Id',
+        path: 'sampling/:landingId',
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          pathIdParam: 'landing2Id'
+          pathIdParam: 'landingId'
         },
         children: [
           {

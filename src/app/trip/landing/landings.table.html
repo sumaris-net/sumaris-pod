@@ -136,6 +136,26 @@
     </mat-cell>
   </ng-container>
 
+  <!-- CREATION_DATE -->
+  <ng-container matColumnDef="creationDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <span translate>LANDING.TABLE.CREATION_DATE</span>
+    </mat-header-cell>
+    <mat-cell class="mat-cell-date-time" *matCellDef="let row">
+      {{  row.currentData.creationDate | dateFormat: {time: false} }}
+    </mat-cell>
+  </ng-container>
+
+  <!-- recorder -->
+  <ng-container matColumnDef="recorderPerson">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>LANDING.TABLE.RECORDER_PERSON</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData?.recorderPerson | personToString }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
@@ -153,7 +173,7 @@
     </mat-cell>
   </ng-container>
 
-  <!-- Comment column --><!-- Comments column -->
+  <!-- Comments column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef>
     </mat-header-cell>

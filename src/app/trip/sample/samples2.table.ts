@@ -64,10 +64,9 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
-  public appliedPmfmStrategies: PmfmStrategy [] = [];
-
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() i18nFieldPrefix = 'TRIP.SAMPLE.TABLE.SAMPLING.';
 
   @Input()
   set defaultTaxonName(value: TaxonNameStrategy) {
@@ -84,13 +83,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     {
      // this.defaultTaxonName = data[0].taxonName;
     }*/
-  }
-
-  @Input()
-  // TODO BLA: est-ce que appliedPmfmStrategies est utilisé dans ce table ?
-  // Si non, le supprimer, ainsi que l'affectation dans landing2.page
-  set appliedPmfmStrategy(data: PmfmStrategy[]) {
-    this.appliedPmfmStrategies = data;
   }
 
   get value(): Sample[] {
@@ -274,9 +266,9 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       }
     });
 
-    const pmfmColumnNames = pmfms
-      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
-      .map(p => p.pmfmId.toString());
+    //const pmfmColumnNames = pmfms
+    // .filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
+    // .map(p => p.pmfmId.toString());
 
     const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
     const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
@@ -287,7 +279,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicWeightColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
       key: pmfmColumnName,
-      label: 'PROGRAM.STRATEGY.WEIGHT_TABLE',
+      label: this.i18nFieldPrefix + 'WEIGHT',
       defaultValue: "WEIGHT",
       type: 'string',
       computed : false,
@@ -305,7 +297,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicSizeColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.SIZE_TABLE',
+        label: this.i18nFieldPrefix + 'SIZE',
         defaultValue: "SIZE",
         type: 'string',
         computed : false,
@@ -324,7 +316,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicMaturityColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.MATURITY_TABLE',
+        label: this.i18nFieldPrefix + 'MATURITY',
         defaultValue: "MATURITY",
         type: 'string',
         computed : false,
@@ -342,7 +334,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicSexColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.SEX',
+        label: this.i18nFieldPrefix + 'SEX',
         defaultValue: "SEX",
         type: 'string',
         computed : false,
@@ -361,7 +353,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicAgeColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.AGE',
+        label: this.i18nFieldPrefix + 'AGE',
         defaultValue: "AGE",
         type: 'string',
         computed : false,
@@ -380,7 +372,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     dynamicOthersColumnNames.forEach(pmfmColumnName => {
       const col = <ColumnDefinition>{
         key: pmfmColumnName,
-        label: 'PROGRAM.STRATEGY.OTHER_TABLE',
+        label: this.i18nFieldPrefix + 'OTHER',
         defaultValue: "OTHER",
         type: 'string',
         computed : false,

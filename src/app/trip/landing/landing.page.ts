@@ -86,7 +86,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged.subscribe(program => this.setProgram(program))
+      this.$program.subscribe(program => this.setProgram(program))
     );
 
     // Use landing date as default dateTime for samples

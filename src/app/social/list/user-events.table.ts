@@ -155,7 +155,6 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
 
     this.setDatasource(new EntitiesTableDataSource<UserEvent, UserEventFilter>(UserEvent,
       this.service,
-      this.environment,
       null,
       {
         prependNewElements: false,

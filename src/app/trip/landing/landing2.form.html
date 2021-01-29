@@ -7,27 +7,27 @@
   </ion-item>
 
   <ion-grid>
-    <!-- SAMPLING ROW CODE -->
-    <ion-row>
+    <!-- Strategy -->
+    <ion-row *ngIf="showStrategy">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label class="ion-float-end" translate>LANDING.SAMPLE_ROW_CODE_TITLE</ion-label>
+        <ion-label class="ion-float-end">{{i18nPrefix + 'STRATEGY'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <mat-error *ngIf="form.controls.sampleRowCode.hasError('noEffort')">
-          {{form.controls.sampleRowCode.errors['noEffort']}}
-        </mat-error>
-        <mat-autocomplete-field *ngIf="form.controls.sampleRowCode as effortControl"
-          formControlName="sampleRowCode"
-          [formControl]="effortControl"
-          [placeholder]="('LANDING.SAMPLE_ROW_CODE_TITLE'|translate)"
+        <mat-autocomplete-field
+          formControlName="strategy"
+          [placeholder]="i18nPrefix + 'STRATEGY_PLACEHOLDER'|translate"
           [config]="autocompleteFields.strategy"
-          [readonly]="hasSamples"
+          [readonly]="!canEditStrategy"
           [required]="true">
+          <mat-error *ngIf="strategyControl.hasError('noEffort')">
+            {{'LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR'|translate}}
+          </mat-error>
+          <mat-error *ngIf="strategyControl.hasError('zeroEffort')">
+            {{'LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR'|translate}}
+          </mat-error>
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
-
-
 
     <!-- VESSEL -->
     <!-- Model landing.vessel_fk -->
@@ -61,7 +61,7 @@
       <!-- location -->
       <ion-col *ngIf="showLocation">
         <mat-autocomplete-field formControlName="location"
-                                [placeholder]="'LANDING.LOCATION'|translate"
+                                [placeholder]="i18nPrefix + 'LOCATION'|translate"
                                 [config]="autocompleteFields.location"
                                 [tabindex]="tabindex+1"
                                 required>
@@ -70,47 +70,39 @@
       </ion-col>
     </ion-row>
 
-  <!-- FISHING AREA readonly from strategy -->
-<ion-row *ngFor="let fishingAreaForm of fishingAreasFormArray?.controls; index as i; first as first">
-  <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-    <ion-label>&nbsp;</ion-label>
-  </ion-col>
-  <ion-col [formGroup]="fishingAreaHelper.at(i)">
-    <mat-autocomplete-field
-      formControlName="location"
-      [placeholder]="('PROGRAM.STRATEGY.APPLIED_STRATEGIES'|translate) + (i+1)"
-      [readonly]="true"
-      [tabindex]="tabindex+10+i*3"
-      [required]="true">
-    </mat-autocomplete-field>
-  </ion-col>
-</ion-row>
-
-    <ion-row *ngFor="let taxonNameForm of taxonNamesForm?.controls; index as i; first as first">
+    <!-- Strategy > locations -->
+    <ion-row *ngIf="strategy && strategy.appliedStrategies | isNotEmptyArray">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
+        <ion-label class="ion-float-end">{{i18nPrefix + 'STRATEGY_LOCATIONS'|translate}}</ion-label>
       </ion-col>
-      <ion-col [formGroup]="taxonNameHelper.at(i)">
-        <mat-autocomplete-field
-          formControlName="taxonName"
-          [placeholder]="('LANDING.TARGET_SPECIES'|translate)"
-          [readonly]="true"
-          [config]="autocompleteFields.taxonName"
-          [tabindex]="tabindex+10+i*3"
-          [required]="true">
-          <!--<button matAfter type="button" mat-icon-button
-                  tabindex="-1"
-                  [disabled]="!canFilterTaxonName"
-                  [title]="'PLANIFICATION.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('taxonName')"
-                  [color]="enableTaxonNameFilter ? 'primary' : undefined">
-            <mat-icon>filter_list</mat-icon>
-          </button> -->
-        </mat-autocomplete-field>
+      <ion-col>
+        <mat-form-field *ngFor="let location of strategy.appliedStrategies | arrayPluck: {property: 'location'}"
+                        floatLabel="always">
+          <input matInput hidden type="text"
+                 [placeholder]="i18nPrefix + 'STRATEGY_LOCATION_PLACEHOLDER'|translate"
+                 [disabled]="true"
+                 readonly>
+          {{location | referentialToString: autocompleteFields.location.attributes }}
+        </mat-form-field>
       </ion-col>
-
     </ion-row>
 
+    <!-- Strategy > taxon names -->
+    <ion-row *ngIf="strategy && strategy.taxonNames | isNotEmptyArray">
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+        <ion-label class="ion-float-end">{{i18nPrefix + 'STRATEGY_TAXON_NAMES'|translate}}</ion-label>
+      </ion-col>
+      <ion-col>
+        <mat-form-field *ngFor="let taxonName of strategy.taxonNames | arrayPluck: {property: 'taxonName'}"
+                        floatLabel="always">
+          <input matInput hidden type="text"
+                 [placeholder]="i18nPrefix + 'STRATEGY_TAXON_NAME_PLACEHOLDER'|translate"
+                 [disabled]="true"
+                 readonly>
+          {{ taxonName | referentialToString: autocompleteFields.taxonName.attributes }}
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
 
     <ng-content></ng-content>
 
