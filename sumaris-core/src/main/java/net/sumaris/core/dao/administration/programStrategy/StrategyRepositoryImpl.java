@@ -62,10 +62,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -756,32 +756,30 @@ public class StrategyRepositoryImpl
     }
 
 
-    /* -- -- */
+    /* -- protected methods -- */
 
     protected List<PmfmStrategyVO> getPmfmStrategies(Strategy source, StrategyFetchOptions fetchOptions) {
         Preconditions.checkNotNull(fetchOptions);
         if (CollectionUtils.isEmpty(source.getPmfmStrategies())) return null;
-        List<PmfmStrategyVO> pmfmStrategies = new ArrayList<>();
 
-        // Applied inheritance: denormalize PmfmStrategy using applied pmfm
+        List<PmfmStrategyVO> result;
+
+        // Applied inheritance: denormalize PmfmStrategy (e.g. compute each pmfms from the parameter, method)
         if (fetchOptions.isWithPmfmStrategyInheritance()) {
-            pmfmStrategies = source.getPmfmStrategies().stream().flatMap(pmfmStrategy -> {
-                // Get Pmfm to applied
-                List<Pmfm> appliedPmfms = pmfmStrategy.getPmfm() != null ?
-                        ImmutableList.of(pmfmStrategy.getPmfm()) :
-                        pmfmRepository.findAll(pmfmStrategy.getParameter(), pmfmStrategy.getMatrix(), pmfmStrategy.getFraction(), pmfmStrategy.getMethod());
-
-                // Convert to one or more PmfmStrategy
-                return appliedPmfms.stream().map(pmfm -> pmfmStrategyRepository.toVO(pmfmStrategy, pmfm, fetchOptions));
-            }).collect(Collectors.toList());
+            result = source.getPmfmStrategies().stream()
+                    // Get all corresponding pmfms
+                    .flatMap(pmfmStrategy -> findPmfmsByPmfmStrategy(pmfmStrategy, false /* continue if failed */ )
+                    // Convert to one or more PmfmStrategy
+                    .map(pmfm -> pmfmStrategyRepository.toVO(pmfmStrategy, pmfm, fetchOptions))
+                ).collect(Collectors.toList());
         } else {
-            pmfmStrategies = source.getPmfmStrategies()
+            result = source.getPmfmStrategies()
                     .stream()
                     .map(ps -> pmfmStrategyRepository.toVO(ps, fetchOptions))
                     .collect(Collectors.toList());
         }
 
-        return pmfmStrategies
+        return result
                 .stream()
                 .filter(Objects::nonNull)
                 // Sort by acquisitionLevel and rankOrder
@@ -789,4 +787,23 @@ public class StrategyRepositoryImpl
                 .collect(Collectors.toList());
     }
 
+    protected Stream<Pmfm> findPmfmsByPmfmStrategy(PmfmStrategy pmfmStrategy, boolean failIfMissing) {
+        if (pmfmStrategy.getPmfm() != null) return Stream.of(pmfmStrategy.getPmfm());
+        Integer parameterId = pmfmStrategy.getParameter() != null ? pmfmStrategy.getParameter().getId() : null;
+        Integer matrixId = pmfmStrategy.getMatrix() != null ? pmfmStrategy.getMatrix().getId() : null;
+        Integer fractionId = pmfmStrategy.getFraction() != null ? pmfmStrategy.getFraction().getId() : null;
+        Integer methodId = pmfmStrategy.getMethod() != null ? pmfmStrategy.getMethod().getId() : null;
+        try {
+            return pmfmRepository.findByPmfmParts(parameterId, matrixId, fractionId, methodId).stream();
+        } catch (Exception e) {
+            String errorMessage = String.format("Unable to compute PMFMs corresponding to %s: %s", pmfmStrategy.toString(), e.getMessage());
+            if (failIfMissing) {
+                throw new SumarisTechnicalException(errorMessage, e);
+            }
+
+            // Log, and continue with an empty stream
+            log.error(errorMessage);
+            return Stream.empty();
+        }
+    }
 }

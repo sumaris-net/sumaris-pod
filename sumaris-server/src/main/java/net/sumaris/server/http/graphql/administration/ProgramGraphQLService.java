@@ -194,7 +194,7 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "pmfmStrategies", description = "Get strategy's pmfms")
     public List<PmfmStrategyVO> getPmfmStrategiesByStrategy(@GraphQLContext StrategyVO strategy,
-                                                   @GraphQLEnvironment() Set<String> fields) {
+                                                            @GraphQLEnvironment() Set<String> fields) {
         if (strategy.getPmfmStrategies() != null) {
             return strategy.getPmfmStrategies();
         }

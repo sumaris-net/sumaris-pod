@@ -153,7 +153,7 @@ public class PmfmStrategyRepositoryImpl
         // Strategy Id
         target.setStrategyId(source.getStrategy().getId());
 
-        // Set some attributes from Pmfm
+        // Set some attributes from Pmfm (apply inheritance)
         if (pmfm != null) {
             target.setPmfmId(pmfm.getId());
 
@@ -200,7 +200,7 @@ public class PmfmStrategyRepositoryImpl
         // Parameter, Matrix, Fraction, Method Ids
         if (source.getParameter() != null) {
             target.setParameterId(source.getParameter().getId());
-            target.setParameter(referentialDao.toVO(source.getParameter()));
+            if (!fetchOptions.isWithPmfmStrategyInheritance()) target.setParameter(referentialDao.toVO(source.getParameter()));
         }
         if (source.getMatrix() != null) {
             target.setMatrixId(source.getMatrix().getId());
@@ -212,7 +212,7 @@ public class PmfmStrategyRepositoryImpl
         }
         if (source.getMethod() != null) {
             target.setMethodId(source.getMethod().getId());
-            target.setMethod(referentialDao.toVO(source.getMethod()));
+            target.setFraction(referentialDao.toVO(source.getFraction()));
         }
 
         // Acquisition Level
@@ -256,9 +256,8 @@ public class PmfmStrategyRepositoryImpl
 
         Strategy parent = getOne(Strategy.class, strategyId);
 
-        sources.forEach(source -> {
-            source.setStrategyId(strategyId);
-        });
+        // Fill strategy id
+        sources.forEach(source -> source.setStrategyId(strategyId));
 
         // Load existing entities
         Map<Integer, PmfmStrategy> existingEntities = Beans.splitById(parent.getPmfmStrategies());

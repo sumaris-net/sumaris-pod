@@ -68,10 +68,10 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    public List<Pmfm> findAll(Parameter parameter, Matrix matrix, Fraction fraction, Method method) {
-        Preconditions.checkArgument(parameter != null || matrix != null
-                || fraction != null || method != null, "At least on argument must be not null");
-        return findAll(BindableSpecification.where(hasPmfmPart(parameter, matrix, fraction, method)));
+    public List<Pmfm> findByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
+        Preconditions.checkArgument(parameterId != null || matrixId != null
+                || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
+        return findAll(BindableSpecification.where(hasPmfmPart(parameterId, matrixId, fractionId, methodId)));
     }
 
     @Override

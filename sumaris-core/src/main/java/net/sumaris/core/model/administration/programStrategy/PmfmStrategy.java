@@ -113,4 +113,10 @@ public class PmfmStrategy implements IEntity<Integer> {
             inverseJoinColumns = {
                     @JoinColumn(name = "reference_taxon_fk", nullable = false, updatable = false) })
     private Set<ReferenceTaxon> referenceTaxons = Sets.newHashSet();
+
+    public String toString() {
+        return String.format("PmfmStrategy{id=%s, strategy=%s}",
+                id,
+                strategy);
+    }
 }
