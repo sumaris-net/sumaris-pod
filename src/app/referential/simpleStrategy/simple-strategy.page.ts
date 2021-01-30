@@ -81,8 +81,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
   protected canUserWrite(data: Strategy): boolean {
     // TODO : check user is in program managers
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
+    return this.dataService.canUserWrite(data);
   }
 
   /**
@@ -217,7 +216,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       pmfm.rankOrder = i++;
       return pmfm;
     });
-  
+
     //TODO
     const pmfm = this.createNewPmfmStrategy(data);
     pmfm.pmfmId = PmfmIds.STRATEGY_LABEL;

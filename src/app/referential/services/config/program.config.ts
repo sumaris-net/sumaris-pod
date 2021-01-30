@@ -257,12 +257,18 @@ export const ProgramProperties = Object.freeze({
   LANDING_OBSERVERS_ENABLE: <FormFieldDefinition>{
     key: "sumaris.landing.observers.enable",
     label: "PROGRAM.OPTIONS.LANDING_OBSERVERS_ENABLE",
-    defaultValue: "true",
+    defaultValue: "false",
     type: 'boolean'
   },
   LANDING_STRATEGY_ENABLE: <FormFieldDefinition>{
     key: "sumaris.landing.strategy.enable",
     label: "PROGRAM.OPTIONS.LANDING_STRATEGY_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_ONE_TAB_ENABLE: <FormFieldDefinition>{
+    key: "sumaris.landing.oneTab.enable",
+    label: "PROGRAM.OPTIONS.LANDING_ONE_TAB_ENABLE",
     defaultValue: "false",
     type: 'boolean'
   },

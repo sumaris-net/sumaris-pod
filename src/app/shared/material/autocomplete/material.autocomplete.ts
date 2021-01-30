@@ -156,7 +156,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Input() formControl: FormControl;
 
-  @Input() formControlName: string;
+  @Input() formControlName: string = null;
 
   @Input() floatLabel: FloatLabelType;
 

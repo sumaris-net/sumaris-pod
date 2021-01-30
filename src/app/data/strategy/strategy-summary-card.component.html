@@ -2,34 +2,56 @@
 <ion-card @fadeInAnimation *ngIf="!loading">
   <ion-card-header color="light" *ngIf="title">
     <ion-card-title>
-      <ion-text color="primary">{{title}}</ion-text>
+      <ion-text color="primary">{{title|translate}}</ion-text>
     </ion-card-title>
   </ion-card-header>
 
-  <!-- locations -->
-  <ion-item color="light" *ngIf="data.appliedStrategies | isNotEmptyArray">
-    <ion-text>
+  <ion-card-content class="">
+    <!-- locations -->
+    <ng-container *ngIf="data.appliedStrategies | isNotEmptyArray">
       <ion-label color="primary">{{i18nPrefix + 'LOCATIONS'|translate}}</ion-label>
-      <ng-container *ngFor="let location of data.appliedStrategies | arrayPluck: {property: 'location'}; last as last">
-        <ion-text color="dark" class="ion-padding-start ion-text-nowrap" >
-          <small>{{location | referentialToString: displayAttributes.location }}</small>
-          <br *ngIf="!last"/>
-        </ion-text>
-      </ng-container>
-    </ion-text>
-  </ion-item>
+      <ion-label class="status">
+        <ul>
+          <li *ngFor="let location of data.appliedStrategies | arrayPluck: {property: 'location'}">
+            <span>{{location | referentialToString: displayAttributes.location }}</span>
+          </li>
+        </ul>
+      </ion-label>
+    </ng-container>
 
-  <!-- taxon names -->
-  <ion-item color="light" *ngIf="data.taxonNames | isNotEmptyArray">
-    <ion-text>
+    <!-- taxon groups -->
+    <ng-container *ngIf="data.taxonGroups | isNotEmptyArray">
+      <ion-label color="primary">{{i18nPrefix + 'TAXON_GROUPS'|translate}}</ion-label>
+      <ion-label class="status">
+        <ul>
+          <li *ngFor="let taxonGroup of data.taxonGroups | arrayPluck: {property: 'taxonGroup'}">
+            <span>{{taxonGroup | referentialToString: displayAttributes.taxonGroup }}</span>
+          </li>
+        </ul>
+      </ion-label>
+    </ng-container>
+
+    <!-- taxon names -->
+    <ng-container *ngIf="data.taxonNames | isNotEmptyArray">
       <ion-label color="primary">{{i18nPrefix + 'TAXON_NAMES'|translate}}</ion-label>
-      <ng-container *ngFor="let taxonName of data.taxonNames | arrayPluck: {property: 'taxonName'}; last as last">
-        <ion-text color="dark" class="ion-padding-start ion-text-nowrap" >
-          <small>{{taxonName | referentialToString: displayAttributes.taxonName }}</small>
-          <br *ngIf="!last"/>
-        </ion-text>
-      </ng-container>
-    </ion-text>
-  </ion-item>
+      <ion-label class="status">
+        <ul>
+          <li *ngFor="let taxonName of data.taxonNames | arrayPluck: {property: 'taxonName'}">
+            <span>{{taxonName | referentialToString: displayAttributes.taxonName }}</span>
+          </li>
+        </ul>
+      </ion-label>
+    </ng-container>
+
+  </ion-card-content>
+
+ <!-- <ion-card-header color="light">
+    &lt;!&ndash; Show more link &ndash;&gt;
+    <a mat-button *ngIf="canOpen"
+        (click)="open($event)"
+        color="primary">
+      <ion-text class="ion-text-wrap" translate>COMMON.BTN_SHOW_MORE</ion-text>
+    </a>
+  </ion-card-header>-->
 
 </ion-card>

@@ -5,14 +5,14 @@
           (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled"
+  <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
           [title]="'COMMON.BTN_DELETE'|translate"
           (click)="deleteSelection($event)">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()"
           [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
@@ -47,13 +47,13 @@
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
 
-  <!-- sample code  column -->
-  <ng-container matColumnDef="sampleCode" sticky="true">
+  <!-- label  column -->
+  <ng-container matColumnDef="label" [sticky]="useSticky">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
 
   <!-- Morse code column => Already in pmfm columns -->
-  <ng-container matColumnDef="morseCode" sticky="true">
+  <ng-container matColumnDef="morseCode" [sticky]="useSticky">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
 
@@ -87,8 +87,14 @@
                   *matHeaderRowDef="displayedColumns"></mat-header-row>
 </mat-table>
 
-<mat-table [dataSource]="dataSource" class="table-samples" matSort matSortActive="rankOrder" matSortDirection="asc"
-           matSortDisableClear [trackBy]="trackByFn">
+<!-- writable table -->
+<mat-table [dataSource]="dataSource"
+           class="table-samples"
+           matSort
+           matSortDisableClear
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
+           [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -109,27 +115,33 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-
-
-  <!-- sample code  column -->
-<ng-container matColumnDef="sampleCode" [sticky]="true">
-  <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-    <span translate>{{i18nFieldPrefix + 'SAMPLE_CODE'}}</span>
-  </mat-header-cell>
-  <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-    <mat-form-field floatLabel="never">
-      <input matInput [formControl]="row.validator.controls.label"
-             [placeholder]="i18nFieldPrefix + 'SAMPLE_CODE_PLACEHOLDER'|translate"
-             [readonly]="!row.editing">
-    </mat-form-field>
-  </mat-cell>
-</ng-container>
+  <!-- Label column -->
+  <ng-container matColumnDef="label" [sticky]="useSticky">
+    <mat-header-cell *matHeaderCellDef >
+      <ion-label translate>{{i18nFieldPrefix + 'LABEL'}}</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput autocomplete="off"
+               [formControl]="row.validator.controls.label"
+               [placeholder]="i18nFieldPrefix + 'LABEL_PLACEHOLDER'|translate"
+               (click)="$event.target.select()"
+               [readonly]="!row.editing">
+        <mat-error *ngIf="row.validator.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
+        </mat-error>
+        <!-- Need by auction control (label as an additional validator) -->
+        <mat-error *ngIf="row.validator.controls.label.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN
+        </mat-error>
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
 
   <!-- Morse code column => Already in pmfm columns -->
-  <ng-container matColumnDef="morseCode" [sticky]="true">
+  <!-- TODO BLA: à transformer en measurement sur PSFM ? -->
+  <ng-container matColumnDef="morseCode" [sticky]="useSticky">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
       <span translate>{{i18nFieldPrefix + 'MORSE_CODE'}}</span>
     </mat-header-cell>
@@ -141,7 +153,6 @@
       </mat-form-field>
     </mat-cell>
   </ng-container>
-
 
   <!-- Comment column -->
  <ng-container matColumnDef="comment">
@@ -157,19 +168,17 @@
    </mat-cell>
  </ng-container>
 
-
-
- <!-- Set columns dynamically for Pmfms-->
   <!-- Pmfms columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async">
     <ng-container *ngIf="pmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-        <ion-label color="primary" (click)="openChangePmfmsModal($event)">{{getPmfmColumnHeader(pmfm)}}
-          <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
+        <ion-label color="primary"
+                   (click)="openChangePmfmsModal($event)"
+                   [innerHTML]="pmfm|pmfmName: {html: true, withDetails: true}">
         </ion-label>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"
-                [class.mat-cell-computed]="pmfm.isComputed">
+      <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm"
+                [class.mat-cell-computed]="pmfm|isComputedPmfm">
         <app-pmfm-field
           [readonly]="!row.editing"
           [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"

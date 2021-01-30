@@ -31,6 +31,8 @@ import {TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
 import {ConfigService} from "../../core/services/config.service";
 
 
+const OBSERVED_LOCATION_DEFAULT_I18N_PREFIX = 'OBSERVED_LOCATION.EDIT.';
+
 const ObservedLocationPageTabs = {
   GENERAL: 0,
   LANDINGS: 1
@@ -48,10 +50,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   aggregatedLandings: boolean;
   allowAddNewVessel: boolean;
   $ready = new BehaviorSubject<boolean>(false);
-  i18nPrefix = 'OBSERVED_LOCATION.EDIT.';
+  i18nPrefix = OBSERVED_LOCATION_DEFAULT_I18N_PREFIX;
   i18nSuffix = '';
   observedLocationNewName = '';
-
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
 
@@ -135,9 +136,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
     }
 
-    this.i18nPrefix = 'OBSERVED_LOCATION.EDIT.';
-    this.i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    this.i18nPrefix += this.i18nSuffix !== 'legacy' ? this.i18nSuffix : '';
+    const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    this.i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nPrefix = OBSERVED_LOCATION_DEFAULT_I18N_PREFIX + this.i18nSuffix;
 
     this.$ready.next(true);
   }
@@ -420,7 +421,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected async computeTitle(data: ObservedLocation): Promise<string> {
 
-    await firstNotNilPromise(this.$ready);
+    await this.ready();
 
     // new data
     if (this.isNewData) {

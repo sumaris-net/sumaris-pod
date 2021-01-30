@@ -27,11 +27,18 @@ import { AppForm } from "../../core/form/form.class";
 import { FormArrayHelper } from "../../core/form/form.utils";
 import { EntityUtils } from "../../core/services/model/entity.model";
 import { PmfmUtils } from "../services/model/pmfm.model";
-import { isNil, removeDuplicatesFromArray, suggestFromArray } from "../../shared/functions";
+import {
+  firstArrayValue,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  removeDuplicatesFromArray,
+  suggestFromArray
+} from "../../shared/functions";
 import { StatusIds } from "../../core/services/model/model.enum";
 import { ProgramProperties } from "../services/config/program.config";
 import { BehaviorSubject, merge } from "rxjs";
-import { DenormalizedStrategy, DenormalizedStrategyService } from './denormalized-strategy.service';
+import { DenormalizedStrategyService } from './denormalized-strategy.service';
 
 @Component({
   selector: 'form-simple-strategy',
@@ -121,11 +128,11 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   @ViewChild('sizePmfmStrategiesTable', { static: true }) sizePmfmStrategiesTable: PmfmStrategiesTable;
   @ViewChild('maturityPmfmStrategiesTable', { static: true }) maturityPmfmStrategiesTable: PmfmStrategiesTable;
 
-  analyticsReferenceItems: BehaviorSubject<string[]> = new BehaviorSubject<string[]>(null);
-  locationItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
-  departmentItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
-  fractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
-  taxonItems: BehaviorSubject<TaxonNameRef[]> = new BehaviorSubject<TaxonNameRef[]>(null);
+  analyticsReferenceItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  locationItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  departmentItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  fractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  taxonNameItems: BehaviorSubject<TaxonNameRef[]> = new BehaviorSubject(null);
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -146,7 +153,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       this.i18nFieldPrefix = 'PROGRAM.STRATEGY.EDIT.';
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX) || '';
       this.i18nFieldPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
-      this.loadFilteredItems(program)
+
+      // Load items from historical data
+      this.loadFilteredItems(program);
+
       this.programSubject.next(program);
 
       if (!opts || opts.emitEvent !== false) {
@@ -157,73 +167,74 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
   async loadFilteredItems(program: Program): Promise<void> {
 
-    const items = await this.denormalizeStrategyService.loadAll(0, 20, "label", 'asc', {
+    // Load historical data
+    // TODO BLA: check if sort by label works fine
+    const items = await this.denormalizeStrategyService.loadAll(0, 20, 'label', 'desc', {
       levelId: program.id
     });
 
     const data = (items.data || []);
 
-    //DEPARTMENTS
+    // Departments
     const departments: ReferentialRef[] = removeDuplicatesFromArray(
-    data.reduce((res, strategy): StrategyDepartment[] => {
-      return res.concat(...strategy.departments)
-    }, [])
-    .reduce((res, department: StrategyDepartment): ReferentialRef[] => {
-      return res.concat([department.department])
-    }, [])
-    , 'id');
+      data.reduce((res, strategy) =>
+        res.concat(...strategy.departments), [])
+        .reduce((res, department: StrategyDepartment) => res.concat([department.department]), []),
+      'id');
     this.departmentItems.next(departments);
 
-    //LOCATIONS
+    // Locations
     const locations: ReferentialRef[] = removeDuplicatesFromArray(
-    data.reduce((res, strategy): AppliedStrategy[] => {
-      return res.concat(...strategy.appliedStrategies)
-    }, [])
-    .reduce((res, appliedStrategy: AppliedStrategy): ReferentialRef[] => {
-      return res.concat([appliedStrategy.location])
-    }, []), 'id');
+      data.reduce((res, strategy) =>
+        res.concat(...strategy.appliedStrategies), [])
+      .reduce((res, appliedStrategy: AppliedStrategy) =>
+        res.concat([appliedStrategy.location]), []),
+      'id');
     this.locationItems.next(locations);
 
-    //TAXONS
+    // Taxons
     const taxons: TaxonNameRef[] = removeDuplicatesFromArray(
-    data.reduce((res, strategy): TaxonNameStrategy[] => {
-      return res.concat(...strategy.taxonNames)
-    }, [])
-    .reduce((res, taxonName: TaxonNameStrategy): TaxonNameRef[] => {
-      return res.concat([taxonName.taxonName])
-    }, []), 'id');
-    this.taxonItems.next(taxons);
+    data.reduce((res, strategy) =>
+        res.concat(...strategy.taxonNames), [])
+      .reduce((res, taxonName: TaxonNameStrategy): TaxonNameRef[] =>
+         res.concat([taxonName.taxonName]), []),
+      'id');
+    this.taxonNameItems.next(taxons);
 
-    //FRACTIONS
-    const fractions: number[] = removeDuplicatesFromArray(
-    data.reduce((res, strategy): PmfmStrategy[] => {
-      return res.concat(...strategy.pmfmStrategies)
-    }, [])
-    .reduce((res, pmfmStrategie: PmfmStrategy): number[] => {
-      return res.concat([pmfmStrategie.fractionId])
-    }, []));
-    
-    const promises = await Promise.all(
-      fractions.map((fractionId) => this.referentialRefService.loadAll(0, 1, null, null, { id: fractionId, entityName: 'Fraction' }))
-    );
-    this.fractionItems.next(
-      promises.reduce((res, fraction) => {
-        return res.concat(...fraction.data)
-      }, [])
+    // Fractions
+    const fractionIds: number[] = removeDuplicatesFromArray(data
+      .reduce((res, strategy) => res.concat(...strategy.pmfmStrategies), [])
+      .reduce((res, pmfmStrategie) => res.concat(pmfmStrategie.fractionId), [])
     );
 
-    // ANALYTICREFERENCES
-    // TODO : Voir graphQL /analyticsRefence => erreur
-    const analyticReferences = [];
+    const fractions = (
+      await Promise.all(
+        fractionIds.map(id => this.referentialRefService.loadAll(0, 1, null, null, { id, entityName: 'Fraction' })
+          .then(res => res && firstArrayValue(res.data)))
+      ))
+      .filter(isNotNil);
+    this.fractionItems.next(fractions);
+
+    // Analytic References
     try {
-      const promises = await Promise.all(
-        data.map((i) => this.strategyService.loadAllAnalyticReferences(0, 1, 'name', 'asc', {name: i.analyticReference}))
-      );
-      promises.map(r => analyticReferences.push(r));
-    } catch(err) {
+      const analyticReferences: ReferentialRef[] = (
+        await Promise.all(
+          data
+            .map(strategy => strategy.analyticReference)
+            .filter(isNotNilOrBlank)
+
+            .map(analyticReference => this.strategyService.loadAllAnalyticReferences(0, 1, 'name', 'asc',
+              // TODO BLA: pourquoi filtrer par name (=description) ? N'est ce pas plutot label ?
+              {
+                name: analyticReference
+              })
+              .then(res => res && firstArrayValue(res.data)))
+        ))
+        .filter(isNotNil);
+      this.analyticsReferenceItems.next(analyticReferences);
+    } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
-    this.analyticsReferenceItems.next(analyticReferences);
   }
 
   async setPmfmStrategies() {
@@ -281,10 +292,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggestTaxonName(value, {
-        ...filter, statusId: 1
-      },
-        'TaxonName',
-        this.enableTaxonNameFilter),
+        ...filter, statusId: [StatusIds.ENABLE]
+      }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
       mobile: this.settings.mobile
@@ -292,11 +301,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // Department autocomplete
     this.registerAutocompleteField('department', {
-      suggestFn: (value, filter) => this.suggestDepartements(value, {
+      suggestFn: (value, filter) => this.suggestDepartments(value, {
         ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      },
-        'Department',
-        this.enableDepartmentFilter),
+      }),
       columnSizes: [4, 8],
       mobile: this.settings.mobile
     });
@@ -307,16 +314,14 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         levelIds: [LocationLevelIds.ICES_DIVISION]
-      },
-        'Location',
-        this.enableAppliedStrategyFilter),
+      }),
       mobile: this.settings.mobile
     });
 
     // eotp combo -------------------------------------------------------------------
     this.registerAutocompleteField('analyticReference', {
       suggestFn: (value, filter) => this.suggestAnalyticReferences(value, {
-        ...filter, statusIds: [0, 1]
+        ...filter, statusIds: [StatusIds.DISABLE, StatusIds.ENABLE, StatusIds.TEMPORARY] // TODO BLA why disable ??
       }),
       columnSizes: [4, 6],
       mobile: this.settings.mobile
@@ -324,13 +329,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
     this.registerAutocompleteField('pmfmStrategiesFraction', {
       suggestFn: (value, filter) => this.suggestPmfmStrategiesFraction(value, {
-        ...filter, statusId: 1
-      },
-        'Fraction',
-        this.enablePmfmStrategiesFractionFilter),
+        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
-      columnSizes: [2, 10],
       mobile: this.settings.mobile
     });
 
@@ -364,19 +366,13 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param entityName - referential to request
    * @param filtered - boolean telling if we load prefilled data
    */
-  protected async suggestLocations(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
+  protected async suggestLocations(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.filterEnabled && this.enableAppliedStrategyFilter) {
-      const res = await suggestFromArray(this.locationItems.getValue(), null,
-        {
-          ...filter,
-          entityName: entityName
-        }
-      );
-      return res;
+      return suggestFromArray(this.locationItems.getValue(), value, filter);
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
-        entityName: entityName
+        entityName: 'Location'
       });
     }
   }
@@ -388,9 +384,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   protected async suggestAnalyticReferences(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.filterEnabled && this.enableAnalyticReferenceFilter) {
-      return this.strategyService.suggestAnalyticReferences(value, filter);
+      return suggestFromArray(this.locationItems.getValue(), value, filter);
     } else {
-      return this.strategyService.loadAllAnalyticReferences(0, 5, null, null, filter);
+      const res = await this.strategyService.loadAllAnalyticReferences(0, 5, null, null, filter);
+      return res && res.data;
     }
   }
 
@@ -403,19 +400,13 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param entityName - referential to request
    * @param filtered - boolean telling if we load prefilled data
    */
-  protected async suggestPmfmStrategiesFraction(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
+  protected async suggestPmfmStrategiesFraction(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.filterEnabled && this.enablePmfmStrategiesFractionFilter) {
-      const res = await suggestFromArray(this.fractionItems.getValue(), null,
-        {
-          ...filter,
-          entityName: entityName
-        }
-      );
-      return res;
+      return suggestFromArray(this.fractionItems.getValue(), value, filter);
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
-        entityName: entityName
+        entityName: 'Fraction'
       });
     }
   }
@@ -427,19 +418,13 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param entityName - referential to request
    * @param filtered - boolean telling if we load prefilled data
    */
-  protected async suggestDepartements(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
+  protected async suggestDepartments(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.filterEnabled && this.enableDepartmentFilter) {
-      const res = await suggestFromArray(this.departmentItems.getValue(), null,
-        {
-          ...filter,
-          entityName: entityName
-        }
-      );
-      return res;
+      return suggestFromArray(this.departmentItems.getValue(), value, filter);
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
-        entityName: entityName
+        entityName: 'Department'
       });
     }
   }
@@ -481,12 +466,12 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   //   }
   // }
 
-  protected async suggestTaxonName(value: string, filter: any, entityName: string, filtered: boolean): Promise<TaxonNameRef[]> {
+  protected async suggestTaxonName(value: string, filter: any): Promise<TaxonNameRef[]> {
     if (this.filterEnabled && this.enableTaxonNameFilter) {
-      const res = await suggestFromArray(this.taxonItems.getValue(), null,
+      const res = await suggestFromArray(this.taxonNameItems.getValue(), null,
         {
           ...filter,
-          entityName: entityName
+          entityName: 'TaxonName'
         }
       );
       return res;
@@ -494,7 +479,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       return await this.referentialRefService.suggestTaxonNames(value,
         {
           ...filter,
-          entityName: entityName
+          entityName: 'TaxonName'
         },
       );
     }

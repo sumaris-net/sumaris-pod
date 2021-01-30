@@ -51,10 +51,10 @@
                  animationDuration="0s">
 
     <!-- TAB: general -->
-    <mat-tab label="{{'LANDING.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{'LANDING.EDIT.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
-        <ion-label translate>LANDING.TAB_GENERAL</ion-label>
+        <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
       </ng-template>
 
@@ -112,12 +112,15 @@
             <ion-row class="ion-no-padding" >
               <!-- pmfms -->
               <ng-container *ngFor="let pmfm of pmfms; index as i;">
-                <ion-col size="12" size-md="6">
-                  <app-pmfm-field [formControlName]="''+pmfm.pmfmId"
+                <ion-col *ngIf="pmfm.pmfmId === undefined">
+                  Invalid PMFM: no pmfmId (PmfmStrategy.id={{pmfm.id}} Pmfm: {{pmfm.pmfm?.id}})
+                </ion-col>
+                <ion-col size="12" size-md="6" *ngIf="pmfm.pmfmId">
+                  <app-pmfm-field [formControlName]="pmfm.pmfmId.toString()"
                                   [pmfm]="pmfm">
                   </app-pmfm-field>
                 </ion-col>
-                <ion-col *ngIf="pmfm.pmfmId===controlledSpeciesPmfmId && showOtherTaxonGroup"
+                <ion-col *ngIf="pmfm.pmfmId && pmfm.pmfmId===controlledSpeciesPmfmId && showOtherTaxonGroup"
                          size="12" size-md="6">
 
                   <!-- Special case for controlled species: add a combo, for 'MZZ' species -->
@@ -144,7 +147,7 @@
                            [tabIndex]="61"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
-                           (onInitForm)="onInitSampleForm($event)">
+                           (onInitForm)="addSampleRowValidator($event)">
           <ion-buttons slot="end">
             <!-- Help button -->
             <button mat-icon-button *ngIf="helpContent"

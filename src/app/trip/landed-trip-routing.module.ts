@@ -7,7 +7,7 @@ import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {AuctionControlPage} from "./landing/auctioncontrol/auction-control.page";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {LandedTripModule} from "./landed-trip.module";
-import {Landing2Page} from "./landing/landing2.page";
+import {BiologicalSamplingLandingPage} from "./landing/sampling/biological-sampling-landing.page";
 
 const routes: Routes = [
   {
@@ -88,7 +88,7 @@ const routes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            component: Landing2Page,
+            component: BiologicalSamplingLandingPage,
             runGuardsAndResolvers: 'pathParamsChange'
           }
         ]

@@ -12,6 +12,7 @@ export declare interface Page {
 export declare interface LoadResult<T> {
   data: T[];
   total?: number;
+  errors?: any[];
 }
 
 export declare type SuggestFn<T, F> = (value: any, filter?: F, sortBy?: string, sortDirection?: SortDirection) => Promise<T[]>;

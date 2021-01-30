@@ -6,13 +6,12 @@ import {CacheService} from "ionic-cache";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Strategy} from "../services/model/strategy.model";
 import {BaseReferentialService} from "../services/base-referential.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SortDirection} from "@angular/material/sort";
 import {StrategyFragments} from "../services/strategy.fragments";
 import {LoadResult} from "../../shared/services/entity-service.class";
-import {StrategyFilter} from "../services/strategy.service";
+import {StrategyFilter, StrategyService} from "../services/strategy.service";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {isEmptyArray, isNotNil} from "../../shared/functions";
@@ -21,84 +20,8 @@ import {ConfigService} from "../../core/services/config.service";
 import {PmfmService} from "../services/pmfm.service";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {mergeMap} from "rxjs/internal/operators";
-import {Moment} from "moment";
-import {DateUtils, fromDateISOString} from "../../shared/dates";
-
-export class DenormalizedStrategy extends Strategy<DenormalizedStrategy> {
-
-  parameterGroups: string[];
-  efforts: StrategyEffort[];
-  effortByQuarter: {
-    1?: StrategyEffort;
-    2?: StrategyEffort;
-    3?: StrategyEffort;
-    4?: StrategyEffort;
-  };
-
-  constructor() {
-    super();
-    this.effortByQuarter = {}; // Init, for easier use in UI
-  }
-
-  clone(): DenormalizedStrategy {
-    const target = new DenormalizedStrategy();
-    target.fromObject(this);
-    return target;
-  }
-
-}
-
-
-export class StrategyEffort {
-
-  static fromObject(value: any): StrategyEffort {
-    if (!value || value instanceof StrategyEffort) return value;
-    const target = new StrategyEffort();
-    target.fromObject(value);
-    return target;
-  }
-
-  strategyLabel: string;
-  startDate: Moment;
-  endDate: Moment;
-  quarter: number;
-  expectedEffort: number;
-  realizedEffort: number;
-
-  constructor() {
-  }
-
-  clone(): StrategyEffort {
-    const target = new StrategyEffort();
-    target.fromObject(this);
-    return target;
-  }
-
-  fromObject(source: any) {
-    if (!source) return;
-    this.strategyLabel = source.strategy || source.strategyLabel;
-    this.startDate = fromDateISOString(source.startDate);
-    this.endDate = fromDateISOString(source.endDate);
-    this.expectedEffort = source.expectedEffort;
-    this.realizedEffort = source.realizedEffort;
-
-    // Compute quarter (if possible = is same between start/end date)
-    const startQuarter = this.startDate && this.startDate.quarter();
-    const endQuarter = this.endDate && this.endDate.quarter();
-    this.quarter = startQuarter === endQuarter ? startQuarter : undefined;
-  }
-
-  get realized(): boolean {
-    return (!this.expectedEffort || (this.realizedEffort && this.realizedEffort >= this.expectedEffort));
-  }
-
-  get missingEffort(): number {
-    return !this.expectedEffort ? undefined :
-      // Avoid negative missing effort (when realized > expected)
-      Math.max(0, this.expectedEffort - (this.realizedEffort || 0));
-  }
-
-}
+import {DateUtils} from "../../shared/dates";
+import {DenormalizedStrategy, StrategyEffort} from "./denormalized-strategy.model";
 
 const DenormalizedStrategyFragments = {
   denormalizedStrategy: gql`fragment DenormalizedStrategyFragment on StrategyVO {
@@ -211,6 +134,7 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
     protected entities: EntitiesStorage,
     protected configService: ConfigService,
     protected pmfmService: PmfmService,
+    protected strategyService: StrategyService,
     protected referentialRefService: ReferentialRefService
   ) {
     super(graphql, platform, DenormalizedStrategy,
@@ -226,7 +150,7 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
     return super.watchAll(offset, size, sortBy, sortDirection, filter, opts)
       .pipe(
         // Fill entities (parameter groups, effort, etc)
-        mergeMap(res => this.fillEntities(res.data, opts)
+        mergeMap(res => this.fillEntities(res, opts)
           .then(() => res)
       ));
   }
@@ -237,9 +161,11 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
     const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
 
     // Fill entities (parameter groups, effort, etc)
-    await this.fillEntities(res.data, opts);
+    return this.fillEntities(res, opts);
+  }
 
-    return res;
+  async deleteAll(entities: DenormalizedStrategy[], options?: any): Promise<any> {
+    return this.strategyService.deleteAll(entities, options);
   }
 
   /* -- protected -- */
@@ -266,21 +192,31 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
     return (data || []).map(p => p.id);
   }
 
-  async fillEntities(entities: DenormalizedStrategy[], opts?: {
+  async fillEntities(res: LoadResult<DenormalizedStrategy>, opts?: {
     withEffort?: boolean; withParameterGroups?: boolean;
-  }): Promise<DenormalizedStrategy[]> {
+  }): Promise<LoadResult<DenormalizedStrategy>> {
     const jobs: Promise<void>[] = [];
     // Fill parameters groups
     if (!opts || opts.withParameterGroups !== false) {
-      jobs.push(this.fillParameterGroups(entities));
+      jobs.push(this.fillParameterGroups(res.data));
     }
     // Fill strategy efforts
     if (!opts || opts.withEffort !== false) {
-      jobs.push(this.fillEfforts(entities));
+      jobs.push(this.fillEfforts(res.data)
+        .catch(err => {
+          console.error("Error while computing effort: " + err && err.message || err, err);
+          res.errors = [
+            ...res.errors,
+            err
+          ];
+        })
+      );
     }
+
+    // Wait jobs end
     await Promise.all(jobs);
 
-    return entities;
+    return res;
   }
 
   /**
@@ -349,6 +285,5 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
       }
     });
 
-    console.log("TODO: entities: ", entities);
   }
 }

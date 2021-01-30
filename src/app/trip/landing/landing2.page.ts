@@ -4,14 +4,15 @@ import {
   ElementRef,
   Injector,
   OnInit,
+  Optional,
   QueryList,
   ViewChild,
   ViewChildren
 } from '@angular/core';
 import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
-import {merge, Observable, Subscription} from "rxjs";
-import {filter, map, throttleTime} from "rxjs/operators";
+import {merge, Subscription} from "rxjs";
+import {debounceTime, filter, throttleTime} from "rxjs/operators";
 import {environment} from "../../../environments/environment";
 import {AppEditorOptions} from "../../core/form/editor.class";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
@@ -19,9 +20,7 @@ import {UsageMode} from "../../core/services/model/settings.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {ProgramProperties} from "../../referential/services/config/program.config";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {StrategyService} from "../../referential/services/strategy.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
@@ -32,7 +31,6 @@ import {ObservedLocation} from "../services/model/observed-location.model";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
-import {Landing2Form} from "./landing2.form";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {fromDateISOString} from "../../shared/dates";
 import {Program} from "../../referential/services/model/program.model";
@@ -42,6 +40,7 @@ import {
   STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX,
   StrategySummaryCardComponent
 } from "../../data/strategy/strategy-summary-card.component";
+import {LandingForm} from "./landing.form";
 
 
 const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
@@ -49,79 +48,61 @@ const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 @Component({
   selector: 'app-landing2-page',
   templateUrl: './landing2.page.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: AppEditorOptions,
-      useValue: {
-        pathIdAttribute: 'landingId'
-      }
-    }
-  ]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Landing2Page extends AppRootDataEditor<Landing, LandingService> implements OnInit {
 
   protected parent: Trip | ObservedLocation;
-  protected dataService: LandingService;
   protected observedLocationService: ObservedLocationService;
   protected tripService: TripService;
   protected referentialRefService: ReferentialRefService;
   protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
-  protected strategyService: StrategyService;
   private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
   showQualityForm = false;
   i18nPrefix = DEFAULT_I18N_PREFIX;
-  forceOneTab = false;
-
-  @ViewChild('landingForm', { static: true }) landingForm: Landing2Form;
-  @ViewChild('samplesTable', { static: true }) samplesTable: Samples2Table;
-
-  @ViewChild('firstTabInjection', {static: false}) firstTabInjection: ElementRef;
-  @ViewChildren('tabContent') tabContents: QueryList<ElementRef>;
-
-  @ViewChild('strategyCard', {static: true}) strategyCard: StrategySummaryCardComponent;
-
-
-  get pmfms(): Observable<PmfmStrategy[]> {
-    return this.landingForm.$pmfms.pipe(filter(isNotNil));
-  }
+  oneTabMode = false;
 
   get form(): FormGroup {
     return this.landingForm.form;
   }
 
+  @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
+  @ViewChild('samplesTable', { static: true }) samplesTable: Samples2Table;
+  @ViewChild('strategyCard', {static: true}) strategyCard: StrategySummaryCardComponent;
+
+  @ViewChild('firstTabInjection', {static: false}) firstTabInjection: ElementRef;
+  @ViewChildren('tabContent') tabContents: QueryList<ElementRef>;
+
   constructor(
     injector: Injector,
-    options: AppEditorOptions
+    @Optional() options: AppEditorOptions
   ) {
-    super(injector, Landing, injector.get(LandingService), options);
+    super(injector, Landing, injector.get(LandingService), {
+        tabCount: 2,
+        pathIdAttribute: 'landingId',
+        ...options
+      });
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
-    this.strategyService = injector.get(StrategyService);
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
+    // Watch program, to configure tables from program properties
     this.registerSubscription(
       this.$program.subscribe(program => this.setProgram(program))
     );
-    this.registerSubscription(
-      this.$strategy.subscribe(strategy => this.setStrategy(strategy))
-    );
-    // this.landing2Form.program = this.program.label;
-    // Watch program, to configure tables from program properties
-
 
     // Use landing date as default dateTime for samples
     this.registerSubscription(
@@ -133,22 +114,30 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     );
 
     this.registerSubscription(
-      this.landingForm.form.get('strategy').valueChanges
-        .pipe(
-          map(value => value && value.label ? value.label : value)
-        )
+      this.landingForm.onStrategyChanged
         .subscribe((strategy: string) => this.strategySubject.next(strategy))
     );
 
+    // Watch strategy
+    this.registerSubscription(
+      this.$strategy.subscribe(strategy => this.setStrategy(strategy))
+    );
+
+    // Watch table events, to avoid strategy edition, when has sample rows
     this.registerSubscription(
       merge(
         this.samplesTable.onConfirmEditCreateRow,
         this.samplesTable.onCancelOrDeleteRow
       )
-      .subscribe(() => {
-        this.landingForm.canEditStrategy = this.samplesTable.resultsLength === 0;
-      })
+        .pipe(debounceTime(500))
+        .subscribe(() => {
+          this.landingForm.canEditStrategy = this.samplesTable.resultsLength === 0;
+        })
     );
+  }
+
+  protected registerForms() {
+    this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -203,13 +192,12 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
       }
     }
 
+    // Landing as root
+    else {
+      this.showQualityForm = true;
+    }
+
   }
-/*
-  // TODO BLA: pourquoi cette méthode ? Pas besoin
-  // Logiquement, l'éditor recharge la page après sauvegarde
-  protected async onEntitySaved(data: Landing) {
-    this.setValue(data);
-  }*/
 
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
@@ -238,7 +226,10 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
         this.defaultBackHref = `/trips/${this.parent.id}?tab=2`;
       }
     }
-
+    // Landing as root
+    else {
+      this.showQualityForm = true;
+    }
   }
 
   onStartSampleEditingForm({form, pmfms}) {
@@ -260,35 +251,25 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     if (this.parent) {
       if (this.parent instanceof ObservedLocation) {
-
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = true;
-        this.landingForm.showLocation = true;
-        this.landingForm.showDateTime = false;
-        this.landingForm.showObservers = true;
 
       } else if (this.parent instanceof Trip) {
 
         // Hide some fields
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = false;
-        this.landingForm.showLocation = true;
-        this.landingForm.showDateTime = true;
-        this.landingForm.showObservers = true;
+
       }
     } else {
 
       this.landingForm.showVessel = true;
       this.landingForm.showLocation = true;
       this.landingForm.showDateTime = true;
-      this.landingForm.showObservers = true;
 
       this.showQualityForm = true;
     }
   }
-
-  /* -- protected methods -- */
-
 
   protected setProgram(program: Program) {
     if (!program) return; // Skip
@@ -297,13 +278,20 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     // Customize the UI, using program options
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
+    this.landingForm.showStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
+    this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
+    this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
+    this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
 
-    // TODO: use program properties ?
-    this.landingForm.showStrategy = true;
-    const forceOneTab = true; // Get it from properties ?
-    if (this.forceOneTab !== forceOneTab) {
-      this.forceOneTab = forceOneTab;
-      this.moveTabContent();
+    /*this.samplesTable.modalOptions = {
+      ...this.samplesTable.modalOptions,
+      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
+    };*/
+
+    const oneTabMode = program.getPropertyAsBoolean(ProgramProperties.LANDING_ONE_TAB_ENABLE);
+    if (this.oneTabMode !== oneTabMode) {
+      this.oneTabMode = oneTabMode;
+      this.refreshTabLayout();
     }
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
@@ -312,14 +300,12 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.landingForm.i18nPrefix = this.i18nPrefix;
     this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
 
-    this.samplesTable.program = program.label;
-
   }
 
   protected async setStrategy(strategy: Strategy) {
     if (!strategy) return; // Skip if empty
 
-    this.landingForm.strategy = strategy;
+    console.debug('[landing-page] Received strategy: ', strategy);
 
     this.strategyCard.value = strategy;
 
@@ -329,9 +315,6 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.samplesTable.pmfms = strategy.pmfmStrategies;
   }
 
-  protected registerForms() {
-    this.addChildForms([this.landingForm, this.samplesTable]);
-  }
 
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
@@ -366,9 +349,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.landingForm.value = data;
 
     // Set samples to table
-    if (this.samplesTable) {
-      this.samplesTable.value = data.samples || [];
-    }
+    this.samplesTable.value = data.samples || [];
   }
 
   protected async computeTitle(data: Landing): Promise<string> {
@@ -400,17 +381,16 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   }
 
   protected getFirstInvalidTabIndex(): number {
-  //  return this.landing2Form.invalid ? 0 : (this.samples2Table.invalid ? 1 : -1);
-    // return first invalid tabIndex
-    return 0;
+    if (this.oneTabMode || this.landingForm.invalid) return 0;
+    if (!this.oneTabMode && this.samplesTable.invalid) return 1;
+    return -1;
   }
 
   protected computeUsageMode(landing: Landing): UsageMode {
     return this.settings.isUsageMode('FIELD')
-    && isNotNil(landing && landing.dateTime)
-    && landing.dateTime.diff(moment(), "day") <= 1 ? 'FIELD' : 'DESK';
+      // Force desktop mode if landing date/time is 1 day later than now
+      && (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), "day") <= 1) ? 'FIELD' : 'DESK';
   }
-
 
   protected async getValue(): Promise<Landing> {
     const data = await super.getValue();
@@ -423,14 +403,14 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     // Apply rank Order
     // TODO BLA: pourquoi fixer la rankOrder à 1 ? Cela empêche de retrouver l'ordre de saisie
-    data.samples.map(s => s.rankOrder = 1);
+    //data.samples.map(s => s.rankOrder = 1);
 
     return data;
   }
 
-  protected moveTabContent() {
+  protected refreshTabLayout() {
     // Inject content of tabs, into the first tab
-    const injectionPoint = this.forceOneTab && this.firstTabInjection && this.firstTabInjection.nativeElement;
+    const injectionPoint = this.oneTabMode && this.firstTabInjection && this.firstTabInjection.nativeElement;
     if (injectionPoint) {
       this.tabContents.forEach(content => {
         if (!content.nativeElement) return; // Skip

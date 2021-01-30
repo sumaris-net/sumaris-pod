@@ -6,7 +6,7 @@ import {
   Injector,
   Input,
   OnDestroy,
-  OnInit,
+  OnInit, Optional,
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
@@ -16,7 +16,7 @@ import {UsageMode} from "../../core/services/model/settings.model";
 import * as momentImported from "moment";
 const moment = momentImported;
 import {Moment} from "moment";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
+import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {SampleModal, ISampleModalOptions} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
@@ -35,9 +35,13 @@ export interface SampleFilter {
   landingId?: number;
 }
 
+export class LandingEditorOptions extends AppMeasurementsTableOptions<Sample> {
+
+}
+
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
 export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
-
+export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.SAMPLING.';
 
 @Component({
   selector: 'app-samples-table',
@@ -49,11 +53,14 @@ export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
-  implements OnInit, OnDestroy {
+  implements OnInit {
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
+
+  @Input() i18nFieldPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX;
+  @Input('useSticky') useSticky = false;
 
   @Input()
   set value(data: Sample[]) {
@@ -96,7 +103,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
 
   constructor(
-    injector: Injector
+    injector: Injector,
+    @Optional() options?: LandingEditorOptions
   ) {
     super(injector,
       Sample,
@@ -108,7 +116,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         prependNewElements: false,
         suppressErrors: environment.production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
-        reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS
+        reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
+        ...options
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
@@ -184,7 +193,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...", data);
+    console.debug("[sample-table] Initializing new row data...");
 
     await super.onNewEntity(data);
 
@@ -200,7 +209,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       data.sampleDate = moment();
     }
 
-    // Taxon group
+    // Default taxon name
     if (isNotNil(this.defaultTaxonName)) {
       data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
     }

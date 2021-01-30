@@ -22,7 +22,7 @@ import {SortDirection} from "@angular/material/sort";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
-import {firstArrayValue, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
+import {firstArrayValue, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/entity-service.class";
 
 
@@ -38,7 +38,7 @@ const FindStrategyNextLabel: any = gql`
 
 const LoadAllAnalyticReferencesQuery: any = gql`
   query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+    data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...ReferentialFragment
     }
   }
@@ -267,7 +267,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    filter?: ReferentialRefFilter): Promise<ReferentialRef[]> {
+    filter?: ReferentialRefFilter): Promise<LoadResult<ReferentialRef>> {
 
     const variables: any = {
       offset: offset || 0,
@@ -280,7 +280,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[strategy-service] Loading analytic references...`, variables);
 
-    const res = await this.graphql.query<{ analyticReferences: Referential[] }>({
+    const { data } = await this.graphql.query<{ data: any }>({
       query: LoadAllAnalyticReferencesQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR" },
@@ -288,15 +288,29 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     });
 
     if (this._debug) console.debug(`[strategy-service] Analytic references loaded in ${Date.now() - now}ms`);
-    return (res && res.analyticReferences || []) as ReferentialRef[];
+    const entities = data && data.map(ReferentialRef.fromObject);
+    return {
+      data: entities
+    };
   }
 
   async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<ReferentialRef[]> {
     if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    return await this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
+    const {data} = await this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value}
     );
+    return data;
+  }
+
+  canUserWrite(data?: Strategy): boolean {
+
+    // user is admin: ok
+    if (this.accountService.isAdmin()) return true;
+
+    // TODO check if program managers
+    //const isNew = (!data || isNil(data.id);
+    return this.accountService.isSupervisor();
   }
 
   copyIdAndUpdateDate(source: Strategy, target: Strategy) {

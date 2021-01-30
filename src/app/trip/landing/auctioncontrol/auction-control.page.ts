@@ -12,7 +12,7 @@ import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.
 import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../../core/services/model/settings.model";
 import {ObservedLocation} from "../../services/model/observed-location.model";
-import {FormBuilder, FormControl} from "@angular/forms";
+import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {TaxonGroupLabels, TaxonGroupRef} from "../../../referential/services/model/taxon.model";
@@ -28,16 +28,10 @@ import {ProgramService} from "../../../referential/services/program.service";
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
-  providers: [
-    {provide: ValidatorService, useExisting: LandingValidatorService}
-  ],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuctionControlPage extends LandingPage implements OnInit {
-
-
-  private _rowValidatorSubscription: Subscription;
 
   $taxonGroupTypeId = new BehaviorSubject<number>(null);
   taxonGroupControl: FormControl;
@@ -218,16 +212,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         }));
   }
 
-  onInitSampleForm({form, pmfms}) {
-    // Remove previous subscription
-    if (this._rowValidatorSubscription) {
-      this._rowValidatorSubscription.unsubscribe();
-    }
-
-    // Add computation and validation
-    this._rowValidatorSubscription = AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
-  }
-
   protected setProgram(program: Program) {
     super.setProgram(program);
 
@@ -316,25 +300,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       });
   }
 
-  // protected async getValue(): Promise<Landing> {
-  //   const data = await super.getValue();
-  //
-  //   // Make sure to set all samples attributes
-  //   const generatedPrefix = this.samplesTable.acquisitionLevel + '#';
-  //   console.log("Will update generate label");
-  //   (data.samples || []).forEach(s => {
-  //     // Always fill label
-  //     if (isNilOrBlank(s.label)) {
-  //       s.label = generatedPrefix + s.rankOrder;
-  //     }
-  //
-  //     // Always use same taxon group
-  //     s.taxonGroup = this.samplesTable.defaultTaxonGroup;
-  //   });
-  //
-  //   return data;
-  // }
-
   /* -- protected method -- */
 
   protected async setValue(data: Landing): Promise<void> {
@@ -394,6 +359,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   protected computePageUrl(id: number|'new') {
     const parentUrl = this.getParentPageUrl();
     return `${parentUrl}/control/${id}`;
+  }
+
+  protected computeSampleValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+    return AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 
   protected getFirstInvalidTabIndex(): number {

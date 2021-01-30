@@ -115,16 +115,16 @@
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-samples-table #samplesTable
-                           [program]="programSubject|async"
-                           [showLabelColumn]="true"
-                           [showDateTimeColumn]="false"
-                           [showTaxonNameColumn]="false"
-                           [showTaxonGroupColumn]="false"
-                           [defaultSampleDate]="data?.dateTime"
-                           [usageMode]="usageMode"
-                           [debug]="debug">
-        </app-samples-table>
+        <app-biological-sampling-samples-table #samplesTable
+                            [program]="programSubject|async"
+                            [showLabelColumn]="true"
+                            [showDateTimeColumn]="false"
+                            [defaultSampleDate]="data?.dateTime"
+                            [usageMode]="usageMode"
+                            (onInitForm)="addSampleRowValidator($event)"
+                            [useSticky]="true"
+                            [debug]="debug">
+        </app-biological-sampling-samples-table>
 
         <!-- final space-->
         <p visible-xs visible-sm visible-mobile>&nbsp;</p>

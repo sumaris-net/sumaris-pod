@@ -13,7 +13,7 @@ import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Pmfm} from "../../referential/services/model/pmfm.model";
 import {AppForm} from "../../core/form/form.class";
-import {isNil, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
@@ -303,11 +303,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         })) || [];
-      // TODO BLA: pourquoi cette lign ?  utiliser isNotNil !
-      pmfms = pmfms.filter(pmfm => pmfm.pmfmId);
 
-      if (!pmfms.length && this.debug) {
-        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
+      if (isEmptyArray(pmfms)) {
+        if (this.debug) console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
+        pmfms = []; // Create a new array, to force refresh in components that use '!==' to filter events
       }
       else {
 
@@ -323,10 +322,13 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
             return pmfm;
           });
         }
+        else {
+          pmfms = pmfms.slice(); // Do a copy, to force erfresh when comparing using '===' in components
+        }
       }
 
       // Apply
-      await this.setPmfms(pmfms.slice());
+      await this.setPmfms(pmfms);
     }
     catch (err) {
       console.error(`${this.logPrefix} Error while loading pmfms: ${err && err.message || err}`, err);

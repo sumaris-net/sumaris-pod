@@ -78,23 +78,18 @@ export const StrategyFragments = {
       isMandatory
       acquisitionNumber
       defaultValue
-      pmfmId
       pmfm {
         ...PmfmFragment
       }
-      parameterId
       parameter {
         ...ReferentialFragment
       }
-      matrixId
       matrix {
         ...ReferentialFragment
       }
-      fractionId
       fraction {
         ...ReferentialFragment
       }
-      methodId
       method {
         ...ReferentialFragment
       }
@@ -158,7 +153,7 @@ export const StrategyFragments = {
     fragment PmfmStrategyRefFragment on PmfmStrategyVO {
       id
       pmfmId
-      parameterId # TODO BLA check if need
+      parameterId
       matrixId
       fractionId
       methodId

@@ -50,7 +50,7 @@
 
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
-                  [disabled]="!filterEnabled"
+                  [disabled]="!filterEnabled || $ana"
                   [title]="'COMMON.BTN_FILTER'|translate"
                   (click)="enableAnalyticReferenceFilter = !enableAnalyticReferenceFilter"
                   [color]="enableAnalyticReferenceFilter && filterEnabled? 'primary' : undefined">
@@ -204,12 +204,13 @@
                [class.ion-padding-start]="!first">
         <mat-form-field [formGroup]="appliedPeriodHelper.at(i)">
           <input matInput
-          formControlName="acquisitionNumber"
-          type="number"
-          step="1"
-          min="0"
-          autocomplete="off"
-          [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' |translate) + (i+1) ">
+                 formControlName="acquisitionNumber"
+                 [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' |translate) + (i+1) "
+                 type="number"
+                 step="1"
+                 min="0"
+                 autocomplete="off"
+                 (click)="$event.target.select()">
         </mat-form-field>
       </ion-col>
     </ion-row>

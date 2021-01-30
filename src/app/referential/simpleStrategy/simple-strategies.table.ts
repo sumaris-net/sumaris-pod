@@ -10,11 +10,12 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {LocationLevelIds, TaxonomicLevelIds} from "../services/model/model.enum";
 import {ReferentialFilter} from "../services/referential.service";
-import {DenormalizedStrategy, DenormalizedStrategyService} from "./denormalized-strategy.service";
+import {DenormalizedStrategyService} from "./denormalized-strategy.service";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {ProgramProperties} from "../services/config/program.config";
 import {environment} from "../../../environments/environment";
+import {DenormalizedStrategy} from "./denormalized-strategy.model";
 
 
 @Component({

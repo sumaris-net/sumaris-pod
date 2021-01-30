@@ -673,16 +673,14 @@
         "AGE": "Age",
         "OTHER": "Autre",
         "SAMPLING": {
-          "LABEL": "Lot",
-          "LABEL_PLACEHOLDER": "Lot",
+          "LABEL": "Code prélèvement",
+          "LABEL_PLACEHOLDER": "Code prélèvement",
           "TAXON_GROUP": "Espèce commerciale (FAO)",
           "TAXON_GROUP_PLACEHOLDER": "Code espèce",
           "TAXON_NAME": "Espèce scientifique (FAO)",
           "TAXON_NAME_PLACEHOLDER": "Code espèce",
           "SAMPLE_DATE": "Date/Heure de la mesure",
           "PARENT": "Echantillon parent",
-          "SAMPLE_CODE": "Code prélèvement",
-          "SAMPLE_CODE_PLACEHOLDER": "Code prélèvement",
           "MORSE_CODE": "Code Morse",
           "MORSE_CODE_PLACEHOLDER": "Code Morse",
           "COMMENTS": "Commentaires",
@@ -759,6 +757,7 @@
       "OBSERVER_PLACEHOLDER": "Observateur #",
       "OBSERVERS": "Observateurs :",
       "SAMPLING": {
+        "TITLE": "{{location}} - {{dateTime}}",
         "TAB_LANDINGS": "Échantillonnages"
       }
     },
@@ -816,6 +815,7 @@
         "STRATEGY": "Ligne de plan :",
         "STRATEGY_PLACEHOLDER": "Code ligne de plan",
         "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",
+        "LANDING": "Débarquement :",
         "TAB_SAMPLES": "Mesures individuelles",
         "LOCATION": "Port de débarquement"
       }
@@ -1222,6 +1222,7 @@
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Observateurs ?",
       "LANDING_LOCATION_ENABLE": "Observation sur site > Débarquement : Port ?",
+      "LANDING_ONE_TAB_ENABLE": "Observation sur site > Débarquement : un seul onglet ? ",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu",
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
@@ -1337,12 +1338,15 @@
         }
       },
       "SUMMARY": {
+        "TITLE": "Stratégie",
         "LOCATIONS" :"Lieux applicables :",
         "TAXON_NAMES" :"Espèces scientifiques :",
         "TAXON_GROUPS" :"Espèces commerciales :",
         "SAMPLING" : {
+          "TITLE": "Plan d'échantillonnage",
           "LOCATIONS" :"Zone(s) de pêche :",
-          "TAXON_NAMES" :"Espèce cible :"
+          "TAXON_NAMES" :"Espèce cible :",
+          "TAXON_GROUPS" :"Espèces commerciales :"
         }
       },
       "PMFM_STRATEGY": {
