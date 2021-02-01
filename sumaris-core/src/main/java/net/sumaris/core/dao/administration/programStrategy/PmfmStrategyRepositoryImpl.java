@@ -338,7 +338,7 @@ public class PmfmStrategyRepositoryImpl
             }
         }
         if (copyIfNull || methodId != null) {
-            if (fractionId != null) {
+            if (methodId != null) {
                 target.setMethod(load(Method.class, methodId));
             }
             else {
