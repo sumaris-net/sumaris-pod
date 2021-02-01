@@ -12,7 +12,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {SortDirection} from "@angular/material/sort";
 import {StrategyFragments} from "../services/strategy.fragments";
 import {LoadResult} from "../../shared/services/entity-service.class";
-import {StrategyFilter} from "../services/strategy.service";
+import {StrategyFilter, StrategyService} from "../services/strategy.service";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {isEmptyArray, isNotNil} from "../../shared/functions";
@@ -210,6 +210,7 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
     protected cache: CacheService,
     protected entities: EntitiesStorage,
     protected configService: ConfigService,
+    protected strategyService: StrategyService,
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
@@ -240,6 +241,10 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
     await this.fillEntities(res.data, opts);
 
     return res;
+  }
+
+  async deleteAll(entities: DenormalizedStrategy[], options?: any): Promise<any> {
+    return this.strategyService.deleteAll(entities, options);
   }
 
   /* -- protected -- */

@@ -193,8 +193,8 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
         entityName: 'Strategy',
         levelLabel: this.programSubject.getValue() // is empty, will be set in setProgram()
       },
-      attributes: ['label', 'name'],
-      columnSizes: [6, 6]
+      attributes: ['label'],
+      columnSizes: [12]
     });
 
     // Combo: vessels

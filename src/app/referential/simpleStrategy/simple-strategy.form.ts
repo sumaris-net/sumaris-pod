@@ -131,8 +131,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: StrategyValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected strategyService: StrategyService,
     protected denormalizeStrategyService: DenormalizedStrategyService,
+    protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder
@@ -146,7 +146,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       this.i18nFieldPrefix = 'PROGRAM.STRATEGY.EDIT.';
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX) || '';
       this.i18nFieldPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
-      this.loadFilteredItems(program)
+      this.loadFilteredItems(program);
       this.programSubject.next(program);
 
       if (!opts || opts.emitEvent !== false) {
@@ -202,7 +202,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     .reduce((res, pmfmStrategie: PmfmStrategy): number[] => {
       return res.concat([pmfmStrategie.fractionId])
     }, []));
-    
+
     const promises = await Promise.all(
       fractions.map((fractionId) => this.referentialRefService.loadAll(0, 1, null, null, { id: fractionId, entityName: 'Fraction' }))
     );
@@ -217,7 +217,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     const analyticReferences = [];
     try {
       const promises = await Promise.all(
-        data.map((i) => this.strategyService.loadAllAnalyticReferences(0, 1, 'name', 'asc', {name: i.analyticReference}))
+        data.map((i) => this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'asc', {name: i.analyticReference}))
       );
       promises.map(r => analyticReferences.push(r));
     } catch(err) {
