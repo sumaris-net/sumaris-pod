@@ -126,7 +126,7 @@
       <ng-template #noHeaderRowActions>
 
         <!-- validate -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+        <button mat-icon-button color="light" *ngIf="row.validator.valid"
                 [title]="'COMMON.BTN_VALIDATE'|translate"
                 (click)="confirmEditCreate($event, row)">
           <mat-icon>check</mat-icon>

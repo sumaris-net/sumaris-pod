@@ -121,7 +121,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   @ViewChild('sizePmfmStrategiesTable', { static: true }) sizePmfmStrategiesTable: PmfmStrategiesTable;
   @ViewChild('maturityPmfmStrategiesTable', { static: true }) maturityPmfmStrategiesTable: PmfmStrategiesTable;
 
-  analyticsReferenceItems: BehaviorSubject<string[]> = new BehaviorSubject<string[]>(null);
+  analyticsReferenceItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
   locationItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
   departmentItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
   fractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject<ReferentialRef[]>(null);
@@ -219,9 +219,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     const analyticReferences = [];
     try {
       const promises = await Promise.all(
-        data.map((i) => this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'asc', {name: i.analyticReference}))
+        data.map((i) => this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', {label: i.analyticReference}))
       );
-      promises.map(r => analyticReferences.push(r));
+      promises.map(r => analyticReferences.push(r[0]));
     } catch(err) {
       console.debug('Error on load AnalyticReference');
     }
@@ -390,7 +390,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   protected async suggestAnalyticReferences(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.filterEnabled && this.enableAnalyticReferenceFilter) {
-      return this.strategyService.suggestAnalyticReferences(value, filter);
+      return await suggestFromArray(this.analyticsReferenceItems.getValue(), value, {});
     } else {
       return this.strategyService.loadAllAnalyticReferences(0, 30, null, null, filter);
     }
