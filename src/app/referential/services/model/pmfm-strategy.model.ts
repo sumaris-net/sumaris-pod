@@ -46,7 +46,9 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
     if (opts && opts.html) {
       name += `<small><br/>(${unitLabel})</small>`;
     }
-    name += ` (${pmfm.unitLabel})`;
+    else {
+      name += ` (${unitLabel})`;
+    }
   }
   return name;
 }
