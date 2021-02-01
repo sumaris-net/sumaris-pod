@@ -157,8 +157,11 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Autowired
     protected DatabaseSchemaDao databaseSchemaDao;
 
+    private boolean includeProductTypes;
+
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
+        includeProductTypes = configuration.enableExtractionProduct();
         if (configuration.isInitStatisticalRectangles()) {
             initRectangleLocations();
         }
@@ -208,7 +211,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
 
         // Add product types
-        if (filterCategory == null || filterCategory == ExtractionCategoryEnum.PRODUCT) {
+        if (includeProductTypes && (filterCategory == null || filterCategory == ExtractionCategoryEnum.PRODUCT)) {
             builder.addAll(getProductExtractionTypes(filter));
         }
 

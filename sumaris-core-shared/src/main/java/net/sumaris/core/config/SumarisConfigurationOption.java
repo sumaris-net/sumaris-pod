@@ -424,7 +424,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             false),
 
     ANALYTIC_REFERENCES_SERVICE_DELAY(
-            "analyticReferences.service.delay",
+            "sumaris.analyticReferences.service.delay",
             n("sumaris.config.option.analyticReferences.service.delay.description"),
             String.valueOf(30), /* 30 days */
             Integer.class,
@@ -526,6 +526,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "sumaris.persistence.vessel.defaultProgram.label",
             n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),
             "SIH",
+            Boolean.class),
+
+    ENABLE_EXTRACTION_PRODUCT(
+            "sumaris.extraction.product.enable",
+            n("sumaris.config.option.extraction.product.enable.description"),
+            Boolean.FALSE.toString(),
             Boolean.class)
     ;
 

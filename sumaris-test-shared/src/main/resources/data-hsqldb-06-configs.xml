@@ -91,7 +91,8 @@
     <SOFTWARE_PROPERTY ID="108" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="109" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="110" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="111" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.createLanding.history.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="111" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.new.name" NAME="OBSERVED_LOCATION.NEW.SAMPLING.TITLE"/>
+    <SOFTWARE_PROPERTY ID="112" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.createLanding.history.enable" NAME="false"/>
 
 
 </dataset>
