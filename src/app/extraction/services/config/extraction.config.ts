@@ -22,5 +22,11 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
     label: 'EXTRACTION.OPTIONS.MAP_ENABLE',
     type: 'boolean',
     defaultValue: 'false'
-  }
+  },
+  EXTRACTION_PRODUCT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.extraction.product.enable',
+    label: 'EXTRACTION.OPTIONS.PRODUCT_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
 });

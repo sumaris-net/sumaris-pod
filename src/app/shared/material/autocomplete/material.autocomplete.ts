@@ -322,7 +322,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         });
         this._itemCount = res && res.length || 0;
         return res;
-      }
+      };
       // Wait (once) that items are loaded, then call suggest from array fn
       this.suggestFn = async (value, filter) => {
         if (isNil(this.$inputItems.getValue())) {
@@ -351,7 +351,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
             this.$inputItems.next(res);
             this._itemCount = res && res.length || 0;
           })
-      )
+      );
     }
 
     this.matSelectItems$ = this.$inputItems
