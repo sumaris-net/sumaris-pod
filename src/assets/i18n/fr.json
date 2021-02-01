@@ -1321,7 +1321,7 @@
           "LOCATIONS": "Zone(s) de pêche",
           "ANALYTIC_REFERENCE": "EOTP",
           "RECORDER_DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
-          "TAXON_NAMES": "Espèce(s) cible(s)",
+          "TAXON_NAMES": "Espèce cible",
           "EFFORT_Q1": "Efforts T1" ,
           "EFFORT_Q2": "Efforts T2" ,
           "EFFORT_Q3": "Efforts T3" ,
