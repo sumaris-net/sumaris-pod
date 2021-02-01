@@ -287,15 +287,9 @@ public class PmfmStrategyRepositoryImpl
             target.setStrategy(load(Strategy.class, source.getStrategyId()));
         }
 
-        // Pmfm
+        // Pmfm, Parameter, Matrix, Fraction, Method
         Integer pmfmId = source.getPmfmId() != null ? source.getPmfmId()
                 : (source.getPmfm() != null ? source.getPmfm().getId() : null);
-        //if (pmfmId == null) throw new DataIntegrityViolationException("Missing pmfmId or pmfm.id in a PmfmStrategyVO");
-        if (pmfmId != null) {
-            target.setPmfm(load(Pmfm.class, pmfmId));
-        }
-
-        // Parameter, Matrix, Fraction, Method
         Integer parameterId = source.getParameterId() != null ? source.getParameterId()
                 : (source.getParameter() != null ? source.getParameter().getId() : null);
         Integer matrixId = source.getMatrixId() != null ? source.getMatrixId()
@@ -305,6 +299,13 @@ public class PmfmStrategyRepositoryImpl
         Integer methodId = source.getMethodId() != null ? source.getMethodId()
                 : (source.getMethod() != null ? source.getMethod().getId() : null);
 
+        if (pmfmId == null && parameterId == null && matrixId == null && fractionId == null && methodId == null) {
+            throw new DataIntegrityViolationException("Missing id for one of Pmfm, Parameter, Matrix, Fraction, Method in a PmfmStrategyVO");
+        }
+
+        if (pmfmId != null) {
+            target.setPmfm(load(Pmfm.class, pmfmId));
+        }
         if (parameterId != null) {
             target.setParameter(load(Parameter.class, parameterId));
         }
