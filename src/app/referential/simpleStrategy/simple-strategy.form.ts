@@ -152,6 +152,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
       if (!opts || opts.emitEvent !== false) {
         this.markForCheck();
       }
+
+      this.onDateChange(this.form.get('year').value)
     }
   }
 
@@ -546,27 +548,27 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // format periods for applied conrol period in view and init default period by quarter if no set
     const quarter1 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 1) || {
       appliedStrategyId: appliedStrategyId,
-      startDate: moment(`${year}-01-01`).utc(false),
-      endDate: moment(`${year}-03-31`).utc(false),
+      startDate: moment(`${year}-01-01`),
+      endDate: moment(`${year}-03-31`),
       acquisitionNumber: undefined
     };
 
     const quarter2 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 4) || {
       appliedStrategyId: appliedStrategyId,
-      startDate: moment(`${year}-04-01`).utc(false),
-      endDate: moment(`${year}-06-30`).utc(false),
+      startDate: moment(`${year}-04-01`),
+      endDate: moment(`${year}-06-30`),
       acquisitionNumber: undefined
     };
     const quarter3 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 7) || {
       appliedStrategyId: appliedStrategyId,
-      startDate: moment(`${year}-07-01`).utc(false),
-      endDate: moment(`${year}-09-30`).utc(false),
+      startDate: moment(`${year}-07-01`),
+      endDate: moment(`${year}-09-30`),
       acquisitionNumber: undefined
     };
     const quarter4 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 10) || {
       appliedStrategyId: appliedStrategyId,
-      startDate: moment(`${year}-10-01`).utc(false),
-      endDate: moment(`${year}-12-31`).utc(false),
+      startDate: moment(`${year}-10-01`),
+      endDate: moment(`${year}-12-31`),
       acquisitionNumber: undefined
     };
     const formattedAppliedPeriods = [quarter1, quarter2, quarter3, quarter4];

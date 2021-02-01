@@ -159,8 +159,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       appliedStrategies[0].appliedPeriods = appliedPeriods.filter(period => isNotNil(period.acquisitionNumber));
       // Set selected year
       appliedStrategies[0].appliedPeriods.forEach(p => {
-        p.startDate = moment(p.startDate).set('year', year);
-        p.endDate = moment(p.endDate).set('year', year);
+        p.startDate.set('year', year);
+        p.endDate.set('year', year);
       });
     }
     data.appliedStrategies = appliedStrategies;
