@@ -33,8 +33,8 @@
     <select alias="GEAR_CLASSIFICATION" type="text">GC.LABEL</select>
     <select alias="TAXON_GROUP_TYPE" type="text">TGT.LABEL</select>
 
-    <select alias="LOCATION_CLASSIFICATIONS" group="hsqldb" type="text">GROUP_CONCAT(LC.LABEL SEPARATOR ', ')</select>
-    <select alias="LOCATION_CLASSIFICATIONS" group="oracle" type="text">LISTAGG(LC.LABEL, ', ')</select>
+    <select alias="LOCATION_CLASSIFICATIONS" group="hsqldb" type="text">GROUP_CONCAT(LC.LABEL SEPARATOR ',')</select>
+    <select alias="LOCATION_CLASSIFICATIONS" group="oracle" type="text">LISTAGG(LC.LABEL, ',') WITHIN GROUP (ORDER BY LC.LABEL)</select>
 
     <!-- hidden columns -->
     <select alias="PROGRAM_ID" type="hidden">P.ID</select>
@@ -55,8 +55,8 @@
     </where>
 
     <groupby>
-      RECORD_TYPE, PROJECT, PROGRAM_NAME, PROGRAM_DESCRIPTION, GEAR_CLASSIFICATION,
-      TAXON_GROUP_TYPE, PROGRAM_ID
+      P.LABEL, P.NAME, P.DESCRIPTION, GC.LABEL,
+      TGT.LABEL, P.ID
     </groupby>
 
     <orderby direction="ASC">P.ID</orderby>

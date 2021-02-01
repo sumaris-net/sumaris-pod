@@ -52,9 +52,9 @@
     </from>
 
     <groupby>
-      RECORD_TYPE, PROJECT, STRATEGY,
+      ST.PROJECT, ST.STRATEGY,
       APP.START_DATE, APP.END_DATE, APP.ACQUISITION_NUMBER,
-      PROGRAM_ID, STRATEGY_ID
+      ST.PROGRAM_ID, ST.STRATEGY_ID
     </groupby>
 
     <orderby direction="ASC">ST.PROGRAM_ID, ST.STRATEGY_ID, APP.START_DATE</orderby>

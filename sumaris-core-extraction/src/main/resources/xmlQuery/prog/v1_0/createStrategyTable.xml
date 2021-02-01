@@ -36,8 +36,8 @@
     <select alias="START_DATE" type="date">min(APP.START_DATE)</select>
     <select alias="END_DATE" type="date">max(APP.END_DATE)</select>
 
-    <select alias="LOCATION_CODES" group="hsqldb" type="text">GROUP_CONCAT(distinct L.LABEL SEPARATOR ', ')</select>
-    <select alias="LOCATION_CODES" group="oracle" type="text">LISTAGG(L.LABEL, ', ')</select>
+    <select alias="LOCATION_CODES" group="hsqldb" type="text">GROUP_CONCAT(distinct L.LABEL SEPARATOR ',')</select>
+    <select alias="LOCATION_CODES" group="oracle" type="text">LISTAGG(L.LABEL, ',') WITHIN GROUP (ORDER BY L.LABEL)</select>
 
     <!-- hidden columns -->
     <select alias="PROGRAM_ID" type="hidden">P.ID</select>
@@ -69,8 +69,8 @@
     </where>
 
     <groupby>
-      RECORD_TYPE, PROJECT, STRATEGY, STRATEGY_NAME, STRATEGY_DESCRIPTION, STRATEGY_COMMENT, ANALYTIC_REFERENCE,
-      PROGRAM_ID, STRATEGY_ID
+      P.LABEL, S.LABEL, S.NAME, S.DESCRIPTION, S.COMMENTS, S.ANALYTIC_REFERENCE,
+      P.ID, S.ID
     </groupby>
 
     <orderby direction="ASC">S.ID</orderby>
