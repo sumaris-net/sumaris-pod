@@ -6,7 +6,6 @@ import {HistoryPageReference} from "src/app/core/services/model/settings.model";
 import {PlatformService} from "src/app/core/services/platform.service";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ProgramProperties} from "../services/config/program.config";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {Strategy, StrategyDepartment} from "../services/model/strategy.model";
@@ -15,14 +14,14 @@ import {StrategyService} from "../services/strategy.service";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {SimpleStrategyForm} from "./simple-strategy.form";
 import {AppEntityEditor} from "../../core/form/editor.class";
-import {isNil, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {isNil, isNotNil} from "../../shared/functions";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
 import {BehaviorSubject} from "rxjs";
 import {Program} from "../services/model/program.model";
 import {ProgramService} from "../services/program.service";
-import { AcquisitionLevelCodes, PmfmIds } from "../services/model/model.enum";
-import { Pmfm } from "../services/model/pmfm.model";
+import {AcquisitionLevelCodes, PmfmIds} from "../services/model/model.enum";
+import {Pmfm} from "../services/model/pmfm.model";
 
 
 @Component({
@@ -218,16 +217,16 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       pmfm.rankOrder = i++;
       return pmfm;
     });
-  
+
     //TODO
     const pmfm = this.createNewPmfmStrategy(data);
     pmfm.pmfm = new Pmfm();
     pmfm.pmfm.id = PmfmIds.STRATEGY_LABEL;
-    // pmfm.pmfmId = PmfmIds.STRATEGY_LABEL;
+    pmfm.pmfmId = PmfmIds.STRATEGY_LABEL;
     pmfm.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     pmfm.isMandatory = true;
     pmfm.acquisitionNumber = 1;
-    pmfm.rankOrder = i++;
+    pmfm.rankOrder = 1; // Always = 1 (the only one PMFM in the LANDING level)
     data.pmfmStrategies.push(pmfm);
 
     //--------------------------------------------------------------------------------------------------------------------

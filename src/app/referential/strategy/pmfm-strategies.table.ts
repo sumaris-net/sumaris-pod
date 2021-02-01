@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {TableElement} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
@@ -30,7 +30,6 @@ import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasou
 import {debounceTime, filter, map, startWith, switchMap} from "rxjs/operators";
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-import {ProgramService} from "../services/program.service";
 import {ParameterLabelGroups} from "../services/model/model.enum";
 
 export class PmfmStrategyFilter {
@@ -240,6 +239,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     super.ngOnInit();
 
     // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
+    // TODO BLA: à replacer par une suggestFn !! avec un filter
     this.loadPmfms();
 
     this.validatorService.isSimpleStrategy = !this.showHeaderRow;
@@ -393,13 +393,18 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     console.debug("[pmfm-strategy-table] Adapt loaded data to table...");
 
     const acquisitionLevels = this.$acquisitionLevels.getValue();
+
+    // TODO BLA A remplacer par une suggestFn !!
     await this.loadPmfms();
+
     const pmfms = this.$pmfms.getValue();
     //const gears = this.$gears.getValue();
     return data.map(source => {
       const target: any = source instanceof PmfmStrategy ? source.asObject() : source;
       target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
 
+
+      // TODO BLA: ne devrait pas etre utile si la grappe GrahQL contient pmfm
       const pmfm = pmfms.find(i => i.id === target.pmfmId);
       target.pmfm = pmfm;
       delete target.pmfmId;
