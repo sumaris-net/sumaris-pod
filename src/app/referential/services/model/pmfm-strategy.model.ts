@@ -22,24 +22,31 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
   const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
   let name = matches && matches[1] || pmfm.name;
   // Wen name is defined in pmfmStrategy.pmfm but not in pmfmStrategy
-  if (!name)
-  {
+  if (!name && pmfm.pmfm) {
     const matchesInPmfm = PMFM_NAME_REGEXP.exec(pmfm.pmfm.name || '');
     name = matchesInPmfm && matchesInPmfm[1] || pmfm.pmfm.name;
   }
-  if ((!opts || opts.withUnit !== false) && pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')) {
-    if (opts && opts.html) {
-      return `${name}<small><br/>(${pmfm.unitLabel})</small>`;
-    }
-    return `${name} (${pmfm.unitLabel})`;
-  }
+  const unitLabel = (pmfm.type === 'integer' || pmfm.type === 'double') && (pmfm.unitLabel || (pmfm.pmfm && pmfm.pmfm.unit && pmfm.pmfm.unit.label));
+
   if (opts && opts.withDetails) {
-    let label = name;
-    if(pmfm.pmfm && pmfm.pmfm.unit && pmfm.pmfm.unit.label && opts.withUnit){label += ` - ${pmfm.pmfm.unit.label}`}
-    if(pmfm.matrix && pmfm.matrix.name){label += ` - ${pmfm.matrix.name}`}
-    if(pmfm.fraction && pmfm.fraction.name){label += ` - ${pmfm.fraction.name}`}
-    if(pmfm.method && pmfm.method.name){label += ` - ${pmfm.method.name}`}
-    return label;
+    if (opts.withUnit && unitLabel) {
+      name += ` (${unitLabel})`;
+    }
+    if (pmfm.matrix && pmfm.matrix.name){
+      name += ` - ${pmfm.matrix.name}`;
+    }
+    if (pmfm.fraction && pmfm.fraction.name) {
+      name += ` - ${pmfm.fraction.name}`;
+    }
+    if (pmfm.method && pmfm.method.name){
+      name += ` - ${pmfm.method.name}`;
+    }
+  }
+  else if ((!opts || opts.withUnit !== false) && unitLabel) {
+    if (opts && opts.html) {
+      name += `<small><br/>(${unitLabel})</small>`;
+    }
+    name += ` (${pmfm.unitLabel})`;
   }
   return name;
 }

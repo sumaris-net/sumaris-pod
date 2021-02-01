@@ -164,8 +164,8 @@
   <ng-container *ngFor="let pmfm of $pmfms | async">
     <ng-container *ngIf="pmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-        <ion-label color="primary" (click)="openChangePmfmsModal($event)">{{getPmfmColumnHeader(pmfm, {withUnit : true})}}
-          <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
+        <ion-label color="primary" (click)="openChangePmfmsModal($event)"
+          [innerHTML]="pmfm | pmfmName: {withUnit : true, html: true, withDetails: true}">
         </ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"

@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter, InjectionToken,
+  EventEmitter,
   Injector,
   Input,
   OnDestroy,
@@ -21,14 +21,12 @@ import {SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
-import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes, ParameterLabelGroups} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
-import {BehaviorSubject} from "rxjs";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {ReferentialRef} from "../../core/services/model/referential.model";
 import {environment} from "../../../environments/environment";
 import {TableAddPmfmsComponent} from "./table-add-pmfms.component";
 import {ProgramService} from "../../referential/services/program.service";
