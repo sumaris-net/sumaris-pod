@@ -151,12 +151,19 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
-    this._qualitativeValues = this.pmfm.qualitativeValues;
-    if (isEmptyArray(this._qualitativeValues) && this.pmfm instanceof Pmfm) {
-      this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
-      if (isEmptyArray(this._qualitativeValues)) {
-        console.warn(`The PMFM {label: '${this.pmfm.label}'} has no qualitative values, neither in the PmfmStrategy, nor in Parameter!` );
+    this._qualitativeValues = this.pmfm.qualitativeValues || [];
+    if (isEmptyArray(this._qualitativeValues)) {
+      if (this.pmfm instanceof Pmfm) {
+        // Get qualitative values from parameter
+        this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
+        if (isEmptyArray(this._qualitativeValues)) {
+          console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values!` );
+        }
       }
+      else {
+        console.warn(`PmfmStrategy {id: ${this.pmfm.id}} has no qualitative values!` );
+      }
+
     }
     this.required = toBoolean(this.required, (this.pmfm instanceof PmfmStrategy && this.pmfm.isMandatory));
 

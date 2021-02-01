@@ -47,10 +47,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showLandingTab = false;
   aggregatedLandings: boolean;
   allowAddNewVessel: boolean;
+  addLandingUsingHistoryModal: boolean;
   $ready = new BehaviorSubject<boolean>(false);
   i18nPrefix = 'OBSERVED_LOCATION.EDIT.';
   i18nSuffix = '';
   observedLocationNewName = '';
+
 
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
@@ -118,6 +120,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
     this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
     this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
+    this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
     this.cd.detectChanges();
 
     if (this.landingsTable) {
@@ -246,14 +249,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  // TODO BLA: pourquoi ne pas avoir la meme méthode, utilisant le landing editor ?
-  async onOpenLanding2({id, row}) {
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-        await this.router.navigateByUrl(`/observations/${this.data.id}/landing2/${id}`);
-    }
-  }
-
   async onNewLanding(event?: any) {
 
     const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
@@ -267,10 +262,18 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.markAsLoading();
 
       try {
-        const vessel = await this.openSelectVesselModal();
-        if (vessel && this.landingsTable) {
-          const rankOrder = (await this.landingsTable.getMaxRankOrderOnVessel(vessel) || 0) + 1;
-          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
+        // Add landing using vessels modal
+        if (this.addLandingUsingHistoryModal) {
+          const vessel = await this.openSelectVesselModal();
+          if (vessel && this.landingsTable) {
+            const rankOrder = (await this.landingsTable.getMaxRankOrderOnVessel(vessel) || 0) + 1;
+            await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
+          }
+        }
+        // Create landing without vessel selection
+        else {
+          const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
+          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?rankOrder=${rankOrder}`);
         }
       } finally {
         this.markAsLoaded();
@@ -278,13 +281,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  // TODO: use same method
-  async onNewLanding2(event?: any) {
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      await this.router.navigateByUrl(`/observations/${this.data.id}/landing2/new`);
-    }
-  }
 
   async onNewAggregatedLanding(event?: any) {
     const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty

@@ -223,6 +223,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       .reduce((res, row) => Math.max(res, row.currentData.rankOrderOnVessel || 0), 0);
   }
 
+  async getMaxRankOrder(): Promise<number> {
+    return super.getMaxRankOrder();
+  }
+
   referentialToString = referentialToString;
   personsToString = personsToString;
 

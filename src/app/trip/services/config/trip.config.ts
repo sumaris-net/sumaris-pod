@@ -1,7 +1,10 @@
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
+import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {EntitiesStorageTypePolicies} from "../../../core/services/storage/entities-storage.service";
 import {EntityStoreTypePolicy} from "../../../core/services/storage/entity-store.class";
 import {Operation, Trip} from "../model/trip.model";
+import {TypePolicies} from "@apollo/client/core";
+import {ObservedLocation} from "../model/observed-location.model";
+import {Landing} from "../model/landing.model";
 
 /**
  * Name of the features (e.g. to be used by settings)
@@ -85,8 +88,4 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
     lightFieldsExcludes: ["samples"]
   }
 };
-
-import {TypePolicies} from "@apollo/client/core";
-import {ObservedLocation} from "../model/observed-location.model";
-import {Landing} from "../model/landing.model";
 
