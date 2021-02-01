@@ -27,8 +27,10 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -96,7 +98,9 @@ public class PmfmRepositoryImpl
     public List<Pmfm> findByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
         Preconditions.checkArgument(parameterId != null || matrixId != null
                 || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
-        return findAll(BindableSpecification.where(hasPmfmPart(parameterId, matrixId, fractionId, methodId)));
+        return findAll(hasPmfmPart(parameterId, matrixId, fractionId, methodId)
+                // ONlY enabled PMFM
+                .and(inStatusIds(StatusEnum.ENABLE.getId())));
     }
 
     @Override
