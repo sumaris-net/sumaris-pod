@@ -762,25 +762,24 @@ public class StrategyRepositoryImpl
         Preconditions.checkNotNull(fetchOptions);
         if (CollectionUtils.isEmpty(source.getPmfmStrategies())) return null;
 
-        List<PmfmStrategyVO> result;
+        Stream<PmfmStrategyVO> result;
 
         // Applied inheritance: denormalize PmfmStrategy (e.g. compute each pmfms from the parameter, method)
         if (fetchOptions.isWithPmfmStrategyInheritance()) {
             result = source.getPmfmStrategies().stream()
                     // Get all corresponding pmfms
-                    .flatMap(pmfmStrategy -> findPmfmsByPmfmStrategy(pmfmStrategy, false /* continue if failed */ )
+                    .flatMap(pmfmStrategy -> findPmfmsByPmfmStrategy(pmfmStrategy, false /* continue if invalid PmfmStrategy (but will log) */ )
+                    .distinct()
                     // Convert to one or more PmfmStrategy
                     .map(pmfm -> pmfmStrategyRepository.toVO(pmfmStrategy, pmfm, fetchOptions))
-                ).collect(Collectors.toList());
+                );
         } else {
             result = source.getPmfmStrategies()
                     .stream()
-                    .map(ps -> pmfmStrategyRepository.toVO(ps, fetchOptions))
-                    .collect(Collectors.toList());
+                    .map(ps -> pmfmStrategyRepository.toVO(ps, fetchOptions));
         }
 
         return result
-                .stream()
                 .filter(Objects::nonNull)
                 // Sort by acquisitionLevel and rankOrder
                 .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
