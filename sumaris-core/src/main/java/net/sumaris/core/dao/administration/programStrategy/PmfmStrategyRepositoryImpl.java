@@ -278,7 +278,6 @@ public class PmfmStrategyRepositoryImpl
 
     @Override
     public void toEntity(PmfmStrategyVO source, PmfmStrategy target, boolean copyIfNull) {
-
         Beans.copyProperties(source, target);
 
         // Parent
@@ -298,28 +297,65 @@ public class PmfmStrategyRepositoryImpl
         Integer methodId = source.getMethodId() != null ? source.getMethodId()
                 : (source.getMethod() != null ? source.getMethod().getId() : null);
 
-        if (pmfmId == null && parameterId == null && matrixId == null && fractionId == null && methodId == null) {
-            throw new DataIntegrityViolationException("Missing id for one of Pmfm, Parameter, Matrix, Fraction, Method in a PmfmStrategyVO");
+        boolean hasPmfmPart = (parameterId != null || matrixId != null || fractionId != null || methodId != null);
+        if (pmfmId == null && !hasPmfmPart) {
+            throw new DataIntegrityViolationException("Invalid PmfmStrategy: missing a Pmfm or a part of Pmfm (Parameter, Matrix, Fraction or Method)");
+        }
+        if (pmfmId != null && hasPmfmPart) {
+            throw new DataIntegrityViolationException("Invalid PmfmStrategy: Cannot have both a Pmfm AND a part of Pmfm (Parameter, Matrix, Fraction or Method)");
         }
 
-        if (pmfmId != null) {
-            target.setPmfm(load(Pmfm.class, pmfmId));
+        if (copyIfNull || pmfmId != null) {
+            if (pmfmId != null) {
+                target.setPmfm(load(Pmfm.class, pmfmId));
+            }
+            else {
+                target.setPmfm(null);
+            }
         }
-        if (parameterId != null) {
-            target.setParameter(load(Parameter.class, parameterId));
+        if (copyIfNull || parameterId != null) {
+            if (parameterId != null) {
+                target.setParameter(load(Parameter.class, parameterId));
+            }
+            else {
+                target.setParameter(null);
+            }
         }
-        if (matrixId != null) {
-            target.setMatrix(load(Matrix.class, matrixId));
+        if (copyIfNull || matrixId != null) {
+            if (matrixId != null) {
+                target.setMatrix(load(Matrix.class, matrixId));
+            }
+            else {
+                target.setMatrix(null);
+            }
         }
-        if (fractionId != null) {
-            target.setFraction(load(Fraction.class, fractionId));
+        if (copyIfNull || fractionId != null) {
+            if (fractionId != null) {
+                target.setFraction(load(Fraction.class, fractionId));
+            }
+            else {
+                target.setFraction(null);
+            }
         }
-        if (methodId != null) {
-            target.setMethod(load(Method.class, methodId));
+        if (copyIfNull || methodId != null) {
+            if (fractionId != null) {
+                target.setMethod(load(Method.class, methodId));
+            }
+            else {
+                target.setMethod(null);
+            }
         }
 
         // Acquisition Level
-        target.setAcquisitionLevel(load(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(source.getAcquisitionLevel())));
+        String acquisitionLevel = source.getAcquisitionLevel();
+        if (copyIfNull || acquisitionLevel != null) {
+            if (acquisitionLevel != null) {
+                target.setAcquisitionLevel(load(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(acquisitionLevel)));
+            }
+            else {
+                target.setAcquisitionLevel(null);
+            }
+        }
 
         // Gears
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getGearIds())) {
