@@ -367,20 +367,20 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggestLocations(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
-    // if (this.filterEnabled && this.enableAppliedStrategyFilter) {
-    //   const res = await suggestFromArray(this.locationItems.getValue(), null,
-    //     {
-    //       ...filter,
-    //       entityName: entityName
-    //     }
-    //   );
-    //   return res;
-    // } else {
+    if (this.filterEnabled && this.enableAppliedStrategyFilter) {
+      const res = await suggestFromArray(this.locationItems.getValue(), value,
+        {
+          ...filter,
+          entityName: entityName
+        }
+      );
+      return res;
+    } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
         entityName: entityName
       });
-    // }
+    }
   }
 
   /**
@@ -407,7 +407,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   protected async suggestPmfmStrategiesFraction(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
     if (this.filterEnabled && this.enablePmfmStrategiesFractionFilter) {
-      const res = await suggestFromArray(this.fractionItems.getValue(), null,
+      const res = await suggestFromArray(this.fractionItems.getValue(), value,
         {
           ...filter,
           entityName: entityName
@@ -431,7 +431,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   protected async suggestDepartements(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
     if (this.filterEnabled && this.enableDepartmentFilter) {
-      const res = await suggestFromArray(this.departmentItems.getValue(), null,
+      const res = await suggestFromArray(this.departmentItems.getValue(), value,
         {
           ...filter,
           entityName: entityName
@@ -446,46 +446,9 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     }
   }
 
-  // /**
-  //  * Suggest autocomplete values
-  //  * @param value
-  //  * @param filter - filters to apply
-  //  * @param entityName - referential to request
-  //  * @param filtered - boolean telling if we load prefilled data
-  //  */
-  // protected async suggest(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
-
-  //   // Special case: AnalyticReference
-  //   if (entityName === "AnalyticReference") {
-  //     if (filtered) {
-  //       //TODO a remplacer par recuperation des donnees deja saisies
-  //       return this.strategyService.loadAllAnalyticReferences(0, 5, null, null, filter);
-  //     } else {
-  //       return this.strategyService.suggestAnalyticReferences(value, filter);
-  //     }
-  //   }
-
-  //   if (filtered) {
-  //     //TODO a remplacer par recuperation des donnees deja saisies
-  //     const res = await this.referentialRefService.loadAll(0, 5, null, null,
-  //       {
-  //         ...filter,
-  //         entityName: entityName
-  //       },
-  //       { withTotal: false /* total not need */ }
-  //     );
-  //     return res.data;
-  //   } else {
-  //     return this.referentialRefService.suggest(value, {
-  //       ...filter,
-  //       entityName: entityName
-  //     });
-  //   }
-  // }
-
   protected async suggestTaxonName(value: string, filter: any, entityName: string, filtered: boolean): Promise<TaxonNameRef[]> {
     if (this.filterEnabled && this.enableTaxonNameFilter) {
-      const res = await suggestFromArray(this.taxonItems.getValue(), null,
+      const res = await suggestFromArray(this.taxonItems.getValue(), value,
         {
           ...filter,
           entityName: entityName
