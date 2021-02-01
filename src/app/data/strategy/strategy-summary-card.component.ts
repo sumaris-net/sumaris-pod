@@ -53,6 +53,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     Object.keys(this.displayAttributes).forEach(fieldName => {
       this.displayAttributes[fieldName] = localSettings.getFieldDisplayAttributes(fieldName, ['label', 'name']);
     });
+    this.displayAttributes.taxonName = ['name']; // Override
     this._debug = !environment.production;
   }
 

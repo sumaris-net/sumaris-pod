@@ -39,27 +39,27 @@
 <!-- First header row -->
 <mat-table>
   <ng-container matColumnDef="select">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
   </ng-container>
 
   <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
   </ng-container>
 
   <!-- sample code  column -->
   <ng-container matColumnDef="sampleCode" sticky="true">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
   </ng-container>
 
   <!-- Morse code column => Already in pmfm columns -->
   <ng-container matColumnDef="morseCode" sticky="true">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
   </ng-container>
 
   <!-- Comment column -->
   <ng-container matColumnDef="comment">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
   </ng-container>
 
   <!-- Dynamic columns -->
@@ -79,7 +79,7 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
   </ng-container>
 
   <mat-header-row class="first-header-row"
@@ -164,7 +164,7 @@
   <ng-container *ngFor="let pmfm of $pmfms | async">
     <ng-container *ngIf="pmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-        <ion-label color="primary" (click)="openChangePmfmsModal($event)">{{getPmfmColumnHeader(pmfm)}}
+        <ion-label color="primary" (click)="openChangePmfmsModal($event)">{{getPmfmColumnHeader(pmfm, {withUnit : true})}}
           <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
         </ion-label>
       </mat-header-cell>
