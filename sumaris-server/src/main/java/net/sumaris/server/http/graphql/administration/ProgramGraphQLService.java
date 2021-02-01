@@ -194,7 +194,7 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "pmfmStrategies", description = "Get strategy's pmfms")
     public List<PmfmStrategyVO> getPmfmStrategiesByStrategy(@GraphQLContext StrategyVO strategy,
-                                                   @GraphQLEnvironment() Set<String> fields) {
+                                                            @GraphQLEnvironment() Set<String> fields) {
         if (strategy.getPmfmStrategies() != null) {
             return strategy.getPmfmStrategies();
         }
@@ -284,13 +284,16 @@ public class ProgramGraphQLService {
 
     protected StrategyFetchOptions getStrategyFetchOptions(Set<String> fields) {
         return StrategyFetchOptions.builder()
+                // Test each fields that are computed by inheritance
                 .withPmfmStrategyInheritance(
-                        // Teas each field from PMFM inheritance
                     fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.LABEL)) ||
                     fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.TYPE)) ||
                     fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.UNIT_LABEL)) ||
                     fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS)) ||
                     fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER))
+                )
+                .withPmfmStrategyCompleteName(
+                        fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.COMPLETE_NAME))
                 )
                 .build();
     }

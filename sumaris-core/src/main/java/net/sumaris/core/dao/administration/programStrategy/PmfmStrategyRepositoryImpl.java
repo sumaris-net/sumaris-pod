@@ -24,9 +24,9 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -83,6 +83,9 @@ public class PmfmStrategyRepositoryImpl
 
     @Autowired
     private ReferentialDao referentialDao;
+
+    @Autowired
+    private PmfmRepository pmfmRepository;
 
     @Autowired
     PmfmStrategyRepositoryImpl(EntityManager entityManager) {
@@ -153,7 +156,7 @@ public class PmfmStrategyRepositoryImpl
         // Strategy Id
         target.setStrategyId(source.getStrategy().getId());
 
-        // Set some attributes from Pmfm
+        // Set some attributes from Pmfm (apply inheritance)
         if (pmfm != null) {
             target.setPmfmId(pmfm.getId());
 
@@ -171,6 +174,12 @@ public class PmfmStrategyRepositoryImpl
             // Parameter name
             Parameter parameter = pmfm.getParameter();
             target.setName(parameter.getName());
+
+            // Complete name
+            if (fetchOptions.isWithPmfmStrategyCompleteName()) {
+                String completeName = pmfmRepository.computeCompleteName(pmfm.getId());
+                target.setCompleteName(completeName);
+            }
 
             // Value Type
             PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
@@ -195,6 +204,7 @@ public class PmfmStrategyRepositoryImpl
                     log.warn("Missing qualitative values, in PMFM #{}", pmfm.getId());
                 }
             }
+
         }
 
         // Parameter, Matrix, Fraction, Method Ids
@@ -212,8 +222,10 @@ public class PmfmStrategyRepositoryImpl
         }
         if (source.getMethod() != null) {
             target.setMethodId(source.getMethod().getId());
-            target.setMethod(referentialDao.toVO(source.getMethod()));
+            target.setFraction(referentialDao.toVO(source.getFraction()));
         }
+
+
 
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {
@@ -256,9 +268,8 @@ public class PmfmStrategyRepositoryImpl
 
         Strategy parent = getOne(Strategy.class, strategyId);
 
-        sources.forEach(source -> {
-            source.setStrategyId(strategyId);
-        });
+        // Fill strategy id
+        sources.forEach(source -> source.setStrategyId(strategyId));
 
         // Load existing entities
         Map<Integer, PmfmStrategy> existingEntities = Beans.splitById(parent.getPmfmStrategies());
@@ -279,7 +290,6 @@ public class PmfmStrategyRepositoryImpl
 
     @Override
     public void toEntity(PmfmStrategyVO source, PmfmStrategy target, boolean copyIfNull) {
-
         Beans.copyProperties(source, target);
 
         // Parent
@@ -287,15 +297,9 @@ public class PmfmStrategyRepositoryImpl
             target.setStrategy(load(Strategy.class, source.getStrategyId()));
         }
 
-        // Pmfm
+        // Pmfm, Parameter, Matrix, Fraction, Method
         Integer pmfmId = source.getPmfmId() != null ? source.getPmfmId()
                 : (source.getPmfm() != null ? source.getPmfm().getId() : null);
-        //if (pmfmId == null) throw new DataIntegrityViolationException("Missing pmfmId or pmfm.id in a PmfmStrategyVO");
-        if (pmfmId != null) {
-            target.setPmfm(load(Pmfm.class, pmfmId));
-        }
-
-        // Parameter, Matrix, Fraction, Method
         Integer parameterId = source.getParameterId() != null ? source.getParameterId()
                 : (source.getParameter() != null ? source.getParameter().getId() : null);
         Integer matrixId = source.getMatrixId() != null ? source.getMatrixId()
@@ -305,21 +309,65 @@ public class PmfmStrategyRepositoryImpl
         Integer methodId = source.getMethodId() != null ? source.getMethodId()
                 : (source.getMethod() != null ? source.getMethod().getId() : null);
 
-        if (parameterId != null) {
-            target.setParameter(load(Parameter.class, parameterId));
+        boolean hasPmfmPart = (parameterId != null || matrixId != null || fractionId != null || methodId != null);
+        if (pmfmId == null && !hasPmfmPart) {
+            throw new DataIntegrityViolationException("Invalid PmfmStrategy: missing a Pmfm or a part of Pmfm (Parameter, Matrix, Fraction or Method)");
         }
-        if (matrixId != null) {
-            target.setMatrix(load(Matrix.class, matrixId));
+        if (pmfmId != null && hasPmfmPart) {
+            throw new DataIntegrityViolationException("Invalid PmfmStrategy: Cannot have both a Pmfm AND a part of Pmfm (Parameter, Matrix, Fraction or Method)");
         }
-        if (fractionId != null) {
-            target.setFraction(load(Fraction.class, fractionId));
+
+        if (copyIfNull || pmfmId != null) {
+            if (pmfmId != null) {
+                target.setPmfm(load(Pmfm.class, pmfmId));
+            }
+            else {
+                target.setPmfm(null);
+            }
         }
-        if (methodId != null) {
-            target.setMethod(load(Method.class, methodId));
+        if (copyIfNull || parameterId != null) {
+            if (parameterId != null) {
+                target.setParameter(load(Parameter.class, parameterId));
+            }
+            else {
+                target.setParameter(null);
+            }
+        }
+        if (copyIfNull || matrixId != null) {
+            if (matrixId != null) {
+                target.setMatrix(load(Matrix.class, matrixId));
+            }
+            else {
+                target.setMatrix(null);
+            }
+        }
+        if (copyIfNull || fractionId != null) {
+            if (fractionId != null) {
+                target.setFraction(load(Fraction.class, fractionId));
+            }
+            else {
+                target.setFraction(null);
+            }
+        }
+        if (copyIfNull || methodId != null) {
+            if (methodId != null) {
+                target.setMethod(load(Method.class, methodId));
+            }
+            else {
+                target.setMethod(null);
+            }
         }
 
         // Acquisition Level
-        target.setAcquisitionLevel(load(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(source.getAcquisitionLevel())));
+        String acquisitionLevel = source.getAcquisitionLevel();
+        if (copyIfNull || acquisitionLevel != null) {
+            if (acquisitionLevel != null) {
+                target.setAcquisitionLevel(load(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(acquisitionLevel)));
+            }
+            else {
+                target.setAcquisitionLevel(null);
+            }
+        }
 
         // Gears
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getGearIds())) {
@@ -374,4 +422,5 @@ public class PmfmStrategyRepositoryImpl
         List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null);
         items.forEach(item -> acquisitionLevelIdByLabel.put(item.getLabel(), item.getId()));
     }
+
 }

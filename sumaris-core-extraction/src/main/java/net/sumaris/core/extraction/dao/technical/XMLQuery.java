@@ -50,6 +50,22 @@ import java.util.stream.Collectors;
 @Scope("prototype")
 public class XMLQuery extends HSQLDBSingleXMLQuery {
 
+    private String xslFileName;
+
+    public XMLQuery() {
+        super();
+        xslFileName = super.getXSLFileName();
+    }
+
+    @Override
+    protected String getXSLFileName() {
+        return xslFileName;
+    }
+
+    protected void setXSLFileName(String xslFileName) {
+        this.xslFileName = xslFileName;
+    }
+
     // let default values here for HSQLDB
 
     /**

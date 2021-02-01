@@ -34,10 +34,7 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.mapping.Column;
-import org.hibernate.mapping.PersistentClass;
-import org.hibernate.mapping.Property;
-import org.hibernate.mapping.Table;
+import org.hibernate.mapping.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -245,13 +242,15 @@ public class SumarisDatabaseMetadata {
 
 					for (Iterator columnIterator = property.getColumnIterator();
 						 columnIterator.hasNext(); ) {
-						Column column = (Column) columnIterator.next();
-
-						log.debug(String.format("Property: %s is mapped on table column: %s of type: %s",
-								property.getName(),
-								column.getName(),
-								column.getSqlType())
-						);
+						Selectable columnSelectable = (Selectable) columnIterator.next();
+						if (columnSelectable instanceof Column) {
+							Column column = (Column) columnSelectable;
+							log.debug(String.format("Property: %s is mapped on table column: %s of type: %s",
+									property.getName(),
+									column.getName(),
+									column.getSqlType())
+							);
+						}
 					}
 				}
 			}

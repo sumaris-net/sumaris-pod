@@ -75,6 +75,7 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IVa
     private String type;
     private String label;
     private String name;
+    private String completeName; // Full name, with parameter, matrix, fraction and method name
     private Integer maximumNumberDecimals;
     private Integer signifFiguresNumber;
     // ****

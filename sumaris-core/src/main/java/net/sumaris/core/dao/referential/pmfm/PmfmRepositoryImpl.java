@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential.pmfm;
  * #L%
  */
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -68,10 +69,24 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    public List<Pmfm> findAll(Parameter parameter, Matrix matrix, Fraction fraction, Method method) {
-        Preconditions.checkArgument(parameter != null || matrix != null
-                || fraction != null || method != null, "At least on argument must be not null");
-        return findAll(BindableSpecification.where(hasPmfmPart(parameter, matrix, fraction, method)));
+    @Cacheable(cacheNames = CacheNames.PMFM_COMPLETE_NAME_BY_ID, key = "#id", unless = "#result == null")
+    public String computeCompleteName(int id) {
+        Pmfm pmfm = getOne(id);
+        String unitLabel = pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId() ? pmfm.getUnit().getLabel() : null;
+        return Joiner.on(" - ").skipNulls().join(new String[]{
+                pmfm.getParameter().getName(),
+                unitLabel != null ? String.format("(%s)", unitLabel) : null,
+                pmfm.getMatrix() != null ? pmfm.getMatrix().getName() : null,
+                pmfm.getFraction() != null ? pmfm.getFraction().getName() : null,
+                pmfm.getMethod() != null ? pmfm.getMethod().getName() : null
+        });
+    }
+
+    @Override
+    public List<Pmfm> findByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
+        Preconditions.checkArgument(parameterId != null || matrixId != null
+                || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
+        return findAll(BindableSpecification.where(hasPmfmPart(parameterId, matrixId, fractionId, methodId)));
     }
 
     @Override
@@ -146,10 +161,11 @@ public class PmfmRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true)
+                @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+                @CacheEvict(cacheNames = CacheNames.PMFM_COMPLETE_NAME_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
+                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true),
+                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true)
         }
     )
     public PmfmVO save(PmfmVO vo) {

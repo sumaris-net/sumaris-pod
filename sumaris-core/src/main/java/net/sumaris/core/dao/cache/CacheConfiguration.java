@@ -145,6 +145,11 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean pmfmCompleteNameByIdCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_COMPLETE_NAME_BY_ID, 600);
+    }
+
+    @Bean
     public EhCacheFactoryBean pmfmHasPrefix() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_HAS_PREFIX, 600);
     }
