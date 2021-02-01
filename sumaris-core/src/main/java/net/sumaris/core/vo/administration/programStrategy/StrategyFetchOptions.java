@@ -44,4 +44,9 @@ public class StrategyFetchOptions implements IFetchOptions {
     @Builder.Default
     private boolean withPmfmStrategyInheritance = false;
 
+    /**
+     * Compute the PSFM strategy full name (with parameter, matrix, fraction and method names)
+     */
+    @Builder.Default
+    private boolean withPmfmStrategyCompleteName = false;
 }

@@ -77,4 +77,6 @@ public interface PmfmSpecifications {
 
     boolean hasMatrixId(int pmfmId, int... matrixIds);
 
+    String computeCompleteName(int pmfmId);
+
 }

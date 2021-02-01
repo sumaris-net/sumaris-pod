@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential.pmfm;
  * #L%
  */
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -65,6 +66,20 @@ public class PmfmRepositoryImpl
     @Cacheable(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", unless = "#result == null")
     public PmfmVO get(int id) {
         return super.get(id);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheNames.PMFM_COMPLETE_NAME_BY_ID, key = "#id", unless = "#result == null")
+    public String computeCompleteName(int id) {
+        Pmfm pmfm = getOne(id);
+        String unitLabel = pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId() ? pmfm.getUnit().getLabel() : null;
+        return Joiner.on(" - ").skipNulls().join(new String[]{
+                pmfm.getParameter().getName(),
+                unitLabel != null ? String.format("(%s)", unitLabel) : null,
+                pmfm.getMatrix() != null ? pmfm.getMatrix().getName() : null,
+                pmfm.getFraction() != null ? pmfm.getFraction().getName() : null,
+                pmfm.getMethod() != null ? pmfm.getMethod().getName() : null
+        });
     }
 
     @Override
@@ -146,10 +161,11 @@ public class PmfmRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true)
+                @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+                @CacheEvict(cacheNames = CacheNames.PMFM_COMPLETE_NAME_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
+                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true),
+                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true)
         }
     )
     public PmfmVO save(PmfmVO vo) {

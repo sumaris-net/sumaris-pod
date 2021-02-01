@@ -24,9 +24,9 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -83,6 +83,9 @@ public class PmfmStrategyRepositoryImpl
 
     @Autowired
     private ReferentialDao referentialDao;
+
+    @Autowired
+    private PmfmRepository pmfmRepository;
 
     @Autowired
     PmfmStrategyRepositoryImpl(EntityManager entityManager) {
@@ -172,6 +175,12 @@ public class PmfmStrategyRepositoryImpl
             Parameter parameter = pmfm.getParameter();
             target.setName(parameter.getName());
 
+            // Complete name
+            if (fetchOptions.isWithPmfmStrategyCompleteName()) {
+                String completeName = pmfmRepository.computeCompleteName(pmfm.getId());
+                target.setCompleteName(completeName);
+            }
+
             // Value Type
             PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
             target.setType(type.name().toLowerCase());
@@ -195,12 +204,13 @@ public class PmfmStrategyRepositoryImpl
                     log.warn("Missing qualitative values, in PMFM #{}", pmfm.getId());
                 }
             }
+
         }
 
         // Parameter, Matrix, Fraction, Method Ids
         if (source.getParameter() != null) {
             target.setParameterId(source.getParameter().getId());
-            if (!fetchOptions.isWithPmfmStrategyInheritance()) target.setParameter(referentialDao.toVO(source.getParameter()));
+            target.setParameter(referentialDao.toVO(source.getParameter()));
         }
         if (source.getMatrix() != null) {
             target.setMatrixId(source.getMatrix().getId());
@@ -214,6 +224,8 @@ public class PmfmStrategyRepositoryImpl
             target.setMethodId(source.getMethod().getId());
             target.setFraction(referentialDao.toVO(source.getFraction()));
         }
+
+
 
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {
@@ -410,4 +422,5 @@ public class PmfmStrategyRepositoryImpl
         List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null);
         items.forEach(item -> acquisitionLevelIdByLabel.put(item.getLabel(), item.getId()));
     }
+
 }
