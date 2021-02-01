@@ -57,8 +57,6 @@
       ST.PROGRAM_ID, ST.STRATEGY_ID
     </groupby>
 
-    <orderby direction="ASC">ST.PROGRAM_ID, ST.STRATEGY_ID, APP.START_DATE</orderby>
-
   </query>
 
 </queries>

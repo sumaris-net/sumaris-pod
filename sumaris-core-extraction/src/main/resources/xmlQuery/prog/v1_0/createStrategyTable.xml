@@ -73,8 +73,6 @@
       P.ID, S.ID
     </groupby>
 
-    <orderby direction="ASC">S.ID</orderby>
-
   </query>
 
 </queries>

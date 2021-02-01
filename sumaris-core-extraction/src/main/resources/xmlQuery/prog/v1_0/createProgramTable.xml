@@ -59,8 +59,6 @@
       TGT.LABEL, P.ID
     </groupby>
 
-    <orderby direction="ASC">P.ID</orderby>
-
   </query>
 
 </queries>

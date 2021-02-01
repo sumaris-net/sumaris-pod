@@ -61,6 +61,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
     private static final Logger log = LoggerFactory.getLogger(ExtractionBaseDaoImpl.class);
 
     protected static final String XML_QUERY_PATH = "xmlQuery";
+    protected static final String XSL_ORACLE_FILENAME = "xmlQuery/queryOracle.xsl";
 
     @Autowired
     protected SumarisConfiguration configuration;
@@ -175,7 +176,11 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
      * @return
      */
     protected XMLQuery createXMLQuery() {
-        return applicationContext.getBean("xmlQuery", XMLQuery.class);
+        XMLQuery xmlQuery = applicationContext.getBean("xmlQuery", XMLQuery.class);
+        if (this.databaseType == DatabaseType.oracle) {
+            xmlQuery.setXSLFileName(XSL_ORACLE_FILENAME);
+        }
+        return xmlQuery;
     }
 
     protected <C extends ExtractionContextVO> void clean(@NonNull C context) {
