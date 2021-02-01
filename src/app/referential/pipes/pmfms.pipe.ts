@@ -10,7 +10,12 @@ import {Pmfm} from "../services/model/pmfm.model";
 @Injectable({providedIn: 'root'})
 export class PmfmNamePipe implements PipeTransform {
 
-    transform(val: PmfmStrategy, opts?: { withUnit?: boolean; html?: boolean;}): any {
+    transform(val: PmfmStrategy, opts?: {
+      withUnit?: boolean;
+      html?: boolean;
+      withDetails?: boolean;
+      separatorForDetails?: string;
+    }): string {
       return getPmfmName(val, opts);
     }
 }

@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -9,23 +9,20 @@ import {Pmfm} from "./model/pmfm.model";
 import {Observable, of} from "rxjs";
 import {ReferentialFragments} from "./referential.fragments";
 import {map} from "rxjs/operators";
-import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {
   EntityServiceLoadOptions,
   IEntitiesService,
-  IEntityService, LoadResult,
+  IEntityService,
+  LoadResult,
   SuggestService
 } from "../../shared/services/entity-service.class";
-import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
+import {isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {ParameterLabelGroups} from "./model/model.enum";
-import {DenormalizedStrategy} from "../simpleStrategy/denormalized-strategy.service";
 import {ReferentialRefService} from "./referential-ref.service";
-import {firstNotNilPromise} from "../../shared/observables";
 import {ObjectMap} from "../../shared/types";
 
 const LoadAllQuery: any = gql`
