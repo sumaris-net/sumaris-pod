@@ -22,6 +22,7 @@ import {BehaviorSubject} from "rxjs";
 import {Program} from "../services/model/program.model";
 import {ProgramService} from "../services/program.service";
 import { AcquisitionLevelCodes, PmfmIds } from "../services/model/model.enum";
+import { Pmfm } from "../services/model/pmfm.model";
 
 
 @Component({
@@ -220,7 +221,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   
     //TODO
     const pmfm = this.createNewPmfmStrategy(data);
-    pmfm.pmfmId = PmfmIds.STRATEGY_LABEL;
+    pmfm.pmfm = new Pmfm();
+    pmfm.pmfm.id = PmfmIds.STRATEGY_LABEL;
+    // pmfm.pmfmId = PmfmIds.STRATEGY_LABEL;
     pmfm.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     pmfm.isMandatory = true;
     pmfm.acquisitionNumber = 1;

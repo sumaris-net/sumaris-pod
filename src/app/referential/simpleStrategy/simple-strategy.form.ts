@@ -283,7 +283,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggestTaxonName(value, {
-        ...filter, statusId: 1
+        ...filter, statusId: StatusIds.ENABLE
       },
         'TaxonName',
         this.enableTaxonNameFilter),
@@ -318,7 +318,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     // eotp combo -------------------------------------------------------------------
     this.registerAutocompleteField('analyticReference', {
       suggestFn: (value, filter) => this.suggestAnalyticReferences(value, {
-        ...filter, statusIds: [0, 1]
+        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }),
       columnSizes: [4, 6],
       mobile: this.settings.mobile
@@ -326,7 +326,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
 
     this.registerAutocompleteField('pmfmStrategiesFraction', {
       suggestFn: (value, filter) => this.suggestPmfmStrategiesFraction(value, {
-        ...filter, statusId: 1
+        ...filter, statusId: StatusIds.ENABLE
       },
         'Fraction',
         this.enablePmfmStrategiesFractionFilter),
@@ -367,20 +367,20 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggestLocations(value: string, filter: any, entityName: string, filtered: boolean): Promise<IReferentialRef[]> {
-    if (this.filterEnabled && this.enableAppliedStrategyFilter) {
-      const res = await suggestFromArray(this.locationItems.getValue(), null,
-        {
-          ...filter,
-          entityName: entityName
-        }
-      );
-      return res;
-    } else {
+    // if (this.filterEnabled && this.enableAppliedStrategyFilter) {
+    //   const res = await suggestFromArray(this.locationItems.getValue(), null,
+    //     {
+    //       ...filter,
+    //       entityName: entityName
+    //     }
+    //   );
+    //   return res;
+    // } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
         entityName: entityName
       });
-    }
+    // }
   }
 
   /**
@@ -392,7 +392,7 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     if (this.filterEnabled && this.enableAnalyticReferenceFilter) {
       return this.strategyService.suggestAnalyticReferences(value, filter);
     } else {
-      return this.strategyService.loadAllAnalyticReferences(0, 5, null, null, filter);
+      return this.strategyService.loadAllAnalyticReferences(0, 30, null, null, filter);
     }
   }
 
