@@ -13,7 +13,6 @@ import * as moment from "moment";
 import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {environment} from "../../../environments/environment";
-import {AppEditorOptions} from "../../core/form/editor.class";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {PlatformService} from "../../core/services/platform.service";
@@ -33,7 +32,6 @@ import {Trip} from "../services/model/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
 import {Landing2Form} from "./landing2.form";
-import {SampleValidatorService} from "../services/validator/sample.validator";
 import {fromDateISOString} from "../../shared/dates";
 import {Program} from "../../referential/services/model/program.model";
 import {firstNotNilPromise} from "../../shared/observables";
@@ -45,8 +43,7 @@ import {
 import {ParameterLabelGroups} from "../../referential/services/model/model.enum";
 import {PmfmService} from "../../referential/services/pmfm.service";
 import {ObjectMap} from "../../shared/types";
-import {BiologicalSamplingValidators} from "./sampling/biological-sampling.validators";
-
+import {BiologicalSamplingValidators} from "../services/validator/biological-sampling.validators";
 
 const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -321,7 +318,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     // TODO: load pmfm map by program properties ?
     // Load Pmfm IDS, group by parameter labels
-    this.samplesTable.pmfmGroups = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
+    const pmfmGroups = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
+    this.$pmfmGroups.next(pmfmGroups);
 
   }
 
