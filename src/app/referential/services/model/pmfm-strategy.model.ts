@@ -86,7 +86,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
 
   label: string;
   name: string;
-  headerName: string;
+  completeName: string;
   unitLabel: string;
   type: string | PmfmType;
   minValue: number;
@@ -126,7 +126,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
       || target.acquisitionLevel;
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
 
-    target.pmfmId = this.pmfm && this.pmfm.id ?  toNumber(this.pmfm.id, this.pmfmId) : null;
+    target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
     delete target.pmfm;
 
     if (this.defaultValue) console.log("TODO check serialize PmfmStrategy.defaultValue :", target);
@@ -147,6 +147,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name;
+    this.completeName = source.completeName;
     this.unitLabel = source.unitLabel;
     this.type = source.type || source.pmfm && source.pmfm.type;
     this.minValue = source.minValue;

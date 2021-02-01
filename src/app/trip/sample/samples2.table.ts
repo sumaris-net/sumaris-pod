@@ -11,7 +11,7 @@ import {
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {SampleValidatorService} from "../services/validator/sample.validator";
-import {isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
 import * as moment from "moment";
 import {Moment} from "moment";
@@ -22,7 +22,7 @@ import {FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {AcquisitionLevelCodes, ParameterLabelGroups} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
@@ -31,6 +31,11 @@ import {environment} from "../../../environments/environment";
 import {TableAddPmfmsComponent} from "./table-add-pmfms.component";
 import {ProgramService} from "../../referential/services/program.service";
 import {StrategyService} from "../../referential/services/strategy.service";
+import {PmfmService} from "../../referential/services/pmfm.service";
+import {BehaviorSubject} from "rxjs";
+import {ObjectMap} from "../../shared/types";
+import {firstNotNilPromise} from "../../shared/observables";
+import {SelectReferentialModal} from "../../referential/list/select-referential.modal";
 
 export interface SampleFilter {
   operationId?: number;
@@ -39,11 +44,13 @@ export interface SampleFilter {
 export const SAMPLE2_RESERVED_START_COLUMNS: string[] = ['sampleCode', 'morseCode', 'comment' /*,'weight','totalLenghtCm','totalLenghtMm','indexGreaseRate'*/];
 export const SAMPLE2_RESERVED_END_COLUMNS: string[] = [];
 
+const SAMPLE_PARAMETER_GROUPS = ['WEIGHT', 'LENGTH', 'MATURITY', 'SEX', 'AGE', 'OTHER'];
+
 declare interface ColumnDefinition extends FormFieldDefinition {
   computed: boolean;
   unitLabel?: string;
   rankOrder: number;
-  qvIndex: number;
+  groupIndex: number;
 }
 
 
@@ -62,8 +69,17 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
+  protected _$pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
 
   @Input() i18nFieldPrefix = 'TRIP.SAMPLE.TABLE.SAMPLING.';
+
+  @Input() set pmfmGroups(value: ObjectMap<number[]>) {
+    this._$pmfmGroups.next(value);
+  }
+
+  get pmfmGroups(): ObjectMap<number[]> {
+    return this._$pmfmGroups.getValue();
+  }
 
   @Input()
   set value(data: Sample[]) {
@@ -102,7 +118,8 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         prependNewElements: false,
         suppressErrors: environment.production,
         reservedStartColumns: SAMPLE2_RESERVED_START_COLUMNS,
-        reservedEndColumns: SAMPLE2_RESERVED_END_COLUMNS
+        reservedEndColumns: SAMPLE2_RESERVED_END_COLUMNS,
+        mapPmfms: pmfms => this.mapPmfms(pmfms)
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
@@ -120,7 +137,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     // If init form callback exists, apply it when start row edition
     if (this.onInitForm) {
       this.registerSubscription(
-        this.onStartEditingRow.subscribe(row => this.onInitForm.emit({
+        this.onStartEditingRow.subscribe(row => row && this.onInitForm.emit({
               form: row.validator,
               pmfms: this.$pmfms.getValue()
             })));
@@ -144,6 +161,9 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
     //  });
+
+
+
   }
 
   /**
@@ -155,12 +175,12 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     return column.rankOrder;
   }
 
-  isQvEven(column: ColumnDefinition) {
-    return (column.qvIndex % 2 === 0);
+  isGroupEven(column: ColumnDefinition) {
+    return (column.groupIndex % 2 === 0);
   }
 
-  isQvOdd(column: ColumnDefinition) {
-    return (column.qvIndex % 2 !== 0);
+  isGroupOdd(column: ColumnDefinition) {
+    return (column.groupIndex % 2 !== 0);
   }
 
   getFlexSize(columns: ColumnDefinition[], column: ColumnDefinition) {
@@ -182,194 +202,75 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     return 0;
   }
 
+  /**
+   * Force to wait PMFM map to be loaded
+   * @param pmfms
+   */
+  protected async mapPmfms(pmfms: PmfmStrategy[]): Promise<PmfmStrategy[]> {
+
+    // Wait until map is loaded
+    await firstNotNilPromise(this._$pmfmGroups);
+
+    return pmfms;
+  }
+
   protected getDisplayColumns(): string[] {
 
     const pmfms = this.$pmfms.getValue();
-    if (!pmfms) return this.columns;
+    const pmfmIdsMap = this.pmfmGroups;
+
+    if (!pmfms || !pmfmIdsMap) return this.columns;
 
     const userColumns = this.getUserColumns();
-
-    const dynamicColumnNames = [];
-    const dynamicWeightColumnNames = [];
-    const dynamicSizeColumnNames = [];
-    const dynamicMaturityColumnNames = [];
-    const dynamicSexColumnNames = [];
-    const dynamicAgeColumnNames = [];
-    const dynamicOthersColumnNames = [];
-
-    // FIXME CLT WIP
-    // filtrer sur les pmfms pour les mettres dans les différents tableaux
-    (pmfms || []).map(pmfmStrategy => {
-      const pmfm = pmfmStrategy.pmfm;
-      if (pmfm) {
-        if (pmfm.parameter && pmfm.parameter.label) {
-          const label = pmfm.parameter.label;
-          if (ParameterLabelGroups.AGE.includes(label)) {
-            dynamicAgeColumnNames.push(pmfmStrategy.pmfmId.toString());
-          }
-          else if (ParameterLabelGroups.SEX.includes(label)) {
-            dynamicSexColumnNames.push(pmfmStrategy.pmfmId.toString());
-          }
-          else if (ParameterLabelGroups.WEIGHT.includes(label)) {
-            dynamicWeightColumnNames.push(pmfmStrategy.pmfmId.toString());
-          }
-          else if (ParameterLabelGroups.LENGTH.includes(label)) {
-            dynamicSizeColumnNames.push(pmfmStrategy.pmfmId.toString());
-          }
-          else if (ParameterLabelGroups.MATURITY.includes(label)) {
-            dynamicMaturityColumnNames.push(pmfmStrategy.pmfmId.toString());
-          }
-          else
-          {
-            // Filter on type. Fractions pmfm doesn't provide type.
-            if (pmfmStrategy.type)
-            {
-              dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
-            }
-          }
-        }
-          else {
-          // Display pmfm without parameter label like fractions ?
-            // Filter on type. Fractions pmfm doesn't provide type.
-            if (pmfmStrategy.type)
-            {
-              dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
-            }
-          }
-        }
-        else {
-          // Display pmfm without parameter label like fractions ?
-        // Filter on type. Fractions pmfm doesn't provide type.
-        if (pmfmStrategy.type)
-        {
-          dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
-        }
-
-      }
-    });
-
-    //const pmfmColumnNames = pmfms
-    // .filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
-    // .map(p => p.pmfmId.toString());
-
     const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
     const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
 
-    this.dynamicColumns = [];
-    let idx = 1;
-    let rankOrderIdx = 1;
-    dynamicWeightColumnNames.forEach(pmfmColumnName => {
-      const col = <ColumnDefinition>{
-      key: pmfmColumnName,
-      label: this.i18nFieldPrefix + 'WEIGHT',
-      defaultValue: "WEIGHT",
-      type: 'string',
-      computed : false,
-      qvIndex : idx,
-      rankOrder : rankOrderIdx,
-      disabled : false
-    };
-        dynamicColumnNames.push(pmfmColumnName);
-        this.dynamicColumns.push(col);
-    });
-    if (dynamicWeightColumnNames && dynamicWeightColumnNames.length)
-    {
-      idx = idx + 1;
-    }
-    dynamicSizeColumnNames.forEach(pmfmColumnName => {
-      const col = <ColumnDefinition>{
-        key: pmfmColumnName,
-        label: this.i18nFieldPrefix + 'SIZE',
-        defaultValue: "SIZE",
-        type: 'string',
-        computed : false,
-        qvIndex : idx,
-        rankOrder : rankOrderIdx,
-        disabled : false
-      };
-      rankOrderIdx = rankOrderIdx + 1;
-      dynamicColumnNames.push(pmfmColumnName);
-      this.dynamicColumns.push(col);
-    });
-    if (dynamicSizeColumnNames && dynamicSizeColumnNames.length)
-    {
-      idx = idx + 1;
-    }
-    dynamicMaturityColumnNames.forEach(pmfmColumnName => {
-      const col = <ColumnDefinition>{
-        key: pmfmColumnName,
-        label: this.i18nFieldPrefix + 'MATURITY',
-        defaultValue: "MATURITY",
-        type: 'string',
-        computed : false,
-        qvIndex : idx,
-        rankOrder : rankOrderIdx,
-        disabled : false
-      };
-      rankOrderIdx = rankOrderIdx + 1;
-      dynamicColumnNames.push(pmfmColumnName);
-      this.dynamicColumns.push(col);
-    });
-    if (dynamicMaturityColumnNames && dynamicMaturityColumnNames.length) {
-      idx = idx + 1;
-    }
-    dynamicSexColumnNames.forEach(pmfmColumnName => {
-      const col = <ColumnDefinition>{
-        key: pmfmColumnName,
-        label: this.i18nFieldPrefix + 'SEX',
-        defaultValue: "SEX",
-        type: 'string',
-        computed : false,
-        qvIndex : idx,
-        rankOrder : rankOrderIdx,
-        disabled : false
-      };
-      rankOrderIdx = rankOrderIdx + 1;
-      dynamicColumnNames.push(pmfmColumnName);
-      this.dynamicColumns.push(col);
-    });
-    if (dynamicSexColumnNames && dynamicSexColumnNames.length)
-    {
-      idx = idx + 1;
-    }
-    dynamicAgeColumnNames.forEach(pmfmColumnName => {
-      const col = <ColumnDefinition>{
-        key: pmfmColumnName,
-        label: this.i18nFieldPrefix + 'AGE',
-        defaultValue: "AGE",
-        type: 'string',
-        computed : false,
-        qvIndex : idx,
-        rankOrder : rankOrderIdx,
-        disabled : false
-      };
-      rankOrderIdx = rankOrderIdx + 1;
-      dynamicColumnNames.push(pmfmColumnName);
-      this.dynamicColumns.push(col);
-    });
-    if (dynamicAgeColumnNames && dynamicAgeColumnNames.length)
-    {
-      idx = idx + 1;
-    }
-    dynamicOthersColumnNames.forEach(pmfmColumnName => {
-      const col = <ColumnDefinition>{
-        key: pmfmColumnName,
-        label: this.i18nFieldPrefix + 'OTHER',
-        defaultValue: "OTHER",
-        type: 'string',
-        computed : false,
-        qvIndex : idx,
-        rankOrder : rankOrderIdx,
-        disabled : false
-      };
-      rankOrderIdx = rankOrderIdx + 1;
-      dynamicColumnNames.push(pmfmColumnName);
-      this.dynamicColumns.push(col);
-    });
+    // Group pmfms by parameter group label
+    const allPmfmIds = Object.values(pmfmIdsMap).reduce((res, pmfmIds) => res.concat(pmfmIds), []);
+    let pmfmColumnNames = [];
+    const columnNamesByGroup = pmfms && SAMPLE_PARAMETER_GROUPS.reduce((res, group) => {
+      let columnNames: string[];
+      if (group === 'OTHER') {
+        columnNames = pmfms.filter(p => !allPmfmIds.includes(p.pmfmId)).map(p => p.pmfmId.toString());
+      }
+      else {
+        const groupPmfmIds = pmfmIdsMap[group];
+        if (isNotEmptyArray(groupPmfmIds)) {
+          columnNames = pmfms.filter(p => groupPmfmIds.includes(p.pmfmId)).map(p => p.pmfmId.toString());
+        }
+      }
+
+      if (isNotEmptyArray(columnNames)) {
+        res[group] = columnNames;
+        pmfmColumnNames = pmfmColumnNames.concat(...columnNames);
+      }
+      return res;
+    }, {}) || {};
+
+    let groupIndex = 0;
+    let rankOrderIdx = 1; // TODO to delete
+    this.dynamicColumns = SAMPLE_PARAMETER_GROUPS.reduce((res, group) => {
+      const columnNames = columnNamesByGroup[group];
+      if (isEmptyArray(columnNames)) return res; // Skip
+      groupIndex++;
+      return res.concat(columnNames.map(columnName => {
+        return <ColumnDefinition>{
+          key: columnName,
+          label: this.i18nFieldPrefix + group,
+          defaultValue: group,
+          type: 'string',
+          computed : false,
+          groupIndex : groupIndex,
+          rankOrder : rankOrderIdx++,
+          disabled : false
+        };
+      }));
+    }, []);
+
 
     return RESERVED_START_COLUMNS
       .concat(startColumns)
-      .concat(dynamicColumnNames)
+      .concat(pmfmColumnNames)
       .concat(endColumns)
       .concat(RESERVED_END_COLUMNS)
       // Remove columns to hide
@@ -548,12 +449,24 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
   async openAddPmfmsModal(event?: UIEvent): Promise<any> {
     //const columns = this.displayedColumns;
-    const pmfms = this.$pmfms.getValue();
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
 
     const modal = await this.modalCtrl.create({
-      component: TableAddPmfmsComponent,
-      componentProps: {pmfms: pmfms, programService: this.programService, strategyService: this.strategyService}
+      component: SelectReferentialModal,
+      componentProps: {
+        filter: {
+          entityName: 'Pmfm',
+          excludedIds: existingPmfmIds
+        }
+      }
     });
+
+    /*const modal = await this.modalCtrl.create({
+      component: TableAddPmfmsComponent,
+      componentProps: {
+        excludedIds: existingPmfmIds
+      }
+    });*/
 
     // Open the modal
     await modal.present();
@@ -562,9 +475,11 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     const res = await modal.onDidDismiss();
     if (!res) return; // CANCELLED
 
-    // Apply new pmfm
-    this.displayedColumns = this.getDisplayColumns();
-    this.markForCheck();
+    console.log('TODO Modal result ', res);
+    /*this.pmfms = [
+      ...pmfms,
+      ...res.pmfms
+    ];*/
 
   }
 
@@ -584,4 +499,6 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     // Apply new pmfm
     this.markForCheck();
   }
+
+
 }

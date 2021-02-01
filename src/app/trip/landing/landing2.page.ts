@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
-import {merge, Observable, Subscription} from "rxjs";
+import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {environment} from "../../../environments/environment";
 import {AppEditorOptions} from "../../core/form/editor.class";
@@ -42,6 +42,10 @@ import {
   STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX,
   StrategySummaryCardComponent
 } from "../../data/strategy/strategy-summary-card.component";
+import {ParameterLabelGroups} from "../../referential/services/model/model.enum";
+import {PmfmService} from "../../referential/services/pmfm.service";
+import {ObjectMap} from "../../shared/types";
+import {BiologicalSamplingValidators} from "./sampling/biological-sampling.validators";
 
 
 const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
@@ -49,15 +53,7 @@ const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 @Component({
   selector: 'app-landing2-page',
   templateUrl: './landing2.page.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: AppEditorOptions,
-      useValue: {
-        pathIdAttribute: 'landingId'
-      }
-    }
-  ]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Landing2Page extends AppRootDataEditor<Landing, LandingService> implements OnInit {
 
@@ -69,12 +65,14 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
   protected strategyService: StrategyService;
+  protected pmfmService: PmfmService;
   private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
   showQualityForm = false;
   i18nPrefix = DEFAULT_I18N_PREFIX;
   forceOneTab = false;
+  $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
 
   @ViewChild('landingForm', { static: true }) landingForm: Landing2Form;
   @ViewChild('samplesTable', { static: true }) samplesTable: Samples2Table;
@@ -94,16 +92,21 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   }
 
   constructor(
-    injector: Injector,
-    options: AppEditorOptions
+    injector: Injector
   ) {
-    super(injector, Landing, injector.get(LandingService), options);
+    super(injector, Landing, injector.get(LandingService), {
+      pathIdAttribute: 'samplingId',
+      tabCount: 2,
+      autoUpdateRoute: false,
+      autoOpenNextTab: false
+    });
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
     this.strategyService = injector.get(StrategyService);
+    this.pmfmService = injector.get(PmfmService);
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
@@ -133,7 +136,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     );
 
     this.registerSubscription(
-      this.landingForm.form.get('strategy').valueChanges
+      this.landingForm.strategyControl.valueChanges
         .pipe(
           map(value => value && value.label ? value.label : value)
         )
@@ -248,7 +251,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     }
 
     // Add computation and validation
-    this._rowValidatorSubscription = SampleValidatorService.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
+    this._rowValidatorSubscription = BiologicalSamplingValidators.addSampleValidators(form, pmfms,
+      this.$pmfmGroups.getValue(),
+      {markForCheck: () => this.markForCheck()});
   }
 
   updateView(data: Landing | null, opts?: {
@@ -290,7 +295,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   /* -- protected methods -- */
 
 
-  protected setProgram(program: Program) {
+  protected async setProgram(program: Program) {
     if (!program) return; // Skip
     if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
@@ -314,19 +319,23 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
 
     this.samplesTable.program = program.label;
 
+    // TODO: load pmfm map by program properties ?
+    // Load Pmfm IDS, group by parameter labels
+    this.samplesTable.pmfmGroups = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
+
   }
 
   protected async setStrategy(strategy: Strategy) {
     if (!strategy) return; // Skip if empty
 
-    this.landingForm.strategy = strategy;
+    this.landingForm.strategy = strategy.label;
 
     this.strategyCard.value = strategy;
 
     // Set table defaults
     const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
     this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
-    this.samplesTable.pmfms = strategy.pmfmStrategies;
+    this.samplesTable.pmfms = (strategy.pmfmStrategies || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
   }
 
   protected registerForms() {
@@ -411,9 +420,19 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     && landing.dateTime.diff(moment(), "day") <= 1 ? 'FIELD' : 'DESK';
   }
 
+  async updateRoute(data: Landing, opts?: { openTabIndex?: number }): Promise<boolean> {
 
-  protected async getValue(): Promise<Landing> {
-    const data = await super.getValue();
+    if (data && isNotNil(data.id)) {
+      await this.router.navigateByUrl(`/observations/${this.parent.id}/sampling/${data.id}`, {
+        replaceUrl: true
+      });
+      return true;
+    }
+    return false;
+  }
+
+  protected async getJsonValueToSave(): Promise<any> {
+    const data = this.landingForm.value;
 
     // Save samples table
     if (this.samplesTable.dirty) {
@@ -421,12 +440,9 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     }
     data.samples = this.samplesTable.value;
 
-    // Apply rank Order
-    // TODO BLA: pourquoi fixer la rankOrder à 1 ? Cela empêche de retrouver l'ordre de saisie
-    data.samples.map(s => s.rankOrder = 1);
-
     return data;
   }
+
 
   protected moveTabContent() {
     // Inject content of tabs, into the first tab

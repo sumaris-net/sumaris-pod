@@ -27,6 +27,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected _onValueChanged = new EventEmitter<T>();
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected _program: string;
+  protected _strategy: string;
   protected _gearId: number = null;
   protected _acquisitionLevel: string;
   protected _ready = false;
@@ -39,12 +40,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   $loadingControls = new BehaviorSubject<boolean>(true);
   applyingValue = false;
   programSubject = new BehaviorSubject<string>(undefined);
+  strategySubject = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
   @Input() compact = false;
 
   @Input() floatLabel: FloatLabelType = "auto";
 
+  @Input() requiredStrategy = false;
   @Input() requiredGear = false;
 
   @Output()
@@ -57,6 +60,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   get program(): string {
     return this._program;
+  }
+
+  get strategy(): string {
+    return this._strategy;
+  }
+
+  @Input()
+  set strategy(value: string) {
+    this.setStrategy(value);
   }
 
   @Input()
@@ -236,6 +248,17 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
+  protected setStrategy(value: string) {
+    if (isNotNil(value) && this._strategy !== value) {
+      this._strategy = value;
+
+      this.strategySubject.next(value);
+
+      // Reload pmfms
+      if (!this.loading && this.requiredStrategy) this._onRefreshPmfms.emit();
+    }
+  }
+
   /**
    * Wait form is ready, before setting the value to form
    * @param data
@@ -284,7 +307,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   protected async refreshPmfms(event?: any) {
     // Skip if missing: program, acquisition (or gear, if required)
-    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
+    if (isNil(this._program) || (this.requiredStrategy && isNil(this._strategy))
+      || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
       return;
     }
 
@@ -300,6 +324,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       let pmfms = (await this.programService.loadProgramPmfms(
         this._program,
         {
+          strategyLabel: this._strategy,
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         })) || [];

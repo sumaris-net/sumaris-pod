@@ -165,7 +165,10 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     const now = Date.now();
     if (debug) console.debug(`[referential-service] Loading ${this._entityName}...`, variables);
 
-    const query = (!opts || opts.withTotal !== false) ? this.queries.loadAllWithTotal : this.queries.loadAll;
+
+    const query = (opts && opts.query) // use given query
+      // Or get loadAll or loadAllWithTotal query
+      || ((!opts || opts.withTotal !== false) ? this.queries.loadAllWithTotal : this.queries.loadAll);
     const {data, total} = await this.graphql.query<LoadResult<any>>({
       query,
       variables,

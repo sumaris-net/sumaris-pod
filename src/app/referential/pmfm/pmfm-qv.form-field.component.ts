@@ -157,11 +157,11 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
         // Get qualitative values from parameter
         this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
         if (isEmptyArray(this._qualitativeValues)) {
-          console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values!` );
+          console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values, neither the parent PmfmStrategy!`, this.pmfm);
         }
       }
       else {
-        console.warn(`PmfmStrategy {id: ${this.pmfm.id}} has no qualitative values!` );
+        console.warn(`PmfmStrategy {id: ${this.pmfm.id}} has no qualitative values!`, this.pmfm);
       }
 
     }

@@ -28,11 +28,6 @@ const routes: Routes = [
         component: ObservedLocationPage,
         runGuardsAndResolvers: 'pathParamsChange'
       },
-      // {
-      //   path: 'batches',
-      //   component: SubBatchesModal,
-      //   runGuardsAndResolvers: 'pathParamsChange'
-      // },
       {
         path: 'landing/:landingId',
         runGuardsAndResolvers: 'pathParamsChange',
@@ -64,6 +59,21 @@ const routes: Routes = [
         ]
       },
       {
+        path: 'sampling/:samplingId',
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          pathIdParam: 'samplingId'
+        },
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: Landing2Page,
+            runGuardsAndResolvers: 'pathParamsChange'
+          }
+        ]
+      },
+      {
         path: 'trip/:tripId',
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
@@ -77,22 +87,7 @@ const routes: Routes = [
             runGuardsAndResolvers: 'pathParamsChange'
           }
         ]
-      },
-      {
-        path: 'sampling/:landingId',
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          pathIdParam: 'landingId'
-        },
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: Landing2Page,
-            runGuardsAndResolvers: 'pathParamsChange'
-          }
-        ]
-      },
+      }
     ]
   }
 ];

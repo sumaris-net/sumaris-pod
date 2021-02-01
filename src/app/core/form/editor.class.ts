@@ -335,7 +335,7 @@ export abstract class AppEntityEditor<
    */
   async updateTabAndRoute(data: T, opts?: {
     openTabIndex?: number;
-  }): Promise<boolean> {
+  }): Promise<void> {
 
     this.queryParams = this.queryParams || {};
 
@@ -344,6 +344,9 @@ export abstract class AppEntityEditor<
 
     // Save the opened tab into the queryParams
     this.queryParams.tab = this.selectedTabIndex;
+
+    const done = await this.updateRoute(data, this.queryParams);
+    if (done) return;
 
     // Update route location
     const forcedQueryParams = {};
@@ -355,13 +358,11 @@ export abstract class AppEntityEditor<
       });
     }
     else {
-      await this.router.navigate(['../new'], {
+      await this.router.navigate(['..', 'new'], {
         relativeTo: this.route,
         queryParams: {...this.queryParams, ...forcedQueryParams}
       });
     }
-
-    return this.updateRoute(data, this.queryParams);
   }
 
   /**
@@ -636,6 +637,7 @@ export abstract class AppEntityEditor<
   }
 
   protected getJsonValueToSave(): Promise<any> {
+    console.log("TODO TOTO");
     return Promise.resolve(this.form.value);
   }
 

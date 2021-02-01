@@ -47,34 +47,5 @@ export class SampleValidatorService implements ValidatorService {
     });
   }
 
-  static addSampleValidators(form: FormGroup, pmfms: PmfmStrategy[],
-                             opts?: { markForCheck: () => void }): Subscription {
-    if (!form) {
-      console.warn("Argument 'form' required");
-      return null;
-    }
-
-    // TODO : to uncomment after updating model.enum : merge develop-ifremer => develop-ifremer-sprint5
-    /*const weightPmfms = pmfms.filter(p => PmfmUtils.hasParameterLabel(ParameterLabel.WEIGHT));
-    const sizePmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(ParameterLabelList.SIZE));*/
-
-    // TODO : to remove after updating model.enum : merge develop-ifremer => develop-ifremer-sprint5
-    const weightPmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.WEIGHTS));
-    const sizePmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.LENGTHS));
-
-    form.setAsyncValidators(async (control) => {
-      const formGroup = control as FormGroup;
-      const measValues = formGroup.get('measurementValues').value;
-      const missingWeight = weightPmfms.findIndex(p => isNotNil(measValues[p.pmfmId])) !== -1;
-      const missingSize = sizePmfms.findIndex(p => isNotNil(measValues[p.pmfmId])) !== -1;
-
-      const error = { missingWeightOrSize: true };
-
-      if (!missingSize && !missingWeight){
-        return error;
-      }
-    });
-
-  }
 
 }

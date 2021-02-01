@@ -14,10 +14,10 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          formControlName="strategy"
+          [formControl]="strategyControl"
           [placeholder]="i18nPrefix + 'STRATEGY_PLACEHOLDER'|translate"
           [config]="autocompleteFields.strategy"
-          [readonly]="!canEditStrategy"
+
           [required]="true">
           <mat-error *ngIf="strategyControl.hasError('noEffort')">
             {{'LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR'|translate}}

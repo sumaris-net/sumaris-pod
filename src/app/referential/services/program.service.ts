@@ -447,6 +447,7 @@ export class ProgramService extends BaseEntityService
    */
   watchProgramPmfms(programLabel: string, options: {
     acquisitionLevel: string;
+    strategyLabel?: string;
     gearId?: number;
     taxonGroupId?: number;
     referenceTaxonId?: number;
@@ -458,8 +459,7 @@ export class ProgramService extends BaseEntityService
       this.watchByLabel(programLabel, {toEntity: false, debug: false}) // Watch the program
           .pipe(
             map(program => {
-                // TODO: select valid strategy (from date and location)
-                const strategy = program && program.strategies && program.strategies[0];
+                const strategy = (program && program.strategies || []).find(s => !options.strategyLabel || s.label === options.strategyLabel);
 
                 const pmfmIds = []; // used to avoid duplicated pmfms
                 const res = (strategy && strategy.pmfmStrategies || [])
@@ -502,6 +502,7 @@ export class ProgramService extends BaseEntityService
    */
   loadProgramPmfms(programLabel: string, options?: {
     acquisitionLevel: string;
+    strategyLabel?: string;
     gearId?: number;
     taxonGroupId?: number;
     referenceTaxonId?: number;

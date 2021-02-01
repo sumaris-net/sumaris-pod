@@ -171,6 +171,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.defaultPageSize = 200; // normal high value
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
     this.referentialRefService = injector.get(ReferentialRefService);
+    this.saveBeforeDelete = true;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;

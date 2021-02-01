@@ -40,8 +40,8 @@
 
           <ion-col class="ion-no-padding" size="12" size-xl="3">
 
-            <!-- TODO BLA : check if useful -->
-            <app-strategy-summary-card #strategyCard [editor]="this"
+            <app-strategy-summary-card #strategyCard
+                                       [editor]="this"
                                        [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
             </app-strategy-summary-card>
 
@@ -72,6 +72,7 @@
                             [usageMode]="usageMode"
                             [showLabelColumn]="true"
                             [defaultSampleDate]="data?.dateTime"
+                            [pmfmGroups]="$pmfmGroups|async"
                             (onInitForm)="onStartSampleEditingForm($event)">
         </app-samples2-table>
 
