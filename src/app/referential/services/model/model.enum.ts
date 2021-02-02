@@ -181,5 +181,12 @@ export const SaleTypeIds = {
   OTHER: 4
 };
 
+export const ProgramPrivilegeIds = {
+  MANAGER: 1,
+  OBSERVER: 2,
+  VIEWER: 3,
+  VALIDATOR: 4,
+  QUALIFIER: 5
+};
 
 

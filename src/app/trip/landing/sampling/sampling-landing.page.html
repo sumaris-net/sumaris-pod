@@ -1,11 +1,51 @@
-<app-toolbar [title]="title$ | async" color="primary" [hasValidate]="!loading && dirty" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+<app-toolbar [title]="title$ | async"
+             color="primary"
+             [hasValidate]="!loading && dirty"
+             (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref"
+             [canGoBack]="true">
+  <ion-buttons slot="end">
+    <ion-spinner *ngIf="loading"></ion-spinner>
+
+    <ion-button *ngIf="enabled && !isNewData || debug"
+                [matMenuTriggerFor]="optionsMenu"
+                [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
 
-<ion-content>
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu">
 
-  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+  <!-- delete -->
+  <button mat-menu-item
+          [disabled]="isNewData || disabled"
+          (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
+  </button>
+
+</mat-menu>
+
+<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+
+  <mat-tab-group #tabGroup
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
                  class="mat-tab-disabled-hidden"
                  dynamicHeight>
 
@@ -19,7 +59,7 @@
 
       <!-- error -->
       <ion-item *ngIf="landingForm.error" visible-xs visible-sm visible-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
       </ion-item>
 
@@ -28,24 +68,25 @@
           <ion-col class="ion-no-padding ion-padding-top">
 
             <!-- landing form-->
-            <app-sampling-landing-form #landingForm
+            <app-landing-form #landingForm
                                [program]="programSubject|async"
                                [showError]="false"
-                               [showLocation]="true"
-                               [showComment]="false"
+                               [showComment]="!oneTabMode"
                                [debug]="debug"
                                (onSubmit)="save($event)">
-            </app-sampling-landing-form>
+            </app-landing-form>
           </ion-col>
 
           <ion-col class="ion-no-padding" size="12" size-xl="3">
 
+            <!-- strategy summary -->
             <app-strategy-summary-card #strategyCard
                                        [editor]="this"
                                        [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
             </app-strategy-summary-card>
 
-            <app-entity-metadata [value]="data" >
+            <!-- data quality -->
+            <app-entity-metadata [value]="data">
               <app-entity-quality-form #qualityForm [editor]="this" *ngIf="showQualityForm">
               </app-entity-quality-form>
             </app-entity-metadata>
@@ -60,7 +101,7 @@
 
     <!-- TAB: samples -->
     <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate"
-             [disabled]="isNewData || forceOneTab">
+             [disabled]="isNewData || oneTabMode">
       <ng-template mat-tab-label>
         <mat-icon>center_focus_strong</mat-icon>
         <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
@@ -68,12 +109,22 @@
       </ng-template>
 
       <div #tabContent>
-        <app-sampling-samples-table #samplesTable [debug]="debug"
-                                    [usageMode]="usageMode"
+
+        <!-- error -->
+        <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
+        </ion-item>
+
+        <app-sampling-samples-table #samplesTable
                                     [showLabelColumn]="true"
+                                    [showDateTimeColumn]="false"
                                     [defaultSampleDate]="data?.dateTime"
                                     [pmfmGroups]="$pmfmGroups|async"
-                                    (onInitForm)="onStartSampleEditingForm($event)">
+                                    [usageMode]="usageMode"
+                                    (onInitForm)="addSampleRowValidator($event)"
+                                    [useSticky]="true"
+                                    [debug]="debug">
         </app-sampling-samples-table>
 
         <!-- final space-->
@@ -83,7 +134,7 @@
 
     <!-- TAB: comments -->
     <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
-             [disabled]="!forceOneTab">
+             [disabled]="!oneTabMode">
       <ng-template mat-tab-label>
         <mat-icon>chat_bubble</mat-icon>
         <ion-label translate>COMMON.COMMENTS</ion-label>
@@ -114,7 +165,7 @@
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 

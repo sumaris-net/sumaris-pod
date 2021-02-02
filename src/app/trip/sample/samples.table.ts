@@ -6,7 +6,7 @@ import {
   Injector,
   Input,
   OnDestroy,
-  OnInit,
+  OnInit, Optional,
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
@@ -16,7 +16,7 @@ import {UsageMode} from "../../core/services/model/settings.model";
 import * as momentImported from "moment";
 const moment = momentImported;
 import {Moment} from "moment";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
+import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {SampleModal, ISampleModalOptions} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
@@ -35,9 +35,13 @@ export interface SampleFilter {
   landingId?: number;
 }
 
+export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {
+
+}
+
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
 export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
-
+export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.SAMPLING.';
 
 @Component({
   selector: 'app-samples-table',
@@ -49,11 +53,25 @@ export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
-  implements OnInit, OnDestroy {
+  implements OnInit {
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
+
+  @Input() i18nFieldPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX;
+  @Input() useSticky = false;
+
+  @Input() usageMode: UsageMode;
+  @Input() showLabelColumn = false;
+  @Input() showDateTimeColumn = true;
+  @Input() showFabButton = false;
+
+  @Input() defaultSampleDate: Moment;
+  @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() defaultTaxonName: ReferentialRef;
+
+  @Input() modalOptions: Partial<ISampleModalOptions>;
 
   @Input()
   set value(data: Sample[]) {
@@ -63,13 +81,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   get value(): Sample[] {
     return this.memoryDataService.value;
   }
-
-  @Input() usageMode: UsageMode;
-  @Input() showLabelColumn = false;
-  @Input() showDateTimeColumn = true;
-  @Input() showFabButton = false;
-
-  @Input() modalOptions: Partial<ISampleModalOptions>;
 
   @Input()
   set showTaxonGroupColumn(value: boolean) {
@@ -89,14 +100,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return this.getShowColumn('taxonName');
   }
 
-  @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: ReferentialRef;
-  @Input() defaultTaxonName: ReferentialRef;
+
 
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
 
   constructor(
-    injector: Injector
+    injector: Injector,
+    @Optional() options?: SamplesTableOptions
   ) {
     super(injector,
       Sample,
@@ -108,7 +118,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         prependNewElements: false,
         suppressErrors: environment.production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
-        reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS
+        reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
+        ...options
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
@@ -184,7 +195,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...", data);
+    console.debug("[sample-table] Initializing new row data...");
 
     await super.onNewEntity(data);
 
@@ -200,7 +211,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       data.sampleDate = moment();
     }
 
-    // Taxon group
+    // Default taxon name
     if (isNotNil(this.defaultTaxonName)) {
       data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
     }

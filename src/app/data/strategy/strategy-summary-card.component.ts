@@ -4,10 +4,13 @@ import {merge, Subscription} from "rxjs";
 import {Router} from "@angular/router";
 import {environment} from "../../../environments/environment";
 import {AppRootDataEditor} from "../form/root-data-editor.class";
-import {isNil} from "../../shared/functions";
+import {isNil, isNotNil} from "../../shared/functions";
 import {fadeInAnimation} from "../../shared/material/material.animations";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {ProgramService} from "../../referential/services/program.service";
+import {StrategyService} from "../../referential/services/strategy.service";
+import {ProgramProperties} from "../../referential/services/config/program.config";
 
 export const STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX = 'PROGRAM.STRATEGY.SUMMARY.';
 
@@ -31,8 +34,9 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     taxonGroup: undefined,
   };
 
-  @Input() title: string;
   @Input() i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX;
+  @Input() title: string;
+  @Input() canOpen = false;
 
   @Input("value")
   set value(value: T) {
@@ -47,6 +51,8 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   constructor (
     protected router: Router,
     protected localSettings: LocalSettingsService,
+    protected programService: ProgramService,
+    protected strategyService: StrategyService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -61,6 +67,8 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
     // Check editor exists
     if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
+
+    this.title = this.title || (this.i18nPrefix + 'TITLE');
 
     // Subscribe to refresh events
     this._subscription
@@ -84,14 +92,26 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     if (isNil(data) || isNil(data.id)) {
       this.loading = true;
       this.data = null;
+      this.canOpen = false;
       this.markForCheck();
     }
     else if (this.data !== data){
       console.debug('[strategy-summary-card] updating view using strategy:', data);
       this.data = data;
+      this.canOpen = this.strategyService.canUserWrite(data);
       this.loading = false;
       this.markForCheck();
     }
+  }
+
+  async open(event?: UIEvent): Promise<boolean> {
+
+    const programId = this.data && this.data.programId;
+    if (isNil(programId) || isNil(this.data.id)) return; // Skip
+
+    const program = await this.programService.load(programId, {fetchPolicy: "cache-first"});
+    const strategyEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
+    return this.router.navigateByUrl(`/referential/programs/${programId}/strategies/${strategyEditor}/${this.data.id}`);
   }
 
   protected markForCheck() {

@@ -1,12 +1,11 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, FormBuilder, FormGroup, ValidationErrors} from "@angular/forms";
+import {FormBuilder, FormGroup} from "@angular/forms";
 import {Program} from "../services/model/program.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
-import {SimpleStrategiesTable} from "../simpleStrategy/simple-strategies.table";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppPropertiesForm} from "../../core/form/properties.form";
@@ -15,11 +14,11 @@ import {ModalController} from "@ionic/angular";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ProgramProperties, StrategyEditor} from "../services/config/program.config";
 import {ActivatedRoute} from "@angular/router";
-import { Subscription } from "rxjs";
+import {Subscription} from "rxjs";
 
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {changeCaseToUnderscore, isNil, isNotNilOrBlank} from "../../shared/functions";
+import {changeCaseToUnderscore, isNil} from "../../shared/functions";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {HistoryPageReference} from "../../core/services/model/history.model";
 import {SelectReferentialModal} from "../list/select-referential.modal";
@@ -28,9 +27,7 @@ import {environment} from "../../../environments/environment";
 import {Strategy} from "../services/model/strategy.model";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {AppTable} from "../../core/table/table.class";
-import {BehaviorSubject, of} from "rxjs";
-import {mergeMap} from "rxjs/internal/operators";
-import {filter} from "rxjs/operators";
+import {SamplingStrategiesTable} from "../strategy/sampling/sampling-strategies.table";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -60,10 +57,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
   @ViewChild('locationClassificationList', { static: true }) locationClassificationList: AppListForm;
   @ViewChild('legacyStrategiesTable', { static: true }) legacyStrategiesTable: StrategiesTable;
-  @ViewChild('bioParamStrategiesTable', { static: true }) bioParamStrategiesTable: SimpleStrategiesTable;
+  @ViewChild('samplingStrategiesTable', { static: true }) samplingStrategiesTable: SamplingStrategiesTable;
 
   get strategiesTable(): AppTable<Strategy> {
-    return this.strategyEditor !== 'sampling' ? this.legacyStrategiesTable : this.bioParamStrategiesTable;
+    return this.strategyEditor !== 'sampling' ? this.legacyStrategiesTable : this.samplingStrategiesTable;
   }
 
   constructor(

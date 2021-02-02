@@ -17,7 +17,7 @@ export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWat
   readOnly?: boolean;
   [key: string]: any;
 }
-export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
+export class AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
   prependNewElements: boolean;
   suppressErrors: boolean;
   onRowCreated?: (row: TableElement<T>) => Promise<void> | void;

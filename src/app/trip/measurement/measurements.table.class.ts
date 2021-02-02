@@ -23,7 +23,7 @@ import {MeasurementsValidatorService} from "../services/validator/measurement.va
 import {Entity} from "../../core/services/model/entity.model";
 
 
-export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
+export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;

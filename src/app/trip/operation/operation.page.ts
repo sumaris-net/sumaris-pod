@@ -43,7 +43,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   trip: Trip;
   programSubject = new BehaviorSubject<string>(null);
-  onProgramChanged = new Subject<Program>();
+  $program = new Subject<Program>();
   saveOptions: OperationSaveOptions = {};
   readonly dateTimePattern: string;
 
@@ -112,7 +112,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           distinctUntilChanged(),
           switchMap(programLabel => this.programService.watchByLabel(programLabel))
         )
-        .subscribe(program => this.onProgramChanged.next(program)));
+        .subscribe(program => this.$program.next(program)));
 
     // Watch trip, to load last operations
     this.registerSubscription(
@@ -183,7 +183,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Configure page, from Program's properties
     this.registerSubscription(
-      this.onProgramChanged.subscribe(program => this.setProgram(program))
+      this.$program.subscribe(program => this.setProgram(program))
     );
 
     // Manage tab group

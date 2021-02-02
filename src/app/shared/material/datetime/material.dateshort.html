@@ -19,6 +19,7 @@
            (blur)="checkIfTouched()"
            (keyup.arrowdown)="openDatePicker($event, datePicker1)"
            (keyup.escape)="preventEvent($event)"
+           (click)="matInput.select()"
            [required]="required"
            [tabindex]="tabindex">
     <input matInput #matInput autocomplete="off" type="text"
@@ -61,7 +62,7 @@
     <ng-content select="mat-error"></ng-content>
   </mat-form-field>
 
-  <mat-datepicker #datePicker1 
+  <mat-datepicker #datePicker1
                   startView="multi-year"
                   [touchUi]="mobile"
                   [disabled]="formControl.disabled"

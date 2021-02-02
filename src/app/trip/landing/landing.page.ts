@@ -1,8 +1,17 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  OnInit,
+  Optional,
+  QueryList,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 
-import {isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
-import * as momentImported from "moment";
-import {Moment} from "moment";
+import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
+import * as moment from "moment";
 import {LandingForm} from "./landing.form";
 import {SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -13,7 +22,7 @@ import {FormGroup} from "@angular/forms";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
-import {filter, throttleTime} from "rxjs/operators";
+import {debounceTime, filter, throttleTime} from "rxjs/operators";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -22,11 +31,19 @@ import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AppEditorOptions} from "../../core/form/editor.class";
-import {ENVIRONMENT} from "../../../environments/environment.class";
 import {Program} from "../../referential/services/model/program.model";
 import {fromDateISOString} from "../../shared/dates";
+import {environment} from "../../../environments/environment";
+import {
+  STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX,
+  StrategySummaryCardComponent
+} from "../../data/strategy/strategy-summary-card.component";
+import {merge, Subscription} from "rxjs";
+import {Strategy} from "../../referential/services/model/strategy.model";
+import {firstNotNilPromise} from "../../shared/observables";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
-const moment = momentImported;
+const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
 @Component({
   selector: 'app-landing-page',
@@ -49,23 +66,30 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected referentialRefService: ReferentialRefService;
   protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
+  private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
   showQualityForm = false;
+  i18nPrefix = DEFAULT_I18N_PREFIX;
+  oneTabMode = false;
 
-  @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
-  @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
 
   get form(): FormGroup {
     return this.landingForm.form;
   }
 
+  @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
+  @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
+  @ViewChild('strategyCard', {static: false}) strategyCard: StrategySummaryCardComponent;
+
+  @ViewChild('firstTabInjection', {static: false}) firstTabInjection: ElementRef;
+  @ViewChildren('tabContent') tabContents: QueryList<ElementRef>;
+
   constructor(
     injector: Injector,
     @Optional() options: AppEditorOptions
   ) {
-    super(injector, Landing, injector.get(LandingService),
-      {
+    super(injector, Landing, injector.get(LandingService), {
         tabCount: 2,
         pathIdAttribute: 'landingId',
         ...options
@@ -78,7 +102,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
-    this.debug = !injector.get(ENVIRONMENT).production;
+    this.debug = !environment.production;
   }
 
   ngAfterViewInit() {
@@ -97,24 +121,32 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
           this.samplesTable.defaultSampleDate = fromDateISOString(dateTime);
         })
     );
+
+    this.registerSubscription(
+      this.landingForm.strategySubject
+        .subscribe((strategy: string) => this.strategySubject.next(strategy))
+    );
+
+    // Watch strategy
+    this.registerSubscription(
+      this.$strategy.subscribe(strategy => this.setStrategy(strategy))
+    );
+
+    // Watch table events, to avoid strategy edition, when has sample rows
+    this.registerSubscription(
+      merge(
+        this.samplesTable.onConfirmEditCreateRow,
+        this.samplesTable.onCancelOrDeleteRow
+      )
+        .pipe(debounceTime(500))
+        .subscribe(() => {
+          this.landingForm.canEditStrategy = this.samplesTable.resultsLength === 0;
+        })
+    );
   }
 
   protected registerForms() {
     this.addChildForms([this.landingForm, this.samplesTable]);
-  }
-
-  protected setProgram(program: Program) {
-    if (!program) return; // Skip
-    if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-
-    // Customize the UI, using program options
-    this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
-    this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    this.samplesTable.modalOptions = {
-      ...this.samplesTable.modalOptions,
-      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
-    };
-
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -123,9 +155,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       data.dateTime = moment();
     }
 
+    // Fill parent ids
     data.observedLocationId = options && options.observedLocationId && parseInt(options.observedLocationId);
     data.tripId = options && options.tripId && parseInt(options.tripId);
 
+    // Load parent
     this.parent = await this.loadParent(data);
 
     // Copy from parent into the new object
@@ -180,7 +214,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Copy not fetched data
     if (this.parent) {
-      data.program = ReferentialUtils.isNotEmpty(data.program) && data.program || this.parent.program;
+      // Set program using parent's program, if not already set
+      data.program = ReferentialUtils.isNotEmpty(data.program) ? data.program : this.parent.program;
       data.observers = isNotEmptyArray(data.observers) && data.observers || this.parent.observers;
 
       if (this.parent instanceof ObservedLocation) {
@@ -206,45 +241,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
-
-    // Load parent observed location
-    if (isNotNil(data.observedLocationId)) {
-      console.debug('[landing-page] Loading parent observed location...');
-      return await this.observedLocationService.load(data.observedLocationId, {fetchPolicy: 'cache-first'});
-    }
-    // Load parent trip
-    else if (isNotNil(data.tripId)) {
-      console.debug('[landing-page] Loading parent trip...');
-      return await this.tripService.load(data.tripId, {fetchPolicy: 'cache-first'});
-    }
-    else {
-      throw new Error('No parent found in path. Landing without parent is not implemented yet !');
-    }
-  }
-
-  protected async getValue(): Promise<Landing> {
-    const data = await super.getValue();
-
-    if (this.samplesTable.dirty) {
-      await this.samplesTable.save();
-    }
-    data.samples = this.samplesTable.value;
-
-    return data;
-  }
-
-  protected async setValue(data: Landing): Promise<void> {
-
-    const isNew = isNil(data.id);
-    if (!isNew) {
-      this.programSubject.next(data.program.label);
+  addSampleRowValidator({form, pmfms}) {
+    // Remove previous subscription
+    if (this._rowValidatorSubscription) {
+      this._rowValidatorSubscription.unsubscribe();
     }
 
-    this.landingForm.program = data.program.label;
-    this.landingForm.value = data;
-
-    this.samplesTable.value = data.samples || [];
+    // Add computation and validation
+    this._rowValidatorSubscription = this.computeSampleValidator(form, pmfms);
   }
 
   updateView(data: Landing | null, opts?: {
@@ -258,47 +262,132 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       if (this.parent instanceof ObservedLocation) {
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = true;
-        this.landingForm.showLocation = false;
-        this.landingForm.showDateTime = true;
-        this.landingForm.showObservers = true;
 
       } else if (this.parent instanceof Trip) {
 
         // Hide some fields
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = false;
-        this.landingForm.showLocation = true;
-        this.landingForm.showDateTime = true;
-        this.landingForm.showObservers = true;
 
-      }
-      // Set program
-      if (isNil(this.programSubject.getValue()) && this.parent.program) {
-        this.programSubject.next(this.parent.program.label);
       }
     } else {
 
       this.landingForm.showVessel = true;
       this.landingForm.showLocation = true;
       this.landingForm.showDateTime = true;
-      this.landingForm.showObservers = true;
+
+      this.showQualityForm = true;
     }
   }
 
+  protected async setProgram(program: Program) {
+    if (!program) return; // Skip
+    if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
+
+    // Customize the UI, using program options
+    this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+    this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
+    this.landingForm.showStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
+    this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
+    this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
+    this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+
+    this.samplesTable.modalOptions = {
+      ...this.samplesTable.modalOptions,
+      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
+    };
+
+    const oneTabMode = program.getPropertyAsBoolean(ProgramProperties.LANDING_ONE_TAB_ENABLE);
+    if (this.oneTabMode !== oneTabMode) {
+      this.oneTabMode = oneTabMode;
+      this.refreshTabLayout();
+    }
+
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
+    this.i18nPrefix = DEFAULT_I18N_PREFIX + i18nSuffix;
+    this.landingForm.i18nPrefix = this.i18nPrefix;
+    if (this.strategyCard) {
+      this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
+    }
+    this.samplesTable.program = program.label; // TODO BLA: remplacer par un async dans le template ?
+
+    if (this.strategyCard) {
+      this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
+    }
+
+  }
+
+  protected async setStrategy(strategy: Strategy) {
+    if (!strategy) return; // Skip if empty
+
+    this.landingForm.strategy = strategy.label;
+    if (this.strategyCard) {
+      this.strategyCard.value = strategy;
+    }
+
+    // Set table defaults
+    const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
+    this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
+    this.samplesTable.pmfms = (strategy.pmfmStrategies || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
+  }
+
+
+
+  protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
+    let parent: Trip|ObservedLocation;
+
+    // Load parent observed location
+    if (isNotNil(data.observedLocationId)) {
+      console.debug('[landing-page] Loading parent observed location...');
+      parent = await this.observedLocationService.load(data.observedLocationId, {fetchPolicy: 'cache-first'});
+    }
+    // Load parent trip
+    else if (isNotNil(data.tripId)) {
+      console.debug('[landing-page] Loading parent trip...');
+      parent = await this.tripService.load(data.tripId, {fetchPolicy: 'cache-first'});
+    }
+    else {
+      throw new Error('No parent found in path. Landing without parent not implemented yet !');
+    }
+
+    // Emit program
+    if (parent.program && parent.program.label) {
+      this.programSubject.next(parent.program.label);
+    }
+
+    return parent;
+  }
+
+  protected async setValue(data: Landing): Promise<void> {
+    if (!data) return; // Skip
+
+    this.landingForm.canEditStrategy = isEmptyArray(data.samples);
+    this.landingForm.value = data;
+
+    // Set samples to table
+    this.samplesTable.value = data.samples || [];
+  }
+
   protected async computeTitle(data: Landing): Promise<string> {
+
+    const program = await firstNotNilPromise(this.$program);
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
+
     const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
-      await this.translate.get('LANDING.TITLE_PREFIX', {
+      await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
       }).toPromise() || '';
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + (await this.translate.get('LANDING.NEW.TITLE').toPromise());
+      return titlePrefix + (await this.translate.get(`LANDING.NEW.${i18nSuffix}TITLE`).toPromise());
     }
 
     // Existing data
-    return titlePrefix + (await this.translate.get('LANDING.EDIT.TITLE', {
+    return titlePrefix + (await this.translate.get(`LANDING.EDIT.${i18nSuffix}TITLE`, {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
     }).toPromise());
   }
@@ -309,7 +398,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected getFirstInvalidTabIndex(): number {
-    return this.landingForm.invalid ? 0 : (this.samplesTable.invalid ? 1 : -1);
+    if (this.oneTabMode || this.landingForm.invalid) return 0;
+    if (!this.oneTabMode && this.samplesTable.invalid) return 1;
+    return -1;
   }
 
   protected computeUsageMode(landing: Landing): UsageMode {
@@ -318,6 +409,35 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       && (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), "day") <= 1) ? 'FIELD' : 'DESK';
   }
 
-  /* -- protected methods -- */
+  protected async getValue(): Promise<Landing> {
+    const data = await super.getValue();
 
+    // Save samples table
+    if (this.samplesTable.dirty) {
+      await this.samplesTable.save();
+    }
+    data.samples = this.samplesTable.value;
+
+    // Apply rank Order
+    // TODO BLA: pourquoi fixer la rankOrder à 1 ? Cela empêche de retrouver l'ordre de saisie
+    //data.samples.map(s => s.rankOrder = 1);
+
+    return data;
+  }
+
+  protected refreshTabLayout() {
+    // Inject content of tabs, into the first tab
+    const injectionPoint = this.oneTabMode && this.firstTabInjection && this.firstTabInjection.nativeElement;
+    if (injectionPoint) {
+      this.tabContents.forEach(content => {
+        if (!content.nativeElement) return; // Skip
+        injectionPoint.append(content.nativeElement);
+      });
+    }
+  }
+
+  protected computeSampleValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+    // Can be override by subclasses (e.g auction control, biological sampling samples table)
+    return null;
+  }
 }

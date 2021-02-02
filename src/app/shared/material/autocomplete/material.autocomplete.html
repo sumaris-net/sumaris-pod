@@ -3,7 +3,7 @@
     <ion-col class="ion-no-padding">
       <mat-form-field [floatLabel]="floatLabel"
                       [class.mat-form-field-disabled]="disabled"
-                      [title]="displayWith(value)" >
+                      [title]="value && displayWith(value)" >
 
         <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
 

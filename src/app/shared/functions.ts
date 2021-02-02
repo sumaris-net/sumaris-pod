@@ -185,6 +185,7 @@ export function propertiesPathComparator<T = any>(keys: string[], defaultValues?
 }
 
 export function sort<T>(array: T[], attribute: string): T[] {
+  if (isEmptyArray(array)) return array;
   return array
     .slice() // copy
     .sort((a, b) => {

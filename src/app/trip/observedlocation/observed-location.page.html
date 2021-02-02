@@ -94,7 +94,10 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>
         </mat-icon>
-        <ion-label>{{i18nPrefix + 'TAB_LANDINGS'|translate}}</ion-label>
+        <ion-label *ngIf="$ready|async; else skeletonTabText">{{i18nPrefix + 'TAB_LANDINGS'|translate}}</ion-label>
+        <ng-template #skeletonTabText>
+          &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
+        </ng-template>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="landingsTable?.invalid"></ion-icon>
       </ng-template>
 

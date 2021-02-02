@@ -637,7 +637,6 @@ export abstract class AppEntityEditor<
   }
 
   protected getJsonValueToSave(): Promise<any> {
-    console.log("TODO TOTO");
     return Promise.resolve(this.form.value);
   }
 
