@@ -28,7 +28,6 @@ import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {environment} from "../../../../environments/environment";
-import {TableAddPmfmsComponent} from "../table-add-pmfms.component";
 import {ProgramService} from "../../../referential/services/program.service";
 import {StrategyService} from "../../../referential/services/strategy.service";
 import {BehaviorSubject} from "rxjs";

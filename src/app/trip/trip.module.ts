@@ -38,7 +38,6 @@ import {CoreModule} from "../core/core.module";
 import {TranslateModule} from "@ngx-translate/core";
 import {CommonModule} from "@angular/common";
 import {TripTrashModal} from "./trip/trash/trip-trash.modal";
-import {TableAddPmfmsComponent} from "./sample/table-add-pmfms.component";
 
 @NgModule({
   imports: [
@@ -85,8 +84,7 @@ import {TableAddPmfmsComponent} from "./sample/table-add-pmfms.component";
     SampleForm,
     SampleModal,
     SubSamplesTable,
-    IndividualMonitoringSubSamplesTable,
-    TableAddPmfmsComponent
+    IndividualMonitoringSubSamplesTable
   ],
   exports: [
     // Modules
@@ -117,8 +115,7 @@ import {TableAddPmfmsComponent} from "./sample/table-add-pmfms.component";
     SampleForm,
     SamplesTable,
     SamplingSamplesTable,
-    SubSamplesTable,
-    TableAddPmfmsComponent
+    SubSamplesTable
   ]
 })
 export class TripModule {
