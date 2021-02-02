@@ -1,8 +1,9 @@
 import {Strategy} from "./strategy.model";
 import {Moment} from "moment";
 import {fromDateISOString} from "../../../shared/dates";
+import {isNil} from "../../../shared/functions";
 
-export class DenormalizedStrategy extends Strategy<DenormalizedStrategy> {
+export class SamplingStrategy extends Strategy<SamplingStrategy> {
 
   parameterGroups: string[];
   efforts: StrategyEffort[];
@@ -18,8 +19,8 @@ export class DenormalizedStrategy extends Strategy<DenormalizedStrategy> {
     this.effortByQuarter = {}; // Init, for easier use in UI
   }
 
-  clone(): DenormalizedStrategy {
-    const target = new DenormalizedStrategy();
+  clone(): SamplingStrategy {
+    const target = new SamplingStrategy();
     target.fromObject(this);
     return target;
   }
@@ -71,7 +72,7 @@ export class StrategyEffort {
   }
 
   get missingEffort(): number {
-    return !this.expectedEffort ? undefined :
+    return isNil(this.expectedEffort) ? undefined :
       // Avoid negative missing effort (when realized > expected)
       Math.max(0, this.expectedEffort - (this.realizedEffort || 0));
   }

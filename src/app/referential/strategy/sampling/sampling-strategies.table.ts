@@ -14,7 +14,7 @@ import {ReferentialRefService} from "../../services/referential-ref.service";
 import {StatusIds} from "../../../core/services/model/model.enum";
 import {ProgramProperties} from "../../services/config/program.config";
 import {environment} from "../../../../environments/environment";
-import {DenormalizedStrategy} from "../../services/model/sampling-strategy.model";
+import {SamplingStrategy} from "../../services/model/sampling-strategy.model";
 import {SamplingStrategyService} from "../../services/sampling-strategy.service";
 
 
@@ -27,7 +27,7 @@ import {SamplingStrategyService} from "../../services/sampling-strategy.service"
 /**
  *
  */
-export class SamplingStrategiesTable extends AppTable<DenormalizedStrategy, ReferentialFilter> {
+export class SamplingStrategiesTable extends AppTable<SamplingStrategy, ReferentialFilter> {
 
   private _program: Program;
 
@@ -79,7 +79,7 @@ export class SamplingStrategiesTable extends AppTable<DenormalizedStrategy, Refe
           'effortQ3',
           'effortQ4'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource(DenormalizedStrategy, dataService, null, {
+      new EntitiesTableDataSource(SamplingStrategy, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

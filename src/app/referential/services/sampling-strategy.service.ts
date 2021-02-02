@@ -21,7 +21,7 @@ import {PmfmService} from "../services/pmfm.service";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {mergeMap} from "rxjs/internal/operators";
 import {DateUtils} from "../../shared/dates";
-import {DenormalizedStrategy, StrategyEffort} from "./model/sampling-strategy.model";
+import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
 
 const DenormalizedStrategyFragments = {
   denormalizedStrategy: gql`fragment DenormalizedStrategyFragment on StrategyVO {
@@ -123,7 +123,7 @@ const DenormalizedStrategyCacheKeys = {
 };
 
 @Injectable({providedIn: 'root'})
-export class SamplingStrategyService extends BaseReferentialService<DenormalizedStrategy, StrategyFilter> {
+export class SamplingStrategyService extends BaseReferentialService<SamplingStrategy, StrategyFilter> {
 
   constructor(
     graphql: GraphqlService,
@@ -137,7 +137,7 @@ export class SamplingStrategyService extends BaseReferentialService<Denormalized
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, DenormalizedStrategy,
+    super(graphql, platform, SamplingStrategy,
       DenormalizedStrategyQueries,
       null,
       null,
@@ -146,7 +146,7 @@ export class SamplingStrategyService extends BaseReferentialService<Denormalized
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
            opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; }
-           ): Observable<LoadResult<DenormalizedStrategy>> {
+           ): Observable<LoadResult<SamplingStrategy>> {
     return super.watchAll(offset, size, sortBy, sortDirection, filter, opts)
       .pipe(
         // Fill entities (parameter groups, effort, etc)
@@ -157,14 +157,14 @@ export class SamplingStrategyService extends BaseReferentialService<Denormalized
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
            opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; }
-  ): Promise<LoadResult<DenormalizedStrategy>> {
+  ): Promise<LoadResult<SamplingStrategy>> {
     const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
 
     // Fill entities (parameter groups, effort, etc)
     return this.fillEntities(res, opts);
   }
 
-  async deleteAll(entities: DenormalizedStrategy[], options?: any): Promise<any> {
+  async deleteAll(entities: SamplingStrategy[], options?: any): Promise<any> {
     return this.strategyService.deleteAll(entities, options);
   }
 
@@ -182,9 +182,9 @@ export class SamplingStrategyService extends BaseReferentialService<Denormalized
       }));
   }
 
-  async fillEntities(res: LoadResult<DenormalizedStrategy>, opts?: {
+  async fillEntities(res: LoadResult<SamplingStrategy>, opts?: {
     withEffort?: boolean; withParameterGroups?: boolean;
-  }): Promise<LoadResult<DenormalizedStrategy>> {
+  }): Promise<LoadResult<SamplingStrategy>> {
     const jobs: Promise<void>[] = [];
     // Fill parameters groups
     if (!opts || opts.withParameterGroups !== false) {
@@ -210,7 +210,7 @@ export class SamplingStrategyService extends BaseReferentialService<Denormalized
    * Fill parameterGroups attribute, on each denormalized strategy
    * @param entities
    */
-  protected async fillParameterGroups(entities: DenormalizedStrategy[]): Promise<void> {
+  protected async fillParameterGroups(entities: SamplingStrategy[]): Promise<void> {
 
     const parameterListKeys = Object.keys(ParameterLabelGroups); // AGE, SEX, MATURITY, etc
     const pmfmIdsMap = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
@@ -223,7 +223,7 @@ export class SamplingStrategyService extends BaseReferentialService<Denormalized
     });
   }
 
-  protected async fillEfforts(entities: DenormalizedStrategy[]): Promise<void> {
+  protected async fillEfforts(entities: SamplingStrategy[]): Promise<void> {
     if (isEmptyArray(entities)) return; // Skip is empty
 
     console.debug(`[denormalized-strategy-service] Loading effort of ${entities.length} strategies...`);
