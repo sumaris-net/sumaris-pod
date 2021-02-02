@@ -92,7 +92,7 @@ public class ExtractionGraphQLService {
         Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
         Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
 
-        //securityService.checkReadAccess(type);
+        securityService.checkReadAccess(type);
 
         return extractionService.executeAndRead(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
@@ -111,7 +111,7 @@ public class ExtractionGraphQLService {
         Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
         Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
 
-        //securityService.checkReadAccess(type);
+        securityService.checkReadAccess(type);
 
         List<Map<String, String>> results = new ArrayList<>();
 

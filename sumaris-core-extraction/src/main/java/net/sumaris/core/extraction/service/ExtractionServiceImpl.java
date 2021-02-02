@@ -55,6 +55,7 @@ import net.sumaris.core.extraction.specification.administration.program.ProgSpec
 import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramContextVO;
 import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
@@ -773,10 +774,14 @@ public class ExtractionServiceImpl implements ExtractionService {
             log.info("Cleaning extraction #{}-{}", context.getLabel(), context.getId());
             extractionRdbTripDao.clean((ExtractionRdbTripContextVO) context);
         }
+        else if (context instanceof ExtractionProgramContextVO) {
+            log.info("Cleaning extraction #{}-{}", context.getLabel(), context.getId());
+            extractionProgramDao.clean((ExtractionProgramContextVO) context);
+        }
     }
 
     /**
-     * Get self bean, to be able to use new transation
+     * Get self bean, to be able to use new transaction
      * @return
      */
     protected ExtractionService getSelfBean() {

@@ -44,11 +44,16 @@
     <from join="true">LEFT OUTER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
 
     <!-- landing strategy link -->
-    <from join="true">LEFT OUTER JOIN LANDING L ON L.PROGRAM_FK = ST.PROGRAM_ID
-      AND L.LANDING_DATE_TIME &gt;= APP.START_DATE and L.LANDING_DATE_TIME &lt;= APP.END_DATE
-    </from>
-    <from join="true">LEFT OUTER JOIN LANDING_MEASUREMENT LM ON LM.LANDING_FK = L.ID
-      AND LM.PMFM_FK = &amp;strategyLabelPmfmId and LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
+    <from join="true">
+      LEFT OUTER JOIN LANDING L ON L.PROGRAM_FK = ST.PROGRAM_ID
+        AND L.LANDING_DATE_TIME &gt;= APP.START_DATE
+        AND L.LANDING_DATE_TIME &lt; APP.END_DATE + INTERVAL '1' DAY
+        AND EXISTS (
+          SELECT 1 FROM LANDING_MEASUREMENT LM
+          WHERE LM.LANDING_FK = L.ID
+            AND LM.PMFM_FK = &amp;strategyLabelPmfmId
+            AND LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
+        )
     </from>
 
     <groupby>
