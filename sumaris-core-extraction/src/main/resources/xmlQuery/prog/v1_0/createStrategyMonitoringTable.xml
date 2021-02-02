@@ -44,20 +44,23 @@
     <from join="true">LEFT OUTER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
 
     <!-- landing strategy link -->
-    <from join="true">LEFT OUTER JOIN LANDING L ON L.PROGRAM_FK = ST.PROGRAM_ID
-      AND L.LANDING_DATE_TIME &gt;= APP.START_DATE and L.LANDING_DATE_TIME &lt;= APP.END_DATE
-    </from>
-    <from join="true">LEFT OUTER JOIN LANDING_MEASUREMENT LM ON LM.LANDING_FK = L.ID
-      AND LM.PMFM_FK = &amp;strategyLabelPmfmId and LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
+    <from join="true">
+      LEFT OUTER JOIN LANDING L ON L.PROGRAM_FK = ST.PROGRAM_ID
+        AND L.LANDING_DATE_TIME &gt;= APP.START_DATE
+        AND L.LANDING_DATE_TIME &lt;= APP.END_DATE
+        AND EXISTS (
+          SELECT 1 FROM LANDING_MEASUREMENT LM
+          WHERE LM.LANDING_FK = L.ID
+            AND LM.PMFM_FK = &amp;strategyLabelPmfmId
+            AND LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
+        )
     </from>
 
     <groupby>
-      RECORD_TYPE, PROJECT, STRATEGY,
+      ST.PROJECT, ST.STRATEGY,
       APP.START_DATE, APP.END_DATE, APP.ACQUISITION_NUMBER,
-      PROGRAM_ID, STRATEGY_ID
+      ST.PROGRAM_ID, ST.STRATEGY_ID
     </groupby>
-
-    <orderby direction="ASC">ST.PROGRAM_ID, ST.STRATEGY_ID, APP.START_DATE</orderby>
 
   </query>
 

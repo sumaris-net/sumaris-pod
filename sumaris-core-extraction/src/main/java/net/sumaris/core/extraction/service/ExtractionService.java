@@ -84,10 +84,10 @@ public interface ExtractionService {
 
     File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     void clean(ExtractionContextVO context);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     @Async
     CompletableFuture<Boolean> asyncClean(ExtractionContextVO context);
 
