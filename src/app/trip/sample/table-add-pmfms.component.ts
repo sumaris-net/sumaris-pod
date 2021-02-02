@@ -12,12 +12,12 @@ import {StrategyService} from "../../referential/services/strategy.service";
 export class TableAddPmfmsComponent implements OnInit {
 
   @Input() pmfms: PmfmStrategy[];
-  @Input() programService: ProgramService;
-  @Input() strategyService: StrategyService;
 
   constructor(
     private navParams: NavParams,
-    private viewCtrl: ModalController) {
+    private viewCtrl: ModalController,
+    protected programService: ProgramService,
+  protected  strategyService: StrategyService) {
   }
 
   ngOnInit() {

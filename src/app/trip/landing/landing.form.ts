@@ -24,8 +24,9 @@ import {FormArrayHelper} from "../../core/form/form.utils";
 import {BehaviorSubject} from "rxjs";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SharedValidators} from "../../shared/validator/validators";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
-const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
+export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
 @Component({
   selector: 'app-landing-form',
@@ -53,21 +54,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showComment = true;
   @Input() showMeasurements = true;
   @Input() showError = true;
+  @Input() showButtons = true;
+  @Input() showStrategy = true; // TODO BLA change to false
   @Input() locationLevelIds: number[];
   @Input() allowAddNewVessel: boolean;
-
-  @Input() set showStrategy(show: boolean) {
-    if (show && !this.form.contains('strategy')) {
-      this.form.addControl('strategy', this.strategyControl);
-    }
-    else if (!show && this.form.contains('strategy')) {
-      this.form.removeControl('strategy');
-    }
-  }
-
-  get showStrategy(): boolean {
-    return this.form.contains('strategy');
-  }
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
@@ -96,8 +86,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this.form.controls.observers as FormArray;
   }
 
-  @Output() onStrategyChanged = new BehaviorSubject<string>(null);
-
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -123,7 +111,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
-
+    // Add a strategy field (not in validator)
+    this.strategyControl = formBuilder.control(null, [Validators.required]);
   }
 
   ngOnInit() {
@@ -191,54 +180,61 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.form.get('program').valueChanges
         .pipe(
           debounceTime(250),
-          filter(ReferentialUtils.isNotEmpty),
-          pluck<ReferentialRef, string>('label'),
-          distinctUntilChanged()
+          map(value => EntityUtils.isNotEmpty(value, 'label') ? value.label : value as string)
         )
-        .subscribe(programLabel => this.program = programLabel)
-        );
+        .subscribe(programLabel => this.program = programLabel));
 
     // Propagate strategy changes
     this.registerSubscription(
       this.strategyControl.valueChanges
         .pipe(
-          map((value) => (typeof value === 'string') ? value : (value && value.label || null)),
-          filter(isNotNil),
-          tap(strategyLabel => console.info('[landing-form] Strategy changed to: ' + strategyLabel)),
-          distinctUntilChanged(),
+          debounceTime(250),
+          map(value => EntityUtils.isNotEmpty(value, 'label') ? value.label : value as string)
         )
-        .subscribe(strategy => this.onStrategyChanged.next(strategy)));
-
-
+        .subscribe(strategyLabel => this.strategy = strategyLabel));
   }
 
-  setValue(value: Landing) {
-    if (!value) return;
+  async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
+    if (!data) return;
 
     // Make sure to have (at least) one observer
-    value.observers = value.observers && value.observers.length ? value.observers : [null];
+    data.observers = data.observers && data.observers.length ? data.observers : [null];
 
     // Resize observers array
     if (this._showObservers) {
-      this.observersHelper.resize(Math.max(1, value.observers.length));
+      this.observersHelper.resize(Math.max(1, data.observers.length));
     } else {
       this.observersHelper.removeAllEmpty();
     }
 
     // Propagate the program
-    if (value.program && value.program.label) {
-      this.program = value.program.label;
+    if (data.program && data.program.label) {
+      this.program = data.program.label;
     }
 
-    // Send value for form
-    super.setValue(value);
-
-    // Set strategy control value
-    const strategyLabel = Object.entries(value.measurementValues || {})
+    // Propagate the strategy
+    const strategyLabel = Object.entries(data.measurementValues || {})
       .filter(([pmfmId, _]) => +pmfmId === PmfmIds.STRATEGY_LABEL)
       .map(([_, value]) => value)
-      .find(isNotNil);
-    this.strategyControl.setValue(strategyLabel);
+      .find(isNotNil) as string;
+    this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
+    this.strategy = strategyLabel;
+
+    await super.safeSetValue(data, opts);
+  }
+
+  protected getValue(): Landing {
+    const data = super.getValue();
+
+    // Re add the strategy label
+    if (this.showStrategy) {
+      const strategyValue = this.strategyControl.value;
+      const strategyLabel = EntityUtils.isNotEmpty(strategyValue, 'label') ? strategyValue.label : strategyValue as string;
+      data.measurementValues = data.measurementValues || {};
+      data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()] = strategyLabel;
+    }
+
+    return data;
   }
 
   addObserver() {
@@ -255,10 +251,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     super.enable(opts);
 
     // Leave program disable once data has been saved
-    if (isNotNil(this.data.id) && !this.form.controls['program'].disabled) {
+    const isNew = !this.data || isNil(this.data.id);
+    if (!isNew && !this.form.controls['program'].disabled) {
       this.form.controls['program'].disable({emitEvent: false});
       this.markForCheck();
     }
+
+    // TODO BLA: same for strategy
   }
 
   async addVesselModal(): Promise<any> {
@@ -320,19 +319,25 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     if (this.debug) console.debug(`${this.logPrefix} calling mapPmfms()`);
 
-    // Create the missing Pmfm, if need
-    let strategyLabelPmfm: PmfmStrategy = (pmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.STRATEGY_LABEL);
-    if (!strategyLabelPmfm) {
-      strategyLabelPmfm = PmfmStrategy.fromObject({
-        id: -1, // Fake id (not used later)
-        pmfmId: PmfmIds.STRATEGY_LABEL,
-        type: 'string',
-        isMandatory: true,
-      });
-      strategyLabelPmfm.hidden = true; // Do not display it in measurement
+    if (this.showStrategy) {
+      // Create the missing Pmfm, to hold strategy (if need)
+      let strategyPmfm: PmfmStrategy = (pmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.STRATEGY_LABEL);
+      if (strategyPmfm) {
+        strategyPmfm = strategyPmfm.clone(); // Copy, to leave original PMFM unchanged
+      }
+      else {
+        strategyPmfm = PmfmStrategy.fromObject({
+          id: -1, // Fake id (should never be used)
+          pmfmId: PmfmIds.STRATEGY_LABEL,
+          type: 'string',
+          isMandatory: this.requiredStrategy
+        });
 
-      // Prepend
-      pmfms = [strategyLabelPmfm, ...pmfms];
+        // Prepend
+        pmfms = [strategyPmfm, ...pmfms];
+      }
+      strategyPmfm.hidden = true;// Do not display it in measurement
+      strategyPmfm.required = false; // Nopt need to be required, because of strategyControl validator
     }
 
     return pmfms;

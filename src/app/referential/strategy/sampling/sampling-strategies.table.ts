@@ -1,30 +1,33 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {Program} from "../services/model/program.model";
-import {isNotNil} from "../../shared/functions";
+import {DefaultStatusList} from "../../../core/services/model/referential.model";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
+import {Program} from "../../services/model/program.model";
+import {isNotNil} from "../../../shared/functions";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {LocationLevelIds, TaxonomicLevelIds} from "../services/model/model.enum";
-import {ReferentialFilter} from "../services/referential.service";
-import {DenormalizedStrategyService} from "./denormalized-strategy.service";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {ProgramProperties} from "../services/config/program.config";
-import {environment} from "../../../environments/environment";
-import {DenormalizedStrategy} from "./denormalized-strategy.model";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
+import {LocationLevelIds, TaxonomicLevelIds} from "../../services/model/model.enum";
+import {ReferentialFilter} from "../../services/referential.service";
+import {ReferentialRefService} from "../../services/referential-ref.service";
+import {StatusIds} from "../../../core/services/model/model.enum";
+import {ProgramProperties} from "../../services/config/program.config";
+import {environment} from "../../../../environments/environment";
+import {DenormalizedStrategy} from "../../services/model/sampling-strategy.model";
+import {SamplingStrategyService} from "../../services/sampling-strategy.service";
 
 
 @Component({
-  selector: 'app-simple-strategies-table',
-  templateUrl: 'simple-strategies.table.html',
-  styleUrls: ['simple-strategies.table.scss'],
+  selector: 'app-sampling-strategies-table',
+  templateUrl: 'sampling-strategies.table.html',
+  styleUrls: ['sampling-strategies.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SimpleStrategiesTable extends AppTable<DenormalizedStrategy, ReferentialFilter> {
+/**
+ *
+ */
+export class SamplingStrategiesTable extends AppTable<DenormalizedStrategy, ReferentialFilter> {
 
   private _program: Program;
 
@@ -51,7 +54,7 @@ export class SimpleStrategiesTable extends AppTable<DenormalizedStrategy, Refere
     modalCtrl: ModalController,
     localSettingsService: LocalSettingsService,
     injector: Injector,
-    dataService: DenormalizedStrategyService,
+    dataService: SamplingStrategyService,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef
   ) {

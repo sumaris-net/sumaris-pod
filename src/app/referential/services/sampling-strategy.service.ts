@@ -21,7 +21,7 @@ import {PmfmService} from "../services/pmfm.service";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {mergeMap} from "rxjs/internal/operators";
 import {DateUtils} from "../../shared/dates";
-import {DenormalizedStrategy, StrategyEffort} from "./denormalized-strategy.model";
+import {DenormalizedStrategy, StrategyEffort} from "./model/sampling-strategy.model";
 
 const DenormalizedStrategyFragments = {
   denormalizedStrategy: gql`fragment DenormalizedStrategyFragment on StrategyVO {
@@ -115,7 +115,7 @@ const DenormalizedStrategyQueries = {
   }`
 };
 
-
+// TODO BLA: use cache to get strategy ?
 const DenormalizedStrategyCacheKeys = {
   CACHE_GROUP: 'denormalizedStrategy',
 
@@ -123,7 +123,7 @@ const DenormalizedStrategyCacheKeys = {
 };
 
 @Injectable({providedIn: 'root'})
-export class DenormalizedStrategyService extends BaseReferentialService<DenormalizedStrategy, StrategyFilter> {
+export class SamplingStrategyService extends BaseReferentialService<DenormalizedStrategy, StrategyFilter> {
 
   constructor(
     graphql: GraphqlService,
@@ -133,8 +133,8 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
     protected cache: CacheService,
     protected entities: EntitiesStorage,
     protected configService: ConfigService,
-    protected pmfmService: PmfmService,
     protected strategyService: StrategyService,
+    protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
     super(graphql, platform, DenormalizedStrategy,
@@ -182,16 +182,6 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
       }));
   }
 
-  async loadPmfmIdsByParameterLabels(parameterLabels: string[]): Promise<number[]> {
-    const {data} = await this.referentialRefService.loadAll(0, 1000, 'id', 'asc', {
-      entityName: "Pmfm",
-      levelLabels: parameterLabels
-    }, {
-      withTotal: false
-    });
-    return (data || []).map(p => p.id);
-  }
-
   async fillEntities(res: LoadResult<DenormalizedStrategy>, opts?: {
     withEffort?: boolean; withParameterGroups?: boolean;
   }): Promise<LoadResult<DenormalizedStrategy>> {
@@ -205,10 +195,7 @@ export class DenormalizedStrategyService extends BaseReferentialService<Denormal
       jobs.push(this.fillEfforts(res.data)
         .catch(err => {
           console.error("Error while computing effort: " + err && err.message || err, err);
-          res.errors = [
-            ...res.errors,
-            err
-          ];
+          res.errors = (res.errors || []).concat(err);
         })
       );
     }

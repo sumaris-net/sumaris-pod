@@ -159,6 +159,7 @@ export const StrategyFragments = {
       methodId
       label
       name
+      completeName
       unitLabel
       type
       minValue

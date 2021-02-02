@@ -13,8 +13,7 @@ export class PmfmNamePipe implements PipeTransform {
     transform(val: PmfmStrategy, opts?: {
       withUnit?: boolean;
       html?: boolean;
-      withDetails?: boolean;
-      separatorForDetails?: string;
+      withDetails?: boolean ;
     }): string {
       return getPmfmName(val, opts);
     }

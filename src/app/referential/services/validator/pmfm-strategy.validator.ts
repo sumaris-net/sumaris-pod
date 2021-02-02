@@ -87,7 +87,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
         validator: (fg: FormGroup) => {
           const pmfm = fg.get('pmfm').value;
           const parameter = fg.get('parameterId').value;
-          if (pmfm || parameter) {
+          if ((pmfm && !parameter) || (!pmfm && parameter)) {
             return null;
           }
           return {pmfmOrParameterId: false};

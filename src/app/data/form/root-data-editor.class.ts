@@ -1,23 +1,23 @@
-import {Directive, Injector, OnInit, ViewChild} from '@angular/core';
+import {Directive, Injector, OnInit} from '@angular/core';
 
-import {BehaviorSubject, Subject} from 'rxjs';
-import {changeCaseToUnderscore, isNil, isNotNil, isNotNilOrBlank, toNumber} from '../../shared/functions';
-import {distinctUntilChanged, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
+import {BehaviorSubject} from 'rxjs';
+import {changeCaseToUnderscore, isNil, isNotNil, isNotNilOrBlank} from '../../shared/functions';
+import {distinctUntilChanged, filter, switchMap, tap} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
 import {ProgramService} from "../../referential/services/program.service";
-import {IEntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {AppEntityEditor, AppEditorOptions} from "../../core/form/editor.class";
+import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
+import {AppEditorOptions, AppEntityEditor} from "../../core/form/editor.class";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
 import {
-  MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions,
+  MatAutocompleteConfigHolder,
+  MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/autocomplete/material.autocomplete";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
-import {IonContent} from "@ionic/angular";
 import {Strategy} from "../../referential/services/model/strategy.model";
-import {StrategyService} from "../../referential/services/strategy.service";
+import {StrategyRefService} from "../../referential/services/strategy-ref.service";
 
 
 @Directive()
@@ -30,7 +30,7 @@ export abstract class AppRootDataEditor<
   implements OnInit {
 
   protected programService: ProgramService;
-  protected strategyService: StrategyService;
+  protected strategyRefService: StrategyRefService;
   protected autocompleteHelper: MatAutocompleteConfigHolder;
 
   autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
@@ -60,7 +60,7 @@ export abstract class AppRootDataEditor<
       options);
 
     this.programService = injector.get(ProgramService);
-    this.strategyService = injector.get(StrategyService);
+    this.strategyRefService = injector.get(StrategyRefService);
 
     // Create autocomplete fields registry
     this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
@@ -92,7 +92,8 @@ export abstract class AppRootDataEditor<
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(strategyLabel => this.strategyService.loadRefByLabel(strategyLabel)),
+          // TODO BLA: prefer to use watch by label, in case strategy changed
+          switchMap(strategyLabel => this.strategyRefService.loadByLabel(strategyLabel)),
           tap(strategy => this.$strategy.next(strategy))
         )
         .subscribe());

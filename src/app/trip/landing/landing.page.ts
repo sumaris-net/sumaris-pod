@@ -4,7 +4,8 @@ import {
   ElementRef,
   Injector,
   OnInit,
-  Optional, QueryList,
+  Optional,
+  QueryList,
   ViewChild,
   ViewChildren
 } from '@angular/core';
@@ -37,13 +38,10 @@ import {
   STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX,
   StrategySummaryCardComponent
 } from "../../data/strategy/strategy-summary-card.component";
-import {SampleValidatorService} from "../services/validator/sample.validator";
 import {merge, Subscription} from "rxjs";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {AppTable} from "../../core/table/table.class";
-import {Sample} from "../services/model/sample.model";
 
 const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -125,7 +123,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     );
 
     this.registerSubscription(
-      this.landingForm.onStrategyChanged
+      this.landingForm.strategySubject
         .subscribe((strategy: string) => this.strategySubject.next(strategy))
     );
 
@@ -282,7 +280,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  protected setProgram(program: Program) {
+  protected async setProgram(program: Program) {
     if (!program) return; // Skip
     if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
@@ -309,6 +307,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
     this.i18nPrefix = DEFAULT_I18N_PREFIX + i18nSuffix;
     this.landingForm.i18nPrefix = this.i18nPrefix;
+    if (this.strategyCard) {
+      this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
+    }
+    this.samplesTable.program = program.label; // TODO BLA: remplacer par un async dans le template ?
 
     if (this.strategyCard) {
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
@@ -319,14 +321,15 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected async setStrategy(strategy: Strategy) {
     if (!strategy) return; // Skip if empty
 
-    console.debug('[landing-page] Received strategy: ', strategy);
-
-    this.strategyCard.value = strategy;
+    this.landingForm.strategy = strategy.label;
+    if (this.strategyCard) {
+      this.strategyCard.value = strategy;
+    }
 
     // Set table defaults
     const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
     this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
-    this.samplesTable.pmfms = strategy.pmfmStrategies;
+    this.samplesTable.pmfms = (strategy.pmfmStrategies || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
   }
 
 
@@ -434,7 +437,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected computeSampleValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
-    // CAN be override by subclasses (e.g auction control)
-    return SampleValidatorService.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
+    // Can be override by subclasses (e.g auction control, biological sampling samples table)
+    return null;
   }
 }

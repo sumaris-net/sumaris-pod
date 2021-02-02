@@ -4,38 +4,38 @@ import {ActivatedRoute} from "@angular/router";
 import * as moment from "moment";
 import {HistoryPageReference} from "src/app/core/services/model/settings.model";
 import {PlatformService} from "src/app/core/services/platform.service";
-import {AccountService} from "../../core/services/account.service";
-import {ProgramProperties} from "../services/config/program.config";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {Strategy} from "../services/model/strategy.model";
-import {PmfmService} from "../services/pmfm.service";
-import {StrategyService} from "../services/strategy.service";
-import {SimpleStrategyForm} from "./simple-strategy.form";
-import {AppEntityEditor} from "../../core/form/editor.class";
-import {isNil, isNotNil, toNumber} from "../../shared/functions";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {firstNotNilPromise} from "../../shared/observables";
+import {AccountService} from "../../../core/services/account.service";
+import {ProgramProperties} from "../../services/config/program.config";
+import {PmfmStrategy} from "../../services/model/pmfm-strategy.model";
+import {Strategy} from "../../services/model/strategy.model";
+import {PmfmService} from "../../services/pmfm.service";
+import {StrategyService} from "../../services/strategy.service";
+import {SamplingStrategyForm} from "./sampling-strategy.form";
+import {AppEntityEditor} from "../../../core/form/editor.class";
+import {isNil, isNotNil, toNumber} from "../../../shared/functions";
+import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {firstNotNilPromise} from "../../../shared/observables";
 import {BehaviorSubject} from "rxjs";
-import {Program} from "../services/model/program.model";
-import {ProgramService} from "../services/program.service";
-import {AcquisitionLevelCodes, PmfmIds} from "../services/model/model.enum";
-import {StatusIds} from "../../core/services/model/model.enum";
+import {Program} from "../../services/model/program.model";
+import {ProgramService} from "../../services/program.service";
+import {AcquisitionLevelCodes, PmfmIds} from "../../services/model/model.enum";
+import {StatusIds} from "../../../core/services/model/model.enum";
 
 
 @Component({
-  selector: 'app-simple-strategy',
-  templateUrl: 'simple-strategy.page.html',
+  selector: 'app-sampling-strategy-page',
+  templateUrl: 'sampling-strategy.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyService> implements OnInit {
+export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyService> implements OnInit {
 
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   $program = new BehaviorSubject<Program>(null);
 
-  @ViewChild('form', { static: true }) simpleStrategyForm: SimpleStrategyForm;
+  @ViewChild('form', { static: true }) strategyForm: SamplingStrategyForm;
 
   get form(): FormGroup {
-    return this.simpleStrategyForm.form;
+    return this.strategyForm.form;
   }
 
   constructor(
@@ -107,7 +107,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   }
 
   protected registerForms() {
-    this.addChildForm(this.simpleStrategyForm);
+    this.addChildForm(this.strategyForm);
   }
 
   protected canUserWrite(data: Strategy): boolean {
@@ -147,18 +147,18 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   }
 
   protected getFirstInvalidTabIndex(): number {
-    if (this.simpleStrategyForm.invalid) return 0;
+    if (this.strategyForm.invalid) return 0;
     return 0;
   }
 
   protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (!data) return; // Skip
-    this.simpleStrategyForm.value = data;
+    this.strategyForm.setValue(data);
   }
 
   protected async getJsonValueToSave(): Promise<Strategy> {
 
-    const json = await this.simpleStrategyForm.getValue();
+    const json = await this.strategyForm.getValue();
 
     // Add default PmfmStrategy
     this.fillPmfmStrategyDefaults(json);
@@ -181,16 +181,15 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     // Create if not exists
     if (!pmfmStrategyLabel) {
+      console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`);
       pmfmStrategyLabel = <PmfmStrategy>{};
+      pmfmStrategyLabel.pmfmId = PmfmIds.STRATEGY_LABEL;
+      pmfmStrategyLabel.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+      pmfmStrategyLabel.isMandatory = true;
+      pmfmStrategyLabel.acquisitionNumber = 1;
+      pmfmStrategyLabel.rankOrder = 1; // Should be the only one PmfmStrategy on Landing
       data.pmfmStrategies.push(pmfmStrategyLabel);
     }
-
-    pmfmStrategyLabel.pmfmId = PmfmIds.STRATEGY_LABEL;
-    pmfmStrategyLabel.strategyId = data.id;
-    pmfmStrategyLabel.isMandatory = true;
-    pmfmStrategyLabel.acquisitionNumber = 1;
-    pmfmStrategyLabel.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-    pmfmStrategyLabel.rankOrder = 1; // Should be the only one PmfmStrategy on Landing
   }
 
 

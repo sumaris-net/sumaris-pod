@@ -7,7 +7,7 @@ import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {AuctionControlPage} from "./landing/auctioncontrol/auction-control.page";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {LandedTripModule} from "./landed-trip.module";
-import {BiologicalSamplingLandingPage} from "./landing/sampling/biological-sampling-landing.page";
+import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
 
 const routes: Routes = [
   {
@@ -28,11 +28,6 @@ const routes: Routes = [
         component: ObservedLocationPage,
         runGuardsAndResolvers: 'pathParamsChange'
       },
-      // {
-      //   path: 'batches',
-      //   component: SubBatchesModal,
-      //   runGuardsAndResolvers: 'pathParamsChange'
-      // },
       {
         path: 'landing/:landingId',
         runGuardsAndResolvers: 'pathParamsChange',
@@ -64,6 +59,21 @@ const routes: Routes = [
         ]
       },
       {
+        path: 'sampling/:samplingId',
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          pathIdParam: 'samplingId'
+        },
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: SamplingLandingPage,
+            runGuardsAndResolvers: 'pathParamsChange'
+          }
+        ]
+      },
+      {
         path: 'trip/:tripId',
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
@@ -77,22 +87,7 @@ const routes: Routes = [
             runGuardsAndResolvers: 'pathParamsChange'
           }
         ]
-      },
-      {
-        path: 'sampling/:landingId',
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          pathIdParam: 'landingId'
-        },
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: BiologicalSamplingLandingPage,
-            runGuardsAndResolvers: 'pathParamsChange'
-          }
-        ]
-      },
+      }
     ]
   }
 ];

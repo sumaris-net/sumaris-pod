@@ -4,7 +4,6 @@ import {ReferentialsPage} from "./list/referentials.page";
 import {VesselsPage} from "./vessel/list/vessels.page";
 import {VesselPage} from "./vessel/page/vessel.page";
 import {ProgramPage} from "./program/program.page";
-import {SimpleStrategyPage} from "./simpleStrategy/simple-strategy.page";
 import {SoftwarePage} from "./software/software.page";
 import {ParameterPage} from "./pmfm/parameter.page";
 import {PmfmPage} from "./pmfm/pmfm.page";
@@ -12,6 +11,7 @@ import {SharedRoutingModule} from "../shared/shared-routing.module";
 import {ReferentialModule} from "./referential.module";
 import {StrategyPage} from "./strategy/strategy.page";
 import {ProgramsPage} from "./program/programs.page";
+import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
 
 const routes: Routes = [
   {
@@ -82,7 +82,7 @@ const routes: Routes = [
 
           {
             path: 'strategies/sampling/:strategyId',
-            component: SimpleStrategyPage,
+            component: SamplingStrategyPage,
             data: {
               profile: 'SUPERVISOR',
               pathIdParam: 'strategyId'

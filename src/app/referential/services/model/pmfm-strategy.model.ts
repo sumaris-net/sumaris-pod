@@ -16,28 +16,45 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
   withUnit?: boolean;
   html?: boolean;
   withDetails?: boolean;
-  separatorForDetails?: string;
 }): string {
   if (!pmfm) return undefined;
-  let name = pmfm.name || (pmfm.pmfm && pmfm.pmfm.name) || '';
+
+  // Is complete name exists, use it
+  if (opts && opts.withDetails && pmfm.completeName) return pmfm.completeName;
+
+  // Remove parenthesis content, if any
   const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
-  name = matches && matches[1] || name;
-  if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double')) {
-    const unitLabel = pmfm.unitLabel || (pmfm.pmfm && pmfm.pmfm.unit && pmfm.pmfm.unit.label);
-    if (unitLabel) {
-      if (opts && opts.html) {
-        name += `<small><br/>(${pmfm.unitLabel})</small>`;
-      }
-      name += `(${pmfm.unitLabel})`;
+  let name = matches && matches[1] || pmfm.name;
+
+  // Wen name is defined in pmfmStrategy.pmfm but not in pmfmStrategy
+  if (!name && pmfm.pmfm) {
+    const matchesInPmfm = PMFM_NAME_REGEXP.exec(pmfm.pmfm.name || '');
+    name = matchesInPmfm && matchesInPmfm[1] || pmfm.pmfm.name;
+  }
+  const unitLabel = (pmfm.type === 'integer' || pmfm.type === 'double') && (pmfm.unitLabel || (pmfm.pmfm && pmfm.pmfm.unit && pmfm.pmfm.unit.label));
+
+  if (opts && opts.withDetails) {
+    // Try using the pmfm
+    if (opts.withUnit && unitLabel) {
+      name += ` (${unitLabel})`;
+    }
+    if (pmfm.matrix && pmfm.matrix.name){
+      name += ` - ${pmfm.matrix.name}`;
+    }
+    if (pmfm.fraction && pmfm.fraction.name) {
+      name += ` - ${pmfm.fraction.name}`;
+    }
+    if (pmfm.method && pmfm.method.name){
+      name += ` - ${pmfm.method.name}`;
     }
   }
-  if (opts && opts.withDetails) {
-    return [
-      name,
-      pmfm.matrix && pmfm.matrix.name,
-      pmfm.fraction && pmfm.fraction.name,
-      pmfm.method && pmfm.method.name
-    ].filter(isNotNilOrBlank).join(opts.separatorForDetails || ' - ');
+  else if ((!opts || opts.withUnit !== false) && unitLabel) {
+    if (opts && opts.html) {
+      name += `<small><br/>(${unitLabel})</small>`;
+    }
+    else {
+      name += ` (${unitLabel})`;
+    }
   }
   return name;
 }
@@ -45,12 +62,14 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
 export interface PmfmStrategyAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
 }
+export interface PmfmStrategyFromObjectOptions {
+}
 
-export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectOptions> {
+export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectOptions, PmfmStrategyFromObjectOptions> {
 
   static TYPENAME = 'PmfmStrategyVO';
 
-  static fromObject(source: any, opts?: any): PmfmStrategy {
+  static fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
     if (!source || source instanceof PmfmStrategy) return source;
     const res = new PmfmStrategy();
     res.fromObject(source, opts);
@@ -72,7 +91,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
 
   label: string;
   name: string;
-  headerName: string;
+  completeName: string;
   unitLabel: string;
   type: string | PmfmType;
   minValue: number;
@@ -112,7 +131,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
       || target.acquisitionLevel;
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
 
-    target.pmfmId = this.pmfm && this.pmfm.id ?  toNumber(this.pmfm.id, this.pmfmId) : null;
+    target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
     delete target.pmfm;
 
     // Serialize default value
@@ -127,7 +146,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     return target;
   }
 
-  fromObject(source: any, opts?: any): PmfmStrategy {
+  fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
     super.fromObject(source, opts);
 
     this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
@@ -140,6 +159,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     this.label = source.label;
     this.name = source.name || (source.pmfm && source.pmfm.name);
     this.unitLabel = source.unitLabel || (source.pmfm && source.pmfm.unit && source.pmfm.unit.label);
+    this.completeName = source.completeName;
     this.type = source.type || source.pmfm && source.pmfm.type;
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;

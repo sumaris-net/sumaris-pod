@@ -197,6 +197,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "true",
     type: 'boolean'
   },
+  OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.createLanding.history.enable',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY",
+    defaultValue: "true",
+    type: 'boolean'
+  },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.type.enable',

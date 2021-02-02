@@ -42,6 +42,7 @@ import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {JobUtils} from "../../shared/services/job.utils";
 import {environment} from "../../../environments/environment";
 import {fromDateISOString, toDateISOString} from "../../shared/dates";
+import {Person} from "../../core/services/model/person.model";
 
 
 export class LandingFilter {
@@ -855,8 +856,14 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       // Clean vessel features object, before saving
       copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
 
-      // Keep id only, on person and department
-      copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
+      // Comment because need to keep recorder person
+      copy.recorderPerson = entity.recorderPerson && <Person>{
+        id: entity.recorderPerson.id,
+        firstName: entity.recorderPerson.firstName,
+        lastName: entity.recorderPerson.lastName
+      };
+
+      // Keep id only, on recorder department
       copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
     }
 

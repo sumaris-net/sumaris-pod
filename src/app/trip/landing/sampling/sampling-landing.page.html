@@ -69,18 +69,19 @@
 
             <!-- landing form-->
             <app-landing-form #landingForm
-                              [program]="programSubject|async"
-                              [showError]="false"
-                              [showComment]="!oneTabMode"
-                              [debug]="debug"
-                              (onSubmit)="save($event)">
+                               [program]="programSubject|async"
+                               [showError]="false"
+                               [showComment]="!oneTabMode"
+                               [debug]="debug"
+                               (onSubmit)="save($event)">
             </app-landing-form>
           </ion-col>
 
           <ion-col class="ion-no-padding" size="12" size-xl="3">
 
             <!-- strategy summary -->
-            <app-strategy-summary-card #strategyCard [editor]="this"
+            <app-strategy-summary-card #strategyCard
+                                       [editor]="this"
                                        [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
             </app-strategy-summary-card>
 
@@ -115,16 +116,16 @@
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-biological-sampling-samples-table #samplesTable
-                            [program]="programSubject|async"
-                            [showLabelColumn]="true"
-                            [showDateTimeColumn]="false"
-                            [defaultSampleDate]="data?.dateTime"
-                            [usageMode]="usageMode"
-                            (onInitForm)="addSampleRowValidator($event)"
-                            [useSticky]="true"
-                            [debug]="debug">
-        </app-biological-sampling-samples-table>
+        <app-sampling-samples-table #samplesTable
+                                    [showLabelColumn]="true"
+                                    [showDateTimeColumn]="false"
+                                    [defaultSampleDate]="data?.dateTime"
+                                    [pmfmGroups]="$pmfmGroups|async"
+                                    [usageMode]="usageMode"
+                                    (onInitForm)="addSampleRowValidator($event)"
+                                    [useSticky]="true"
+                                    [debug]="debug">
+        </app-sampling-samples-table>
 
         <!-- final space-->
         <p visible-xs visible-sm visible-mobile>&nbsp;</p>

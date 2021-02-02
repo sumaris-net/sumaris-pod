@@ -1,6 +1,6 @@
-import {Strategy} from "../services/model/strategy.model";
+import {Strategy} from "./strategy.model";
 import {Moment} from "moment";
-import {fromDateISOString} from "../../shared/dates";
+import {fromDateISOString} from "../../../shared/dates";
 
 export class DenormalizedStrategy extends Strategy<DenormalizedStrategy> {
 

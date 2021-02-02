@@ -1,8 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../../referential/services/model/model.enum";
 import {LandingPage} from "../landing.page";
-import {LandingValidatorService} from "../../services/validator/landing.validator";
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
 import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {Landing} from "../../services/model/landing.model";
@@ -212,8 +210,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         }));
   }
 
-  protected setProgram(program: Program) {
-    super.setProgram(program);
+  protected async setProgram(program: Program) {
+    await super.setProgram(program);
 
     this.$taxonGroupTypeId.next(program && program.taxonGroupType ? program.taxonGroupType.id : null);
   }

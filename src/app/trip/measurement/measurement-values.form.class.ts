@@ -11,7 +11,6 @@ import {filter, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {Pmfm} from "../../referential/services/model/pmfm.model";
 import {AppForm} from "../../core/form/form.class";
 import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
 
@@ -26,7 +25,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   protected _onValueChanged = new EventEmitter<T>();
   protected _onRefreshPmfms = new EventEmitter<any>();
-  protected _program: string;
   protected _gearId: number = null;
   protected _acquisitionLevel: string;
   protected _ready = false;
@@ -39,16 +37,18 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   $loadingControls = new BehaviorSubject<boolean>(true);
   applyingValue = false;
   programSubject = new BehaviorSubject<string>(undefined);
+  strategySubject = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+
 
   @Input() compact = false;
 
   @Input() floatLabel: FloatLabelType = "auto";
 
+  @Input() requiredStrategy = false;
   @Input() requiredGear = false;
 
-  @Output()
-  valueChanges = new EventEmitter<any>();
+  @Output() valueChanges = new EventEmitter<any>();
 
   @Input()
   set program(value: string) {
@@ -56,7 +56,16 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   get program(): string {
-    return this._program;
+    return this.programSubject.getValue();
+  }
+
+  get strategy(): string {
+    return this.strategySubject.getValue();
+  }
+
+  @Input()
+  set strategy(value: string) {
+    this.setStrategy(value);
   }
 
   @Input()
@@ -226,13 +235,22 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   /* -- protected methods -- */
 
   protected setProgram(value: string) {
-    if (isNotNil(value) && this._program !== value) {
-      this._program = value;
+    if (isNotNil(value) && this.programSubject.getValue() !== value) {
 
       this.programSubject.next(value);
 
       // Reload pmfms
       if (!this.loading) this._onRefreshPmfms.emit();
+    }
+  }
+
+  protected setStrategy(value: string) {
+    if (isNotNil(value) && this.strategySubject.getValue() !== value) {
+
+      this.strategySubject.next(value);
+
+      // Reload pmfms
+      if (!this.loading && this.requiredStrategy) this._onRefreshPmfms.emit();
     }
   }
 
@@ -284,7 +302,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   protected async refreshPmfms(event?: any) {
     // Skip if missing: program, acquisition (or gear, if required)
-    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
+    if (isNil(this.program) || (this.requiredStrategy && isNil(this.strategy))
+      || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
       return;
     }
 
@@ -298,14 +317,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     try {
       // Load pmfms
       let pmfms = (await this.programService.loadProgramPmfms(
-        this._program,
+        this.program,
         {
+          strategyLabel: this.strategy,
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         })) || [];
 
       if (isEmptyArray(pmfms)) {
-        if (this.debug) console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
+        if (this.debug) console.warn(`${this.logPrefix} No pmfm found, for {program: ${this.program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
         pmfms = []; // Create a new array, to force refresh in components that use '!==' to filter events
       }
       else {

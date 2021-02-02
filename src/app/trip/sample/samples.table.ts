@@ -35,7 +35,7 @@ export interface SampleFilter {
   landingId?: number;
 }
 
-export class LandingEditorOptions extends AppMeasurementsTableOptions<Sample> {
+export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {
 
 }
 
@@ -60,7 +60,18 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
   @Input() i18nFieldPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX;
-  @Input('useSticky') useSticky = false;
+  @Input() useSticky = false;
+
+  @Input() usageMode: UsageMode;
+  @Input() showLabelColumn = false;
+  @Input() showDateTimeColumn = true;
+  @Input() showFabButton = false;
+
+  @Input() defaultSampleDate: Moment;
+  @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() defaultTaxonName: ReferentialRef;
+
+  @Input() modalOptions: Partial<ISampleModalOptions>;
 
   @Input()
   set value(data: Sample[]) {
@@ -70,13 +81,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   get value(): Sample[] {
     return this.memoryDataService.value;
   }
-
-  @Input() usageMode: UsageMode;
-  @Input() showLabelColumn = false;
-  @Input() showDateTimeColumn = true;
-  @Input() showFabButton = false;
-
-  @Input() modalOptions: Partial<ISampleModalOptions>;
 
   @Input()
   set showTaxonGroupColumn(value: boolean) {
@@ -96,15 +100,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return this.getShowColumn('taxonName');
   }
 
-  @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: ReferentialRef;
-  @Input() defaultTaxonName: ReferentialRef;
+
 
   @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
 
   constructor(
     injector: Injector,
-    @Optional() options?: LandingEditorOptions
+    @Optional() options?: SamplesTableOptions
   ) {
     super(injector,
       Sample,

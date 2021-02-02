@@ -31,7 +31,7 @@ import {ReferentialModule} from "../referential/referential.module";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {DataModule} from "../data/data.module";
 import {TranslateModule} from "@ngx-translate/core";
-import {BiologicalSamplingLandingPage} from "./landing/sampling/biological-sampling-landing.page";
+import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
 
 
 @NgModule({
@@ -48,14 +48,14 @@ import {BiologicalSamplingLandingPage} from "./landing/sampling/biological-sampl
     ObservedLocationsPage,
     LandingsTable,
     LandingPage,
+    SamplingLandingPage,
     LandingForm,
-    BiologicalSamplingLandingPage,
-    AuctionControlPage,
     SelectLandingsModal,
     AggregatedLandingsTable,
     AggregatedLandingModal,
     AggregatedLandingForm,
     VesselActivityForm,
+    AuctionControlPage,
     LandedTripPage,
     OperationGroupTable,
     ProductsTable,
@@ -81,9 +81,9 @@ import {BiologicalSamplingLandingPage} from "./landing/sampling/biological-sampl
     LandingsTable,
     LandingForm,
     LandingPage,
+    SamplingLandingPage,
     SelectLandingsModal,
-    AuctionControlPage,
-    BiologicalSamplingLandingPage
+    AuctionControlPage
   ]
 })
 export class LandedTripModule {

@@ -86,13 +86,13 @@
         <ng-container [ngSwitch]="strategyEditor">
 
           <!-- Biological sampling strategy table -->
-          <app-simple-strategies-table #bioParamStrategiesTable *ngSwitchCase="'sampling'"
-                                       [program]="data"
-                                       [canEdit]="enabled"
-                                       [canDelete]="enabled"
-                                       (onOpenRow)="onOpenStrategy($event)"
-                                       (onNewRow)="onNewStrategy($event)">
-          </app-simple-strategies-table>
+          <app-sampling-strategies-table #samplingStrategiesTable *ngSwitchCase="'sampling'"
+                                         [program]="data"
+                                         [canEdit]="enabled"
+                                         [canDelete]="enabled"
+                                         (onOpenRow)="onOpenStrategy($event)"
+                                         (onNewRow)="onNewStrategy($event)">
+          </app-sampling-strategies-table>
 
           <!-- legacy strategy table -->
           <app-strategy-table #legacyStrategiesTable *ngSwitchDefault

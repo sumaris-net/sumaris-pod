@@ -34,11 +34,11 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
-              <form-simple-strategy #form
+              <app-sampling-strategy-form #form
                                     [program]="$program|async"
                                     [showError]="false"
                                     (onSubmit)="save($event)">
-              </form-simple-strategy>
+              </app-sampling-strategy-form>
 
             </ion-col>
 

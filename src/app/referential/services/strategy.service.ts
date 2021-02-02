@@ -111,9 +111,6 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
         appliedStrategies {
           ...AppliedStrategyFragment
         }
-        pmfmStrategies {
-          ...PmfmStrategyFragment
-        }
         departments {
           ...StrategyDepartmentFragment
         }
