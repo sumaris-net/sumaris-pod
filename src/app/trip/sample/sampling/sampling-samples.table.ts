@@ -460,13 +460,6 @@ export class SamplingSamplesTable extends AppMeasurementsTable<Sample, SampleFil
       }
     });
 
-    /*const modal = await this.modalCtrl.create({
-      component: TableAddPmfmsComponent,
-      componentProps: {
-        excludedIds: existingPmfmIds
-      }
-    });*/
-
     // Open the modal
     await modal.present();
 
@@ -475,17 +468,25 @@ export class SamplingSamplesTable extends AppMeasurementsTable<Sample, SampleFil
     if (!res) return; // CANCELLED
 
     console.log('TODO Modal result ', res);
-    /*this.pmfms = [
-      ...pmfms,
-      ...res.pmfms
-    ];*/
+    // this.pmfms = [
+    //   ...pmfms,
+    //   ...res.pmfms
+    // ];
 
   }
 
   async openChangePmfmsModal(event?: UIEvent): Promise<any> {
+//const columns = this.displayedColumns;
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
+
     const modal = await this.modalCtrl.create({
-      component: TableAddPmfmsComponent,
-      componentProps: {}
+      component: SelectReferentialModal,
+      componentProps: {
+        filter: {
+          entityName: 'Pmfm',
+          excludedIds: existingPmfmIds
+        }
+      }
     });
 
     // Open the modal
@@ -495,8 +496,14 @@ export class SamplingSamplesTable extends AppMeasurementsTable<Sample, SampleFil
     const res = await modal.onDidDismiss();
     if (!res) return; // CANCELLED
 
+    console.log('TODO Modal result ', res);
+    // this.pmfms = [
+    //   ...pmfms,
+    //   ...res.pmfms
+    // ];
+
     // Apply new pmfm
-    this.markForCheck();
+    //this.markForCheck();
   }
 
 
