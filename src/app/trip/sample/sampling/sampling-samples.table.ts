@@ -1,32 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output
-} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {ChangeDetectionStrategy, Component, Injector, Input} from "@angular/core";
+import {ValidatorService} from "@e-is/ngx-material-table";
 import {SampleValidatorService} from "../../services/validator/sample.validator";
 import {isEmptyArray, isNotEmptyArray, isNotNil} from "../../../shared/functions";
-import {UsageMode} from "../../../core/services/model/settings.model";
-import * as moment from "moment";
-import {Moment} from "moment";
-import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
-import {SampleModal} from "../sample.modal";
-import {FormGroup} from "@angular/forms";
-import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {Sample} from "../../services/model/sample.model";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {FormFieldDefinition} from "../../../shared/form/field.model";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
-import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {environment} from "../../../../environments/environment";
 import {ProgramService} from "../../../referential/services/program.service";
 import {StrategyService} from "../../../referential/services/strategy.service";
@@ -34,7 +11,7 @@ import {BehaviorSubject} from "rxjs";
 import {ObjectMap} from "../../../shared/types";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {SelectReferentialModal} from "../../../referential/list/select-referential.modal";
-import {SamplesTableOptions, SamplesTable} from "../samples.table";
+import {SamplesTable, SamplesTableOptions} from "../samples.table";
 
 export interface SampleFilter {
   operationId?: number;
