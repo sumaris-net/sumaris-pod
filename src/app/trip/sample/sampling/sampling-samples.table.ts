@@ -34,23 +34,24 @@ import {BehaviorSubject} from "rxjs";
 import {ObjectMap} from "../../../shared/types";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {SelectReferentialModal} from "../../../referential/list/select-referential.modal";
+import {SamplesTableOptions, SamplesTable} from "../samples.table";
 
 export interface SampleFilter {
   operationId?: number;
   landingId?: number;
 }
-export const SAMPLE2_RESERVED_START_COLUMNS: string[] = ['sampleCode', 'morseCode', 'comment' /*,'weight','totalLenghtCm','totalLenghtMm','indexGreaseRate'*/];
-export const SAMPLE2_RESERVED_END_COLUMNS: string[] = [];
 
+const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'morseCode', 'comment'];
+const SAMPLE_RESERVED_END_COLUMNS: string[] = []; // TODO mettre comment ici ?
 const SAMPLE_PARAMETER_GROUPS = ['WEIGHT', 'LENGTH', 'MATURITY', 'SEX', 'AGE', 'OTHER'];
 
-declare interface ColumnDefinition extends FormFieldDefinition {
-  computed: boolean;
-  unitLabel?: string;
-  rankOrder: number;
-  groupIndex: number;
+declare interface GroupColumnDefinition {
+  key: string;
+  label?: string;
+  name?: string;
+  colSpan: number;
+  cssClass?: string;
 }
-
 
 @Component({
   selector: 'app-sampling-samples-table',
@@ -61,15 +62,12 @@ declare interface ColumnDefinition extends FormFieldDefinition {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplingSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
-  implements OnInit, OnDestroy {
+export class SamplingSamplesTable extends SamplesTable {
 
-  protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
   protected _$pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
 
-  @Input() i18nFieldPrefix = 'TRIP.SAMPLE.TABLE.SAMPLING.';
+  $pmfmGroupColumns = new BehaviorSubject<GroupColumnDefinition[]>([]);
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     this._$pmfmGroups.next(value);
@@ -79,89 +77,20 @@ export class SamplingSamplesTable extends AppMeasurementsTable<Sample, SampleFil
     return this._$pmfmGroups.getValue();
   }
 
-  @Input()
-  set value(data: Sample[]) {
-    this.memoryDataService.value = data;
-  }
-
-  get value(): Sample[] {
-    return this.memoryDataService.value;
-  }
-
-  dynamicColumns: ColumnDefinition[];
-
-  @Input() usageMode: UsageMode;
-  @Input() showLabelColumn = false;
-  @Input() showDateTimeColumn = true;
-  @Input() showFabButton = false;
-
-  @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonName: ReferentialRef;
-
-  // tslint:disable-next-line:no-output-on-prefix
-  @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
-
   constructor(
     protected injector: Injector,
     protected programService: ProgramService,
     protected strategyService: StrategyService
   ) {
     super(injector,
-      Sample,
-      new InMemoryEntitiesService<Sample, SampleFilter>(Sample, {
-        equals: Sample.equals
-      }),
-      injector.get(ValidatorService),
-      {
+      <SamplesTableOptions>{
         prependNewElements: false,
         suppressErrors: environment.production,
-        reservedStartColumns: SAMPLE2_RESERVED_START_COLUMNS,
-        reservedEndColumns: SAMPLE2_RESERVED_END_COLUMNS,
+        reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
+        reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
         mapPmfms: pmfms => this.mapPmfms(pmfms)
       }
     );
-    this.cd = injector.get(ChangeDetectorRef);
-    this.referentialRefService = injector.get(ReferentialRefService);
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
-    this.i18nColumnPrefix = 'TRIP.SAMPLE2.TABLE.';
-    this.inlineEdition = !this.mobile;
-
-    // Set default value
-    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE; // Default value, can be override by subclasses
-
-    //this.debug = false;
-    this.debug = !environment.production;
-
-    // If init form callback exists, apply it when start row edition
-    if (this.onInitForm) {
-      this.registerSubscription(
-        this.onStartEditingRow.subscribe(row => row && this.onInitForm.emit({
-              form: row.validator,
-              pmfms: this.$pmfms.getValue()
-            })));
-    }
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-
-    this.setShowColumn('label', this.showLabelColumn);
-    // this.setShowColumn('sampleDate', this.showDateTimeColumn);
-    // this.setShowColumn('comments', this.showCommentsColumn);
-
-    // Taxon group combo
-    /* this.registerAutocompleteField('taxonGroup', {
-       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
-     });*/
-
-    // Taxon name combo
-    /*this.registerAutocompleteField('taxonName', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
-      showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
-    //  });
-
-
-
   }
 
   /**
@@ -169,35 +98,8 @@ export class SamplingSamplesTable extends AppMeasurementsTable<Sample, SampleFil
    * @param index
    * @param column
    */
-  trackColumnDef(index: number, column: ColumnDefinition) {
-    return column.rankOrder;
-  }
-
-  isGroupEven(column: ColumnDefinition) {
-    return (column.groupIndex % 2 === 0);
-  }
-
-  isGroupOdd(column: ColumnDefinition) {
-    return (column.groupIndex % 2 !== 0);
-  }
-
-  getFlexSize(columns: ColumnDefinition[], column: ColumnDefinition) {
-    let columnSize = 0;
-    let columnDisplayLabel = false;
-    columns.forEach(colIter => {
-      if (colIter.defaultValue === column.defaultValue)
-      {
-        columnSize = columnSize + 1;
-        if ((columnSize === 1) && colIter === column) {
-          columnDisplayLabel = true;
-        }
-      }
-    });
-    if (columnDisplayLabel)
-    {
-      return columnSize;
-    }
-    return 0;
+  trackColumnDef(index: number, column: GroupColumnDefinition) {
+    return column.key;
   }
 
   /**
@@ -205,74 +107,52 @@ export class SamplingSamplesTable extends AppMeasurementsTable<Sample, SampleFil
    * @param pmfms
    */
   protected async mapPmfms(pmfms: PmfmStrategy[]): Promise<PmfmStrategy[]> {
+    if (isEmptyArray(pmfms)) return pmfms;
 
     // Wait until map is loaded
-    await firstNotNilPromise(this._$pmfmGroups);
+    const groupedPmfmIdsMap = await firstNotNilPromise(this._$pmfmGroups);
 
-    return pmfms;
-  }
+    // Create a list of known pmfm ids
+    const groupedPmfmIds = Object.values(groupedPmfmIdsMap).reduce((res, pmfmIds) => res.concat(...pmfmIds), []);
 
-  protected getDisplayColumns(): string[] {
-
-    const pmfms = this.$pmfms.getValue();
-    const pmfmIdsMap = this.pmfmGroups;
-
-    if (!pmfms || !pmfmIdsMap) return this.columns;
-
-    const userColumns = this.getUserColumns();
-    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
-    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
-
-    // Group pmfms by parameter group label
-    const allPmfmIds = Object.values(pmfmIdsMap).reduce((res, pmfmIds) => res.concat(pmfmIds), []);
-    let pmfmColumnNames = [];
-    const columnNamesByGroup = pmfms && SAMPLE_PARAMETER_GROUPS.reduce((res, group) => {
-      let columnNames: string[];
+    // Create pmfms group
+    let orderedPmfmIds: number[] = [];
+    let orderedPmfms: PmfmStrategy[] = [];
+    let groupIndex = 0;
+    const pmfmGroupColumns: GroupColumnDefinition[] = SAMPLE_PARAMETER_GROUPS.reduce((res, group) => {
+      let groupPmfms: PmfmStrategy[];
       if (group === 'OTHER') {
-        columnNames = pmfms.filter(p => !allPmfmIds.includes(p.pmfmId)).map(p => p.pmfmId.toString());
+        groupPmfms = pmfms.filter(p => !groupedPmfmIds.includes(p.pmfmId));
       }
       else {
-        const groupPmfmIds = pmfmIdsMap[group];
+        const groupPmfmIds = groupedPmfmIdsMap[group];
         if (isNotEmptyArray(groupPmfmIds)) {
-          columnNames = pmfms.filter(p => groupPmfmIds.includes(p.pmfmId)).map(p => p.pmfmId.toString());
+          groupPmfms = pmfms.filter(p => groupPmfmIds.includes(p.pmfmId));
         }
       }
 
-      if (isNotEmptyArray(columnNames)) {
-        res[group] = columnNames;
-        pmfmColumnNames = pmfmColumnNames.concat(...columnNames);
-      }
-      return res;
-    }, {}) || {};
+      if (isEmptyArray(groupPmfms)) return res; // Skip group
 
-    let groupIndex = 0;
-    let rankOrderIdx = 1; // TODO to delete
-    this.dynamicColumns = SAMPLE_PARAMETER_GROUPS.reduce((res, group) => {
-      const columnNames = columnNamesByGroup[group];
-      if (isEmptyArray(columnNames)) return res; // Skip
-      groupIndex++;
-      return res.concat(columnNames.map(columnName => {
-        return <ColumnDefinition>{
-          key: columnName,
-          label: this.i18nFieldPrefix + group,
-          defaultValue: group,
-          type: 'string',
-          computed : false,
-          groupIndex : groupIndex,
-          rankOrder : rankOrderIdx++,
-          disabled : false
-        };
-      }));
+      orderedPmfms = orderedPmfms.concat(groupPmfms);
+      const groupPmfmCount = groupPmfms.length;
+      const cssClass = (++groupIndex) % 2 === 0 ? 'odd' : 'even';
+      return res.concat(
+          ...groupPmfms.reduce((res, pmfm, index) => {
+            if (orderedPmfmIds.includes(pmfm.pmfmId)) return res; // Skip
+            orderedPmfmIds.push(pmfm.pmfmId);
+            return res.concat(<GroupColumnDefinition>{
+              key: pmfm.pmfmId.toString(),
+              label: group,
+              name: this.i18nColumnPrefix + group,
+              cssClass,
+              colSpan: index === 0 ? groupPmfmCount : 0
+            });
+          }, []));
     }, []);
 
+    this.$pmfmGroupColumns.next(pmfmGroupColumns);
 
-    return RESERVED_START_COLUMNS
-      .concat(startColumns)
-      .concat(pmfmColumnNames)
-      .concat(endColumns)
-      .concat(RESERVED_END_COLUMNS)
-      // Remove columns to hide
-      .filter(column => !this.excludesColumns.includes(column));
+    return orderedPmfms;
   }
 
   async getMaxRankOrder(): Promise<number> {
@@ -280,170 +160,6 @@ export class SamplingSamplesTable extends AppMeasurementsTable<Sample, SampleFil
   }
 
   /* -- protected methods -- */
-
-  /*protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
-    //if (isNilOrBlank(value)) return [];
-    return this.programService.suggestTaxonGroups(value,
-      {
-        program: this.program,
-        searchAttribute: options && options.searchAttribute
-      });
-  }*/
-
-  /*protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
-    const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
-
-    // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return [];
-
-    return this.programService.suggestTaxonNames(value,
-      {
-        program: this.program,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: taxonGroup && taxonGroup.id || undefined
-      });
-  }*/
-
-  protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
-
-    await super.onNewEntity(data);
-
-    // Default date
-    if (isNotNil(this.defaultSampleDate)) {
-      data.sampleDate = this.defaultSampleDate;
-    } else if (this.settings.isOnFieldMode(this.usageMode)) {
-      data.sampleDate = moment();
-    }
-
-    // set  taxonName, taxonGroup
-    if (isNotNil(this.defaultTaxonName)) {
-      data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
-    }
-
-  }
-
-  protected async openNewRowDetail(): Promise<boolean> {
-    if (!this.allowRowDetail) return false;
-
-    const data = await this.openDetailModal();
-    if (data) {
-      await this.addEntityToTable(data);
-    }
-    return true;
-  }
-
-  protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
-    if (!this.allowRowDetail) return false;
-
-    if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
-      return true;
-    }
-
-    const data = this.toEntity(row, true);
-
-    // Prepare entity measurement values
-    this.prepareEntityToSave(data);
-
-    const updatedData = await this.openDetailModal(data);
-    if (updatedData) {
-      await this.updateEntityToTable(updatedData, row);
-    }
-    else {
-      this.editedRow = null;
-    }
-    return true;
-  }
-
-  async openDetailModal(sample?: Sample): Promise<Sample | undefined> {
-    const isNew = !sample && true;
-    if (isNew) {
-      sample = new Sample();
-      await this.onNewEntity(sample);
-    }
-
-    this.markAsLoading();
-
-    const modal = await this.modalCtrl.create({
-      component: SampleModal,
-      componentProps: {
-        program: this.program,
-        acquisitionLevel: this.acquisitionLevel,
-        disabled: this.disabled,
-        value: sample,
-        isNew,
-        showLabel: this.showLabelColumn,
-        //  showTaxonGroup: this.showTaxonGroupColumn,
-        //   showTaxonName: this.showTaxonNameColumn,
-        onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()})
-      },
-      keyboardClose: true
-    });
-
-    // Open the modal
-    await modal.present();
-
-    // Wait until closed
-    const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[samples-table] Modal result: ", data);
-    this.markAsLoaded();
-
-    // Exit if empty
-    if (!(data instanceof Sample)) {
-      return undefined;
-    }
-
-    return data;
-  }
-
-
-  /* -- protected methods -- */
-
-  protected prepareEntityToSave(sample: Sample) {
-    // Override by subclasses
-  }
-
-  public markForCheck() {
-    this.cd.markForCheck();
-  }
-
-
-  /**
-   * getTaxonGroup
-   * @param id
-   * @param entityName
-   * @protected
-   */
-  protected async getTaxoGroupByTaxonNameId(id: any, entityName: string){
-    const res = await this.referentialRefService.loadAll(0, 100, null, null,
-      { entityName, id },
-      { withTotal: false });
-    return res.data;
-
-  }
-
-
-
-  protected async addRowToTable(): Promise<TableElement<Sample>> {
-    this.focusFirstColumn = true;
-    await this._dataSource.asyncCreateNew();
-    this.editedRow = this._dataSource.getRow(-1);
-    const sample = this.editedRow.currentData;
-    // Initialize default parameters
-    await this.onNewEntity(sample);
-    // Update row
-    await this.updateEntityToTable(sample, this.editedRow);
-
-    // Emit start editing event
-    this.onStartEditingRow.emit(this.editedRow);
-    this._dirty = true;
-    this.resultsLength++;
-    this.visibleRowCount++;
-    this.markForCheck();
-    return this.editedRow;
-  }
-
 
   async openAddPmfmsModal(event?: UIEvent): Promise<any> {
     //const columns = this.displayedColumns;

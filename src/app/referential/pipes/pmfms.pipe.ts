@@ -14,7 +14,7 @@ export class PmfmNamePipe implements PipeTransform {
       withUnit?: boolean;
       html?: boolean;
       withDetails?: boolean ;
-    }): any {
+    }): string {
       return getPmfmName(val, opts);
     }
 }

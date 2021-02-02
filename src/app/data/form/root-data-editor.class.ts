@@ -92,6 +92,7 @@ export abstract class AppRootDataEditor<
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
+          // TODO BLA: prefer to use watch by label, in case strategy changed
           switchMap(strategyLabel => this.strategyRefService.loadByLabel(strategyLabel)),
           tap(strategy => this.$strategy.next(strategy))
         )

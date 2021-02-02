@@ -8,9 +8,8 @@ import {
   LoadResult
 } from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
-import {defer, Observable, ObservedValueOf} from "rxjs";
+import {Observable} from "rxjs";
 import * as momentImported from "moment";
-const moment = momentImported;
 import {Moment} from "moment";
 import {gql} from "@apollo/client/core";
 import {Fragments} from "./trip.queries";
@@ -20,14 +19,7 @@ import {GraphqlService} from "../../core/graphql/graphql.service";
 import {SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
-import {
-  Beans,
-  isEmptyArray,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  KeysEnum,
-} from "../../shared/functions";
+import {Beans, isEmptyArray, isNil, isNotEmptyArray, isNotNil, KeysEnum,} from "../../shared/functions";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
@@ -42,6 +34,8 @@ import {ObservedLocationValidatorService} from "./validator/observed-location.va
 import {environment} from "../../../environments/environment";
 import {JobUtils} from "../../shared/services/job.utils";
 import {fromDateISOString, toDateISOString} from "../../shared/dates";
+
+const moment = momentImported;
 
 
 export class ObservedLocationFilter {

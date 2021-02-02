@@ -11,21 +11,14 @@ import {ReferentialFilter} from "./referential.service";
 import {Strategy} from "./model/strategy.model";
 import {
   BaseReferentialEntitiesQueries,
-  BaseReferentialEntityMutations,
   BaseReferentialEntityQueries,
-  BaseReferentialService,
-  BaseReferentialSubscriptions
+  BaseReferentialService
 } from "./base-referential.service";
 import {PlatformService} from "../../core/services/platform.service";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {SortDirection} from "@angular/material/sort";
-import {ReferentialRefFilter} from "./referential-ref.service";
-import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
-import {firstArrayValue, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
-import {LoadResult} from "../../shared/services/entity-service.class";
+import {firstArrayValue, isNotNil, toNumber} from "../../shared/functions";
 import {defer, Observable} from "rxjs";
-import {Program} from "./model/program.model";
 import {filter, map} from "rxjs/operators";
 
 

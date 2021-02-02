@@ -32,7 +32,6 @@ import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal
 import {DataModule} from "../data/data.module";
 import {TranslateModule} from "@ngx-translate/core";
 import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
-import {SamplingLandingForm} from "./landing/sampling/sampling-landing.form";
 
 
 @NgModule({
@@ -51,7 +50,6 @@ import {SamplingLandingForm} from "./landing/sampling/sampling-landing.form";
     LandingPage,
     SamplingLandingPage,
     LandingForm,
-    SamplingLandingForm,
     SelectLandingsModal,
     AggregatedLandingsTable,
     AggregatedLandingModal,
@@ -83,7 +81,6 @@ import {SamplingLandingForm} from "./landing/sampling/sampling-landing.form";
     LandingsTable,
     LandingForm,
     LandingPage,
-    SamplingLandingForm,
     SamplingLandingPage,
     SelectLandingsModal,
     AuctionControlPage
