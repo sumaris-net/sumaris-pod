@@ -11,7 +11,7 @@ import {PhysicalGearForm} from './physicalgear/physical-gear.form';
 import {PhysicalGearTable} from './physicalgear/physical-gears.table';
 import {OperationsTable} from './operation/operations.table';
 import {SamplesTable} from './sample/samples.table';
-import {Samples2Table} from './sample/samples2.table';
+import {SamplingSamplesTable} from './sample/sampling/sampling-samples.table';
 import {SubSamplesTable} from './sample/sub-samples.table';
 import {BatchGroupsTable} from './batch/table/batch-groups.table';
 import {BatchesTable} from './batch/table/batches.table';
@@ -67,7 +67,7 @@ import {TableAddPmfmsComponent} from "./sample/table-add-pmfms.component";
     MeasurementsForm,
     CatchBatchForm,
     SamplesTable,
-    Samples2Table,
+    SamplingSamplesTable,
     SubSamplesTable,
     BatchGroupsTable,
     BatchesTable,
@@ -116,7 +116,7 @@ import {TableAddPmfmsComponent} from "./sample/table-add-pmfms.component";
     SubBatchModal,
     SampleForm,
     SamplesTable,
-    Samples2Table,
+    SamplingSamplesTable,
     SubSamplesTable,
     TableAddPmfmsComponent
   ]

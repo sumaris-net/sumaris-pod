@@ -28,14 +28,14 @@
           <ion-col class="ion-no-padding ion-padding-top">
 
             <!-- landing form-->
-            <app-landing2-form #landingForm
+            <app-sampling-landing-form #landingForm
                                [program]="programSubject|async"
                                [showError]="false"
                                [showLocation]="true"
                                [showComment]="false"
                                [debug]="debug"
                                (onSubmit)="save($event)">
-            </app-landing2-form>
+            </app-sampling-landing-form>
           </ion-col>
 
           <ion-col class="ion-no-padding" size="12" size-xl="3">
@@ -68,13 +68,13 @@
       </ng-template>
 
       <div #tabContent>
-        <app-samples2-table #samplesTable [debug]="debug"
-                            [usageMode]="usageMode"
-                            [showLabelColumn]="true"
-                            [defaultSampleDate]="data?.dateTime"
-                            [pmfmGroups]="$pmfmGroups|async"
-                            (onInitForm)="onStartSampleEditingForm($event)">
-        </app-samples2-table>
+        <app-sampling-samples-table #samplesTable [debug]="debug"
+                                    [usageMode]="usageMode"
+                                    [showLabelColumn]="true"
+                                    [defaultSampleDate]="data?.dateTime"
+                                    [pmfmGroups]="$pmfmGroups|async"
+                                    (onInitForm)="onStartSampleEditingForm($event)">
+        </app-sampling-samples-table>
 
         <!-- final space-->
         <p visible-xs visible-sm visible-mobile>&nbsp;</p>

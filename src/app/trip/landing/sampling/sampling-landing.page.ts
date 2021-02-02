@@ -12,47 +12,47 @@ import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
 import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
 import {filter, map, throttleTime} from "rxjs/operators";
-import {environment} from "../../../environments/environment";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {PlatformService} from "../../core/services/platform.service";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {StrategyService} from "../../referential/services/strategy.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {Samples2Table} from "../sample/samples2.table";
-import {LandingService} from "../services/landing.service";
-import {Landing} from "../services/model/landing.model";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {Trip} from "../services/model/trip.model";
-import {ObservedLocationService} from "../services/observed-location.service";
-import {TripService} from "../services/trip.service";
-import {Landing2Form} from "./landing2.form";
-import {fromDateISOString} from "../../shared/dates";
-import {Program} from "../../referential/services/model/program.model";
-import {firstNotNilPromise} from "../../shared/observables";
-import {Strategy} from "../../referential/services/model/strategy.model";
+import {environment} from "../../../../environments/environment";
+import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {UsageMode} from "../../../core/services/model/settings.model";
+import {PlatformService} from "../../../core/services/platform.service";
+import {AppRootDataEditor} from "../../../data/form/root-data-editor.class";
+import {ProgramProperties} from "../../../referential/services/config/program.config";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
+import {StrategyService} from "../../../referential/services/strategy.service";
+import {VesselSnapshotService} from "../../../referential/services/vessel-snapshot.service";
+import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../../shared/functions';
+import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {LandingService} from "../../services/landing.service";
+import {Landing} from "../../services/model/landing.model";
+import {ObservedLocation} from "../../services/model/observed-location.model";
+import {Trip} from "../../services/model/trip.model";
+import {ObservedLocationService} from "../../services/observed-location.service";
+import {TripService} from "../../services/trip.service";
+import {SamplingLandingForm} from "./sampling-landing.form";
+import {fromDateISOString} from "../../../shared/dates";
+import {Program} from "../../../referential/services/model/program.model";
+import {firstNotNilPromise} from "../../../shared/observables";
+import {Strategy} from "../../../referential/services/model/strategy.model";
 import {
   STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX,
   StrategySummaryCardComponent
-} from "../../data/strategy/strategy-summary-card.component";
-import {ParameterLabelGroups} from "../../referential/services/model/model.enum";
-import {PmfmService} from "../../referential/services/pmfm.service";
-import {ObjectMap} from "../../shared/types";
-import {BiologicalSamplingValidators} from "../services/validator/biological-sampling.validators";
+} from "../../../data/strategy/strategy-summary-card.component";
+import {ParameterLabelGroups} from "../../../referential/services/model/model.enum";
+import {PmfmService} from "../../../referential/services/pmfm.service";
+import {ObjectMap} from "../../../shared/types";
+import {BiologicalSamplingValidators} from "../../services/validator/biological-sampling.validators";
+import {SamplingSamplesTable} from "../../sample/sampling/sampling-samples.table";
 
 const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
 @Component({
-  selector: 'app-landing2-page',
-  templateUrl: './landing2.page.html',
+  selector: 'app-sampling-landing-page',
+  templateUrl: './sampling-landing.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Landing2Page extends AppRootDataEditor<Landing, LandingService> implements OnInit {
+export class SamplingLandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit {
 
   protected parent: Trip | ObservedLocation;
   protected dataService: LandingService;
@@ -71,8 +71,8 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   forceOneTab = false;
   $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
 
-  @ViewChild('landingForm', { static: true }) landingForm: Landing2Form;
-  @ViewChild('samplesTable', { static: true }) samplesTable: Samples2Table;
+  @ViewChild('landingForm', { static: true }) landingForm: SamplingLandingForm;
+  @ViewChild('samplesTable', { static: true }) samplesTable: SamplingSamplesTable;
 
   @ViewChild('firstTabInjection', {static: false}) firstTabInjection: ElementRef;
   @ViewChildren('tabContent') tabContents: QueryList<ElementRef>;
@@ -135,7 +135,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     this.registerSubscription(
       this.landingForm.strategyControl.valueChanges
         .pipe(
-          map(value => value && value.label ? value.label : value)
+          map((value: any) => value && (typeof value === 'object') ? value.label : value)
         )
         .subscribe((strategy: string) => this.strategySubject.next(strategy))
     );

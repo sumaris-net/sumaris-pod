@@ -31,8 +31,8 @@ import {ReferentialModule} from "../referential/referential.module";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {DataModule} from "../data/data.module";
 import {TranslateModule} from "@ngx-translate/core";
-import {Landing2Page} from "./landing/landing2.page";
-import {Landing2Form} from "./landing/landing2.form";
+import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
+import {SamplingLandingForm} from "./landing/sampling/sampling-landing.form";
 
 
 @NgModule({
@@ -49,9 +49,9 @@ import {Landing2Form} from "./landing/landing2.form";
     ObservedLocationsPage,
     LandingsTable,
     LandingPage,
-    Landing2Page,
+    SamplingLandingPage,
     LandingForm,
-    Landing2Form,
+    SamplingLandingForm,
     SelectLandingsModal,
     AggregatedLandingsTable,
     AggregatedLandingModal,
@@ -82,9 +82,9 @@ import {Landing2Form} from "./landing/landing2.form";
     // Components
     LandingsTable,
     LandingForm,
-    Landing2Form,
     LandingPage,
-    Landing2Page,
+    SamplingLandingForm,
+    SamplingLandingPage,
     SelectLandingsModal,
     AuctionControlPage
   ]

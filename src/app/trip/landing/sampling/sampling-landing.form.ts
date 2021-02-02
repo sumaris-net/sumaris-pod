@@ -2,45 +2,44 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {Moment} from 'moment/moment';
 
 import {DateAdapter} from "@angular/material/core";
-import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
-import {PersonService} from "../../admin/services/person.service";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
+import {debounceTime, distinctUntilChanged, filter, pluck} from "rxjs/operators";
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../../referential/services/model/model.enum";
+import {PersonService} from "../../../admin/services/person.service";
+import {MeasurementValuesForm} from "../../measurement/measurement-values.form.class";
+import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
-import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isNil, isNotNil, toBoolean} from "../../shared/functions";
-import {Landing} from "../services/model/landing.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ProgramService} from "../../referential/services/program.service";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
-import {Strategy} from "../../referential/services/model/strategy.model";
-import {SharedValidators} from "../../shared/validator/validators";
+import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
+import {Person, personToString, UserProfileLabels} from "../../../core/services/model/person.model";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {VesselSnapshotService} from "../../../referential/services/vessel-snapshot.service";
+import {isNil, isNotNil, toBoolean} from "../../../shared/functions";
+import {Landing} from "../../services/model/landing.model";
+import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
+import {ProgramService} from "../../../referential/services/program.service";
+import {StatusIds} from "../../../core/services/model/model.enum";
+import {VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
+import {VesselModal} from "../../../referential/vessel/modal/modal-vessel";
+import {Strategy} from "../../../referential/services/model/strategy.model";
 import {TranslateService} from "@ngx-translate/core";
-import {FormArrayHelper} from "../../core/form/form.utils";
+import {FormArrayHelper} from "../../../core/form/form.utils";
 import {
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
-} from "../../shared/material/autocomplete/material.autocomplete";
-import {LandingValidatorService} from "../services/validator/landing.validator";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
+} from "../../../shared/material/autocomplete/material.autocomplete";
+import {LandingValidatorService} from "../../services/validator/landing.validator";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {EntityUtils} from "../../../core/services/model/entity.model";
 
 const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
 @Component({
-  selector: 'app-landing2-form',
-  templateUrl: './landing2.form.html',
-  styleUrls: ['./landing2.form.scss'],
+  selector: 'app-sampling-landing-form',
+  templateUrl: './sampling-landing.form.html',
+  styleUrls: ['./sampling-landing.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Landing2Form extends MeasurementValuesForm<Landing> implements OnInit {
+export class SamplingLandingForm extends MeasurementValuesForm<Landing> implements OnInit {
 
   private _showObservers: boolean;
   private _vessel: any;
