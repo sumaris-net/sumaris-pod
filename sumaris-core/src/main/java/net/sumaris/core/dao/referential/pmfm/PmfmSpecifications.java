@@ -24,6 +24,7 @@ package net.sumaris.core.dao.referential.pmfm;
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import org.apache.commons.lang3.ArrayUtils;
@@ -74,7 +75,12 @@ public interface PmfmSpecifications {
         return specification;
     }
 
-    default Specification<Pmfm> inStatusIds(int... statusIds) {
+    default Specification<Pmfm> inStatusIds(StatusEnum... status) {
+        Integer[] statusIds = Arrays.stream(status).map(StatusEnum::getId).toArray(Integer[]::new);
+        return inStatusIds(statusIds);
+    }
+
+    default Specification<Pmfm> inStatusIds(Integer... statusIds) {
         BindableSpecification<Pmfm> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
             ParameterExpression<Collection> statusParam = criteriaBuilder.parameter(Collection.class, STATUS_PARAMETER);

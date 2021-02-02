@@ -100,7 +100,7 @@ public class PmfmRepositoryImpl
                 || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
         return findAll(hasPmfmPart(parameterId, matrixId, fractionId, methodId)
                 // ONlY enabled PMFM
-                .and(inStatusIds(StatusEnum.ENABLE.getId())));
+                .and(inStatusIds(StatusEnum.ENABLE)));
     }
 
     @Override
