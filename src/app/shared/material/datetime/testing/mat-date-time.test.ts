@@ -5,8 +5,7 @@ import {debounceTime} from "rxjs/operators";
 import {SharedFormGroupValidators} from "../../../validator/validators";
 import {AppFormUtils} from "../../../../core/form/form.utils";
 import {toDateISOString} from "../../../dates";
-import * as momentImported from "moment";
-const moment = momentImported;
+import * as moment from "moment";
 
 @Component({
   selector: 'app-data-time-test',

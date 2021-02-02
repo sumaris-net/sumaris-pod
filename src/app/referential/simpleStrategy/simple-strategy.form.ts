@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, V
 import { FormArray, FormBuilder, FormControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 import { DateAdapter } from "@angular/material/core";
 import * as moment from "moment";
-import { Moment } from 'moment/moment';
+import { Moment } from 'moment';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { SharedValidators } from 'src/app/shared/validator/validators';
 import { LocalSettingsService } from "../../core/services/local-settings.service";
