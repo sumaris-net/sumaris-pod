@@ -576,7 +576,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     });
 
     const pmfmStrategiesControl = this.pmfmStrategiesForm;
-    let pmfmStrategies: any[];
 
     // If new
     if (!data.id) {
@@ -589,15 +588,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       // pmfmStrategies = [hasSex, hasAge];
     }
 
-    //Weights
-    // TODO BLA: revoir ces sélections
-    // Dans le ngOnInit() :
-    //   pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
-    //    .then(map => this._$pmfmGroups.next(map));
-    //
-    // ICI:
 
-    pmfmStrategies = [];
+    const pmfmStrategies = [];
 
     firstNotNilPromise(this._$pmfmGroups).then((pmfmGroups) => {
 
@@ -983,9 +975,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   protected getPmfmsByType(pmfmStrategies: PmfmStrategy[], pmfmGroups: number[]) {
     return (pmfmStrategies || []).filter(p => {
-      const pmfmId = toNumber(p.pmfmId, p.pmfm && p.pmfm.id);
-      const parameterId = toNumber(p.parameterId, p.parameter && p.parameter.id);
-      return pmfmGroups.includes(pmfmId) || pmfmGroups.includes(parameterId);
+      if (p) {
+        const pmfmId = toNumber(p.pmfmId, p.pmfm && p.pmfm.id);
+        const parameterId = toNumber(p.parameterId, p.parameter && p.parameter.id);
+        return pmfmGroups.includes(pmfmId) || pmfmGroups.includes(parameterId);
+      }
+      return false;
     });
   }
 
