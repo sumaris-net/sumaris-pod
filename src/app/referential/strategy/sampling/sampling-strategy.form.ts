@@ -182,8 +182,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           const pmfms = control.value.flat();
           if (!isEmptyArray(pmfms)) {
             const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
-            const weight = this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT);
-            const length = this.getPmfmsByType(pmfms, pmfmGroups.LENGTH);
+            const weight = this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
+            const length = this.getPmfmsByType(pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
             if (isEmptyArray(weight) && isEmptyArray(length)) {
               return <ValidationErrors>{ weightOrSize: true };
             }
@@ -207,13 +207,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
         if (!isEmptyArray(pmfms)) {
           const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
-          length += this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT).length;
-          length += this.getPmfmsByType(pmfms, pmfmGroups.LENGTH).length;
-          if (sex) length += this.getPmfmsByType(pmfms, pmfmGroups.MATURITY).length
+          length += this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT).length;
+          length += this.getPmfmsByType(pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH).length;
+          if (sex) length += this.getPmfmsByType(pmfms, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY).length
         }
           
         if (length < minLength) {
-          return <ValidationErrors>{ minLength: {minLength: minLength} };
+          return <ValidationErrors>{ minLength: {minLength} };
         }
         SharedValidators.clearError(control, 'minLength');
       }
@@ -594,17 +594,17 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     firstNotNilPromise(this._$pmfmGroups).then((pmfmGroups) => {
 
       //WEIGHT
-      const weightPmfmStrategy = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.WEIGHT);
+      const weightPmfmStrategy = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
       pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
       this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
 
       // LENGTH
-      const lengthPmfmStrategies = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.LENGTH);
+      const lengthPmfmStrategies = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
       pmfmStrategies.push(lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : []);
       this.lengthPmfmStrategiesTable.value = lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : [new PmfmStrategy()];
 
       // MATURITY
-      const maturityPmfmStrategies = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.MATURITY);
+      const maturityPmfmStrategies = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY);
       pmfmStrategies.push(maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : []);
       this.maturityPmfmStrategiesTable.value = maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : [new PmfmStrategy()];
 
@@ -973,12 +973,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param pmfmGroups
    * @protected
    */
-  protected getPmfmsByType(pmfmStrategies: PmfmStrategy[], pmfmGroups: number[]) {
+  protected getPmfmsByType(pmfmStrategies: PmfmStrategy[], pmfmGroups: number[], type: any) {
     return (pmfmStrategies || []).filter(p => {
       if (p) {
         const pmfmId = toNumber(p.pmfmId, p.pmfm && p.pmfm.id);
-        const parameterId = toNumber(p.parameterId, p.parameter && p.parameter.id);
-        return pmfmGroups.includes(pmfmId) || pmfmGroups.includes(parameterId);
+        const hasParameterId = p.parameter && p.parameter.label && type.includes(p.parameter.label);
+        return pmfmGroups.includes(pmfmId) || hasParameterId;
       }
       return false;
     });
